@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Administrador{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4">
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-primary border-4">
+            <div class="card-body">
+                <h6 class="text-muted">Pedidos Pendientes</h6>
+                <h3>2</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-success border-4">
+            <div class="card-body">
+                <h6 class="text-muted">Conductores Activos</h6>
+                <h3>3</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-warning border-4">
+            <div class="card-body">
+                <h6 class="text-muted">Entregas Hoy</h6>
+                <h3>2</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-info border-4">
+            <div class="card-body">
+                <h6 class="text-muted">Nuevos Clientes</h6>
+                <h3>3</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+
+        <h5 class="mb-3">Acciones rápidas</h5>
+
+        <button class="btn btn-primary me-2">
+            <i class="bi bi-truck"></i> Gestionar Vehículos
+        </button>
+
+        <button class="btn btn-warning me-2">
+            <i class="bi bi-bar-chart"></i> Ver Reportes
+        </button>
+
+        <button class="btn btn-warning">
+            <i class="bi bi-box"></i> Revisar Pedidos
+        </button>
+
+    </div>
+</div>
+
+
+<div class="card shadow-sm">
+
+    <div class="card-body">
+
+        <h5 class="mb-3">Pedidos Recientes</h5>
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>ID Pedido</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>#CT-1001</td>
+                    <td>Constructora Bolívar</td>
+                    <td>2026-02-03</td>
+                    <td>$4.500.000</td>
+                    <td><span class="badge bg-warning">Pendiente</span></td>
+                    <td><button class="btn btn-primary btn-sm">Ver</button></td>
+                </tr>
+
+                <tr>
+                    <td>#CT-1002</td>
+                    <td>Juan Pérez</td>
+                    <td>2026-02-02</td>
+                    <td>$850.000</td>
+                    <td><span class="badge bg-success">En Curso</span></td>
+                    <td><button class="btn btn-primary btn-sm">Ver</button></td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

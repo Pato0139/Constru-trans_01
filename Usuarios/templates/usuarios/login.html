@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8">
+<title>Iniciar sesión</title>
+
+<link rel="stylesheet" href="{% static 'css/loginestilo.css' %}">
+
+<style>
+body{
+    font-family: Arial;
+    background: linear-gradient(90deg,#1d5fa7,#f2a21b);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.card{
+    background:white;
+    padding:40px;
+    width:350px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+.logo{
+    width:100px;
+    display:block;
+    margin:auto;
+    margin-bottom:10px;
+}
+
+h2{
+    text-align:center;
+    color:#1d5fa7;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    border:1px solid #ccc;
+    border-radius:5px;
+}
+
+button{
+    width:100%;
+    padding:10px;
+    background:#1d5fa7;
+    color:white;
+    border:none;
+    border-radius:5px;
+    margin-top:10px;
+}
+
+button:hover{
+    background:#154a83;
+}
+
+.links{
+    text-align:center;
+    margin-top:10px;
+    font-size:14px;
+}
+
+.links a{
+    color:#1d5fa7;
+    text-decoration:none;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<img src="{% static 'img/Logo1.jpeg' %}" width="200" style="display:block;margin:auto;margin-bottom:10px;">
+
+<h2>Iniciar sesión</h2>
+
+<form method="POST">
+{% csrf_token %}
+
+<input type="text" name="username" placeholder="Usuario" required>
+
+<input type="password" name="password" placeholder="Contraseña" required>
+
+<button type="submit">Ingresar</button>
+
+</form>
+
+<div class="links">
+
+<a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
+
+<p>¿No tienes cuenta?  
+<a href="{% url 'registro' %}">Regístrate</a></p>
+
+</div>
+
+</div>
+
+</body>
+</html>

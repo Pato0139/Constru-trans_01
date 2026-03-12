@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Material{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">Editar Material</h2>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<div class="mb-3">
+<label>Nombre</label>
+<input type="text" name="nombre" class="form-control" value="{{ material.nombre }}">
+</div>
+
+<div class="mb-3">
+<label>Descripción</label>
+<textarea name="descripcion" class="form-control">{{ material.descripcion }}</textarea>
+</div>
+
+<div class="mb-3">
+<label>Precio</label>
+<input type="number" name="precio" class="form-control" value="{{ material.precio }}">
+</div>
+
+<div class="mb-3">
+<label>Stock</label>
+<input type="number" name="stock" class="form-control" value="{{ material.stock }}">
+</div>
+
+<button type="submit" class="btn btn-primary">
+Actualizar Material
+</button>
+
+</form>
+
+{% endblock %}

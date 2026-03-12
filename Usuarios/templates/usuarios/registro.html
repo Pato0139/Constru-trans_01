@@ -1,0 +1,29 @@
+<h2>Crear Cuenta</h2>
+
+{% if error %}
+<p style="color:red;text-align:center">{{ error }}</p>
+{% endif %}
+
+<form method="POST">
+{% csrf_token %}
+
+<input type="text" name="nombre" placeholder="Nombre completo" required>
+
+<input type="email" name="correo" placeholder="Correo electrónico" required>
+
+<input type="text" name="telefono" placeholder="Teléfono">
+
+<select name="rol" required>
+<option value="">Seleccionar tipo de usuario</option>
+<option value="cliente">Cliente</option>
+<option value="conductor">Conductor</option>
+<option value="empleado">Empleado</option>
+</select>
+
+<input type="password" name="contrasena" placeholder="Contraseña" required>
+
+<input type="password" name="confirmar_contrasena" placeholder="Confirmar contraseña" required>
+
+<button type="submit">Registrarse</button>
+
+</form>
