@@ -1,5 +1,5 @@
 from django.db import models
-from Usuarios.models import Usuario
+from usuarios.models import Usuario
 
 
 class Orden(models.Model):

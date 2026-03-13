@@ -1,0 +1,48 @@
+{% extends "Cliente/base_cliente.html" %}
+
+{% block content %}
+
+<h3 class="mb-4">Solicitar Servicio</h3>
+
+<div class="card shadow-sm col-md-6">
+
+<div class="card-body">
+
+<form method="POST">
+
+{% csrf_token %}
+
+<div class="mb-3">
+<label class="form-label">Material</label>
+
+<select name="material" class="form-control" required>
+
+{% for m in materiales %}
+<option value="{{ m.id }}">
+{{ m.nombre }} - ${{ m.precio }}
+</option>
+{% endfor %}
+
+</select>
+</div>
+
+<div class="mb-3">
+<label class="form-label">Cantidad</label>
+<input type="number" name="cantidad" class="form-control" required>
+</div>
+
+<div class="mb-3">
+<label class="form-label">Dirección de entrega</label>
+<input type="text" name="direccion" class="form-control" required>
+</div>
+
+<button class="btn btn-primary">
+<i class="bi bi-check-lg"></i> Crear pedido
+</button>
+
+</form>
+
+</div>
+</div>
+
+{% endblock %}

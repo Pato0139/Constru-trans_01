@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import Usuario, Vehiculo, Material
-from Ordenes.models import Orden
+from ordenes.models import Orden
 
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -105,7 +105,7 @@ def panel(request):
     usuario = request.user.usuario
 
     if usuario.rol == "admin":
-        return render(request, "Dashboard/panel-admin.html")
+        return render(request, "dashboard/panel-admin.html")
 
     elif usuario.rol == "cliente":
         return redirect("panel_cliente")
@@ -137,7 +137,7 @@ def lista_usuarios(request):
 
     usuarios = Usuario.objects.all()
 
-    return render(request, "Dashboard/usuarios_lista.html", {
+    return render(request, "dashboard/usuarios_lista.html", {
         "usuarios": usuarios
     })
 
@@ -172,7 +172,7 @@ def editar_usuario(request, id):
 
         return redirect("lista_usuarios")
 
-    return render(request, "Dashboard/editar_usuario.html", {
+    return render(request, "dashboard/editar_usuario.html", {
         "usuario": usuario
     })
 
@@ -185,7 +185,7 @@ def lista_conductores(request):
 
     conductores = Usuario.objects.filter(rol="conductor")
 
-    return render(request, "Dashboard/conductores_lista.html", {
+    return render(request, "dashboard/conductores_lista.html", {
         "conductores": conductores
     })
 
@@ -198,7 +198,7 @@ def lista_vehiculos(request):
 
     vehiculos = Vehiculo.objects.all()
 
-    return render(request, "Dashboard/vehiculos_lista.html", {
+    return render(request, "dashboard/vehiculos_lista.html", {
         "vehiculos": vehiculos
     })
 
@@ -221,7 +221,7 @@ def reportes_admin(request):
         "entregadas": entregadas,
     }
 
-    return render(request, "Dashboard/reportes.html", context)
+    return render(request, "dashboard/reportes.html", context)
 
 
 # -------------------------
@@ -248,7 +248,7 @@ def panel_cliente(request):
         "ultimos_pedidos": ultimos_pedidos
     }
 
-    return render(request, "Cliente/dashboard.html", context)
+    return render(request, "cliente/dashboard.html", context)
 
 
 # -------------------------
@@ -259,7 +259,7 @@ def lista_materiales(request):
 
     materiales = Material.objects.all()
 
-    return render(request, "Dashboard/materiales_lista.html", {
+    return render(request, "dashboard/materiales_lista.html", {
         "materiales": materiales
     })
 
@@ -286,7 +286,7 @@ def crear_material(request):
 
         return redirect("lista_materiales")
 
-    return render(request, "Dashboard/material_crear.html")
+    return render(request, "dashboard/material_crear.html")
 
 
 # -------------------------
@@ -308,7 +308,7 @@ def editar_material(request, id):
 
         return redirect("lista_materiales")
 
-    return render(request, "Dashboard/material_editar.html", {
+    return render(request, "dashboard/material_editar.html", {
         "material": material
     })
 
@@ -333,13 +333,13 @@ def perfil_cliente(request):
 
     cliente = request.user.usuario
 
-    return render(request, "Cliente/perfil.html", {
+    return render(request, "cliente/perfil.html", {
         "cliente": cliente
     })
 
 
 # -------------------------
-# CREAR PEDIDO (CLIENTE)
+# CREAR PEDIDO
 # -------------------------
 @login_required
 def crear_pedido(request):
@@ -368,7 +368,7 @@ def crear_pedido(request):
 
         return redirect("mis_pedidos")
 
-    return render(request, "Cliente/crear_pedido.html", {
+    return render(request, "cliente/crear_pedido.html", {
         "materiales": materiales
     })
 
@@ -383,7 +383,7 @@ def mis_pedidos(request):
 
     pedidos = Orden.objects.filter(cliente=cliente).order_by("-fecha")
 
-    return render(request, "Cliente/mis_pedidos.html", {
+    return render(request, "cliente/mis_pedidos.html", {
         "pedidos": pedidos
     })
 
@@ -398,7 +398,7 @@ def seguimiento_pedidos(request):
 
     pedidos = Orden.objects.filter(cliente=cliente).order_by("-fecha")
 
-    return render(request, "Cliente/seguimiento.html", {
+    return render(request, "cliente/seguimiento.html", {
         "pedidos": pedidos
     })
 
@@ -416,6 +416,6 @@ def historial_pedidos(request):
         estado="entregado"
     ).order_by("-fecha")
 
-    return render(request, "Cliente/historial.html", {
+    return render(request, "cliente/historial.html", {
         "pedidos": pedidos
     })

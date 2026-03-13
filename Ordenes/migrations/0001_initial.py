@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('Usuarios', '0004_remove_usuario_confirmar_contrasena_and_more'),
+        ('usuarios', '0004_remove_usuario_confirmar_contrasena_and_more'),
     ]
 
     operations = [

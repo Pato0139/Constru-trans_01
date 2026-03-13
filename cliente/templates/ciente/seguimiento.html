@@ -1,0 +1,78 @@
+{% extends "Cliente/base_cliente.html" %}
+
+{% block content %}
+
+<h3 class="mb-4">Seguimiento de pedidos</h3>
+
+{% for pedido in pedidos %}
+
+<div class="card shadow-sm mb-3">
+
+<div class="card-body">
+
+<div class="d-flex justify-content-between">
+
+<div>
+<h5>{{ pedido.material.nombre }}</h5>
+<p class="text-muted">Cantidad: {{ pedido.cantidad }}</p>
+</div>
+
+<div>
+<span class="badge 
+{% if pedido.estado == 'pendiente' %}
+bg-warning
+{% elif pedido.estado == 'en_ruta' %}
+bg-primary
+{% elif pedido.estado == 'entregado' %}
+bg-success
+{% endif %}
+">
+
+{{ pedido.estado }}
+
+</span>
+</div>
+
+</div>
+
+<!-- Barra de progreso -->
+
+<div class="progress mt-3" style="height:8px;">
+
+<div class="progress-bar
+{% if pedido.estado == 'pendiente' %}
+bg-warning
+{% elif pedido.estado == 'en_ruta' %}
+bg-info
+{% elif pedido.estado == 'entregado' %}
+bg-success
+{% endif %}
+"
+role="progressbar"
+
+style="width:
+{% if pedido.estado == 'pendiente' %}
+30%
+{% elif pedido.estado == 'en_ruta' %}
+60%
+{% elif pedido.estado == 'entregado' %}
+100%
+{% endif %}
+;">
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% empty %}
+
+<div class="alert alert-info">
+No tienes pedidos aún.
+</div>
+
+{% endfor %}
+
+{% endblock %}
