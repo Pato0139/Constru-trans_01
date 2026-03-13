@@ -1,4 +1,4 @@
-{% extends "Cliente/base_cliente.html" %}
+{% extends "cliente/base_cliente.html" %}
 
 {% block content %}
 
@@ -21,11 +21,27 @@
 
 {% for pedido in pedidos %}
 
+    {% for detalle in pedido.detalles.all %}
+
+    <tr>
+        <td>{{ detalle.material.nombre }}</td>
+        <td>{{ detalle.cantidad }}</td>
+        <td>${{ detalle.subtotal }}</td>
+        <td>{{ pedido.estado }}</td>
+    </tr>
+
+    {% empty %}
+
+    <tr>
+        <td colspan="4">Este pedido no tiene materiales</td>
+    </tr>
+
+    {% endfor %}
+
+{% empty %}
+
 <tr>
-<td>{{ pedido.material.nombre }}</td>
-<td>{{ pedido.cantidad }}</td>
-<td>${{ pedido.precio }}</td>
-<td>{{ pedido.estado }}</td>
+<td colspan="4">No tienes pedidos aún</td>
 </tr>
 
 {% endfor %}

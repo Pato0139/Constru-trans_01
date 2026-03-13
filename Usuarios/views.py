@@ -338,9 +338,6 @@ def perfil_cliente(request):
     })
 
 
-# -------------------------
-# CREAR PEDIDO
-# -------------------------
 @login_required
 def crear_pedido(request):
 
@@ -350,18 +347,17 @@ def crear_pedido(request):
     if request.method == "POST":
 
         material_id = request.POST.get("material")
-        cantidad = request.POST.get("cantidad")
+        cantidad = int(request.POST.get("cantidad"))
         direccion = request.POST.get("direccion")
 
         material = Material.objects.get(id=material_id)
 
-        total = material.precio * int(cantidad)
+        total = material.precio * cantidad
 
         Orden.objects.create(
             cliente=cliente,
-            material=material,
-            cantidad=cantidad,
-            direccion=direccion,
+            direccion_origen="Bodega",
+            direccion_destino=direccion,
             precio=total,
             estado="pendiente"
         )

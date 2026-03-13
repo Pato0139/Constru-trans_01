@@ -1,5 +1,3 @@
-
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -32,7 +30,6 @@ INSTALLED_APPS = [
     'logistica',
     'ordenes',
     'dashboard',
-
 ]
 
 
@@ -51,7 +48,13 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+
+        # 👇 AQUÍ AGREGAMOS TU RUTA DE CLIENTE
+        'DIRS': [
+            BASE_DIR / 'templates',
+            BASE_DIR / 'cliente' / 'templates',
+        ],
+
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -116,4 +119,12 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
+# Configuración de login
+LOGIN_URL = '/usuarios/login/'
+LOGIN_REDIRECT_URL = '/usuarios/panel/'
+LOGOUT_REDIRECT_URL = '/usuarios/login/'
