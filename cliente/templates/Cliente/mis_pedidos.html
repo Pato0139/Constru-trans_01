@@ -1,0 +1,39 @@
+{% extends "Cliente/base_cliente.html" %}
+
+{% block content %}
+
+<h3 class="mb-4">Mis pedidos</h3>
+
+<div class="card shadow-sm">
+
+<table class="table">
+
+<thead>
+<tr>
+<th>Material</th>
+<th>Cantidad</th>
+<th>Precio</th>
+<th>Estado</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for pedido in pedidos %}
+
+<tr>
+<td>{{ pedido.material.nombre }}</td>
+<td>{{ pedido.cantidad }}</td>
+<td>${{ pedido.precio }}</td>
+<td>{{ pedido.estado }}</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

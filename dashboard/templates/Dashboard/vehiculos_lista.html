@@ -1,0 +1,49 @@
+{% extends "Dashboard/panel-admin.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2 class="mb-4">Lista de Vehículos</h2>
+
+<table class="table table-striped">
+
+<thead class="table-dark">
+<tr>
+<th>ID</th>
+<th>Placa</th>
+<th>Tipo</th>
+<th>Capacidad</th>
+<th>Estado</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for vehiculo in vehiculos %}
+
+<tr>
+<td>{{ vehiculo.id }}</td>
+<td>{{ vehiculo.placa }}</td>
+<td>{{ vehiculo.tipo }}</td>
+<td>{{ vehiculo.capacidad }}</td>
+<td>{{ vehiculo.estado }}</td>
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="5" class="text-center">
+No hay vehículos registrados
+</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

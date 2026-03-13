@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">Lista de Usuarios</h2>
+
+<table class="table table-striped">
+
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for usuario in usuarios %}
+
+        <tr>
+            <td>{{ usuario.id }}</td>
+            <td>{{ usuario.nombre }}</td>
+            <td>{{ usuario.telefono }}</td>
+            <td>{{ usuario.rol }}</td>
+
+            <td>
+
+                <a href="/usuarios/editar/{{usuario.id}}" class="btn btn-primary btn-sm">
+                    Editar
+                </a>
+
+                <a href="/usuarios/eliminar/{{usuario.id}}" class="btn btn-danger btn-sm">
+                    Eliminar
+                </a>
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endblock %}

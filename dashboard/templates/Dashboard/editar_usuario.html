@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Editar Usuario</h2>
+
+<form method="POST">
+{% csrf_token %}
+
+<div class="mb-3">
+<label>Nombre</label>
+<input type="text" name="nombre" value="{{ usuario.nombre }}" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Teléfono</label>
+<input type="text" name="telefono" value="{{ usuario.telefono }}" class="form-control">
+</div>
+
+<div class="mb-3">
+<label>Rol</label>
+<input type="text" name="rol" value="{{ usuario.rol }}" class="form-control">
+</div>
+
+<button type="submit" class="btn btn-success">Guardar</button>
+
+</form>
+
+{% endblock %}

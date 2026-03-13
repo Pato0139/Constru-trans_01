@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Crear Orden</h2>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<div class="mb-3">
+<label>Cliente</label>
+<select name="cliente" class="form-control">
+
+{% for cliente in clientes %}
+<option value="{{cliente.id}}">
+{{cliente.nombre}}
+</option>
+{% endfor %}
+
+</select>
+</div>
+
+
+<div class="mb-3">
+<label>Conductor</label>
+<select name="conductor" class="form-control">
+
+{% for conductor in conductores %}
+<option value="{{conductor.id}}">
+{{conductor.nombre}}
+</option>
+{% endfor %}
+
+</select>
+</div>
+
+
+<div class="mb-3">
+<label>Dirección origen</label>
+<input type="text" name="origen" class="form-control">
+</div>
+
+
+<div class="mb-3">
+<label>Dirección destino</label>
+<input type="text" name="destino" class="form-control">
+</div>
+
+<button class="btn btn-primary">
+Crear Orden
+</button>
+
+</form>
+
+{% endblock %}
