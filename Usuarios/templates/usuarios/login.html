@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="{% static 'css/loginestilo.css' %}">
 
 <style>
+
 body{
     font-family: Arial;
     background: linear-gradient(90deg,#1d5fa7,#f2a21b);
@@ -54,6 +55,7 @@ button{
     border:none;
     border-radius:5px;
     margin-top:10px;
+    cursor:pointer;
 }
 
 button:hover{
@@ -70,6 +72,13 @@ button:hover{
     color:#1d5fa7;
     text-decoration:none;
 }
+
+.error{
+    color:red;
+    text-align:center;
+    margin-bottom:10px;
+}
+
 </style>
 
 </head>
@@ -82,10 +91,17 @@ button:hover{
 
 <h2>Iniciar sesión</h2>
 
+{% if error %}
+<p class="error">
+{{ error }}
+</p>
+{% endif %}
+
 <form method="POST">
+
 {% csrf_token %}
 
-<input type="text" name="username" placeholder="Usuario" required>
+<input type="text" name="username" placeholder="Correo electrónico" required>
 
 <input type="password" name="password" placeholder="Contraseña" required>
 
@@ -95,10 +111,14 @@ button:hover{
 
 <div class="links">
 
-<a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a>
+<a href="{% url 'password_reset' %}">
+¿Olvidaste tu contraseña?
+</a>
 
-<p>¿No tienes cuenta?  
-<a href="{% url 'registro' %}">Regístrate</a></p>
+<p>
+¿No tienes cuenta?  
+<a href="{% url 'registro' %}">Regístrate</a>
+</p>
 
 </div>
 
