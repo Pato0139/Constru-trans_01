@@ -31,6 +31,7 @@ urlpatterns = [
     path("materiales/eliminar/<int:id>/", views.eliminar_material, name="eliminar_material"),
     path("pedido/<int:id>/", views.ver_pedido_admin, name="ver_pedido_admin"),
     path("pedidos/", views.lista_pedidos_admin, name="lista_pedidos_admin"),
+    path("vehiculos/crear/", views.crear_vehiculo, name="crear_vehiculo"),
 
    # PANEL CONDUCTOR
 path("panel-conductor/", views.panel_conductor, name="panel_conductor"),

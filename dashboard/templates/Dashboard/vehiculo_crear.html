@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Vehículo{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>Registrar Vehículo</h2>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<div class="mb-3">
+<label class="form-label">Placa</label>
+<input type="text" name="placa" class="form-control" required>
+</div>
+
+<div class="mb-3">
+<label class="form-label">Tipo</label>
+<input type="text" name="tipo" class="form-control" required>
+</div>
+
+<div class="mb-3">
+<label class="form-label">Capacidad</label>
+<input type="number" name="capacidad" class="form-control" required>
+</div>
+
+<button type="submit" class="btn btn-success">
+Guardar Vehículo
+</button>
+
+<a href="{% url 'lista_vehiculos' %}" class="btn btn-secondary">
+Cancelar
+</a>
+
+</form>
+
+</div>
+
+{% endblock %}

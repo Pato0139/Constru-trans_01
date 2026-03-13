@@ -1,4 +1,6 @@
-{% extends "Dashboard/panel-admin.html" %}
+{% extends "base.html" %}
+
+{% block title %}Conductores{% endblock %}
 
 {% block content %}
 
@@ -9,13 +11,15 @@
 <table class="table table-striped">
 
 <thead class="table-dark">
+
 <tr>
 <th>ID</th>
 <th>Nombre</th>
 <th>Teléfono</th>
 <th>Documento</th>
-<th>Acciones</th>
+<th>Acción</th>
 </tr>
+
 </thead>
 
 <tbody>
@@ -30,15 +34,9 @@
 <td>{{ conductor.documento }}</td>
 
 <td>
-
-<a href="{% url 'editar_usuario' conductor.id %}" class="btn btn-sm btn-primary">
-Editar
-</a>
-
-<a href="{% url 'eliminar_usuario' conductor.id %}" class="btn btn-sm btn-danger">
-Eliminar
-</a>
-
+<button class="btn btn-primary btn-sm">
+Ver
+</button>
 </td>
 
 </tr>
@@ -46,9 +44,7 @@ Eliminar
 {% empty %}
 
 <tr>
-<td colspan="5" class="text-center">
-No hay conductores registrados
-</td>
+<td colspan="5">No hay conductores registrados</td>
 </tr>
 
 {% endfor %}

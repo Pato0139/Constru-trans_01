@@ -459,3 +459,23 @@ def lista_pedidos_admin(request):
     return render(request, "dashboard/pedidos_lista.html", {
         "pedidos": pedidos
     })
+    
+@login_required
+def crear_vehiculo(request):
+
+    if request.method == "POST":
+
+        placa = request.POST.get("placa")
+        tipo = request.POST.get("tipo")
+        capacidad = request.POST.get("capacidad")
+
+        Vehiculo.objects.create(
+            placa=placa,
+            tipo=tipo,
+            capacidad=capacidad,
+            estado="disponible"
+        )
+
+        return redirect("lista_vehiculos")
+
+    return render(request, "dashboard/vehiculo_crear.html")
