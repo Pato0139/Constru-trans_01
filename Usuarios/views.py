@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 
 from django.db.models import Sum
+from django.utils.timezone import now
 
 
 def registro(request):
@@ -96,7 +97,26 @@ def panel(request):
     usuario = request.user.usuario
 
     if usuario.rol == "admin":
-        return render(request, "dashboard/panel-admin.html")
+
+        pedidos_pendientes = Orden.objects.filter(estado="pendiente").count()
+        conductores = Usuario.objects.filter(rol="conductor").count()
+        entregas_hoy = Orden.objects.filter(
+            estado="entregado",
+            fecha__date=now().date()
+        ).count()
+        clientes = Usuario.objects.filter(rol="cliente").count()
+
+        pedidos_recientes = Orden.objects.all().order_by("-fecha")[:5]
+
+        context = {
+            "pedidos_pendientes": pedidos_pendientes,
+            "conductores": conductores,
+            "entregas_hoy": entregas_hoy,
+            "clientes": clientes,
+            "pedidos_recientes": pedidos_recientes
+        }
+
+        return render(request, "dashboard/panel-admin.html", context)
 
     elif usuario.rol == "cliente":
         return redirect("panel_cliente")
@@ -138,6 +158,20 @@ def perfil_conductor(request):
     }
 
     return render(request, "usuarios/perfil-conductor.html", context)
+
+
+@login_required
+def pedidos_conductor(request):
+
+    conductor = request.user.usuario
+
+    pedidos = Orden.objects.filter(
+        conductor=conductor
+    ).exclude(estado="entregado")
+
+    return render(request, "usuarios/pedidos_conductor.html", {
+        "pedidos": pedidos
+    })
 
 
 @login_required
@@ -408,16 +442,20 @@ def eliminar_material(request, id):
 
     return redirect("lista_materiales")
 
-
 @login_required
-def pedidos_conductor(request):
+def ver_pedido_admin(request, id):
 
-    conductor = request.user.usuario
+    pedido = Orden.objects.get(id=id)
 
-    pedidos = Orden.objects.filter(
-        conductor=conductor
-    ).exclude(estado="entregado")
+    return render(request, "dashboard/pedido_detalle.html", {
+        "pedido": pedido
+    })
+    
+@login_required
+def lista_pedidos_admin(request):
 
-    return render(request, "usuarios/pedidos_conductor.html", {
+    pedidos = Orden.objects.all().order_by("-fecha")
+
+    return render(request, "dashboard/pedidos_lista.html", {
         "pedidos": pedidos
     })

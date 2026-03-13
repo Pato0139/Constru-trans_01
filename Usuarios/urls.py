@@ -29,6 +29,8 @@ urlpatterns = [
     path("materiales/crear/", views.crear_material, name="crear_material"),
     path("materiales/editar/<int:id>/", views.editar_material, name="editar_material"),
     path("materiales/eliminar/<int:id>/", views.eliminar_material, name="eliminar_material"),
+    path("pedido/<int:id>/", views.ver_pedido_admin, name="ver_pedido_admin"),
+    path("pedidos/", views.lista_pedidos_admin, name="lista_pedidos_admin"),
 
    # PANEL CONDUCTOR
 path("panel-conductor/", views.panel_conductor, name="panel_conductor"),
@@ -71,4 +73,7 @@ path("mis-entregas/", views.mis_entregas, name="mis_entregas"),
         ),
         name="password_reset_complete"
     ),
+    
+    
 ]
+
