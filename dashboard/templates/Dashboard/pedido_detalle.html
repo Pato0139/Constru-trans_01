@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>Detalle del Pedido</h2>
+
+<div class="card mt-3">
+<div class="card-body">
+
+<p><strong>ID:</strong> #CT-{{ pedido.id }}</p>
+<p><strong>Cliente:</strong> {{ pedido.cliente.nombre }}</p>
+<p><strong>Fecha:</strong> {{ pedido.fecha }}</p>
+
+<p><strong>Origen:</strong> {{ pedido.direccion_origen }}</p>
+<p><strong>Destino:</strong> {{ pedido.direccion_destino }}</p>
+
+<p><strong>Precio:</strong> ${{ pedido.precio }}</p>
+
+<p>
+<strong>Estado:</strong>
+
+{% if pedido.estado == "pendiente" %}
+<span class="badge bg-warning">Pendiente</span>
+
+{% elif pedido.estado == "en_ruta" %}
+<span class="badge bg-primary">En Ruta</span>
+
+{% elif pedido.estado == "entregado" %}
+<span class="badge bg-success">Entregado</span>
+{% endif %}
+</p>
+
+<hr>
+
+<h5>Conductor</h5>
+
+{% if pedido.conductor %}
+<p>{{ pedido.conductor.nombre }}</p>
+{% else %}
+<p>No asignado</p>
+{% endif %}
+
+</div>
+</div>
+
+</div>
+
+{% endblock %}

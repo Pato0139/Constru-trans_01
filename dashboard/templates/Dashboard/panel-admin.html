@@ -10,7 +10,7 @@
         <div class="card shadow-sm border-start border-primary border-4">
             <div class="card-body">
                 <h6 class="text-muted">Pedidos Pendientes</h6>
-                <h3>2</h3>
+                <h3>{{ pedidos_pendientes }}</h3>
             </div>
         </div>
     </div>
@@ -19,7 +19,7 @@
         <div class="card shadow-sm border-start border-success border-4">
             <div class="card-body">
                 <h6 class="text-muted">Conductores Activos</h6>
-                <h3>3</h3>
+                <h3>{{ conductores }}</h3>
             </div>
         </div>
     </div>
@@ -28,7 +28,7 @@
         <div class="card shadow-sm border-start border-warning border-4">
             <div class="card-body">
                 <h6 class="text-muted">Entregas Hoy</h6>
-                <h3>2</h3>
+                <h3>{{ entregas_hoy }}</h3>
             </div>
         </div>
     </div>
@@ -37,7 +37,7 @@
         <div class="card shadow-sm border-start border-info border-4">
             <div class="card-body">
                 <h6 class="text-muted">Nuevos Clientes</h6>
-                <h3>3</h3>
+                <h3>{{ clientes }}</h3>
             </div>
         </div>
     </div>
@@ -54,14 +54,13 @@
             <i class="bi bi-truck"></i> Gestionar Vehículos
         </button>
 
-        <button class="btn btn-warning me-2">
-            <i class="bi bi-bar-chart"></i> Ver Reportes
+        <button class="btn btn-success me-2">
+            <i class="bi bi-person"></i> Ver Conductores
         </button>
 
-        <button class="btn btn-warning">
-            <i class="bi bi-box"></i> Revisar Pedidos
-        </button>
-
+        <a href="{% url 'lista_pedidos_admin' %}" class="btn btn-warning">
+<i class="bi bi-box"></i> Revisar Pedidos
+</a>
     </div>
 </div>
 
@@ -87,23 +86,44 @@
 
             <tbody>
 
-                <tr>
-                    <td>#CT-1001</td>
-                    <td>Constructora Bolívar</td>
-                    <td>2026-02-03</td>
-                    <td>$4.500.000</td>
-                    <td><span class="badge bg-warning">Pendiente</span></td>
-                    <td><button class="btn btn-primary btn-sm">Ver</button></td>
-                </tr>
+                {% for pedido in pedidos_recientes %}
 
                 <tr>
-                    <td>#CT-1002</td>
-                    <td>Juan Pérez</td>
-                    <td>2026-02-02</td>
-                    <td>$850.000</td>
-                    <td><span class="badge bg-success">En Curso</span></td>
-                    <td><button class="btn btn-primary btn-sm">Ver</button></td>
+                    <td>#CT-{{ pedido.id }}</td>
+                    <td>{{ pedido.cliente.nombre }}</td>
+                    <td>{{ pedido.fecha }}</td>
+                    <td>${{ pedido.precio }}</td>
+
+                    <td>
+
+                        {% if pedido.estado == "pendiente" %}
+                        <span class="badge bg-warning">Pendiente</span>
+
+                        {% elif pedido.estado == "en_ruta" %}
+                        <span class="badge bg-primary">En ruta</span>
+
+                        {% elif pedido.estado == "entregado" %}
+                        <span class="badge bg-success">Entregado</span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+                        <a href="{% url 'ver_pedido_admin' pedido.id %}" class="btn btn-primary btn-sm">
+                            Ver
+                        </a>
+                    </td>
+
                 </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="6">No hay pedidos recientes</td>
+                </tr>
+
+                {% endfor %}
 
             </tbody>
 
@@ -113,4 +133,4 @@
 
 </div>
 
-{% endblock %}
+{% endblock %}  
