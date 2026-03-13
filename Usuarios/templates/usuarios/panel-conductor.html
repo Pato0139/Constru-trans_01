@@ -1,0 +1,45 @@
+{% extends "usuarios/base_conductor.html" %}
+
+{% block title %}Panel Conductor{% endblock %}
+
+{% block content %}
+
+<h4 class="mb-4">Mis entregas asignadas</h4>
+
+<div class="card shadow-sm">
+
+<table class="table">
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Destino</th>
+<th>Estado</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for pedido in pedidos %}
+
+<tr>
+<td>{{ pedido.id }}</td>
+<td>{{ pedido.direccion_destino }}</td>
+<td>{{ pedido.estado }}</td>
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="3">No tienes entregas asignadas</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

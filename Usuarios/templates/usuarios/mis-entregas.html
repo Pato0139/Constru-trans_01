@@ -1,0 +1,51 @@
+{% extends "usuarios/base_conductor.html" %}
+
+{% block content %}
+
+<h3 class="mb-4">Historial de Entregas</h3>
+
+<div class="card shadow-sm">
+<table class="table">
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Origen</th>
+<th>Destino</th>
+<th>Fecha</th>
+<th>Estado</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for orden in entregas %}
+
+<tr>
+<td>#{{ orden.id }}</td>
+<td>{{ orden.direccion_origen }}</td>
+<td>{{ orden.direccion_destino }}</td>
+<td>{{ orden.fecha }}</td>
+<td>
+<span class="badge bg-success">
+{{ orden.estado }}
+</span>
+</td>
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="5" class="text-center">
+No tienes entregas registradas
+</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+</div>
+
+{% endblock %}

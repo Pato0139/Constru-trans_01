@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Usuario, Vehiculo, Material
+from .models import *
 from ordenes.models import Orden
 
 from django.contrib.auth.models import User
@@ -9,9 +9,6 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 
 
-# -------------------------
-# REGISTRO
-# -------------------------
 def registro(request):
 
     if request.method == "POST":
@@ -58,9 +55,6 @@ def registro(request):
     return render(request, "usuarios/registro.html")
 
 
-# -------------------------
-# LOGIN
-# -------------------------
 def login_usuario(request):
 
     if request.method == "POST":
@@ -83,7 +77,7 @@ def login_usuario(request):
                 return redirect("panel_cliente")
 
             elif usuario.rol == "conductor":
-                return redirect("panel")
+                return redirect("panel_conductor")
 
             elif usuario.rol == "empleado":
                 return redirect("panel")
@@ -96,9 +90,6 @@ def login_usuario(request):
     return render(request, "usuarios/login.html")
 
 
-# -------------------------
-# PANEL SEGÚN ROL
-# -------------------------
 @login_required
 def panel(request):
 
@@ -111,7 +102,7 @@ def panel(request):
         return redirect("panel_cliente")
 
     elif usuario.rol == "conductor":
-        return render(request, "usuarios/panel-conductor.html")
+        return redirect("panel_conductor")
 
     elif usuario.rol == "empleado":
         return render(request, "usuarios/panel-empleado.html")
@@ -119,9 +110,51 @@ def panel(request):
     return redirect("login")
 
 
-# -------------------------
-# LOGOUT
-# -------------------------
+@login_required
+def panel_conductor(request):
+
+    conductor = request.user.usuario
+
+    pedidos = Orden.objects.filter(conductor=conductor)
+
+    return render(request, "usuarios/panel-conductor.html", {
+        "pedidos": pedidos
+    })
+
+
+@login_required
+def perfil_conductor(request):
+
+    conductor = request.user.usuario
+
+    vehiculo = None
+
+    pedidos = Orden.objects.filter(conductor=conductor)
+
+    context = {
+        "conductor": conductor,
+        "vehiculo": vehiculo,
+        "pedidos": pedidos
+    }
+
+    return render(request, "usuarios/perfil-conductor.html", context)
+
+
+@login_required
+def mis_entregas(request):
+
+    conductor = request.user.usuario
+
+    entregas = Orden.objects.filter(
+        conductor=conductor,
+        estado="entregado"
+    ).order_by("-fecha")
+
+    return render(request, "usuarios/mis-entregas.html", {
+        "entregas": entregas
+    })
+
+
 def cerrar_sesion(request):
 
     logout(request)
@@ -129,9 +162,6 @@ def cerrar_sesion(request):
     return redirect("login")
 
 
-# -------------------------
-# LISTA USUARIOS
-# -------------------------
 @login_required
 def lista_usuarios(request):
 
@@ -142,9 +172,6 @@ def lista_usuarios(request):
     })
 
 
-# -------------------------
-# ELIMINAR USUARIO
-# -------------------------
 @login_required
 def eliminar_usuario(request, id):
 
@@ -154,9 +181,6 @@ def eliminar_usuario(request, id):
     return redirect("lista_usuarios")
 
 
-# -------------------------
-# EDITAR USUARIO
-# -------------------------
 @login_required
 def editar_usuario(request, id):
 
@@ -177,9 +201,6 @@ def editar_usuario(request, id):
     })
 
 
-# -------------------------
-# LISTA CONDUCTORES
-# -------------------------
 @login_required
 def lista_conductores(request):
 
@@ -190,9 +211,6 @@ def lista_conductores(request):
     })
 
 
-# -------------------------
-# LISTA VEHICULOS
-# -------------------------
 @login_required
 def lista_vehiculos(request):
 
@@ -203,9 +221,6 @@ def lista_vehiculos(request):
     })
 
 
-# -------------------------
-# REPORTES ADMIN
-# -------------------------
 @login_required
 def reportes_admin(request):
 
@@ -224,9 +239,6 @@ def reportes_admin(request):
     return render(request, "dashboard/reportes.html", context)
 
 
-# -------------------------
-# PANEL CLIENTE
-# -------------------------
 @login_required
 def panel_cliente(request):
 
@@ -251,83 +263,6 @@ def panel_cliente(request):
     return render(request, "cliente/dashboard.html", context)
 
 
-# -------------------------
-# LISTA DE MATERIALES
-# -------------------------
-@login_required
-def lista_materiales(request):
-
-    materiales = Material.objects.all()
-
-    return render(request, "dashboard/materiales_lista.html", {
-        "materiales": materiales
-    })
-
-
-# -------------------------
-# CREAR MATERIAL
-# -------------------------
-@login_required
-def crear_material(request):
-
-    if request.method == "POST":
-
-        nombre = request.POST.get("nombre")
-        descripcion = request.POST.get("descripcion")
-        precio = request.POST.get("precio")
-        stock = request.POST.get("stock")
-
-        Material.objects.create(
-            nombre=nombre,
-            descripcion=descripcion,
-            precio=precio,
-            stock=stock
-        )
-
-        return redirect("lista_materiales")
-
-    return render(request, "dashboard/material_crear.html")
-
-
-# -------------------------
-# EDITAR MATERIAL
-# -------------------------
-@login_required
-def editar_material(request, id):
-
-    material = Material.objects.get(id=id)
-
-    if request.method == "POST":
-
-        material.nombre = request.POST.get("nombre")
-        material.descripcion = request.POST.get("descripcion")
-        material.precio = request.POST.get("precio")
-        material.stock = request.POST.get("stock")
-
-        material.save()
-
-        return redirect("lista_materiales")
-
-    return render(request, "dashboard/material_editar.html", {
-        "material": material
-    })
-
-
-# -------------------------
-# ELIMINAR MATERIAL
-# -------------------------
-@login_required
-def eliminar_material(request, id):
-
-    material = Material.objects.get(id=id)
-    material.delete()
-
-    return redirect("lista_materiales")
-
-
-# -------------------------
-# PERFIL CLIENTE
-# -------------------------
 @login_required
 def perfil_cliente(request):
 
@@ -369,39 +304,34 @@ def crear_pedido(request):
     })
 
 
-# -------------------------
-# MIS PEDIDOS
-# -------------------------
 @login_required
 def mis_pedidos(request):
 
     cliente = request.user.usuario
 
-    pedidos = Orden.objects.filter(cliente=cliente).order_by("-fecha")
+    pedidos = Orden.objects.filter(
+        cliente=cliente
+    ).order_by("-fecha")
 
     return render(request, "cliente/mis_pedidos.html", {
         "pedidos": pedidos
     })
 
 
-# -------------------------
-# SEGUIMIENTO PEDIDOS
-# -------------------------
 @login_required
 def seguimiento_pedidos(request):
 
     cliente = request.user.usuario
 
-    pedidos = Orden.objects.filter(cliente=cliente).order_by("-fecha")
+    pedidos = Orden.objects.filter(
+        cliente=cliente
+    ).order_by("-fecha")
 
     return render(request, "cliente/seguimiento.html", {
         "pedidos": pedidos
     })
 
 
-# -------------------------
-# HISTORIAL PEDIDOS
-# -------------------------
 @login_required
 def historial_pedidos(request):
 
@@ -413,5 +343,81 @@ def historial_pedidos(request):
     ).order_by("-fecha")
 
     return render(request, "cliente/historial.html", {
+        "pedidos": pedidos
+    })
+
+
+@login_required
+def lista_materiales(request):
+
+    materiales = Material.objects.all()
+
+    return render(request, "dashboard/materiales_lista.html", {
+        "materiales": materiales
+    })
+
+
+@login_required
+def crear_material(request):
+
+    if request.method == "POST":
+
+        nombre = request.POST.get("nombre")
+        descripcion = request.POST.get("descripcion")
+        precio = request.POST.get("precio")
+        stock = request.POST.get("stock")
+
+        Material.objects.create(
+            nombre=nombre,
+            descripcion=descripcion,
+            precio=precio,
+            stock=stock
+        )
+
+        return redirect("lista_materiales")
+
+    return render(request, "dashboard/material_crear.html")
+
+
+@login_required
+def editar_material(request, id):
+
+    material = Material.objects.get(id=id)
+
+    if request.method == "POST":
+
+        material.nombre = request.POST.get("nombre")
+        material.descripcion = request.POST.get("descripcion")
+        material.precio = request.POST.get("precio")
+        material.stock = request.POST.get("stock")
+
+        material.save()
+
+        return redirect("lista_materiales")
+
+    return render(request, "dashboard/material_editar.html", {
+        "material": material
+    })
+
+
+@login_required
+def eliminar_material(request, id):
+
+    material = Material.objects.get(id=id)
+    material.delete()
+
+    return redirect("lista_materiales")
+
+
+@login_required
+def pedidos_conductor(request):
+
+    conductor = request.user.usuario
+
+    pedidos = Orden.objects.filter(
+        conductor=conductor
+    ).exclude(estado="entregado")
+
+    return render(request, "usuarios/pedidos_conductor.html", {
         "pedidos": pedidos
     })

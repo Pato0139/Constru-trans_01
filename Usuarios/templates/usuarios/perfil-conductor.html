@@ -1,0 +1,71 @@
+{% extends "usuarios/base_conductor.html" %}
+
+{% block title %}Perfil del Conductor{% endblock %}
+
+{% block content %}
+
+<h4 class="mb-4">Perfil del Conductor</h4>
+
+<div class="row">
+
+<div class="col-md-4">
+
+<div class="card shadow-sm">
+<div class="card-body text-center">
+
+<h5>{{ conductor.nombre }}</h5>
+
+<p><strong>Email:</strong> {{ request.user.email }}</p>
+
+<p><strong>Teléfono:</strong> {{ conductor.telefono }}</p>
+
+<p><strong>Documento:</strong> {{ conductor.documento }}</p>
+
+</div>
+</div>
+
+</div>
+
+
+<div class="col-md-4">
+
+<div class="card shadow-sm">
+<div class="card-body">
+
+<h5>Vehículo Asignado</h5>
+
+{% if vehiculo %}
+
+<p><strong>Placa:</strong> {{ vehiculo.placa }}</p>
+<p><strong>Marca:</strong> {{ vehiculo.marca }}</p>
+<p><strong>Modelo:</strong> {{ vehiculo.modelo }}</p>
+
+{% else %}
+
+<p>No tienes vehículo asignado</p>
+
+{% endif %}
+
+</div>
+</div>
+
+</div>
+
+
+<div class="col-md-4">
+
+<div class="card shadow-sm">
+<div class="card-body">
+
+<h5>Estadísticas</h5>
+
+<p><strong>Pedidos asignados:</strong> {{ pedidos.count }}</p>
+
+</div>
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}

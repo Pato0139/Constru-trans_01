@@ -1,0 +1,99 @@
+{% extends "usuarios/base_conductor.html" %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h2 class="fw-bold">Pedidos asignados</h2>
+
+<span class="badge bg-primary fs-6">
+{{ pedidos|length }} pedidos
+</span>
+</div>
+
+
+<div class="card shadow">
+
+<div class="card-body">
+
+<table class="table table-hover align-middle">
+
+<thead class="table-dark">
+<tr>
+<th>ID</th>
+<th>Origen</th>
+<th>Destino</th>
+<th>Estado</th>
+<th>Precio</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for pedido in pedidos %}
+
+<tr>
+
+<td class="fw-bold text-primary">
+#{{ pedido.id }}
+</td>
+
+<td>
+<i class="bi bi-geo-alt-fill text-success me-1"></i>
+{{ pedido.direccion_origen }}
+</td>
+
+<td>
+<i class="bi bi-geo-fill text-danger me-1"></i>
+{{ pedido.direccion_destino }}
+</td>
+
+<td>
+
+{% if pedido.estado == "pendiente" %}
+<span class="badge bg-warning text-dark">Pendiente</span>
+
+{% elif pedido.estado == "en_ruta" %}
+<span class="badge bg-info text-dark">En ruta</span>
+
+{% elif pedido.estado == "entregado" %}
+<span class="badge bg-success">Entregado</span>
+
+{% endif %}
+
+</td>
+
+<td class="fw-bold text-success">
+${{ pedido.precio }}
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="5" class="text-center p-4 text-muted">
+
+<i class="bi bi-inbox fs-3"></i>
+
+<p class="mt-2">
+No tienes pedidos asignados
+</p>
+
+</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}
