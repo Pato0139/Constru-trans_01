@@ -8,25 +8,25 @@
 
     <ul class="nav flex-column">
 
-<a href="{% url 'perfil_cliente' %}" class="nav-link text-white">
+<a href="{% url 'usuarios:perfil_cliente' %}" class="nav-link text-white">
 <i class="bi bi-person"></i> Perfil
 </a>
 
-<a href="{% url 'mis_pedidos' %}" class="nav-link text-white">
+<a href="{% url 'usuarios:mis_pedidos' %}" class="nav-link text-white">
 <i class="bi bi-box"></i> Mis pedidos
 </a>
 
-       <a href="{% url 'seguimiento_pedidos' %}" class="nav-link text-white">
+<a href="{% url 'usuarios:seguimiento_pedidos' %}" class="nav-link text-white">
 <i class="bi bi-truck"></i> Seguimiento
 </a>
 
-    <a href="{% url 'historial_pedidos' %}"  class="nav-link text-white">
+<a href="{% url 'usuarios:historial_pedidos' %}" class="nav-link text-white">
 <i class="bi bi-clock-history"></i> Historial
 </a>
 
-        <hr>
+<hr>
 
-        <a href="{% url 'logout' %}" class="nav-link text-danger">
+<a href="{% url 'usuarios:logout' %}" class="nav-link text-danger">
 <i class="bi bi-box-arrow-right"></i> Cerrar sesión
 </a>
 

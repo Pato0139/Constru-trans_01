@@ -1,0 +1,73 @@
+{% extends "usuarios/base_cliente.html" %}
+
+{% block title %}Panel Cliente{% endblock %}
+
+{% block content %}
+
+<div class="row g-4 mb-4">
+
+<div class="col-md-4">
+<div class="card shadow-sm">
+<div class="card-body">
+<h6>Pedidos Activos</h6>
+<h3>{{ pedidos_activos }}</h3>
+</div>
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="card shadow-sm">
+<div class="card-body">
+<h6>Total Gastado</h6>
+<h3>${{ total_gastado }}</h3>
+</div>
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="card shadow-sm">
+<div class="card-body">
+<h6>Entregas Completadas</h6>
+<h3>{{ entregadas }}</h3>
+</div>
+</div>
+</div>
+
+</div>
+
+
+<div class="card shadow-sm">
+
+<div class="card-header">
+Últimos pedidos
+</div>
+
+<table class="table">
+
+<thead>
+<tr>
+<th>ID Pedido</th>
+<th>Fecha</th>
+<th>Estado</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for pedido in ultimos_pedidos %}
+
+<tr>
+<td>CT-{{ pedido.id }}</td>
+<td>{{ pedido.fecha|date:"Y-m-d" }}</td>
+<td>{{ pedido.estado }}</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}
