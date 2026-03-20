@@ -15,15 +15,25 @@
 <div class="mb-3">
 <label class="form-label">Material</label>
 <div class="mb-4">
-                    <label for="material" class="block text-gray-700 font-bold mb-2">Material</label>
-                    <select id="material" name="material" class="w-full border border-gray-300 p-2 rounded">
-                        <option value="">Seleccione un material</option>
-                        <option value="arena">Arena</option>
-                        <option value="grava">Grava</option>
-                        <option value="cemento">Cemento</option>
-                        <option value="ladrillos">Ladrillos</option>
-                    </select>
-                </div> 
+                    <div class="mb-3">
+    <label class="form-label">Material</label>
+
+    <select name="material" class="form-control" required>
+        <option value="">Seleccione un material</option>
+        {% for m in materiales %}
+            <option value="{{ m.id }}">
+                {{ m.nombre }} - ${{ m.precio }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+
+
+{% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+{% endif %}
 
 
 </div>
