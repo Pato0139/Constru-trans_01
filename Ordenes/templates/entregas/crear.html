@@ -1,0 +1,37 @@
+{% extends "cliente/base_cliente.html" %}
+
+{% block content %}
+
+<h2>Crear Entrega</h2>
+
+<form method="POST">
+{% csrf_token %}
+
+<select name="pedido" required>
+    <option value="">Seleccionar pedido</option>
+    {% for p in pedidos %}
+        <option value="{{ p.id }}">Pedido {{ p.id }}</option>
+    {% endfor %}
+</select>
+
+<select name="conductor" required>
+    <option value="">Seleccionar conductor</option>
+    {% for c in conductores %}
+        <option value="{{ c.id }}">{{ c.nombre }}</option>
+    {% endfor %}
+</select>
+
+<select name="vehiculo" required>
+    <option value="">Seleccionar vehículo</option>
+    {% for v in vehiculos %}
+        <option value="{{ v.id }}">{{ v }}</option>
+    {% endfor %}
+</select>
+
+<input type="datetime-local" name="fecha" required>
+
+<button type="submit">Guardar entrega</button>
+
+</form>
+
+{% endblock %}
