@@ -307,6 +307,10 @@ def perfil_cliente(request):
     })
 
 
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Material, Orden
+
 @login_required
 def crear_pedido(request):
 
@@ -314,17 +318,39 @@ def crear_pedido(request):
     materiales = Material.objects.all()
 
     if request.method == "POST":
-
         material_id = request.POST.get("material")
-        cantidad = int(request.POST.get("cantidad"))
+        cantidad = request.POST.get("cantidad")
         direccion = request.POST.get("direccion")
 
-        material = Material.objects.get(id=material_id)
+        # 🔴 VALIDACIONES BÁSICAS
+        if not material_id or not cantidad or not direccion:
+            return render(request, "cliente/crear_pedido.html", {
+                "materiales": materiales,
+                "error": "Todos los campos son obligatorios"
+            })
+
+        try:
+            cantidad = int(cantidad)
+        except:
+            return render(request, "cliente/crear_pedido.html", {
+                "materiales": materiales,
+                "error": "Cantidad inválida"
+            })
+
+        try:
+            material = Material.objects.get(id=material_id)
+        except Material.DoesNotExist:
+            return render(request, "cliente/crear_pedido.html", {
+                "materiales": materiales,
+                "error": "Material no válido"
+            })
 
         total = material.precio * cantidad
 
         Orden.objects.create(
             cliente=cliente,
+            material=material,
+            cantidad=cantidad,
             direccion_origen="Bodega",
             direccion_destino=direccion,
             precio=total,
