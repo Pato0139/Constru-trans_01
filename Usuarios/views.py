@@ -391,42 +391,97 @@ def lista_materiales(request):
     })
 
 
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+
 @login_required
 def crear_material(request):
 
     if request.method == "POST":
-
         nombre = request.POST.get("nombre")
         descripcion = request.POST.get("descripcion")
+        tipo = request.POST.get("tipo")
         precio = request.POST.get("precio")
         stock = request.POST.get("stock")
+        
+        
+        
+        if not nombre or not precio or not stock or not tipo:
+            messages.error(request, "Campos obligatorios vacíos")
+            return redirect("crear_material")
 
-        Material.objects.create(
+        
+        
+
+       
+        if not nombre or not precio or not stock:
+            messages.error(request, "Campos obligatorios vacíos")
+            return redirect("crear_material")
+
+        try:
+            precio = float(precio)
+            stock = int(stock)
+        except:
+            messages.error(request, "Precio y stock deben ser numéricos")
+            return redirect("crear_material")
+
+        if precio < 0 or stock < 0:
+            messages.error(request, "No se permiten valores negativos")
+            return redirect("crear_material")
+
+       
+        material = Material(
             nombre=nombre,
             descripcion=descripcion,
+            tipo=tipo,
             precio=precio,
             stock=stock
         )
 
+        material.full_clean()
+        material.save()
+
+        messages.success(request, "Material creado correctamente")
         return redirect("lista_materiales")
 
+    
     return render(request, "dashboard/material_crear.html")
-
+    
 
 @login_required
 def editar_material(request, id):
 
-    material = Material.objects.get(id=id)
+    material = get_object_or_404(Material, id=id)
 
     if request.method == "POST":
+        nombre = request.POST.get("nombre")
+        descripcion = request.POST.get("descripcion")
+        tipo = request.POST.get("tipo")
+        precio = request.POST.get("precio")
+        stock = request.POST.get("stock")
+        
+    if not material.nombre or not material.precio or not material.stock or not tipo:
 
-        material.nombre = request.POST.get("nombre")
-        material.descripcion = request.POST.get("descripcion")
-        material.precio = request.POST.get("precio")
-        material.stock = request.POST.get("stock")
+        try:
+            precio = float(precio)
+            stock = int(stock)
+        except:
+            messages.error(request, "Datos inválidos")
+            return redirect("editar_material", id=id)
+
+        if precio < 0 or stock < 0:
+            messages.error(request, "Valores negativos no permitidos")
+            return redirect("editar_material", id=id)
+
+        material.nombre = nombre
+        material.descripcion = descripcion
+        material.tipo = tipo
+        material.precio = precio
+        material.stock = stock
 
         material.save()
 
+        messages.success(request, "Material actualizado")
         return redirect("lista_materiales")
 
     return render(request, "dashboard/material_editar.html", {
@@ -437,10 +492,19 @@ def editar_material(request, id):
 @login_required
 def eliminar_material(request, id):
 
-    material = Material.objects.get(id=id)
-    material.delete()
+    material = get_object_or_404(Material, id=id)
 
+    if request.method == "POST":
+        material.delete()
+        messages.success(request, "Material eliminado correctamente")
+        return redirect("lista_materiales")
+
+    # Si alguien entra por URL directa
+    messages.error(request, "Acción no permitida")
     return redirect("lista_materiales")
+
+
+
 
 @login_required
 def ver_pedido_admin(request, id):

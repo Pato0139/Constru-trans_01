@@ -70,6 +70,16 @@ class Entrega(models.Model):
     class Meta:
         ordering = ["-fecha"]
 
+    estado = models.CharField(
+        max_length=20,
+        choices=[
+            ("pendiente", "Pendiente"),
+            ("en_ruta", "En Ruta"),
+            ("entregado", "Entregado"),
+        ],
+        default="pendiente"
+    )
+
     def __str__(self):
         return f"Entrega de pedido {self.pedido.id}"
 
