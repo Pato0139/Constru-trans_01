@@ -1,20 +1,19 @@
-# Django
+
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media
-db.sqlite3
+gi
 
-# Django Migrations
+
 **/migrations/*.py
 !**/migrations/__init__.py
 
-# Assets
+
 node_modules/
 
 
-# Environments
 .env
 .venv
 env/
@@ -23,7 +22,7 @@ ENV/
 env.bak/
 venv.bak/
 
-# Python
+
 *.pyc
 __pycache__/
 *.pyo
