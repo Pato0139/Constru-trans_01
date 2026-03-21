@@ -209,12 +209,10 @@ def lista_usuarios(request):
 
 @login_required
 def eliminar_usuario(request, id):
-
-    usuario = get_object_or_404 (usuario, id=id)
-    usuario.delete()
-
+    # Antes decía get_object_or_404(usuario, id=id) <-- 'usuario' en minúscula falla
+    usuario_obj = get_object_or_404(Usuario, id=id) 
+    usuario_obj.delete()
     return redirect("lista_usuarios")
-
 
 @login_required
 def editar_usuario(request, id):
@@ -310,35 +308,38 @@ def perfil_cliente(request):
 
 @login_required
 def crear_pedido(request):
-
     cliente = request.user.usuario
     materiales = Material.objects.all()
 
     if request.method == "POST":
-
         material_id = request.POST.get("material")
-        cantidad = int(request.POST.get("cantidad"))
+        cantidad = request.POST.get("cantidad")
         direccion = request.POST.get("direccion")
 
-        material = Material.objects.get(id=material_id)
+        try:
+            material = Material.objects.get(id=material_id)
+            total = material.precio * int(cantidad)
 
-        total = material.precio * cantidad
+            # AGREGA ESTO PARA DEPURAR:
+            nueva_orden = Orden.objects.create(
+                cliente=cliente,
+                direccion_origen="Bodega",
+                direccion_destino=direccion,
+                precio=total,
+                estado="pendiente"
+            )
+            print(f"ORDEN CREADA EXITOSAMENTE: ID {nueva_orden.id} para el cliente {cliente.nombre}")
+            
+            return redirect("mis_pedidos")
 
-        Orden.objects.create(
-            cliente=cliente,
-            direccion_origen="Bodega",
-            direccion_destino=direccion,
-            precio=total,
-            estado="pendiente"
-        )
+        except Exception as e:
+            print(f"ERROR AL CREAR ORDEN: {e}") # Mira tu terminal de VS Code o CMD
+            return render(request, "cliente/crear_pedido.html", {
+                "materiales": materiales,
+                "error": f"No se pudo crear el pedido: {e}"
+            })
 
-        return redirect("mis_pedidos")
-
-    return render(request, "cliente/crear_pedido.html", {
-        "materiales": materiales
-    })
-
-
+    return render(request, "cliente/crear_pedido.html", {"materiales": materiales})
 @login_required
 def mis_pedidos(request):
 

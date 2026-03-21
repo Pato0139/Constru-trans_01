@@ -18,34 +18,25 @@
 </thead>
 
 <tbody>
-
-{% for pedido in pedidos %}
-
-    {% for detalle in pedido.detalles.all %}
-
+    {% for pedido in pedidos %}
     <tr>
-        <td>{{ detalle.material.nombre }}</td>
-        <td>{{ detalle.cantidad }}</td>
-        <td>${{ detalle.subtotal }}</td>
-        <td>{{ pedido.estado }}</td>
+        <td>Pedido #{{ pedido.id }}</td> 
+        <td>{{ pedido.direccion_destino }}</td>
+        <td>${{ pedido.precio }}</td>
+        <td>
+            <span class="badge 
+                {% if pedido.estado == 'pendiente' %}bg-warning
+                {% elif pedido.estado == 'entregado' %}bg-success
+                {% else %}bg-info{% endif %}">
+                {{ pedido.get_estado_display|default:pedido.estado }}
+            </span>
+        </td>
     </tr>
-
     {% empty %}
-
     <tr>
-        <td colspan="4">Este pedido no tiene materiales</td>
+        <td colspan="4" class="text-center">No tienes pedidos aún</td>
     </tr>
-
     {% endfor %}
-
-{% empty %}
-
-<tr>
-<td colspan="4">No tienes pedidos aún</td>
-</tr>
-
-{% endfor %}
-
 </tbody>
 
 </table>

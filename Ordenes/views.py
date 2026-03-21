@@ -16,42 +16,59 @@ def lista_ordenes(request):
     })
 
 
-# ➕ CREAR ORDEN
 @login_required
 def crear_orden(request):
-
-    clientes = Usuario.objects.filter(rol="cliente")
-    conductores = Usuario.objects.filter(rol="conductor")
+    cliente = request.user.usuario
+    materiales = Material.objects.all()
 
     if request.method == "POST":
+        # 1. Capturar datos asegurando que los nombres coincidan con el HTML
+        material_id = request.POST.get("material")
+        cantidad_str = request.POST.get("cantidad")
+        direccion = request.POST.get("direccion")
 
-        cliente_id = request.POST.get("cliente")
-        conductor_id = request.POST.get("conductor")
-        origen = request.POST.get("origen")
-        destino = request.POST.get("destino")
+        # LOG de depuración (Mira tu terminal negra donde corre el server)
+        print(f"--- INTENTO DE ORDEN ---")
+        print(f"ID Material: {material_id} | Cantidad: {cantidad_str} | Dirección: {direccion}")
 
-        # validación básica
-        if not cliente_id or not origen or not destino:
-            return render(request, "ordenes/crear_orden.html", {
-                "clientes": clientes,
-                "conductores": conductores,
-                "error": "Todos los campos son obligatorios"
+        if not material_id or not cantidad_str or not direccion:
+            print("ERROR: Faltan campos en el formulario")
+            return render(request, "cliente/crear_pedido.html", {
+                "materiales": materiales,
+                "error": "Por favor, completa todos los campos."
             })
 
-        Orden.objects.create(
-            cliente_id=cliente_id,
-            conductor_id=conductor_id if conductor_id else None,
-            direccion_origen=origen,
-            direccion_destino=destino
-        )
+        try:
+            # 2. Procesar datos
+            material = get_object_or_404(Material, id=material_id)
+            cantidad = int(cantidad_str)
+            total = material.precio * cantidad
 
-        return redirect("lista_ordenes")
+            # 3. Crear el objeto en la base de datos
+            # IMPORTANTE: Revisa que estos nombres de campo (cliente, precio, etc) 
+            # sean EXACTOS a los de tu models.py en la carpeta 'ordenes'
+            nueva_orden = Orden.objects.create(
+                cliente=cliente,
+                direccion_origen="Bodega Central",
+                direccion_destino=direccion,
+                precio=total,
+                estado="pendiente"
+            )
+            
+            print(f"ÉXITO: Orden #{nueva_orden.id} creada correctamente.")
+            return redirect("mis_pedidos")
 
-    return render(request, "ordenes/crear_orden.html", {
-        "clientes": clientes,
-        "conductores": conductores
+        except Exception as e:
+            # Si el código llega aquí, imprime el error real (ej: campo no existe)
+            print(f"ERROR CRÍTICO AL GUARDAR: {e}")
+            return render(request, "cliente/crear_pedido.html", {
+                "materiales": materiales,
+                "error": f"Error interno: {e}"
+            })
+
+    return render(request, "cliente/crear_pedido.html", {
+        "materiales": materiales
     })
-
 
 # 🚚 CREAR ENTREGA AUTOMÁTICA (SIN HTML)
 def crear_entrega(request, orden_id):
