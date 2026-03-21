@@ -48,9 +48,13 @@
         Editar
     </a>
 
-    <a href="{% url 'eliminar_orden' orden.id %}" class="btn btn-sm btn-danger">
-        Eliminar
-    </a>
+    <form action="{% url 'eliminar_orden' orden.id %}" method="POST" style="display:inline;">
+        {% csrf_token %}
+<button type="submit" class="btn btn-sm btn-danger"
+    onclick="return confirm('¿Seguro que quieres eliminar esta orden?')">
+    Eliminar
+</button>
+    </form>
 
     <a href="{% url 'crear_entrega' orden.id %}" class="btn btn-sm btn-success">
         Asignar entrega

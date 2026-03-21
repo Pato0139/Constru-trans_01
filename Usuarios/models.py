@@ -91,3 +91,19 @@ class Material(models.Model):
             MaxValueValidator(100000)
         ]
     )
+
+    def __str__(self):
+        return self.nombre
+
+
+class Orden(models.Model):
+    cliente = models.ForeignKey('Usuario', on_delete=models.CASCADE)
+    material = models.ForeignKey('Material', on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+    direccion_origen = models.CharField(max_length=255)
+    direccion_destino = models.CharField(max_length=255)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    estado = models.CharField(max_length=50, default='pendiente')
+
+    def __str__(self):
+        return f"Orden #{self.id}"
