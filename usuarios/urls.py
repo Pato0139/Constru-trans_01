@@ -2,6 +2,11 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 
+<<<<<<< HEAD:Usuarios/urls.py
+app_name = 'usuarios'
+
+=======
+>>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/urls.py
 urlpatterns = [
 
     # auth
@@ -41,6 +46,18 @@ urlpatterns = [
     path("materiales/editar/<int:id>/", views.editar_material, name="editar_material"),
     path("materiales/eliminar/<int:id>/", views.eliminar_material, name="eliminar_material"),
 
+<<<<<<< HEAD:Usuarios/urls.py
+
+path("panel-conductor/", views.panel_conductor, name="panel_conductor"),
+path("perfil-conductor/", views.perfil_conductor, name="perfil_conductor"),
+
+
+path("pedidos/", views.pedidos_conductor, name="pedidos_conductor"),
+
+
+path("mis-entregas/", views.mis_entregas, name="mis_entregas"),
+
+=======
     # conductor
     path("panel-conductor/", views.panel_conductor, name="panel_conductor"),
     path("perfil-conductor/", views.perfil_conductor, name="perfil_conductor"),
@@ -50,6 +67,7 @@ urlpatterns = [
     path("orden/eliminar/<int:id>/", views.eliminar_orden, name="eliminar_orden"),
 
     # recuperar contraseña
+>>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/urls.py
     path(
         "recuperar/",
         auth_views.PasswordResetView.as_view(

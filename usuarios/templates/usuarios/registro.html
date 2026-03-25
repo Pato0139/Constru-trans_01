@@ -3,64 +3,9 @@
 <html lang="es">
 
 <head>
-<meta charset="UTF-8">
-
-<link rel="stylesheet" href="{% static 'css/registroestilo.css' %}">
-
-<style>
-
-body{
-    font-family: Arial;
-    background: linear-gradient(90deg,#1d5fa7,#f2a21b);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-
-.card{
-    background:white;
-    padding:40px;
-    width:350px;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,0.2);
-}
-
-h2{
-    text-align:center;
-    color:#1d5fa7;
-}
-
-input,select{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-    border:1px solid #ccc;
-    border-radius:5px;
-}
-
-button{
-    width:100%;
-    padding:10px;
-    background:#1d5fa7;
-    color:white;
-    border:none;
-    border-radius:5px;
-    margin-top:10px;
-}
-
-button:hover{
-    background:#154a83;
-}
-
-.links{
-    text-align:center;
-    margin-top:10px;
-    font-size:14px;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="{% static 'img/Logo1.png' %}" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'css/registroestilo.css' %}">
 </head>
 
 <body>
@@ -112,8 +57,9 @@ button:hover{
 </form>
 
 <div class="links">
-<p>¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a></p>
-</div>
+<p>¿Ya tienes cuenta? 
+    <a href="{% url 'usuarios:login' %}">Inicia sesión</a>
+</p>
 
 </div>
 

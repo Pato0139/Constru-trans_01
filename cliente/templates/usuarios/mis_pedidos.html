@@ -1,0 +1,55 @@
+{% extends "usuarios/base_cliente.html" %}
+
+{% block content %}
+
+<h3 class="mb-4">Mis pedidos</h3>
+
+<div class="card shadow-sm">
+
+<table class="table">
+
+<thead>
+<tr>
+<th>Material</th>
+<th>Cantidad</th>
+<th>Precio</th>
+<th>Estado</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for pedido in pedidos %}
+
+    {% for detalle in pedido.detalles.all %}
+
+    <tr>
+        <td>{{ detalle.material.nombre }}</td>
+        <td>{{ detalle.cantidad }}</td>
+        <td>${{ detalle.subtotal }}</td>
+        <td>{{ pedido.estado }}</td>
+    </tr>
+
+    {% empty %}
+
+    <tr>
+        <td colspan="4">Este pedido no tiene materiales</td>
+    </tr>
+
+    {% endfor %}
+
+{% empty %}
+
+<tr>
+<td colspan="4">No tienes pedidos aún</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

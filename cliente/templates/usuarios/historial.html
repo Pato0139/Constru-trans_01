@@ -1,0 +1,53 @@
+{% extends "usuarios/base_cliente.html" %}
+
+{% block content %}
+
+<h3 class="mb-4">Historial de pedidos</h3>
+
+{% for pedido in pedidos %}
+
+<div class="card shadow-sm mb-3">
+
+<div class="card-body">
+
+<div class="row">
+
+<div class="col-md-4">
+<strong>Material</strong>
+<p>{{ pedido.material.nombre }}</p>
+</div>
+
+<div class="col-md-2">
+<strong>Cantidad</strong>
+<p>{{ pedido.cantidad }}</p>
+</div>
+
+<div class="col-md-3">
+<strong>Precio</strong>
+<p>${{ pedido.precio }}</p>
+</div>
+
+<div class="col-md-3">
+<strong>Fecha</strong>
+<p>{{ pedido.fecha }}</p>
+</div>
+
+</div>
+
+<span class="badge bg-success">
+<i class="bi bi-check-circle"></i> Entregado
+</span>
+
+</div>
+
+</div>
+
+{% empty %}
+
+<div class="alert alert-info">
+Aún no tienes pedidos entregados.
+</div>
+
+{% endfor %}
+
+{% endblock %}

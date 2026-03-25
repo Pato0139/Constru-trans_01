@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'logistica',
     'ordenes',
     'dashboard',
+    'inicio',
 ]
 
 MIDDLEWARE = [

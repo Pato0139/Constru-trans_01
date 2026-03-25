@@ -1,0 +1,247 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transporte Profesional | Logística</title>
+    <link rel="shortcut icon" href="{% static 'img/Logo1.png' %}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/principal.css' %}">
+</head>
+
+<body>
+
+<header class="color-principal-bg position-fixed w-100 top-0 z-3 shadow-sm py-2">
+    <div class="container d-flex justify-content-between align-items-center">
+
+        <div class="logo">
+            <nav class="navbar bg-body-tertiary">
+                <div class="container-fluid">
+                    <a class="navbar-brand d-flex align-items-center" href="#">
+                        <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo" height="60" class="me-2">
+                        Constru-trans
+                    </a>
+                </div>
+        </div>
+
+        <nav class="d-none d-lg-flex justify-content-center gap-2 mx-auto">
+            <a href="#inicio" class="btn btn-secundario rounded-pill px-4">Inicio</a>
+            <a href="#nosotros" class="btn btn-secundario rounded-pill px-4">Nosotros</a>
+            <a href="#servicios" class="btn btn-secundario rounded-pill px-4">Servicios</a>
+            <a href="#contacto" class="btn btn-secundario rounded-pill px-4">Contáctanos</a>
+        </nav>
+
+        <div class="d-flex gap-2 align-items-center">
+            <a href="{% url 'usuarios:registro' %}" class="btn btn-secundario rounded-pill px-4 shadow-sm border-0">
+                Registrarse
+            </a>
+
+            <a href="{% url 'usuarios:login' %}" class="btn btn-secundario rounded-pill px-4 shadow-sm border-0">
+                Login
+            </a>
+        </div>
+
+    </div>
+</header>
+
+<section id="inicio" class="hero d-flex align-items-center justify-content-center text-center text-white">
+    <div class="overlay"></div>
+
+    <div class="container position-relative z-2">
+        <h1 class="display-3 fw-bold mb-3">
+            Transportamos tus materiales a tiempo, siempre.
+        </h1>
+
+        <p class="fs-5 mb-4 opacity-75">
+            Optimiza tu obra con la red de transporte más confiable de la región.
+        </p>
+
+        <a href="#servicios" class="btn btn-accion btn-lg px-5 py-3 rounded-pill fw-bold shadow">
+            Comenzar Ahora
+        </a>
+    </div>
+</section>
+
+<section id="nosotros" class="py-5 fondo-blanco section-anchor">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <h2 class="display-5 fw-bold mb-4 color-principal-fn">Nuestra Misión</h2>
+                <p class="lead text-muted">Garantizamos la eficiencia en el transporte de materiales pesados con precisión técnica.</p>
+                <ul class="list-check text-muted">
+                    <li>Planificación de rutas con seguimiento en tiempo real</li>
+                    <li>Flota adecuada para materiales y maquinaria</li>
+                    <li>Equipo de soporte para imprevistos</li>
+                </ul>
+                <a href="#servicios" class="btn btn-secundario rounded-pill px-4">Saber más</a>
+            </div>
+            <div class="col-lg-6 text-center">
+                <img src="{% static 'img/Plan.png' %}" alt="Plan" class="img-fluid img-mision">
+            </div>
+        </div>
+    </div>
+    </section>
+
+<section class="py-5 section-anchor">
+    <div class="container">
+        <h2 class="display-6 fw-bold text-center mb-4 color-oscuro-fn">¿Por qué elegirnos?</h2>
+        <p class="text-center text-muted mb-5">Maximizamos la eficiencia de tu obra con logística precisa y soporte constante.</p>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card h-100 card-soft p-4 rounded-4 transition-card">
+                    <div class="card-body text-center">
+                        <div class="icon-xl mb-3">⏱️</div>
+                        <h5 class="fw-bold mb-2">Puntualidad 98%</h5>
+                        <p class="small text-muted">Entregas a tiempo gracias a rutas optimizadas y monitoreo.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 card-soft p-4 rounded-4 transition-card">
+                    <div class="card-body text-center">
+                        <div class="icon-xl mb-3">🗺️</div>
+                        <h5 class="fw-bold mb-2">Cobertura regional</h5>
+                        <p class="small text-muted">Alcance en principales ciudades y corredores industriales.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 card-soft p-4 rounded-4 transition-card">
+                    <div class="card-body text-center">
+                        <div class="icon-xl mb-3">📡</div>
+                        <h5 class="fw-bold mb-2">Rastreo en vivo</h5>
+                        <p class="small text-muted">Seguimiento de cada envío y notificaciones en tiempo real.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 card-soft p-4 rounded-4 transition-card">
+                    <div class="card-body text-center">
+                        <div class="icon-xl mb-3">🛠️</div>
+                        <h5 class="fw-bold mb-2">Soporte 24/7</h5>
+                        <p class="small text-muted">Equipo dedicado para atender imprevistos y solicitudes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </section>
+
+<section id="servicios" class="py-5 color-dorado-bg section-anchor">
+    <div class="container py-5">
+        <h2 class="display-6 fw-bold text-center mb-5 color-oscuro-fn">Nuestros Servicios</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 card-soft p-4 rounded-4">
+                    <div class="card-body text-center">
+                        <div class="icon-xl mb-3">🚛</div>
+                        <h4 class="fw-bold">Carga Pesada</h4>
+                        <p class="text-muted small">Transporte especializado de materiales y maquinaria.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 card-soft p-4 rounded-4">
+                    <div class="card-body text-center">
+                        <div class="icon-xl mb-3">⏱️</div>
+                        <h4 class="fw-bold">Logística Express</h4>
+                        <p class="text-muted small">Entregas programadas sin retrasos.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 card-soft p-4 rounded-4">
+                    <div class="card-body text-center">
+                        <div class="icon-xl mb-3">🛡️</div>
+                        <h4 class="fw-bold">Seguridad</h4>
+                        <p class="text-muted small">Cargas 100% aseguradas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </section>
+
+<section class="py-5 section-anchor">
+    <div class="container">
+        <h2 class="display-6 fw-bold text-center mb-4 color-oscuro-fn">¿Cómo trabajamos?</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="h-100 p-4 border-0 rounded-4 shadow-sm text-center">
+                    <div class="step-number mx-auto mb-3">1</div>
+                    <h6 class="fw-bold mb-2">Solicitud</h6>
+                    <p class="small text-muted">Recibimos tu requerimiento y validamos disponibilidad.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="h-100 p-4 border-0 rounded-4 shadow-sm text-center">
+                    <div class="step-number mx-auto mb-3">2</div>
+                    <h6 class="fw-bold mb-2">Planificación</h6>
+                    <p class="small text-muted">Definimos ruta, vehículo y cronograma óptimos.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="h-100 p-4 border-0 rounded-4 shadow-sm text-center">
+                    <div class="step-number mx-auto mb-3">3</div>
+                    <h6 class="fw-bold mb-2">Ejecución</h6>
+                    <p class="small text-muted">Transporte con monitoreo en tiempo real.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="h-100 p-4 border-0 rounded-4 shadow-sm text-center">
+                    <div class="step-number mx-auto mb-3">4</div>
+                    <h6 class="fw-bold mb-2">Entrega</h6>
+                    <p class="small text-muted">Cierre con confirmación y reporte de entrega.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    </section>
+
+<section class="py-5 section-anchor">
+    <div class="container">
+        <div class="cta-band d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
+            <div>
+                <h3 class="h4 fw-bold m-0">¿Listo para optimizar tu logística?</h3>
+                <div class="text-white-50 small">Solicita una cotización o explora nuestros servicios.</div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="#servicios" class="btn btn-accion rounded-pill px-4 text-white">Ver servicios</a>
+            </div>
+        </div>
+    </div>
+    </section>
+
+<section id="contacto" class="py-5 color-dorado-bg section-anchor">
+    <div class="container">
+        <h2 class="display-6 fw-bold text-center mb-4 color-oscuro-fn">Contáctanos</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 bg-white card-soft h-100">
+                    <div class="fw-bold mb-1">Teléfono</div>
+                    <div class="text-muted">+57 300 000 0000</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 bg-white card-soft h-100">
+                    <div class="fw-bold mb-1">Correo</div>
+                    <div class="text-muted">contacto@constru-trans.com</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </section>
+
+<footer class="py-4 text-center">
+    <div class="container">
+        <p class="small mb-0 opacity-75">
+            © 2026 Transporte Profesional. Todos los derechos reservados.
+        </p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

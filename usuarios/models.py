@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 # -------------------------
 class Usuario(models.Model):
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User,  on_delete=models.CASCADE, related_name="usuario")
 
     ROLES = [
         ('admin', 'Administrador'),
@@ -35,7 +35,7 @@ class Usuario(models.Model):
     rol = models.CharField(max_length=20, choices=ROLES)
 
     nombre = models.CharField(max_length=100)
-    telefono = models.CharField(max_length=20)
+    telefono = models.CharField(max_length=20, blank=True)
 
     tipo_documento = models.CharField(
         max_length=5,
