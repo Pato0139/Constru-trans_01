@@ -3,6 +3,16 @@
 {% block content %}
 
 <h2 class="mb-4">Lista de Usuarios</h2>
+<form method="GET" class="mb-3 d-flex">
+    <input 
+        type="text" 
+        name="q" 
+        value="{{ query }}" 
+        placeholder="Buscar usuario..." 
+        class="form-control me-2"
+    >
+    <button class="btn btn-dark">Buscar</button>
+</form>
 
 <table class="table table-striped">
 
@@ -45,5 +55,22 @@
     </tbody>
 
 </table>
+<div class="mt-4 text-center">
+
+    {% if usuarios.has_previous %}
+        <a href="?page=1" class="btn btn-outline-dark btn-sm">Primera</a>
+        <a href="?page={{ usuarios.previous_page_number }}" class="btn btn-outline-dark btn-sm">Anterior</a>
+    {% endif %}
+
+    <span class="mx-2">
+        Página {{ usuarios.number }} de {{ usuarios.paginator.num_pages }}
+    </span>
+
+    {% if usuarios.has_next %}
+        <a href="?page={{ usuarios.next_page_number }}" class="btn btn-outline-dark btn-sm">Siguiente</a>
+        <a href="?page={{ usuarios.paginator.num_pages }}" class="btn btn-outline-dark btn-sm">Última</a>
+    {% endif %}
+
+</div>
 
 {% endblock %}

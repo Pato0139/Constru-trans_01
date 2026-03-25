@@ -9,6 +9,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.utils.timezone import now
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 
 # ---------------- REGISTRO ----------------
@@ -269,11 +271,27 @@ def cerrar_sesion(request):
 
 # ---------------- GESTIÓN DE USUARIOS (FALTABAN ESTAS) ----------------
 
+
 @login_required
 def lista_usuarios(request):
-    usuarios = Usuario.objects.all()
+    query = request.GET.get("q")
+
+    usuarios_list = Usuario.objects.all()
+
+    if query:
+        usuarios_list = usuarios_list.filter(
+            Q(nombre__icontains=query) |
+            Q(telefono__icontains=query) |
+            Q(rol__icontains=query)
+        )
+
+    paginator = Paginator(usuarios_list, 5)
+    page = request.GET.get('page')
+    usuarios = paginator.get_page(page)
+
     return render(request, "dashboard/usuarios_lista.html", {
-        "usuarios": usuarios
+        "usuarios": usuarios,
+        "query": query
     })
 
 @login_required
