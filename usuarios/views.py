@@ -1,6 +1,5 @@
 ﻿from django.shortcuts import render, redirect, get_object_or_404
 from .models import *
-from ordenes.models import Orden
 
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -49,7 +48,7 @@ def registro(request):
             documento=documento
         )
 
-        return redirect("login")
+        return redirect("usuarios:login")
 
     return render(request, "usuarios/registro.html")
 
@@ -69,13 +68,13 @@ def login_usuario(request):
             usuario = user.usuario
 
             if usuario.rol == "admin":
-                return redirect("panel")
+                return redirect("usuarios:panel")
             elif usuario.rol == "cliente":
-                return redirect("panel_cliente")
+                return redirect("usuarios:panel_cliente")
             elif usuario.rol == "conductor":
-                return redirect("panel_conductor")
+                return redirect("usuarios:panel_conductor")
             else:
-                return redirect("panel")
+                return redirect("usuarios:panel")
 
         else:
             return render(request, "usuarios/login.html", {
@@ -106,7 +105,7 @@ def panel(request):
 
         return render(request, "dashboard/panel-admin.html", context)
 
-    return redirect("login")
+    return redirect("usuarios:login")
 
 
 # ---------------- CONDUCTOR ----------------
@@ -201,7 +200,7 @@ def crear_pedido(request):
             estado="pendiente"
         )
 
-        return redirect("mis_pedidos")
+        return redirect("usuarios:mis_pedidos")
 
     return render(request, "cliente/crear_pedido.html", {
         "materiales": materiales
@@ -241,7 +240,7 @@ def crear_vehiculo(request):
             estado="disponible"
         )
 
-        return redirect("lista_vehiculos")
+        return redirect("usuarios:lista_vehiculos")
 
     return render(request, "dashboard/vehiculo_crear.html")
 
@@ -253,13 +252,13 @@ def eliminar_orden(request, id):
     if request.method == "POST":
         orden.delete()
 
-    return redirect("lista_pedidos_admin")
+    return redirect("usuarios:lista_pedidos_admin")
 
 
 # ---------------- LOGOUT ----------------
 def cerrar_sesion(request):
     logout(request)
-    return redirect("login")
+    return redirect("usuarios:login")
 
 
 # ---------------- GESTI├ôN DE USUARIOS (FALTABAN ESTAS) ----------------
@@ -275,7 +274,7 @@ def lista_usuarios(request):
 def eliminar_usuario(request, id):
     usuario_obj = get_object_or_404(Usuario, id=id) 
     usuario_obj.delete()
-    return redirect("lista_usuarios")
+    return redirect("usuarios:lista_usuarios")
 
 @login_required
 def editar_usuario(request, id):
@@ -285,7 +284,7 @@ def editar_usuario(request, id):
         usuario.telefono = request.POST.get("telefono")
         usuario.rol = request.POST.get("rol")
         usuario.save()
-        return redirect("lista_usuarios")
+        return redirect("usuarios:lista_usuarios")
     return render(request, "dashboard/editar_usuario.html", {
         "usuario": usuario
     })
@@ -375,7 +374,7 @@ def eliminar_material(request, id):
     if request.method == "POST":
         material.delete()
         messages.success(request, "Material eliminado correctamente")
-    return redirect("lista_materiales")
+    return redirect("usuarios:lista_materiales")
 
 @login_required
 def lista_vehiculos(request):
@@ -403,7 +402,7 @@ def crear_material(request):
             stock=stock
         )
         messages.success(request, "Material creado correctamente")
-        return redirect("lista_materiales")
+        return redirect("usuarios:lista_materiales")
 
     return render(request, "dashboard/material_crear.html")
 
@@ -418,7 +417,7 @@ def editar_material(request, id):
         material.stock = request.POST.get("stock")
         material.save()
         messages.success(request, "Material actualizado")
-        return redirect("lista_materiales")
+        return redirect("usuarios:lista_materiales")
 
     return render(request, "dashboard/material_editar.html", {"material": material})
 

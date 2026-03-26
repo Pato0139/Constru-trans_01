@@ -47,11 +47,11 @@
         <i class="bi bi-truck"></i> Gestionar Vehículos
     </button>
 
-    <a href="{% url 'lista_conductores' %}" class="btn btn-success me-2">
+    <a href="{% url 'usuarios:lista_conductores' %}" class="btn btn-success me-2">
         <i class="bi bi-person"></i> Ver Conductores
     </a>
 
-    <a href="{% url 'lista_pedidos_admin' %}" class="btn btn-warning">
+    <a href="{% url 'usuarios:lista_pedidos_admin' %}" class="btn btn-warning">
         <i class="bi bi-box"></i> Revisar Pedidos
     </a>
 
@@ -100,11 +100,11 @@
                 </td>
 
                 <td>
-                    <a href="{% url 'ver_pedido_admin' pedido.id %}" class="btn btn-primary btn-sm">
+                    <a href="{% url 'usuarios:ver_pedido_admin' pedido.id %}" class="btn btn-primary btn-sm">
                         Ver
                     </a>
 
-                    <a href="{% url 'crear_entrega' pedido.id %}" class="btn btn-success btn-sm">
+                    <a href="{% url 'ordenes:crear_entrega' pedido.id %}" class="btn btn-success btn-sm">
                         Crear Entrega
                     </a>
                 </td>

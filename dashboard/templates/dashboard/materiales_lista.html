@@ -14,7 +14,7 @@
         <button type="submit" class="btn btn-outline-primary">Buscar</button>
     </form>
 
-    <a href="{% url 'crear_material' %}" class="btn btn-primary">
+    <a href="{% url 'usuarios:crear_material' %}" class="btn btn-primary\">
         <i class="bi bi-plus-lg"></i> Nuevo Material
     </a>
 
@@ -55,12 +55,12 @@
 
 <td>
 
-<a href="{% url 'editar_material' material.id %}" class="btn btn-sm btn-warning">
+<a href="{% url 'usuarios:editar_material' material.id %}" class="btn btn-sm btn-warning">
 <i class="bi bi-pencil"></i>
 </a>
 
 
-<form action="{% url 'eliminar_material' material.id %}" method="POST" class="d-inline">
+<form action="{% url 'usuarios:eliminar_material' material.id %}" method="POST" class="d-inline">
     {% csrf_token %}
     <button type="submit" class="btn btn-sm btn-danger"
         onclick="return confirm('¿Seguro que deseas eliminar este material?')">

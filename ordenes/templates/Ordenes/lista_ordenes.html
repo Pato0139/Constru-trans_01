@@ -44,11 +44,11 @@
 </td>
 
 <td>
-    <a href="{% url 'editar_orden' orden.id %}" class="btn btn-sm btn-primary">
+    <a href="{% url 'ordenes:editar_orden' orden.id %}" class="btn btn-sm btn-primary">
         Editar
     </a>
 
-    <form action="{% url 'eliminar_orden' orden.id %}" method="POST" style="display:inline;">
+    <form action="{% url 'ordenes:eliminar_orden' orden.id %}" method="POST" style="display:inline;">
         {% csrf_token %}
 <button type="submit" class="btn btn-sm btn-danger"
     onclick="return confirm('¿Seguro que quieres eliminar esta orden?')">
@@ -56,7 +56,7 @@
 </button>
     </form>
 
-    <a href="{% url 'crear_entrega' orden.id %}" class="btn btn-sm btn-success">
+    <a href="{% url 'ordenes:crear_entrega' orden.id %}" class="btn btn-sm btn-success">
         Asignar entrega
     </a>
 </td>

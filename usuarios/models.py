@@ -97,13 +97,18 @@ class Material(models.Model):
 
 
 class Orden(models.Model):
-    cliente = models.ForeignKey('Usuario', on_delete=models.CASCADE)
+    cliente = models.ForeignKey('Usuario', on_delete=models.CASCADE, related_name='mis_ordenes')
     material = models.ForeignKey('Material', on_delete=models.CASCADE)
     cantidad = models.IntegerField()
+    conductor = models.ForeignKey('Usuario', on_delete=models.SET_NULL, null=True, blank=True, related_name='ordenes_asignadas')
     direccion_origen = models.CharField(max_length=255)
     direccion_destino = models.CharField(max_length=255)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     estado = models.CharField(max_length=50, default='pendiente')
+    fecha = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        ordering = ["-fecha"]
 
     def __str__(self):
         return f"Orden #{self.id}"
