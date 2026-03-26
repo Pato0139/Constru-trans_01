@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+﻿from django.shortcuts import render, redirect, get_object_or_404
 from .models import *
 from ordenes.models import Orden
 
@@ -9,31 +9,14 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.utils.timezone import now
 from django.contrib import messages
-from django.core.paginator import Paginator
-from django.db.models import Q
 
 
-<<<<<<< HEAD:Usuarios/views.py
-# =========================
-# LISTA DE USUARIOS (ADMIN)
-# =========================
-@login_required
-def lista_usuarios(request):
-    usuarios = Usuario.objects.all()
-    return render(request, "usuarios/lista_usuarios.html", {"usuarios": usuarios})
-
-
-# =========================
-# REGISTRO
-# =========================
-=======
 # ---------------- REGISTRO ----------------
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
 def registro(request):
 
     if request.method == "POST":
         nombre = request.POST.get("nombre")
-        email = request.POST.get("correo").strip().lower()
+        email = request.POST.get("correo")
         telefono = request.POST.get("telefono")
         tipo_documento = request.POST.get("tipo_documento")
         documento = request.POST.get("documento")
@@ -43,12 +26,12 @@ def registro(request):
 
         if password != confirmar:
             return render(request, "usuarios/registro.html", {
-                "error": "Las contraseñas no coinciden"
+                "error": "Las contrase├▒as no coinciden"
             })
 
         if User.objects.filter(username=email).exists():
             return render(request, "usuarios/registro.html", {
-                "error": "Este correo ya está registrado"
+                "error": "Este correo ya est├í registrado"
             })
 
         user = User.objects.create_user(
@@ -66,77 +49,43 @@ def registro(request):
             documento=documento
         )
 
-        return redirect("usuarios:login")
+        return redirect("login")
 
     return render(request, "usuarios/registro.html")
 
 
-<<<<<<< HEAD:Usuarios/views.py
-# =========================
-# LOGIN
-# =========================
-=======
 
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
 def login_usuario(request):
 
     if request.method == "POST":
-        username = request.POST.get("username").strip().lower()
+        username = request.POST.get("username")
         password = request.POST.get("password")
 
         user = authenticate(request, username=username, password=password)
 
-        # 🔥 DEBUG (aquí van los print)
-        print("USER:", username)
-        print("PASS:", password)
-        print("AUTH:", user)
-
         if user is not None:
             login(request, user)
-<<<<<<< HEAD:Usuarios/views.py
+
             usuario = user.usuario
 
             if usuario.rol == "admin":
-                return redirect("usuarios:panel")
-
+                return redirect("panel")
             elif usuario.rol == "cliente":
-                return redirect("usuarios:panel_cliente")
-
+                return redirect("panel_cliente")
             elif usuario.rol == "conductor":
-                return redirect("usuarios:panel_conductor")
-
-            elif usuario.rol == "empleado":
-                return redirect("usuarios:panel")
-=======
-
-            if hasattr(user, "usuario"):
-                rol = user.usuario.rol
-
-                if rol == "admin":
-                    return redirect("panel")
-                elif rol == "cliente":
-                    return redirect("panel_cliente")
-                elif rol == "conductor":
-                    return redirect("panel_conductor")
-
-            return redirect("panel")
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
+                return redirect("panel_conductor")
+            else:
+                return redirect("panel")
 
         else:
             return render(request, "usuarios/login.html", {
-                "error": "Usuario o contraseña incorrectos"
+                "error": "Usuario o contrase├▒a incorrectos"
             })
 
     return render(request, "usuarios/login.html")
 
-<<<<<<< HEAD:Usuarios/views.py
 
-# =========================
-# PANEL ADMIN
-# =========================
-=======
 # ---------------- PANEL ADMIN ----------------
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
 @login_required
 def panel(request):
 
@@ -157,32 +106,6 @@ def panel(request):
 
         return render(request, "dashboard/panel-admin.html", context)
 
-<<<<<<< HEAD:Usuarios/views.py
-    elif usuario.rol == "cliente":
-        return redirect("usuarios:panel_cliente")
-
-    elif usuario.rol == "conductor":
-        return redirect("usuarios:panel_conductor")
-
-    elif usuario.rol == "empleado":
-        return render(request, "usuarios/panel-empleado.html")
-
-    return redirect("usuarios:login")
-
-
-# =========================
-# PANEL CONDUCTOR
-# =========================
-@login_required
-def panel_conductor(request):
-    pedidos = Orden.objects.filter(conductor=request.user.usuario)
-    return render(request, "usuarios/panel-conductor.html", {"pedidos": pedidos})
-
-
-# =========================
-# PANEL CLIENTE
-# =========================
-=======
     return redirect("login")
 
 
@@ -225,7 +148,6 @@ def mis_entregas(request):
 
 
 # ---------------- CLIENTE ----------------
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
 @login_required
 def panel_cliente(request):
 
@@ -233,52 +155,16 @@ def panel_cliente(request):
     pedidos = Orden.objects.filter(cliente=cliente)
 
     context = {
-<<<<<<< HEAD:Usuarios/views.py
-        "pedidos": pedidos,
-=======
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
         "pedidos_activos": pedidos.filter(estado="pendiente").count(),
         "entregadas": pedidos.filter(estado="entregado").count(),
         "total_gastado": pedidos.aggregate(total=Sum("precio"))["total"] or 0,
         "ultimos_pedidos": pedidos.order_by("-fecha")[:5]
     }
 
-    return render(request, "usuarios/panel-clientes.html", context)
-
-
-
-# =========================
-# CERRAR SESIÓN
-# =========================
-def cerrar_sesion(request):
-    logout(request)
-    return redirect("usuarios:login")
-
-
-# =========================
-# USUARIOS CRUD
-# =========================
-@login_required
-def eliminar_usuario(request, id):
-    usuario = get_object_or_404(Usuario, id=id)
-    usuario.delete()
-    return redirect("usuarios:lista_usuarios")
+    return render(request, "cliente/dashboard.html", context)
 
 
 @login_required
-<<<<<<< HEAD:Usuarios/views.py
-def editar_usuario(request, id):
-    usuario = get_object_or_404(Usuario, id=id)
-
-    if request.method == "POST":
-        usuario.nombre = request.POST.get("nombre")
-        usuario.telefono = request.POST.get("telefono")
-        usuario.save()
-        return redirect("usuarios:lista_usuarios")
-
-    return render(request, "usuarios/editar_usuario.html", {"usuario": usuario})
-
-=======
 def crear_pedido(request):
     cliente = request.user.usuario
     materiales = Material.objects.all()
@@ -300,36 +186,11 @@ def crear_pedido(request):
         except:
             return render(request, "cliente/crear_pedido.html", {
                 "materiales": materiales,
-                "error": "Datos inválidos"
+                "error": "Datos inv├ílidos"
             })
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
 
-# =========================
-# CONDUCTORES / VEHICULOS
-# =========================
-@login_required
-def lista_conductores(request):
-    conductores = Usuario.objects.filter(rol="conductor")
-    return render(request, "usuarios/conductores.html", {"conductores": conductores})
+        total = material.precio * cantidad
 
-<<<<<<< HEAD:Usuarios/views.py
-
-@login_required
-def lista_vehiculos(request):
-    vehiculos = Vehiculo.objects.all()
-    return render(request, "usuarios/vehiculos.html", {"vehiculos": vehiculos})
-
-
-@login_required
-def crear_vehiculo(request):
-
-    if request.method == "POST":
-        Vehiculo.objects.create(
-            placa=request.POST.get("placa"),
-            tipo=request.POST.get("tipo"),
-            capacidad=request.POST.get("capacidad"),
-            estado=request.POST.get("estado"),
-=======
         Orden.objects.create(
             cliente=cliente,
             material=material,
@@ -338,56 +199,17 @@ def crear_vehiculo(request):
             direccion_destino=direccion,
             precio=total,
             estado="pendiente"
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
         )
-        return redirect("usuarios:lista_vehiculos")
 
-    return render(request, "usuarios/crear_vehiculo.html")
+        return redirect("mis_pedidos")
 
-
-# =========================
-# PEDIDOS
-# =========================
-@login_required
-def lista_pedidos_admin(request):
-    pedidos = Orden.objects.all()
-    return render(request, "usuarios/pedidos_admin.html", {"pedidos": pedidos})
-
-
-@login_required
-def ver_pedido_admin(request, id):
-    pedido = get_object_or_404(Orden, id=id)
-    return render(request, "usuarios/ver_pedido.html", {"pedido": pedido})
-
-
-@login_required
-def pedidos_conductor(request):
-    pedidos = Orden.objects.filter(conductor=request.user.usuario)
-    return render(request, "usuarios/pedidos_conductor.html", {"pedidos": pedidos})
-
-
-@login_required
-def mis_entregas(request):
-    entregas = Orden.objects.filter(
-        conductor=request.user.usuario,
-        estado="entregado"
-    )
-    return render(request, "usuarios/mis_entregas.html", {"entregas": entregas})
-
-
-# =========================
-# CLIENTE PEDIDOS
-# =========================
-@login_required
-def crear_pedido(request):
-    return render(request, "usuarios/crear_pedido.html")
+    return render(request, "cliente/crear_pedido.html", {
+        "materiales": materiales
+    })
 
 
 @login_required
 def mis_pedidos(request):
-<<<<<<< HEAD:Usuarios/views.py
-    return render(request, "usuarios/mis_pedidos.html")
-=======
     cliente = request.user.usuario
 
     pedidos = Orden.objects.filter(
@@ -397,20 +219,10 @@ def mis_pedidos(request):
     return render(request, "cliente/mis_pedidos.html", {
         "pedidos": pedidos
     })
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
 
 
 # ---------------- ADMIN EXTRA ----------------
 @login_required
-<<<<<<< HEAD:Usuarios/views.py
-def seguimiento_pedidos(request):
-    return render(request, "usuarios/seguimiento.html")
-
-
-@login_required
-def historial_pedidos(request):
-    return render(request, "usuarios/historial.html")
-=======
 def lista_vehiculos(request):
     vehiculos = Vehiculo.objects.all()
     return render(request, "dashboard/vehiculos_lista.html", {
@@ -450,31 +262,14 @@ def cerrar_sesion(request):
     return redirect("login")
 
 
-# ---------------- GESTIÓN DE USUARIOS (FALTABAN ESTAS) ----------------
-
+# ---------------- GESTI├ôN DE USUARIOS (FALTABAN ESTAS) ----------------
 
 @login_required
 def lista_usuarios(request):
-    query = request.GET.get("q")
-
-    usuarios_list = Usuario.objects.all()
-
-    if query:
-        usuarios_list = usuarios_list.filter(
-            Q(nombre__icontains=query) |
-            Q(telefono__icontains=query) |
-            Q(rol__icontains=query)
-        )
-
-    paginator = Paginator(usuarios_list, 5)
-    page = request.GET.get('page')
-    usuarios = paginator.get_page(page)
-
+    usuarios = Usuario.objects.all()
     return render(request, "dashboard/usuarios_lista.html", {
-        "usuarios": usuarios,
-        "query": query
+        "usuarios": usuarios
     })
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
 
 @login_required
 def eliminar_usuario(request, id):
@@ -495,18 +290,11 @@ def editar_usuario(request, id):
         "usuario": usuario
     })
 
-# ---------------- GESTIÓN DE MATERIALES (FALTABAN ESTAS) ----------------
+# ---------------- GESTI├ôN DE MATERIALES (FALTABAN ESTAS) ----------------
 
-# =========================
-# MATERIALES
-# =========================
 @login_required
 def lista_materiales(request):
     materiales = Material.objects.all()
-<<<<<<< HEAD:Usuarios/views.py
-    return render(request, "usuarios/materiales.html", {"materiales": materiales})
-
-=======
     return render(request, "dashboard/materiales_lista.html", {
         "materiales": materiales
     })
@@ -596,25 +384,11 @@ def lista_vehiculos(request):
         "vehiculos": vehiculos
     })
     
-    # ---------------- GESTIÓN DE MATERIALES (FALTANTES) ----------------
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
+    # ---------------- GESTI├ôN DE MATERIALES (FALTANTES) ----------------
 
 @login_required
 def crear_material(request):
     if request.method == "POST":
-<<<<<<< HEAD:Usuarios/views.py
-        Material.objects.create(
-            nombre=request.POST.get("nombre"),
-            tipo=request.POST.get("tipo"),
-            descripcion=request.POST.get("descripcion"),
-            precio=request.POST.get("precio"),
-            stock=request.POST.get("stock"),
-        )
-        return redirect("usuarios:lista_materiales")
-
-    return render(request, "usuarios/crear_material.html")
-
-=======
         nombre = request.POST.get("nombre")
         descripcion = request.POST.get("descripcion")
         tipo = request.POST.get("tipo")
@@ -632,21 +406,12 @@ def crear_material(request):
         return redirect("lista_materiales")
 
     return render(request, "dashboard/material_crear.html")
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
 
 @login_required
 def editar_material(request, id):
     material = get_object_or_404(Material, id=id)
     if request.method == "POST":
         material.nombre = request.POST.get("nombre")
-<<<<<<< HEAD:Usuarios/views.py
-        material.precio = request.POST.get("precio")
-        material.stock = request.POST.get("stock")
-        material.save()
-        return redirect("usuarios:lista_materiales")
-
-    return render(request, "usuarios/editar_material.html", {"material": material})
-=======
         material.descripcion = request.POST.get("descripcion")
         material.tipo = request.POST.get("tipo")
         material.precio = request.POST.get("precio")
@@ -656,54 +421,15 @@ def editar_material(request, id):
         return redirect("lista_materiales")
 
     return render(request, "dashboard/material_editar.html", {"material": material})
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
 
 # ---------------- CONDUCTORES Y REPORTES ----------------
 
 @login_required
-<<<<<<< HEAD:Usuarios/views.py
-def eliminar_material(request, id):
-    material = get_object_or_404(Material, id=id)
-    material.delete()
-    return redirect("usuarios:lista_materiales")
-
-=======
 def lista_conductores(request):
     conductores = Usuario.objects.filter(rol="conductor")
     return render(request, "dashboard/conductores_lista.html", {"conductores": conductores})
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
-
-# =========================
-# PERFILES
-# =========================
-@login_required
-<<<<<<< HEAD:Usuarios/views.py
-def perfil_cliente(request):
-    return render(request, "usuarios/perfil_cliente.html", {
-        "usuario": request.user.usuario
-    })
-
 
 @login_required
-def perfil_conductor(request):
-    return render(request, "usuarios/perfil_conductor.html", {
-        "usuario": request.user.usuario
-    })
-
-
-# =========================
-# REPORTES
-# =========================
-@login_required
-def reportes_admin(request):
-
-    context = {
-        "total_pedidos": Orden.objects.count(),
-        "total_clientes": Usuario.objects.filter(rol="cliente").count()
-    }
-
-    return render(request, "usuarios/reportes.html", context)
-=======
 def reportes_admin(request):
     context = {
         "total": Orden.objects.count(),
@@ -712,4 +438,3 @@ def reportes_admin(request):
         "entregadas": Orden.objects.filter(estado="entregado").count(),
     }
     return render(request, "dashboard/reportes.html", context)
->>>>>>> 248401ded1cafc672837167d1905cb8dd0e13caa:usuarios/views.py
