@@ -28,6 +28,9 @@ class Orden(models.Model):
     direccion_origen = models.CharField(max_length=200)
     direccion_destino = models.CharField(max_length=200)
     fecha = models.DateTimeField(auto_now_add=True)
+    fecha_entrega_programada = models.DateTimeField(null=True, blank=True)
+    fecha_toma_entrega = models.DateTimeField(null=True, blank=True)
+    fecha_entrega_real = models.DateTimeField(null=True, blank=True)
 
     PENDIENTE = "pendiente"
     EN_RUTA = "en_ruta"
@@ -70,7 +73,9 @@ class Entrega(models.Model):
     )
     vehiculo = models.ForeignKey(
         Vehiculo,
-        on_delete=models.CASCADE
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
     )
     fecha = models.DateTimeField(auto_now_add=True)
 

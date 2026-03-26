@@ -14,7 +14,9 @@
 <tr>
 <th>ID</th>
 <th>Destino</th>
+<th>Programado</th>
 <th>Estado</th>
+<th>Acción</th>
 </tr>
 </thead>
 
@@ -25,7 +27,11 @@
 <tr>
 <td>{{ pedido.id }}</td>
 <td>{{ pedido.direccion_destino }}</td>
+<td>{{ pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}</td>
 <td>{{ pedido.estado }}</td>
+<td>
+    <a href="{% url 'ordenes:editar_orden' pedido.id %}" class="btn btn-primary btn-sm">Ver Detalle</a>
+</td>
 </tr>
 
 {% empty %}

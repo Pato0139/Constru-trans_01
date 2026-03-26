@@ -4,51 +4,43 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Gestión de Pedidos</h2>
+</div>
 
-<h2>Gestión de Pedidos</h2>
-
-<table class="table table-striped">
-
-<thead class="table-dark">
-
-<tr>
-<th>ID</th>
-<th>Cliente</th>
-<th>Fecha</th>
-<th>Total</th>
-<th>Estado</th>
-<th>Acción</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for pedido in pedidos %}
-
-<tr>
-
-<td>#CT-{{ pedido.id }}</td>
-<td>{{ pedido.cliente.nombre }}</td>
-<td>{{ pedido.fecha }}</td>
-<td>${{ pedido.precio }}</td>
-<td>{{ pedido.estado }}</td>
-
-<td>
-<a href="{% url 'usuarios:ver_pedido_admin' pedido.id %}" class="btn btn-primary btn-sm">
-Ver
-</a>
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
+<div class="table-container">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th class="text-center">ID Pedido</th>
+                <th>Cliente</th>
+                <th class="text-center">Fecha</th>
+                <th class="text-center">Total</th>
+                <th class="text-center">Estado</th>
+                <th class="text-center">Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos %}
+            <tr>
+                <td class="text-center text-muted fw-bold">#CT-{{ pedido.id }}</td>
+                <td class="fw-bold">{{ pedido.cliente.nombre }}</td>
+                <td class="text-center">{{ pedido.fecha|date:"d/m/Y H:i" }}</td>
+                <td class="text-center"><span class="price-tag">$ {{ pedido.price|default:pedido.precio }}</span></td>
+                <td class="text-center">
+                    <span class="badge {% if pedido.estado == 'pendiente' %}bg-warning{% elif pedido.estado == 'entregado' %}bg-success{% else %}bg-info{% endif %} rounded-pill px-3">
+                        {{ pedido.get_estado_display|default:pedido.estado|title }}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <a href="{% url 'ordenes:editar_orden' pedido.id %}" class="btn btn-primary btn-action text-white">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}

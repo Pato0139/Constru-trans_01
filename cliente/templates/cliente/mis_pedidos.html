@@ -4,43 +4,35 @@
 
 <h3 class="mb-4">Mis pedidos</h3>
 
-<div class="card shadow-sm">
-
-<table class="table">
-
-<thead>
-<tr>
-<th>Material</th>
-<th>Cantidad</th>
-<th>Precio</th>
-<th>Estado</th>
-</tr>
-</thead>
-
-<tbody>
-    {% for pedido in pedidos %}
-    <tr>
-        <td>Pedido #{{ pedido.id }}</td> 
-        <td>{{ pedido.direccion_destino }}</td>
-        <td>${{ pedido.precio }}</td>
-        <td>
-            <span class="badge 
-                {% if pedido.estado == 'pendiente' %}bg-warning
-                {% elif pedido.estado == 'entregado' %}bg-success
-                {% else %}bg-info{% endif %}">
-                {{ pedido.get_estado_display|default:pedido.estado }}
-            </span>
-        </td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="4" class="text-center">No tienes pedidos aún</td>
-    </tr>
-    {% endfor %}
-</tbody>
-
-</table>
-
+<div class="table-container">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th class="text-center">ID Pedido</th>
+                <th>Destino</th>
+                <th class="text-center">Precio</th>
+                <th class="text-center">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos %}
+            <tr>
+                <td class="text-center text-muted fw-bold">CT-{{ pedido.id }}</td> 
+                <td>{{ pedido.direccion_destino }}</td>
+                <td class="text-center"><span class="price-tag">$ {{ pedido.precio }}</span></td>
+                <td class="text-center">
+                    <span class="badge {% if pedido.estado == 'pendiente' %}bg-warning{% elif pedido.estado == 'entregado' %}bg-success{% else %}bg-info{% endif %} rounded-pill px-3">
+                        {{ pedido.get_estado_display|default:pedido.estado|title }}
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center py-5 text-muted">No tienes pedidos aún</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}

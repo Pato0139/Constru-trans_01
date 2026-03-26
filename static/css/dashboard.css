@@ -1,0 +1,118 @@
+/* Estilos para las tablas y contenedores del Dashboard */
+.table-container {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.table thead {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #eef2f7;
+}
+
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    color: #747d8c;
+    padding: 15px;
+}
+
+.table td {
+    padding: 15px;
+    vertical-align: middle;
+    color: #2f3542;
+}
+
+.desc-cell {
+    max-width: 400px;
+    color: #57606f;
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+
+.badge-tipo {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.price-tag {
+    font-weight: 700;
+    color: #2ed573;
+    white-space: nowrap;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}
+
+.stock-tag {
+    font-weight: 600;
+    color: #ffa502;
+    white-space: nowrap;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}
+
+/* Centrado de formularios en páginas */
+.form-container-centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+}
+
+.card-form {
+    width: 100%;
+    max-width: 500px;
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.btn-action {
+    width: 35px;
+    height: 35px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+}
+
+/* Estilos para Modales */
+.modal-content {
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    border-bottom: 1px solid #f1f2f6;
+    padding: 20px 30px;
+}
+
+.modal-title {
+    font-weight: 700;
+    color: #2f3542;
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+.modal-footer {
+    border-top: 1px solid #f1f2f6;
+    padding: 20px 30px;
+}

@@ -36,38 +36,33 @@
 </div>
 
 
-<div class="card shadow-sm">
+<div class="table-container mt-4">
+    <div class="p-3 border-bottom bg-light">
+        <h5 class="mb-0 fw-bold">Últimos pedidos</h5>
+    </div>
 
-<div class="card-header">
-Últimos pedidos
-</div>
-
-<table class="table">
-
-<thead>
-<tr>
-<th>ID Pedido</th>
-<th>Fecha</th>
-<th>Estado</th>
-</tr>
-</thead>
-
-<tbody>
-
-{% for pedido in ultimos_pedidos %}
-
-<tr>
-<td>CT-{{ pedido.id }}</td>
-<td>{{ pedido.fecha|date:"Y-m-d" }}</td>
-<td>{{ pedido.estado }}</td>
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th class="text-center">ID Pedido</th>
+                <th class="text-center">Fecha</th>
+                <th class="text-center">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in ultimos_pedidos %}
+            <tr>
+                <td class="text-center text-muted fw-bold">CT-{{ pedido.id }}</td>
+                <td class="text-center">{{ pedido.fecha|date:"d/m/Y" }}</td>
+                <td class="text-center">
+                    <span class="badge {% if pedido.estado == 'pendiente' %}bg-warning{% elif pedido.estado == 'entregado' %}bg-success{% else %}bg-info{% endif %} rounded-pill px-3">
+                        {{ pedido.estado|title }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}

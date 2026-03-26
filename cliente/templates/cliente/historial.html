@@ -4,50 +4,39 @@
 
 <h3 class="mb-4">Historial de pedidos</h3>
 
-{% for pedido in pedidos %}
-
-<div class="card shadow-sm mb-3">
-
-<div class="card-body">
-
-<div class="row">
-
-<div class="col-md-4">
-<strong>Material</strong>
-<p>{{ pedido.material.nombre }}</p>
+<div class="table-container">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th class="text-center">ID Pedido</th>
+                <th>Material</th>
+                <th class="text-center">Cantidad</th>
+                <th class="text-center">Total</th>
+                <th class="text-center">Fecha</th>
+                <th class="text-center">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos %}
+            <tr>
+                <td class="text-center text-muted fw-bold">CT-{{ pedido.id }}</td>
+                <td class="fw-bold">{{ pedido.material.nombre|title }}</td>
+                <td class="text-center">{{ pedido.cantidad }}</td>
+                <td class="text-center"><span class="price-tag">$ {{ pedido.precio }}</span></td>
+                <td class="text-center">{{ pedido.fecha|date:"d/m/Y" }}</td>
+                <td class="text-center">
+                    <span class="badge bg-success rounded-pill px-3">
+                        <i class="bi bi-check-circle me-1"></i> Entregado
+                    </span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-5 text-muted">No tienes pedidos finalizados aún</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-
-<div class="col-md-2">
-<strong>Cantidad</strong>
-<p>{{ pedido.cantidad }}</p>
-</div>
-
-<div class="col-md-3">
-<strong>Precio</strong>
-<p>${{ pedido.precio }}</p>
-</div>
-
-<div class="col-md-3">
-<strong>Fecha</strong>
-<p>{{ pedido.fecha }}</p>
-</div>
-
-</div>
-
-<span class="badge bg-success">
-<i class="bi bi-check-circle"></i> Entregado
-</span>
-
-</div>
-
-</div>
-
-{% empty %}
-
-<div class="alert alert-info">
-Aún no tienes pedidos entregados.
-</div>
-
-{% endfor %}
 
 {% endblock %}

@@ -2,20 +2,27 @@
 
 {% block content %}
 
-<div class="container mt-4"><div class="card shadow-sm">
+<div class="form-container-centered">
+    <div class="card card-form p-4">
+        <h2 class="text-center mb-4">Asignar Entrega</h2>
+        
+        <div class="alert alert-info py-2 small mb-4">
+            <i class="bi bi-info-circle me-2"></i> Asignando conductor y vehículo para el pedido <strong>#CT-{{ orden.id }}</strong>
+        </div>
 
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">Asignar Entrega</h5>
-    </div>
-
-    <div class="card-body">
+        {% if error %}
+            <div class="alert alert-danger py-2 mb-3 small">
+                <i class="bi bi-exclamation-triangle me-2"></i> {{ error }}
+            </div>
+        {% endif %}
 
         <form method="POST">
             {% csrf_token %}
 
             <div class="mb-3">
-                <label class="form-label">Conductor</label>
-                <select name="conductor" class="form-select">
+                <label class="form-label small fw-bold">Conductor Responsable</label>
+                <select name="conductor" class="form-select rounded-pill" required>
+                    <option value="">Seleccione un conductor</option>
                     {% for c in conductores %}
                     <option value="{{ c.id }}">{{ c.nombre }}</option>
                     {% endfor %}
@@ -23,39 +30,25 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Vehículo</label>
-                <select name="vehiculo" class="form-select">
+                <label class="form-label small fw-bold">Vehículo Asignado</label>
+                <select name="vehiculo" class="form-select rounded-pill" required>
+                    <option value="">Seleccione un vehículo</option>
                     {% for v in vehiculos %}
-                    <option value="{{ v.id }}">{{ v.placa }}</option>
+                    <option value="{{ v.id }}">{{ v.placa }} - {{ v.tipo }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="mb-3">
-    <label>Fecha</label>
-    <input type="date" name="fecha" class="form-control" required>
-</div>
 
-<div class="mb-3">
-    <label>Hora</label>
-    <input type="time" name="hora" class="form-control" required>
-</div>
-
-            <div class="d-flex justify-content-between">
-
-                <a href="{% url 'ordenes:lista_ordenes' %}" class="btn btn-secondary">
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-primary rounded-pill">
+                    <i class="bi bi-truck me-2"></i> Confirmar y Enviar
+                </button>
+                <a href="{% url 'ordenes:lista_ordenes' %}" class="btn btn-light rounded-pill">
                     Cancelar
                 </a>
-
-                <button type="submit" class="btn btn-success">
-                    Asignar Entrega
-                </button>
-
             </div>
-
         </form>
-
     </div>
-
 </div>
 
-</div>{% endblock %}
+{% endblock %}

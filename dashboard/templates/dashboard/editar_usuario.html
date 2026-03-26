@@ -2,28 +2,42 @@
 
 {% block content %}
 
-<h2>Editar Usuario</h2>
+<div class="form-container-centered">
+    <div class="card card-form p-4">
+        <h2 class="text-center mb-4">Editar Usuario</h2>
 
-<form method="POST">
-{% csrf_token %}
+        <form method="POST">
+            {% csrf_token %}
 
-<div class="mb-3">
-<label>Nombre</label>
-<input type="text" name="nombre" value="{{ usuario.nombre }}" class="form-control">
+            <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input type="text" name="nombre" value="{{ usuario.nombre }}" class="form-control rounded-pill">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Teléfono</label>
+                <input type="text" name="telefono" value="{{ usuario.telefono }}" class="form-control rounded-pill">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Rol</label>
+                <select name="rol" class="form-select rounded-pill">
+                    <option value="admin" {% if usuario.rol == 'admin' %}selected{% endif %}>Administrador</option>
+                    <option value="cliente" {% if usuario.rol == 'cliente' %}selected{% endif %}>Cliente</option>
+                    <option value="conductor" {% if usuario.rol == 'conductor' %}selected{% endif %}>Conductor</option>
+                </select>
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-success rounded-pill">
+                    <i class="bi bi-save me-2"></i> Guardar Cambios
+                </button>
+                <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-light rounded-pill">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
-
-<div class="mb-3">
-<label>Teléfono</label>
-<input type="text" name="telefono" value="{{ usuario.telefono }}" class="form-control">
-</div>
-
-<div class="mb-3">
-<label>Rol</label>
-<input type="text" name="rol" value="{{ usuario.rol }}" class="form-control">
-</div>
-
-<button type="submit" class="btn btn-success">Guardar</button>
-
-</form>
 
 {% endblock %}

@@ -14,6 +14,7 @@
 <th>Destino</th>
 <th>Fecha</th>
 <th>Estado</th>
+<th>Acción</th>
 </tr>
 </thead>
 
@@ -30,6 +31,9 @@
 <span class="badge bg-success">
 {{ orden.estado }}
 </span>
+</td>
+<td>
+    <a href="{% url 'ordenes:editar_orden' orden.id %}" class="btn btn-primary btn-sm">Ver</a>
 </td>
 </tr>
 

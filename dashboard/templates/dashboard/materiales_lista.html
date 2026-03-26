@@ -5,73 +5,90 @@
 {% block content %}
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-    <h4 class="mb-0">Gestión de Materiales</h4>
+    <div>
+        <h4 class="fw-bold mb-0">Gestión de Materiales</h4>
+        <p class="text-muted small mb-0">Administra el inventario de materiales de construcción</p>
+    </div>
 
-    <!-- Buscador -->
-    <form method="GET" class="d-flex">
-        <input type="text" name="q" class="form-control me-2" 
-               placeholder="Buscar..." value="{{ request.GET.q }}">
-        <button type="submit" class="btn btn-outline-primary">Buscar</button>
-    </form>
+    <div class="d-flex gap-2">
+        <!-- Buscador -->
+        <form method="GET" class="d-flex">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="q" class="form-control border-start-0 ps-0" 
+                       placeholder="Buscar material..." value="{{ request.GET.q }}">
+            </div>
+        </form>
 
-    <!-- Botón para abrir modal de creación -->
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalMaterial" onclick="prepararCrear()">
-        <i class="bi bi-plus-lg"></i> Nuevo Material
-    </button>
+        <button type="button" class="btn btn-primary px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalMaterial" onclick="prepararCrear()">
+            <i class="bi bi-plus-lg me-2"></i> Nuevo Material
+        </button>
+    </div>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <table class="table table-hover">
-            <thead class="table-light">
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
-                    <th>Tipo</th>
-                    <th>Precio</th>
-                    <th>Stock</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for material in materiales %}
-                <tr>
-                    <td>{{ material.id }}</td>
-                    <td>{{ material.nombre }}</td>
-                    <td>{{ material.descripcion }}</td>
-                    <td>{{ material.tipo }}</td>
-                    <td>$ {{ material.precio }}</td>
-                    <td>{{ material.stock }}</td>
-                    <td>
-                        <!-- Botón para abrir modal de edición -->
-                        <button class="btn btn-sm btn-warning" onclick="prepararEditar({{ material.id }})">
-                            <i class="bi bi-pencil"></i>
+<div class="table-container">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th class="text-center">ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th class="text-center">Tipo</th>
+                <th class="text-center" style="min-width: 140px;">Precio</th>
+                <th class="text-center" style="min-width: 120px;">Stock</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for material in materiales %}
+            <tr>
+                <td class="text-center text-muted fw-bold">#{{ material.id }}</td>
+                <td class="fw-bold text-capitalize">{{ material.nombre }}</td>
+                <td>
+                    <div class="desc-cell">
+                        {{ material.descripcion }}
+                    </div>
+                </td>
+                <td class="text-center">
+                    <span class="badge-tipo text-capitalize">{{ material.tipo }}</span>
+                </td>
+                <td class="text-center">
+                    <span class="price-tag">$ {{ material.precio }}</span>
+                </td>
+                <td class="text-center">
+                    <span class="stock-tag">{{ material.stock }} und</span>
+                </td>
+                <td class="text-center">
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-warning btn-action text-white" onclick="prepararEditar({{ material.id }})" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
                         </button>
 
-                        <!-- Formulario de eliminación -->
                         <form action="{% url 'usuarios:eliminar_material' material.id %}" method="POST" class="d-inline">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-danger"
-                                onclick="return confirm('¿Seguro que deseas eliminar este material?')">
-                                <i class="bi bi-trash"></i>
+                            <button type="submit" class="btn btn-danger btn-action"
+                                onclick="return confirm('¿Seguro que deseas eliminar este material?')" title="Eliminar">
+                                <i class="bi bi-trash3"></i>
                             </button>
                         </form>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="text-center">No hay materiales registrados</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <i class="bi bi-box-seam display-4 text-muted mb-3 d-block"></i>
+                    <p class="text-muted">No hay materiales registrados en el inventario</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 <!-- VENTANA EMERGENTE (MODAL) ÚNICA PARA CREAR Y EDITAR -->
 <div class="modal fade" id="modalMaterial" tabindex="-1" aria-labelledby="modalMaterialLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalMaterialLabel">Material</h5>
@@ -91,10 +108,11 @@
                         <label class="form-label">Tipo</label>
                         <select id="tipo" name="tipo" class="form-select" required>
                             <option value="">Seleccione tipo</option>
-                            <option value="cemento">Cemento</option>
-                            <option value="arena">Arena</option>
-                            <option value="grava">Grava</option>
-                            <option value="ladrillo">Ladrillo</option>
+                            <option value="Cemento">Cemento</option>
+                            <option value="Arena">Arena</option>
+                            <option value="Grava">Grava</option>
+                            <option value="Ladrillo">Ladrillo</option>
+                            <option value="Herramientas">Herramientas</option>
                         </select>
                     </div>
 
@@ -145,7 +163,9 @@
         document.getElementById('modalMaterialLabel').innerText = 'Editar Material';
         document.getElementById('btnGuardar').innerText = 'Actualizar Material';
         
-        fetch(`/usuarios/materiales/editar/${id}/`, {
+        const url = "{% url 'usuarios:editar_material' 0 %}".replace('0', id);
+        
+        fetch(url, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(response => response.json())
@@ -164,7 +184,7 @@
     formMaterial.onsubmit = function(e) {
         e.preventDefault();
         const id = document.getElementById('material_id').value;
-        const url = id ? `/usuarios/materiales/editar/${id}/` : '/usuarios/materiales/crear/';
+        const url = id ? "{% url 'usuarios:editar_material' 0 %}".replace('0', id) : "{% url 'usuarios:crear_material' %}";
         const formData = new FormData(formMaterial);
 
         fetch(url, {

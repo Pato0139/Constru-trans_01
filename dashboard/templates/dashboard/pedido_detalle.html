@@ -2,49 +2,92 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="form-container-centered">
+    <div class="card card-form p-4">
+        <h2 class="text-center mb-4">Detalle del Pedido</h2>
 
-<h2>Detalle del Pedido</h2>
+        <div class="mb-4">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">ID Pedido:</span>
+                <span class="fw-bold">#CT-{{ pedido.id }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Cliente:</span>
+                <span class="fw-bold">{{ pedido.cliente.nombre }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Fecha Creación:</span>
+                <span>{{ pedido.fecha|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Fecha Programada:</span>
+                <span class="fw-bold text-primary">{{ pedido.fecha_entrega_programada|date:"d/m/Y H:i"|default:"No programada" }}</span>
+            </div>
+            {% if pedido.fecha_toma_entrega %}
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Toma de Entrega (En Ruta):</span>
+                <span class="text-info small">{{ pedido.fecha_toma_entrega|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% endif %}
+            {% if pedido.fecha_entrega_real %}
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Entrega Realizada:</span>
+                <span class="text-success small fw-bold">{{ pedido.fecha_entrega_real|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% endif %}
+            <hr>
+            <div class="mb-2">
+                <span class="text-muted d-block small">Origen:</span>
+                <span class="fw-medium">{{ pedido.direccion_origen }}</span>
+            </div>
+            <div class="mb-2">
+                <span class="text-muted d-block small">Destino:</span>
+                <span class="fw-medium">{{ pedido.direccion_destino }}</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">Total:</span>
+                <span class="price-tag fs-5">$ {{ pedido.precio }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted">Estado Actual:</span>
+                <span class="badge {% if pedido.estado == 'pendiente' %}bg-warning{% elif pedido.estado == 'entregado' %}bg-success{% else %}bg-info{% endif %} rounded-pill px-3">
+                    {{ pedido.estado|title }}
+                </span>
+            </div>
+        </div>
 
-<div class="card mt-3">
-<div class="card-body">
+        <form method="POST" class="bg-light p-3 rounded-4 mb-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="estado" class="form-label fw-bold small">Actualizar Estado</label>
+                <select name="estado" id="estado" class="form-select rounded-pill">
+                    <option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="en_ruta" {% if pedido.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
+                    <option value="entregado" {% if pedido.estado == 'entregado' %}selected{% endif %}>Entregado</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 rounded-pill">Actualizar</button>
+        </form>
 
-<p><strong>ID:</strong> #CT-{{ pedido.id }}</p>
-<p><strong>Cliente:</strong> {{ pedido.cliente.nombre }}</p>
-<p><strong>Fecha:</strong> {{ pedido.fecha }}</p>
+        <div class="mb-4">
+            <h6 class="fw-bold mb-2">Conductor Asignado</h6>
+            {% if pedido.conductor %}
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-person-badge fs-4 text-primary"></i>
+                    <span>{{ pedido.conductor.nombre }}</span>
+                </div>
+            {% else %}
+                <div class="alert alert-warning py-2 small mb-0">
+                    <i class="bi bi-exclamation-circle me-2"></i> No hay conductor asignado
+                </div>
+            {% endif %}
+        </div>
 
-<p><strong>Origen:</strong> {{ pedido.direccion_origen }}</p>
-<p><strong>Destino:</strong> {{ pedido.direccion_destino }}</p>
-
-<p><strong>Precio:</strong> ${{ pedido.precio }}</p>
-
-<p>
-<strong>Estado:</strong>
-
-{% if pedido.estado == "pendiente" %}
-<span class="badge bg-warning">Pendiente</span>
-
-{% elif pedido.estado == "en_ruta" %}
-<span class="badge bg-primary">En Ruta</span>
-
-{% elif pedido.estado == "entregado" %}
-<span class="badge bg-success">Entregado</span>
-{% endif %}
-</p>
-
-<hr>
-
-<h5>Conductor</h5>
-
-{% if pedido.conductor %}
-<p>{{ pedido.conductor.nombre }}</p>
-{% else %}
-<p>No asignado</p>
-{% endif %}
-
-</div>
-</div>
-
+        <a href="{% url 'ordenes:lista_ordenes' %}" class="btn btn-light w-100 rounded-pill">
+            <i class="bi bi-arrow-left me-2"></i> Volver a la lista
+        </a>
+    </div>
 </div>
 
 {% endblock %}

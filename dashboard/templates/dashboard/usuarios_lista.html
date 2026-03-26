@@ -1,49 +1,120 @@
 {% extends "base.html" %}
+{% load gravatar %}
 
 {% block content %}
 
-<h2 class="mb-4">Lista de Usuarios</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Lista de Usuarios</h2>
+    <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalUsuario">
+        <i class="bi bi-person-plus-fill me-2"></i> Nuevo Usuario
+    </button>
+</div>
 
-<table class="table table-striped">
+<div class="table-container">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th class="text-center">ID</th>
+                <th>Usuario</th>
+                <th class="text-center">Teléfono</th>
+                <th class="text-center">Rol</th>
+                <th class="text-center">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td class="text-center text-muted fw-bold">#{{ usuario.id }}</td>
+                <td>
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="{{ usuario.user.email|gravatar_url:40 }}" class="rounded-circle border" alt="Profile" width="35" height="35">
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold">{{ usuario.nombre }}</span>
+                            <span class="text-muted small">{{ usuario.user.email }}</span>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center">{{ usuario.telefono }}</td>
+                <td class="text-center"><span class="badge-tipo">{{ usuario.rol|title }}</span></td>
+                <td class="text-center">
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn btn-warning btn-action text-white">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn btn-danger btn-action">
+                            <i class="bi bi-trash3"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Teléfono</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
+<!-- MODAL NUEVO USUARIO -->
+<div class="modal fade" id="modalUsuario" tabindex="-1" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modalUsuarioLabel">Registrar Nuevo Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'usuarios:crear_usuario' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nombre Completo</label>
+                        <input type="text" name="nombre" class="form-control rounded-pill" placeholder="Ej: Juan Pérez" required>
+                    </div>
 
-    <tbody>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Correo Electrónico (Username)</label>
+                        <input type="email" name="email" class="form-control rounded-pill" placeholder="correo@ejemplo.com" required>
+                    </div>
 
-    {% for usuario in usuarios %}
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Contraseña</label>
+                        <input type="password" name="password" class="form-control rounded-pill" placeholder="Contraseña segura" required>
+                    </div>
 
-        <tr>
-            <td>{{ usuario.id }}</td>
-            <td>{{ usuario.nombre }}</td>
-            <td>{{ usuario.telefono }}</td>
-            <td>{{ usuario.rol }}</td>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Teléfono</label>
+                            <input type="text" name="telefono" class="form-control rounded-pill" placeholder="3001234567" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Rol</label>
+                            <select name="rol" class="form-select rounded-pill" required>
+                                <option value="cliente">Cliente</option>
+                                <option value="conductor">Conductor</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+                    </div>
 
-            <td>
-
-                <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn btn-primary btn-sm">
-                    Editar
-                </a>
-
-                <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn btn-danger btn-sm">
-                    Eliminar
-                </a>
-
-            </td>
-
-        </tr>
-
-    {% endfor %}
-
-    </tbody>
-
-</table>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Tipo Documento</label>
+                            <select name="tipo_doc" class="form-select rounded-pill" required>
+                                <option value="CC">Cédula Ciudadanía</option>
+                                <option value="CE">Cédula Extranjería</option>
+                                <option value="NIT">NIT</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Número Documento</label>
+                            <input type="text" name="documento" class="form-control rounded-pill" placeholder="12345678" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Registrar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

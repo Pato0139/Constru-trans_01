@@ -14,6 +14,7 @@ urlpatterns = [
 
     # admin
     path("usuarios/", views.lista_usuarios, name="lista_usuarios"),
+    path("usuarios/crear/", views.crear_usuario, name="crear_usuario"),
     path("usuarios/eliminar/<int:id>/", views.eliminar_usuario, name="eliminar_usuario"),
     path("usuarios/editar/<int:id>/", views.editar_usuario, name="editar_usuario"),
 
@@ -33,9 +34,6 @@ urlpatterns = [
     path("seguimiento/", views.seguimiento_pedidos, name="seguimiento_pedidos"),
     path("historial/", views.historial_pedidos, name="historial_pedidos"),
 
-    # pedidos admin
-    path("pedidos-admin/", views.lista_pedidos_admin, name="lista_pedidos_admin"),
-    path("pedido/<int:id>/", views.ver_pedido_admin, name="ver_pedido_admin"),
 
     # materiales
     path("materiales/", views.materiales_lista, name="materiales_lista"),

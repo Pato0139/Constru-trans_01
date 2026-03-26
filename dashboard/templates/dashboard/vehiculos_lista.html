@@ -2,57 +2,42 @@
 
 {% block content %}
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between mb-3">
-
-<h2>Lista de Vehículos</h2>
-
-<a href="{% url 'usuarios:crear_vehiculo' %}" class="btn btn-primary">
-<i class="bi bi-plus-circle"></i> Crear Vehículo
-</a>
-
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Lista de Vehículos</h2>
+    <a href="{% url 'usuarios:crear_vehiculo' %}" class="btn btn-primary rounded-pill px-4">
+        <i class="bi bi-plus-circle me-2"></i> Crear Vehículo
+    </a>
 </div>
 
-
-
-<table class="table table-striped">
-
-<thead class="table-dark">
-<tr>
-<th>ID</th>
-<th>Placa</th>
-<th>Tipo</th>
-<th>Capacidad</th>
-<th>Estado</th>
-</tr>
-</thead>
-
-<tbody>
-
-{% for vehiculo in vehiculos %}
-
-<tr>
-<td>{{ vehiculo.id }}</td>
-<td>{{ vehiculo.placa }}</td>
-<td>{{ vehiculo.tipo }}</td>
-<td>{{ vehiculo.capacidad }}</td>
-<td>{{ vehiculo.estado }}</td>
-</tr>
-
-{% empty %}
-
-<tr>
-<td colspan="5" class="text-center">
-No hay vehículos registrados
-</td>
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
+<div class="table-container">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th class="text-center">ID</th>
+                <th class="text-center">Placa</th>
+                <th class="text-center">Tipo</th>
+                <th class="text-center">Capacidad</th>
+                <th class="text-center">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for vehiculo in vehiculos %}
+            <tr>
+                <td class="text-center text-muted fw-bold">#{{ vehiculo.id }}</td>
+                <td class="text-center fw-bold">{{ vehiculo.placa }}</td>
+                <td class="text-center"><span class="badge-tipo">{{ vehiculo.tipo }}</span></td>
+                <td class="text-center">{{ vehiculo.capacidad }} Ton</td>
+                <td class="text-center">
+                    <span class="badge bg-success rounded-pill px-3">{{ vehiculo.estado|title }}</span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center py-5 text-muted">No hay vehículos registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}

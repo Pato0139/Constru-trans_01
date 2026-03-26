@@ -242,11 +242,41 @@ def historial_pedidos(request):
 
 # ---------------- GESTIÓN DE USUARIOS ----------------
 @login_required
+def crear_usuario(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        telefono = request.POST.get("telefono")
+        rol = request.POST.get("rol")
+        tipo_doc = request.POST.get("tipo_doc")
+        documento = request.POST.get("documento")
+
+        # Crear User de Django
+        user = User.objects.create_user(
+            username=email,
+            email=email,
+            password=password
+        )
+
+        # Crear Perfil Usuario
+        Usuario.objects.create(
+            user=user,
+            nombre=nombre,
+            telefono=telefono,
+            rol=rol,
+            tipo_documento=tipo_doc,
+            documento=documento
+        )
+
+        return redirect("usuarios:lista_usuarios")
+
+    return redirect("usuarios:lista_usuarios")
+
+@login_required
 def lista_usuarios(request):
-    usuarios = Usuario.objects.all()
-    return render(request, "dashboard/usuarios_lista.html", {
-        "usuarios": usuarios
-    })
+    usuarios = Usuario.objects.filter(rol='cliente')
+    return render(request, "dashboard/usuarios_lista.html", {"usuarios": usuarios})
 
 
 @login_required
@@ -280,7 +310,12 @@ def lista_conductores(request):
 
 @login_required
 def perfil_conductor(request):
-    conductor = request.user.usuario
+    conductor_id = request.GET.get('id')
+    if conductor_id and request.user.usuario.rol == 'admin':
+        conductor = get_object_or_404(Usuario, id=conductor_id)
+    else:
+        conductor = request.user.usuario
+        
     pedidos = Orden.objects.filter(conductor=conductor)
     return render(request, "usuarios/perfil-conductor.html", {
         "conductor": conductor,
@@ -477,7 +512,7 @@ def ver_pedido_admin(request, id):
 def eliminar_orden(request, id):
     orden = get_object_or_404(Orden, id=id)
     orden.delete()
-    return redirect("usuarios:lista_pedidos_admin")
+    return redirect("ordenes:lista_ordenes")
 
 
 # ---------------- LOGOUT ----------------

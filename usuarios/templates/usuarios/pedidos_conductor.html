@@ -26,6 +26,7 @@
 <th>Destino</th>
 <th>Estado</th>
 <th>Precio</th>
+<th>Acciones</th>
 </tr>
 </thead>
 
@@ -66,6 +67,12 @@
 
 <td class="fw-bold text-success">
 ${{ pedido.precio }}
+</td>
+
+<td>
+    <a href="{% url 'ordenes:editar_orden' pedido.id %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-eye"></i> Ver
+    </a>
 </td>
 
 </tr>

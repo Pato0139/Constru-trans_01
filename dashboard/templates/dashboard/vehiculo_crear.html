@@ -4,9 +4,11 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="form-container-centered">
 
-<h2>Registrar Vehículo</h2>
+<div class="card card-form p-4">
+
+<h2 class="text-center mb-4">Registrar Vehículo</h2>
 
 <form method="POST">
 
@@ -14,28 +16,40 @@
 
 <div class="mb-3">
 <label class="form-label">Placa</label>
-<input type="text" name="placa" class="form-control" required>
+<input type="text" name="placa" class="form-control" placeholder="Ej: ABC-123" required>
 </div>
 
 <div class="mb-3">
-<label class="form-label">Tipo</label>
-<input type="text" name="tipo" class="form-control" required>
+<label class="form-label">Tipo de Vehículo</label>
+<select name="tipo" class="form-select" required>
+    <option value="">Seleccione tipo</option>
+    <option value="Turbo">Turbo</option>
+    <option value="Sencillo">Sencillo</option>
+    <option value="Doble Troque">Doble Troque</option>
+    <option value="Cuatro Manos">Cuatro Manos</option>
+    <option value="Mini Mula">Mini Mula</option>
+    <option value="Tracto Mula">Tracto Mula</option>
+</select>
 </div>
 
 <div class="mb-3">
-<label class="form-label">Capacidad</label>
-<input type="number" name="capacidad" class="form-control" required>
+<label class="form-label">Capacidad (Ton)</label>
+<input type="number" name="capacidad" class="form-control" placeholder="Capacidad en toneladas" required>
 </div>
 
-<button type="submit" class="btn btn-success">
-Guardar Vehículo
-</button>
+<div class="d-grid gap-2 mt-4">
+    <button type="submit" class="btn btn-success rounded-pill">
+        <i class="bi bi-save me-2"></i> Guardar Vehículo
+    </button>
 
-<a href="{% url 'usuarios:lista_vehiculos' %}" class="btn btn-secondary">
-Cancelar
-</a>
+    <a href="{% url 'usuarios:lista_vehiculos' %}" class="btn btn-light rounded-pill">
+        Cancelar
+    </a>
+</div>
 
 </form>
+
+</div>
 
 </div>
 
