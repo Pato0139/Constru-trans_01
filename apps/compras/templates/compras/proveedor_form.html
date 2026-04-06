@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} Proveedor - Constru-trans{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header border-secondary py-3">
+                    <h4 class="mb-0 text-white"><i class="bi bi-person-badge me-2 text-primary"></i>{{ action }} Proveedor</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-white">Nombre del Proveedor</label>
+                                <input type="text" name="nombre" class="form-control bg-secondary text-white border-0" value="{{ proveedor.nombre|default:'' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-white">NIT / ID</label>
+                                <input type="text" name="nit" class="form-control bg-secondary text-white border-0" value="{{ proveedor.nit|default:'' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-white">Persona de Contacto</label>
+                                <input type="text" name="contacto" class="form-control bg-secondary text-white border-0" value="{{ proveedor.contacto|default:'' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-white">Teléfono</label>
+                                <input type="text" name="telefono" class="form-control bg-secondary text-white border-0" value="{{ proveedor.telefono|default:'' }}" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label text-white">Correo Electrónico</label>
+                                <input type="email" name="email" class="form-control bg-secondary text-white border-0" value="{{ proveedor.email|default:'' }}" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label text-white">Dirección</label>
+                                <textarea name="direccion" class="form-control bg-secondary text-white border-0" rows="3" required>{{ proveedor.direccion|default:'' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="mt-4 d-flex justify-content-end gap-2">
+                            <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light">Cancelar</a>
+                            <button type="submit" class="btn btn-primary px-4">{{ action }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

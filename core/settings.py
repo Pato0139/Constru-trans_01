@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'apps.facturacion',
     'apps.reportes',
     'apps.inicio',
+    'bitacora',
 ]
 
 
@@ -101,6 +102,10 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+# Email configuration
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 

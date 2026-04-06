@@ -69,6 +69,36 @@
         </div>
     </div>
 
+    <!-- Sección de Descargas -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-download me-2 text-primary"></i>Generar Reportes PDF</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a href="{% url 'reportes:exportar_reporte_pdf' 'clientes' %}" class="btn btn-outline-danger w-100 py-3 shadow-sm">
+                                <i class="bi bi-file-pdf-fill me-2"></i>Reporte de Clientes
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'reportes:exportar_reporte_pdf' 'materiales' %}" class="btn btn-outline-danger w-100 py-3 shadow-sm">
+                                <i class="bi bi-file-pdf-fill me-2"></i>Reporte de Inventario
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'reportes:exportar_reporte_pdf' 'ventas' %}" class="btn btn-outline-danger w-100 py-3 shadow-sm">
+                                <i class="bi bi-file-pdf-fill me-2"></i>Reporte de Ventas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Resumen de Recursos -->
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-8">

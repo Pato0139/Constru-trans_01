@@ -4,6 +4,15 @@ from django.db.models import Sum
 from apps.ordenes.models import Orden
 from apps.usuarios.models import Usuario, Material, Vehiculo
 
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from django.utils.timezone import now
+from bitacora.utils import registrar_en_bitacora
+
 @login_required
 def reportes_admin(request):
     # Estadísticas de Órdenes
@@ -27,3 +36,60 @@ def reportes_admin(request):
         "total_ingresos": ordenes.aggregate(total=Sum("precio"))["total"] or 0,
     }
     return render(request, "reportes/lista.html", context)
+
+@login_required
+def exportar_reporte_pdf(request, tipo):
+    if request.user.usuario.rol != 'admin':
+        return HttpResponse("No autorizado", status=403)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Título
+    titulo = f"Reporte de {tipo.replace('_', ' ').capitalize()}"
+    elements.append(Paragraph(titulo, styles['Title']))
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph(f"Fecha de generación: {now().strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+    elements.append(Spacer(1, 24))
+
+    data = []
+    if tipo == 'clientes':
+        data.append(['ID', 'Nombre', 'Correo', 'Teléfono', 'Estado'])
+        for u in Usuario.objects.filter(rol='cliente'):
+            data.append([u.id, f"{u.nombres} {u.apellidos}", u.user.email, u.telefono, u.estado])
+    
+    elif tipo == 'materiales':
+        data.append(['ID', 'Nombre', 'Tipo', 'Precio', 'Stock'])
+        for m in Material.objects.all():
+            data.append([m.id, m.nombre, m.tipo, f"${m.precio}", m.stock])
+
+    elif tipo == 'ventas':
+        data.append(['ID', 'Cliente', 'Fecha', 'Total', 'Estado'])
+        for o in Orden.objects.all():
+            data.append([o.id, f"{o.cliente.nombres} {o.cliente.apellidos}", o.fecha.strftime('%Y-%m-%d'), f"${o.precio}", o.estado])
+
+    # Estilo de la tabla
+    if data:
+        t = Table(data)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(t)
+    else:
+        elements.append(Paragraph("No hay datos disponibles para este reporte.", styles['Normal']))
+
+    doc.build(elements)
+    
+    registrar_en_bitacora(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a PDF")
+    
+    return response

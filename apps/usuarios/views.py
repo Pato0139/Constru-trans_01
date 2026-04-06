@@ -11,116 +11,143 @@ from django.utils.timezone import now
 from django.contrib import messages
 from django.http import JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from bitacora.utils import registrar_en_bitacora
+from .forms import LoginForm, RegistroForm
 
 
 # ---------------- REGISTRO ----------------
 def registro(request):
     if request.method == "POST":
-        nombres = request.POST.get("nombres")
-        apellidos = request.POST.get("apellidos")
-        username = request.POST.get("usuario")
-        email = request.POST.get("correo")
-        telefono = request.POST.get("telefono")
-        tipo_documento = request.POST.get("tipo_documento")
-        documento = request.POST.get("documento")
-        rol = "cliente" # Rol predeterminado (HU-01)
-        password = request.POST.get("contrasena")
-        confirmar = request.POST.get("confirmar_contrasena")
+        form = RegistroForm(request.POST)
+        if form.is_valid():
+            nombres = form.cleaned_data.get("nombres")
+            apellidos = form.cleaned_data.get("apellidos")
+            email = form.cleaned_data.get("correo")
+            telefono = form.cleaned_data.get("telefono")
+            tipo_documento = form.cleaned_data.get("tipo_documento")
+            documento = form.cleaned_data.get("documento")
+            rol = "cliente" # Rol predeterminado (HU-01)
+            password = form.cleaned_data.get("contrasena")
+            confirmar = form.cleaned_data.get("confirmar_contrasena")
 
-        if password != confirmar:
+            if password != confirmar:
+                return render(request, "usuarios/registro.html", {
+                    "error": "Las contraseñas no coinciden",
+                    "form": form
+                })
+
+            if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
+                return render(request, "usuarios/registro.html", {
+                    "error": "Este correo ya está registrado",
+                    "form": form
+                })
+
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                password=password
+            )
+
+            perfil = Usuario.objects.create(
+                user=user,
+                nombres=nombres,
+                apellidos=apellidos,
+                telefono=telefono,
+                rol=rol,
+                tipo_documento=tipo_documento,
+                documento=documento
+            )
+
+            registrar_en_bitacora(request, 'crear', 'usuarios', user.id, f"Nuevo registro de usuario: {email} como {rol}")
+
+            return redirect("usuarios:login")
+        else:
             return render(request, "usuarios/registro.html", {
-                "error": "Las contraseñas no coinciden"
+                "error": "Por favor revisa los datos y marca 'No soy un robot'.",
+                "form": form
             })
 
-        if User.objects.filter(username=username).exists():
-            return render(request, "usuarios/registro.html", {
-                "error": "Este nombre de usuario ya está registrado"
-            })
+    else:
+        form = RegistroForm()
 
-        if User.objects.filter(email=email).exists():
-            return render(request, "usuarios/registro.html", {
-                "error": "Este correo ya está registrado"
-            })
-
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
-        )
-
-        Usuario.objects.create(
-            user=user,
-            nombres=nombres,
-            apellidos=apellidos,
-            telefono=telefono,
-            rol=rol,
-            tipo_documento=tipo_documento,
-            documento=documento
-        )
-
-        return redirect("usuarios:login")
-
-    return render(request, "usuarios/registro.html")
+    return render(request, "usuarios/registro.html", {"form": form})
 
 
 from django.contrib.auth import views as auth_views
 
+from .forms import LoginForm
+
+
 # ---------------- LOGIN ----------------
 def login_usuario(request):
     if request.method == "POST":
-        identifier = request.POST.get("username")
-        password = request.POST.get("password")
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            identifier = form.cleaned_data.get("username")
+            password = form.cleaned_data.get("password")
 
-        user = authenticate(request, username=identifier, password=password)
+            user = authenticate(request, username=identifier, password=password)
 
-        if user is None:
-            try:
-                user_obj = User.objects.get(email=identifier)
-                user = authenticate(request, username=user_obj.username, password=password)
-            except User.DoesNotExist:
-                user = None
+            if user is None:
+                try:
+                    user_obj = User.objects.get(email=identifier)
+                    user = authenticate(request, username=user_obj.username, password=password)
+                except User.DoesNotExist:
+                    user = None
 
-        if user is not None:
-            login(request, user)
-            
-            if user.is_superuser:
-                Usuario.objects.get_or_create(
-                    user=user,
-                    defaults={
-                        'nombres': user.username, 
-                        'apellidos': 'Admin', 
-                        'rol': 'admin',
-                        'tipo_documento': 'CC',
-                        'documento': '00000000'
-                    }
-                )
-                return redirect(request.GET.get('next') or "usuarios:panel")
-
-            perfil = Usuario.objects.filter(user=user).first()
-            if perfil:
-                next_url = request.GET.get('next')
-                if next_url:
-                    return redirect(next_url)
+            if user is not None:
+                login(request, user)
                 
-                if perfil.rol == "admin":
-                    return redirect("usuarios:panel")
-                elif perfil.rol == "cliente":
-                    return redirect("clientes:panel_cliente")
-                elif perfil.rol == "conductor":
-                    return redirect("usuarios:panel_conductor")
+                registrar_en_bitacora(request, 'login', 'usuarios', user.id, f"Inicio de sesión del usuario: {user.username}")
+                
+                if user.is_superuser:
+                    Usuario.objects.get_or_create(
+                        user=user,
+                        defaults={
+                            'nombres': user.username, 
+                            'apellidos': 'Admin', 
+                            'rol': 'admin',
+                            'tipo_documento': 'CC',
+                            'documento': '00000000'
+                        }
+                    )
+                    return redirect(request.GET.get('next') or "usuarios:panel")
+
+                perfil = Usuario.objects.filter(user=user).first()
+                if perfil:
+                    next_url = request.GET.get('next')
+                    if next_url:
+                        return redirect(next_url)
+                    
+                    if perfil.rol == "admin":
+                        return redirect("usuarios:panel")
+                    elif perfil.rol == "cliente":
+                        return redirect("clientes:panel_cliente")
+                    elif perfil.rol == "conductor":
+                        return redirect("usuarios:panel_conductor")
+                    else:
+                        return redirect("usuarios:panel")
                 else:
-                    return redirect("usuarios:panel")
+                    logout(request)
+                    return render(request, "usuarios/login.html", {
+                        "error": "Tu cuenta no tiene un perfil asignado.",
+                        "form": form
+                    })
             else:
-                logout(request)
                 return render(request, "usuarios/login.html", {
-                    "error": "Tu cuenta no tiene un perfil asignado."
+                    "error": "Usuario o contraseña incorrectos",
+                    "form": form
                 })
         else:
             return render(request, "usuarios/login.html", {
-                "error": "Usuario o contraseña incorrectos"
+                "error": "Por favor marca la casilla 'No soy un robot'.",
+                "form": form
             })
 
-    return render(request, "usuarios/login.html")
+    else:
+        form = LoginForm()
+
+    return render(request, "usuarios/login.html", {"form": form})
 
 
 # ---------------- PANEL ADMIN ----------------
@@ -311,7 +338,7 @@ def crear_usuario(request):
                 password=password
             )
 
-            Usuario.objects.create(
+            perfil = Usuario.objects.create(
                 user=user,
                 nombres=nombres,
                 apellidos=apellidos,
@@ -322,6 +349,8 @@ def crear_usuario(request):
                 estado='activo'
             )
             
+            registrar_en_bitacora(request, 'crear', 'usuarios', user.id, f"Administrador creó usuario: {email} como {rol}")
+
             success_msg = f"Usuario {nombres} creado correctamente."
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"status": "success", "message": success_msg})
@@ -375,7 +404,9 @@ def eliminar_usuario(request, id):
         return redirect("usuarios:panel")
 
     usuario_obj = get_object_or_404(Usuario, id=id) 
+    nombre_usuario = usuario_obj.user.username
     usuario_obj.delete()
+    registrar_en_bitacora(request, 'eliminar', 'usuarios', id, f"Usuario eliminado: {nombre_usuario}")
     messages.success(request, "Usuario eliminado correctamente.")
     return redirect("usuarios:lista_usuarios")
 
@@ -397,6 +428,7 @@ def editar_usuario(request, id):
             usuario.rol = request.POST.get("rol")
             
         usuario.save()
+        registrar_en_bitacora(request, 'editar', 'usuarios', usuario.user.id, f"Perfil de usuario editado: {usuario.user.username}")
         messages.success(request, "Cambios guardados exitosamente.")
         return redirect("usuarios:lista_usuarios")
     return render(request, "usuarios/form.html", {
@@ -446,5 +478,7 @@ class CustomPasswordResetView(auth_views.PasswordResetView):
 
 # ---------------- LOGOUT ----------------
 def cerrar_sesion(request):
+    if request.user.is_authenticated:
+        registrar_en_bitacora(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
     logout(request)
     return redirect("usuarios:login")

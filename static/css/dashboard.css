@@ -303,31 +303,31 @@
     font-size: 1.1rem;
 }
 
-/* Estilos para Modales - Fondo blanco y letra negra para legibilidad */
+/* Estilos para Modales - Siguiendo el tema oscuro/claro */
 .modal-content {
-    background-color: #ffffff !important;
-    color: #000000 !important;
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
     border-radius: 24px;
-    border: none;
+    border: 1px solid var(--color-border) !important;
 }
 
 .modal-header {
-    border-bottom: 1px solid #f1f1f1;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .modal-title {
-    color: #000000 !important;
+    color: var(--color-text) !important;
     font-weight: 800;
 }
 
 .modal-body label {
-    color: #333333 !important;
+    color: var(--color-text) !important;
 }
 
 .modal-body .form-control, .modal-body .form-select {
-    background-color: #f8f9fa !important;
-    border: 1px solid #dee2e6 !important;
-    color: #000000 !important;
+    background-color: var(--color-bg) !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-text) !important;
 }
 
 .modal-body .form-control:focus {

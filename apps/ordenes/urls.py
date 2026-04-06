@@ -9,4 +9,5 @@ urlpatterns = [
     path("entregas/crear/<int:orden_id>/", views.crear_entrega, name="crear_entrega"),
     path('editar/<int:id>/', views.editar_orden, name="editar_orden"),
     path('eliminar/<int:id>/', views.eliminar_orden, name='eliminar_orden'),
+    path('factura/<int:id>/', views.descargar_factura, name='descargar_factura'),
 ]

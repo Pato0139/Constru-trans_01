@@ -34,6 +34,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="{% url 'compras:lista_proveedores' %}" class="nav-link-custom {% if 'proveedores' in request.path %}active{% endif %}">
+                        <i class="bi bi-person-badge-fill"></i> Proveedores
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="{% url 'transporte:lista_vehiculos' %}" class="nav-link-custom {% if 'vehiculo' in request.path %}active{% endif %}">
                         <i class="bi bi-truck"></i> Vehículos
                     </a>
@@ -41,6 +46,11 @@
                 <li class="nav-item">
                     <a href="{% url 'reportes:reportes_admin' %}" class="nav-link-custom {% if 'reportes' in request.path %}active{% endif %}">
                         <i class="bi bi-pie-chart-fill"></i> Reportes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'bitacora:lista' %}" class="nav-link-custom {% if 'bitacora' in request.path %}active{% endif %}">
+                        <i class="bi bi-journal-text"></i> Bitácora
                     </a>
                 </li>
             {% elif user.usuario.rol == 'cliente' %}
@@ -95,6 +105,11 @@
                         <i class="bi bi-person-fill"></i> Mi Perfil
                     </a>
                 {% endif %}
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'ayuda' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'ayuda' %}active{% endif %}">
+                    <i class="bi bi-question-circle-fill"></i> Ayuda
+                </a>
             </li>
             <li class="nav-item mt-4">
                 <a href="{% url 'usuarios:logout' %}" class="nav-link-custom text-danger logout-link">

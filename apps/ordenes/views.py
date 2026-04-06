@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.db.models import Q
 from .models import Orden, Entrega
 from apps.usuarios.models import Usuario, Vehiculo, Material
+from bitacora.utils import registrar_en_bitacora
 
 @login_required
 def lista_pedidos_admin(request):
@@ -54,6 +55,8 @@ def crear_entrega(request, orden_id):
             orden.fecha_toma_entrega = timezone.now()
             orden.save()
 
+            registrar_en_bitacora(request, 'editar', 'pedidos', orden.id, f"Pedido asignado a conductor ID: {conductor_id}")
+
             return redirect("ordenes:lista_pedidos_admin")
         else:
             return render(request, "ordenes/asignar_entrega.html", {
@@ -82,11 +85,62 @@ def editar_orden(request, id):
             
         orden.estado = nuevo_estado
         orden.save()
+        registrar_en_bitacora(request, 'editar', 'pedidos', orden.id, f"Estado de pedido cambiado a: {nuevo_estado}")
         return redirect("ordenes:lista_pedidos_admin")
     return render(request, "ordenes/detalle.html", {"orden": orden})
 
 @login_required
+def descargar_factura(request, id):
+    orden = get_object_or_404(Orden, id=id)
+    
+    # Solo el cliente dueño del pedido o un admin pueden descargarla
+    if request.user.usuario.rol != 'admin' and orden.cliente != request.user.usuario:
+        return HttpResponse("No autorizado", status=403)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="factura_{orden.id}.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Encabezado Factura
+    elements.append(Paragraph("FACTURA DE VENTA - CONSTRU-TRANS", styles['Title']))
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph(f"Número de Pedido: {orden.id}", styles['Normal']))
+    elements.append(Paragraph(f"Fecha: {orden.fecha.strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+    elements.append(Paragraph(f"Cliente: {orden.cliente.nombres} {orden.cliente.apellidos}", styles['Normal']))
+    elements.append(Spacer(1, 24))
+
+    # Detalle de Materiales (Si la orden tiene materiales asociados, aquí los listaríamos)
+    # Por ahora mostramos el total
+    data = [
+        ['Descripción', 'Total'],
+        ['Servicio de Transporte y Materiales', f"${orden.precio}"]
+    ]
+
+    t = Table(data)
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    elements.append(t)
+    
+    elements.append(Spacer(1, 48))
+    elements.append(Paragraph("Gracias por su compra.", styles['Italic']))
+
+    doc.build(elements)
+    
+    registrar_en_bitacora(request, 'otro', 'pedidos', orden.id, f"Factura descargada por {request.user.username}")
+    
+    return response
+
+@login_required
 def eliminar_orden(request, id):
     orden = get_object_or_404(Orden, id=id)
+    registrar_en_bitacora(request, 'eliminar', 'pedidos', id, f"Pedido eliminado de cliente: {orden.cliente}")
     orden.delete()
     return redirect("ordenes:lista_pedidos_admin")

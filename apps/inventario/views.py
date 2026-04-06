@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.contrib import messages
 from django.http import JsonResponse
 from apps.usuarios.models import Material
+from bitacora.utils import registrar_en_bitacora
 
 @login_required
 def materiales_lista(request):
@@ -47,13 +48,15 @@ def crear_material(request):
             return render(request, "inventario/form.html", {"material": request.POST, "action": "crear"})
 
         try:
-            Material.objects.create(
+            material = Material.objects.create(
                 nombre=nombre,
                 tipo=tipo,
                 descripcion=descripcion,
                 precio=precio,
                 stock=stock
             )
+            registrar_en_bitacora(request, 'crear', 'inventario', material.id, f"Material creado: {nombre}")
+            
             success_msg = "Material creado correctamente."
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 messages.success(request, success_msg)
@@ -85,6 +88,7 @@ def editar_material(request, id):
         material.precio = request.POST.get("precio")
         material.stock = request.POST.get("stock")
         material.save()
+        registrar_en_bitacora(request, 'editar', 'inventario', material.id, f"Material editado: {material.nombre}")
         
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             messages.success(request, "Material actualizado correctamente.")

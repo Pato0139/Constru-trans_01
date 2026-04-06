@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import render
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -16,14 +17,16 @@ urlpatterns = [
          name='password_reset_complete'),
 
     path('', include('apps.inicio.urls')),    
-    path('usuarios/', include(('apps.usuarios.urls', 'usuarios'), namespace='usuarios')),
-    path('clientes/', include(('apps.clientes.urls', 'clientes'), namespace='clientes')),
-    path('inventario/', include(('apps.inventario.urls', 'inventario'), namespace='inventario')),
-    path('compras/', include(('apps.compras.urls', 'compras'), namespace='compras')),
-    path('transporte/', include(('apps.transporte.urls', 'transporte'), namespace='transporte')),
-    path('ordenes/', include(('apps.ordenes.urls', 'ordenes'), namespace='ordenes')),
-    path('facturacion/', include(('apps.facturacion.urls', 'facturacion'), namespace='facturacion')),
-    path('reportes/', include(('apps.reportes.urls', 'reportes'), namespace='reportes')),
+    path('usuarios/', include('apps.usuarios.urls')),
+    path('clientes/', include('apps.clientes.urls')),
+    path('inventario/', include('apps.inventario.urls')),
+    path('compras/', include('apps.compras.urls')),
+    path('transporte/', include('apps.transporte.urls')),
+    path('ordenes/', include('apps.ordenes.urls')),
+    path('facturacion/', include('apps.facturacion.urls')),
+    path('reportes/', include('apps.reportes.urls')),
+    path('bitacora/', include('bitacora.urls')),
+    path('ayuda/', lambda r: render(r, 'ayuda.html'), name='ayuda'),
 ]
 
 if settings.DEBUG:

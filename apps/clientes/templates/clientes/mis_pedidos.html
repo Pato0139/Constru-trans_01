@@ -49,6 +49,11 @@
                             <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
                                 <i class="bi bi-eye"></i>
                             </a>
+                            {% if pedido.estado == 'entregado' %}
+                            <a href="{% url 'ordenes:descargar_factura' pedido.id %}" class="btn-action text-info" title="Descargar Factura">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </a>
+                            {% endif %}
                             {% if pedido.estado != 'entregado' and pedido.estado != 'cancelado' %}
                             <a href="{% url 'clientes:editar_pedido' pedido.id %}" class="btn-action text-warning" title="Editar">
                                 <i class="bi bi-pencil-square"></i>

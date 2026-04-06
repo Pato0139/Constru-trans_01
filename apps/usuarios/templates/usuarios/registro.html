@@ -4,6 +4,106 @@
 {% block title %}Crear Cuenta - Constru-trans{% endblock %}
 
 {% block content %}
+<style>
+    /* Estilo "No soy un robot" mejorado */
+    .recaptcha-mock {
+        background: #2d2d2d;
+        border: 1px solid #444;
+        border-radius: 4px;
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .recaptcha-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .recaptcha-checkbox {
+        width: 24px;
+        height: 24px;
+        border: 2px solid #555;
+        border-radius: 2px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #333;
+        transition: all 0.2s;
+    }
+    .recaptcha-checkbox.checked {
+        border-color: #F39C12;
+        background: #F39C12;
+    }
+    .recaptcha-checkbox.checked i {
+        display: block !important;
+        color: white;
+        font-size: 16px;
+    }
+    .recaptcha-text {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        user-select: none;
+    }
+    .recaptcha-right {
+        text-align: center;
+        opacity: 0.8;
+    }
+    .recaptcha-logo {
+        width: 30px;
+        height: 30px;
+        margin-bottom: 2px;
+    }
+    .recaptcha-privacy {
+        font-size: 8px;
+        color: #888;
+        display: block;
+        text-decoration: none;
+    }
+
+    /* Challenge box (hidden initially) */
+    .captcha-challenge-box {
+        display: none;
+        background: #333;
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: -10px;
+        margin-bottom: 20px;
+        animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .captcha-container img {
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: block;
+        border: 2px solid #444;
+    }
+    .captcha-container input {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        padding: 10px 15px !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+        text-align: center !important;
+        font-weight: bold !important;
+        letter-spacing: 2px !important;
+    }
+    /* Dropdown oscuro */
+    select.input-custom option {
+        background-color: #333333 !important;
+        color: white !important;
+    }
+</style>
 <div class="animate-up">
     <h1 class="welcome-h1">REGÍSTRATE</h1>
     <p class="welcome-p">¿Ya tienes una cuenta? <a href="{% url 'usuarios:login' %}">Inicia sesión</a></p>
@@ -21,47 +121,59 @@
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <label class="label-custom">Nombres</label>
-            <input type="text" name="nombres" class="input-custom" placeholder="Juan" required>
+            {{ form.nombres }}
         </div>
         <div class="col-md-6">
             <label class="label-custom">Apellidos</label>
-            <input type="text" name="apellidos" class="input-custom" placeholder="Pérez" required>
+            {{ form.apellidos }}
         </div>
     </div>
 
     <div class="form-group-custom">
         <label class="label-custom">Correo Electrónico</label>
-        <input type="email" name="correo" class="input-custom" placeholder="ejemplo@correo.com" required>
+        {{ form.correo }}
     </div>
 
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <label class="label-custom">Tipo</label>
-            <select name="tipo_documento" class="input-custom form-select" style="background-image: none;" required>
-                <option value="CC">C.C.</option>
-                <option value="CE">C.E.</option>
-                <option value="NIT">NIT</option>
-            </select>
+            {{ form.tipo_documento }}
         </div>
         <div class="col-md-8">
             <label class="label-custom">Documento</label>
-            <input type="text" name="documento" class="input-custom" placeholder="12345678" required>
+            {{ form.documento }}
         </div>
     </div>
 
     <div class="form-group-custom">
         <label class="label-custom">Teléfono</label>
-        <input type="text" name="telefono" class="input-custom" placeholder="3001234567" required>
+        {{ form.telefono }}
     </div>
 
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <label class="label-custom">Contraseña</label>
-            <input type="password" name="contrasena" class="input-custom" placeholder="••••••••" required>
+            {{ form.contrasena }}
         </div>
         <div class="col-md-6">
             <label class="label-custom">Confirmar</label>
-            <input type="password" name="confirmar_contrasena" class="input-custom" placeholder="••••••••" required>
+            {{ form.confirmar_contrasena }}
+        </div>
+    </div>
+
+    <div class="form-group-custom mb-4">
+        <!-- Simplified "No soy un robot" -->
+        <div class="recaptcha-mock" id="recaptchaBox">
+            <div class="recaptcha-left">
+                <div class="form-check">
+                    {{ form.no_robot }}
+                    <label class="recaptcha-text ms-2" for="{{ form.no_robot.id_for_label }}">No soy un robot</label>
+                </div>
+            </div>
+            <div class="recaptcha-right">
+                <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" class="recaptcha-logo" alt="reCAPTCHA">
+                <span class="recaptcha-privacy">Privacidad - Términos</span>
+            </div>
         </div>
     </div>
 
