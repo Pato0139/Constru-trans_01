@@ -100,6 +100,9 @@
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
+// Desactivar alertas de DataTables y redirigirlas a la consola para evitar ventanas emergentes
+$.fn.dataTable.ext.errMode = 'throw';
+
 $(document).ready(function() {
     $('.table:not(.no-datatable)').DataTable({
         "language": {

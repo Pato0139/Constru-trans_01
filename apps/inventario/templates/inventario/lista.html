@@ -70,7 +70,7 @@
                 </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="text-center py-5">
+                <td colspan="6" class="text-center py-5">
                     <i class="bi bi-box-seam display-4 text-muted mb-3 d-block"></i>
                     <p class="text-muted">No hay materiales registrados en el inventario</p>
                 </td>
@@ -128,12 +128,12 @@
                             <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Precio Unitario</label>
                             <div class="input-group">
                                 <span class="input-group-text border-0 text-white-50" style="background: rgba(255,255,255,0.05);">$</span>
-                                <input type="number" id="precio" name="precio" class="form-control" placeholder="0.00" required>
+                                <input type="number" id="precio" name="precio" class="form-control no-spin" placeholder="0.00" min="0" step="0.01" required onkeypress="return event.charCode >= 48 && event.charCode <= 57 || event.charCode == 46" oninput="validarPositivo(this)">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Stock Inicial</label>
-                            <input type="number" id="stock" name="stock" class="form-control" placeholder="0" required>
+                            <input type="number" id="stock" name="stock" class="form-control no-spin" placeholder="0" min="0" required onkeypress="return event.charCode >= 48 && event.charCode <= 57" oninput="validarPositivo(this)">
                         </div>
                     </div>
                 </div>
@@ -209,9 +209,26 @@
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(243, 156, 18, 0.5) !important;
     }
+
+    /* Ocultar flechas en inputs numéricos */
+    .no-spin::-webkit-inner-spin-button,
+    .no-spin::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .no-spin {
+        -moz-appearance: textfield;
+    }
 </style>
 
 <script>
+    // Función para prevenir números negativos en tiempo real
+    function validarPositivo(input) {
+        if (input.value < 0) {
+            input.value = Math.abs(input.value);
+        }
+    }
+    
     let modalInstance;
     document.addEventListener('DOMContentLoaded', function() {
         const modalElement = document.getElementById('modalMaterial');

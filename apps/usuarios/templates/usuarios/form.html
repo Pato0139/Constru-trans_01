@@ -27,7 +27,7 @@
                 </div>
             {% endif %}
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 
                 <div class="section-label mb-4">
@@ -36,13 +36,17 @@
                 </div>
 
                 <div class="row g-4 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Nombres</label>
-                        <input type="text" name="nombres" class="form-control" placeholder="Ej: Juan" value="{{ usuario.nombres|default:form_data.nombres|default:'' }}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Foto de Perfil</label>
+                        <input type="file" name="foto_perfil" class="form-control" accept="image/*" style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Nombres</label>
+                        <input type="text" name="nombres" class="form-control" placeholder="Ej: Juan" value="{% if form_data %}{{ form_data.nombres|default:usuario.nombres|default:'' }}{% else %}{{ usuario.nombres|default:'' }}{% endif %}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Apellidos</label>
-                        <input type="text" name="apellidos" class="form-control" placeholder="Ej: Pérez" value="{{ usuario.apellidos|default:form_data.apellidos|default:'' }}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
+                        <input type="text" name="apellidos" class="form-control" placeholder="Ej: Pérez" value="{% if form_data %}{{ form_data.apellidos|default:usuario.apellidos|default:'' }}{% else %}{{ usuario.apellidos|default:'' }}{% endif %}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
                     </div>
                 </div>
 
@@ -57,7 +61,7 @@
                         <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Correo Electrónico</label>
                         <div class="input-group">
                             <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-envelope"></i></span>
-                            <input type="email" name="email" class="form-control" placeholder="correo@ejemplo.com" value="{{ form_data.email|default:'' }}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
+                            <input type="email" name="email" class="form-control" placeholder="correo@ejemplo.com" value="{% if form_data %}{{ form_data.email|default:'' }}{% endif %}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -75,7 +79,7 @@
                         <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Teléfono de Contacto</label>
                         <div class="input-group">
                             <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-telephone"></i></span>
-                            <input type="text" name="telefono" class="form-control" placeholder="3001234567" value="{{ usuario.telefono|default:form_data.telefono|default:'' }}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
+                            <input type="text" name="telefono" class="form-control" placeholder="3001234567" value="{% if form_data %}{{ form_data.telefono|default:usuario.telefono|default:'' }}{% else %}{{ usuario.telefono|default:'' }}{% endif %}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -83,9 +87,9 @@
                         {% if request.user.usuario.rol == 'admin' %}
                             <select name="rol" class="form-select" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
                                 <option value="">Seleccione rol...</option>
-                                <option value="cliente" {% if usuario.rol == 'cliente' or form_data.rol == 'cliente' %}selected{% endif %}>Cliente</option>
-                                <option value="conductor" {% if usuario.rol == 'conductor' or form_data.rol == 'conductor' %}selected{% endif %}>Conductor</option>
-                                <option value="admin" {% if usuario.rol == 'admin' or form_data.rol == 'admin' %}selected{% endif %}>Administrador</option>
+                                <option value="cliente" {% if form_data %}{% if form_data.rol == 'cliente' or usuario.rol == 'cliente' %}selected{% endif %}{% else %}{% if usuario.rol == 'cliente' %}selected{% endif %}{% endif %}>Cliente</option>
+                                <option value="conductor" {% if form_data %}{% if form_data.rol == 'conductor' or usuario.rol == 'conductor' %}selected{% endif %}{% else %}{% if usuario.rol == 'conductor' %}selected{% endif %}{% endif %}>Conductor</option>
+                                <option value="admin" {% if form_data %}{% if form_data.rol == 'admin' or usuario.rol == 'admin' %}selected{% endif %}{% else %}{% if usuario.rol == 'admin' %}selected{% endif %}{% endif %}>Administrador</option>
                             </select>
                         {% else %}
                             <div class="form-control text-white-50 d-flex align-items-center" style="background: #1a1a1a !important; border: 1px dashed rgba(255,255,255,0.1) !important;">
@@ -107,14 +111,14 @@
                     <div class="col-md-6">
                         <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Tipo de Documento</label>
                         <select name="tipo_doc" class="form-select" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
-                            <option value="CC" {% if form_data.tipo_doc == 'CC' %}selected{% endif %}>Cédula Ciudadanía</option>
-                            <option value="CE" {% if form_data.tipo_doc == 'CE' %}selected{% endif %}>Cédula Extranjería</option>
-                            <option value="NIT" {% if form_data.tipo_doc == 'NIT' %}selected{% endif %}>NIT</option>
+                            <option value="CC" {% if form_data %}{% if form_data.tipo_doc == 'CC' %}selected{% endif %}{% endif %}>Cédula Ciudadanía</option>
+                            <option value="CE" {% if form_data %}{% if form_data.tipo_doc == 'CE' %}selected{% endif %}{% endif %}>Cédula Extranjería</option>
+                            <option value="NIT" {% if form_data %}{% if form_data.tipo_doc == 'NIT' %}selected{% endif %}{% endif %}>NIT</option>
                         </select>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Número de Documento</label>
-                        <input type="text" name="documento" class="form-control" placeholder="12345678" value="{{ form_data.documento|default:'' }}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
+                        <input type="text" name="documento" class="form-control" placeholder="12345678" value="{% if form_data %}{{ form_data.documento|default:'' }}{% endif %}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
                     </div>
                 </div>
                 {% endif %}

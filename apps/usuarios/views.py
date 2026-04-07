@@ -16,10 +16,11 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 # ---------------- REGISTRO ----------------
 def registro(request):
     if request.method == "POST":
+        email = request.POST.get("correo")
+        username = request.POST.get("usuario") or email  # Si no hay nombre de usuario, usar el correo
+        
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
-        username = request.POST.get("usuario")
-        email = request.POST.get("correo")
         telefono = request.POST.get("telefono")
         tipo_documento = request.POST.get("tipo_documento")
         documento = request.POST.get("documento")
@@ -34,7 +35,7 @@ def registro(request):
 
         if User.objects.filter(username=username).exists():
             return render(request, "usuarios/registro.html", {
-                "error": "Este nombre de usuario ya está registrado"
+                "error": "Este nombre de usuario o correo ya está registrado"
             })
 
         if User.objects.filter(email=email).exists():
@@ -42,23 +43,30 @@ def registro(request):
                 "error": "Este correo ya está registrado"
             })
 
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
-        )
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
 
-        Usuario.objects.create(
-            user=user,
-            nombres=nombres,
-            apellidos=apellidos,
-            telefono=telefono,
-            rol=rol,
-            tipo_documento=tipo_documento,
-            documento=documento
-        )
-
-        return redirect("usuarios:login")
+            Usuario.objects.create(
+                user=user,
+                nombres=nombres,
+                apellidos=apellidos,
+                telefono=telefono,
+                rol=rol,
+                tipo_documento=tipo_documento,
+                documento=documento
+            )
+            
+            messages.success(request, "Registro exitoso. Ahora puedes iniciar sesión.")
+            return redirect("usuarios:login")
+            
+        except Exception as e:
+            return render(request, "usuarios/registro.html", {
+                "error": f"Error al crear el usuario: {str(e)}"
+            })
 
     return render(request, "usuarios/registro.html")
 
@@ -207,7 +215,6 @@ def mis_entregas(request):
     })
 
 
-@login_required
 @login_required
 def perfil_admin(request):
     try:
@@ -389,18 +396,45 @@ def editar_usuario(request, id):
         return redirect("usuarios:panel")
 
     if request.method == "POST":
-        usuario.nombres = request.POST.get("nombres")
-        usuario.apellidos = request.POST.get("apellidos")
-        usuario.telefono = request.POST.get("telefono")
-        
-        if request.user.usuario.rol == "admin":
-            usuario.rol = request.POST.get("rol")
+        nombres = request.POST.get("nombres")
+        apellidos = request.POST.get("apellidos")
+        telefono = request.POST.get("telefono")
+        rol = request.POST.get("rol")
+
+        if not all([nombres, apellidos, telefono]):
+            messages.error(request, "Los campos nombres, apellidos y teléfono son obligatorios.")
+            return render(request, "usuarios/form.html", {
+                "usuario": usuario,
+                "form_data": request.POST,
+                "action": "editar"
+            })
+
+        try:
+            usuario.nombres = nombres
+            usuario.apellidos = apellidos
+            usuario.telefono = telefono
             
-        usuario.save()
-        messages.success(request, "Cambios guardados exitosamente.")
-        return redirect("usuarios:lista_usuarios")
+            # Manejo de la imagen de perfil en la edición de usuario por admin
+            if 'foto_perfil' in request.FILES:
+                usuario.foto_perfil = request.FILES['foto_perfil']
+                
+            if request.user.usuario.rol == "admin" and rol:
+                usuario.rol = rol
+                
+            usuario.save()
+            messages.success(request, "Cambios guardados exitosamente.")
+            return redirect("usuarios:lista_usuarios")
+        except Exception as e:
+            messages.error(request, f"Error al guardar los cambios: {str(e)}")
+            return render(request, "usuarios/form.html", {
+                "usuario": usuario,
+                "form_data": request.POST,
+                "action": "editar"
+            })
+
     return render(request, "usuarios/form.html", {
         "usuario": usuario,
+        "form_data": {},
         "action": "editar"
     })
 

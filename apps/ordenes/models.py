@@ -2,6 +2,7 @@ from django.db import models
 from apps.usuarios.models import Usuario, Vehiculo, Material
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.validators import MinValueValidator
 
 
 class Orden(models.Model):
@@ -23,7 +24,7 @@ class Orden(models.Model):
         null=True,
         blank=True
     )
-    cantidad = models.IntegerField(default=1)
+    cantidad = models.IntegerField(default=1, validators=[MinValueValidator(1)])
 
     direccion_origen = models.CharField(max_length=200)
     direccion_destino = models.CharField(max_length=200)
@@ -53,7 +54,8 @@ class Orden(models.Model):
     precio = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=0
+        default=0,
+        validators=[MinValueValidator(0)]
     )
 
     class Meta:
@@ -73,10 +75,11 @@ class DetalleOrden(models.Model):
         Material,
         on_delete=models.CASCADE
     )
-    cantidad = models.IntegerField(default=1)
+    cantidad = models.IntegerField(default=1, validators=[MinValueValidator(1)])
     precio_unitario = models.DecimalField(
         max_digits=10,
-        decimal_places=2
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
     )
 
     def __str__(self):

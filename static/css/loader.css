@@ -60,7 +60,7 @@
     height: 100%;
     background: linear-gradient(90deg, #F39C12, #0056B3); /* Nueva paleta: Naranja a Azul */
     border-radius: 10px;
-    animation: load 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: load 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes load {
