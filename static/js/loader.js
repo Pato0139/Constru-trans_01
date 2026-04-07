@@ -23,22 +23,22 @@ document.addEventListener("DOMContentLoaded", function() {
 
                 setTimeout(() => {
                     loader.style.display = "none";
-                }, 600); // Esperar a que termine la transición de opacidad
-            }, 300); // Pequeña pausa para ver la barra al 100%
+                }, 300); // Esperar a que termine la transición de opacidad
+            }, 100); // Pequeña pausa para ver la barra al 100%
         }
     }
 
     // Ocultar cuando la página esté completamente cargada
     if (document.readyState === "complete") {
-        setTimeout(hideLoader, 500);
+        setTimeout(hideLoader, 100);
     } else {
         window.addEventListener("load", function() {
-            setTimeout(hideLoader, 500);
+            setTimeout(hideLoader, 100);
         });
     }
 
     // Timeout de seguridad por si tarda demasiado en cargar
-    setTimeout(hideLoader, 3000);
+    setTimeout(hideLoader, 1500);
 
     // Mostrar loader al enviar formularios (excluyendo los que se manejen por AJAX si los hay)
     const forms = document.querySelectorAll("form");

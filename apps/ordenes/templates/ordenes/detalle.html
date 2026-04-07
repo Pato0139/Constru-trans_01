@@ -119,19 +119,24 @@
                         <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Gestión del Pedido</h6>
                         <div class="d-grid gap-2">
                             {% if user.usuario.rol == "admin" %}
-                            <a href="{% url 'ordenes:editar_orden' orden.id %}" class="btn btn-outline-warning rounded-pill py-2 fw-700">
-                                <i class="bi bi-pencil-square me-2"></i> Modificar Pedido
-                            </a>
-                            <a href="{% url 'ordenes:eliminar_orden' orden.id %}" class="btn btn-outline-danger rounded-pill py-2 fw-700" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
-                                <i class="bi bi-x-circle me-2"></i> Cancelar Pedido
-                            </a>
+                                {% if orden.estado == "pendiente" %}
+                                <a href="{% url 'ordenes:crear_entrega' orden.id %}" class="btn btn-gold rounded-pill py-2 fw-800 shadow-sm mb-2">
+                                    <i class="bi bi-person-plus-fill me-2"></i> Asignar Conductor y Vehículo
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'ordenes:editar_orden' orden.id %}" class="btn btn-outline-warning rounded-pill py-2 fw-700">
+                                    <i class="bi bi-pencil-square me-2"></i> Modificar Pedido
+                                </a>
+                                <a href="{% url 'ordenes:eliminar_orden' orden.id %}" class="btn btn-outline-danger rounded-pill py-2 fw-700" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
+                                    <i class="bi bi-x-circle me-2"></i> Cancelar Pedido
+                                </a>
                             {% else %}
-                            <a href="{% url 'clientes:editar_pedido' orden.id %}" class="btn btn-outline-warning rounded-pill py-2 fw-700">
-                                <i class="bi bi-pencil-square me-2"></i> Modificar Pedido
-                            </a>
-                            <a href="{% url 'clientes:eliminar_orden' orden.id %}" class="btn btn-outline-danger rounded-pill py-2 fw-700" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
-                                <i class="bi bi-x-circle me-2"></i> Cancelar Pedido
-                            </a>
+                                <a href="{% url 'clientes:editar_pedido' orden.id %}" class="btn btn-outline-warning rounded-pill py-2 fw-700">
+                                    <i class="bi bi-pencil-square me-2"></i> Modificar Pedido
+                                </a>
+                                <a href="{% url 'clientes:eliminar_orden' orden.id %}" class="btn btn-outline-danger rounded-pill py-2 fw-700" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
+                                    <i class="bi bi-x-circle me-2"></i> Cancelar Pedido
+                                </a>
                             {% endif %}
                         </div>
                     </div>

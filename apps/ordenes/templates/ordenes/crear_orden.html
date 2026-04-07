@@ -42,7 +42,7 @@
 
     <div class="mb-3">
         <label>Precio</label>
-        <input type="number" name="precio" class="form-control" step="0.01" value="{{ orden.precio|default:0 }}">
+        <input type="number" name="precio" class="form-control" step="0.01" min="0" value="{{ orden.precio|default:0 }}">
     </div>
 
     {% if orden %}
