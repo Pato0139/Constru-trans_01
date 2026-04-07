@@ -165,20 +165,9 @@
 <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
-<<<<<<< HEAD
-    // Initialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
-</script>
-
-<script>
-=======
 // Desactivar alertas de DataTables y redirigirlas a la consola para evitar ventanas emergentes
 $.fn.dataTable.ext.errMode = 'throw';
 
->>>>>>> Edward_02
 $(document).ready(function() {
     $('.table:not(.no-datatable)').DataTable({
         "language": {

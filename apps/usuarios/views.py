@@ -18,19 +18,6 @@ from .forms import LoginForm, RegistroForm
 # ---------------- REGISTRO ----------------
 def registro(request):
     if request.method == "POST":
-<<<<<<< HEAD
-        form = RegistroForm(request.POST)
-        if form.is_valid():
-            nombres = form.cleaned_data.get("nombres")
-            apellidos = form.cleaned_data.get("apellidos")
-            email = form.cleaned_data.get("correo")
-            telefono = form.cleaned_data.get("telefono")
-            tipo_documento = form.cleaned_data.get("tipo_documento")
-            documento = form.cleaned_data.get("documento")
-            rol = "cliente" # Rol predeterminado (HU-01)
-            password = form.cleaned_data.get("contrasena")
-            confirmar = form.cleaned_data.get("confirmar_contrasena")
-=======
         email = request.POST.get("correo")
         username = request.POST.get("usuario") or email  # Si no hay nombre de usuario, usar el correo
         
@@ -42,51 +29,12 @@ def registro(request):
         rol = "cliente" # Rol predeterminado (HU-01)
         password = request.POST.get("contrasena")
         confirmar = request.POST.get("confirmar_contrasena")
->>>>>>> Edward_02
 
-            if password != confirmar:
-                return render(request, "usuarios/registro.html", {
-                    "error": "Las contraseñas no coinciden",
-                    "form": form
-                })
-
-            if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
-                return render(request, "usuarios/registro.html", {
-                    "error": "Este correo ya está registrado",
-                    "form": form
-                })
-
-            user = User.objects.create_user(
-                username=email,
-                email=email,
-                password=password
-            )
-
-            perfil = Usuario.objects.create(
-                user=user,
-                nombres=nombres,
-                apellidos=apellidos,
-                telefono=telefono,
-                rol=rol,
-                tipo_documento=tipo_documento,
-                documento=documento
-            )
-
-            registrar_en_bitacora(request, 'crear', 'usuarios', user.id, f"Nuevo registro de usuario: {email} como {rol}")
-
-            return redirect("usuarios:login")
-        else:
+        if password != confirmar:
             return render(request, "usuarios/registro.html", {
-                "error": "Por favor revisa los datos y marca 'No soy un robot'.",
-                "form": form
+                "error": "Las contraseñas no coinciden"
             })
 
-<<<<<<< HEAD
-    else:
-        form = RegistroForm()
-
-    return render(request, "usuarios/registro.html", {"form": form})
-=======
         if User.objects.filter(username=username).exists():
             return render(request, "usuarios/registro.html", {
                 "error": "Este nombre de usuario o correo ya está registrado"
@@ -114,6 +62,8 @@ def registro(request):
                 documento=documento
             )
             
+            registrar_en_bitacora(request, 'crear', 'usuarios', user.id, f"Nuevo registro de usuario: {email} como {rol}")
+            
             messages.success(request, "Registro exitoso. Ahora puedes iniciar sesión.")
             return redirect("usuarios:login")
             
@@ -123,7 +73,6 @@ def registro(request):
             })
 
     return render(request, "usuarios/registro.html")
->>>>>>> Edward_02
 
 
 from django.contrib.auth import views as auth_views
@@ -490,12 +439,6 @@ def editar_usuario(request, id):
             usuario.apellidos = apellidos
             usuario.telefono = telefono
             
-<<<<<<< HEAD
-        usuario.save()
-        registrar_en_bitacora(request, 'editar', 'usuarios', usuario.user.id, f"Perfil de usuario editado: {usuario.user.username}")
-        messages.success(request, "Cambios guardados exitosamente.")
-        return redirect("usuarios:lista_usuarios")
-=======
             # Manejo de la imagen de perfil en la edición de usuario por admin
             if 'foto_perfil' in request.FILES:
                 usuario.foto_perfil = request.FILES['foto_perfil']
@@ -504,6 +447,7 @@ def editar_usuario(request, id):
                 usuario.rol = rol
                 
             usuario.save()
+            registrar_en_bitacora(request, 'editar', 'usuarios', usuario.user.id, f"Perfil de usuario editado: {usuario.user.username}")
             messages.success(request, "Cambios guardados exitosamente.")
             return redirect("usuarios:lista_usuarios")
         except Exception as e:
@@ -514,7 +458,6 @@ def editar_usuario(request, id):
                 "action": "editar"
             })
 
->>>>>>> Edward_02
     return render(request, "usuarios/form.html", {
         "usuario": usuario,
         "form_data": {},
