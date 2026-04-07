@@ -18,61 +18,62 @@ from .forms import LoginForm, RegistroForm
 # ---------------- REGISTRO ----------------
 def registro(request):
     if request.method == "POST":
-        email = request.POST.get("correo")
-        username = request.POST.get("usuario") or email  # Si no hay nombre de usuario, usar el correo
-        
-        nombres = request.POST.get("nombres")
-        apellidos = request.POST.get("apellidos")
-        telefono = request.POST.get("telefono")
-        tipo_documento = request.POST.get("tipo_documento")
-        documento = request.POST.get("documento")
-        rol = "cliente" # Rol predeterminado (HU-01)
-        password = request.POST.get("contrasena")
-        confirmar = request.POST.get("confirmar_contrasena")
-
-        if password != confirmar:
-            return render(request, "usuarios/registro.html", {
-                "error": "Las contraseñas no coinciden"
-            })
-
-        if User.objects.filter(username=username).exists():
-            return render(request, "usuarios/registro.html", {
-                "error": "Este nombre de usuario o correo ya está registrado"
-            })
-
-        if User.objects.filter(email=email).exists():
-            return render(request, "usuarios/registro.html", {
-                "error": "Este correo ya está registrado"
-            })
-
-        try:
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password
-            )
-
-            Usuario.objects.create(
-                user=user,
-                nombres=nombres,
-                apellidos=apellidos,
-                telefono=telefono,
-                rol=rol,
-                tipo_documento=tipo_documento,
-                documento=documento
-            )
+        form = RegistroForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("correo")
+            username = email  # Usar el correo como nombre de usuario por simplicidad
             
-            registrar_actividad(request, 'crear', 'usuarios', user.id, f"Nuevo registro de usuario: {email} como {rol}")
-            
-            messages.success(request, "Registro exitoso. Ahora puedes iniciar sesión.")
-            return redirect("usuarios:login")
-            
-        except Exception as e:
+            nombres = form.cleaned_data.get("nombres")
+            apellidos = form.cleaned_data.get("apellidos")
+            telefono = form.cleaned_data.get("telefono")
+            tipo_documento = form.cleaned_data.get("tipo_documento")
+            documento = form.cleaned_data.get("documento")
+            rol = "cliente" # Rol predeterminado (HU-01)
+            password = form.cleaned_data.get("contrasena")
+
+            if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
+                return render(request, "usuarios/registro.html", {
+                    "error": "Este correo ya está registrado",
+                    "form": form
+                })
+
+            try:
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password
+                )
+
+                Usuario.objects.create(
+                    user=user,
+                    nombres=nombres,
+                    apellidos=apellidos,
+                    telefono=telefono,
+                    rol=rol,
+                    tipo_documento=tipo_documento,
+                    documento=documento
+                )
+                
+                registrar_actividad(request, 'crear', 'usuarios', user.id, f"Nuevo registro de usuario: {email} como {rol}")
+                
+                messages.success(request, "Registro exitoso. Ahora puedes iniciar sesión.")
+                return redirect("usuarios:login")
+                
+            except Exception as e:
+                return render(request, "usuarios/registro.html", {
+                    "error": f"Error al crear el usuario: {str(e)}",
+                    "form": form
+                })
+        else:
             return render(request, "usuarios/registro.html", {
-                "error": f"Error al crear el usuario: {str(e)}"
+                "error": "Por favor revisa los datos ingresados y marca la casilla 'No soy un robot'.",
+                "form": form
             })
 
-    return render(request, "usuarios/registro.html")
+    else:
+        form = RegistroForm()
+
+    return render(request, "usuarios/registro.html", {"form": form})
 
 
 from django.contrib.auth import views as auth_views

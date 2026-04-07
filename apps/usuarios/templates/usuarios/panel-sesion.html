@@ -19,13 +19,14 @@
     
     <style>
         :root {
-            --bg-body: #000000;
-            --bg-card: #333333;
+            --bg-body: #0a0a0a;
+            --bg-card: #1a1a1a;
             --primary-gold: #F39C12;
             --primary-red: #0056B3;
             --text-white: #ffffff;
-            --text-muted: #CCCCCC;
-            --input-border: rgba(255,255,255,0.1);
+            --text-muted: #888888;
+            --input-border: rgba(255,255,255,0.2);
+            --input-bg: rgba(255,255,255,0.05);
             --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
@@ -184,20 +185,33 @@
 
         .input-custom {
             width: 100%;
-            background: transparent !important;
+            background: var(--input-bg) !important;
             border: 2px solid var(--input-border) !important;
-            border-radius: 100px !important;
-            padding: 16px 32px !important;
+            border-radius: 12px !important;
+            padding: 12px 20px !important;
             color: white !important;
             font-size: 1rem;
             transition: var(--transition);
         }
 
         .input-custom:focus {
+            background: rgba(255, 255, 255, 0.1) !important;
             border-color: var(--primary-gold) !important;
-            box-shadow: 0 0 20px rgba(202, 160, 48, 0.1) !important;
+            box-shadow: 0 0 15px rgba(243, 156, 18, 0.2) !important;
             outline: none;
         }
+
+        .animate-up {
+            animation: slideUp 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
 
         /* Estilo para las opciones del select en el panel de sesión */
         select.input-custom option {
