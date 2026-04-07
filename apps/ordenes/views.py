@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.db.models import Q
 from .models import Orden, Entrega
 from apps.usuarios.models import Usuario, Vehiculo, Material
-from bitacora.utils import registrar_en_bitacora
+from historial.utils import registrar_actividad
 
 @login_required
 def lista_pedidos_admin(request):
@@ -55,7 +55,7 @@ def crear_entrega(request, orden_id):
             orden.fecha_toma_entrega = timezone.now()
             orden.save()
 
-            registrar_en_bitacora(request, 'editar', 'pedidos', orden.id, f"Pedido asignado a conductor ID: {conductor_id}")
+            registrar_actividad(request, 'editar', 'pedidos', orden.id, f"Pedido asignado a conductor ID: {conductor_id}")
 
             return redirect("ordenes:lista_pedidos_admin")
         else:
@@ -85,7 +85,7 @@ def editar_orden(request, id):
             
         orden.estado = nuevo_estado
         orden.save()
-        registrar_en_bitacora(request, 'editar', 'pedidos', orden.id, f"Estado de pedido cambiado a: {nuevo_estado}")
+        registrar_actividad(request, 'editar', 'pedidos', orden.id, f"Estado de pedido cambiado a: {nuevo_estado}")
         return redirect("ordenes:lista_pedidos_admin")
     return render(request, "ordenes/detalle.html", {"orden": orden})
 
@@ -134,13 +134,13 @@ def descargar_factura(request, id):
 
     doc.build(elements)
     
-    registrar_en_bitacora(request, 'otro', 'pedidos', orden.id, f"Factura descargada por {request.user.username}")
+    registrar_actividad(request, 'otro', 'pedidos', orden.id, f"Factura descargada por {request.user.username}")
     
     return response
 
 @login_required
 def eliminar_orden(request, id):
     orden = get_object_or_404(Orden, id=id)
-    registrar_en_bitacora(request, 'eliminar', 'pedidos', id, f"Pedido eliminado de cliente: {orden.cliente}")
+    registrar_actividad(request, 'eliminar', 'pedidos', id, f"Pedido eliminado de cliente: {orden.cliente}")
     orden.delete()
     return redirect("ordenes:lista_pedidos_admin")

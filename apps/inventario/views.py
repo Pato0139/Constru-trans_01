@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.contrib import messages
 from django.http import JsonResponse
 from apps.usuarios.models import Material
-from bitacora.utils import registrar_en_bitacora
+from historial.utils import registrar_actividad
 
 @login_required
 def materiales_lista(request):
@@ -55,7 +55,7 @@ def crear_material(request):
                 precio=precio,
                 stock=stock
             )
-            registrar_en_bitacora(request, 'crear', 'inventario', material.id, f"Material creado: {nombre}")
+            registrar_actividad(request, 'crear', 'inventario', material.id, f"Material creado: {nombre}")
             
             success_msg = "Material creado correctamente."
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -88,7 +88,7 @@ def editar_material(request, id):
         material.precio = request.POST.get("precio")
         material.stock = request.POST.get("stock")
         material.save()
-        registrar_en_bitacora(request, 'editar', 'inventario', material.id, f"Material editado: {material.nombre}")
+        registrar_actividad(request, 'editar', 'inventario', material.id, f"Material editado: {material.nombre}")
         
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             messages.success(request, "Material actualizado correctamente.")

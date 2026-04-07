@@ -11,7 +11,7 @@ from django.utils.timezone import now
 from django.contrib import messages
 from django.http import JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from bitacora.utils import registrar_en_bitacora
+from historial.utils import registrar_actividad
 from .forms import LoginForm, RegistroForm
 
 
@@ -62,7 +62,7 @@ def registro(request):
                 documento=documento
             )
             
-            registrar_en_bitacora(request, 'crear', 'usuarios', user.id, f"Nuevo registro de usuario: {email} como {rol}")
+            registrar_actividad(request, 'crear', 'usuarios', user.id, f"Nuevo registro de usuario: {email} como {rol}")
             
             messages.success(request, "Registro exitoso. Ahora puedes iniciar sesión.")
             return redirect("usuarios:login")
@@ -100,7 +100,7 @@ def login_usuario(request):
             if user is not None:
                 login(request, user)
                 
-                registrar_en_bitacora(request, 'login', 'usuarios', user.id, f"Inicio de sesión del usuario: {user.username}")
+                registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión del usuario: {user.username}")
                 
                 if user.is_superuser:
                     Usuario.objects.get_or_create(
@@ -350,7 +350,7 @@ def crear_usuario(request):
                 estado='activo'
             )
             
-            registrar_en_bitacora(request, 'crear', 'usuarios', user.id, f"Administrador creó usuario: {email} como {rol}")
+            registrar_actividad(request, 'crear', 'usuarios', user.id, f"Administrador creó usuario: {email} como {rol}")
 
             success_msg = f"Usuario {nombres} creado correctamente."
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -407,7 +407,7 @@ def eliminar_usuario(request, id):
     usuario_obj = get_object_or_404(Usuario, id=id) 
     nombre_usuario = usuario_obj.user.username
     usuario_obj.delete()
-    registrar_en_bitacora(request, 'eliminar', 'usuarios', id, f"Usuario eliminado: {nombre_usuario}")
+    registrar_actividad(request, 'eliminar', 'usuarios', id, f"Usuario eliminado: {nombre_usuario}")
     messages.success(request, "Usuario eliminado correctamente.")
     return redirect("usuarios:lista_usuarios")
 
@@ -447,7 +447,7 @@ def editar_usuario(request, id):
                 usuario.rol = rol
                 
             usuario.save()
-            registrar_en_bitacora(request, 'editar', 'usuarios', usuario.user.id, f"Perfil de usuario editado: {usuario.user.username}")
+            registrar_actividad(request, 'editar', 'usuarios', usuario.user.id, f"Perfil de usuario editado: {usuario.user.username}")
             messages.success(request, "Cambios guardados exitosamente.")
             return redirect("usuarios:lista_usuarios")
         except Exception as e:
@@ -507,6 +507,6 @@ class CustomPasswordResetView(auth_views.PasswordResetView):
 # ---------------- LOGOUT ----------------
 def cerrar_sesion(request):
     if request.user.is_authenticated:
-        registrar_en_bitacora(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
+        registrar_actividad(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
     logout(request)
     return redirect("usuarios:login")

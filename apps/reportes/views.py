@@ -11,7 +11,7 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from django.utils.timezone import now
-from bitacora.utils import registrar_en_bitacora
+from historial.utils import registrar_actividad
 
 @login_required
 def reportes_admin(request):
@@ -90,6 +90,6 @@ def exportar_reporte_pdf(request, tipo):
 
     doc.build(elements)
     
-    registrar_en_bitacora(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a PDF")
+    registrar_actividad(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a PDF")
     
     return response

@@ -1,14 +1,14 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from .models import Bitacora
+from .models import Historial
 
 @login_required
-def lista_bitacora(request):
+def lista_historial(request):
     if not request.user.is_superuser and request.user.usuario.rol != 'admin':
         return render(request, "403.html", status=403)
         
-    registros = Bitacora.objects.all().order_by('-fecha_hora')
+    registros = Historial.objects.all().order_by('-fecha_hora')
     
     # Filtros
     usuario_q = request.GET.get('usuario')
@@ -30,8 +30,8 @@ def lista_bitacora(request):
         
     context = {
         'registros': registros,
-        'acciones': Bitacora.ACCIONES,
-        'modulos': Bitacora.objects.values_list('modulo', flat=True).distinct(),
+        'acciones': Historial.ACCIONES,
+        'modulos': Historial.objects.values_list('modulo', flat=True).distinct(),
         'filtros': {
             'usuario': usuario_q,
             'accion': accion_q,
@@ -41,4 +41,4 @@ def lista_bitacora(request):
         }
     }
     
-    return render(request, "bitacora/lista.html", context)
+    return render(request, "historial/lista.html", context)

@@ -31,7 +31,7 @@ INSTALLED_APPS = [
     'apps.facturacion',
     'apps.reportes',
     'apps.inicio',
-    'bitacora',
+    'historial',
 ]
 
 

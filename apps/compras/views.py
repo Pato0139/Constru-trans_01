@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Proveedor, Compra, DetalleCompra
 from django.contrib import messages
-from bitacora.utils import registrar_en_bitacora
+from historial.utils import registrar_actividad
 
 @login_required
 def lista_proveedores(request):
@@ -27,7 +27,7 @@ def crear_proveedor(request):
             email=email,
             direccion=direccion
         )
-        registrar_en_bitacora(request, 'crear', 'proveedores', nit, f"Proveedor creado: {nombre}")
+        registrar_actividad(request, 'crear', 'proveedores', nit, f"Proveedor creado: {nombre}")
         messages.success(request, "Proveedor registrado con éxito.")
         return redirect("compras:lista_proveedores")
         
@@ -45,7 +45,7 @@ def editar_proveedor(request, id):
         proveedor.direccion = request.POST.get("direccion")
         proveedor.save()
         
-        registrar_en_bitacora(request, 'editar', 'proveedores', proveedor.nit, f"Proveedor editado: {proveedor.nombre}")
+        registrar_actividad(request, 'editar', 'proveedores', proveedor.nit, f"Proveedor editado: {proveedor.nombre}")
         messages.success(request, "Proveedor actualizado.")
         return redirect("compras:lista_proveedores")
         

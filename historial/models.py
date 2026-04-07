@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-class Bitacora(models.Model):
+class Historial(models.Model):
     ACCIONES = [
         ('crear', 'Crear'),
         ('editar', 'Editar'),
@@ -20,8 +20,8 @@ class Bitacora(models.Model):
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="Dirección IP")
 
     class Meta:
-        verbose_name = "Registro de Bitácora"
-        verbose_name_plural = "Registros de Bitácora"
+        verbose_name = "Registro de Actividad"
+        verbose_name_plural = "Historial de Actividades"
         ordering = ['-fecha_hora']
 
     def __str__(self):
