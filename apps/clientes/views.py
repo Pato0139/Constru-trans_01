@@ -25,7 +25,12 @@ def panel_cliente(request):
 
 @login_required
 def mis_pedidos(request):
-    cliente = request.user.usuario
+    try:
+        cliente = request.user.usuario
+    except Usuario.DoesNotExist:
+        logout(request)
+        return redirect("usuarios:login")
+        
     pedidos = Orden.objects.filter(
         cliente=cliente
     ).order_by("-fecha")
@@ -55,7 +60,12 @@ def perfil_cliente(request):
 
 @login_required
 def seguimiento_pedidos(request):
-    cliente = request.user.usuario
+    try:
+        cliente = request.user.usuario
+    except Usuario.DoesNotExist:
+        logout(request)
+        return redirect("usuarios:login")
+        
     pedidos = Orden.objects.filter(cliente=cliente).order_by("-fecha")
     return render(request, "clientes/seguimiento.html", {
         "pedidos": pedidos
@@ -63,7 +73,12 @@ def seguimiento_pedidos(request):
 
 @login_required
 def historial_pedidos(request):
-    cliente = request.user.usuario
+    try:
+        cliente = request.user.usuario
+    except Usuario.DoesNotExist:
+        logout(request)
+        return redirect("usuarios:login")
+        
     pedidos = Orden.objects.filter(
         cliente=cliente, 
         estado="entregado"
@@ -75,11 +90,17 @@ def historial_pedidos(request):
 @login_required
 def crear_pedido(request):
     # Restricción: Solo clientes pueden solicitar pedidos
-    if request.user.usuario.rol != 'cliente':
+    try:
+        usuario = request.user.usuario
+    except Usuario.DoesNotExist:
+        logout(request)
+        return redirect("usuarios:login")
+
+    if usuario.rol != 'cliente':
         messages.error(request, "Solo los clientes pueden solicitar nuevos pedidos.")
         return redirect("usuarios:panel")
         
-    cliente = request.user.usuario
+    cliente = usuario
     materiales = Material.objects.all()
 
     if request.method == "POST":
@@ -131,8 +152,7 @@ def crear_pedido(request):
                         precio_unitario=precio_unitario
                     )
                     
-                    material.stock -= cantidad
-                    material.save()
+                    total_general += total_item
 
                 nueva_orden.precio = total_general
                 nueva_orden.save()
@@ -163,21 +183,84 @@ def editar_pedido(request, id):
     orden = get_object_or_404(Orden, id=id)
     materiales = Material.objects.all()
     
+    try:
+        usuario = request.user.usuario
+    except Usuario.DoesNotExist:
+        logout(request)
+        return redirect("usuarios:login")
+
+    # Seguridad: Solo el dueño del pedido o un admin pueden editarlo
+    if usuario.rol != 'admin' and orden.cliente != usuario:
+        messages.error(request, "No tienes permiso para editar este pedido.")
+        return redirect("clientes:mis_pedidos")
+
     if request.method == "POST":
         material_id = request.POST.get("material")
-        cantidad = int(request.POST.get("cantidad"))
+        cantidad_str = request.POST.get("cantidad")
         direccion = request.POST.get("direccion")
         
-        material = get_object_or_404(Material, id=material_id)
+        if not material_id or not cantidad_str or not direccion:
+            messages.error(request, "Todos los campos son obligatorios.")
+            return render(request, "clientes/form.html", {
+                "orden": orden,
+                "materiales": materiales,
+                "action": "editar"
+            })
+
+        try:
+            cantidad = int(cantidad_str)
+            material = get_object_or_404(Material, id=material_id)
+            
+            from apps.ordenes.models import DetalleOrden
+            from django.db import transaction
+
+            with transaction.atomic():
+                # Actualizar la orden
+                orden.direccion_destino = direccion
+                orden.precio = material.precio * cantidad
+                
+                # Sincronizar con DetalleOrden
+                # (Si el proyecto está migrando a múltiples materiales, manejamos el primero)
+                detalle = orden.detalles.first()
+                if detalle:
+                    # Devolver stock anterior
+                    old_material = detalle.material
+                    old_material.stock += detalle.cantidad
+                    old_material.save()
+                    
+                    # Actualizar detalle
+                    detalle.material = material
+                    detalle.cantidad = cantidad
+                    detalle.precio_unitario = material.precio
+                    detalle.save()
+                else:
+                    # Crear detalle si no existía
+                    DetalleOrden.objects.create(
+                        orden=orden,
+                        material=material,
+                        cantidad=cantidad,
+                        precio_unitario=material.precio
+                    )
+                
+                # Descontar nuevo stock
+                if material.stock < cantidad:
+                    raise ValueError(f"Stock insuficiente para {material.nombre}.")
+                
+                material.stock -= cantidad
+                material.save()
+                
+                # Limpiar campos redundantes en Orden si existen
+                orden.material = None
+                orden.cantidad = 1
+                orden.save()
+
+            messages.success(request, f"Pedido #{orden.id} actualizado correctamente.")
+            return redirect("clientes:mis_pedidos")
         
-        orden.material = material
-        orden.cantidad = cantidad
-        orden.direccion_destino = direccion
-        orden.precio = material.precio * cantidad
-        orden.save()
-        
-        messages.success(request, f"Pedido #{orden.id} actualizado correctamente.")
-        return redirect("clientes:mis_pedidos")
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, f"Error al actualizar: {e}")
         
     return render(request, "clientes/form.html", {
         "orden": orden,

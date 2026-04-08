@@ -39,7 +39,15 @@ def reportes_admin(request):
 
 @login_required
 def exportar_reporte_pdf(request, tipo):
-    if request.user.usuario.rol != 'admin':
+    try:
+        usuario = request.user.usuario
+    except Usuario.DoesNotExist:
+        from django.contrib.auth import logout
+        from django.shortcuts import redirect
+        logout(request)
+        return redirect("usuarios:login")
+
+    if usuario.rol != 'admin':
         return HttpResponse("No autorizado", status=403)
 
     response = HttpResponse(content_type='application/pdf')

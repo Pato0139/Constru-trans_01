@@ -93,10 +93,19 @@ def editar_orden(request, id):
 def descargar_factura(request, id):
     orden = get_object_or_404(Orden, id=id)
     
+    try:
+        usuario = request.user.usuario
+    except Usuario.DoesNotExist:
+        from django.contrib.auth import logout
+        logout(request)
+        return redirect("usuarios:login")
+
     # Solo el cliente dueño del pedido o un admin pueden descargarla
-    if request.user.usuario.rol != 'admin' and orden.cliente != request.user.usuario:
+    if usuario.rol != 'admin' and orden.cliente != usuario:
+        from django.http import HttpResponse
         return HttpResponse("No autorizado", status=403)
 
+    from django.http import HttpResponse
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="factura_{orden.id}.pdf"'
 
@@ -112,12 +121,30 @@ def descargar_factura(request, id):
     elements.append(Paragraph(f"Cliente: {orden.cliente.nombres} {orden.cliente.apellidos}", styles['Normal']))
     elements.append(Spacer(1, 24))
 
-    # Detalle de Materiales (Si la orden tiene materiales asociados, aquí los listaríamos)
-    # Por ahora mostramos el total
-    data = [
-        ['Descripción', 'Total'],
-        ['Servicio de Transporte y Materiales', f"${orden.precio}"]
-    ]
+    # Detalle de Materiales
+    data = [['Material', 'Cantidad', 'Precio Unitario', 'Subtotal']]
+    detalles = orden.detalles.all()
+    
+    if detalles.exists():
+        for d in detalles:
+            subtotal = d.cantidad * d.precio_unitario
+            data.append([
+                d.material.nombre,
+                str(d.cantidad),
+                f"${d.precio_unitario}",
+                f"${subtotal}"
+            ])
+    elif orden.material:
+        data.append([
+            orden.material.nombre,
+            str(orden.cantidad),
+            f"${orden.material.precio}",
+            f"${orden.precio}"
+        ])
+    else:
+        data.append(['Servicio de Transporte', '1', '-', f"${orden.precio}"])
+
+    data.append(['', '', 'TOTAL:', f"${orden.precio}"])
 
     t = Table(data)
     t.setStyle(TableStyle([
@@ -125,7 +152,9 @@ def descargar_factura(request, id):
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.beige),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
     ]))
     elements.append(t)
     

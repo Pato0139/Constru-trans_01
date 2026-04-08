@@ -29,7 +29,14 @@ def api_materiales(request):
 
 @login_required
 def crear_material(request):
-    if request.user.usuario.rol != 'admin':
+    try:
+        usuario = request.user.usuario
+    except Usuario.DoesNotExist:
+        from django.contrib.auth import logout
+        logout(request)
+        return redirect("usuarios:login")
+
+    if usuario.rol != 'admin':
         messages.error(request, "No tienes permisos para realizar esta acción.")
         return redirect("usuarios:panel")
 

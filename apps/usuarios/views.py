@@ -216,7 +216,12 @@ def panel_conductor(request):
 
 @login_required
 def pedidos_conductor(request):
-    conductor = request.user.usuario
+    try:
+        conductor = request.user.usuario
+    except Usuario.DoesNotExist:
+        logout(request)
+        return redirect("usuarios:login")
+        
     pedidos = Orden.objects.filter(
         conductor=conductor
     ).exclude(estado="entregado")
@@ -227,7 +232,12 @@ def pedidos_conductor(request):
 
 @login_required
 def mis_entregas(request):
-    conductor = request.user.usuario
+    try:
+        conductor = request.user.usuario
+    except Usuario.DoesNotExist:
+        logout(request)
+        return redirect("usuarios:login")
+        
     entregas = Orden.objects.filter(
         conductor=conductor,
         estado="entregado"
