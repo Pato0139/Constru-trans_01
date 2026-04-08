@@ -3,29 +3,66 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.contrib import messages
 from django.http import JsonResponse
-from apps.usuarios.models import Material
+from apps.inventario.models import Material
 from historial.utils import registrar_actividad
+from django.core.paginator import Paginator
+
 
 @login_required
 def materiales_lista(request):
-    query = request.GET.get('q')
+    query = request.GET.get('q', '').strip()
+    tipo = request.GET.get('tipo', '')
+    stock_min = request.GET.get('stock_min', '')
+    stock_max = request.GET.get('stock_max', '')
+
+    materiales = Material.objects.all()
+
+    # CT-317 Búsqueda básica
     if query:
-        materiales = Material.objects.filter(
-            Q(nombre__icontains=query) | 
+        materiales = materiales.filter(
+            Q(nombre__icontains=query) |
             Q(descripcion__icontains=query) |
             Q(tipo__icontains=query)
         )
-    else:
-        materiales = Material.objects.all()
-    
+
+    # CT-318 Filtros
+    if tipo:
+        materiales = materiales.filter(tipo=tipo)
+
+    if stock_min:
+        try:
+            materiales = materiales.filter(stock__gte=int(stock_min))
+        except ValueError:
+            pass
+
+    if stock_max:
+        try:
+            materiales = materiales.filter(stock__lte=int(stock_max))
+        except ValueError:
+            pass
+
+    # CT-319 Paginación — 10 por página
+    paginator = Paginator(materiales, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, "inventario/lista.html", {
-        "materiales": materiales
+        "materiales": page_obj,
+        "page_obj": page_obj,
+        "query": query,
+        "tipo_seleccionado": tipo,
+        "stock_min": stock_min,
+        "stock_max": stock_max,
+        "tipos": Material.TIPO_CHOICES,
+        "total": materiales.count(),
     })
+
 
 @login_required
 def api_materiales(request):
     materiales = Material.objects.all().values('id', 'nombre', 'precio', 'stock', 'tipo')
     return JsonResponse(list(materiales), safe=False)
+
 
 @login_required
 def crear_material(request):
@@ -56,19 +93,19 @@ def crear_material(request):
                 stock=stock
             )
             registrar_actividad(request, 'crear', 'inventario', material.id, f"Material creado: {nombre}")
-            
+
             success_msg = "Material creado correctamente."
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 messages.success(request, success_msg)
                 return JsonResponse({"status": "success", "message": success_msg})
-            
+
             messages.success(request, success_msg)
             return redirect("inventario:materiales_lista")
         except Exception as e:
             error_msg = f"Error al crear material: {str(e)}"
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"status": "error", "message": error_msg}, status=500)
-            
+
             messages.error(request, error_msg)
             return render(request, "inventario/form.html", {
                 "error": error_msg,
@@ -77,6 +114,7 @@ def crear_material(request):
             })
 
     return render(request, "inventario/form.html", {"action": "crear"})
+
 
 @login_required
 def editar_material(request, id):
@@ -89,14 +127,14 @@ def editar_material(request, id):
         material.stock = request.POST.get("stock")
         material.save()
         registrar_actividad(request, 'editar', 'inventario', material.id, f"Material editado: {material.nombre}")
-        
+
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             messages.success(request, "Material actualizado correctamente.")
             return JsonResponse({"status": "success"})
-            
+
         messages.success(request, "Material actualizado")
         return redirect("inventario:materiales_lista")
-    
+
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({
             "id": material.id,
@@ -106,8 +144,9 @@ def editar_material(request, id):
             "precio": str(material.precio),
             "stock": material.stock
         })
-        
+
     return render(request, "inventario/form.html", {"material": material, "action": "editar"})
+
 
 @login_required
 def eliminar_material(request, id):

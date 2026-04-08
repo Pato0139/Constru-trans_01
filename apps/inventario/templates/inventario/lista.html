@@ -7,20 +7,58 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
     <div>
         <h4 class="fw-bold mb-0">Gestión de Materiales</h4>
-        <p class="text-muted small mb-0">Administra el inventario de materiales de construcción</p>
+        <p class="text-muted small mb-0">
+            Administra el inventario de materiales de construcción
+            {% if total %}<span class="ms-2 badge bg-secondary">{{ total }} resultado{{ total|pluralize }}</span>{% endif %}
+        </p>
     </div>
 
-    <div class="d-flex gap-2">
-        <!-- Buscador -->
-        <form method="GET" class="d-flex">
+    <div class="d-flex gap-2 flex-wrap">
+        <form method="GET" class="d-flex flex-wrap gap-2 align-items-center">
+
+            <!-- CT-317 Búsqueda básica -->
             <div class="input-group">
-                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                <input type="text" name="q" class="form-control border-start-0 ps-0" 
-                       placeholder="Buscar material..." value="{{ request.GET.q }}">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" name="q" class="form-control border-start-0 ps-0"
+                       placeholder="Buscar material..." value="{{ query }}">
             </div>
+
+            <!-- CT-318 Filtro por tipo -->
+            <select name="tipo" class="form-select" style="min-width: 140px;">
+                <option value="">Todos los tipos</option>
+                {% for valor, etiqueta in tipos %}
+                    <option value="{{ valor }}" {% if tipo_seleccionado == valor %}selected{% endif %}>
+                        {{ etiqueta }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <!-- CT-318 Filtro stock mínimo -->
+            <input type="number" name="stock_min" class="form-control no-spin"
+                   placeholder="Stock mín." value="{{ stock_min }}"
+                   min="0" style="width: 110px;">
+
+            <!-- CT-318 Filtro stock máximo -->
+            <input type="number" name="stock_max" class="form-control no-spin"
+                   placeholder="Stock máx." value="{{ stock_max }}"
+                   min="0" style="width: 110px;">
+
+            <button type="submit" class="btn btn-outline-light rounded-pill px-3">
+                <i class="bi bi-funnel me-1"></i>Filtrar
+            </button>
+
+            {% if query or tipo_seleccionado or stock_min or stock_max %}
+            <a href="{% url 'inventario:materiales_lista' %}" class="btn btn-outline-danger rounded-pill px-3">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            {% endif %}
+
         </form>
 
-        <button type="button" class="btn btn-primary px-4 rounded-pill" onclick="prepararCrear()" data-bs-toggle="modal" data-bs-target="#modalMaterial">
+        <button type="button" class="btn btn-primary px-4 rounded-pill"
+                onclick="prepararCrear()" data-bs-toggle="modal" data-bs-target="#modalMaterial">
             <i class="bi bi-plus-lg me-2"></i> Nuevo Material
         </button>
     </div>
@@ -61,26 +99,81 @@
                             </button>
                             <form action="{% url 'inventario:eliminar_material' material.id %}" method="POST" class="d-inline">
                                 {% csrf_token %}
-                                <button type="submit" class="btn-action text-danger" title="Eliminar" onclick="return confirm('¿Estás seguro?')">
+                                <button type="submit" class="btn-action text-danger" title="Eliminar"
+                                        onclick="return confirm('¿Estás seguro?')">
                                     <i class="bi bi-trash3-fill"></i>
                                 </button>
                             </form>
                         </div>
                     </td>
                 </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="text-center py-5">
-                    <i class="bi bi-box-seam display-4 text-muted mb-3 d-block"></i>
-                    <p class="text-muted">No hay materiales registrados en el inventario</p>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <i class="bi bi-box-seam display-4 text-muted mb-3 d-block"></i>
+                        <p class="text-muted">No hay materiales registrados en el inventario</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- CT-319 Paginación -->
+    {% if page_obj.has_other_pages %}
+    <div class="d-flex justify-content-between align-items-center mt-3 px-1">
+        <small class="text-muted">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </small>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if tipo_seleccionado %}&tipo={{ tipo_seleccionado }}{% endif %}{% if stock_min %}&stock_min={{ stock_min }}{% endif %}{% if stock_max %}&stock_max={{ stock_max }}{% endif %}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if tipo_seleccionado %}&tipo={{ tipo_seleccionado }}{% endif %}{% if stock_min %}&stock_min={{ stock_min }}{% endif %}{% if stock_max %}&stock_max={{ stock_max }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if tipo_seleccionado %}&tipo={{ tipo_seleccionado }}{% endif %}{% if stock_min %}&stock_min={{ stock_min }}{% endif %}{% if stock_max %}&stock_max={{ stock_max }}{% endif %}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                </li>
+                {% endif %}
+
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+
 </div>
 
-<!-- VENTANA EMERGENTE (MODAL) ÚNICA PARA CREAR Y EDITAR -->
+<!-- MODAL -->
 <div class="modal fade" id="modalMaterial" tabindex="-1" aria-labelledby="modalMaterialLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="background-color: var(--color-secondary); border-radius: 24px;">
@@ -100,7 +193,7 @@
                 {% csrf_token %}
                 <div class="modal-body p-4">
                     <input type="hidden" id="material_id" name="id">
-                    
+
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Nombre del Material</label>
                         <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Ej: Cemento Gris" required>
@@ -128,12 +221,16 @@
                             <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Precio Unitario</label>
                             <div class="input-group">
                                 <span class="input-group-text border-0 text-white-50" style="background: rgba(255,255,255,0.05);">$</span>
-                                <input type="number" id="precio" name="precio" class="form-control no-spin" placeholder="0.00" min="0" step="0.01" required onkeypress="return event.charCode >= 48 && event.charCode <= 57 || event.charCode == 46" oninput="validarPositivo(this)">
+                                <input type="number" id="precio" name="precio" class="form-control no-spin" placeholder="0.00" min="0" step="0.01" required
+                                       onkeypress="return event.charCode >= 48 && event.charCode <= 57 || event.charCode == 46"
+                                       oninput="validarPositivo(this)">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Stock Inicial</label>
-                            <input type="number" id="stock" name="stock" class="form-control no-spin" placeholder="0" min="0" required onkeypress="return event.charCode >= 48 && event.charCode <= 57" oninput="validarPositivo(this)">
+                            <input type="number" id="stock" name="stock" class="form-control no-spin" placeholder="0" min="0" required
+                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                                   oninput="validarPositivo(this)">
                         </div>
                     </div>
                 </div>
@@ -147,23 +244,17 @@
 </div>
 
 <style>
-    /* Estilos Premium para el Modal de Materiales */
     #modalMaterial .modal-content {
-        background-color: #1a1a1a !important; 
+        background-color: #1a1a1a !important;
         border: 1px solid rgba(255, 255, 255, 0.15) !important;
         border-radius: 28px !important;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
     }
-
     #modalMaterial .modal-header {
         border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
         padding: 1.5rem 2rem !important;
     }
-    
-    #modalMaterial .modal-body {
-        padding: 2rem !important;
-    }
-
+    #modalMaterial .modal-body { padding: 2rem !important; }
     #modalMaterial .form-label {
         font-family: 'Inter', sans-serif;
         font-weight: 700;
@@ -174,8 +265,7 @@
         display: block;
         text-transform: uppercase;
     }
-
-    #modalMaterial .form-control, 
+    #modalMaterial .form-control,
     #modalMaterial .form-select {
         background-color: #333333 !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -185,15 +275,13 @@
         font-size: 0.95rem;
         transition: all 0.3s ease;
     }
-
-    #modalMaterial .form-control:focus, 
+    #modalMaterial .form-control:focus,
     #modalMaterial .form-select:focus {
         background-color: #444444 !important;
         border-color: var(--color-accent) !important;
         box-shadow: 0 0 0 4px rgba(243, 156, 18, 0.25) !important;
         color: #ffffff !important;
     }
-
     #modalMaterial .btn-gold {
         background: var(--color-accent) !important;
         color: #000 !important;
@@ -204,37 +292,24 @@
         transition: all 0.3s ease;
         box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3) !important;
     }
-
     #modalMaterial .btn-gold:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(243, 156, 18, 0.5) !important;
     }
-
-    /* Ocultar flechas en inputs numéricos */
     .no-spin::-webkit-inner-spin-button,
-    .no-spin::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    .no-spin {
-        -moz-appearance: textfield;
-    }
+    .no-spin::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .no-spin { -moz-appearance: textfield; }
 </style>
 
 <script>
-    // Función para prevenir números negativos en tiempo real
     function validarPositivo(input) {
-        if (input.value < 0) {
-            input.value = Math.abs(input.value);
-        }
+        if (input.value < 0) input.value = Math.abs(input.value);
     }
-    
+
     let modalInstance;
     document.addEventListener('DOMContentLoaded', function() {
         const modalElement = document.getElementById('modalMaterial');
-        if (modalElement) {
-            modalInstance = new bootstrap.Modal(modalElement);
-        }
+        if (modalElement) modalInstance = new bootstrap.Modal(modalElement);
     });
 
     const formMaterial = document.getElementById('formMaterial');
@@ -249,12 +324,10 @@
     function abrirModalEditar(id) {
         document.getElementById('modalMaterialLabel').innerText = 'Editar Material';
         document.getElementById('btnGuardar').innerText = 'Actualizar Material';
-        
+
         const url = "{% url 'inventario:editar_material' 0 %}".replace('0', id);
-        
-        fetch(url, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
+
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(response => response.json())
         .then(data => {
             document.getElementById('material_id').value = data.id;
@@ -271,13 +344,15 @@
     formMaterial.onsubmit = function(e) {
         e.preventDefault();
         const id = document.getElementById('material_id').value;
-        const url = id ? "{% url 'inventario:editar_material' 0 %}".replace('0', id) : "{% url 'inventario:crear_material' %}";
+        const url = id
+            ? "{% url 'inventario:editar_material' 0 %}".replace('0', id)
+            : "{% url 'inventario:crear_material' %}";
         const formData = new FormData(formMaterial);
 
         fetch(url, {
             method: 'POST',
             body: formData,
-            headers: { 
+            headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             }
@@ -285,7 +360,7 @@
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                location.reload(); 
+                location.reload();
             } else {
                 alert('Error al guardar: ' + (data.message || 'Error desconocido'));
             }
