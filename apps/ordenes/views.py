@@ -2,29 +2,36 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db.models import Q
-from .models import Orden, Entrega
+from django.http import JsonResponse, HttpResponse
+from .models import Orden, Entrega, DetalleOrden
 from apps.usuarios.models import Usuario, Vehiculo, Material
 from historial.utils import registrar_actividad
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+
 
 @login_required
 def lista_pedidos_admin(request):
     pedidos = Orden.objects.all().order_by("-fecha")
-    
+
     cliente_query = request.GET.get('cliente')
     fecha_query = request.GET.get('fecha')
-    
+
     if cliente_query:
         pedidos = pedidos.filter(
             Q(cliente__nombres__icontains=cliente_query) |
             Q(cliente__apellidos__icontains=cliente_query)
         )
-    
+
     if fecha_query:
         pedidos = pedidos.filter(fecha__date=fecha_query)
-        
+
     return render(request, "ordenes/lista.html", {
         "pedidos": pedidos
     })
+
 
 @login_required
 def ver_pedido_admin(request, id):
@@ -32,6 +39,7 @@ def ver_pedido_admin(request, id):
     return render(request, "ordenes/detalle.html", {
         "orden": orden
     })
+
 
 @login_required
 def crear_entrega(request, orden_id):
@@ -72,28 +80,29 @@ def crear_entrega(request, orden_id):
         "vehiculos": vehiculos
     })
 
+
 @login_required
 def editar_orden(request, id):
     orden = get_object_or_404(Orden, id=id)
     if request.method == "POST":
         nuevo_estado = request.POST.get("estado")
-        
+
         if nuevo_estado == "en_ruta" and orden.estado != "en_ruta":
             orden.fecha_toma_entrega = timezone.now()
         elif nuevo_estado == "entregado" and orden.estado != "entregado":
             orden.fecha_entrega_real = timezone.now()
-            
+
         orden.estado = nuevo_estado
         orden.save()
         registrar_actividad(request, 'editar', 'pedidos', orden.id, f"Estado de pedido cambiado a: {nuevo_estado}")
         return redirect("ordenes:lista_pedidos_admin")
     return render(request, "ordenes/detalle.html", {"orden": orden})
 
+
 @login_required
 def descargar_factura(request, id):
     orden = get_object_or_404(Orden, id=id)
-    
-    # Solo el cliente dueño del pedido o un admin pueden descargarla
+
     if request.user.usuario.rol != 'admin' and orden.cliente != request.user.usuario:
         return HttpResponse("No autorizado", status=403)
 
@@ -104,7 +113,6 @@ def descargar_factura(request, id):
     elements = []
     styles = getSampleStyleSheet()
 
-    # Encabezado Factura
     elements.append(Paragraph("FACTURA DE VENTA - CONSTRU-TRANS", styles['Title']))
     elements.append(Spacer(1, 12))
     elements.append(Paragraph(f"Número de Pedido: {orden.id}", styles['Normal']))
@@ -112,12 +120,25 @@ def descargar_factura(request, id):
     elements.append(Paragraph(f"Cliente: {orden.cliente.nombres} {orden.cliente.apellidos}", styles['Normal']))
     elements.append(Spacer(1, 24))
 
-    # Detalle de Materiales (Si la orden tiene materiales asociados, aquí los listaríamos)
-    # Por ahora mostramos el total
-    data = [
-        ['Descripción', 'Total'],
-        ['Servicio de Transporte y Materiales', f"${orden.precio}"]
-    ]
+    # CT-275 CT-330 — Mostrar total actualizado en la factura
+    data = [['Material', 'Cantidad', 'Precio Unit.', 'Subtotal']]
+    for detalle in orden.detalles.all():
+        data.append([
+            detalle.material.nombre,
+            str(detalle.cantidad),
+            f"${detalle.precio_unitario}",
+            f"${detalle.subtotal()}"
+        ])
+
+    if not orden.detalles.exists() and orden.material:
+        data.append([
+            orden.material.nombre,
+            str(orden.cantidad),
+            f"${orden.material.precio}",
+            f"${orden.precio}"
+        ])
+
+    data.append(['', '', 'TOTAL', f"${orden.precio}"])
 
     t = Table(data)
     t.setStyle(TableStyle([
@@ -125,18 +146,20 @@ def descargar_factura(request, id):
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
         ('GRID', (0, 0), (-1, -1), 1, colors.black)
     ]))
     elements.append(t)
-    
+
     elements.append(Spacer(1, 48))
     elements.append(Paragraph("Gracias por su compra.", styles['Italic']))
 
     doc.build(elements)
-    
+
     registrar_actividad(request, 'otro', 'pedidos', orden.id, f"Factura descargada por {request.user.username}")
-    
+
     return response
+
 
 @login_required
 def eliminar_orden(request, id):
@@ -144,3 +167,22 @@ def eliminar_orden(request, id):
     registrar_actividad(request, 'eliminar', 'pedidos', id, f"Pedido eliminado de cliente: {orden.cliente}")
     orden.delete()
     return redirect("ordenes:lista_pedidos_admin")
+
+
+# CT-328 — Endpoint para obtener total actualizado via AJAX
+@login_required
+def api_total_orden(request, id):
+    orden = get_object_or_404(Orden, id=id)
+    detalles = []
+    for detalle in orden.detalles.all():
+        detalles.append({
+            'material': detalle.material.nombre,
+            'cantidad': detalle.cantidad,
+            'precio_unitario': str(detalle.precio_unitario),
+            'subtotal': str(detalle.subtotal()),
+        })
+    return JsonResponse({
+        'orden_id': orden.id,
+        'detalles': detalles,
+        'total': str(orden.precio),
+    })

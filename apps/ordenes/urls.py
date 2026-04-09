@@ -10,4 +10,6 @@ urlpatterns = [
     path('editar/<int:id>/', views.editar_orden, name="editar_orden"),
     path('eliminar/<int:id>/', views.eliminar_orden, name='eliminar_orden'),
     path('factura/<int:id>/', views.descargar_factura, name='descargar_factura'),
+    # CT-328 — Endpoint total
+    path('api/total/<int:id>/', views.api_total_orden, name='api_total_orden'),
 ]

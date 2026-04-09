@@ -26,7 +26,7 @@
             </div>
 
             <div class="row g-5">
-                <!-- Columna Izquierda: Información -->
+                <!-- Columna Izquierda -->
                 <div class="col-md-6">
                     <div class="mb-5">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Datos del Cliente</h6>
@@ -69,7 +69,7 @@
                     </div>
                 </div>
 
-                <!-- Columna Derecha: Materiales y Pago -->
+                <!-- Columna Derecha -->
                 <div class="col-md-6">
                     <div class="mb-5">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Resumen de Materiales</h6>
@@ -79,6 +79,8 @@
                                     <tr class="text-muted small border-bottom border-secondary">
                                         <th class="ps-0">Material</th>
                                         <th class="text-center">Cant.</th>
+                                        <th class="text-end">P. Unit.</th>
+                                        <!-- CT-255 CT-273 — Columna subtotal -->
                                         <th class="text-end pe-0">Subtotal</th>
                                     </tr>
                                 </thead>
@@ -87,33 +89,38 @@
                                     <tr>
                                         <td class="ps-0 text-white fw-600">{{ detalle.material.nombre }}</td>
                                         <td class="text-center text-muted">{{ detalle.cantidad }}</td>
-                                        <td class="text-end pe-0 text-accent fw-700">$ {{ detalle.precio_unitario }}</td>
+                                        <td class="text-end text-muted">$ {{ detalle.precio_unitario }}</td>
+                                        <!-- CT-273 — subtotal = cantidad × precio_unitario -->
+                                        <td class="text-end pe-0 text-accent fw-700">$ {{ detalle.subtotal }}</td>
                                     </tr>
                                     {% empty %}
                                         {% if orden.material %}
                                         <tr>
-                                            <td class="ps-0 text-white fw-600">{{ orden.material.nombre }} (Unificado)</td>
+                                            <td class="ps-0 text-white fw-600">{{ orden.material.nombre }}</td>
                                             <td class="text-center text-muted">{{ orden.cantidad }}</td>
-                                            <td class="text-end pe-0 text-accent fw-700">$ {{ orden.material.precio }}</td>
+                                            <td class="text-end text-muted">$ {{ orden.material.precio }}</td>
+                                            <td class="text-end pe-0 text-accent fw-700">$ {{ orden.precio }}</td>
                                         </tr>
                                         {% else %}
                                         <tr>
-                                            <td colspan="3" class="text-center py-4 text-muted">No hay detalles registrados.</td>
+                                            <td colspan="4" class="text-center py-4 text-muted">No hay detalles registrados.</td>
                                         </tr>
                                         {% endif %}
                                     {% endfor %}
                                 </tbody>
                                 <tfoot>
-                                    <tr>
-                                        <td colspan="2" class="ps-0 pt-4 text-muted fw-700">Total de la Orden</td>
-                                        <td class="pe-0 pt-4 text-end"><h3 class="fw-900 text-white mb-0">$ {{ orden.precio }}</h3></td>
+                                    <tr class="border-top border-secondary">
+                                        <td colspan="3" class="ps-0 pt-4 text-muted fw-700">Total de la Orden</td>
+                                        <!-- CT-272 CT-275 CT-330 — Total actualizado -->
+                                        <td class="pe-0 pt-4 text-end">
+                                            <h3 class="fw-900 text-white mb-0">$ {{ orden.precio }}</h3>
+                                        </td>
                                     </tr>
                                 </tfoot>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Sección para Admin y Cliente (Modificar/Cancelar) -->
                     {% if user.usuario.rol == "admin" or user.usuario.rol == "cliente" and orden.estado != "entregado" and orden.estado != "cancelado" %}
                     <div class="p-4 rounded-4 mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Gestión del Pedido</h6>
@@ -142,7 +149,6 @@
                     </div>
                     {% endif %}
 
-                    <!-- Sección EXCLUSIVA para el Administrador (Cambio de Estado Manual) -->
                     {% if user.usuario.rol == "admin" %}
                     <div class="p-4 rounded-4 mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Control Maestro (Solo Admin)</h6>
@@ -164,7 +170,6 @@
                     </div>
                     {% endif %}
 
-                    <!-- Sección EXCLUSIVA para el Conductor -->
                     {% if user.usuario.rol == "conductor" and orden.conductor == user.usuario and orden.estado != "entregado" and orden.estado != "cancelado" %}
                     <div class="p-4 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Panel del Conductor</h6>

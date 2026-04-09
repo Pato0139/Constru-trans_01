@@ -1,6 +1,6 @@
 from django.db import models
 from apps.usuarios.models import Usuario, Vehiculo, Material
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator
 
@@ -64,6 +64,21 @@ class Orden(models.Model):
     def __str__(self):
         return f"Orden {self.id} - {self.estado}"
 
+    # CT-272 CT-323 — Lógica de suma total
+    def calcular_total(self):
+        """Calcula el total sumando subtotales de todos los detalles."""
+        total = sum(
+            detalle.subtotal() for detalle in self.detalles.all()
+        )
+        # CT-276 — El total no puede ser negativo
+        return max(total, 0)
+
+    # CT-324 CT-325 CT-326 CT-327 — Actualiza y guarda el total
+    def actualizar_total(self):
+        """Recalcula y guarda el total en la base de datos."""
+        self.precio = self.calcular_total()
+        self.save(update_fields=['precio'])
+
 
 class DetalleOrden(models.Model):
     orden = models.ForeignKey(
@@ -84,6 +99,11 @@ class DetalleOrden(models.Model):
 
     def __str__(self):
         return f"{self.cantidad} x {self.material.nombre} (Orden {self.orden.id})"
+
+    # CT-273 — Multiplicar cantidad x precio
+    def subtotal(self):
+        """Calcula el subtotal de este detalle: cantidad × precio_unitario."""
+        return self.cantidad * self.precio_unitario
 
 
 class Entrega(models.Model):
@@ -127,3 +147,15 @@ def actualizar_estado_orden(sender, instance, created, **kwargs):
         pedido = instance.pedido
         pedido.estado = Orden.ENTREGADO
         pedido.save()
+
+
+# CT-324 — Actualizar total al agregar detalle
+@receiver(post_save, sender=DetalleOrden)
+def actualizar_total_al_guardar(sender, instance, **kwargs):
+    instance.orden.actualizar_total()
+
+
+# CT-325 — Actualizar total al eliminar detalle
+@receiver(post_delete, sender=DetalleOrden)
+def actualizar_total_al_eliminar(sender, instance, **kwargs):
+    instance.orden.actualizar_total()
