@@ -50,7 +50,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted">Teléfono</label>
-                                <input type="text" name="telefono" value="{{ usuario.telefono }}" class="form-control bg-secondary border-0 text-white rounded-3 py-2">
+                                <input type="text" name="telefono" value="{{ usuario.telefono }}" class="form-control bg-secondary border-0 text-white rounded-3 py-2" oninput="this.value = this.value.replace(/[^0-9]/g, '');" maxlength="15">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted">Tipo Documento</label>
@@ -62,7 +62,7 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-muted">Número de Identificación</label>
-                                <input type="text" name="documento" value="{{ usuario.documento }}" class="form-control bg-secondary border-0 text-white rounded-3 py-2" required>
+                                <input type="text" name="documento" value="{{ usuario.documento }}" class="form-control bg-secondary border-0 text-white rounded-3 py-2" required oninput="this.value = this.value.replace(/[^0-9]/g, '');" maxlength="20">
                             </div>
                         </div>
 

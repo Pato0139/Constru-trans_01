@@ -12,10 +12,10 @@
             <button class="btn btn-outline-light dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Cambiar Estilo">
                 <i class="bi bi-palette-fill"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-dark">
-                <li><a class="dropdown-item" href="#" onclick="setTheme('light')"><i class="bi bi-sun-fill me-2"></i>Modo Claro</a></li>
-                <li><a class="dropdown-item" href="#" onclick="setTheme('dark')"><i class="bi bi-moon-stars-fill me-2"></i>Modo Oscuro</a></li>
-                <li><a class="dropdown-item" href="#" onclick="setTheme('accessibility')"><i class="bi bi-eye-fill me-2"></i>Accesibilidad</a></li>
+            <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-secondary" id="theme-menu">
+                <li><a class="dropdown-item d-flex align-items-center justify-content-between" href="#" onclick="setTheme('light')"><span><i class="bi bi-sun-fill me-2 text-warning"></i>Modo Claro</span> <i class="bi bi-check-lg d-none active-check" id="check-light"></i></a></li>
+                <li><a class="dropdown-item d-flex align-items-center justify-content-between" href="#" onclick="setTheme('dark')"><span><i class="bi bi-moon-stars-fill me-2 text-info"></i>Modo Oscuro</span> <i class="bi bi-check-lg d-none active-check" id="check-dark"></i></a></li>
+                <li><a class="dropdown-item d-flex align-items-center justify-content-between" href="#" onclick="setTheme('accessibility')"><span><i class="bi bi-eye-fill me-2 text-success"></i>Accesibilidad</span> <i class="bi bi-check-lg d-none active-check" id="check-accessibility"></i></a></li>
             </ul>
         </div>
 
@@ -40,7 +40,8 @@
 
     <style>
         .navbar-custom {
-            border: 1px solid rgba(255,255,255,0.03);
+            border: 1px solid var(--color-border);
+            background-color: var(--color-surface) !important;
         }
         .badge-role {
             font-size: 0.65rem;
@@ -60,5 +61,8 @@
         }
         .fw-800 { font-weight: 800; }
         .fw-700 { font-weight: 700; }
+        .active-check {
+            color: var(--color-success);
+        }
     </style>
 </header>

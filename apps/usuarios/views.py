@@ -282,6 +282,14 @@ def editar_perfil(request):
         documento = request.POST.get("documento")
         email = request.POST.get("email")
         
+        # Validación de solo números
+        if telefono and not telefono.isdigit():
+            messages.error(request, "El teléfono debe contener solo números.")
+            return render(request, "usuarios/editar_perfil.html", {"usuario": usuario})
+        if documento and not documento.isdigit():
+            messages.error(request, "El número de identificación debe contener solo números.")
+            return render(request, "usuarios/editar_perfil.html", {"usuario": usuario})
+            
         # Manejo de la imagen de perfil
         if 'foto_perfil' in request.FILES:
             usuario.foto_perfil = request.FILES['foto_perfil']
@@ -331,6 +339,21 @@ def crear_usuario(request):
 
         if not all([nombres, apellidos, email, password, telefono, rol, tipo_doc, documento]):
             error_msg = "Todos los campos son obligatorios."
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"status": "error", "message": error_msg}, status=400)
+            messages.error(request, error_msg)
+            return render(request, "usuarios/form.html", {"form_data": request.POST, "action": "crear"})
+
+        # Validación de solo números
+        if telefono and not telefono.isdigit():
+            error_msg = "El teléfono debe contener solo números."
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"status": "error", "message": error_msg}, status=400)
+            messages.error(request, error_msg)
+            return render(request, "usuarios/form.html", {"form_data": request.POST, "action": "crear"})
+        
+        if documento and not documento.isdigit():
+            error_msg = "El número de documento debe contener solo números."
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
@@ -439,6 +462,15 @@ def editar_usuario(request, id):
 
         if not all([nombres, apellidos, telefono]):
             messages.error(request, "Los campos nombres, apellidos y teléfono son obligatorios.")
+            return render(request, "usuarios/form.html", {
+                "usuario": usuario,
+                "form_data": request.POST,
+                "action": "editar"
+            })
+
+        # Validación de solo números
+        if telefono and not telefono.isdigit():
+            messages.error(request, "El teléfono debe contener solo números.")
             return render(request, "usuarios/form.html", {
                 "usuario": usuario,
                 "form_data": request.POST,

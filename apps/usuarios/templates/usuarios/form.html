@@ -79,7 +79,7 @@
                         <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Teléfono de Contacto</label>
                         <div class="input-group">
                             <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-telephone"></i></span>
-                            <input type="text" name="telefono" class="form-control" placeholder="3001234567" value="{% if form_data %}{{ form_data.telefono|default:usuario.telefono|default:'' }}{% else %}{{ usuario.telefono|default:'' }}{% endif %}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
+                            <input type="text" name="telefono" class="form-control" placeholder="3001234567" value="{% if form_data %}{{ form_data.telefono|default:usuario.telefono|default:'' }}{% else %}{{ usuario.telefono|default:'' }}{% endif %}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;" oninput="this.value = this.value.replace(/[^0-9]/g, '');" maxlength="15">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -118,7 +118,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Número de Documento</label>
-                        <input type="text" name="documento" class="form-control" placeholder="12345678" value="{% if form_data %}{{ form_data.documento|default:'' }}{% endif %}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;">
+                        <input type="text" name="documento" class="form-control" placeholder="12345678" value="{% if form_data %}{{ form_data.documento|default:'' }}{% endif %}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important;" oninput="this.value = this.value.replace(/[^0-9]/g, '');" maxlength="20">
                     </div>
                 </div>
                 {% endif %}

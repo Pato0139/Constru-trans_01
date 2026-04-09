@@ -29,6 +29,37 @@ def lista_pedidos_admin(request):
 @login_required
 def ver_pedido_admin(request, id):
     orden = get_object_or_404(Orden, id=id)
+    
+    if request.method == "POST":
+        usuario = request.user.usuario
+        accion = request.POST.get("accion")
+        
+        # Lógica para el conductor
+        if usuario.rol == "conductor" and orden.conductor == usuario:
+            if accion == "confirmar":
+                orden.estado = Orden.ENTREGADO
+                orden.fecha_entrega_real = timezone.now()
+                orden.save()
+                registrar_actividad(request, 'editar', 'pedidos', orden.id, "Conductor confirmó la entrega")
+                messages.success(request, "Entrega confirmada exitosamente.")
+            elif accion == "cancelar":
+                orden.estado = Orden.PENDIENTE
+                orden.conductor = None
+                orden.save()
+                registrar_actividad(request, 'editar', 'pedidos', orden.id, "Conductor canceló la entrega")
+                messages.warning(request, "Entrega cancelada. El pedido vuelve a estar pendiente.")
+            return redirect("ordenes:ver_pedido_admin", id=orden.id)
+            
+        # Lógica para el cliente
+        elif usuario.rol == "cliente" and orden.cliente == usuario:
+            if accion == "confirmar_recepcion":
+                orden.confirmado_cliente = True
+                orden.fecha_confirmacion_cliente = timezone.now()
+                orden.save()
+                registrar_actividad(request, 'editar', 'pedidos', orden.id, "Cliente confirmó recepción del pedido")
+                messages.success(request, "Has confirmado que recibiste el pedido. ¡Gracias!")
+            return redirect("ordenes:ver_pedido_admin", id=orden.id)
+            
     return render(request, "ordenes/detalle.html", {
         "orden": orden
     })

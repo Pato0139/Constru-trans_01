@@ -16,11 +16,15 @@
                 </div>
                 <div class="text-end">
                     {% if orden.estado == "pendiente" %}
-                    <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                    <span class="badge-tipo badge-pendiente">Pendiente</span>
                     {% elif orden.estado == "en_ruta" %}
-                    <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">En ruta</span>
+                    <span class="badge-tipo badge-ruta">En ruta</span>
                     {% elif orden.estado == "entregado" %}
-                    <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Entregado</span>
+                        {% if orden.confirmado_cliente %}
+                        <span class="badge-tipo badge-entregado">Confirmado por Cliente</span>
+                        {% else %}
+                        <span class="badge-tipo badge-entregado">Entregado</span>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -77,9 +81,10 @@
                             <table class="table table-hover align-middle no-datatable">
                                 <thead>
                                     <tr class="text-muted small border-bottom border-secondary">
-                                        <th class="ps-0">Material</th>
-                                        <th class="text-center">Cant.</th>
-                                        <th class="text-end pe-0">Subtotal</th>
+                                        <th class="ps-0 text-accent fw-800">MATERIAL</th>
+                                        <th class="text-center text-accent fw-800">CANT.</th>
+                                        <th class="text-center text-accent fw-800">P. UNIT.</th>
+                                        <th class="text-end pe-0 text-accent fw-800">SUBTOTAL</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -87,26 +92,19 @@
                                     <tr>
                                         <td class="ps-0 text-white fw-600">{{ detalle.material.nombre }}</td>
                                         <td class="text-center text-muted">{{ detalle.cantidad }}</td>
-                                        <td class="text-end pe-0 text-accent fw-700">$ {{ detalle.precio_unitario }}</td>
+                                        <td class="text-center text-muted">$ {{ detalle.precio_unitario }}</td>
+                                        <td class="text-end pe-0 text-accent fw-700">$ {{ detalle.subtotal|default:detalle.precio_unitario }}</td>
                                     </tr>
                                     {% empty %}
-                                        {% if orden.material %}
                                         <tr>
-                                            <td class="ps-0 text-white fw-600">{{ orden.material.nombre }} (Unificado)</td>
-                                            <td class="text-center text-muted">{{ orden.cantidad }}</td>
-                                            <td class="text-end pe-0 text-accent fw-700">$ {{ orden.material.precio }}</td>
+                                            <td colspan="4" class="text-center py-5 text-muted italic">No hay detalles registrados.</td>
                                         </tr>
-                                        {% else %}
-                                        <tr>
-                                            <td colspan="3" class="text-center py-4 text-muted">No hay detalles registrados.</td>
-                                        </tr>
-                                        {% endif %}
                                     {% endfor %}
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td colspan="2" class="ps-0 pt-4 text-muted fw-700">Total de la Orden</td>
-                                        <td class="pe-0 pt-4 text-end"><h3 class="fw-900 text-white mb-0">$ {{ orden.precio }}</h3></td>
+                                        <td colspan="3" class="ps-0 pt-4 text-muted italic text-end pe-4" style="font-size: 0.9rem;">Total de la Orden</td>
+                                        <td class="pe-0 pt-4 text-end"><h2 class="fw-900 text-white mb-0">$ {{ orden.precio }}</h2></td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -138,6 +136,28 @@
                                     <i class="bi bi-x-circle me-2"></i> Cancelar Pedido
                                 </a>
                             {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Sección EXCLUSIVA para el Cliente (Confirmar Recepción) -->
+                    {% if user.usuario.rol == "cliente" and orden.cliente == user.usuario and orden.estado == "entregado" and not orden.confirmado_cliente %}
+                    <div class="p-4 rounded-4 mb-4" style="background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.1);">
+                        <h6 class="fw-800 text-success text-uppercase small mb-3" style="letter-spacing: 1px;">Confirmación de Recepción</h6>
+                        <p class="text-muted small mb-4">El pedido ha sido entregado por el conductor. Por favor, confirma si lo has recibido correctamente.</p>
+                        <form method="POST" class="d-grid">
+                            {% csrf_token %}
+                            <button type="submit" name="accion" value="confirmar_recepcion" class="btn btn-success rounded-pill py-3 fw-800 d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                                <i class="bi bi-check-all fs-4"></i> ¡Sí, ya lo recibí!
+                            </button>
+                        </form>
+                    </div>
+                    {% elif orden.confirmado_cliente %}
+                    <div class="p-4 rounded-4 mb-4" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2);">
+                        <div class="text-center">
+                            <i class="bi bi-patch-check-fill text-success fs-1 mb-2"></i>
+                            <h6 class="fw-800 text-white text-uppercase small mb-1" style="letter-spacing: 1px;">Pedido Confirmado</h6>
+                            <p class="text-muted small mb-0">Confirmaste la recepción el {{ orden.fecha_confirmacion_cliente|date:"d M, Y - H:i" }}</p>
                         </div>
                     </div>
                     {% endif %}

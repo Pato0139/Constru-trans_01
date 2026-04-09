@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 
 <style>
-    :root {
-        /* Default: Dark Mode (Neutro, buen contraste) */
+    /* Default: Dark Mode (Neutro, buen contraste) */
+    :root, [data-theme="dark"] {
         --color-bg: #0f172a;
         --color-surface: #1e293b;
         --color-primary: #3b82f6;
@@ -28,25 +28,31 @@
         --color-warning: #f59e0b;
         --color-danger: #ef4444;
         --color-info: #0ea5e9;
+        --color-table-header: rgba(255, 255, 255, 0.05);
     }
 
     [data-theme="light"] {
         --color-bg: #f8fafc;
         --color-surface: #ffffff;
         --color-primary: #2563eb;
-        --color-secondary: #e2e8f0;
+        --color-secondary: #f1f5f9;
         --color-accent: #d97706;
         --color-text: #1e293b;
         --color-muted: #64748b;
         --color-border: rgba(0, 0, 0, 0.1);
+        --color-table-header: rgba(0, 0, 0, 0.03);
+        --color-success: #15803d;
+        --color-warning: #b45309;
+        --color-danger: #b91c1c;
+        --color-info: #0369a1;
     }
 
     [data-theme="accessibility"] {
-        /* High Contrast Mode */
+        /* High Contrast & Large Text Mode */
         --color-bg: #000000;
         --color-surface: #000000;
         --color-primary: #ffff00;
-        --color-secondary: #ffffff;
+        --color-secondary: #000000;
         --color-accent: #00ff00;
         --color-text: #ffffff;
         --color-muted: #ffffff;
@@ -54,6 +60,21 @@
         --color-success: #00ff00;
         --color-warning: #ffff00;
         --color-danger: #ff0000;
+        --color-table-header: #333333;
+        font-size: 1.2rem;
+    }
+
+    [data-theme="accessibility"] h1, 
+    [data-theme="accessibility"] h2, 
+    [data-theme="accessibility"] h3, 
+    [data-theme="accessibility"] h4 {
+        font-weight: 900 !important;
+        letter-spacing: 2px !important;
+    }
+
+    [data-theme="accessibility"] .btn {
+        border: 2px solid white !important;
+        font-weight: 900 !important;
     }
 
     body {
@@ -61,7 +82,7 @@
         color: var(--color-text);
         font-family: 'Plus Jakarta Sans', sans-serif;
         margin: 0;
-        transition: background-color 0.3s, color 0.3s;
+        transition: all 0.3s ease;
     }
 
     main {
@@ -91,14 +112,8 @@
 
     /* Estilo para las opciones del select */
     option {
-        background-color: #1e293b !important; /* Color de superficie oscuro */
-        color: #ffffff !important;
-    }
-
-    /* Para asegurar que en modo oscuro/accesibilidad sea negro total si se requiere */
-    [data-theme="dark"] option, [data-theme="accessibility"] option {
-        background-color: #000000 !important;
-        color: #ffffff !important;
+        background-color: var(--color-surface) !important;
+        color: var(--color-text) !important;
     }
 
     .text-white { color: var(--color-text) !important; }
@@ -114,13 +129,30 @@
 
 <script>
     // Theme logic
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        
+        // Update checkmarks if navbar exists
+        document.querySelectorAll('.active-check').forEach(check => {
+            check.classList.add('d-none');
+        });
+        const activeCheck = document.getElementById('check-' + theme);
+        if (activeCheck) activeCheck.classList.remove('d-none');
+    }
+
+    // Initialize theme
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
 
     function setTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
+        applyTheme(theme);
     }
+
+    // Apply on load to show checkmarks
+    document.addEventListener('DOMContentLoaded', () => {
+        applyTheme(savedTheme);
+    });
 </script>
 
 </head>

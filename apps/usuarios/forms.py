@@ -10,9 +10,31 @@ class RegistroForm(forms.Form):
     apellidos = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-custom', 'placeholder': 'Pérez'}))
     correo = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'input-custom', 'placeholder': 'ejemplo@correo.com'}))
     tipo_documento = forms.ChoiceField(choices=[('CC', 'C.C.'), ('CE', 'C.E.'), ('NIT', 'NIT')], widget=forms.Select(attrs={'class': 'input-custom form-select'}))
-    documento = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-custom', 'placeholder': '12345678'}))
-    telefono = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-custom', 'placeholder': '3001234567'}))
+    documento = forms.CharField(widget=forms.TextInput(attrs={
+        'class': 'input-custom', 
+        'placeholder': '12345678',
+        'oninput': "this.value = this.value.replace(/[^0-9]/g, '');",
+        'maxlength': '20'
+    }))
+    telefono = forms.CharField(widget=forms.TextInput(attrs={
+        'class': 'input-custom', 
+        'placeholder': '3001234567',
+        'oninput': "this.value = this.value.replace(/[^0-9]/g, '');",
+        'maxlength': '15'
+    }))
     contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'input-custom', 'placeholder': '••••••••'}))
     confirmar_contrasena = forms.CharField(label="Confirmar Contraseña", widget=forms.PasswordInput(attrs={'class': 'input-custom', 'placeholder': '••••••••'}))
     acepto_terminos = forms.BooleanField(label="Acepto los términos y condiciones", required=True, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     no_robot = forms.BooleanField(label="No soy un robot", required=True, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+
+    def clean_documento(self):
+        documento = self.cleaned_data.get('documento')
+        if not documento.isdigit():
+            raise forms.ValidationError("El número de identificación debe contener solo números.")
+        return documento
+
+    def clean_telefono(self):
+        telefono = self.cleaned_data.get('telefono')
+        if not telefono.isdigit():
+            raise forms.ValidationError("El número de teléfono debe contener solo números.")
+        return telefono

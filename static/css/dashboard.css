@@ -8,7 +8,7 @@
 }
 
 .table thead {
-    background-color: rgba(255,255,255,0.05) !important;
+    background-color: var(--color-table-header) !important;
 }
 
 .table th {
@@ -23,7 +23,7 @@
 }
 
 .table tbody tr {
-    background-color: var(--color-secondary) !important; /* Fondo gris oscuro */
+    background-color: var(--color-surface) !important;
 }
 
 .table td {
@@ -32,20 +32,20 @@
     color: var(--color-text) !important; 
     border-bottom: 1px solid var(--color-border) !important;
     font-size: 0.95rem !important;
-    background-color: var(--color-secondary) !important; /* Forzar fondo en la celda */
+    background-color: transparent !important;
 }
 
 .table-hover tbody tr:hover td {
-    background-color: rgba(255,255,255,0.05) !important;
-    color: #ffffff !important;
+    background-color: var(--color-table-header) !important;
+    color: var(--color-text) !important;
 }
 
 /* Forzar que el fondo del contenedor sea sólido */
 .table-container {
-    background: var(--color-dark) !important; /* Negro sólido */
+    background: var(--color-surface) !important;
     border-radius: 28px;
     overflow: hidden;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
     border: 1px solid var(--color-border);
     padding: 15px;
     margin-bottom: 30px;
@@ -57,7 +57,7 @@
     padding: 60px 20px !important;
     color: var(--color-muted) !important;
     font-style: italic;
-    background-color: var(--color-secondary) !important;
+    background-color: var(--color-surface) !important;
     border: none !important;
 }
 
@@ -71,27 +71,27 @@
 }
 
 .dataTables_wrapper .dataTables_filter input {
-    background-color: rgba(255,255,255,0.05) !important;
+    background-color: var(--color-bg) !important;
     border: 1px solid var(--color-border) !important;
-    color: white !important;
+    color: var(--color-text) !important;
     border-radius: 12px;
     padding: 8px 15px;
 }
 
 /* Formularios de Pedido y Creación */
 .form-control, .form-select {
-    background: var(--color-secondary) !important;
+    background: var(--color-bg) !important;
     border: 1.5px solid var(--color-border) !important;
     border-radius: 15px !important;
-    color: #ffffff !important;
+    color: var(--color-text) !important;
     padding: 14px 20px !important;
     font-weight: 500;
 }
 
 /* Forzar color de fondo de las opciones del select */
 .form-select option {
-    background-color: var(--color-secondary) !important;
-    color: #ffffff !important;
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
 }
 
 .form-control::placeholder {
@@ -100,19 +100,19 @@
 }
 
 .form-control:focus {
-    background: rgba(255,255,255,0.08) !important;
+    background: var(--color-bg) !important;
     border-color: var(--color-accent) !important;
     box-shadow: 0 0 0 4px rgba(243, 156, 18, 0.15) !important;
 }
 
 /* Labels de formularios en páginas de creación */
 .form-label, label {
-    color: #ffffff !important; /* Blanco puro */
+    color: var(--color-text) !important;
     font-weight: 700 !important;
     margin-bottom: 12px;
     font-size: 0.9rem;
     display: block;
-    background: transparent !important; /* Evitar fondos blancos */
+    background: transparent !important;
 }
 
 /* Secciones de formulario (como 1. SECCIÓN MATERIALES) */
@@ -134,7 +134,7 @@
 }
 
 .badge-tipo {
-    background-color: rgba(255, 255, 255, 0.05) !important;
+    background-color: var(--color-table-header) !important;
     color: var(--color-accent) !important;
     padding: 8px 16px !important;
     border-radius: 100px !important;
@@ -146,9 +146,33 @@
     display: inline-block !important;
 }
 
+.badge-pendiente {
+    background: rgba(245, 158, 11, 0.1) !important;
+    color: var(--color-warning) !important;
+    border: 1.5px solid var(--color-warning) !important;
+}
+
+.badge-ruta {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: var(--color-info) !important;
+    border: 1.5px solid var(--color-info) !important;
+}
+
+.badge-entregado {
+    background: rgba(34, 197, 94, 0.1) !important;
+    color: var(--color-success) !important;
+    border: 1.5px solid var(--color-success) !important;
+}
+
+.badge-cancelado {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: var(--color-danger) !important;
+    border: 1.5px solid var(--color-danger) !important;
+}
+
 .price-tag {
     font-weight: 800;
-    color: #22c55e;
+    color: var(--color-success);
     font-size: 1rem;
 }
 
@@ -189,9 +213,9 @@
 
 .dataTables_wrapper .dataTables_filter input, 
 .dataTables_wrapper .dataTables_length select {
-    background-color: rgba(255,255,255,0.05) !important;
+    background-color: var(--color-bg) !important;
     border: 1px solid var(--color-border) !important;
-    color: white !important;
+    color: var(--color-text) !important;
     border-radius: 8px;
     padding: 4px 10px;
 }

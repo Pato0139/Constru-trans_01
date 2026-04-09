@@ -1,7 +1,5 @@
 from django.db import models
 from apps.usuarios.models import Usuario, Vehiculo, Material
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.core.validators import MinValueValidator
 
 
@@ -57,6 +55,9 @@ class Orden(models.Model):
         default=0,
         validators=[MinValueValidator(0)]
     )
+
+    confirmado_cliente = models.BooleanField(default=False)
+    fecha_confirmacion_cliente = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-fecha"]
@@ -119,11 +120,3 @@ class Entrega(models.Model):
 
     def __str__(self):
         return f"Entrega de pedido {self.pedido.id}"
-
-
-@receiver(post_save, sender=Entrega)
-def actualizar_estado_orden(sender, instance, created, **kwargs):
-    if created:
-        pedido = instance.pedido
-        pedido.estado = Orden.ENTREGADO
-        pedido.save()

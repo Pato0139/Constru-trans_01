@@ -11,18 +11,52 @@
     </div>
 
     <div class="d-flex gap-2">
-        <!-- Buscador -->
-        <form method="GET" class="d-flex">
-            <div class="input-group">
-                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                <input type="text" name="q" class="form-control border-start-0 ps-0" 
-                       placeholder="Buscar material..." value="{{ request.GET.q }}">
-            </div>
-        </form>
-
         <button type="button" class="btn btn-primary px-4 rounded-pill" onclick="prepararCrear()" data-bs-toggle="modal" data-bs-target="#modalMaterial">
             <i class="bi bi-plus-lg me-2"></i> Nuevo Material
         </button>
+    </div>
+</div>
+
+<!-- Filtros de Materiales (Según Imágenes) -->
+<div class="row mb-5">
+    <div class="col-lg-6">
+        <form method="GET" class="filter-form">
+            <!-- Barra de Búsqueda -->
+            <div class="input-group mb-3 custom-input-group">
+                <span class="input-group-text bg-white border-0 px-3" style="border-radius: 12px 0 0 12px;">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" name="q" class="form-control filter-input-v2 border-0" 
+                       placeholder="Buscar material..." value="{{ request.GET.q|default:'' }}" 
+                       style="border-radius: 0 12px 12px 0;">
+            </div>
+            
+            <!-- Selector de Tipo -->
+            <div class="mb-3">
+                <select name="tipo" class="form-select filter-input-v2 border-0">
+                    <option value="">Todos los tipos</option>
+                    {% for t in tipos %}
+                    <option value="{{ t }}" {% if request.GET.tipo == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Stock y Botón Filtrar -->
+            <div class="d-flex gap-2 align-items-center">
+                <input type="number" name="stock_min" class="form-control filter-input-v2 border-0" 
+                       placeholder="Stock mín" value="{{ request.GET.stock_min|default:'' }}" style="max-width: 110px;">
+                <input type="number" name="stock_max" class="form-control filter-input-v2 border-0" 
+                       placeholder="Stock máx" value="{{ request.GET.stock_max|default:'' }}" style="max-width: 110px;">
+                
+                <button type="submit" class="btn btn-outline-white-rounded d-flex align-items-center gap-2">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+
+                {% if request.GET.q or request.GET.tipo or request.GET.stock_min or request.GET.stock_max %}
+                <a href="{% url 'inventario:materiales_lista' %}" class="btn btn-link text-muted text-decoration-none small">Limpiar</a>
+                {% endif %}
+            </div>
+        </form>
     </div>
 </div>
 
@@ -147,6 +181,50 @@
 </div>
 
 <style>
+    /* Estilos para los Filtros (V2 - Según Imágenes) */
+    .filter-input-v2 {
+        background-color: var(--color-surface) !important;
+        color: var(--color-text) !important;
+        border: 1px solid var(--color-border) !important;
+        border-radius: 12px !important;
+        padding: 10px 15px !important;
+        font-size: 0.9rem;
+    }
+    
+    .filter-input-v2::placeholder {
+        color: var(--color-muted) !important;
+        opacity: 0.7;
+    }
+
+    .custom-input-group {
+        border-radius: 12px !important;
+        overflow: hidden;
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border);
+    }
+
+    .btn-outline-white-rounded {
+        border: 1px solid var(--color-text) !important;
+        background: transparent !important;
+        color: var(--color-text) !important;
+        border-radius: 100px !important;
+        padding: 8px 25px !important;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-white-rounded:hover {
+        background: var(--color-text) !important;
+        color: var(--color-bg) !important;
+    }
+
+    /* Ocultar flechas en inputs numéricos de filtros */
+    input[type=number].filter-input-v2::-webkit-inner-spin-button, 
+    input[type=number].filter-input-v2::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+    }
+
     /* Estilos Premium para el Modal de Materiales */
     #modalMaterial .modal-content {
         background-color: #1a1a1a !important; 
