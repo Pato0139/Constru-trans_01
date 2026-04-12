@@ -12,11 +12,19 @@
             <div class="input-group">
                 <span class="input-group-text bg-dark border-secondary border-end-0 small shadow-sm"><i class="bi bi-search text-muted"></i></span>
                 <input type="text" name="q" class="form-control bg-dark text-white border-secondary border-start-0 ps-0 form-control-sm shadow-sm" 
-                       placeholder="Buscar usuario..." value="{{ query|default:'' }}">
+                       placeholder="Buscar por nombre, apellido, celular o documento..." value="{{ query|default:'' }}">
+                {% if query %}
+                    <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-outline-secondary border-secondary border-start-0 bg-dark d-flex align-items-center">
+                        <i class="bi bi-x-circle text-muted"></i>
+                    </a>
+                {% endif %}
+                <button type="submit" class="btn btn-outline-secondary border-secondary border-start-0 bg-dark text-muted">
+                    <i class="bi bi-arrow-right"></i>
+                </button>
             </div>
         </form>
 
-        <button type="button" class="btn btn-danger rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalUsuario">
+        <button type="button" class="btn btn-gold rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalUsuario">
             <i class="bi bi-person-plus-fill me-2"></i> Nuevo
         </button>
     </div>
@@ -112,6 +120,27 @@
 
 <style>
     /* Estilos Premium para el Modal de Usuarios */
+    .btn-gold {
+        background: var(--color-accent) !important;
+        color: #000 !important;
+        font-weight: 800 !important;
+        padding: 10px 24px !important;
+        border-radius: 50px !important;
+        border: none !important;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3) !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+
+    .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(243, 156, 18, 0.5) !important;
+        color: #000 !important;
+    }
+
     #modalUsuario .modal-content {
         background-color: #1a1a1a !important;
         border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -157,22 +186,6 @@
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         color: var(--color-accent) !important;
     }
-
-    #modalUsuario .btn-gold {
-        background: var(--color-accent) !important;
-        color: #000 !important;
-        font-weight: 800 !important;
-        padding: 14px 30px !important;
-        border-radius: 50px !important;
-        border: none !important;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3) !important;
-    }
-
-    #modalUsuario .btn-gold:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(243, 156, 18, 0.5) !important;
-    }
 </style>
 
 <script>
@@ -207,20 +220,20 @@
 </script>
 
 <!-- Tabs de Roles -->
-<ul class="nav nav-tabs border-0 mb-4 p-2 rounded-4" id="userTabs" role="tablist" style="background: rgba(255,255,255,0.03); border: 1px solid var(--color-border) !important;">
+<ul class="nav nav-pills border-0 mb-4 p-1 rounded-pill" id="userTabs" role="tablist" style="background: rgba(255,255,255,0.05); width: fit-content; border: 1px solid rgba(255,255,255,0.1) !important;">
     <li class="nav-item" role="presentation">
-        <button class="nav-link active border-0 rounded-pill px-4" id="clientes-tab" data-bs-toggle="tab" data-bs-target="#clientes" type="button" role="tab">
-            <i class="bi bi-people me-2"></i> Clientes <span class="badge ms-1" style="background: var(--color-accent); color: #000;">{{ clientes.count }}</span>
+        <button class="nav-link active rounded-pill px-4 py-2" id="clientes-tab" data-bs-toggle="tab" data-bs-target="#clientes" type="button" role="tab">
+            <i class="bi bi-people-fill me-2"></i> Clientes <span class="badge ms-2" style="background: rgba(255,255,255,0.2); color: #fff;">{{ clientes.count }}</span>
         </button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link border-0 rounded-pill px-4" id="conductores-tab" data-bs-toggle="tab" data-bs-target="#conductores" type="button" role="tab">
-            <i class="bi bi-truck me-2"></i> Conductores <span class="badge ms-1" style="background: var(--color-accent); color: #000;">{{ conductores.count }}</span>
+        <button class="nav-link rounded-pill px-4 py-2" id="conductores-tab" data-bs-toggle="tab" data-bs-target="#conductores" type="button" role="tab">
+            <i class="bi bi-truck me-2"></i> Conductores <span class="badge ms-2" style="background: rgba(255,255,255,0.2); color: #fff;">{{ conductores.count }}</span>
         </button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link border-0 rounded-pill px-4" id="admins-tab" data-bs-toggle="tab" data-bs-target="#admins" type="button" role="tab">
-            <i class="bi bi-shield-lock me-2"></i> Administradores <span class="badge ms-1" style="background: var(--color-accent); color: #000;">{{ admins.count }}</span>
+        <button class="nav-link rounded-pill px-4 py-2" id="admins-tab" data-bs-toggle="tab" data-bs-target="#admins" type="button" role="tab">
+            <i class="bi bi-shield-lock-fill me-2"></i> Admins <span class="badge ms-2" style="background: rgba(255,255,255,0.2); color: #fff;">{{ admins.count }}</span>
         </button>
     </li>
 </ul>
@@ -369,84 +382,69 @@
 </div>
 
 <style>
-    .nav-tabs .nav-link {
-        color: #6c757d;
-        font-weight: 500;
+    .nav-pills .nav-link {
+        color: rgba(255,255,255,0.6);
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+    }
+    .nav-pills .nav-link.active {
+        background: var(--color-accent) !important;
+        color: #000 !important;
+        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+    }
+    .nav-pills .nav-link:hover:not(.active) {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+    }
+    .table-container {
+        background: #1a1a1a;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.05);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .table thead th {
+        background: rgba(255,255,255,0.02);
+        color: var(--color-accent);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        font-weight: 700;
+        padding: 1.2rem 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        color: rgba(255,255,255,0.8);
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .table-hover tbody tr:hover {
+        background: rgba(255,255,255,0.02);
+    }
+    .btn-action {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.05);
+        color: #fff;
         transition: all 0.2s;
+        text-decoration: none;
     }
-    .nav-tabs .nav-link.active {
-        background-color: var(--color-primary) !important;
-        color: white !important;
-        box-shadow: 0 4px 10px rgba(0, 86, 179, 0.2);
+    .btn-action:hover {
+        background: var(--color-accent);
+        color: #000;
+        transform: translateY(-2px);
     }
-    .nav-tabs .nav-link:hover:not(.active) {
-        background-color: #e9ecef;
+    .btn-action.text-danger:hover {
+        background: #ef4444;
+        color: #fff;
     }
 </style>
-
-<!-- MODAL NUEVO USUARIO -->
-<div class="modal fade" id="modalUsuario" tabindex="-1" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="modalUsuarioLabel">Registrar Nuevo Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{% url 'usuarios:crear_usuario' %}" method="POST">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Nombre Completo</label>
-                        <input type="text" name="nombre" class="form-control rounded-pill" placeholder="Ej: Juan Pérez" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Correo Electrónico (Username)</label>
-                        <input type="email" name="email" class="form-control rounded-pill" placeholder="correo@ejemplo.com" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Contraseña</label>
-                        <input type="password" name="password" class="form-control rounded-pill" placeholder="Contraseña segura" required>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Teléfono</label>
-                            <input type="text" name="telefono" class="form-control rounded-pill" placeholder="3001234567" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Rol</label>
-                            <select name="rol" class="form-select rounded-pill" required>
-                                <option value="cliente">Cliente</option>
-                                <option value="conductor">Conductor</option>
-                                <option value="admin">Administrador</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Tipo Documento</label>
-                            <select name="tipo_doc" class="form-select rounded-pill" required>
-                                <option value="CC">Cédula Ciudadanía</option>
-                                <option value="CE">Cédula Extranjería</option>
-                                <option value="NIT">NIT</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Número Documento</label>
-                            <input type="text" name="documento" class="form-control rounded-pill" placeholder="12345678" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">Registrar Usuario</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 {% endblock %}

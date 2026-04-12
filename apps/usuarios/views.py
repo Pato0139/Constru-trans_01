@@ -381,8 +381,10 @@ def lista_usuarios(request):
     if query:
         usuarios_list = usuarios_list.filter(
             Q(nombres__icontains=query) | 
+            Q(apellidos__icontains=query) |
             Q(user__email__icontains=query) |
-            Q(documento__icontains=query)
+            Q(documento__icontains=query) |
+            Q(telefono__icontains=query)
         )
     
     admins = usuarios_list.filter(rol='admin')
