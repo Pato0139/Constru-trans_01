@@ -1,0 +1,111 @@
+/* Default: Dark Mode (Neutro, buen contraste) */
+:root, [data-theme="dark"] {
+    --color-bg: #0f172a;
+    --color-surface: #1e293b;
+    --color-primary: #3b82f6;
+    --color-secondary: #334155;
+    --color-accent: #f59e0b;
+    --color-text: #f8fafc;
+    --color-muted: #94a3b8;
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-danger: #ef4444;
+    --color-info: #0ea5e9;
+    --color-table-header: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] {
+    --color-bg: #f8fafc;
+    --color-surface: #ffffff;
+    --color-primary: #2563eb;
+    --color-secondary: #f1f5f9;
+    --color-accent: #d97706;
+    --color-text: #1e293b;
+    --color-muted: #64748b;
+    --color-border: rgba(0, 0, 0, 0.1);
+    --color-table-header: rgba(0, 0, 0, 0.03);
+    --color-success: #15803d;
+    --color-warning: #b45309;
+    --color-danger: #b91c1c;
+    --color-info: #0369a1;
+}
+
+[data-theme="accessibility"] {
+    /* High Contrast & Large Text Mode */
+    --color-bg: #000000;
+    --color-surface: #000000;
+    --color-primary: #ffff00;
+    --color-secondary: #000000;
+    --color-accent: #00ff00;
+    --color-text: #ffffff;
+    --color-muted: #ffffff;
+    --color-border: #ffffff;
+    --color-success: #00ff00;
+    --color-warning: #ffff00;
+    --color-danger: #ff0000;
+    --color-table-header: #333333;
+    font-size: 1.2rem;
+}
+
+[data-theme="accessibility"] h1, 
+[data-theme="accessibility"] h2, 
+[data-theme="accessibility"] h3, 
+[data-theme="accessibility"] h4 {
+    font-weight: 900 !important;
+    letter-spacing: 2px !important;
+}
+
+[data-theme="accessibility"] .btn {
+    border: 2px solid white !important;
+    font-weight: 900 !important;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0;
+    transition: all 0.3s ease;
+}
+
+main {
+    background-color: var(--color-bg) !important;
+    min-height: 100vh;
+}
+
+.card, .navbar-custom, .sidebar-custom, .modal-content {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
+}
+
+/* Estilos para inputs, select y textarea */
+input, select, textarea, .form-control, .form-select {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Estilo para las opciones del select */
+option {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+}
+
+.text-white { color: var(--color-text) !important; }
+.text-muted { color: var(--color-muted) !important; }
+
+/* Tooltips customization */
+.tooltip-inner {
+    background-color: var(--color-accent) !important;
+    color: #000 !important;
+    font-weight: 700;
+}

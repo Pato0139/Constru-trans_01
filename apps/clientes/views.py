@@ -152,7 +152,9 @@ def crear_pedido(request):
                         precio_unitario=precio_unitario
                     )
                     
-                    total_general += total_item
+                    # Descontar stock del material
+                    material.stock -= cantidad
+                    material.save()
 
                 nueva_orden.precio = total_general
                 nueva_orden.save()

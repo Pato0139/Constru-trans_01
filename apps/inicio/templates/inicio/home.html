@@ -102,16 +102,16 @@
             <a href="#inicio" class="nav-link-landing text-decoration-none">Inicio</a>
             <a href="#nosotros" class="nav-link-landing text-decoration-none">Nosotros</a>
             <a href="#servicios" class="nav-link-landing text-decoration-none">Servicios</a>
-            <a href="#contacto" class="nav-link-landing text-decoration-none">Contacto</a>
         </nav>
 
-        <div class="d-flex gap-2">
-            <a href="{% url 'usuarios:registro' %}" class="btn btn-outline-light btn-sm rounded-pill px-4 fw-600">
-                Registro
-            </a>
-            <a href="{% url 'usuarios:login' %}" class="btn btn-accent btn-sm rounded-pill px-4 fw-bold">
-                Acceder
-            </a>
+        <div class="d-flex gap-3 align-items-center">
+            <a href="#contacto" class="nav-link-landing d-none d-md-block text-decoration-none">Contacto</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'usuarios:panel' %}" class="btn btn-accent btn-sm rounded-pill px-4 fw-bold">Mi Panel</a>
+            {% else %}
+                <a href="{% url 'usuarios:login' %}" class="nav-link-landing text-decoration-none">Iniciar Sesión</a>
+                <a href="{% url 'usuarios:registro' %}" class="btn btn-accent btn-sm rounded-pill px-4 fw-bold">Registrarse</a>
+            {% endif %}
         </div>
 
     </div>

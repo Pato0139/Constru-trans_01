@@ -1,452 +1,230 @@
 {% extends "base.html" %}
 {% load gravatar %}
+{% load static %}
 
 {% block content %}
 
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-    <h2 class="fw-bold mb-0">Gestión de Usuarios</h2>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-5 gap-3">
+    <div>
+        <h2 class="fw-900 mb-1 text-white">Gestión de Usuarios</h2>
+        <p class="text-muted small mb-0">Administra clientes, conductores y personal administrativo</p>
+    </div>
     
-    <div class="d-flex gap-2">
-        <!-- Buscador -->
-        <form method="GET" class="d-flex">
-            <div class="input-group">
-                <span class="input-group-text bg-dark border-secondary border-end-0 small shadow-sm"><i class="bi bi-search text-muted"></i></span>
-                <input type="text" name="q" class="form-control bg-dark text-white border-secondary border-start-0 ps-0 form-control-sm shadow-sm" 
-                       placeholder="Buscar usuario..." value="{{ query|default:'' }}">
+    <div class="d-flex gap-3 align-items-center flex-wrap">
+        <!-- Buscador Mejorado -->
+        <form method="GET" class="position-relative" style="min-width: 300px;">
+            <div class="input-group search-group-custom">
+                <span class="input-group-text bg-transparent border-0 pe-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" name="q" class="form-control bg-transparent border-0 text-white ps-3" 
+                       placeholder="Nombre, apellido, celular o ID..." value="{{ query|default:'' }}">
+                {% if query %}
+                <a href="{% url 'usuarios:lista_usuarios' %}" class="btn-clear-search d-flex align-items-center pe-3">
+                    <i class="bi bi-x-circle-fill text-muted"></i>
+                </a>
+                {% endif %}
             </div>
         </form>
 
-        <button type="button" class="btn btn-danger rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalUsuario">
-            <i class="bi bi-person-plus-fill me-2"></i> Nuevo
+        <button type="button" class="btn btn-gold rounded-pill px-4 shadow-sm fw-800 d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#modalUsuario">
+            <i class="bi bi-person-plus-fill fs-5"></i> Registrar Nuevo
         </button>
     </div>
 </div>
+
+<style>
+    .search-group-custom {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 100px;
+        padding: 4px 8px;
+        transition: all 0.3s ease;
+    }
+    .search-group-custom:focus-within {
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 4px rgba(243, 156, 18, 0.1);
+    }
+    .btn-gold {
+        background: var(--color-accent) !important;
+        color: #000 !important;
+        border: none !important;
+    }
+    .fw-900 { font-weight: 900; }
+    .fw-800 { font-weight: 800; }
+    
+    .user-card-custom {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 24px;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    .user-card-custom:hover {
+        transform: translateY(-5px);
+        border-color: var(--color-accent);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+</style>
 
 <!-- VENTANA EMERGENTE (MODAL) PARA CREAR USUARIO -->
 <div class="modal fade" id="modalUsuario" tabindex="-1" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="background-color: #1a1a1a; border-radius: 28px;">
-            <div class="modal-header border-bottom border-white-10 p-4">
-                <div class="d-flex align-items-center">
-                    <div class="bg-accent-soft rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(243, 156, 18, 0.1);">
-                        <i class="bi bi-person-plus text-accent fs-5"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title fw-800 text-white mb-0" id="modalUsuarioLabel">Nuevo Usuario</h5>
-                        <p class="text-muted small mb-0">Registrar un nuevo perfil en el sistema</p>
-                    </div>
-                </div>
+        <div class="modal-content border-0 shadow-lg" style="background: var(--color-surface); border-radius: 28px;">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="modal-title fw-900 text-white" id="modalUsuarioLabel">Gestión de Usuario</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formUsuario">
+            <form action="{% url 'usuarios:crear_usuario' %}" method="POST" id="formUsuario">
                 {% csrf_token %}
-                <div class="modal-body p-4 p-md-5">
-                    <div class="row g-4">
-                        <!-- Información Personal -->
+                <div class="modal-body p-4">
+                    <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Nombres</label>
-                            <input type="text" name="nombres" class="form-control bg-dark border-secondary text-white rounded-3" placeholder="Ej: Juan" required>
+                            <label class="form-label text-muted small fw-bold">NOMBRES</label>
+                            <input type="text" name="nombres" class="form-control" required placeholder="Ej: Juan">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Apellidos</label>
-                            <input type="text" name="apellidos" class="form-control bg-dark border-secondary text-white rounded-3" placeholder="Ej: Pérez" required>
+                            <label class="form-label text-muted small fw-bold">APELLIDOS</label>
+                            <input type="text" name="apellidos" class="form-control" required placeholder="Ej: Pérez">
                         </div>
-
-                        <!-- Datos de Acceso -->
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Correo Electrónico</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-dark border-secondary border-end-0 text-accent"><i class="bi bi-envelope"></i></span>
-                                <input type="email" name="email" class="form-control bg-dark border-secondary border-start-0 text-white" placeholder="correo@ejemplo.com" required>
-                            </div>
+                        <div class="col-md-12">
+                            <label class="form-label text-muted small fw-bold">CORREO ELECTRÓNICO</label>
+                            <input type="email" name="email" class="form-control" required placeholder="correo@ejemplo.com">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Contraseña Temporal</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-dark border-secondary border-end-0 text-accent"><i class="bi bi-lock"></i></span>
-                                <input type="password" name="password" class="form-control bg-dark border-secondary border-start-0 text-white" placeholder="••••••••" required>
-                            </div>
-                        </div>
-
-                        <!-- Datos de Contacto y Rol -->
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Teléfono</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-dark border-secondary border-end-0 text-accent"><i class="bi bi-telephone"></i></span>
-                                <input type="text" name="telefono" class="form-control bg-dark border-secondary border-start-0 text-white" placeholder="3001234567" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Rol Asignado</label>
-                            <select name="rol" class="form-select bg-dark border-secondary text-white rounded-3" required>
-                                <option value="">Seleccione rol...</option>
+                            <label class="form-label text-muted small fw-bold">ROL</label>
+                            <select name="rol" class="form-select" required>
                                 <option value="cliente">Cliente</option>
                                 <option value="conductor">Conductor</option>
                                 <option value="admin">Administrador</option>
                             </select>
                         </div>
-
-                        <!-- Identificación -->
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Tipo de Documento</label>
-                            <select name="tipo_doc" class="form-select bg-dark border-secondary text-white rounded-3" required>
+                            <label class="form-label text-muted small fw-bold">TELÉFONO</label>
+                            <input type="text" name="telefono" class="form-control" required placeholder="311..." oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">TIPO DOC</label>
+                            <select name="tipo_doc" class="form-select" required>
                                 <option value="CC">Cédula Ciudadanía</option>
                                 <option value="CE">Cédula Extranjería</option>
                                 <option value="NIT">NIT</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Número de Documento</label>
-                            <input type="text" name="documento" class="form-control bg-dark border-secondary text-white rounded-3" placeholder="12345678" required>
+                            <label class="form-label text-muted small fw-bold">DOCUMENTO</label>
+                            <input type="text" name="documento" class="form-control" required placeholder="123456..." oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        </div>
+                        <div class="col-md-12" id="passwordField">
+                            <label class="form-label text-muted small fw-bold">CONTRASEÑA</label>
+                            <input type="password" name="password" class="form-control" required placeholder="••••••••">
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top border-white-10 p-4">
-                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-gold rounded-pill px-5 fw-800" id="btnGuardarUsuario">Registrar Usuario</button>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-gold rounded-pill px-4 fw-800">Guardar Usuario</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<style>
-    /* Estilos Premium para el Modal de Usuarios */
-    #modalUsuario .modal-content {
-        background-color: #1a1a1a !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        border-radius: 28px !important;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
-    }
+<!-- Listado de Usuarios por Roles -->
+<div class="row g-4">
+    <!-- Clientes -->
+    <div class="col-12">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="bg-primary bg-opacity-10 p-2 rounded-3">
+                <i class="bi bi-people-fill text-primary"></i>
+            </div>
+            <h5 class="fw-800 m-0 text-white">Clientes ({{ clientes.count }})</h5>
+        </div>
+        <div class="row g-3">
+            {% for usuario in clientes %}
+            <div class="col-md-4 col-lg-3">
+                <div class="user-card-custom p-4">
+                    <div class="text-center mb-3">
+                        <img src="{% gravatar_url usuario.user.email 80 %}" class="rounded-circle border border-2 border-primary p-1 mb-2" width="60">
+                        <h6 class="fw-800 text-white mb-0">{{ usuario.nombres }} {{ usuario.apellidos }}</h6>
+                        <span class="text-muted small">{{ usuario.user.email }}</span>
+                    </div>
+                    <div class="space-y-2 mb-4">
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-muted">Tel:</span>
+                            <span class="text-white fw-600">{{ usuario.telefono }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-muted">Doc:</span>
+                            <span class="text-white fw-600">{{ usuario.documento }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-warning w-100 rounded-pill fw-700" onclick="editarUsuario('{{ usuario.id }}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn btn-sm btn-outline-danger w-100 rounded-pill fw-700" onclick="return confirm('¿Eliminar usuario?')">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-muted italic text-center py-4">No se encontraron clientes.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
-    #modalUsuario .modal-header {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-        padding: 1.5rem 2rem !important;
-    }
-
-    #modalUsuario .form-label {
-        font-family: 'Inter', sans-serif;
-        font-weight: 700;
-        font-size: 0.75rem;
-        letter-spacing: 1.2px;
-        color: var(--color-accent) !important; /* Usar dorado para labels */
-        margin-bottom: 0.75rem;
-        text-transform: uppercase;
-    }
-
-    #modalUsuario .form-control, 
-    #modalUsuario .form-select {
-        background-color: #333333 !important; /* Fondo más claro para ser visible */
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        padding: 12px 18px !important;
-        color: #ffffff !important;
-        transition: all 0.3s ease;
-    }
-
-    #modalUsuario .form-control:focus, 
-    #modalUsuario .form-select:focus {
-        background-color: #444444 !important;
-        border-color: var(--color-accent) !important;
-        box-shadow: 0 0 0 4px rgba(243, 156, 18, 0.25) !important;
-        color: #ffffff !important;
-    }
-
-    #modalUsuario .input-group-text {
-        background-color: #222222 !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        color: var(--color-accent) !important;
-    }
-
-    #modalUsuario .btn-gold {
-        background: var(--color-accent) !important;
-        color: #000 !important;
-        font-weight: 800 !important;
-        padding: 14px 30px !important;
-        border-radius: 50px !important;
-        border: none !important;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3) !important;
-    }
-
-    #modalUsuario .btn-gold:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(243, 156, 18, 0.5) !important;
-    }
-</style>
+    <!-- Conductores -->
+    <div class="col-12 mt-5">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="bg-warning bg-opacity-10 p-2 rounded-3">
+                <i class="bi bi-truck text-warning"></i>
+            </div>
+            <h5 class="fw-800 m-0 text-white">Conductores ({{ conductores.count }})</h5>
+        </div>
+        <div class="row g-3">
+            {% for usuario in conductores %}
+            <div class="col-md-4 col-lg-3">
+                <div class="user-card-custom p-4">
+                    <div class="text-center mb-3">
+                        <img src="{% gravatar_url usuario.user.email 80 %}" class="rounded-circle border border-2 border-warning p-1 mb-2" width="60">
+                        <h6 class="fw-800 text-white mb-0">{{ usuario.nombres }} {{ usuario.apellidos }}</h6>
+                        <span class="text-muted small">{{ usuario.user.email }}</span>
+                    </div>
+                    <div class="space-y-2 mb-4">
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-muted">Tel:</span>
+                            <span class="text-white fw-600">{{ usuario.telefono }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-warning w-100 rounded-pill fw-700" onclick="editarUsuario('{{ usuario.id }}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn btn-sm btn-outline-danger w-100 rounded-pill fw-700" onclick="return confirm('¿Eliminar usuario?')">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 
 <script>
-    const formUsuario = document.getElementById('formUsuario');
-    if (formUsuario) {
-        formUsuario.onsubmit = function(e) {
-            e.preventDefault();
-            const formData = new FormData(formUsuario);
-            
-            fetch("{% url 'usuarios:crear_usuario' %}", {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    location.reload();
-                } else {
-                    alert(data.message || 'Error al crear usuario');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al procesar la solicitud');
-            });
-        }
+    function editarUsuario(id) {
+        // Lógica para cargar datos en el modal y cambiar action
+        const modal = new bootstrap.Modal(document.getElementById('modalUsuario'));
+        document.getElementById('modalUsuarioLabel').innerText = 'Editar Usuario';
+        document.getElementById('formUsuario').action = `/usuarios/editar/${id}/`;
+        document.getElementById('passwordField').style.display = 'none';
+        // Aquí podrías hacer un fetch para obtener los datos y llenarlos
+        modal.show();
     }
 </script>
-
-<!-- Tabs de Roles -->
-<ul class="nav nav-tabs border-0 mb-4 p-2 rounded-4" id="userTabs" role="tablist" style="background: rgba(255,255,255,0.03); border: 1px solid var(--color-border) !important;">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active border-0 rounded-pill px-4" id="clientes-tab" data-bs-toggle="tab" data-bs-target="#clientes" type="button" role="tab">
-            <i class="bi bi-people me-2"></i> Clientes <span class="badge ms-1" style="background: var(--color-accent); color: #000;">{{ clientes.count }}</span>
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link border-0 rounded-pill px-4" id="conductores-tab" data-bs-toggle="tab" data-bs-target="#conductores" type="button" role="tab">
-            <i class="bi bi-truck me-2"></i> Conductores <span class="badge ms-1" style="background: var(--color-accent); color: #000;">{{ conductores.count }}</span>
-        </button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link border-0 rounded-pill px-4" id="admins-tab" data-bs-toggle="tab" data-bs-target="#admins" type="button" role="tab">
-            <i class="bi bi-shield-lock me-2"></i> Administradores <span class="badge ms-1" style="background: var(--color-accent); color: #000;">{{ admins.count }}</span>
-        </button>
-    </li>
-</ul>
-
-<div class="tab-content" id="userTabsContent">
-    <!-- TAB CLIENTES -->
-    <div class="tab-pane fade show active" id="clientes" role="tabpanel">
-        <div class="table-container">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th class="text-center">ID</th>
-                        <th>Cliente</th>
-                        <th class="text-center">Teléfono</th>
-                        <th class="text-center">Documento</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for usuario in clientes %}
-                    <tr>
-                        <td class="text-center text-muted fw-bold">#{{ usuario.id }}</td>
-                        <td>
-                            <div class="d-flex align-items-center gap-3">
-                                <img src="{{ usuario.user.email|gravatar_url:40 }}" class="rounded-circle border" alt="Perfil" width="35" height="35">
-                                <div class="d-flex flex-column">
-                                    <span class="fw-bold">{{ usuario.nombres }} {{ usuario.apellidos }}</span>
-                                    <span class="text-muted small">{{ usuario.user.email }}</span>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="text-center">{{ usuario.telefono }}</td>
-                        <td class="text-center">{{ usuario.tipo_documento }}: {{ usuario.documento }}</td>
-                        <td class="text-center">
-    <div class="d-flex justify-content-center gap-2">
-        <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn-action" title="Editar">
-            <i class="bi bi-pencil-square"></i>
-        </a>
-        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn-action text-danger" title="Eliminar" onclick="return confirm('¿Estás seguro?')">
-            <i class="bi bi-trash3-fill"></i>
-        </a>
-    </div>
-</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="5" class="text-center py-4 text-muted">No se encontraron clientes.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- TAB CONDUCTORES -->
-    <div class="tab-pane fade" id="conductores" role="tabpanel">
-        <div class="table-container">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th class="text-center">ID</th>
-                        <th>Conductor</th>
-                        <th class="text-center">Teléfono</th>
-                        <th class="text-center">Documento</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for usuario in conductores %}
-                    <tr>
-                        <td class="text-center text-muted fw-bold">#{{ usuario.id }}</td>
-                        <td>
-                            <div class="d-flex align-items-center gap-3">
-                                <img src="{{ usuario.user.email|gravatar_url:40 }}" class="rounded-circle border" alt="Profile" width="35" height="35">
-                                <div class="d-flex flex-column">
-                                    <span class="fw-bold">{{ usuario.nombres }} {{ usuario.apellidos }}</span>
-                                    <span class="text-muted small">{{ usuario.user.email }}</span>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="text-center">{{ usuario.telefono }}</td>
-                        <td class="text-center">{{ usuario.tipo_documento }}: {{ usuario.documento }}</td>
-                        <td class="text-center">
-    <div class="d-flex justify-content-center gap-2">
-        <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn-action" title="Editar">
-            <i class="bi bi-pencil-square"></i>
-        </a>
-        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn-action text-danger" title="Eliminar" onclick="return confirm('¿Estás seguro?')">
-            <i class="bi bi-trash3-fill"></i>
-        </a>
-    </div>
-</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="5" class="text-center py-4 text-muted">No se encontraron conductores.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- TAB ADMINS -->
-    <div class="tab-pane fade" id="admins" role="tabpanel">
-        <div class="table-container">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th class="text-center">ID</th>
-                        <th>Administrador</th>
-                        <th class="text-center">Teléfono</th>
-                        <th class="text-center">Documento</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for usuario in admins %}
-                    <tr>
-                        <td class="text-center text-muted fw-bold">#{{ usuario.id }}</td>
-                        <td>
-                            <div class="d-flex align-items-center gap-3">
-                                <img src="{{ usuario.user.email|gravatar_url:40 }}" class="rounded-circle border" alt="Profile" width="35" height="35">
-                                <div class="d-flex flex-column">
-                                    <span class="fw-bold">{{ usuario.nombres }} {{ usuario.apellidos }}</span>
-                                    <span class="text-muted small">{{ usuario.user.email }}</span>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="text-center">{{ usuario.telefono }}</td>
-                        <td class="text-center">{{ usuario.tipo_documento }}: {{ usuario.documento }}</td>
-                        <td class="text-center">
-    <div class="d-flex justify-content-center gap-2">
-        <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn-action" title="Editar">
-            <i class="bi bi-pencil-square"></i>
-        </a>
-        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn-action text-danger" title="Eliminar" onclick="return confirm('¿Estás seguro?')">
-            <i class="bi bi-trash3-fill"></i>
-        </a>
-    </div>
-</td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="5" class="text-center py-4 text-muted">No se encontraron administradores.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<style>
-    .nav-tabs .nav-link {
-        color: #6c757d;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-    .nav-tabs .nav-link.active {
-        background-color: var(--color-primary) !important;
-        color: white !important;
-        box-shadow: 0 4px 10px rgba(0, 86, 179, 0.2);
-    }
-    .nav-tabs .nav-link:hover:not(.active) {
-        background-color: #e9ecef;
-    }
-</style>
-
-<!-- MODAL NUEVO USUARIO -->
-<div class="modal fade" id="modalUsuario" tabindex="-1" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="modalUsuarioLabel">Registrar Nuevo Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{% url 'usuarios:crear_usuario' %}" method="POST">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Nombre Completo</label>
-                        <input type="text" name="nombre" class="form-control rounded-pill" placeholder="Ej: Juan Pérez" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Correo Electrónico (Username)</label>
-                        <input type="email" name="email" class="form-control rounded-pill" placeholder="correo@ejemplo.com" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Contraseña</label>
-                        <input type="password" name="password" class="form-control rounded-pill" placeholder="Contraseña segura" required>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Teléfono</label>
-                            <input type="text" name="telefono" class="form-control rounded-pill" placeholder="3001234567" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Rol</label>
-                            <select name="rol" class="form-select rounded-pill" required>
-                                <option value="cliente">Cliente</option>
-                                <option value="conductor">Conductor</option>
-                                <option value="admin">Administrador</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Tipo Documento</label>
-                            <select name="tipo_doc" class="form-select rounded-pill" required>
-                                <option value="CC">Cédula Ciudadanía</option>
-                                <option value="CE">Cédula Extranjería</option>
-                                <option value="NIT">NIT</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Número Documento</label>
-                            <input type="text" name="documento" class="form-control rounded-pill" placeholder="12345678" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">Registrar Usuario</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 {% endblock %}

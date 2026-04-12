@@ -65,8 +65,10 @@ def registro(request):
                     "form": form
                 })
         else:
+            # Obtener el primer error específico para mostrarlo
+            primer_error = next(iter(form.errors.values()))[0]
             return render(request, "usuarios/registro.html", {
-                "error": "Por favor revisa los datos ingresados y marca la casilla 'No soy un robot'.",
+                "error": primer_error if primer_error else "Por favor revisa los datos ingresados.",
                 "form": form
             })
 
@@ -100,6 +102,14 @@ def login_usuario(request):
 
             if user is not None:
                 login(request, user)
+                
+                # Lógica de "Recuérdame"
+                if request.POST.get('remember_me'):
+                    # La sesión durará 2 semanas (valor por defecto de Django) y persistirá al cerrar el navegador
+                    request.session.set_expiry(1209600) # 2 semanas en segundos
+                else:
+                    # La sesión expirará al cerrar el navegador
+                    request.session.set_expiry(0)
                 
                 registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión del usuario: {user.username}")
                 
@@ -142,8 +152,10 @@ def login_usuario(request):
                     "form": form
                 })
         else:
+            # Obtener el primer error específico para mostrarlo
+            primer_error = next(iter(form.errors.values()))[0]
             return render(request, "usuarios/login.html", {
-                "error": "Por favor marca la casilla 'No soy un robot'.",
+                "error": primer_error if primer_error else "Por favor marca la casilla 'No soy un robot'.",
                 "form": form
             })
 
@@ -174,15 +186,23 @@ def panel(request):
             return redirect("usuarios:login")
 
     if usuario.rol == "admin":
+        # Estadísticas de ventas mensuales
+        ventas_mes = Orden.objects.filter(
+            estado="entregado",
+            fecha__month=timezone.now().month
+        ).aggregate(total=Sum("precio"))["total"] or 0
+
         context = {
             "pedidos_pendientes": Orden.objects.filter(estado="pendiente").count(),
             "conductores": Usuario.objects.filter(rol="conductor").count(),
             "entregas_hoy": Orden.objects.filter(
                 estado="entregado",
-                fecha__date=now().date()
+                fecha__date=timezone.now().date()
             ).count(),
             "clientes": Usuario.objects.filter(rol="cliente").count(),
-            "pedidos_recientes": Orden.objects.all().order_by("-fecha")[:5]
+            "ventas_mes": ventas_mes,
+            "pedidos_recientes": Orden.objects.all().order_by("-fecha")[:5],
+            "now": timezone.now()
         }
         return render(request, "usuarios/panel-admin.html", context)
     elif usuario.rol == "cliente":
@@ -414,8 +434,10 @@ def lista_usuarios(request):
     if query:
         usuarios_list = usuarios_list.filter(
             Q(nombres__icontains=query) | 
+            Q(apellidos__icontains=query) |
             Q(user__email__icontains=query) |
-            Q(documento__icontains=query)
+            Q(documento__icontains=query) |
+            Q(telefono__icontains=query)
         )
     
     admins = usuarios_list.filter(rol='admin')

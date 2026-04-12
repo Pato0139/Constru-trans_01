@@ -1,0 +1,247 @@
+:root {
+    --bg-body: #0a0a0a;
+    --bg-card: #1a1a1a;
+    --primary-gold: #F39C12;
+    --primary-red: #0056B3;
+    --text-white: #ffffff;
+    --text-muted: #888888;
+    --input-border: rgba(255,255,255,0.2);
+    --input-bg: rgba(255,255,255,0.05);
+    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-body);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 20px;
+    color: var(--text-white);
+    overflow: hidden; /* Evitar scroll por partículas */
+}
+
+#particles-js {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.auth-master-card {
+    width: 85%;
+    max-width: 1200px;
+    background: var(--bg-card);
+    border-radius: 40px;
+    display: flex;
+    position: relative;
+    box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1; /* Encima de las partículas */
+}
+
+/* Lado Izquierdo - Formulario */
+.auth-form-section {
+    flex: 1.2;
+    padding: 40px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.auth-brand {
+    margin-bottom: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+    letter-spacing: -0.5px;
+    text-transform: uppercase;
+}
+
+.auth-brand span { color: var(--primary-gold); }
+
+/* Lado Derecho - Visual */
+.auth-visual-section {
+    flex: 0.8;
+    background: rgba(255, 255, 255, 0.01);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-left: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 0 40px 40px 0;
+}
+
+.illustration-wrapper {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.illustration-circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 8px solid var(--primary-red);
+    box-shadow: 0 0 60px rgba(0, 86, 179, 0.2);
+    position: relative;
+    z-index: 1;
+    transition: var(--transition);
+}
+
+/* Typography */
+.welcome-h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: 2.2rem;
+    line-height: 1;
+    margin-bottom: 8px;
+    color: var(--text-white);
+}
+
+.welcome-p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+
+.welcome-p a {
+    color: var(--primary-gold);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+/* Form Elements */
+.form-group-custom {
+    margin-bottom: 16px;
+}
+
+.label-custom {
+    display: block;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    color: var(--text-white);
+}
+
+.input-custom {
+    width: 100%;
+    background: var(--input-bg) !important;
+    border: 1.5px solid var(--input-border) !important;
+    border-radius: 10px !important;
+    padding: 10px 16px !important;
+    color: white !important;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.input-custom:focus {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--primary-gold) !important;
+    box-shadow: 0 0 15px rgba(243, 156, 18, 0.2) !important;
+    outline: none;
+}
+
+.animate-up {
+    animation: slideUp 0.8s ease forwards;
+    opacity: 0;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.delay-1 { animation-delay: 0.2s; }
+
+/* Estilo para las opciones del select en el panel de sesión */
+select.input-custom option {
+    background-color: var(--bg-card) !important;
+    color: white !important;
+}
+
+/* Estilo para navegadores modernos que usan el color de fondo */
+select.input-custom {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 1.2rem center !important;
+    background-size: 14px 10px !important;
+}
+
+.btn-main {
+    background: var(--primary-gold);
+    color: #000000;
+    border: none;
+    padding: 14px;
+    border-radius: 15px;
+    font-weight: 800;
+    font-size: 1rem;
+    width: 100%;
+    transition: var(--transition);
+    margin-top: 5px;
+}
+
+.btn-main:hover {
+    background: #e67e22;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(243, 156, 18, 0.3);
+    color: #000000;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-gold) !important;
+    border-color: var(--primary-gold) !important;
+}
+
+/* Logo Branding Superior */
+.brand-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    margin-right: 12px;
+    object-fit: cover;
+}
+
+.btn-back-home {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: var(--transition);
+}
+.btn-back-home:hover {
+    background: rgba(255,255,255,0.05);
+    color: var(--primary-gold);
+    border-color: var(--primary-gold);
+}
+
+/* Alerts */
+.alert-custom {
+    background: rgba(96, 0, 0, 0.15);
+    border: 1px solid var(--primary-red);
+    color: #ffbaba;
+    border-radius: 20px;
+    padding: 16px 24px;
+    margin-bottom: 32px;
+    font-weight: 500;
+}
+
+@media (max-width: 992px) {
+    .auth-visual-section { display: none; }
+    .auth-master-card { border-radius: 32px; min-height: auto; }
+    .auth-form-section { padding: 60px 32px; }
+    .welcome-h1 { font-size: 2.2rem; }
+}

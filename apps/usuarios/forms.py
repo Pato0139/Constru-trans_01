@@ -1,4 +1,5 @@
 from django import forms
+from .models import Usuario
 
 class LoginForm(forms.Form):
     username = forms.CharField(label="Usuario o Correo", widget=forms.TextInput(attrs={'class': 'input-custom', 'placeholder': 'Usuario o Correo'}))
@@ -9,7 +10,7 @@ class RegistroForm(forms.Form):
     nombres = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-custom', 'placeholder': 'Juan'}))
     apellidos = forms.CharField(widget=forms.TextInput(attrs={'class': 'input-custom', 'placeholder': 'Pérez'}))
     correo = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'input-custom', 'placeholder': 'ejemplo@correo.com'}))
-    tipo_documento = forms.ChoiceField(choices=[('CC', 'C.C.'), ('CE', 'C.E.'), ('NIT', 'NIT')], widget=forms.Select(attrs={'class': 'input-custom form-select'}))
+    tipo_documento = forms.ChoiceField(choices=Usuario.TIPOS_DOCUMENTO, widget=forms.Select(attrs={'class': 'input-custom form-select'}))
     documento = forms.CharField(widget=forms.TextInput(attrs={
         'class': 'input-custom', 
         'placeholder': '12345678',
@@ -38,3 +39,12 @@ class RegistroForm(forms.Form):
         if not telefono.isdigit():
             raise forms.ValidationError("El número de teléfono debe contener solo números.")
         return telefono
+
+    def clean(self):
+        cleaned_data = super().clean()
+        contrasena = cleaned_data.get("contrasena")
+        confirmar_contrasena = cleaned_data.get("confirmar_contrasena")
+
+        if contrasena and confirmar_contrasena and contrasena != confirmar_contrasena:
+            raise forms.ValidationError("Las contraseñas no coinciden.")
+        return cleaned_data

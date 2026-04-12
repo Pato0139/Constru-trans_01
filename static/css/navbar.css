@@ -1,0 +1,25 @@
+.navbar-custom {
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface) !important;
+}
+.badge-role {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 800;
+    color: #000000;
+    background: var(--color-accent);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+.profile-link {
+    transition: transform 0.3s ease;
+}
+.profile-link:hover {
+    transform: scale(1.1);
+}
+.fw-800 { font-weight: 800; }
+.fw-700 { font-weight: 700; }
+.active-check {
+    color: var(--color-success);
+}

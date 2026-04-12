@@ -1,8 +1,10 @@
 {% load gravatar %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/navbar.css' %}">
 <header class="navbar-custom d-flex justify-content-between align-items-center mb-5 p-4 rounded-4 shadow-lg" style="background: var(--color-surface); border-left: 6px solid var(--color-primary) !important;">
     <div class="d-flex align-items-center">
         {% load static %}
-        <img src="{% static 'img/Logo1.jpeg' %}" height="40" class="me-3 d-lg-none rounded-2" alt="Logo">
+        <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo" width="40" height="40" class="rounded-circle me-2 border border-warning">
         <h2 class="h4 fw-800 m-0 text-white" style="font-family: 'Montserrat', sans-serif;">{% block header_title %}Panel de Control{% endblock %}</h2>
     </div>
 
@@ -37,32 +39,4 @@
             {% endif %}
         </a>
     </div>
-
-    <style>
-        .navbar-custom {
-            border: 1px solid var(--color-border);
-            background-color: var(--color-surface) !important;
-        }
-        .badge-role {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 800;
-            color: #000000;
-            background: var(--color-accent);
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
-        .profile-link {
-            transition: transform 0.3s ease;
-        }
-        .profile-link:hover {
-            transform: scale(1.1);
-        }
-        .fw-800 { font-weight: 800; }
-        .fw-700 { font-weight: 700; }
-        .active-check {
-            color: var(--color-success);
-        }
-    </style>
 </header>

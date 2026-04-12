@@ -162,12 +162,21 @@
     </div>
 
     <div class="form-group-custom mb-4">
+        <div class="form-check">
+            {{ form.acepto_terminos }}
+            <label class="label-custom ms-2" for="{{ form.acepto_terminos.id_for_label }}" style="display: inline; cursor: pointer;">
+                Acepto los <a href="#" class="text-accent">términos y condiciones</a>
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group-custom mb-4">
         <!-- Simplified "No soy un robot" -->
         <div class="recaptcha-mock" id="recaptchaBox">
             <div class="recaptcha-left">
                 <div class="form-check">
                     {{ form.no_robot }}
-                    <label class="recaptcha-text ms-2" for="{{ form.no_robot.id_for_label }}">No soy un robot</label>
+                    <label class="recaptcha-text ms-2" for="{{ form.no_robot.id_for_label }}" style="cursor: pointer;">No soy un robot</label>
                 </div>
             </div>
             <div class="recaptcha-right">
