@@ -14,6 +14,34 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from historial.utils import registrar_actividad
 from .forms import LoginForm, RegistroForm
 
+def buscar_usuarios_generales(query=None):
+    """
+    Lógica unificada para buscar usuarios por nombre, email o documento.
+    """
+    usuarios = Usuario.objects.all().order_by('-id')
+    if query:
+        usuarios = usuarios.filter(
+            Q(nombres__icontains=query) | 
+            Q(user__email__icontains=query) |
+            Q(documento__icontains=query)
+        )
+    return usuarios
+
+def buscar_conductores(query=None):
+    """
+    Lógica unificada para buscar conductores por múltiples campos.
+    """
+    conductores = Usuario.objects.filter(rol="conductor")
+    if query:
+        conductores = conductores.filter(
+            Q(nombres__icontains=query) |
+            Q(apellidos__icontains=query) |
+            Q(user__email__icontains=query) |
+            Q(documento__icontains=query) |
+            Q(telefono__icontains=query)
+        )
+    return conductores
+
 
 # ---------------- REGISTRO ----------------
 def registro(request):
@@ -30,6 +58,13 @@ def registro(request):
             documento = form.cleaned_data.get("documento")
             rol = "cliente" # Rol predeterminado (HU-01)
             password = form.cleaned_data.get("contrasena")
+            confirm_password = form.cleaned_data.get("confirmar_contrasena")
+
+            if password != confirm_password:
+                return render(request, "usuarios/registro.html", {
+                    "error": "Las contraseñas no coinciden",
+                    "form": form
+                })
 
             if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
                 return render(request, "usuarios/registro.html", {
@@ -375,15 +410,8 @@ def crear_usuario(request):
 
 @login_required
 def lista_usuarios(request):
-    usuarios_list = Usuario.objects.all().order_by('-id')
-    
     query = request.GET.get('q')
-    if query:
-        usuarios_list = usuarios_list.filter(
-            Q(nombres__icontains=query) | 
-            Q(user__email__icontains=query) |
-            Q(documento__icontains=query)
-        )
+    usuarios_list = buscar_usuarios_generales(query)
     
     admins = usuarios_list.filter(rol='admin')
     clientes = usuarios_list.filter(rol='cliente')

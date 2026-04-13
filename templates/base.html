@@ -9,8 +9,13 @@
 <title>{% block title %}Panel Administrador{% endblock %}</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<!-- DataTables CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+
+<!-- Custom CSS -->
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 
 <style>
@@ -42,13 +47,13 @@
     }
 
     [data-theme="accessibility"] {
-        /* High Contrast Mode */
+        /* Modo de Alto Contraste Mejorado */
         --color-bg: #000000;
         --color-surface: #000000;
-        --color-primary: #ffff00;
-        --color-secondary: #ffffff;
-        --color-accent: #00ff00;
-        --color-text: #ffffff;
+        --color-primary: #ffff00; /* Amarillo brillante */
+        --color-secondary: #1a1a1a; /* Gris muy oscuro en lugar de blanco para el fondo de tabla */
+        --color-accent: #00ff00; /* Verde brillante */
+        --color-text: #ffffff; /* Blanco puro */
         --color-muted: #ffffff;
         --color-border: #ffffff;
         --color-success: #00ff00;
@@ -91,14 +96,17 @@
 
     /* Estilo para las opciones del select */
     option {
-        background-color: #1e293b !important; /* Color de superficie oscuro */
-        color: #ffffff !important;
+        background-color: var(--color-surface) !important;
+        color: var(--color-text) !important;
     }
 
     /* Para asegurar que en modo oscuro/accesibilidad sea negro total si se requiere */
-    [data-theme="dark"] option, [data-theme="accessibility"] option {
-        background-color: #000000 !important;
-        color: #ffffff !important;
+    /* Forzar texto negro en botones amarillos para alto contraste */
+    [data-theme="accessibility"] .btn-primary, 
+    [data-theme="accessibility"] .btn-gold,
+    [data-theme="accessibility"] .badge-tipo {
+        color: #000000 !important;
+        font-weight: 900 !important;
     }
 
     .text-white { color: var(--color-text) !important; }

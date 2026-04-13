@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}Mi Perfil - Constru-trans{% endblock %}
 
@@ -72,7 +73,7 @@
             
             <div class="text-center p-5 rounded-4 mb-4" style="background: #111111; border: 1px dashed var(--color-accent);">
                 <i class="bi bi-cash-coin fs-1 text-accent mb-3 d-block"></i>
-                <h1 class="fw-900 text-accent mb-0" style="letter-spacing: 1px;">${{ total_invertido|floatformat:0 }}</h1>
+                <h1 class="fw-900 text-accent mb-0" style="letter-spacing: 1px;">${{ total_invertido|floatformat:0|intcomma }}</h1>
                 <span class="small text-muted text-uppercase fw-800" style="letter-spacing: 1px;">TOTAL INVERTIDO</span>
             </div>
             

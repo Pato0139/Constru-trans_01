@@ -65,12 +65,14 @@ def exportar_reporte_pdf(request, tipo):
     elif tipo == 'materiales':
         data.append(['ID', 'Nombre', 'Tipo', 'Precio', 'Stock'])
         for m in Material.objects.all():
-            data.append([m.id, m.nombre, m.tipo, f"${m.precio}", m.stock])
+            precio_formateado = f"${int(m.precio):,}".replace(",", ".")
+            data.append([m.id, m.nombre, m.tipo, precio_formateado, m.stock])
 
     elif tipo == 'ventas':
         data.append(['ID', 'Cliente', 'Fecha', 'Total', 'Estado'])
         for o in Orden.objects.all():
-            data.append([o.id, f"{o.cliente.nombres} {o.cliente.apellidos}", o.fecha.strftime('%Y-%m-%d'), f"${o.precio}", o.estado])
+            precio_formateado = f"${int(o.precio):,}".replace(",", ".")
+            data.append([o.id, f"{o.cliente.nombres} {o.cliente.apellidos}", o.fecha.strftime('%Y-%m-%d'), precio_formateado, o.estado])
 
     # Estilo de la tabla
     if data:

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}Detalle del Pedido - Constru-trans{% endblock %}
 
@@ -87,14 +88,14 @@
                                     <tr>
                                         <td class="ps-0 text-white fw-600">{{ detalle.material.nombre }}</td>
                                         <td class="text-center text-muted">{{ detalle.cantidad }}</td>
-                                        <td class="text-end pe-0 text-accent fw-700">$ {{ detalle.precio_unitario }}</td>
+                                        <td class="text-end pe-0 text-accent fw-700">${{ detalle.precio_unitario|floatformat:0|intcomma }}</td>
                                     </tr>
                                     {% empty %}
                                         {% if orden.material %}
                                         <tr>
                                             <td class="ps-0 text-white fw-600">{{ orden.material.nombre }} (Unificado)</td>
                                             <td class="text-center text-muted">{{ orden.cantidad }}</td>
-                                            <td class="text-end pe-0 text-accent fw-700">$ {{ orden.material.precio }}</td>
+                                            <td class="text-end pe-0 text-accent fw-700">${{ orden.material.precio|floatformat:0|intcomma }}</td>
                                         </tr>
                                         {% else %}
                                         <tr>
@@ -106,7 +107,7 @@
                                 <tfoot>
                                     <tr>
                                         <td colspan="2" class="ps-0 pt-4 text-muted fw-700">Total de la Orden</td>
-                                        <td class="pe-0 pt-4 text-end"><h3 class="fw-900 text-white mb-0">$ {{ orden.precio }}</h3></td>
+                                        <td class="pe-0 pt-4 text-end"><h3 class="fw-900 text-white mb-0">${{ orden.precio|floatformat:0|intcomma }}</h3></td>
                                     </tr>
                                 </tfoot>
                             </table>

@@ -6,12 +6,11 @@ from .models import Orden, Entrega
 from apps.usuarios.models import Usuario, Vehiculo, Material
 from historial.utils import registrar_actividad
 
-@login_required
-def lista_pedidos_admin(request):
+def buscar_pedidos_admin(cliente_query=None, fecha_query=None):
+    """
+    Lógica unificada para buscar pedidos por cliente o fecha.
+    """
     pedidos = Orden.objects.all().order_by("-fecha")
-    
-    cliente_query = request.GET.get('cliente')
-    fecha_query = request.GET.get('fecha')
     
     if cliente_query:
         pedidos = pedidos.filter(
@@ -22,8 +21,19 @@ def lista_pedidos_admin(request):
     if fecha_query:
         pedidos = pedidos.filter(fecha__date=fecha_query)
         
+    return pedidos
+
+@login_required
+def lista_pedidos_admin(request):
+    cliente_query = request.GET.get('cliente')
+    fecha_query = request.GET.get('fecha')
+    
+    pedidos = buscar_pedidos_admin(cliente_query, fecha_query)
+        
     return render(request, "ordenes/lista.html", {
-        "pedidos": pedidos
+        "pedidos": pedidos,
+        "cliente_query": cliente_query,
+        "fecha_query": fecha_query
     })
 
 @login_required
@@ -114,9 +124,10 @@ def descargar_factura(request, id):
 
     # Detalle de Materiales (Si la orden tiene materiales asociados, aquí los listaríamos)
     # Por ahora mostramos el total
+    precio_formateado = f"${int(orden.precio):,}".replace(",", ".")
     data = [
         ['Descripción', 'Total'],
-        ['Servicio de Transporte y Materiales', f"${orden.precio}"]
+        ['Servicio de Transporte y Materiales', precio_formateado]
     ]
 
     t = Table(data)

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Orden #{{ orden.id }} - Materiales{% endblock %}
 
@@ -53,7 +54,7 @@
                           data-precio="{{ m.precio }}"
                           data-stock="{{ m.stock_disponible }}"
                           data-unidad="{{ m.unidad_medida }}">
-                    {{ m.nombre }} — ${{ m.precio }} / {{ m.unidad_medida }}
+                    {{ m.nombre }}
                   </option>
                 {% endfor %}
               </select>
@@ -80,79 +81,75 @@
     <!-- Tabla de detalles + resumen -->
     <div class="col-lg-8">
 
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-dark text-white fw-bold">Materiales en la Orden</div>
-        <div class="card-body p-0">
-          {% if detalles %}
-          <table class="table table-hover mb-0">
-            <thead class="table-secondary">
-              <tr>
-                <th>Material</th>
-                <th class="text-center">Cantidad</th>
-                <th class="text-end">P. Unitario</th>
-                <th class="text-end">Subtotal</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for d in detalles %}
-              <tr>
-                <td>{{ d.material.nombre }}</td>
-                <td class="text-center">{{ d.cantidad }} {{ d.material.unidad_medida }}</td>
-                <td class="text-end">${{ d.precio_unitario }}</td>
-                <td class="text-end fw-semibold">${{ d.subtotal }}</td>
-                <td class="text-center">
-                  <form method="post" action="{% url 'ordenes:eliminar_detalle' d.id %}"
-                        onsubmit="return confirm('¿Eliminar?')">
-                    {% csrf_token %}
-                    <button class="btn btn-sm btn-outline-danger">✕</button>
-                  </form>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-          {% else %}
-          <p class="text-center text-muted py-4">Sin materiales. Agrega el primero.</p>
-          {% endif %}
+      <!-- Resumen de Materiales CT-275 -->
+      <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="background-color: #1a1c23; border-radius: 12px;">
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
+          <h6 class="text-uppercase fw-900 mb-0" style="color: #FF8C00; letter-spacing: 1px; font-size: 0.9rem;">
+            RESUMEN DE MATERIALES
+          </h6>
+        </div>
+        <div class="card-body px-4 pb-4">
+          <div class="table-responsive">
+            <table class="table table-borderless align-middle mb-0" style="color: #ffffff;">
+              <thead style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <tr>
+                  <th class="ps-0 text-uppercase fw-800 py-3" style="color: #FF8C00; font-size: 0.8rem;">MATERIAL</th>
+                  <th class="text-center text-uppercase fw-800 py-3" style="color: #FF8C00; font-size: 0.8rem;">CANT.</th>
+                  <th class="pe-0 text-end text-uppercase fw-800 py-3" style="color: #FF8C00; font-size: 0.8rem;">SUBTOTAL</th>
+                </tr>
+              </thead>
+              <tbody style="background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);">
+                {% if detalles %}
+                  {% for d in detalles %}
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                    <td class="ps-0 py-3 fw-600">
+                      {{ d.material.nombre }}
+                    </td>
+                    <td class="text-center py-3">
+                      <span class="badge bg-secondary rounded-pill px-3 py-2" style="font-size: 0.85rem; background-color: rgba(255,255,255,0.1) !important;">
+                        {{ d.cantidad|floatformat:0 }}
+                      </span>
+                    </td>
+                    <td class="pe-0 text-end py-3">
+                      <div class="d-flex align-items-center justify-content-end gap-3">
+                        <span class="fw-700">${{ d.subtotal|floatformat:0|intcomma }}</span>
+                        <form method="post" action="{% url 'ordenes:eliminar_detalle' d.id %}" onsubmit="return confirm('¿Eliminar material?')">
+                          {% csrf_token %}
+                          <button class="btn btn-link text-danger p-0 border-0" title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="3" class="text-center py-5 text-white-50 fw-500 italic" style="font-style: italic; opacity: 0.6;">
+                      No hay detalles registrados.
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td class="ps-0 pt-4 text-white-50 fw-600" style="font-style: italic; font-size: 1.1rem;">Total de la Orden</td>
+                  <td colspan="2" class="pe-0 pt-4 text-end">
+                    <span class="fw-900" id="d-total" style="font-size: 2.2rem; color: #ffffff;">${{ orden.precio|floatformat:0|intcomma }}</span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
       </div>
 
-      <!-- CT-275: Resumen total -->
-      <div class="card border-warning border-2 shadow-sm">
-        <div class="card-header bg-warning text-dark fw-bold">
-          Resumen del Total
-        </div>
-        <div class="card-body">
-          <table class="table table-borderless mb-0 ms-auto" style="max-width:350px">
-            <tr>
-              <td class="text-muted">Subtotal</td>
-              <td class="text-end" id="d-subtotal">${{ orden.subtotal }}</td>
-            </tr>
-            {% if orden.descuento > 0 %}
-            <tr class="text-success">
-              <td>Descuento ({{ orden.descuento }}%)</td>
-              <td class="text-end">- ${{ valor_descuento }}</td>
-            </tr>
-            {% endif %}
-            <tr>
-              <td class="text-muted">IVA ({{ orden.iva }}%)</td>
-              <td class="text-end" id="d-iva">${{ valor_iva }}</td>
-            </tr>
-            <tr class="border-top">
-              <td class="fw-bold fs-5">TOTAL</td>
-              <td class="text-end fw-bold fs-5 text-warning" id="d-total">${{ orden.precio }}</td>
-            </tr>
-          </table>
-        </div>
-        <div class="card-footer text-end d-flex gap-2 justify-content-end">
-          <button class="btn btn-outline-secondary btn-sm" onclick="recargarTotal()">
-            ↺ Recalcular
-          </button>
-          <a href="{% url 'ordenes:detalle_orden' orden.id %}" class="btn btn-warning fw-bold">
-            Confirmar Orden →
-          </a>
-        </div>
+      </div>
+
+      <div class="text-end mt-3">
+        <a href="{% url 'ordenes:detalle_orden' orden.id %}" class="btn btn-warning px-5 py-2 fw-900 rounded-pill shadow-lg" style="letter-spacing: 0.5px;">
+          CONFIRMAR ORDEN →
+        </a>
       </div>
 
     </div>
@@ -175,7 +172,10 @@
 
     if (opt && opt.dataset.precio && cant > 0) {
       const sub = cant * parseFloat(opt.dataset.precio);
-      val.textContent = '$' + sub.toLocaleString('es-CO', {minimumFractionDigits: 2});
+      val.textContent = '$' + sub.toLocaleString('es-CO', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      });
       box.classList.remove('d-none');
       stock.textContent = 'Stock disponible: ' + opt.dataset.stock + ' ' + opt.dataset.unidad;
     } else {
@@ -189,10 +189,15 @@
     fetch(URL_TOTAL)
       .then(r => r.json())
       .then(data => {
-        const fmt = v => '$' + v.toLocaleString('es-CO', {minimumFractionDigits: 2});
-        document.getElementById('d-subtotal').textContent = fmt(data.subtotal);
-        document.getElementById('d-iva').textContent = fmt(data.valor_iva);
-        document.getElementById('d-total').textContent = fmt(data.total);
+        const fmt = v => '$' + v.toLocaleString('es-CO', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        });
+        // Actualizar el total en el tfoot del resumen
+        const totalElem = document.getElementById('d-total');
+        if (totalElem) {
+          totalElem.textContent = fmt(data.total);
+        }
       });
   }
 

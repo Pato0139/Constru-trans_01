@@ -47,8 +47,44 @@
     overflow: hidden;
     box-shadow: 0 15px 35px rgba(0,0,0,0.4);
     border: 1px solid var(--color-border);
-    padding: 15px;
+    padding: 0 !important; /* Asegurar padding 0 para DataTables */
     margin-bottom: 30px;
+}
+
+/* DataTables Custom Styling */
+.dataTables_wrapper .dataTables_length select {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 4px 8px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    padding: 6px 15px;
+    margin-left: 10px;
+}
+
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    color: var(--color-text) !important;
+    margin-top: 15px;
+}
+
+.dataTables_wrapper .pagination .page-link {
+    background-color: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+.dataTables_wrapper .pagination .page-item.active .page-link {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #000;
 }
 
 /* Mensajes de 'No hay registros' */

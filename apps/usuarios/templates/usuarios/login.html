@@ -122,8 +122,8 @@
         <label class="label-custom">{{ form.password.label }}</label>
         <div class="position-relative">
             {{ form.password }}
-            <button type="button" onclick="togglePassword()" class="btn position-absolute top-50 end-0 translate-middle-y border-0 text-muted pe-4" style="background: transparent;">
-                <i class="bi bi-eye-slash" id="toggleIcon"></i>
+            <button type="button" onclick="togglePassword()" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4" style="background: transparent; z-index: 10;">
+                <i class="bi bi-eye-slash" id="toggleIcon" style="font-size: 1.4rem; color: #F39C12; opacity: 1 !important; text-shadow: 0 0 5px rgba(0,0,0,0.5);"></i>
             </button>
         </div>
     </div>

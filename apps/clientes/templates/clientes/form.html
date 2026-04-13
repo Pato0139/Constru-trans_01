@@ -43,7 +43,7 @@
                             <select id="select-material" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;">
                                 <option value="" data-precio="0">Seleccione un material...</option>
                                 {% for m in materiales %}
-                                    <option value="{{ m.id }}" data-precio="{{ m.precio }}">{{ m.nombre }} - ${{ m.precio }}</option>
+                                    <option value="{{ m.id }}" data-precio="{{ m.precio }}">{{ m.nombre }} - ${{ m.precio|floatformat:0 }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -84,7 +84,7 @@
                             <select name="material" id="select-material-edit" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" required onchange="calcularTotalEdit()">
                                 {% for m in materiales %}
                                     <option value="{{ m.id }}" data-precio="{{ m.precio }}" {% if m.id == orden.material.id %}selected{% endif %}>
-                                        {{ m.nombre }} - ${{ m.precio }}
+                                        {{ m.nombre }} - ${{ m.precio|floatformat:0 }}
                                     </option>
                                 {% endfor %}
                             </select>
@@ -100,7 +100,7 @@
                 <div class="p-4 rounded-4 mb-5 shadow-sm" style="background: rgba(243, 156, 18, 0.08); border: 1px solid rgba(243, 156, 18, 0.15);">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-800 text-muted small text-uppercase" style="letter-spacing: 1px;">Total Estimado del Pedido:</span>
-                        <h3 class="mb-0 fw-900 text-accent" id="display-total" style="font-size: 2rem; letter-spacing: -1px;">{% if action == 'editar' %}$ {{ orden.precio|floatformat:0 }}{% else %}$ 0{% endif %}</h3>
+                        <h3 class="mb-0 fw-900 text-accent" id="display-total" style="font-size: 2rem; letter-spacing: -1px;">{% if action == 'editar' %}${{ orden.precio|floatformat:0|intcomma }}{% else %}$0{% endif %}</h3>
                     </div>
                 </div>
 
@@ -172,7 +172,7 @@ function agregarMaterial() {
             <span class="badge bg-secondary-subtle text-white rounded-pill px-3">${cantidad}</span>
             <input type="hidden" name="cantidad[]" value="${cantidad}">
         </td>
-        <td class="text-end text-accent fw-800 py-3">$ ${subtotal.toLocaleString()}</td>
+        <td class="text-end text-accent fw-800 py-3">$${subtotal.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
         <td class="text-end pe-0 py-3">
             <button type="button" class="btn btn-link text-danger p-0" onclick="eliminarFila(this, ${subtotal})">
                 <i class="bi bi-trash3-fill"></i>
@@ -195,7 +195,7 @@ function eliminarFila(btn, subtotal) {
 }
 
 function actualizarTotalDisplay() {
-    document.getElementById('display-total').innerText = '$ ' + totalGeneral.toLocaleString();
+    document.getElementById('display-total').innerText = '$' + totalGeneral.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0});
 }
 
 function calcularTotalEdit() {
@@ -207,7 +207,7 @@ function calcularTotalEdit() {
     let cantidad = parseInt(cantidadInput.value) || 0;
     
     const total = precio * cantidad;
-    display.innerText = '$ ' + total.toLocaleString();
+    display.innerText = '$' + total.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0});
 }
 </script>
 

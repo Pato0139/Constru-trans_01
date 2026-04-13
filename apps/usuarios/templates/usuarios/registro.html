@@ -153,11 +153,30 @@
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <label class="label-custom">Contraseña</label>
-            {{ form.contrasena }}
+            <div class="position-relative">
+                {{ form.contrasena }}
+                <button type="button" onclick="togglePassword('id_contrasena', 'toggleIcon1')" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4" style="background: transparent; z-index: 10;">
+                    <i class="bi bi-eye-slash" id="toggleIcon1" style="font-size: 1.4rem; color: #F39C12; opacity: 1 !important; text-shadow: 0 0 5px rgba(0,0,0,0.5);"></i>
+                </button>
+            </div>
         </div>
         <div class="col-md-6">
             <label class="label-custom">Confirmar</label>
-            {{ form.confirmar_contrasena }}
+            <div class="position-relative">
+                {{ form.confirmar_contrasena }}
+                <button type="button" onclick="togglePassword('id_confirmar_contrasena', 'toggleIcon2')" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4" style="background: transparent; z-index: 10;">
+                    <i class="bi bi-eye-slash" id="toggleIcon2" style="font-size: 1.4rem; color: #F39C12; opacity: 1 !important; text-shadow: 0 0 5px rgba(0,0,0,0.5);"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <div class="form-check">
+            {{ form.acepto_terminos }}
+            <label class="form-check-label text-white-50 small ms-2" for="{{ form.acepto_terminos.id_for_label }}">
+                Acepto los términos y condiciones
+            </label>
         </div>
     </div>
 
@@ -181,4 +200,18 @@
         Crear Cuenta
     </button>
 </form>
+
+<script>
+function togglePassword(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const toggleIcon = document.getElementById(iconId);
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.replace('bi-eye-slash', 'bi-eye');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.replace('bi-eye', 'bi-eye-slash');
+    }
+}
+</script>
 {% endblock %}

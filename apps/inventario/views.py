@@ -6,20 +6,27 @@ from django.http import JsonResponse
 from apps.usuarios.models import Material
 from historial.utils import registrar_actividad
 
-@login_required
-def materiales_lista(request):
-    query = request.GET.get('q')
+def buscar_materiales(query=None):
+    """
+    Lógica unificada para buscar materiales por nombre, descripción o tipo.
+    """
+    materiales = Material.objects.all()
     if query:
-        materiales = Material.objects.filter(
+        materiales = materiales.filter(
             Q(nombre__icontains=query) | 
             Q(descripcion__icontains=query) |
             Q(tipo__icontains=query)
         )
-    else:
-        materiales = Material.objects.all()
+    return materiales
+
+@login_required
+def materiales_lista(request):
+    query = request.GET.get('q')
+    materiales = buscar_materiales(query)
     
     return render(request, "inventario/lista.html", {
-        "materiales": materiales
+        "materiales": materiales,
+        "query": query
     })
 
 @login_required
