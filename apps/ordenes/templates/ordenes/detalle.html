@@ -80,7 +80,6 @@
                                         <th class="ps-0">Material</th>
                                         <th class="text-center">Cant.</th>
                                         <th class="text-end">P. Unit.</th>
-                                        <!-- CT-255 CT-273 — Columna subtotal -->
                                         <th class="text-end pe-0">Subtotal</th>
                                     </tr>
                                 </thead>
@@ -90,7 +89,6 @@
                                         <td class="ps-0 text-white fw-600">{{ detalle.material.nombre }}</td>
                                         <td class="text-center text-muted">{{ detalle.cantidad }}</td>
                                         <td class="text-end text-muted">$ {{ detalle.precio_unitario }}</td>
-                                        <!-- CT-273 — subtotal = cantidad × precio_unitario -->
                                         <td class="text-end pe-0 text-accent fw-700">$ {{ detalle.subtotal }}</td>
                                     </tr>
                                     {% empty %}
@@ -111,7 +109,6 @@
                                 <tfoot>
                                     <tr class="border-top border-secondary">
                                         <td colspan="3" class="ps-0 pt-4 text-muted fw-700">Total de la Orden</td>
-                                        <!-- CT-272 CT-275 CT-330 — Total actualizado -->
                                         <td class="pe-0 pt-4 text-end">
                                             <h3 class="fw-900 text-white mb-0">$ {{ orden.precio }}</h3>
                                         </td>
@@ -119,6 +116,41 @@
                                 </tfoot>
                             </table>
                         </div>
+
+                        <!-- CT-292 CT-296 — Formulario agregar material (solo pedidos pendientes) -->
+                        {% if orden.estado == "pendiente" %}
+                        <div class="p-4 rounded-4 mt-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                            <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">
+                                <i class="bi bi-plus-circle me-2"></i>Agregar Material
+                            </h6>
+                            {% if messages %}
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} rounded-pill px-4 py-2 mb-3 small">{{ message }}</div>
+                            {% endfor %}
+                            {% endif %}
+                            <form method="POST" action="{% url 'ordenes:agregar_material_pedido' orden.id %}">
+                                {% csrf_token %}
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-8">
+                                        <label class="text-muted small mb-2 d-block">Material</label>
+                                        <select name="material_id" class="form-select rounded-pill border-0 px-4 bg-dark text-white" required>
+                                            <option value="">Selecciona un material...</option>
+                                            {% for m in materiales_disponibles %}
+                                            <option value="{{ m.id }}">{{ m.nombre }} — Stock: {{ m.stock }} — ${{ m.precio }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="text-muted small mb-2 d-block">Cantidad</label>
+                                        <input type="number" name="cantidad" min="1" class="form-control rounded-pill border-0 px-4 bg-dark text-white" placeholder="0" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm mt-3">
+                                    <i class="bi bi-plus-lg me-2"></i> Agregar al pedido
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
                     </div>
 
                     {% if user.usuario.rol == "admin" or user.usuario.rol == "cliente" and orden.estado != "entregado" and orden.estado != "cancelado" %}

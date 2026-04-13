@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from .models import Orden, Entrega, DetalleOrden
 from apps.usuarios.models import Usuario, Vehiculo, Material
+from apps.inventario.models import Material as MaterialInventario
 from historial.utils import registrar_actividad
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
@@ -36,8 +37,10 @@ def lista_pedidos_admin(request):
 @login_required
 def ver_pedido_admin(request, id):
     orden = get_object_or_404(Orden, id=id)
+    materiales_disponibles = MaterialInventario.objects.filter(stock__gt=0, activo=True)
     return render(request, "ordenes/detalle.html", {
-        "orden": orden
+        "orden": orden,
+        "materiales_disponibles": materiales_disponibles,
     })
 
 
@@ -120,7 +123,6 @@ def descargar_factura(request, id):
     elements.append(Paragraph(f"Cliente: {orden.cliente.nombres} {orden.cliente.apellidos}", styles['Normal']))
     elements.append(Spacer(1, 24))
 
-    # CT-275 CT-330 — Mostrar total actualizado en la factura
     data = [['Material', 'Cantidad', 'Precio Unit.', 'Subtotal']]
     for detalle in orden.detalles.all():
         data.append([
@@ -185,4 +187,80 @@ def api_total_orden(request, id):
         'orden_id': orden.id,
         'detalles': detalles,
         'total': str(orden.precio),
+    })
+
+
+# CT-292 CT-293 CT-294 CT-295 CT-296 — Agregar material a un pedido
+@login_required
+def agregar_material_pedido(request, id):
+    orden = get_object_or_404(Orden, id=id)
+
+    # CT-293 — Validar que el pedido esté en estado "pendiente"
+    if orden.estado != Orden.PENDIENTE:
+        return JsonResponse(
+            {"error": "Solo se pueden agregar materiales a pedidos en estado pendiente."},
+            status=400
+        )
+
+    if request.method == "POST":
+        material_id = request.POST.get("material_id")
+        cantidad_str = request.POST.get("cantidad")
+
+        if not material_id or not cantidad_str:
+            return JsonResponse({"error": "material_id y cantidad son requeridos."}, status=400)
+
+        try:
+            cantidad = int(cantidad_str)
+        except ValueError:
+            return JsonResponse({"error": "La cantidad debe ser un número entero."}, status=400)
+
+        if cantidad <= 0:
+            return JsonResponse({"error": "La cantidad debe ser mayor a 0."}, status=400)
+
+        # CT-294 — Buscar en inventario
+        material = get_object_or_404(MaterialInventario, id=material_id)
+
+        if material.stock <= 0:
+            return JsonResponse(
+                {"error": f"El material '{material.nombre}' no tiene stock disponible."},
+                status=400
+            )
+        if cantidad > material.stock:
+            return JsonResponse(
+                {"error": f"La cantidad solicitada ({cantidad}) supera el stock disponible ({material.stock})."},
+                status=400
+            )
+
+        # CT-296 — Guardar el detalle
+        # Usamos Material de usuarios para el FK en DetalleOrden
+        material_orden, _ = Material.objects.get_or_create(
+            nombre=material.nombre,
+            defaults={
+                'tipo': material.tipo,
+                'descripcion': material.descripcion or '',
+                'precio': material.precio,
+                'stock': material.stock,
+            }
+        )
+
+        detalle = DetalleOrden.objects.create(
+            orden=orden,
+            material=material_orden,
+            cantidad=cantidad,
+            precio_unitario=material.precio
+        )
+
+        registrar_actividad(
+            request, 'crear', 'pedidos', orden.id,
+            f"Material '{material.nombre}' x{cantidad} agregado al pedido {orden.id}"
+        )
+
+        return redirect("ordenes:ver_pedido_admin", id=orden.id)
+
+    materiales_disponibles = MaterialInventario.objects.filter(stock__gt=0, activo=True)
+    return JsonResponse({
+        "materiales_disponibles": [
+            {"id": m.id, "nombre": m.nombre, "precio": str(m.precio), "stock": m.stock}
+            for m in materiales_disponibles
+        ]
     })
