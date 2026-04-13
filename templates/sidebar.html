@@ -44,6 +44,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="{% url 'transporte:lista_entregas' %}" class="nav-link-custom {% if 'entregas' in request.path %}active{% endif %}">
+                        <i class="bi bi-box-seam-fill"></i> Entregas
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="{% url 'reportes:reportes_admin' %}" class="nav-link-custom {% if 'reportes' in request.path %}active{% endif %}">
                         <i class="bi bi-pie-chart-fill"></i> Reportes
                     </a>
@@ -77,7 +82,12 @@
             {% elif user.usuario.rol == 'conductor' %}
                 <li class="nav-item">
                     <a href="{% url 'usuarios:panel_conductor' %}" class="nav-link-custom {% if 'panel-conductor' in request.path %}active{% endif %}">
-                        <i class="bi bi-truck"></i> Mis Entregas
+                        <i class="bi bi-speedometer2"></i> Mi Panel
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'transporte:lista_entregas' %}" class="nav-link-custom {% if 'entregas' in request.path %}active{% endif %}">
+                        <i class="bi bi-box-seam-fill"></i> Mis Entregas
                     </a>
                 </li>
                 <li class="nav-item">

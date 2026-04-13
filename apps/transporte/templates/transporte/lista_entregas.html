@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Entregas{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">Entregas</h4>
+            <p class="text-muted small mb-0">Gestiona las entregas del sistema</p>
+        </div>
+        {% if user.usuario.rol == 'admin' %}
+        <button class="btn rounded-pill px-4 fw-bold" style="background-color: var(--color-accent); color: #000;" data-bs-toggle="modal" data-bs-target="#modalCrear">
+            <i class="bi bi-plus-circle-fill me-2"></i> Nueva Entrega
+        </button>
+        {% endif %}
+    </div>
+
+    {% if entregas %}
+    <div class="card rounded-4 border-0 shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--color-border);">
+                        <th class="px-4 py-3 text-muted small">#</th>
+                        <th class="px-4 py-3 text-muted small">Conductor</th>
+                        <th class="px-4 py-3 text-muted small">Vehículo</th>
+                        <th class="px-4 py-3 text-muted small">Descripción</th>
+                        <th class="px-4 py-3 text-muted small">Estado</th>
+                        <th class="px-4 py-3 text-muted small">Último cambio</th>
+                        <th class="px-4 py-3 text-muted small">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entrega in entregas %}
+                    <tr>
+                        <td class="px-4 py-3 text-muted small">#{{ entrega.id }}</td>
+                        <td class="px-4 py-3">{{ entrega.conductor|default:"—" }}</td>
+                        <td class="px-4 py-3">{{ entrega.vehiculo|default:"—" }}</td>
+                        <td class="px-4 py-3">{{ entrega.descripcion|default:"Sin descripción" }}</td>
+                        <td class="px-4 py-3">
+                            {% if entrega.estado == 'pendiente' %}
+                                <span class="badge rounded-pill bg-warning text-dark px-3 py-2">⏳ Pendiente</span>
+                            {% elif entrega.estado == 'en_camino' %}
+                                <span class="badge rounded-pill bg-info text-dark px-3 py-2">🚛 En camino</span>
+                            {% elif entrega.estado == 'entregado' %}
+                                <span class="badge rounded-pill bg-success px-3 py-2">✅ Entregado</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-muted small">
+                            {{ entrega.fecha_ultimo_cambio_estado|date:"d/m/Y H:i"|default:"—" }}
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="d-flex gap-2">
+                                {% if entrega.estado != 'entregado' %}
+                                    <button class="btn btn-sm rounded-pill px-3 fw-bold"
+                                        style="background-color: var(--color-accent); color: #000;"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEstado"
+                                        data-id="{{ entrega.id }}"
+                                        data-estado="{{ entrega.estado }}">
+                                        <i class="bi bi-arrow-repeat"></i> Estado
+                                    </button>
+                                {% endif %}
+                                {% if user.usuario.rol == 'admin' %}
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEditar"
+                                        data-id="{{ entrega.id }}"
+                                        data-conductor="{{ entrega.conductor }}"
+                                        data-vehiculo="{{ entrega.vehiculo }}"
+                                        data-descripcion="{{ entrega.descripcion }}">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEliminar"
+                                        data-id="{{ entrega.id }}">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-inbox display-4 text-muted"></i>
+        <p class="text-muted mt-3">No hay entregas registradas aún.</p>
+        {% if user.usuario.rol == 'admin' %}
+        <button class="btn rounded-pill px-4 fw-bold mt-2" style="background-color: var(--color-accent); color: #000;" data-bs-toggle="modal" data-bs-target="#modalCrear">
+            <i class="bi bi-plus-circle-fill me-2"></i> Crear primera entrega
+        </button>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- ─── MODAL CREAR ─────────────────────────────────────────── -->
+<div class="modal fade" id="modalCrear" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Nueva Entrega</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'transporte:crear_entrega' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-600">Conductor</label>
+                        <input type="text" name="conductor" class="form-control rounded-3" placeholder="Nombre del conductor..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-600">Vehículo</label>
+                        <input type="text" name="vehiculo" class="form-control rounded-3" placeholder="Placa o nombre del vehículo...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-600">Descripción</label>
+                        <textarea name="descripcion" class="form-control rounded-3" rows="3" placeholder="Describe la entrega..."></textarea>
+                    </div>
+                    <button type="submit" class="btn w-100 rounded-pill fw-bold py-2" style="background-color: var(--color-accent); color: #000;">
+                        <i class="bi bi-plus-circle-fill me-2"></i> Crear Entrega
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── MODAL EDITAR ─────────────────────────────────────────── -->
+<div class="modal fade" id="modalEditar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Editar Entrega</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="formEditar">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-600">Conductor</label>
+                        <input type="text" name="conductor" id="editConductor" class="form-control rounded-3" placeholder="Nombre del conductor..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-600">Vehículo</label>
+                        <input type="text" name="vehiculo" id="editVehiculo" class="form-control rounded-3" placeholder="Placa o nombre del vehículo...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-600">Descripción</label>
+                        <textarea name="descripcion" id="editDescripcion" class="form-control rounded-3" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn w-100 rounded-pill fw-bold py-2" style="background-color: var(--color-accent); color: #000;">
+                        <i class="bi bi-save-fill me-2"></i> Guardar Cambios
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── MODAL CAMBIAR ESTADO ─────────────────────────────────── -->
+<div class="modal fade" id="modalEstado" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Cambiar Estado</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="formEstado">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-600">Nuevo estado</label>
+                        <select name="estado" id="selectEstado" class="form-select rounded-3"></select>
+                    </div>
+                    <button type="submit" class="btn w-100 rounded-pill fw-bold py-2" style="background-color: var(--color-accent); color: #000;">
+                        <i class="bi bi-check-circle-fill me-2"></i> Confirmar cambio
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ─── MODAL ELIMINAR ────────────────────────────────────────── -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Eliminar Entrega</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">¿Estás seguro de que deseas eliminar esta entrega? Esta acción no se puede deshacer.</p>
+                <form method="POST" id="formEliminar">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill w-50" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger rounded-pill w-50 fw-bold">Eliminar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const TRANSICIONES = {
+        'pendiente': [['en_camino', '🚛 En camino']],
+        'en_camino': [['entregado', '✅ Entregado']],
+    };
+
+    document.getElementById('modalEstado').addEventListener('show.bs.modal', function(e) {
+        const btn = e.relatedTarget;
+        const id = btn.dataset.id;
+        const estado = btn.dataset.estado;
+        document.getElementById('formEstado').action = `/transporte/entregas/${id}/estado/`;
+        const select = document.getElementById('selectEstado');
+        select.innerHTML = '';
+        (TRANSICIONES[estado] || []).forEach(([val, label]) => {
+            select.innerHTML += `<option value="${val}">${label}</option>`;
+        });
+    });
+
+    document.getElementById('modalEditar').addEventListener('show.bs.modal', function(e) {
+        const btn = e.relatedTarget;
+        const id = btn.dataset.id;
+        document.getElementById('formEditar').action = `/transporte/entregas/${id}/editar/`;
+        document.getElementById('editConductor').value = btn.dataset.conductor;
+        document.getElementById('editVehiculo').value = btn.dataset.vehiculo;
+        document.getElementById('editDescripcion').value = btn.dataset.descripcion;
+    });
+
+    document.getElementById('modalEliminar').addEventListener('show.bs.modal', function(e) {
+        const id = e.relatedTarget.dataset.id;
+        document.getElementById('formEliminar').action = `/transporte/entregas/${id}/eliminar/`;
+    });
+</script>
+
+{% endblock %}
