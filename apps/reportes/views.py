@@ -15,26 +15,36 @@ from historial.utils import registrar_actividad
 
 @login_required
 def reportes_admin(request):
-    # Estadísticas de Órdenes
-    ordenes = Orden.objects.all()
-    context = {
-        # Resumen de Órdenes
-        "total_ordenes": ordenes.count(),
-        "pendientes": ordenes.filter(estado="pendiente").count(),
-        "en_ruta": ordenes.filter(estado="en_ruta").count(),
-        "entregadas": ordenes.filter(estado="entregado").count(),
-        
-        # Resumen de Usuarios
-        "total_clientes": Usuario.objects.filter(rol="cliente").count(),
-        "total_conductores": Usuario.objects.filter(rol="conductor").count(),
-        
-        # Resumen de Inventario y Vehículos
-        "total_materiales": Material.objects.count(),
-        "total_vehiculos": Vehiculo.objects.count(),
-        
-        # Financiero
-        "total_ingresos": ordenes.aggregate(total=Sum("precio"))["total"] or 0,
-    }
+    try:
+        # Estadísticas de Órdenes
+        ordenes = Orden.objects.all()
+        context = {
+            # Resumen de Órdenes
+            "total_ordenes": ordenes.count(),
+            "pendientes": ordenes.filter(estado="pendiente").count(),
+            "en_ruta": ordenes.filter(estado="en_ruta").count(),
+            "entregadas": ordenes.filter(estado="entregado").count(),
+            
+            # Resumen de Usuarios
+            "total_clientes": Usuario.objects.filter(rol="cliente").count(),
+            "total_conductores": Usuario.objects.filter(rol="conductor").count(),
+            
+            # Resumen de Inventario y Vehículos
+            "total_materiales": Material.objects.count(),
+            "total_vehiculos": Vehiculo.objects.count(),
+            
+            # Financiero
+            "total_ingresos": ordenes.aggregate(total=Sum("total_pagar"))["total"] or 0,
+            "now": now(),
+        }
+    except Exception as e:
+        registrar_actividad(request, 'error', 'reportes', None, f"Error al generar dashboard de reportes: {str(e)}")
+        context = {
+            "total_ordenes": 0, "pendientes": 0, "en_ruta": 0, "entregadas": 0,
+            "total_clientes": 0, "total_conductores": 0, "total_materiales": 0, "total_vehiculos": 0,
+            "total_ingresos": 0, "now": now()
+        }
+    
     return render(request, "reportes/lista.html", context)
 
 @login_required
@@ -64,14 +74,15 @@ def exportar_reporte_pdf(request, tipo):
     
     elif tipo == 'materiales':
         data.append(['ID', 'Nombre', 'Tipo', 'Precio', 'Stock'])
-        for m in Material.objects.all():
+        for m in Material.objects.all().select_related('stock'):
             precio_formateado = f"${int(m.precio):,}".replace(",", ".")
-            data.append([m.id, m.nombre, m.tipo, precio_formateado, m.stock])
+            stock_actual = m.stock.cantidad_actual if hasattr(m, 'stock') else 0
+            data.append([m.id, m.nombre, m.tipo, precio_formateado, stock_actual])
 
     elif tipo == 'ventas':
         data.append(['ID', 'Cliente', 'Fecha', 'Total', 'Estado'])
         for o in Orden.objects.all():
-            precio_formateado = f"${int(o.precio):,}".replace(",", ".")
+            precio_formateado = f"${int(o.total_pagar):,}".replace(",", ".")
             data.append([o.id, f"{o.cliente.nombres} {o.cliente.apellidos}", o.fecha.strftime('%Y-%m-%d'), precio_formateado, o.estado])
 
     # Estilo de la tabla

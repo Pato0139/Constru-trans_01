@@ -33,7 +33,7 @@
                     <td class="fw-700 text-accent">#CT-{{ pedido.id }}</td>
                     <td class="fw-600 text-white">{{ pedido.direccion_destino }}</td>
                     <td class="text-muted small">{{ pedido.fecha|date:"d M, Y" }}</td>
-                    <td class="price-tag">${{ pedido.precio|floatformat:0|intcomma }}</td>
+                    <td class="price-tag">${{ pedido.total_pagar|floatformat:0|intcomma }}</td>
                     <td>
                         {% if pedido.estado == "pendiente" %}
                         <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>

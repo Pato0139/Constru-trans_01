@@ -7,6 +7,7 @@ from historial.utils import registrar_actividad
 from django.db.models import Q
 from django.core.mail import send_mail
 from django.conf import settings
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 @login_required
 def contactar_proveedor(request, id):
@@ -41,7 +42,7 @@ def contactar_proveedor(request, id):
 def lista_proveedores(request):
     q = request.GET.get('q', '')
     if q:
-        proveedores = Proveedor.objects.filter(
+        proveedores_list = Proveedor.objects.filter(
             Q(nombre__icontains=q) |
             Q(nit__icontains=q) |
             Q(contacto__icontains=q) |
@@ -49,7 +50,15 @@ def lista_proveedores(request):
             Q(email__icontains=q)
         )
     else:
-        proveedores = Proveedor.objects.all()
+        proveedores_list = Proveedor.objects.all()
+    
+    paginator = Paginator(proveedores_list, 10)
+    page = request.GET.get('page')
+    try:
+        proveedores = paginator.page(page)
+    except:
+        proveedores = paginator.page(1)
+
     return render(request, "compras/proveedores_lista.html", {"proveedores": proveedores, "query": q})
 
 @login_required
@@ -93,3 +102,23 @@ def editar_proveedor(request, id):
         return redirect("compras:lista_proveedores")
         
     return render(request, "compras/proveedor_form.html", {"proveedor": proveedor, "action": "Editar"})
+
+@login_required
+def eliminar_proveedor(request, id):
+    proveedor = get_object_or_404(Proveedor, id=id)
+    nit = proveedor.nit
+    nombre = proveedor.nombre
+    proveedor.delete()
+    registrar_actividad(request, 'eliminar', 'proveedores', nit, f"Proveedor eliminado: {nombre}")
+    messages.success(request, f"Proveedor '{nombre}' eliminado correctamente.")
+    return redirect("compras:lista_proveedores")
+
+@login_required
+def cambiar_estado_proveedor(request, id):
+    proveedor = get_object_or_404(Proveedor, id=id)
+    proveedor.estado = not proveedor.estado
+    proveedor.save()
+    estado_str = "activado" if proveedor.estado else "desactivado"
+    registrar_actividad(request, 'editar', 'proveedores', proveedor.nit, f"Proveedor {estado_str}: {proveedor.nombre}")
+    messages.success(request, f"Proveedor '{proveedor.nombre}' {estado_str} correctamente.")
+    return redirect("compras:lista_proveedores")

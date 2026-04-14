@@ -3,7 +3,7 @@ from .models import Orden, Entrega
 
 @admin.register(Orden)
 class OrdenAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cliente_nombre', 'material', 'cantidad', 'precio', 'estado', 'fecha')
+    list_display = ('id', 'cliente_nombre', 'material', 'cantidad', 'total_pagar', 'estado', 'fecha')
     list_filter = ('estado', 'fecha', 'material')
     search_fields = ('cliente__nombres', 'cliente__apellidos', 'direccion_destino')
     list_per_page = 20

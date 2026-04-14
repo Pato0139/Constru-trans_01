@@ -42,7 +42,7 @@
 
     <div class="mb-3">
         <label>Precio</label>
-        <input type="number" name="precio" class="form-control" step="0.01" min="0" value="{{ orden.precio|default:0 }}">
+        <input type="number" name="total_pagar" class="form-control" step="0.01" min="0" value="{{ orden.total_pagar|default:0 }}">
     </div>
 
     {% if orden %}
@@ -57,12 +57,35 @@
     {% endif %}
 
     <div class="mt-4">
-        <button type="submit" class="btn btn-primary">
+        <button type="button" id="btn-submit-orden" class="btn btn-primary">
             {% if orden %}Guardar Cambios{% else %}Crear Orden{% endif %}
         </button>
         <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="btn btn-secondary">Cancelar</a>
     </div>
 
 </form>
+
+<script>
+    document.getElementById('btn-submit-orden').onclick = function() {
+        const isEditing = "{% if orden %}true{% else %}false{% endif %}" === "true";
+        
+        Swal.fire({
+            title: isEditing ? '¿Guardar cambios?' : '¿Crear orden?',
+            text: isEditing ? "¿Estás seguro de que deseas actualizar esta orden?" : "¿Deseas crear esta nueva orden?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--color-primary)',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, continuar',
+            cancelButtonText: 'Cancelar',
+            background: 'var(--color-surface)',
+            color: 'var(--color-text)'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.closest('form').submit();
+            }
+        });
+    }
+</script>
 
 {% endblock %}

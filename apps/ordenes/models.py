@@ -51,7 +51,7 @@ class Orden(models.Model):
         default=PENDIENTE
     )
 
-    precio = models.DecimalField(
+    total_pagar = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,

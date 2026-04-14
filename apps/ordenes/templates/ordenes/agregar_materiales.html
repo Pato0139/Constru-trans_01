@@ -52,7 +52,7 @@
                 {% for m in materiales %}
                   <option value="{{ m.id }}"
                           data-precio="{{ m.precio }}"
-                          data-stock="{{ m.stock_disponible }}"
+                          data-stock="{{ m.stock_actual }}"
                           data-unidad="{{ m.unidad_medida }}">
                     {{ m.nombre }}
                   </option>
@@ -135,7 +135,7 @@
                 <tr>
                   <td class="ps-0 pt-4 text-white-50 fw-600" style="font-style: italic; font-size: 1.1rem;">Total de la Orden</td>
                   <td colspan="2" class="pe-0 pt-4 text-end">
-                    <span class="fw-900" id="d-total" style="font-size: 2.2rem; color: #ffffff;">${{ orden.precio|floatformat:0|intcomma }}</span>
+                    <span class="fw-900" id="d-total" style="font-size: 2.2rem; color: #ffffff;">${{ orden.total_pagar|floatformat:0|intcomma }}</span>
                   </td>
                 </tr>
               </tfoot>

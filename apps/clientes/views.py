@@ -18,7 +18,7 @@ def panel_cliente(request):
     context = {
         "pedidos_activos": pedidos.filter(estado="pendiente").count(),
         "entregadas": pedidos.filter(estado="entregado").count(),
-        "total_gastado": pedidos.aggregate(total=Sum("precio"))["total"] or 0,
+        "total_gastado": pedidos.aggregate(total=Sum("total_pagar"))["total"] or 0,
         "ultimos_pedidos": pedidos.order_by("-fecha")[:5]
     }
     return render(request, "clientes/lista.html", context)
@@ -48,7 +48,7 @@ def perfil_cliente(request):
         "total_pedidos": pedidos.count(),
         "pedidos_pendientes": pedidos.filter(estado="pendiente").count(),
         "en_ruta": pedidos.filter(estado="en_ruta").count(),
-        "total_invertido": pedidos.aggregate(total=Sum("precio"))["total"] or 0
+        "total_invertido": pedidos.aggregate(total=Sum("total_pagar"))["total"] or 0
     }
     
     return render(request, "clientes/detalle.html", context)
@@ -75,12 +75,17 @@ def historial_pedidos(request):
 @login_required
 def crear_pedido(request):
     # Restricción: Solo clientes pueden solicitar pedidos
-    if request.user.usuario.rol != 'cliente':
+    try:
+        usuario_actual = request.user.usuario
+    except Usuario.DoesNotExist:
+        logout(request)
+        return redirect("usuarios:login")
+
+    if usuario_actual.rol != 'cliente':
         messages.error(request, "Solo los clientes pueden solicitar nuevos pedidos.")
         return redirect("usuarios:panel")
         
-    cliente = request.user.usuario
-    materiales = Material.objects.all()
+    materiales = Material.objects.filter(activo=True)
 
     if request.method == "POST":
         materiales_ids = request.POST.getlist('material_id[]')
@@ -89,10 +94,11 @@ def crear_pedido(request):
         fecha_entrega = request.POST.get("fecha_entrega")
 
         if not materiales_ids or not direccion:
-            messages.error(request, "Por favor, agrega al menos un material y la dirección.")
+            messages.error(request, "Por favor, agrega al menos un material y la dirección de entrega.")
             return render(request, "clientes/form.html", {
                 "materiales": materiales,
-                "action": "crear"
+                "action": "crear",
+                "error": "Faltan campos obligatorios."
             })
 
         try:
@@ -103,22 +109,23 @@ def crear_pedido(request):
 
             with transaction.atomic():
                 nueva_orden = Orden.objects.create(
-                    cliente=cliente,
+                    cliente=usuario_actual,
                     direccion_origen="Bodega Central",
                     direccion_destino=direccion,
                     estado="pendiente",
                     fecha_entrega_programada=fecha_entrega if fecha_entrega else None
                 )
 
-                for m_id, cant in zip(materiales_ids, cantidades):
+                for i, (m_id, cant) in enumerate(zip(materiales_ids, cantidades)):
                     material = get_object_or_404(Material, id=m_id)
                     cantidad = int(cant)
 
                     if cantidad <= 0:
                         raise ValueError(f"La cantidad para {material.nombre} debe ser mayor a 0.")
 
-                    if material.stock < cantidad:
-                        raise ValueError(f"Stock insuficiente para {material.nombre}. Quedan {material.stock}.")
+                    # Usar stock_actual que es el campo correcto según project_memory
+                    if material.stock_actual < cantidad:
+                        raise ValueError(f"Stock insuficiente para {material.nombre}. Quedan {material.stock_actual} unidades.")
 
                     precio_unitario = material.precio
                     total_item = precio_unitario * cantidad
@@ -131,26 +138,28 @@ def crear_pedido(request):
                         precio_unitario=precio_unitario
                     )
                     
-                    material.stock -= cantidad
-                    material.save()
+                    # Para compatibilidad con modelos que usan campos directos en Orden
+                    if i == 0:
+                        nueva_orden.material = material
+                        nueva_orden.cantidad = cantidad
 
-                nueva_orden.precio = total_general
+                nueva_orden.total_pagar = total_general
                 nueva_orden.save()
 
-            messages.success(request, f"Pedido #{nueva_orden.id} creado correctamente.")
+            messages.success(request, f"¡Pedido #CT-{nueva_orden.id} solicitado con éxito!")
             return redirect("clientes:mis_pedidos")
 
         except ValueError as e:
-            messages.error(request, str(e))
             return render(request, "clientes/form.html", {
                 "materiales": materiales,
-                "action": "crear"
+                "action": "crear",
+                "error": str(e)
             })
         except Exception as e:
-            messages.error(request, f"Error interno: {e}")
             return render(request, "clientes/form.html", {
                 "materiales": materiales,
-                "action": "crear"
+                "action": "crear",
+                "error": f"Error inesperado: {str(e)}"
             })
 
     return render(request, "clientes/form.html", {
@@ -173,7 +182,7 @@ def editar_pedido(request, id):
         orden.material = material
         orden.cantidad = cantidad
         orden.direccion_destino = direccion
-        orden.precio = material.precio * cantidad
+        orden.total_pagar = material.precio * cantidad
         orden.save()
         
         messages.success(request, f"Pedido #{orden.id} actualizado correctamente.")

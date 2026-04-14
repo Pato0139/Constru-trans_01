@@ -62,7 +62,7 @@
                         <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Stock Disponible</label>
                         <div class="input-group">
                             <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-archive"></i></span>
-                            <input type="number" name="stock" class="form-control" placeholder="0" value="{{ material.stock|default:'' }}" min="0" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;">
+                            <input type="number" name="stock" class="form-control" placeholder="0" value="{{ material.stock_actual|default:'' }}" min="0" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;">
                         </div>
                     </div>
                 </div>

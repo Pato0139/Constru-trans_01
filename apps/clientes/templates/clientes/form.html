@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}
     {% if action == 'crear' %}Solicitar Pedido{% else %}Editar Pedido{% endif %} - Constru-trans
@@ -25,9 +26,14 @@
                 </p>
             </div>
 
-            {% if error %}
+            {% if error or messages %}
                 <div class="alert alert-danger rounded-4 px-4 mb-4 border-0 shadow-sm animate__animated animate__shakeX" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error }}
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {% if error %}
+                        {{ error }}
+                    {% else %}
+                        {% for message in messages %}{{ message }}{% endfor %}
+                    {% endif %}
                 </div>
             {% endif %}
 
@@ -100,7 +106,7 @@
                 <div class="p-4 rounded-4 mb-5 shadow-sm" style="background: rgba(243, 156, 18, 0.08); border: 1px solid rgba(243, 156, 18, 0.15);">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-800 text-muted small text-uppercase" style="letter-spacing: 1px;">Total Estimado del Pedido:</span>
-                        <h3 class="mb-0 fw-900 text-accent" id="display-total" style="font-size: 2rem; letter-spacing: -1px;">{% if action == 'editar' %}${{ orden.precio|floatformat:0|intcomma }}{% else %}$0{% endif %}</h3>
+                        <h3 class="mb-0 fw-900 text-accent" id="display-total" style="font-size: 2rem; letter-spacing: -1px;">{% if action == 'editar' %}${{ orden.total_pagar|floatformat:0|intcomma }}{% else %}$0{% endif %}</h3>
                     </div>
                 </div>
 
@@ -128,7 +134,7 @@
                 </div>
 
                 <div class="d-grid gap-3 mt-4">
-                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">
+                    <button type="button" id="btn-submit-pedido" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">
                         <i class="bi bi-check2-all me-2"></i> {% if action == 'crear' %}Confirmar y Enviar Pedido{% else %}Guardar Cambios{% endif %}
                     </button>
                     <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light rounded-pill py-2 opacity-75 hover-opacity-100">
@@ -141,6 +147,41 @@
 </div>
 
 <script>
+document.getElementById('btn-submit-pedido').onclick = function() {
+    const action = "{{ action }}";
+    const isEditing = action === "editar";
+    
+    // Validar que haya materiales si es creación
+    if (!isEditing && document.querySelectorAll('#lista-detalles tr').length === 0) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Pedido vacío',
+            text: 'Debes agregar al menos un material a tu pedido.',
+            confirmButtonColor: 'var(--color-accent)',
+            background: '#1a1a1a',
+            color: '#ffffff'
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: isEditing ? '¿Guardar cambios?' : '¿Confirmar pedido?',
+        text: isEditing ? "¿Estás seguro de que deseas actualizar este pedido?" : "¿Deseas enviar este nuevo pedido al sistema?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: 'var(--color-accent)',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, continuar',
+        cancelButtonText: 'Cancelar',
+        background: '#1a1a1a',
+        color: '#ffffff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            this.closest('form').submit();
+        }
+    });
+}
+
 let totalGeneral = 0;
 
 function agregarMaterial() {

@@ -4,68 +4,205 @@
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-5">
-    <div>
-        <h2 class="fw-bold mb-0">Gestión de Vehículos</h2>
-        <p class="text-muted small mb-0">Control de flota y disponibilidad de transporte</p>
-    </div>
-    <a href="{% url 'transporte:crear_vehiculo' %}" class="btn btn-gold rounded-pill px-4 shadow-sm">
-        <i class="bi bi-plus-circle me-2"></i> Crear Vehículo
-    </a>
-</div>
+<div class="container-fluid py-4">
+    <!-- Header Seccion -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4">
+        <div>
+            <h2 class="fw-900 mb-0 text-white" style="letter-spacing: -1px;">
+                <i class="bi bi-truck text-accent me-2"></i>Gestión de <span class="text-accent">Vehículos</span>
+            </h2>
+            <p class="text-muted small mb-0 mt-1">Control de flota, disponibilidad y estados de transporte</p>
+        </div>
 
-<div class="table-container p-0">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead>
-                <tr>
-                    <th class="text-center">ID</th>
-                    <th class="text-center">Placa</th>
-                    <th class="text-center">Tipo</th>
-                    <th class="text-center">Capacidad</th>
-                    <th class="text-center">Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for vehiculo in vehiculos %}
-                <tr>
-                    <td class="text-center text-muted fw-bold">#{{ vehiculo.id }}</td>
-                    <td class="text-center fw-800 text-white">{{ vehiculo.placa }}</td>
-                    <td class="text-center">
-                        <span class="badge-tipo">{{ vehiculo.tipo }}</span>
-                    </td>
-                    <td class="text-center text-muted">{{ vehiculo.capacidad }} Ton</td>
-                    <td class="text-center">
-                        {% if vehiculo.estado == "disponible" or vehiculo.estado == "Disponible" %}
-                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">
-                            <i class="bi bi-check-circle-fill me-1"></i> Disponible
-                        </span>
-                        {% elif vehiculo.estado == "en_ruta" or vehiculo.estado == "En Ruta" %}
-                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">
-                            <i class="bi bi-truck me-1"></i> En Ruta
-                        </span>
-                        {% else %}
-                        <span class="badge-tipo" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">
-                            {{ vehiculo.estado|title }}
-                        </span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center py-5 text-muted">
-                        <i class="bi bi-truck fs-1 d-block mb-3 opacity-25"></i>
-                        No hay vehículos registrados en la flota
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <a href="{% url 'transporte:crear_vehiculo' %}" class="btn btn-accent rounded-pill px-4 py-2 fw-900 shadow-lg text-uppercase" 
+                style="font-size: 0.85rem; letter-spacing: 1px;">
+            <i class="bi bi-plus-lg me-2"></i> Nuevo Vehículo
+        </a>
+    </div>
+
+    <!-- Buscador Premium (Opcional, si hay muchos vehículos) -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <form method="GET" class="d-flex align-items-center gap-2">
+                <div class="search-box-premium flex-grow-1">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" name="q" class="form-control" placeholder="Buscar por placa o tipo..." value="{{ query|default:'' }}">
+                </div>
+                <button type="submit" class="btn btn-accent rounded-pill px-5 py-2 fw-900 shadow-lg text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px;">
+                    Buscar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-container-premium">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-center ps-4">ID</th>
+                        <th class="text-center">Placa</th>
+                        <th class="text-center">Tipo de Vehículo</th>
+                        <th class="text-center">Capacidad</th>
+                        <th class="text-center">Estado Actual</th>
+                        <th class="text-center pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vehiculo in vehiculos %}
+                    <tr>
+                        <td class="text-center text-muted fw-bold ps-4">#{{ vehiculo.id }}</td>
+                        <td class="text-center">
+                            <span class="fw-900 text-white fs-5" style="letter-spacing: 1px;">{{ vehiculo.placa|upper }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge-category">{{ vehiculo.tipo }}</span>
+                        </td>
+                        <td class="text-center text-white fw-700">
+                            {{ vehiculo.capacidad }} <span class="text-muted small fw-normal">Ton</span>
+                        </td>
+                        <td class="text-center">
+                            {% if vehiculo.estado|lower == "disponible" %}
+                            <span class="badge-status bg-success-glow text-success">
+                                <i class="bi bi-check-circle-fill me-1"></i> Disponible
+                            </span>
+                            {% elif vehiculo.estado|lower == "en_ruta" %}
+                            <span class="badge-status bg-info-glow text-info">
+                                <i class="bi bi-truck me-1"></i> En Ruta
+                            </span>
+                            {% else %}
+                            <span class="badge-status bg-warning-glow text-warning">
+                                {{ vehiculo.estado|title }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center pe-4">
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'transporte:editar_vehiculo' vehiculo.id %}" class="btn-action-premium edit" title="Editar">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <form action="{% url 'transporte:eliminar_vehiculo' vehiculo.id %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-action-premium delete" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar este vehículo?')">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="bi bi-truck display-1 text-muted opacity-25 mb-3 d-block"></i>
+                                <h5 class="text-white">No hay vehículos registrados</h5>
+                                <p class="text-muted">Inicia registrando una nueva unidad a la flota.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <style>
-    .fw-800 { font-weight: 800; }
+    /* Estilos Premium Reutilizados */
+    .search-box-premium {
+        position: relative;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 50px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .search-box-premium:focus-within {
+        border-color: var(--color-accent);
+        box-shadow: 0 0 20px rgba(243, 156, 18, 0.1);
+    }
+    .search-icon {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--color-accent);
+    }
+    .search-box-premium .form-control {
+        padding: 12px 20px 12px 55px !important;
+        background: transparent !important;
+        border: none !important;
+        color: white !important;
+    }
+    .table-container-premium {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 24px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+    .table thead th {
+        background: rgba(255,255,255,0.03);
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 20px 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid rgba(255,255,255,0.02);
+    }
+    .table tbody tr:hover {
+        background: rgba(255,255,255,0.03) !important;
+    }
+    .btn-action-premium {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.03);
+        color: white;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    .btn-action-premium.edit:hover {
+        background: var(--color-accent);
+        color: black;
+        border-color: var(--color-accent);
+        box-shadow: 0 0 15px rgba(243, 156, 18, 0.3);
+    }
+    .btn-action-premium.delete:hover {
+        background: #ef4444;
+        color: white;
+        border-color: #ef4444;
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+    }
+    .badge-category {
+        background: rgba(243, 156, 18, 0.1);
+        color: var(--color-accent);
+        padding: 6px 15px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+    .badge-status {
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .bg-success-glow { background: rgba(34, 197, 94, 0.1); }
+    .bg-info-glow { background: rgba(59, 130, 246, 0.1); }
+    .bg-warning-glow { background: rgba(243, 156, 18, 0.1); }
 </style>
 
 {% endblock %}

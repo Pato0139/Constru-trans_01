@@ -15,58 +15,20 @@
 <!-- DataTables CSS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <!-- Custom CSS -->
+<link rel="stylesheet" href="{% static 'css/theme.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 
 <style>
-    :root {
-        /* Default: Dark Mode (Neutro, buen contraste) */
-        --color-bg: #0f172a;
-        --color-surface: #1e293b;
-        --color-primary: #3b82f6;
-        --color-secondary: #334155;
-        --color-accent: #f59e0b;
-        --color-text: #f8fafc;
-        --color-muted: #94a3b8;
-        --color-border: rgba(255, 255, 255, 0.1);
-        --color-success: #10b981;
-        --color-warning: #f59e0b;
-        --color-danger: #ef4444;
-        --color-info: #0ea5e9;
-    }
-
-    [data-theme="light"] {
-        --color-bg: #f8fafc;
-        --color-surface: #ffffff;
-        --color-primary: #2563eb;
-        --color-secondary: #e2e8f0;
-        --color-accent: #d97706;
-        --color-text: #1e293b;
-        --color-muted: #64748b;
-        --color-border: rgba(0, 0, 0, 0.1);
-    }
-
-    [data-theme="accessibility"] {
-        /* Modo de Alto Contraste Mejorado */
-        --color-bg: #000000;
-        --color-surface: #000000;
-        --color-primary: #ffff00; /* Amarillo brillante */
-        --color-secondary: #1a1a1a; /* Gris muy oscuro en lugar de blanco para el fondo de tabla */
-        --color-accent: #00ff00; /* Verde brillante */
-        --color-text: #ffffff; /* Blanco puro */
-        --color-muted: #ffffff;
-        --color-border: #ffffff;
-        --color-success: #00ff00;
-        --color-warning: #ffff00;
-        --color-danger: #ff0000;
-    }
-
     body {
         background-color: var(--color-bg);
         color: var(--color-text);
-        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-family: 'Montserrat', sans-serif;
         margin: 0;
-        transition: background-color 0.3s, color 0.3s;
     }
 
     main {
@@ -75,9 +37,9 @@
     }
 
     .card, .navbar-custom, .sidebar-custom, .modal-content {
-        background-color: var(--color-surface) !important;
-        color: var(--color-text) !important;
-        border-color: var(--color-border) !important;
+        background-color: var(--color-surface);
+        color: var(--color-text);
+        border-color: var(--color-border);
     }
 
     /* Estilos para inputs, select y textarea */
@@ -145,16 +107,20 @@
 {% include "navbar.html" %}
 
 {% if messages %}
-    <div class="container-fluid mt-3">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show rounded-pill px-4" role="alert">
-                {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill me-2"></i>{% endif %}
-                {% if message.tags == 'error' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>{% endif %}
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for message in messages %}
+                Swal.fire({
+                    icon: "{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}",
+                    title: "{% if message.tags == 'error' %}¡Error!{% elif message.tags == 'success' %}¡Éxito!{% elif message.tags == 'warning' %}¡Atención!{% else %}Información{% endif %}",
+                    text: "{{ message }}",
+                    confirmButtonColor: 'var(--color-primary)',
+                    background: 'var(--color-surface)',
+                    color: 'var(--color-text)'
+                });
+            {% endfor %}
+        });
+    </script>
 {% endif %}
 
 {% block content %}

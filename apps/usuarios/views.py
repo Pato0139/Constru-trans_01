@@ -209,16 +209,26 @@ def panel(request):
             return redirect("usuarios:login")
 
     if usuario.rol == "admin":
-        context = {
-            "pedidos_pendientes": Orden.objects.filter(estado="pendiente").count(),
-            "conductores": Usuario.objects.filter(rol="conductor").count(),
-            "entregas_hoy": Orden.objects.filter(
-                estado="entregado",
-                fecha__date=now().date()
-            ).count(),
-            "clientes": Usuario.objects.filter(rol="cliente").count(),
-            "pedidos_recientes": Orden.objects.all().order_by("-fecha")[:5]
-        }
+        try:
+            context = {
+                "pedidos_pendientes": Orden.objects.filter(estado="pendiente").count(),
+                "conductores": Usuario.objects.filter(rol="conductor").count(),
+                "entregas_hoy": Orden.objects.filter(
+                    estado="entregado",
+                    fecha__date=now().date()
+                ).count(),
+                "clientes": Usuario.objects.filter(rol="cliente").count(),
+                "pedidos_recientes": Orden.objects.all().order_by("-fecha")[:5]
+            }
+        except Exception as e:
+            registrar_actividad(request, 'error', 'panel', None, f"Error al cargar estadísticas: {str(e)}")
+            context = {
+                "pedidos_pendientes": 0,
+                "conductores": 0,
+                "entregas_hoy": 0,
+                "clientes": 0,
+                "pedidos_recientes": []
+            }
         return render(request, "usuarios/panel-admin.html", context)
     elif usuario.rol == "cliente":
         return redirect("clientes:panel_cliente")
@@ -226,6 +236,56 @@ def panel(request):
         return panel_conductor(request)
     
     return redirect("usuarios:login")
+
+
+# ---------------- STOCK ----------------
+@login_required
+def stock_lista(request):
+    """
+    Vista para el panel de control de stock de materiales.
+    """
+    if request.user.usuario.rol != 'admin':
+        messages.error(request, "No tienes permisos para ver el inventario.")
+        return redirect("usuarios:panel")
+
+    q = request.GET.get('q', '')
+    tipo = request.GET.get('tipo', '')
+    alerta = request.GET.get('alerta', '')
+
+    stocks = StockMaterial.objects.all().select_related('material')
+
+    if q:
+        stocks = stocks.filter(
+            Q(material__nombre__icontains=q) |
+            Q(material__tipo__icontains=q)
+        )
+    
+    if tipo:
+        stocks = stocks.filter(material__tipo=tipo)
+
+    # Alerta de stock bajo (cantidad_actual <= cantidad_minima)
+    if alerta == 'bajo':
+        stocks = [s for s in stocks if s.cantidad_actual <= s.cantidad_minima]
+
+    # Paginación (6 por página para diseño de tarjetas)
+    paginator = Paginator(stocks, 6)
+    page = request.GET.get('page')
+    try:
+        stocks_paginados = paginator.page(page)
+    except PageNotAnInteger:
+        stocks_paginados = paginator.page(1)
+    except EmptyPage:
+        stocks_paginados = paginator.page(paginator.num_pages)
+
+    tipos_materiales = Material.objects.values_list('tipo', flat=True).distinct()
+
+    return render(request, "inventario/stock_dashboard.html", {
+        "stocks": stocks_paginados,
+        "query": q,
+        "tipo_selected": tipo,
+        "alerta": alerta,
+        "tipos_materiales": tipos_materiales
+    })
 
 
 # ---------------- CONDUCTOR ----------------
@@ -240,11 +300,22 @@ def panel_conductor(request):
     pedidos_asignados = Orden.objects.filter(conductor=conductor).exclude(estado="entregado")
     entregas_completadas = Orden.objects.filter(conductor=conductor, estado="entregado")
     
+    # Obtener vehículo asignado (basado en la lógica del perfil)
+    # Asumiendo que hay una relación o filtro por placa/estado si no hay FK directa en Usuario
+    vehiculo = Vehiculo.objects.filter(estado="en_ruta").first() # Simplificación para demo si no hay FK
+    
+    # Rendimiento: Promedio de entregas por semana (simulado o calculado)
+    # Por ahora usaremos datos reales de las órdenes
     context = {
-        "pedidos": pedidos_asignados,
+        "pedidos": pedidos_asignados[:5], # Solo los 5 más recientes
         "entregas_totales": entregas_completadas.count(),
         "pedidos_pendientes": pedidos_asignados.count(),
-        "ultima_entrega": entregas_completadas.order_by("-fecha").first()
+        "ultima_entrega": entregas_completadas.order_by("-fecha").first(),
+        "vehiculo": vehiculo,
+        "notificaciones": [
+            {"titulo": "Nueva Ruta Asignada", "tipo": "info", "fecha": "Hace 5 min"},
+            {"titulo": "Mantenimiento Preventivo", "tipo": "warning", "fecha": "Mañana 8:00 AM"}
+        ]
     }
     return render(request, "usuarios/panel-conductor.html", context)
 
@@ -285,7 +356,7 @@ def perfil_admin(request):
         "usuarios_count": Usuario.objects.count(),
         "materiales_count": Material.objects.count(),
         "ordenes_count": Orden.objects.count(),
-        "total_ventas": Orden.objects.aggregate(total=Sum("precio"))["total"] or 0,
+        "total_ventas": Orden.objects.aggregate(total=Sum("total_pagar"))["total"] or 0,
         "entregados_count": Orden.objects.filter(estado="entregado").count()
     }
     return render(request, "usuarios/detalle.html", context)
@@ -333,6 +404,48 @@ def editar_perfil(request):
             return redirect("clientes:perfil_cliente")
             
     return render(request, "usuarios/editar_perfil.html", {"usuario": usuario})
+
+
+@login_required
+def perfil(request):
+    """
+    Vista genérica de perfil que redirige según el rol del usuario.
+    """
+    try:
+        usuario = request.user.usuario
+    except Usuario.DoesNotExist:
+        logout(request)
+        return redirect("usuarios:login")
+
+    if usuario.rol == 'admin':
+        return redirect("usuarios:perfil_admin")
+    elif usuario.rol == 'conductor':
+        return redirect("usuarios:perfil_conductor")
+    else:
+        return redirect("clientes:panel_cliente")
+
+
+@login_required
+def perfil(request):
+    """
+    Vista genérica de perfil que redirige según el rol del usuario.
+    """
+    try:
+        usuario = request.user.usuario
+    except Usuario.DoesNotExist:
+        if request.user.is_superuser:
+            return redirect("usuarios:perfil_admin")
+        logout(request)
+        return redirect("usuarios:login")
+
+    if usuario.rol == 'admin':
+        return redirect("usuarios:perfil_admin")
+    elif usuario.rol == 'conductor':
+        return redirect("usuarios:perfil_conductor")
+    elif usuario.rol == 'cliente':
+        return redirect("clientes:perfil_cliente")
+    else:
+        return redirect("usuarios:panel")
 
 
 # ---------------- GESTIÓN DE USUARIOS ----------------
@@ -413,9 +526,33 @@ def lista_usuarios(request):
     query = request.GET.get('q')
     usuarios_list = buscar_usuarios_generales(query)
     
-    admins = usuarios_list.filter(rol='admin')
-    clientes = usuarios_list.filter(rol='cliente')
-    conductores = usuarios_list.filter(rol='conductor')
+    admins_list = usuarios_list.filter(rol='admin')
+    clientes_list = usuarios_list.filter(rol='cliente')
+    conductores_list = usuarios_list.filter(rol='conductor')
+    
+    # Paginación para cada tipo
+    page_admin = request.GET.get('page_admin')
+    page_cliente = request.GET.get('page_cliente')
+    page_conductor = request.GET.get('page_conductor')
+
+    paginator_admin = Paginator(admins_list, 10)
+    paginator_cliente = Paginator(clientes_list, 10)
+    paginator_conductor = Paginator(conductores_list, 10)
+
+    try:
+        admins = paginator_admin.page(page_admin)
+    except:
+        admins = paginator_admin.page(1)
+
+    try:
+        clientes = paginator_cliente.page(page_cliente)
+    except:
+        clientes = paginator_cliente.page(1)
+
+    try:
+        conductores = paginator_conductor.page(page_conductor)
+    except:
+        conductores = paginator_conductor.page(1)
     
     context = {
         "admins": admins,
@@ -433,7 +570,13 @@ def eliminar_usuario(request, id):
         messages.error(request, "No tienes permisos para realizar esta acción.")
         return redirect("usuarios:panel")
 
-    usuario_obj = get_object_or_404(Usuario, id=id) 
+    usuario_obj = get_object_or_404(Usuario, id=id)
+    
+    # Restricción: Un admin no puede eliminar a otro admin (a menos que sea superuser)
+    if usuario_obj.rol == 'admin' and usuario_obj.user != request.user and not request.user.is_superuser:
+        messages.error(request, "No tienes permisos para eliminar a otro administrador.")
+        return redirect("usuarios:lista_usuarios")
+
     nombre_usuario = usuario_obj.user.username
     usuario_obj.delete()
     registrar_actividad(request, 'eliminar', 'usuarios', id, f"Usuario eliminado: {nombre_usuario}")
@@ -444,6 +587,13 @@ def eliminar_usuario(request, id):
 @login_required
 def editar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
+    
+    # Restricción: Un admin no puede editar a otro admin (a menos que sea superuser o sea él mismo)
+    if usuario.rol == 'admin' and usuario.user != request.user and not request.user.is_superuser:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({"status": "error", "message": "No tienes permisos para editar a otro administrador."}, status=403)
+        messages.error(request, "No tienes permisos para editar a otro administrador.")
+        return redirect("usuarios:lista_usuarios")
     
     if request.user.usuario.rol != 'admin' and request.user.usuario != usuario:
         messages.error(request, "No tienes permisos para editar este perfil.")
@@ -477,15 +627,36 @@ def editar_usuario(request, id):
                 
             usuario.save()
             registrar_actividad(request, 'editar', 'usuarios', usuario.user.id, f"Perfil de usuario editado: {usuario.user.username}")
-            messages.success(request, "Cambios guardados exitosamente.")
+            
+            success_msg = "Cambios guardados exitosamente."
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"status": "success", "message": success_msg})
+                
+            messages.success(request, success_msg)
             return redirect("usuarios:lista_usuarios")
         except Exception as e:
-            messages.error(request, f"Error al guardar los cambios: {str(e)}")
+            error_msg = f"Error al guardar los cambios: {str(e)}"
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"status": "error", "message": error_msg}, status=500)
+                
+            messages.error(request, error_msg)
             return render(request, "usuarios/form.html", {
                 "usuario": usuario,
                 "form_data": request.POST,
                 "action": "editar"
             })
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            "id": usuario.id,
+            "nombres": usuario.nombres,
+            "apellidos": usuario.apellidos,
+            "email": usuario.user.email,
+            "telefono": usuario.telefono,
+            "rol": usuario.rol,
+            "tipo_doc": usuario.tipo_documento,
+            "documento": usuario.documento
+        })
 
     return render(request, "usuarios/form.html", {
         "usuario": usuario,

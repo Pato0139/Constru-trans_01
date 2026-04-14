@@ -14,6 +14,13 @@ class Proveedor(models.Model):
         verbose_name = "Proveedor"
         verbose_name_plural = "Proveedores"
 
+    def save(self, *args, **kwargs):
+        if self.nombre:
+            self.nombre = self.nombre.title()
+        if self.contacto:
+            self.contacto = self.contacto.title()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.nombre
 
@@ -35,6 +42,6 @@ class DetalleCompra(models.Model):
     def save(self, *args, **kwargs):
         # Actualizar stock automáticamente al guardar el detalle de compra (Requerimiento 20)
         if not self.pk: # Solo en creación
-            self.material.stock += self.cantidad
+            self.material.stock_actual += self.cantidad
             self.material.save()
         super().save(*args, **kwargs)

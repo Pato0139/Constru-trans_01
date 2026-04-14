@@ -16,10 +16,12 @@ urlpatterns = [
     path("usuarios/crear/", views.crear_usuario, name="crear_usuario"),
     path("usuarios/eliminar/<int:id>/", views.eliminar_usuario, name="eliminar_usuario"),
     path("usuarios/editar/<int:id>/", views.editar_usuario, name="editar_usuario"),
+    path("perfil/", views.perfil, name="perfil"),
     path("perfil-admin/", views.perfil_admin, name="perfil_admin"),
     path("perfil/editar/", views.editar_perfil, name="editar_perfil"),
 
     path("conductores/", views.lista_conductores, name="lista_conductores"),
+    path("stock/", views.stock_lista, name="stock_lista"),
 
     # conductor
     path("panel-conductor/", views.panel_conductor, name="panel_conductor"),

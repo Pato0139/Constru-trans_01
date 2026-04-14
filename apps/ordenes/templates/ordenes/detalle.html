@@ -107,7 +107,7 @@
                                 <tfoot>
                                     <tr>
                                         <td colspan="2" class="ps-0 pt-4 text-muted fw-700">Total de la Orden</td>
-                                        <td class="pe-0 pt-4 text-end"><h3 class="fw-900 text-white mb-0">${{ orden.precio|floatformat:0|intcomma }}</h3></td>
+                                        <td class="pe-0 pt-4 text-end"><h3 class="fw-900 text-white mb-0">${{ orden.total_pagar|floatformat:0|intcomma }}</h3></td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -128,14 +128,14 @@
                                 <a href="{% url 'ordenes:editar_orden' orden.id %}" class="btn btn-outline-warning rounded-pill py-2 fw-700">
                                     <i class="bi bi-pencil-square me-2"></i> Modificar Pedido
                                 </a>
-                                <a href="{% url 'ordenes:eliminar_orden' orden.id %}" class="btn btn-outline-danger rounded-pill py-2 fw-700" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
+                                <a href="javascript:void(0)" class="btn btn-outline-danger rounded-pill py-2 fw-700 btn-cancelar-pedido-detalle" data-url="{% url 'ordenes:eliminar_orden' orden.id %}" data-id="{{ orden.id }}">
                                     <i class="bi bi-x-circle me-2"></i> Cancelar Pedido
                                 </a>
                             {% else %}
                                 <a href="{% url 'clientes:editar_pedido' orden.id %}" class="btn btn-outline-warning rounded-pill py-2 fw-700">
                                     <i class="bi bi-pencil-square me-2"></i> Modificar Pedido
                                 </a>
-                                <a href="{% url 'clientes:eliminar_orden' orden.id %}" class="btn btn-outline-danger rounded-pill py-2 fw-700" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
+                                <a href="javascript:void(0)" class="btn btn-outline-danger rounded-pill py-2 fw-700 btn-cancelar-pedido-detalle" data-url="{% url 'clientes:eliminar_orden' orden.id %}" data-id="{{ orden.id }}">
                                     <i class="bi bi-x-circle me-2"></i> Cancelar Pedido
                                 </a>
                             {% endif %}
@@ -172,10 +172,10 @@
                         <p class="text-muted small mb-4">Como conductor asignado, puedes confirmar la entrega exitosa o reportar una cancelación.</p>
                         <form method="POST" class="d-grid gap-3">
                             {% csrf_token %}
-                            <button type="submit" name="accion" value="confirmar" class="btn btn-success rounded-pill py-3 fw-800 d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                            <button type="button" name="accion" value="confirmar" class="btn btn-success rounded-pill py-3 fw-800 d-flex align-items-center justify-content-center gap-2 shadow-sm btn-confirmar-entrega">
                                 <i class="bi bi-check-circle-fill"></i> Confirmar Entrega
                             </button>
-                            <button type="submit" name="accion" value="cancelar" class="btn btn-outline-danger rounded-pill py-2 fw-700" onclick="return confirm('¿Estás seguro de cancelar esta entrega?')">
+                            <button type="button" name="accion" value="cancelar" class="btn btn-outline-danger rounded-pill py-2 fw-700 btn-cancelar-entrega">
                                 <i class="bi bi-x-circle me-2"></i> Cancelar Entrega
                             </button>
                         </form>
@@ -201,8 +201,95 @@
     .fw-800 { font-weight: 800; }
     .fw-700 { font-weight: 700; }
     .fw-600 { font-weight: 600; }
+    .btn-gold { background: var(--color-accent); color: #000; border: none; }
+    .btn-gold:hover { background: #d68910; color: #000; }
     .text-accent { color: var(--color-accent) !important; }
     .space-y-4 > * + * { margin-top: 1.5rem; }
 </style>
+
+<script>
+    // Cancelación de pedido (Admin/Cliente)
+    document.querySelectorAll('.btn-cancelar-pedido-detalle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            const id = this.getAttribute('data-id');
+            
+            Swal.fire({
+                title: '¿Cancelar pedido?',
+                text: `¿Estás seguro de que deseas cancelar el pedido #CT-${id}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: 'var(--color-secondary)',
+                confirmButtonText: 'Sí, cancelar',
+                cancelButtonText: 'No, mantener',
+                background: 'var(--color-surface)',
+                color: 'var(--color-text)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
+        });
+    });
+
+    // Confirmación de entrega (Conductor)
+    const btnConfirmar = document.querySelector('.btn-confirmar-entrega');
+    if (btnConfirmar) {
+        btnConfirmar.addEventListener('click', function() {
+            Swal.fire({
+                title: '¿Confirmar entrega?',
+                text: "¿Estás seguro de que el material ha sido entregado satisfactoriamente?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#22c55e',
+                cancelButtonColor: 'var(--color-secondary)',
+                confirmButtonText: 'Sí, confirmar entrega',
+                cancelButtonText: 'Cancelar',
+                background: 'var(--color-surface)',
+                color: 'var(--color-text)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = this.closest('form');
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'accion';
+                    input.value = 'confirmar';
+                    form.appendChild(input);
+                    form.submit();
+                }
+            });
+        });
+    }
+
+    // Cancelación de entrega (Conductor)
+    const btnCancelarEntrega = document.querySelector('.btn-cancelar-entrega');
+    if (btnCancelarEntrega) {
+        btnCancelarEntrega.addEventListener('click', function() {
+            Swal.fire({
+                title: '¿Cancelar entrega?',
+                text: "¿Estás seguro de que deseas cancelar esta entrega? El pedido volverá a estar pendiente.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: 'var(--color-secondary)',
+                confirmButtonText: 'Sí, cancelar entrega',
+                cancelButtonText: 'No, volver',
+                background: 'var(--color-surface)',
+                color: 'var(--color-text)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = this.closest('form');
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'accion';
+                    input.value = 'cancelar';
+                    form.appendChild(input);
+                    form.submit();
+                }
+            });
+        });
+    }
+</script>
 
 {% endblock %}

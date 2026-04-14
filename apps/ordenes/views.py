@@ -6,20 +6,24 @@ from .models import Orden, Entrega
 from apps.usuarios.models import Usuario, Vehiculo, Material
 from historial.utils import registrar_actividad
 
-def buscar_pedidos_admin(cliente_query=None, fecha_query=None):
+def buscar_pedidos_admin(cliente_query=None, fecha_query=None, estado_query=None):
     """
-    Lógica unificada para buscar pedidos por cliente o fecha.
+    Lógica unificada para buscar pedidos por cliente, fecha o estado.
     """
     pedidos = Orden.objects.all().order_by("-fecha")
     
     if cliente_query:
         pedidos = pedidos.filter(
             Q(cliente__nombres__icontains=cliente_query) |
-            Q(cliente__apellidos__icontains=cliente_query)
+            Q(cliente__apellidos__icontains=cliente_query) |
+            Q(cliente__documento__icontains=cliente_query)
         )
     
     if fecha_query:
         pedidos = pedidos.filter(fecha__date=fecha_query)
+
+    if estado_query:
+        pedidos = pedidos.filter(estado=estado_query)
         
     return pedidos
 
@@ -27,13 +31,16 @@ def buscar_pedidos_admin(cliente_query=None, fecha_query=None):
 def lista_pedidos_admin(request):
     cliente_query = request.GET.get('cliente')
     fecha_query = request.GET.get('fecha')
+    estado_query = request.GET.get('estado')
     
-    pedidos = buscar_pedidos_admin(cliente_query, fecha_query)
+    pedidos = buscar_pedidos_admin(cliente_query, fecha_query, estado_query)
         
     return render(request, "ordenes/lista.html", {
         "pedidos": pedidos,
         "cliente_query": cliente_query,
-        "fecha_query": fecha_query
+        "fecha_query": fecha_query,
+        "estado_query": estado_query,
+        "estados": Orden.ESTADOS
     })
 
 @login_required
@@ -124,7 +131,7 @@ def descargar_factura(request, id):
 
     # Detalle de Materiales (Si la orden tiene materiales asociados, aquí los listaríamos)
     # Por ahora mostramos el total
-    precio_formateado = f"${int(orden.precio):,}".replace(",", ".")
+    precio_formateado = f"${int(orden.total_pagar):,}".replace(",", ".")
     data = [
         ['Descripción', 'Total'],
         ['Servicio de Transporte y Materiales', precio_formateado]

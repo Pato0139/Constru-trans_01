@@ -6,5 +6,5 @@ from .models import DetalleOrden
 def descontar_stock_detalle(sender, instance, created, **kwargs):
     if created:
         material = instance.material
-        material.stock -= instance.cantidad
+        material.stock_actual -= instance.cantidad
         material.save()

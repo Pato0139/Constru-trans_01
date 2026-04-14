@@ -1,0 +1,29 @@
+<ul class="pagination-premium">
+    {% if page_obj.has_previous %}
+        <li class="page-item-premium">
+            <a href="?{{ param_name }}={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}" class="page-link-premium">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+    {% endif %}
+
+    {% for i in page_obj.paginator.page_range %}
+        {% if page_obj.number == i %}
+            <li class="page-item-premium active">
+                <span class="page-link-premium">{{ i }}</span>
+            </li>
+        {% else %}
+            <li class="page-item-premium">
+                <a href="?{{ param_name }}={{ i }}{% if query %}&q={{ query }}{% endif %}" class="page-link-premium">{{ i }}</a>
+            </li>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+        <li class="page-item-premium">
+            <a href="?{{ param_name }}={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}" class="page-link-premium">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+    {% endif %}
+</ul>

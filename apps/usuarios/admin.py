@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Usuario, Material, Vehiculo, Administrador, Conductor, Cliente
+from .models import Usuario, Material, Vehiculo, Administrador, Conductor, Cliente, StockMaterial
 
 class BaseUsuarioAdmin(admin.ModelAdmin):
     list_display = ('nombres', 'apellidos', 'user_email', 'rol', 'documento', 'estado')
@@ -32,11 +32,20 @@ class UsuarioAdmin(BaseUsuarioAdmin):
 
 
 @admin.register(Material)
-
 class MaterialAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'tipo', 'precio', 'stock')
+    list_display = ('nombre', 'tipo', 'precio', 'get_stock')
     list_filter = ('tipo',)
     search_fields = ('nombre', 'descripcion')
+
+    def get_stock(self, obj):
+        return obj.stock.cantidad_actual if hasattr(obj, 'stock') else 0
+    get_stock.short_description = 'Stock Actual'
+
+@admin.register(StockMaterial)
+class StockMaterialAdmin(admin.ModelAdmin):
+    list_display = ('material', 'cantidad_actual', 'cantidad_minima', 'ubicacion', 'ultima_actualizacion')
+    list_filter = ('ubicacion',)
+    search_fields = ('material__nombre',)
 
 @admin.register(Vehiculo)
 class VehiculoAdmin(admin.ModelAdmin):

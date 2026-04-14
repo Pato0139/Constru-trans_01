@@ -6,125 +6,240 @@
 {% block header_title %}Panel de Administración{% endblock %}
 
 {% block content %}
-
-<div class="row g-4 mb-5">
-    <div class="col-md-3">
-        <div class="stat-card" style="border-left: 4px solid var(--color-primary);">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="text-muted fw-700 m-0 text-uppercase small">Pedidos Pendientes</h6>
-                <i class="bi bi-clock-history text-primary fs-4"></i>
-            </div>
-            <h2 class="fw-900 mb-0">{{ pedidos_pendientes }}</h2>
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4">
+        <div>
+            <h2 class="fw-900 mb-0 text-white" style="letter-spacing: -1px;">
+                <i class="bi bi-grid-1x2-fill text-accent me-2"></i>Panel de <span class="text-accent">Control</span>
+            </h2>
+            <p class="text-muted small mb-0 mt-1">Visión general del estado operativo de Constru-trans</p>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge-category px-3 py-2 fs-7">
+                <i class="bi bi-calendar3 me-2"></i>{% now "d F, Y" %}
+            </span>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="stat-card" style="border-left: 4px solid #22c55e;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="text-muted fw-700 m-0 text-uppercase small">Conductores Activos</h6>
-                <i class="bi bi-person-check text-success fs-4"></i>
+    <!-- Estadísticas Premium -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
+            <div class="card-stock-premium h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="stat-icon-wrapper bg-warning-glow">
+                            <i class="bi bi-clock-history text-warning"></i>
+                        </div>
+                        <span class="text-muted small fw-800 text-uppercase letter-spacing-1">Pendientes</span>
+                    </div>
+                    <h2 class="fw-900 mb-1 text-white">{{ pedidos_pendientes }}</h2>
+                    <p class="text-muted small mb-0">Pedidos esperando despacho</p>
+                </div>
             </div>
-            <h2 class="fw-900 mb-0">{{ conductores }}</h2>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card-stock-premium h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="stat-icon-wrapper bg-success-glow">
+                            <i class="bi bi-person-check text-success"></i>
+                        </div>
+                        <span class="text-muted small fw-800 text-uppercase letter-spacing-1">Conductores</span>
+                    </div>
+                    <h2 class="fw-900 mb-1 text-white">{{ conductores }}</h2>
+                    <p class="text-muted small mb-0">Conductores registrados</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card-stock-premium h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="stat-icon-wrapper bg-accent-glow">
+                            <i class="bi bi-truck text-accent"></i>
+                        </div>
+                        <span class="text-muted small fw-800 text-uppercase letter-spacing-1">Entregas Hoy</span>
+                    </div>
+                    <h2 class="fw-900 mb-1 text-white">{{ entregas_hoy }}</h2>
+                    <p class="text-muted small mb-0">Completadas el día de hoy</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card-stock-premium h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="stat-icon-wrapper bg-info-glow">
+                            <i class="bi bi-people text-info"></i>
+                        </div>
+                        <span class="text-muted small fw-800 text-uppercase letter-spacing-1">Clientes</span>
+                    </div>
+                    <h2 class="fw-900 mb-1 text-white">{{ clientes }}</h2>
+                    <p class="text-muted small mb-0">Base total de clientes</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="stat-card" style="border-left: 4px solid var(--color-accent);">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="text-muted fw-700 m-0 text-uppercase small">Entregas Hoy</h6>
-                <i class="bi bi-truck text-warning fs-4"></i>
-            </div>
-            <h2 class="fw-900 mb-0">{{ entregas_hoy }}</h2>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="stat-card" style="border-left: 4px solid #3b82f6;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="text-muted fw-700 m-0 text-uppercase small">Nuevos Clientes</h6>
-                <i class="bi bi-people text-info fs-4"></i>
-            </div>
-            <h2 class="fw-900 mb-0">{{ clientes }}</h2>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4 mb-5">
-    <div class="col-lg-12">
-        <div class="table-container p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-800 m-0 text-white">Acciones Rápidas</h5>
-            </div>
-            <div class="d-flex gap-3 flex-wrap">
-                <a href="{% url 'transporte:lista_vehiculos' %}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-                    <i class="bi bi-truck"></i> Gestionar Vehículos
-                </a>
-                <a href="{% url 'usuarios:lista_conductores' %}" class="btn btn-gold d-flex align-items-center gap-2 shadow-sm">
-                    <i class="bi bi-person-badge"></i> Ver Conductores
-                </a>
-                <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="btn btn-outline-light rounded-pill px-4 d-flex align-items-center gap-2">
-                    <i class="bi bi-journal-text"></i> Revisar Pedidos
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="table-container p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
-        <h5 class="fw-800 m-0 text-white">Pedidos Recientes</h5>
-        <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="small text-accent text-decoration-none fw-700">Ver todos <i class="bi bi-arrow-right"></i></a>
-    </div>
-
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead>
-                <tr>
-                    <th>ID Pedido</th>
-                    <th>Cliente</th>
-                    <th>Fecha</th>
-                    <th>Total</th>
-                    <th>Estado</th>
-                    <th class="text-center">Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for pedido in pedidos_recientes %}
-                <tr>
-                    <td class="fw-700 text-accent">#CT-{{ pedido.id }}</td>
-                    <td class="fw-600 text-white">{{ pedido.cliente }}</td>
-                    <td class="text-muted small">{{ pedido.fecha|date:"d M, Y" }}</td>
-                    <td class="price-tag">${{ pedido.precio|floatformat:0|intcomma }}</td>
-                    <td>
-                        {% if pedido.estado == "pendiente" %}
-                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
-                        {% elif pedido.estado == "en_ruta" %}
-                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">En ruta</span>
-                        {% elif pedido.estado == "entregado" %}
-                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Entregado</span>
-                        {% endif %}
-                    </td>
-                    <td class="text-center">
-                        <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
-                            <i class="bi bi-eye"></i>
+    <!-- Acciones Rápidas y Pedidos -->
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card-stock-premium mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-800 text-white mb-4">Acciones Rápidas</h5>
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'transporte:lista_vehiculos' %}" class="btn btn-outline-light rounded-pill py-3 text-start px-4 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-truck me-3 text-accent"></i>Gestionar Vehículos</span>
+                            <i class="bi bi-chevron-right small"></i>
                         </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">No hay pedidos recientes registrados.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        <a href="{% url 'usuarios:lista_conductores' %}" class="btn btn-outline-light rounded-pill py-3 text-start px-4 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-person-badge me-3 text-accent"></i>Ver Conductores</span>
+                            <i class="bi bi-chevron-right small"></i>
+                        </a>
+                        <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="btn btn-accent rounded-pill py-3 text-start px-4 d-flex justify-content-between align-items-center shadow-accent-glow">
+                            <span><i class="bi bi-journal-text me-3"></i>Revisar Pedidos</span>
+                            <i class="bi bi-chevron-right small"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="table-container-premium">
+                <div class="p-4 border-bottom border-white-10 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-800 text-white mb-0">Pedidos Recientes</h5>
+                    <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="btn btn-link text-accent text-decoration-none fw-700 small p-0">
+                        Ver todos <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">ID Pedido</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th class="text-center">Estado</th>
+                                <th class="text-center pe-4">Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pedido in pedidos_recientes %}
+                            <tr>
+                                <td class="ps-4 fw-800 text-accent">#CT-{{ pedido.id }}</td>
+                                <td class="fw-700 text-white">{{ pedido.cliente }}</td>
+                                <td class="text-muted small">{{ pedido.fecha|date:"d M, Y" }}</td>
+                                <td class="text-center">
+                                    {% if pedido.estado == "pendiente" %}
+                                    <span class="badge-status bg-warning-glow text-warning">Pendiente</span>
+                                    {% elif pedido.estado == "en_ruta" %}
+                                    <span class="badge-status bg-info-glow text-info">En ruta</span>
+                                    {% elif pedido.estado == "entregado" %}
+                                    <span class="badge-status bg-success-glow text-success">Entregado</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center pe-4">
+                                    <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action-premium edit" title="Ver Detalles">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted italic">No hay pedidos recientes.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
-    .fw-900 { font-weight: 900; }
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
-    .text-accent { color: var(--color-accent) !important; }
+    /* Reutilizando clases Premium del dashboard de stock */
+    .card-stock-premium {
+        background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 24px;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+    .card-stock-premium:hover {
+        transform: translateY(-5px);
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(243, 156, 18, 0.2);
+    }
+    .table-container-premium {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 24px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+    .table thead th {
+        background: rgba(255,255,255,0.03);
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 20px 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid rgba(255,255,255,0.02);
+    }
+    .table tbody tr:hover {
+        background: rgba(255,255,255,0.03) !important;
+    }
+    .btn-action-premium {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.03);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .btn-action-premium.edit:hover {
+        background: var(--color-accent);
+        color: black;
+        border-color: var(--color-accent);
+        box-shadow: 0 0 15px rgba(243, 156, 18, 0.3);
+    }
+    .stat-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .bg-warning-glow { background: rgba(243, 156, 18, 0.1); }
+    .bg-success-glow { background: rgba(34, 197, 94, 0.1); }
+    .bg-accent-glow { background: rgba(243, 156, 18, 0.1); }
+    .bg-info-glow { background: rgba(59, 130, 246, 0.1); }
+    
+    .badge-status {
+        padding: 5px 12px;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .letter-spacing-1 { letter-spacing: 1px; }
+    .fs-7 { font-size: 0.8rem; }
 </style>
-
 {% endblock %}

@@ -1,167 +1,166 @@
 {% load static %}
-<aside class="sidebar-custom vh-100" style="width:280px; background-color: var(--color-secondary); padding: 40px 20px; border-right: 1px solid rgba(255,255,255,0.03);">
+<aside class="sidebar-custom vh-100 shadow-lg" style="width:280px; padding: 40px 20px; position: sticky; top: 0;">
 
     <div class="brand-section mb-5 px-3">
         <div class="d-flex align-items-center">
-            <img src="{% static 'img/Logo1.jpeg' %}" width="45" class="rounded-3 me-3">
-            <h5 class="fw-900 mb-0 text-white" style="font-family: 'Montserrat', sans-serif; letter-spacing: -0.5px;">CONSTRU<span style="color: var(--color-accent);">TRANS</span></h5>
+            <div class="logo-wrapper p-1 rounded-3 bg-accent me-3 shadow-accent-glow">
+                <img src="{% static 'img/Logo1.jpeg' %}" width="40" class="rounded-2">
+            </div>
+            <h5 class="fw-900 mb-0 text-white" style="font-family: 'Montserrat', sans-serif; letter-spacing: -0.5px;">CONSTRU<span class="text-accent">TRANS</span></h5>
         </div>
     </div>
 
     <div class="nav-wrapper">
-        <p class="nav-label small fw-800 text-muted text-uppercase mb-3 px-3" style="letter-spacing: 1px; font-size: 0.7rem;">Menú Principal</p>
+        <p class="nav-label small fw-800 text-muted text-uppercase mb-3 px-3" style="letter-spacing: 1.5px; font-size: 0.65rem; opacity: 0.6;">Menú Principal</p>
         
-        <ul class="nav flex-column gap-2">
+        <ul class="nav flex-column gap-1">
             {% if user.usuario.rol == 'admin' %}
                 <li class="nav-item">
-                    <a href="{% url 'usuarios:panel' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
-                        <i class="bi bi-grid-1x2-fill"></i> Panel General
+                    <a href="{% url 'usuarios:panel' %}" class="nav-link-premium-sidebar {% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
+                        <i class="bi bi-grid-1x2-fill"></i> <span>Panel General</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-custom {% if 'ordenes' in request.path %}active{% endif %}">
-                        <i class="bi bi-cart-fill"></i> Pedidos
+                    <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-premium-sidebar {% if 'ordenes' in request.path %}active{% endif %}">
+                        <i class="bi bi-cart-fill"></i> <span>Pedidos</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link-custom {% if 'usuarios' in request.path and 'usuarios/usuarios' in request.path %}active{% endif %}">
-                        <i class="bi bi-people-fill"></i> Usuarios
+                    <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link-premium-sidebar {% if 'usuarios' in request.path and 'usuarios/usuarios' in request.path %}active{% endif %}">
+                        <i class="bi bi-people-fill"></i> <span>Usuarios</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-custom {% if 'materiales' in request.path %}active{% endif %}">
-                        <i class="bi bi-box-seam-fill"></i> Materiales
+                    <a href="{% url 'usuarios:stock_lista' %}" class="nav-link-premium-sidebar {% if 'stock' in request.path or 'materiales' in request.path %}active{% endif %}">
+                        <i class="bi bi-box-seam-fill"></i> <span>Inventario</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'compras:lista_proveedores' %}" class="nav-link-custom {% if 'proveedores' in request.path %}active{% endif %}">
-                        <i class="bi bi-person-badge-fill"></i> Proveedores
+                    <a href="{% url 'compras:lista_proveedores' %}" class="nav-link-premium-sidebar {% if 'proveedores' in request.path %}active{% endif %}">
+                        <i class="bi bi-person-badge-fill"></i> <span>Proveedores</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'transporte:lista_vehiculos' %}" class="nav-link-custom {% if 'vehiculo' in request.path %}active{% endif %}">
-                        <i class="bi bi-truck"></i> Vehículos
+                    <a href="{% url 'transporte:lista_vehiculos' %}" class="nav-link-premium-sidebar {% if 'vehiculo' in request.path %}active{% endif %}">
+                        <i class="bi bi-truck"></i> <span>Vehículos</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'reportes:reportes_admin' %}" class="nav-link-custom {% if 'reportes' in request.path %}active{% endif %}">
-                        <i class="bi bi-pie-chart-fill"></i> Reportes
+                    <a href="{% url 'reportes:reportes_admin' %}" class="nav-link-premium-sidebar {% if 'reportes' in request.path %}active{% endif %}">
+                        <i class="bi bi-pie-chart-fill"></i> <span>Reportes</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'historial:lista' %}" class="nav-link-custom {% if 'historial' in request.path %}active{% endif %}">
-                        <i class="bi bi-clock-history"></i> Historial
+                    <a href="{% url 'historial:lista' %}" class="nav-link-premium-sidebar {% if 'historial' in request.path %}active{% endif %}">
+                        <i class="bi bi-clock-history"></i> <span>Historial</span>
                     </a>
                 </li>
             {% elif user.usuario.rol == 'cliente' %}
                 <li class="nav-item">
-                    <a href="{% url 'clientes:panel_cliente' %}" class="nav-link-custom {% if 'clientes/panel' in request.path %}active{% endif %}">
-                        <i class="bi bi-speedometer2"></i> Mi Panel
+                    <a href="{% url 'clientes:panel_cliente' %}" class="nav-link-premium-sidebar {% if 'clientes/panel' in request.path %}active{% endif %}">
+                        <i class="bi bi-speedometer2"></i> <span>Mi Panel</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'clientes:crear_pedido' %}" class="nav-link-custom {% if 'pedido/crear' in request.path %}active{% endif %}">
-                        <i class="bi bi-plus-circle-fill"></i> Solicitar Pedido
+                    <a href="{% url 'clientes:crear_pedido' %}" class="nav-link-premium-sidebar {% if 'pedido/crear' in request.path %}active{% endif %}">
+                        <i class="bi bi-plus-circle-fill"></i> <span>Solicitar Pedido</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'clientes:mis_pedidos' %}" class="nav-link-custom {% if 'mis-pedidos' in request.path %}active{% endif %}">
-                        <i class="bi bi-cart-check-fill"></i> Mis Pedidos
+                    <a href="{% url 'clientes:mis_pedidos' %}" class="nav-link-premium-sidebar {% if 'mis-pedidos' in request.path %}active{% endif %}">
+                        <i class="bi bi-cart-check-fill"></i> <span>Mis Pedidos</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'clientes:seguimiento_pedidos' %}" class="nav-link-custom {% if 'seguimiento' in request.path %}active{% endif %}">
-                        <i class="bi bi-geo-alt-fill"></i> Seguimiento
+                    <a href="{% url 'clientes:seguimiento_pedidos' %}" class="nav-link-premium-sidebar {% if 'seguimiento' in request.path %}active{% endif %}">
+                        <i class="bi bi-geo-alt-fill"></i> <span>Seguimiento</span>
                     </a>
                 </li>
             {% elif user.usuario.rol == 'conductor' %}
                 <li class="nav-item">
-                    <a href="{% url 'usuarios:panel_conductor' %}" class="nav-link-custom {% if 'panel-conductor' in request.path %}active{% endif %}">
-                        <i class="bi bi-truck"></i> Mis Entregas
+                    <a href="{% url 'usuarios:panel_conductor' %}" class="nav-link-premium-sidebar {% if 'panel' in request.path %}active{% endif %}">
+                        <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'usuarios:mis_entregas' %}" class="nav-link-custom {% if 'mis-entregas' in request.path %}active{% endif %}">
-                        <i class="bi bi-clock-history"></i> Historial
+                    <a href="{% url 'usuarios:pedidos_conductor' %}" class="nav-link-premium-sidebar {% if 'pedidos' in request.path %}active{% endif %}">
+                        <i class="bi bi-truck"></i> <span>Mis Entregas</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{% url 'usuarios:mis_entregas' %}" class="nav-link-premium-sidebar {% if 'historial' in request.path %}active{% endif %}">
+                        <i class="bi bi-clock-history"></i> <span>Historial</span>
+                    </a>
+                </li>
+
+                <div class="sidebar-divider my-4"></div>
+                <div class="px-3 mb-4">
+                    <div class="status-card-mini p-3 rounded-4" style="background: rgba(243, 156, 18, 0.05); border: 1px solid rgba(243, 156, 18, 0.1);">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="pulse-indicator bg-success"></div>
+                            <span class="text-white small fw-700">En Turno</span>
+                        </div>
+                        <p class="text-muted extra-small mb-0 mt-1">Conectado como Conductor</p>
+                    </div>
+                </div>
             {% endif %}
         </ul>
 
-        <p class="nav-label small fw-800 text-muted text-uppercase mt-5 mb-3 px-3" style="letter-spacing: 1px; font-size: 0.7rem;">Cuenta</p>
+        <p class="nav-label small fw-800 text-muted text-uppercase mt-5 mb-3 px-3" style="letter-spacing: 1.5px; font-size: 0.65rem; opacity: 0.6;">Cuenta</p>
         
-        <ul class="nav flex-column gap-2">
+        <ul class="nav flex-column gap-1">
             <li class="nav-item">
-                {% if user.usuario.rol == 'admin' %}
-                    <a href="{% url 'usuarios:perfil_admin' %}" class="nav-link-custom {% if 'perfil-admin' in request.path %}active{% endif %}">
-                        <i class="bi bi-person-fill"></i> Mi Perfil
-                    </a>
-                {% elif user.usuario.rol == 'conductor' %}
-                    <a href="{% url 'usuarios:perfil_conductor' %}" class="nav-link-custom {% if 'perfil-conductor' in request.path %}active{% endif %}">
-                        <i class="bi bi-person-fill"></i> Mi Perfil
-                    </a>
-                {% else %}
-                    <a href="{% url 'clientes:perfil_cliente' %}" class="nav-link-custom {% if 'clientes/perfil' in request.path %}active{% endif %}">
-                        <i class="bi bi-person-fill"></i> Mi Perfil
-                    </a>
-                {% endif %}
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'ayuda' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'ayuda' %}active{% endif %}">
-                    <i class="bi bi-question-circle-fill"></i> Ayuda
+                <a href="{% url 'usuarios:perfil' %}" class="nav-link-premium-sidebar {% if 'perfil' in request.path %}active{% endif %}">
+                    <i class="bi bi-person-fill"></i> <span>Mi Perfil</span>
                 </a>
             </li>
             <li class="nav-item mt-4">
-                <a href="{% url 'usuarios:logout' %}" class="nav-link-custom text-danger logout-link">
-                    <i class="bi bi-power"></i> Cerrar Sesión
-                </a>
+                <form action="{% url 'usuarios:logout' %}" method="post" id="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link-premium-sidebar text-danger border-0 bg-transparent w-100 text-start">
+                        <i class="bi bi-power"></i> <span>Cerrar Sesión</span>
+                    </button>
+                </form>
             </li>
         </ul>
     </div>
-
-    <style>
-        .nav-link-custom {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 14px 20px;
-            color: var(--color-muted);
-            text-decoration: none;
-            border-radius: 16px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .nav-link-custom i {
-            font-size: 1.2rem;
-            transition: transform 0.3s ease;
-        }
-
-        .nav-link-custom:hover {
-            color: white;
-            background: rgba(255,255,255,0.03);
-        }
-
-        .nav-link-custom:hover i {
-            transform: scale(1.1);
-        }
-
-        .nav-link-custom.active {
-            background: var(--color-accent);
-            color: #000;
-            box-shadow: 0 10px 20px rgba(202, 160, 48, 0.2);
-        }
-
-        .nav-link-custom.active i {
-            color: #000;
-        }
-
-        .logout-link:hover {
-            background: rgba(239, 68, 68, 0.1) !important;
-            color: #ef4444 !important;
-        }
-
-        .fw-900 { font-weight: 900; }
-    </style>
 </aside>
+
+<style>
+    .nav-link-premium-sidebar {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        color: rgba(255,255,255,0.6);
+        text-decoration: none;
+        border-radius: 14px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .nav-link-premium-sidebar i {
+        margin-right: 15px;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+    .nav-link-premium-sidebar:hover {
+        background: rgba(255,255,255,0.05);
+        color: white;
+        transform: translateX(5px);
+    }
+    .nav-link-premium-sidebar.active {
+        background: rgba(243, 156, 18, 0.1);
+        color: var(--color-accent);
+        box-shadow: inset 0 0 0 1px rgba(243, 156, 18, 0.2);
+    }
+    .nav-link-premium-sidebar.active i {
+        color: var(--color-accent);
+        transform: scale(1.1);
+    }
+    .logo-wrapper {
+        transition: all 0.3s ease;
+    }
+    .brand-section:hover .logo-wrapper {
+        transform: rotate(-10deg) scale(1.1);
+    }
+</style>
