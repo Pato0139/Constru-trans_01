@@ -204,6 +204,29 @@
             });
         }
     }
+
+    const userSearchInput = document.querySelector('form.d-flex input[name="q"]');
+    if (userSearchInput) {
+        let searchTimeout;
+        const searchForm = userSearchInput.closest('form');
+        userSearchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                if (searchForm) {
+                    searchForm.submit();
+                }
+            }, 600);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const focusedSearchInput = document.querySelector('form.d-flex input[name="q"]');
+        if (focusedSearchInput) {
+            focusedSearchInput.focus();
+            const valueLength = focusedSearchInput.value.length;
+            focusedSearchInput.setSelectionRange(valueLength, valueLength);
+        }
+    });
 </script>
 
 <!-- Tabs de Roles -->

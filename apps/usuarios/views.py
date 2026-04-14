@@ -16,13 +16,15 @@ from .forms import LoginForm, RegistroForm
 
 def buscar_usuarios_generales(query=None):
     """
-    Lógica unificada para buscar usuarios por nombre, email o documento.
+    Lógica unificada para buscar usuarios por nombre, apellidos, email, teléfono o documento.
     """
     usuarios = Usuario.objects.all().order_by('-id')
     if query:
         usuarios = usuarios.filter(
-            Q(nombres__icontains=query) | 
+            Q(nombres__icontains=query) |
+            Q(apellidos__icontains=query) |
             Q(user__email__icontains=query) |
+            Q(telefono__icontains=query) |
             Q(documento__icontains=query)
         )
     return usuarios

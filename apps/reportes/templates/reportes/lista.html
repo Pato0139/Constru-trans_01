@@ -5,12 +5,21 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-primary">
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
+        <h2 class="fw-bold text-primary mb-0">
             <i class="bi bi-bar-chart-fill me-2"></i>Reportes del Sistema
         </h2>
-        <div class="text-muted small">
-            Última actualización: {{ now|date:"d/m/Y H:i" }}
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <form method="GET" class="d-flex">
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary border-end-0 small shadow-sm"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control bg-dark text-white border-secondary border-start-0 ps-0 form-control-sm shadow-sm" 
+                           placeholder="Buscar reportes..." value="{{ search_query|default:'' }}">
+                </div>
+            </form>
+            <div class="text-muted small ms-auto">
+                Última actualización: {{ now|date:"d/m/Y H:i" }}
+            </div>
         </div>
     </div>
 
@@ -73,28 +82,92 @@
     <!-- Sección de Descargas -->
     <div class="row g-3 mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-download me-2 text-primary"></i>Generar Reportes PDF</h5>
+            <div class="card border-0 shadow-sm bg-dark text-white">
+                <div class="card-header bg-secondary bg-opacity-10 py-3">
+                    <h5 class="mb-0 fw-bold text-white"><i class="bi bi-download me-2 text-info"></i>Generar Reportes</h5>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-4">
-                            <a href="{% url 'reportes:exportar_reporte_pdf' 'clientes' %}" class="btn btn-outline-danger w-100 py-3 shadow-sm">
-                                <i class="bi bi-file-pdf-fill me-2"></i>Reporte de Clientes
-                            </a>
+                        <div class="col-12 col-md-3">
+                            <div class="btn-group w-100">
+                                <button type="button" class="btn btn-outline-light w-100 py-3 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-file-earmark-text-fill me-2"></i>Clientes
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark w-100">
+                                    <li><a class="dropdown-item export-item" href="#" data-tipo="clientes" data-formato="pdf"><i class="bi bi-file-earmark-pdf-fill me-2"></i>PDF</a></li>
+                                    {% if excel_available %}
+                                    <li><a class="dropdown-item export-item" href="#" data-tipo="clientes" data-formato="excel"><i class="bi bi-file-earmark-excel-fill me-2"></i>Excel</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <a href="{% url 'reportes:exportar_reporte_pdf' 'materiales' %}" class="btn btn-outline-danger w-100 py-3 shadow-sm">
-                                <i class="bi bi-file-pdf-fill me-2"></i>Reporte de Inventario
-                            </a>
+                        <div class="col-12 col-md-3">
+                            <div class="btn-group w-100">
+                                <button type="button" class="btn btn-outline-light w-100 py-3 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-box-seam me-2"></i>Inventario
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark w-100">
+                                    <li><a class="dropdown-item export-item" href="#" data-tipo="materiales" data-formato="pdf"><i class="bi bi-file-earmark-pdf-fill me-2"></i>PDF</a></li>
+                                    {% if excel_available %}
+                                    <li><a class="dropdown-item export-item" href="#" data-tipo="materiales" data-formato="excel"><i class="bi bi-file-earmark-excel-fill me-2"></i>Excel</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <a href="{% url 'reportes:exportar_reporte_pdf' 'ventas' %}" class="btn btn-outline-danger w-100 py-3 shadow-sm">
-                                <i class="bi bi-file-pdf-fill me-2"></i>Reporte de Ventas
-                            </a>
+                        <div class="col-12 col-md-3">
+                            <div class="btn-group w-100">
+                                <button type="button" class="btn btn-outline-light w-100 py-3 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-cash-stack me-2"></i>Ventas
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark w-100">
+                                    <li><a class="dropdown-item export-item" href="#" data-tipo="ventas" data-formato="pdf"><i class="bi bi-file-earmark-pdf-fill me-2"></i>PDF</a></li>
+                                    {% if excel_available %}
+                                    <li><a class="dropdown-item export-item" href="#" data-tipo="ventas" data-formato="excel"><i class="bi bi-file-earmark-excel-fill me-2"></i>Excel</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <div class="btn-group w-100">
+                                <button type="button" class="btn btn-outline-light w-100 py-3 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-list-check me-2"></i>Pedidos
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark w-100">
+                                    <li><a class="dropdown-item export-item" href="#" data-tipo="pedidos" data-formato="pdf"><i class="bi bi-file-earmark-pdf-fill me-2"></i>PDF</a></li>
+                                    {% if excel_available %}
+                                    <li><a class="dropdown-item export-item" href="#" data-tipo="pedidos" data-formato="excel"><i class="bi bi-file-earmark-excel-fill me-2"></i>Excel</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación para Descargas -->
+    <div class="modal fade" id="confirmExportModal" tabindex="-1" aria-labelledby="confirmExportLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="background-color: #1a1a1a;">
+                <div class="modal-header border-bottom border-white-10 p-4">
+                    <h5 class="modal-title fw-bold text-white" id="confirmExportLabel">
+                        <i class="bi bi-download me-2 text-warning"></i>Descargar Reporte
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-white mb-2">¿Deseas descargar el reporte de <strong id="reportTipo" class="text-warning">---</strong> en formato <strong id="reportFormato" class="text-warning">PDF</strong>?</p>
+                    <div class="alert alert-info alert-dismissible fade show border-0" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <small>Este archivo será descargado a tu dispositivo. Asegúrate de tener espacio disponible.</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-white-10 p-4">
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning rounded-pill px-5 fw-bold" id="confirmExportBtn">
+                        <i class="bi bi-download me-2"></i>Descargar
+                    </button>
                 </div>
             </div>
         </div>
@@ -144,11 +217,224 @@
             </div>
         </div>
     </div>
+
+    {% if search_query %}
+    <!-- Tablas de Datos Filtrados -->
+    <div class="row g-3">
+        {% if clientes_data %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-people me-2 text-primary"></i>Clientes Encontrados ({{ clientes_data.count }})</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                                <th>Teléfono</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cliente in clientes_data %}
+                            <tr>
+                                <td>#{{ cliente.id }}</td>
+                                <td>{{ cliente.nombres }} {{ cliente.apellidos }}</td>
+                                <td>{{ cliente.user.email }}</td>
+                                <td>{{ cliente.telefono }}</td>
+                                <td><span class="badge bg-{{ cliente.estado|default:'success' }}">{{ cliente.get_estado_display|default:cliente.estado }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if materiales_data %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-bricks me-2 text-primary"></i>Materiales Encontrados ({{ materiales_data.count }})</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for material in materiales_data %}
+                            <tr>
+                                <td>#{{ material.id }}</td>
+                                <td>{{ material.nombre }}</td>
+                                <td>{{ material.tipo }}</td>
+                                <td>${{ material.precio|floatformat:0|intcomma }}</td>
+                                <td><span class="badge bg-{% if material.stock > 10 %}success{% elif material.stock > 0 %}warning{% else %}danger{% endif %}">{{ material.stock }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if ventas_data %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-receipt me-2 text-primary"></i>Ventas Encontradas ({{ ventas_data.count }})</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venta in ventas_data %}
+                            <tr>
+                                <td>#{{ venta.id }}</td>
+                                <td>{{ venta.cliente.nombres }} {{ venta.cliente.apellidos }}</td>
+                                <td>{{ venta.fecha|date:"d/m/Y" }}</td>
+                                <td>${{ venta.precio|floatformat:0|intcomma }}</td>
+                                <td>
+                                    <span class="badge bg-{% if venta.estado == 'pendiente' %}warning{% elif venta.estado == 'en_ruta' %}info{% else %}success{% endif %}">
+                                        {{ venta.get_estado_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if search_query and not clientes_data and not materiales_data and not ventas_data %}
+        <div class="col-12">
+            <div class="alert alert-info border-0 shadow-sm" role="alert">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-info-circle-fill fs-5"></i>
+                    <span>No se encontraron resultados para "<strong>{{ search_query }}</strong>"</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
+    // Toast notification system
+    function mostrarNotificacion(mensaje, tipo = 'success') {
+        const toastHTML = `
+            <div class="alert alert-${tipo} alert-dismissible fade show position-fixed" role="alert" 
+                 style="top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; min-width: 300px; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-${tipo === 'success' ? 'check-circle-fill' : tipo === 'warning' ? 'exclamation-triangle-fill' : 'info-circle-fill'} fs-5"></i>
+                    <span>${mensaje}</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        const toastContainer = document.createElement('div');
+        toastContainer.innerHTML = toastHTML;
+        document.body.appendChild(toastContainer);
+        
+        const alert = toastContainer.querySelector('.alert');
+        setTimeout(() => {
+            alert.classList.remove('show');
+            setTimeout(() => toastContainer.remove(), 150);
+        }, 3000);
+    }
+
+    // Estado global para el modal de confirmación de exportación
+    let exportPendente = {
+        tipo: null,
+        formato: null
+    };
+
+    // Manejo de botones de exportación
+    document.querySelectorAll('.export-item').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const tipo = this.getAttribute('data-tipo');
+            const formato = this.getAttribute('data-formato');
+            
+            const tipoNombre = {
+                'clientes': 'Clientes',
+                'materiales': 'Inventario',
+                'ventas': 'Ventas',
+                'pedidos': 'Pedidos'
+            }[tipo] || tipo;
+            
+            exportPendente.tipo = tipo;
+            exportPendente.formato = formato;
+            
+            document.getElementById('reportTipo').textContent = tipoNombre;
+            document.getElementById('reportFormato').textContent = formato.toUpperCase();
+            
+            const modal = new bootstrap.Modal(document.getElementById('confirmExportModal'));
+            modal.show();
+        });
+    });
+
+    // Botón de confirmación de descarga
+    document.getElementById('confirmExportBtn').addEventListener('click', function() {
+        const { tipo, formato } = exportPendente;
+        
+        if (tipo && formato) {
+            if (formato === 'pdf') {
+                window.location.href = `{% url 'reportes:exportar_reporte_pdf' '---' %}`.replace('---', tipo);
+            } else if (formato === 'excel') {
+                window.location.href = `{% url 'reportes:exportar_reporte' '---' '---' %}`.replace('---', tipo).replace('---', formato);
+            }
+            
+            mostrarNotificacion(`Descargando Reporte de ${document.getElementById('reportTipo').textContent}...`, 'success');
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmExportModal'));
+            modal.hide();
+        }
+    });
+
+    // Auto-submit search form
+    const reportSearchInput = document.querySelector('form input[name="q"]');
+    if (reportSearchInput) {
+        let searchTimeout;
+        const searchForm = reportSearchInput.closest('form');
+        reportSearchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                if (searchForm) {
+                    searchForm.submit();
+                }
+            }, 600);
+        });
+        
+        // Keep focus on search input after page reload
+        reportSearchInput.focus();
+        const valueLength = reportSearchInput.value.length;
+        reportSearchInput.setSelectionRange(valueLength, valueLength);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('graficaOrdenes');
         

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes de Pedidos - Constru-trans{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h2 class="fw-bold text-primary mb-4">
+        <i class="bi bi-box-seam me-2"></i>Reportes de Pedidos
+    </h2>
+
+    <!-- Filtros -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-funnel me-2"></i>Filtros de Búsqueda</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-muted small">Estado del Pedido</label>
+                            <select id="tipoFiltro" class="form-select bg-dark text-white border-secondary">
+                                <option value="all">Todos los Estados</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_ruta">En Ruta</option>
+                                <option value="entregado">Entregado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-muted small">Desde</label>
+                            <input type="date" id="fechaDesde" class="form-control bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-muted small">Hasta</label>
+                            <input type="date" id="fechaHasta" class="form-control bg-dark text-white border-secondary">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados -->
+    <div class="row g-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-list-check me-2"></i>Pedidos (<span id="totalPedidos">0</span>)</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Precio</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaPedidos">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Cargando datos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function cargarPedidos() {
+        const tipo = document.getElementById('tipoFiltro').value;
+        const fechaDesde = document.getElementById('fechaDesde').value;
+        const fechaHasta = document.getElementById('fechaHasta').value;
+        
+        const url = new URL('{% url "reportes:reportes_pedidos" %}', window.location);
+        url.searchParams.append('tipo', tipo);
+        if (fechaDesde) url.searchParams.append('fecha_desde', fechaDesde);
+        if (fechaHasta) url.searchParams.append('fecha_hasta', fechaHasta);
+        
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalPedidos').textContent = data.total;
+            
+            const tabla = document.getElementById('tablaPedidos');
+            tabla.innerHTML = '';
+            
+            if (data.pedidos.length === 0) {
+                tabla.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No hay pedidos que mostrar</td></tr>';
+                return;
+            }
+            
+            data.pedidos.forEach(pedido => {
+                const estadoColor = {
+                    'pendiente': 'warning',
+                    'en_ruta': 'info',
+                    'entregado': 'success'
+                }[pedido.estado] || 'secondary';
+                
+                tabla.innerHTML += `
+                    <tr>
+                        <td>#${pedido.id}</td>
+                        <td>${pedido.cliente}</td>
+                        <td>${pedido.fecha}</td>
+                        <td>${pedido.precio}</td>
+                        <td><span class="badge bg-${estadoColor}">${pedido.estado}</span></td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('tablaPedidos').innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Error al cargar los datos</td></tr>';
+        });
+    }
+    
+    // Event listeners
+    document.getElementById('tipoFiltro').addEventListener('change', cargarPedidos);
+    document.getElementById('fechaDesde').addEventListener('change', cargarPedidos);
+    document.getElementById('fechaHasta').addEventListener('change', cargarPedidos);
+    
+    // Cargar inicialmente
+    document.addEventListener('DOMContentLoaded', cargarPedidos);
+</script>
+{% endblock %}
