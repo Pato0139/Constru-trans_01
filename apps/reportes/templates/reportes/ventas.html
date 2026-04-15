@@ -1,0 +1,714 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportes de Ventas{% endblock %}
+
+{% block content %}
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+    }
+    
+    .card-header {
+        border-bottom: 3px solid rgba(0,0,0,0.1);
+        border-radius: 10px 10px 0 0;
+        font-weight: 600;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    canvas {
+        max-height: 350px;
+        width: 100% !important;
+    }
+    
+    .stat-card {
+        text-align: center;
+        padding: 15px;
+    }
+    
+    .stat-card h2 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    
+    .stat-card small {
+        font-size: 0.85rem;
+        opacity: 0.8;
+    }
+    
+    .form-inline {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .btn-group-download {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
+    
+    .btn-download {
+        flex: 1;
+        min-width: 150px;
+        padding: 12px 20px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    
+    .charts-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .chart-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .desglose-estado {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .estado-item {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .estado-item h3 {
+        font-size: 2rem;
+        margin: 10px 0;
+    }
+    
+    .estado-item.pendiente {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .estado-item.en-ruta {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .estado-item.entregado {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .estado-item.cancelado {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    @media (max-width: 1024px) {
+        .charts-container {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .form-group {
+            margin-bottom: 10px !important;
+        }
+        
+        canvas {
+            max-height: 250px;
+        }
+        
+        .stat-card h2 {
+            font-size: 2rem;
+        }
+        
+        .desglose-estado {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="mb-2">
+                <i class="fas fa-chart-bar"></i> Reportes de Ventas
+            </h1>
+            <p class="text-muted">Análisis detallado de ventas y estadísticas del sistema</p>
+        </div>
+    </div>
+
+    <!-- Filtros y Opciones de Descarga -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light border-0">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-3 mb-md-0"><i class="fas fa-filter"></i> Filtros</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <h5 class="mb-0"><i class="fas fa-download"></i> Descargar</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Filtros -->
+                        <div class="col-md-8">
+                            <form method="get" class="form-inline">
+                                <div class="form-group mr-3 mb-2">
+                                    <label for="fecha_desde" class="mr-2">Desde:</label>
+                                    <input type="date" id="fecha_desde" name="fecha_desde" class="form-control" 
+                                           value="{{ request.GET.fecha_desde }}">
+                                </div>
+                                <div class="form-group mr-3 mb-2">
+                                    <label for="fecha_hasta" class="mr-2">Hasta:</label>
+                                    <input type="date" id="fecha_hasta" name="fecha_hasta" class="form-control" 
+                                           value="{{ request.GET.fecha_hasta }}">
+                                </div>
+                                <button type="submit" class="btn btn-primary mr-2 mb-2">
+                                    <i class="fas fa-search"></i> Filtrar
+                                </button>
+                                <a href="{% url 'reportes:reportes_ventas' %}" class="btn btn-outline-secondary mb-2">
+                                    <i class="fas fa-redo"></i> Limpiar
+                                </a>
+                            </form>
+                        </div>
+                        
+                        <!-- Botones de Descarga -->
+                        <div class="col-md-4">
+                            <div class="btn-group-download">
+                                <button class="btn btn-download bg-danger text-white" title="Descargar como PDF">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </button>
+                                <button class="btn btn-download bg-success text-white" title="Descargar como Excel">
+                                    <i class="fas fa-file-excel"></i> Excel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Resumen -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white shadow-sm stat-card">
+                <div class="card-body">
+                    <i class="fas fa-shopping-cart fa-2x mb-3 opacity-75"></i>
+                    <h5 class="card-title">Total Ventas</h5>
+                    <h2>{{ total_ventas }}</h2>
+                    <small>Órdenes registradas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white shadow-sm stat-card">
+                <div class="card-body">
+                    <i class="fas fa-dollar-sign fa-2x mb-3 opacity-75"></i>
+                    <h5 class="card-title">Ingresos Totales</h5>
+                    <h2>${{ ingresos_totales|floatformat:0 }}</h2>
+                    <small>Monto total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white shadow-sm stat-card">
+                <div class="card-body">
+                    <i class="fas fa-chart-line fa-2x mb-3 opacity-75"></i>
+                    <h5 class="card-title">Promedio Venta</h5>
+                    <h2>${{ promedio_venta|floatformat:0 }}</h2>
+                    <small>Promedio por orden</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white shadow-sm stat-card">
+                <div class="card-body">
+                    <i class="fas fa-check-circle fa-2x mb-3 opacity-75"></i>
+                    <h5 class="card-title">Entregadas</h5>
+                    <h2>{{ ventas_entregadas }}</h2>
+                    <small>Órdenes completadas</small>
+                </div>
+            </div>
+        </div>
+    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Entregadas</h5>
+                    <h2>{{ ventas_entregadas }}</h2>
+                    <small>Órdenes completadas</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficas Principales (En Grid) -->
+    <div class="charts-container">
+        <!-- Gráfica 1: Ventas por Estado -->
+        <div class="chart-card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie"></i> Ventas por Estado
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartEstado"></canvas>
+            </div>
+        </div>
+
+        <!-- Gráfica 2: Ingresos por Estado -->
+        <div class="chart-card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie"></i> Ingresos por Estado
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartIngresoEstado"></canvas>
+            </div>
+        </div>
+
+        <!-- Gráfica 3: Top Clientes -->
+        <div class="chart-card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie"></i> Top Clientes por Compras
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartClientes"></canvas>
+            </div>
+        </div>
+
+        <!-- Gráfica 4: Ventas por Material -->
+        <div class="chart-card">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie"></i> Ventas por Material
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartMaterial"></canvas>
+            </div>
+        </div>
+
+        <!-- Gráfica 5: Ingresos por Semana -->
+        <div class="chart-card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar"></i> Ingresos por Semana
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartSemana"></canvas>
+            </div>
+        </div>
+
+        <!-- Gráfica 6: Ingresos por Mes -->
+        <div class="chart-card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line"></i> Ingresos por Mes
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartMes"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desglose de Ventas por Estado -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-check"></i> Resumen de Ventas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="desglose-estado">
+                        <div class="estado-item pendiente">
+                            <i class="fas fa-clock fa-2x mb-2"></i>
+                            <p class="mb-1">Pendientes</p>
+                            <h3>{{ ventas_pendientes }}</h3>
+                        </div>
+                        <div class="estado-item en-ruta">
+                            <i class="fas fa-truck fa-2x mb-2"></i>
+                            <p class="mb-1">En Ruta</p>
+                            <h3>{{ ventas_en_ruta }}</h3>
+                        </div>
+                        <div class="estado-item entregado">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <p class="mb-1">Entregadas</p>
+                            <h3>{{ ventas_entregadas }}</h3>
+                        </div>
+                        <div class="estado-item cancelado">
+                            <i class="fas fa-ban fa-2x mb-2"></i>
+                            <p class="mb-1">Canceladas</p>
+                            <h3>{{ ventas_canceladas }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script de Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<!-- Colores para las gráficas -->
+<script>
+// Esperar a que Chart.js cargue
+document.addEventListener('DOMContentLoaded', function() {
+    const coloresPastel = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+    ];
+
+    const coloresVibrantes = [
+        '#FF5733', '#33FF57', '#3357FF', '#FF33F5',
+        '#33FFF5', '#F5FF33', '#FF8C33', '#8CFF33'
+    ];
+
+    // Construir URL con parámetros
+    let url = '{% url "reportes:reportes_ventas" %}?';
+    {% if request.GET.fecha_desde %}
+        url += 'fecha_desde={{ request.GET.fecha_desde }}&';
+    {% endif %}
+    {% if request.GET.fecha_hasta %}
+        url += 'fecha_hasta={{ request.GET.fecha_hasta }}&';
+    {% endif %}
+
+    // Obtener datos de gráficas
+    fetch(url, {
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error en la respuesta: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Datos recibidos:', data);
+
+        // Validar que los datos existan
+        if (!data.ventas_por_estado) {
+            console.error('Datos inválidos:', data);
+            return;
+        }
+
+        // Gráfica 1: Ventas por Estado
+        if (document.getElementById('chartEstado')) {
+            const ctxEstado = document.getElementById('chartEstado').getContext('2d');
+            new Chart(ctxEstado, {
+                type: 'doughnut',
+                data: {
+                    labels: data.ventas_por_estado.labels,
+                    datasets: [{
+                        data: data.ventas_por_estado.data,
+                        backgroundColor: coloresPastel,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + ' órdenes';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfica 2: Ingresos por Estado
+        if (document.getElementById('chartIngresoEstado')) {
+            const ctxIngreso = document.getElementById('chartIngresoEstado').getContext('2d');
+            new Chart(ctxIngreso, {
+                type: 'doughnut',
+                data: {
+                    labels: data.ingresos_por_estado.labels,
+                    datasets: [{
+                        data: data.ingresos_por_estado.data,
+                        backgroundColor: coloresVibrantes,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': $' + context.parsed.toLocaleString('es-CO');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfica 3: Top Clientes
+        if (document.getElementById('chartClientes')) {
+            const ctxClientes = document.getElementById('chartClientes').getContext('2d');
+            new Chart(ctxClientes, {
+                type: 'doughnut',
+                data: {
+                    labels: data.top_clientes_compras.labels,
+                    datasets: [{
+                        data: data.top_clientes_compras.data,
+                        backgroundColor: coloresPastel,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const ingresos = data.top_clientes_compras.ingresos[context.dataIndex];
+                                    return context.label + ': ' + context.parsed + ' compras ($' + ingresos.toLocaleString('es-CO') + ')';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfica 4: Ventas por Material
+        if (document.getElementById('chartMaterial')) {
+            const ctxMaterial = document.getElementById('chartMaterial').getContext('2d');
+            new Chart(ctxMaterial, {
+                type: 'doughnut',
+                data: {
+                    labels: data.ventas_por_material.labels,
+                    datasets: [{
+                        data: data.ventas_por_material.data,
+                        backgroundColor: coloresVibrantes,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const ingresos = data.ventas_por_material.ingresos[context.dataIndex];
+                                    return context.label + ': ' + context.parsed + ' ventas ($' + ingresos.toLocaleString('es-CO') + ')';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfica 5: Ingresos por Semana
+        if (document.getElementById('chartSemana')) {
+            const ctxSemana = document.getElementById('chartSemana').getContext('2d');
+            new Chart(ctxSemana, {
+                type: 'bar',
+                data: {
+                    labels: data.ingresos_por_semana.labels,
+                    datasets: [{
+                        label: 'Ingresos ($)',
+                        data: data.ingresos_por_semana.data,
+                        backgroundColor: '#FF6384',
+                        borderColor: '#FF1744',
+                        borderWidth: 2,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { font: { size: 12 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '$' + context.parsed.x.toLocaleString('es-CO');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString('es-CO');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfica 6: Ingresos por Mes
+        if (document.getElementById('chartMes')) {
+            const ctxMes = document.getElementById('chartMes').getContext('2d');
+            new Chart(ctxMes, {
+                type: 'line',
+                data: {
+                    labels: data.ingresos_por_mes.labels,
+                    datasets: [{
+                        label: 'Ingresos Mensuales ($)',
+                        data: data.ingresos_por_mes.data,
+                        borderColor: '#36A2EB',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#36A2EB',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { font: { size: 12 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '$' + context.parsed.y.toLocaleString('es-CO');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString('es-CO');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error al cargar las gráficas:', error);
+        alert('Error al cargar los datos de las gráficas. Por favor recargue la página.');
+    });
+
+    // Funcionalidad para descargar reportes
+    document.querySelectorAll('.btn-download').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const isPDF = this.querySelector('.fa-file-pdf') !== null;
+            const formato = isPDF ? 'pdf' : 'excel';
+            
+            let url = `/reportes/exportar/ventas/${formato}/`;
+            {% if request.GET.fecha_desde %}
+                url += `?fecha_desde={{ request.GET.fecha_desde }}`;
+                {% if request.GET.fecha_hasta %}
+                    url += `&fecha_hasta={{ request.GET.fecha_hasta }}`;
+                {% endif %}
+            {% elif request.GET.fecha_hasta %}
+                url += `?fecha_hasta={{ request.GET.fecha_hasta }}`;
+            {% endif %}
+            
+            window.location.href = url;
+        });
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,9 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count
 from apps.ordenes.models import Orden
 from apps.usuarios.models import Usuario, Material, Vehiculo
-
 from django.http import HttpResponse, JsonResponse
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
@@ -12,6 +11,8 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from django.utils.timezone import now
 from historial.utils import registrar_actividad
+from datetime import datetime, timedelta
+import json
 
 try:
     from openpyxl import Workbook
@@ -65,6 +66,10 @@ def reportes_admin(request):
     # Obtener el filtro de búsqueda
     search_query = request.GET.get('q', '')
     
+    # Solicitud AJAX para gráficas de ventas
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return generar_datos_graficas_admin(request)
+    
     # Estadísticas de Órdenes
     ordenes = Orden.objects.all()
     
@@ -96,6 +101,15 @@ def reportes_admin(request):
         "en_ruta": ordenes.filter(estado="en_ruta").count(),
         "entregadas": ordenes.filter(estado="entregado").count(),
         
+        # Resumen de Ventas
+        "total_ventas": ventas_data.count(),
+        "ingresos_totales": ventas_data.aggregate(total=Sum('precio'))['total'] or 0,
+        "promedio_venta": ventas_data.aggregate(promedio=Sum('precio') / Count('id'))['promedio'] or 0 if ventas_data.exists() else 0,
+        "ventas_entregadas": ventas_data.filter(estado='entregado').count(),
+        "ventas_pendientes": ventas_data.filter(estado='pendiente').count(),
+        "ventas_en_ruta": ventas_data.filter(estado='en_ruta').count(),
+        "ventas_canceladas": ventas_data.filter(estado='cancelado').count(),
+        
         # Resumen de Usuarios
         "total_clientes": Usuario.objects.filter(rol="cliente").count(),
         "total_conductores": Usuario.objects.filter(rol="conductor").count(),
@@ -115,6 +129,200 @@ def reportes_admin(request):
         "excel_available": EXCEL_AVAILABLE,
     }
     return render(request, "reportes/lista.html", context)
+
+def generar_datos_graficas_admin(request):
+    """
+    Genera datos JSON para gráficas de ventas en el admin
+    """
+    ventas = Orden.objects.all().order_by('-fecha')
+    
+    # Gráfica 1: Ventas por estado
+    ventas_por_estado = {
+        'Pendiente': ventas.filter(estado='pendiente').count(),
+        'En Ruta': ventas.filter(estado='en_ruta').count(),
+        'Entregado': ventas.filter(estado='entregado').count(),
+        'Cancelado': ventas.filter(estado='cancelado').count(),
+    }
+    
+    # Gráfica 2: Ingresos por estado
+    ingresos_por_estado = {
+        'Pendiente': float(ventas.filter(estado='pendiente').aggregate(total=Sum('precio'))['total'] or 0),
+        'En Ruta': float(ventas.filter(estado='en_ruta').aggregate(total=Sum('precio'))['total'] or 0),
+        'Entregado': float(ventas.filter(estado='entregado').aggregate(total=Sum('precio'))['total'] or 0),
+        'Cancelado': float(ventas.filter(estado='cancelado').aggregate(total=Sum('precio'))['total'] or 0),
+    }
+    
+    # Gráfica 3: Top clientes
+    top_clientes = ventas.values('cliente__nombres', 'cliente__apellidos').annotate(
+        count=Count('id'),
+        total=Sum('precio')
+    ).order_by('-count')[:10]
+    
+    clientes_labels = [f"{c['cliente__nombres']} {c['cliente__apellidos']}" for c in top_clientes]
+    clientes_data = [c['count'] for c in top_clientes]
+    clientes_ingresos = [float(c['total'] or 0) for c in top_clientes]
+    
+    # Gráfica 4: Ventas por material
+    ventas_por_material = ventas.values('material__nombre').annotate(
+        count=Count('id'),
+        total=Sum('precio')
+    ).order_by('-count')[:10]
+    
+    material_labels = [m['material__nombre'] or 'Sin material' for m in ventas_por_material]
+    material_data = [m['count'] for m in ventas_por_material]
+    material_ingresos = [float(m['total'] or 0) for m in ventas_por_material]
+    
+    data = {
+        'ventas_por_estado': {
+            'labels': list(ventas_por_estado.keys()),
+            'data': list(ventas_por_estado.values()),
+        },
+        'ingresos_por_estado': {
+            'labels': list(ingresos_por_estado.keys()),
+            'data': list(ingresos_por_estado.values()),
+        },
+        'top_clientes_compras': {
+            'labels': clientes_labels,
+            'data': clientes_data,
+            'ingresos': clientes_ingresos,
+        },
+        'ventas_por_material': {
+            'labels': material_labels,
+            'data': material_data,
+            'ingresos': material_ingresos,
+        }
+    }
+    
+    return JsonResponse(data)
+
+@login_required
+def reportes_ventas(request):
+    """
+    GET /reportes/ventas - Endpoint para obtener reportes de ventas con gráficas
+    """
+    # Obtener filtros de fechas
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+    
+    # Obtener todas las órdenes (ventas)
+    ventas = Orden.objects.all().order_by('-fecha')
+    
+    # Aplicar filtros de fechas
+    if fecha_desde:
+        ventas = ventas.filter(fecha__gte=fecha_desde)
+    if fecha_hasta:
+        ventas = ventas.filter(fecha__lte=fecha_hasta)
+    
+    # Solicitud AJAX para datos de gráficas
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return generar_datos_graficas(ventas, request)
+    
+    # Contexto para el template
+    context = {
+        'total_ventas': ventas.count(),
+        'ingresos_totales': ventas.aggregate(total=Sum('precio'))['total'] or 0,
+        'promedio_venta': ventas.aggregate(promedio=Sum('precio') / Count('id'))['promedio'] or 0 if ventas.exists() else 0,
+        'ventas_entregadas': ventas.filter(estado='entregado').count(),
+        'ventas_pendientes': ventas.filter(estado='pendiente').count(),
+        'ventas_en_ruta': ventas.filter(estado='en_ruta').count(),
+        'ventas_canceladas': ventas.filter(estado='cancelado').count(),
+    }
+    
+    return render(request, "reportes/ventas.html", context)
+
+def generar_datos_graficas(ventas, request):
+    """
+    Genera datos JSON para las gráficas
+    """
+    # Gráfica 1: Ventas por estado
+    ventas_por_estado = {
+        'Pendiente': ventas.filter(estado='pendiente').count(),
+        'En Ruta': ventas.filter(estado='en_ruta').count(),
+        'Entregado': ventas.filter(estado='entregado').count(),
+        'Cancelado': ventas.filter(estado='cancelado').count(),
+    }
+    
+    # Gráfica 2: Ingresos por estado
+    ingresos_por_estado = {
+        'Pendiente': float(ventas.filter(estado='pendiente').aggregate(total=Sum('precio'))['total'] or 0),
+        'En Ruta': float(ventas.filter(estado='en_ruta').aggregate(total=Sum('precio'))['total'] or 0),
+        'Entregado': float(ventas.filter(estado='entregado').aggregate(total=Sum('precio'))['total'] or 0),
+        'Cancelado': float(ventas.filter(estado='cancelado').aggregate(total=Sum('precio'))['total'] or 0),
+    }
+    
+    # Gráfica 3: Top clientes por número de compras
+    top_clientes = ventas.values('cliente__nombres', 'cliente__apellidos').annotate(
+        count=Count('id'),
+        total=Sum('precio')
+    ).order_by('-count')[:10]
+    
+    clientes_labels = [f"{c['cliente__nombres']} {c['cliente__apellidos']}" for c in top_clientes]
+    clientes_data = [c['count'] for c in top_clientes]
+    clientes_ingresos = [float(c['total'] or 0) for c in top_clientes]
+    
+    # Gráfica 4: Ventas por material
+    ventas_por_material = ventas.values('material__nombre').annotate(
+        count=Count('id'),
+        total=Sum('precio')
+    ).order_by('-count')[:10]
+    
+    material_labels = [m['material__nombre'] or 'Sin material' for m in ventas_por_material]
+    material_data = [m['count'] for m in ventas_por_material]
+    material_ingresos = [float(m['total'] or 0) for m in ventas_por_material]
+    
+    # Gráfica 5: Ingresos por semana (últimas 4 semanas)
+    ingresos_semana = {}
+    for i in range(4, -1, -1):
+        fecha_inicio = now().date() - timedelta(weeks=i+1)
+        fecha_fin = now().date() - timedelta(weeks=i)
+        semana_label = f"Semana de {fecha_inicio.strftime('%d/%m')}"
+        ingresos = ventas.filter(
+            fecha__date__gte=fecha_inicio,
+            fecha__date__lt=fecha_fin
+        ).aggregate(total=Sum('precio'))['total'] or 0
+        ingresos_semana[semana_label] = float(ingresos)
+    
+    # Gráfica 6: Ingresos por mes (últimos 6 meses)
+    ingresos_mes = {}
+    for i in range(6, -1, -1):
+        fecha = now() - timedelta(days=30*i)
+        mes_label = fecha.strftime('%b %Y')
+        ingresos = ventas.filter(
+            fecha__year=fecha.year,
+            fecha__month=fecha.month
+        ).aggregate(total=Sum('precio'))['total'] or 0
+        ingresos_mes[mes_label] = float(ingresos)
+    
+    data = {
+        'ventas_por_estado': {
+            'labels': list(ventas_por_estado.keys()),
+            'data': list(ventas_por_estado.values()),
+        },
+        'ingresos_por_estado': {
+            'labels': list(ingresos_por_estado.keys()),
+            'data': list(ingresos_por_estado.values()),
+        },
+        'top_clientes_compras': {
+            'labels': clientes_labels,
+            'data': clientes_data,
+            'ingresos': clientes_ingresos,
+        },
+        'ventas_por_material': {
+            'labels': material_labels,
+            'data': material_data,
+            'ingresos': material_ingresos,
+        },
+        'ingresos_por_semana': {
+            'labels': list(ingresos_semana.keys()),
+            'data': list(ingresos_semana.values()),
+        },
+        'ingresos_por_mes': {
+            'labels': list(ingresos_mes.keys()),
+            'data': list(ingresos_mes.values()),
+        }
+    }
+    
+    return JsonResponse(data)
 
 @login_required
 def exportar_reporte(request, tipo, formato='pdf'):

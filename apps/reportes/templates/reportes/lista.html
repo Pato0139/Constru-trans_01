@@ -4,8 +4,8 @@
 {% block title %}Reportes del Sistema - Constru-trans{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
+<div class="container-fluid py-2">
+    <div class="d-flex justify-content-between align-items-center mb-2 gap-3 flex-wrap">
         <h2 class="fw-bold text-primary mb-0">
             <i class="bi bi-bar-chart-fill me-2"></i>Reportes del Sistema
         </h2>
@@ -24,7 +24,7 @@
     </div>
 
     <!-- Resumen de Órdenes -->
-    <div class="row g-3 mb-4">
+    <div class="row g-2 mb-2">
         <div class="col-12 col-sm-6 col-md-3">
             <div class="card border-0 shadow-sm bg-primary text-white h-100">
                 <div class="card-body">
@@ -80,13 +80,13 @@
     </div>
 
     <!-- Sección de Descargas -->
-    <div class="row g-3 mb-4">
+    <div class="row g-2 mb-2">
         <div class="col-12">
             <div class="card border-0 shadow-sm bg-dark text-white">
-                <div class="card-header bg-secondary bg-opacity-10 py-3">
+                <div class="card-header bg-secondary bg-opacity-10 py-2">
                     <h5 class="mb-0 fw-bold text-white"><i class="bi bi-download me-2 text-info"></i>Generar Reportes</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-2">
                     <div class="row g-3">
                         <div class="col-12 col-md-3">
                             <div class="btn-group w-100">
@@ -174,45 +174,92 @@
     </div>
 
     <!-- Resumen de Recursos -->
-    <div class="row g-3 mb-4">
+    <div class="row g-2 mb-2">
         <div class="col-12 col-md-8">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark">Estadísticas de Órdenes</h5>
+                <div class="card-header bg-white py-1" style="padding: 0.5rem;">
+                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.8rem;">Estadísticas de Órdenes</h6>
                 </div>
-                <div class="card-body">
-                    <canvas id="graficaOrdenes" style="max-height: 300px;"></canvas>
+                <div class="card-body p-1">
+                    <canvas id="graficaOrdenes" style="max-height: 120px; height: 120px;"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-12 col-md-4">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark">Otros Indicadores</h5>
+                <div class="card-header bg-white py-1" style="padding: 0.5rem;">
+                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.8rem;">Otros Indicadores</h6>
                 </div>
-                <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                <div class="card-body p-1">
+                    <ul class="list-group list-group-flush" style="font-size: 0.75rem;">
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-1">
                             <div><i class="bi bi-people me-2 text-primary"></i>Clientes</div>
-                            <span class="badge bg-primary rounded-pill">{{ total_clientes }}</span>
+                            <span class="badge bg-primary rounded-pill" style="font-size: 0.6rem;">{{ total_clientes }}</span>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-1">
                             <div><i class="bi bi-person-badge me-2 text-primary"></i>Conductores</div>
-                            <span class="badge bg-primary rounded-pill">{{ total_conductores }}</span>
+                            <span class="badge bg-primary rounded-pill" style="font-size: 0.6rem;">{{ total_conductores }}</span>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-1">
                             <div><i class="bi bi-bricks me-2 text-primary"></i>Materiales</div>
-                            <span class="badge bg-primary rounded-pill">{{ total_materiales }}</span>
+                            <span class="badge bg-primary rounded-pill" style="font-size: 0.6rem;">{{ total_materiales }}</span>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-1">
                             <div><i class="bi bi-truck-flatbed me-2 text-primary"></i>Vehículos</div>
-                            <span class="badge bg-primary rounded-pill">{{ total_vehiculos }}</span>
+                            <span class="badge bg-primary rounded-pill" style="font-size: 0.6rem;">{{ total_vehiculos }}</span>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3 bg-light">
-                            <div class="fw-bold"><i class="bi bi-cash-stack me-2 text-success"></i>Total Ingresos</div>
-                            <span class="fw-bold text-success">${{ total_ingresos|floatformat:0|intcomma }}</span>
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-1 bg-light">
+                            <div class="fw-bold" style="font-size: 0.7rem;"><i class="bi bi-cash-stack me-2 text-success"></i>Total Ingresos</div>
+                            <span class="fw-bold text-success" style="font-size: 0.7rem;">${{ total_ingresos|floatformat:0|intcomma }}</span>
                         </li>
                     </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficas de Ventas -->
+    <div class="row g-1 mb-2">
+        <div class="col-12">
+            <h6 class="fw-bold text-primary mb-1" style="font-size: 0.85rem;"><i class="bi bi-graph-up me-2"></i>Analítica de Ventas</h6>
+        </div>
+        <div class="col-6 col-md-3 col-lg-3">
+            <div class="card border-0 shadow-sm" style="height: fit-content;">
+                <div class="card-header bg-primary text-white py-1" style="padding: 0.5rem;">
+                    <h6 class="mb-0" style="font-size: 0.7rem;"><i class="bi bi-pie-chart me-1"></i>Ventas por Estado</h6>
+                </div>
+                <div class="card-body p-1">
+                    <canvas id="chartVentasEstado" style="max-height: 120px; height: 120px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg-3">
+            <div class="card border-0 shadow-sm" style="height: fit-content;">
+                <div class="card-header bg-success text-white py-1" style="padding: 0.5rem;">
+                    <h6 class="mb-0" style="font-size: 0.7rem;"><i class="bi bi-pie-chart me-1"></i>Ingresos por Estado</h6>
+                </div>
+                <div class="card-body p-1">
+                    <canvas id="chartIngresosEstado" style="max-height: 120px; height: 120px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg-3">
+            <div class="card border-0 shadow-sm" style="height: fit-content;">
+                <div class="card-header bg-info text-white py-1" style="padding: 0.5rem;">
+                    <h6 class="mb-0" style="font-size: 0.7rem;"><i class="bi bi-pie-chart me-1"></i>Top Clientes</h6>
+                </div>
+                <div class="card-body p-1">
+                    <canvas id="chartTopClientes" style="max-height: 120px; height: 120px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg-3">
+            <div class="card border-0 shadow-sm" style="height: fit-content;">
+                <div class="card-header bg-warning text-white py-1" style="padding: 0.5rem;">
+                    <h6 class="mb-0" style="font-size: 0.7rem;"><i class="bi bi-pie-chart me-1"></i>Ventas por Material</h6>
+                </div>
+                <div class="card-body p-1">
+                    <canvas id="chartVentasMaterial" style="max-height: 120px; height: 120px;"></canvas>
                 </div>
             </div>
         </div>
@@ -477,6 +524,160 @@
                 }
             }
         });
+
+        // Cargar gráficas de ventas
+        fetch('{% url "reportes:reportes_admin" %}', {
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error en la respuesta');
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos de ventas:', data);
+
+            const coloresPastel = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'];
+            const coloresVibrantes = ['#FF5733', '#33FF57', '#3357FF', '#FF33F5'];
+
+            // Gráfica: Ventas por Estado
+            if (document.getElementById('chartVentasEstado')) {
+                const ctxVentas = document.getElementById('chartVentasEstado').getContext('2d');
+                new Chart(ctxVentas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.ventas_por_estado.labels,
+                        datasets: [{
+                            data: data.ventas_por_estado.data,
+                            backgroundColor: coloresPastel,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { padding: 3, font: { size: 6 } }
+                            },
+                            tooltip: {
+                                bodyFont: { size: 7 },
+                                callbacks: {
+                                    label: context => `${context.parsed}`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Gráfica: Ingresos por Estado
+            if (document.getElementById('chartIngresosEstado')) {
+                const ctxIngresos = document.getElementById('chartIngresosEstado').getContext('2d');
+                new Chart(ctxIngresos, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.ingresos_por_estado.labels,
+                        datasets: [{
+                            data: data.ingresos_por_estado.data,
+                            backgroundColor: coloresVibrantes,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { padding: 3, font: { size: 6 } }
+                            },
+                            tooltip: {
+                                bodyFont: { size: 7 },
+                                callbacks: {
+                                    label: context => `$${context.parsed.toLocaleString('es-CO')}`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Gráfica: Top Clientes
+            if (document.getElementById('chartTopClientes')) {
+                const ctxClientes = document.getElementById('chartTopClientes').getContext('2d');
+                new Chart(ctxClientes, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.top_clientes_compras.labels,
+                        datasets: [{
+                            data: data.top_clientes_compras.data,
+                            backgroundColor: coloresPastel,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { padding: 3, font: { size: 6 } }
+                            },
+                            tooltip: {
+                                bodyFont: { size: 7 },
+                                callbacks: {
+                                    label: context => {
+                                        const ingresos = data.top_clientes_compras.ingresos[context.dataIndex];
+                                        return `${context.parsed} compras`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Gráfica: Ventas por Material
+            if (document.getElementById('chartVentasMaterial')) {
+                const ctxMaterial = document.getElementById('chartVentasMaterial').getContext('2d');
+                new Chart(ctxMaterial, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.ventas_por_material.labels,
+                        datasets: [{
+                            data: data.ventas_por_material.data,
+                            backgroundColor: coloresVibrantes,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { padding: 3, font: { size: 6 } }
+                            },
+                            tooltip: {
+                                bodyFont: { size: 7 },
+                                callbacks: {
+                                    label: context => {
+                                        const ingresos = data.ventas_por_material.ingresos[context.dataIndex];
+                                        return `${context.parsed} ventas`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        })
+        .catch(error => console.error('Error al cargar gráficas de ventas:', error));
     });
 </script>
 {% endblock %}
