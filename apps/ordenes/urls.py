@@ -10,4 +10,5 @@ urlpatterns = [
     path('editar/<int:id>/', views.editar_orden, name="editar_orden"),
     path('eliminar/<int:id>/', views.eliminar_orden, name='eliminar_orden'),
     path('factura/<int:id>/', views.descargar_factura, name='descargar_factura'),
+    path('factura/<int:id>/<str:formato>/', views.descargar_factura, name='descargar_factura_formato'),
 ]

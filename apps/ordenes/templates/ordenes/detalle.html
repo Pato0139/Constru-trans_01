@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load humanize gravatar %}
 
 {% block title %}Detalle del Pedido - Constru-trans{% endblock %}
 
@@ -29,15 +29,20 @@
             <div class="row g-5">
                 <!-- Columna Izquierda: Información -->
                 <div class="col-md-6">
-                    <div class="mb-5">
+                    <div class="mb-5 section-panel">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Datos del Cliente</h6>
-                        <div class="d-flex align-items-center p-3 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                            <div class="bg-accent rounded-circle p-3 me-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
-                                <i class="bi bi-person-fill text-dark fs-4"></i>
+                        <div class="d-flex align-items-center gap-3 p-4 rounded-4" style="background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.08);">
+                            <div class="flex-shrink-0">
+                                {% if orden.cliente.foto_perfil %}
+                                <img src="{{ orden.cliente.foto_perfil.url }}" alt="Foto de {{ orden.cliente.nombres }}" class="rounded-circle border border-2 border-accent shadow-sm" style="width: 80px; height: 80px; object-fit: cover;">
+                                {% else %}
+                                <img src="{{ orden.cliente.user.email|gravatar_url:80 }}" alt="Avatar de {{ orden.cliente.nombres }}" class="rounded-circle border border-2 border-accent shadow-sm" style="width: 80px; height: 80px; object-fit: cover;">
+                                {% endif %}
                             </div>
                             <div>
-                                <h5 class="fw-700 text-white mb-0">{{ orden.cliente.nombres }} {{ orden.cliente.apellidos }}</h5>
-                                <p class="text-muted small mb-0">{{ orden.cliente.user.email }}</p>
+                                <h5 class="fw-700 text-white mb-1">{{ orden.cliente.nombres }} {{ orden.cliente.apellidos }}</h5>
+                                <p class="text-muted small mb-1">{{ orden.cliente.user.email }}</p>
+                                <span class="badge badge-pill text-uppercase" style="background: rgba(245,158,11,0.12); color: #f59e0b; letter-spacing: .8px; padding: .55rem .9rem; font-size: .8rem;">{{ orden.cliente.get_rol_display }}</span>
                             </div>
                         </div>
                     </div>
@@ -72,10 +77,18 @@
 
                 <!-- Columna Derecha: Materiales y Pago -->
                 <div class="col-md-6">
-                    <div class="mb-5">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Resumen de Materiales</h6>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle no-datatable">
+                    <div class="mb-5 section-panel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px;">Resumen de Materiales</h6>
+                                <p class="text-muted small mb-0">Revisa cantidades, subtotales y total final con estilo.</p>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge-tipo px-3 py-2 rounded-pill">Total: <strong>${{ orden.precio|floatformat:0|intcomma }}</strong></span>
+                            </div>
+                        </div>
+                        <div class="table-responsive rounded-4 overflow-hidden" style="border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02);">
+                            <table class="table table-hover align-middle no-datatable mb-0">
                                 <thead>
                                     <tr class="text-muted small border-bottom border-secondary">
                                         <th class="ps-0">Material</th>
@@ -116,7 +129,7 @@
 
                     <!-- Sección para Admin y Cliente (Modificar/Cancelar) -->
                     {% if user.usuario.rol == "admin" or user.usuario.rol == "cliente" and orden.estado != "entregado" and orden.estado != "cancelado" %}
-                    <div class="p-4 rounded-4 mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="p-4 rounded-4 mb-4 section-panel">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Gestión del Pedido</h6>
                         <div class="d-grid gap-2">
                             {% if user.usuario.rol == "admin" %}
@@ -145,7 +158,7 @@
 
                     <!-- Sección EXCLUSIVA para el Administrador (Cambio de Estado Manual) -->
                     {% if user.usuario.rol == "admin" %}
-                    <div class="p-4 rounded-4 mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="p-4 rounded-4 mb-4 section-panel">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Control Maestro (Solo Admin)</h6>
                         <form method="POST">
                             {% csrf_token %}
@@ -167,7 +180,7 @@
 
                     <!-- Sección EXCLUSIVA para el Conductor -->
                     {% if user.usuario.rol == "conductor" and orden.conductor == user.usuario and orden.estado != "entregado" and orden.estado != "cancelado" %}
-                    <div class="p-4 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="p-4 rounded-4 section-panel">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Panel del Conductor</h6>
                         <p class="text-muted small mb-4">Como conductor asignado, puedes confirmar la entrega exitosa o reportar una cancelación.</p>
                         <form method="POST" class="d-grid gap-3">
@@ -184,13 +197,26 @@
                 </div>
             </div>
 
-            <div class="mt-5 pt-4 border-top border-secondary d-flex justify-content-between align-items-center">
-                <a href="javascript:history.back()" class="btn btn-outline-light rounded-pill px-4">
-                    <i class="bi bi-arrow-left me-2"></i> Volver
-                </a>
-                <button class="btn btn-outline-light rounded-pill px-4" onclick="window.print()">
-                    <i class="bi bi-printer me-2"></i> Imprimir Comprobante
-                </button>
+            <div class="mt-5 pt-4 border-top border-secondary">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <a href="{% url 'ordenes:descargar_factura_formato' orden.id 'pdf' %}" class="btn btn-gold rounded-pill px-4 py-2 fw-800 shadow-sm">
+                        <i class="bi bi-file-earmark-pdf-fill me-2"></i> Descargar PDF
+                    </a>
+                    <a href="{% url 'ordenes:descargar_factura_formato' orden.id 'excel' %}" class="btn btn-outline-light rounded-pill px-4 py-2 fw-700">
+                        <i class="bi bi-file-earmark-excel-fill me-2"></i> Descargar Excel
+                    </a>
+                    <a href="{% url 'ordenes:descargar_factura_formato' orden.id 'imagen' %}" class="btn btn-outline-light rounded-pill px-4 py-2 fw-700">
+                        <i class="bi bi-image-fill me-2"></i> Descargar Imagen
+                    </a>
+                    <button class="btn btn-outline-light rounded-pill px-4 py-2 fw-700" onclick="window.print()">
+                        <i class="bi bi-printer me-2"></i> Imprimir Comprobante
+                    </button>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="javascript:history.back()" class="btn btn-outline-light rounded-pill px-4">
+                        <i class="bi bi-arrow-left me-2"></i> Volver
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -203,6 +229,56 @@
     .fw-600 { font-weight: 600; }
     .text-accent { color: var(--color-accent) !important; }
     .space-y-4 > * + * { margin-top: 1.5rem; }
+
+    .section-panel {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14);
+    }
+
+    .badge-tipo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.65rem 1rem;
+        border-radius: 999px;
+        border: 1px solid rgba(245,158,11,0.18);
+        font-size: 0.85rem;
+        letter-spacing: 0.9px;
+        background: rgba(245,158,11,0.08);
+    }
+
+    .table thead th {
+        border-bottom: 1px solid rgba(255,255,255,0.12);
+        color: #f8fafc;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.78rem;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(255,255,255,0.03);
+    }
+
+    .btn-outline-light {
+        border-color: rgba(255,255,255,0.14) !important;
+        color: #e2e8f0 !important;
+    }
+
+    .btn-outline-light:hover {
+        background: rgba(255,255,255,0.08) !important;
+    }
+
+    .btn-gold {
+        background: var(--color-accent);
+        color: #0f172a;
+        border: none;
+    }
+
+    .btn-gold:hover {
+        background: #fca311;
+        color: #0f172a;
+    }
 </style>
 
 {% endblock %}
