@@ -81,6 +81,9 @@
                                         <th class="text-center">Cant.</th>
                                         <th class="text-end">P. Unit.</th>
                                         <th class="text-end pe-0">Subtotal</th>
+                                        {% if orden.estado == "pendiente" %}
+                                        <th class="text-end pe-0"></th>
+                                        {% endif %}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -90,6 +93,15 @@
                                         <td class="text-center text-muted">{{ detalle.cantidad }}</td>
                                         <td class="text-end text-muted">$ {{ detalle.precio_unitario }}</td>
                                         <td class="text-end pe-0 text-accent fw-700">$ {{ detalle.subtotal }}</td>
+                                        {% if orden.estado == "pendiente" %}
+                                        <td class="text-end pe-0">
+                                            <a href="{% url 'ordenes:eliminar_material_pedido' orden.id detalle.id %}"
+                                               class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                               onclick="return confirm('¿Eliminar este material del pedido?')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </td>
+                                        {% endif %}
                                     </tr>
                                     {% empty %}
                                         {% if orden.material %}
@@ -101,7 +113,7 @@
                                         </tr>
                                         {% else %}
                                         <tr>
-                                            <td colspan="4" class="text-center py-4 text-muted">No hay detalles registrados.</td>
+                                            <td colspan="5" class="text-center py-4 text-muted">No hay detalles registrados.</td>
                                         </tr>
                                         {% endif %}
                                     {% endfor %}
@@ -112,12 +124,13 @@
                                         <td class="pe-0 pt-4 text-end">
                                             <h3 class="fw-900 text-white mb-0">$ {{ orden.precio }}</h3>
                                         </td>
+                                        {% if orden.estado == "pendiente" %}<td></td>{% endif %}
                                     </tr>
                                 </tfoot>
                             </table>
                         </div>
 
-                        <!-- CT-292 CT-296 — Formulario agregar material (solo pedidos pendientes) -->
+                        <!-- Formulario agregar material -->
                         {% if orden.estado == "pendiente" %}
                         <div class="p-4 rounded-4 mt-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
                             <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">
@@ -133,12 +146,7 @@
                                 <div class="row g-3 align-items-end">
                                     <div class="col-8">
                                         <label class="text-muted small mb-2 d-block">Material</label>
-                                        <select name="material_id" class="form-select rounded-pill border-0 px-4 bg-dark text-white" required>
-                                            <option value="">Selecciona un material...</option>
-                                            {% for m in materiales_disponibles %}
-                                            <option value="{{ m.id }}">{{ m.nombre }} — Stock: {{ m.stock }} — ${{ m.precio }}</option>
-                                            {% endfor %}
-                                        </select>
+                                        <input type="text" name="material_texto" class="form-control rounded-pill border-0 px-4 bg-dark text-white" placeholder="Escribe el nombre del material..." required>
                                     </div>
                                     <div class="col-4">
                                         <label class="text-muted small mb-2 d-block">Cantidad</label>

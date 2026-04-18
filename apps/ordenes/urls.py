@@ -11,6 +11,7 @@ urlpatterns = [
     path('eliminar/<int:id>/', views.eliminar_orden, name='eliminar_orden'),
     path('factura/<int:id>/', views.descargar_factura, name='descargar_factura'),
     path('api/total/<int:id>/', views.api_total_orden, name='api_total_orden'),
-    # CT-292 — Endpoint agregar material al pedido
+    # HU-29 CT-299 — Agregar y eliminar materiales del pedido
     path('<int:id>/materiales/', views.agregar_material_pedido, name='agregar_material_pedido'),
+    path('<int:id>/materiales/<int:detalle_id>/eliminar/', views.eliminar_material_pedido, name='eliminar_material_pedido'),
 ]
