@@ -5,19 +5,25 @@
 
 {% block content %}
 <div class="container-fluid py-2">
-    <div class="d-flex justify-content-between align-items-center mb-2 gap-3 flex-wrap">
-        <h2 class="fw-bold text-primary mb-0">
-            <i class="bi bi-bar-chart-fill me-2"></i>Reportes del Sistema
-        </h2>
-        <div class="d-flex gap-2 align-items-center flex-wrap">
-            <form method="GET" class="d-flex">
-                <div class="input-group">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-3">
+        <div>
+            <h2 class="fw-bold text-primary mb-0">
+                <i class="bi bi-bar-chart-fill me-2"></i>Reportes del Sistema
+            </h2>
+            <p class="text-muted mb-0 small">Panel de control para generar y consultar reportes.</p>
+        </div>
+        <div class="d-flex flex-column flex-sm-row gap-2 align-items-stretch align-items-sm-center w-100 w-md-auto">
+            <form method="GET" class="d-flex flex-fill flex-sm-grow-0">
+                <div class="input-group w-100" style="min-width: 240px;">
                     <span class="input-group-text bg-dark border-secondary border-end-0 small shadow-sm"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" name="q" class="form-control bg-dark text-white border-secondary border-start-0 ps-0 form-control-sm shadow-sm" 
                            placeholder="Buscar reportes..." value="{{ search_query|default:'' }}">
                 </div>
             </form>
-            <div class="text-muted small ms-auto">
+            <a href="{% url 'reportes:reportes_historial' %}" class="btn btn-accion btn-reportes-historial rounded-pill btn-sm px-4 py-2 d-flex align-items-center justify-content-center shadow-sm">
+                <i class="bi bi-clock-history me-2"></i>Historial de reportes
+            </a>
+            <div class="text-white-50 small align-self-center">
                 Última actualización: {{ now|date:"d/m/Y H:i" }}
             </div>
         </div>

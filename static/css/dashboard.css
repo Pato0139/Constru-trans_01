@@ -97,6 +97,21 @@
     border: none !important;
 }
 
+.btn-reportes-historial {
+    background: linear-gradient(135deg, var(--color-accent), #f7bb4d) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    color: #000 !important;
+    font-weight: 700;
+    letter-spacing: 0.35px;
+}
+
+.btn-reportes-historial:hover,
+.btn-reportes-historial:focus {
+    background: linear-gradient(135deg, #f7bb4d, var(--color-accent)) !important;
+    box-shadow: 0 12px 25px rgba(243, 156, 18, 0.22);
+    transform: translateY(-1px);
+}
+
 /* Estilo para DataTables */
 .dataTables_wrapper .dataTables_length label,
 .dataTables_wrapper .dataTables_filter label,

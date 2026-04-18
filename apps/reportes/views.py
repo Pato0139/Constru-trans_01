@@ -11,8 +11,38 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from django.utils.timezone import now
 from historial.utils import registrar_actividad
+from historial.models import Historial
 from datetime import datetime, timedelta
 import json
+
+REPORTES_TIPOS = [
+    ('todos', 'Todos'),
+    ('clientes', 'Clientes'),
+    ('materiales', 'Inventario'),
+    ('ventas', 'Ventas'),
+    ('pedidos', 'Pedidos'),
+]
+
+
+def obtener_tipo_reporte(descripcion):
+    if not descripcion:
+        return ''
+
+    texto = descripcion.lower()
+    for tipo, _ in REPORTES_TIPOS:
+        if tipo == 'todos':
+            continue
+        if f"reporte de {tipo}" in texto:
+            return tipo
+    if 'reporte' in texto:
+        return 'otro'
+    return ''
+
+
+def obtener_estado_reporte(historial):
+    if historial.accion == 'otro':
+        return 'Generado'
+    return dict(Historial.ACCIONES).get(historial.accion, historial.accion)
 
 try:
     from openpyxl import Workbook
@@ -20,6 +50,62 @@ try:
     EXCEL_AVAILABLE = True
 except ImportError:
     EXCEL_AVAILABLE = False
+
+@login_required
+def reportes_historial(request):
+    """
+    GET /reportes/historial - Historial de reportes generados
+    """
+    if not request.user.is_superuser and request.user.usuario.rol != 'admin':
+        return render(request, "403.html", status=403)
+
+    tipo = request.GET.get('tipo', 'todos')
+    fecha_desde = request.GET.get('fecha_desde', '')
+    fecha_hasta = request.GET.get('fecha_hasta', '')
+
+    registros = Historial.objects.filter(modulo='reportes').order_by('-fecha_hora')
+
+    if tipo and tipo != 'todos':
+        registros = registros.filter(descripcion__icontains=f"reporte de {tipo}")
+
+    if fecha_desde:
+        registros = registros.filter(fecha_hora__date__gte=fecha_desde)
+    if fecha_hasta:
+        registros = registros.filter(fecha_hora__date__lte=fecha_hasta)
+
+    reportes = [
+        {
+            'tipo': obtener_tipo_reporte(r.descripcion) or 'Otro',
+            'fecha': r.fecha_hora,
+            'estado': obtener_estado_reporte(r),
+            'descripcion': r.descripcion,
+        }
+        for r in registros
+    ]
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        data = [
+            {
+                'tipo': item['tipo'],
+                'fecha': item['fecha'].strftime('%Y-%m-%d %H:%M'),
+                'estado': item['estado'],
+                'descripcion': item['descripcion'],
+            }
+            for item in reportes
+        ]
+        return JsonResponse({'reportes': data})
+
+    context = {
+        'reportes': reportes,
+        'tipos': REPORTES_TIPOS,
+        'filtros': {
+            'tipo': tipo,
+            'fecha_desde': fecha_desde,
+            'fecha_hasta': fecha_hasta,
+        }
+    }
+    return render(request, "reportes/historial.html", context)
+
 
 @login_required
 def reportes_pedidos(request):
