@@ -18,11 +18,14 @@
                         <i class="bi bi-grid-1x2-fill"></i> Panel General
                     </a>
                 </li>
+
+                <!-- 🔥 AQUÍ ESTÁ EL CAMBIO -->
                 <li class="nav-item">
-                    <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-custom {% if 'ordenes' in request.path %}active{% endif %}">
+                    <a href="{% url 'compras:lista_ordenes' %}" class="nav-link-custom {% if 'compras/ordenes' in request.path %}active{% endif %}">
                         <i class="bi bi-cart-fill"></i> Pedidos
                     </a>
                 </li>
+
                 <li class="nav-item">
                     <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link-custom {% if 'usuarios' in request.path and 'usuarios/usuarios' in request.path %}active{% endif %}">
                         <i class="bi bi-people-fill"></i> Usuarios
@@ -58,6 +61,7 @@
                         <i class="bi bi-clock-history"></i> Historial
                     </a>
                 </li>
+
             {% elif user.usuario.rol == 'cliente' %}
                 <li class="nav-item">
                     <a href="{% url 'clientes:panel_cliente' %}" class="nav-link-custom {% if 'clientes/panel' in request.path %}active{% endif %}">
@@ -79,6 +83,7 @@
                         <i class="bi bi-geo-alt-fill"></i> Seguimiento
                     </a>
                 </li>
+
             {% elif user.usuario.rol == 'conductor' %}
                 <li class="nav-item">
                     <a href="{% url 'usuarios:panel_conductor' %}" class="nav-link-custom {% if 'panel-conductor' in request.path %}active{% endif %}">
