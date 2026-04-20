@@ -1,64 +1,148 @@
-{% load gravatar %}
-<header class="navbar-custom d-flex justify-content-between align-items-center mb-5 p-4 rounded-4 shadow-lg" style="background: var(--color-surface); border-left: 6px solid var(--color-primary) !important;">
-    <div class="d-flex align-items-center">
-        {% load static %}
-        <img src="{% static 'img/Logo1.jpeg' %}" height="40" class="me-3 d-lg-none rounded-2" alt="Logo">
-        <h2 class="h4 fw-800 m-0 text-white" style="font-family: 'Montserrat', sans-serif;">{% block header_title %}Panel de Control{% endblock %}</h2>
+<header class="navbar-custom d-flex justify-content-between align-items-center mb-5 p-4 rounded-4 shadow-2xl animate__animated animate__fadeInDown" 
+        style="background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05);">
+    {% load static gravatar %}
+    <div class="d-flex align-items-center" data-aos="fade-right">
+        <div class="bg-accent rounded-3 p-2 me-3 d-lg-none shadow-lg">
+            <img src="{% static 'img/Logo1.jpeg' %}" height="30" class="rounded-1" alt="Logo">
+        </div>
+        <div>
+            <h2 class="h4 fw-900 m-0 text-white" style="font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.5px;">
+                {% block header_title %}Panel de Control{% endblock %}
+            </h2>
+            <p class="text-muted small mb-0 d-none d-md-block">Bienvenido de nuevo, ¡qué bueno verlo!</p>
+        </div>
     </div>
 
-    <div class="d-flex align-items-center gap-4">
+    <div class="d-flex align-items-center gap-4" data-aos="fade-left">
+        <!-- Notificaciones (Mock) -->
+        <div class="position-relative cursor-pointer d-none d-sm-block">
+            <i class="bi bi-bell text-white fs-5 opacity-75 hover-opacity-100 transition-all"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger p-1" style="font-size: 0.4rem;">3</span>
+        </div>
+
         <!-- Selector de Temas -->
         <div class="dropdown">
-            <button class="btn btn-outline-light dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-toggle="tooltip" title="Cambiar Estilo">
-                <i class="bi bi-palette-fill"></i>
+            <button class="btn btn-dark-soft dropdown-toggle btn-sm rounded-pill px-3 border-white-10" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-palette2 me-2"></i> Accesibilidad
             </button>
-            <ul class="dropdown-menu dropdown-menu-dark">
-                <li><a class="dropdown-item" href="#" onclick="setTheme('light')"><i class="bi bi-sun-fill me-2"></i>Modo Claro</a></li>
-                <li><a class="dropdown-item" href="#" onclick="setTheme('dark')"><i class="bi bi-moon-stars-fill me-2"></i>Modo Oscuro</a></li>
-                <li><a class="dropdown-item" href="#" onclick="setTheme('accessibility')"><i class="bi bi-eye-fill me-2"></i>Accesibilidad</a></li>
+            <ul class="dropdown-menu dropdown-menu-dark shadow-2xl border-white-10 p-2" style="min-width: 200px;">
+                <li class="px-3 py-1 small text-muted text-uppercase fw-bold">Modos Visuales</li>
+                <li><a class="dropdown-item rounded-2 py-2" href="#" onclick="setTheme('light')"><i class="bi bi-sun-fill me-2 text-warning"></i>Modo Claro</a></li>
+                <li><a class="dropdown-item rounded-2 py-2" href="#" onclick="setTheme('dark')"><i class="bi bi-moon-stars-fill me-2 text-info"></i>Modo Oscuro</a></li>
+                <li><a class="dropdown-item rounded-2 py-2" href="#" onclick="setTheme('accessibility')"><i class="bi bi-eye-fill me-2 text-success"></i>Alto Contraste</a></li>
+                
+                <li><hr class="dropdown-divider opacity-10"></li>
+                
+                <li class="px-3 py-1 small text-muted text-uppercase fw-bold">Daltonismo</li>
+                <li><a class="dropdown-item rounded-2 py-2" href="#" onclick="setDaltonism('none')"><i class="bi bi-circle me-2"></i>Ninguno</a></li>
+                <li><a class="dropdown-item rounded-2 py-2" href="#" onclick="setDaltonism('protanopia')"><i class="bi bi-droplet-half me-2"></i>Protanopía</a></li>
+                <li><a class="dropdown-item rounded-2 py-2" href="#" onclick="setDaltonism('deuteranopia')"><i class="bi bi-droplet-half me-2"></i>Deuteranopía</a></li>
+                <li><a class="dropdown-item rounded-2 py-2" href="#" onclick="setDaltonism('tritanopia')"><i class="bi bi-droplet-half me-2"></i>Tritanopía</a></li>
+                <li><a class="dropdown-item rounded-2 py-2" href="#" onclick="setDaltonism('achromatopsia')"><i class="bi bi-droplet me-2"></i>Acromatopsia</a></li>
             </ul>
         </div>
 
+        <div class="vr opacity-10 mx-2 d-none d-md-block"></div>
+
         <div class="d-none d-md-block text-end">
-            <p class="small text-white fw-700 mb-0">{{ user.get_full_name|default:user.username }}</p>
-            <span class="badge-role">{{ user.usuario.rol|title }}</span>
+            <p class="small text-white fw-800 mb-0">{{ user.get_full_name|default:user.username }}</p>
+            <span class="badge-role-premium">{{ user.usuario.rol|title }}</span>
         </div>
+
         {% if user.usuario.rol == 'admin' %}
-            <a href="{% url 'usuarios:perfil_admin' %}" class="profile-link">
+            <a href="{% url 'usuarios:perfil_admin' %}" class="profile-wrapper">
         {% elif user.usuario.rol == 'conductor' %}
-            <a href="{% url 'usuarios:perfil_conductor' %}" class="profile-link">
+            <a href="{% url 'usuarios:perfil_conductor' %}" class="profile-wrapper">
+        {% elif user.usuario.rol == 'cliente' %}
+            <a href="{% url 'clientes:perfil_cliente' %}" class="profile-wrapper">
         {% else %}
-            <a href="{% url 'clientes:perfil_cliente' %}" class="profile-link">
+            <a href="#" class="profile-wrapper">
         {% endif %}
-            {% if user.usuario.foto_perfil %}
-                <img src="{{ user.usuario.foto_perfil.url }}" class="rounded-circle border-2 border-accent" alt="Perfil" width="45" height="45" style="border: 2px solid var(--color-accent) !important; object-fit: cover;">
-            {% else %}
-                <img src="{{ user.email|gravatar_url:45 }}" class="rounded-circle border-2 border-accent" alt="Perfil" width="45" height="45" style="border: 2px solid var(--color-accent) !important;">
-            {% endif %}
+            <div class="avatar-glow">
+                {% if user.usuario.foto_perfil %}
+                    <img src="{{ user.usuario.foto_perfil.url }}" class="rounded-circle" alt="Perfil">
+                {% else %}
+                    <img src="{{ user.email|gravatar_url:45 }}" class="rounded-circle" alt="Perfil">
+                {% endif %}
+            </div>
         </a>
     </div>
 
     <style>
         .navbar-custom {
-            border: 1px solid rgba(255,255,255,0.03);
+            z-index: 2000 !important; 
+            position: relative;
         }
-        .badge-role {
-            font-size: 0.65rem;
+        .dropdown {
+            position: relative;
+        }
+        .dropdown-menu {
+            z-index: 3000 !important;
+            margin-top: 10px !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
+        }
+        .btn-dark-soft {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+            transition: all 0.3s ease;
+        }
+        .btn-dark-soft:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--color-accent);
+        }
+        .badge-role-premium {
+            font-size: 0.6rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 800;
-            color: #000000;
+            letter-spacing: 1.5px;
+            font-weight: 900;
+            color: #000;
+            background: linear-gradient(135deg, var(--color-accent) 0%, #d97706 100%);
+            padding: 3px 10px;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);
+        }
+        .profile-wrapper {
+            position: relative;
+            display: block;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .profile-wrapper:hover {
+            transform: scale(1.05);
+        }
+        .avatar-glow {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(135deg, var(--color-accent), transparent);
+            position: relative;
+        }
+        .avatar-glow img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--color-secondary);
+        }
+        .avatar-glow::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 50%;
             background: var(--color-accent);
-            padding: 2px 8px;
-            border-radius: 4px;
+            opacity: 0;
+            filter: blur(8px);
+            transition: opacity 0.3s ease;
+            z-index: -1;
         }
-        .profile-link {
-            transition: transform 0.3s ease;
+        .profile-wrapper:hover .avatar-glow::after {
+            opacity: 0.4;
         }
-        .profile-link:hover {
-            transform: scale(1.1);
-        }
-        .fw-800 { font-weight: 800; }
-        .fw-700 { font-weight: 700; }
+        .fw-900 { font-weight: 900; }
+        .hover-opacity-100:hover { opacity: 1 !important; }
+        .cursor-pointer { cursor: pointer; }
     </style>
 </header>

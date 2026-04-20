@@ -1,21 +1,5 @@
-from django.db import models
-from apps.usuarios.models import Material
-
-class Proveedor(models.Model):
-    nombre = models.CharField(max_length=200, verbose_name="Nombre del Proveedor")
-    nit = models.CharField(max_length=20, unique=True, verbose_name="NIT/ID")
-    contacto = models.CharField(max_length=100, verbose_name="Persona de Contacto")
-    telefono = models.CharField(max_length=20, verbose_name="Teléfono")
-    email = models.EmailField(verbose_name="Correo Electrónico")
-    direccion = models.TextField(verbose_name="Dirección")
-    estado = models.BooleanField(default=True, verbose_name="Activo")
-
-    class Meta:
-        verbose_name = "Proveedor"
-        verbose_name_plural = "Proveedores"
-
-    def __str__(self):
-        return self.nombre
+from django.db import models, transaction
+from apps.usuarios.models import Material, Proveedor
 
 class Compra(models.Model):
     proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE, verbose_name="Proveedor")
@@ -33,8 +17,22 @@ class DetalleCompra(models.Model):
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Precio de Compra")
 
     def save(self, *args, **kwargs):
-        # Actualizar stock automáticamente al guardar el detalle de compra (Requerimiento 20)
+        # Actualizar stock automáticamente al guardar el detalle de compra
         if not self.pk: # Solo en creación
-            self.material.stock += self.cantidad
-            self.material.save()
+            from apps.usuarios.models import Stock
+            from django.db.models import F
+            with transaction.atomic():
+                stock_obj, created = Stock.objects.select_for_update().get_or_create(material=self.material)
+                stock_obj.cantidad = F('cantidad') + self.cantidad
+                stock_obj.save()
+                
+                # HU-17: Registrar movimiento
+                from apps.inventario.models import MovimientoInventario
+                MovimientoInventario.objects.create(
+                    material=self.material,
+                    tipo='entrada',
+                    cantidad=self.cantidad,
+                    motivo=f"compra #{self.compra.id}",
+                    referencia_id=self.compra.id
+                )
         super().save(*args, **kwargs)

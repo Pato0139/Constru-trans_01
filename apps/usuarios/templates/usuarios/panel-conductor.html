@@ -42,16 +42,16 @@
     <div class="col-lg-12">
         <div class="table-container p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-800 m-0 text-white">Acciones Rápidas</h5>
+                <h5 class="fw-800 m-0 text-color">Acciones Rápidas</h5>
             </div>
             <div class="d-flex gap-3 flex-wrap">
                 <a href="{% url 'usuarios:pedidos_conductor' %}" class="btn btn-gold d-flex align-items-center gap-2 shadow-sm">
                     <i class="bi bi-map"></i> Ver Mapa de Entregas
                 </a>
-                <a href="{% url 'usuarios:mis_entregas' %}" class="btn btn-outline-light rounded-pill px-4 d-flex align-items-center gap-2">
+                <a href="{% url 'usuarios:mis_entregas' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2">
                     <i class="bi bi-clock-history"></i> Mi Historial
                 </a>
-                <a href="{% url 'usuarios:perfil_conductor' %}" class="btn btn-outline-light rounded-pill px-4 d-flex align-items-center gap-2">
+                <a href="{% url 'usuarios:perfil_conductor' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2">
                     <i class="bi bi-person-badge"></i> Mi Perfil
                 </a>
             </div>
@@ -61,7 +61,7 @@
 
 <div class="table-container p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 px-2">
-        <h5 class="fw-800 m-0 text-white">Mis Entregas Asignadas</h5>
+        <h5 class="fw-800 m-0 text-color">Mis Entregas Asignadas</h5>
     </div>
 
     <div class="table-responsive">
@@ -79,7 +79,7 @@
                 {% for pedido in pedidos %}
                 <tr>
                     <td class="fw-700 text-accent">#CT-{{ pedido.id }}</td>
-                    <td class="fw-600 text-white">{{ pedido.direccion_destino }}</td>
+                    <td class="fw-600 text-color">{{ pedido.direccion_destino }}</td>
                     <td class="text-muted small">{{ pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}</td>
                     <td>
                         <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">{{ pedido.estado|title }}</span>
@@ -105,6 +105,7 @@
     .fw-800 { font-weight: 800; }
     .fw-700 { font-weight: 700; }
     .text-accent { color: var(--color-accent) !important; }
+    .text-color { color: var(--color-text) !important; }
 </style>
 
 {% endblock %}

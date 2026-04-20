@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load humanize currency_tags %}
 
 {% block title %}Área de Cliente - Constru-trans{% endblock %}
 
@@ -14,7 +14,7 @@
                 <h6 class="text-muted fw-700 m-0 text-uppercase small">Pedidos Activos</h6>
                 <i class="bi bi-clock-history text-warning fs-4"></i>
             </div>
-            <h2 class="fw-900 mb-0">{{ pedidos_activos }}</h2>
+            <h2 class="fw-900 text-color mb-0">{{ pedidos_activos }}</h2>
         </div>
     </div>
 
@@ -24,7 +24,7 @@
                 <h6 class="text-muted fw-700 m-0 text-uppercase small">Entregas Completadas</h6>
                 <i class="bi bi-check-circle-fill text-success fs-4"></i>
             </div>
-            <h2 class="fw-900 mb-0">{{ entregadas }}</h2>
+            <h2 class="fw-900 text-color mb-0">{{ entregas }}</h2>
         </div>
     </div>
 
@@ -34,10 +34,14 @@
                 <h6 class="text-muted fw-700 m-0 text-uppercase small">Total Invertido</h6>
                 <i class="bi bi-cash-coin text-primary fs-4"></i>
             </div>
-            <h2 class="fw-900 mb-0">${{ total_gastado|floatformat:0|intcomma }}</h2>
+            <h2 class="fw-900 text-color mb-0">{{ total_gastado|currency }}</h2>
         </div>
     </div>
 </div>
+
+<style>
+    .text-color { color: var(--color-text) !important; }
+</style>
 
 <div class="row g-4 mb-5">
     <div class="col-lg-12">

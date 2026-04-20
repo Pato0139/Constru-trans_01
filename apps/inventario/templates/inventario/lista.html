@@ -1,33 +1,31 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load humanize currency_tags %}
 
-{% block title %}Materiales{% endblock %}
+{% block title %}Catálogo de Materiales{% endblock %}
 
 {% block content %}
 
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
     <div>
-        <h2 class="fw-bold mb-0 text-white">Gestión de Materiales</h2>
+        <h2 class="fw-bold mb-0 text-white"><i class="bi bi-box-seam-fill text-accent me-2"></i>Catálogo de Materiales</h2>
         <div class="d-flex align-items-center gap-2 mt-1">
-            <p class="text-white-50 small mb-0">Administra el inventario de materiales de construcción</p>
-            <span class="badge rounded-pill px-3" style="font-size: 0.75rem; background: rgba(255,255,255,0.1); color: #ccc;">{{ materiales|length }} resultados</span>
+            <p class="text-white-50 small mb-0">Gestión de productos y precios base</p>
+            <span class="badge rounded-pill px-3" style="font-size: 0.75rem; background: rgba(245, 158, 11, 0.1); color: var(--color-accent); border: 1px solid rgba(245, 158, 11, 0.2);">{{ materiales|length }} registros</span>
         </div>
     </div>
 
     <div class="w-100" style="max-width: 520px;">
-        <form method="GET" class="d-flex flex-column gap-2">
-            <!-- Fila 1: Buscador con icono blanco -->
-            <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10" style="background-color: #1e293b !important;">
+        <form method="GET" class="d-flex flex-column gap-2" data-aos="fade-left">
+            <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm" style="background-color: var(--color-surface) !important; transition: all 0.3s ease;">
                 <div class="bg-white rounded-3 ms-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                     <i class="bi bi-search text-dark" style="font-size: 0.9rem;"></i>
                 </div>
                 <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
-                       placeholder="Buscar material..." value="{{ query|default:'' }}">
+                       placeholder="Buscar en el catálogo..." value="{{ query|default:'' }}">
             </div>
 
-            <!-- Fila 2: Selector de tipos -->
-            <div class="bg-surface rounded-pill p-1 border border-white-10" style="background-color: #1e293b !important;">
-                <select name="tipo" class="form-select bg-transparent border-0 text-white-50 shadow-none ps-3 py-2" style="cursor: pointer; font-size: 0.9rem;">
+            <div class="d-flex gap-2">
+                <select name="tipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2" style="background-color: var(--color-surface) !important; cursor: pointer; font-size: 0.9rem; color: white;">
                     <option value="" class="bg-dark">Todos los tipos</option>
                     <option value="Cemento" class="bg-dark" {% if request.GET.tipo == 'Cemento' %}selected{% endif %}>Cemento</option>
                     <option value="Arena" class="bg-dark" {% if request.GET.tipo == 'Arena' %}selected{% endif %}>Arena</option>
@@ -35,29 +33,21 @@
                     <option value="Ladrillo" class="bg-dark" {% if request.GET.tipo == 'Ladrillo' %}selected{% endif %}>Ladrillo</option>
                     <option value="Herramientas" class="bg-dark" {% if request.GET.tipo == 'Herramientas' %}selected{% endif %}>Herramientas</option>
                 </select>
-            </div>
-
-            <!-- Fila 3: Stocks y Filtro -->
-            <div class="d-flex gap-2 align-items-center">
-                <input type="number" name="min" class="form-control bg-surface border-white-10 text-white-50 text-center rounded-3 py-2" 
-                       placeholder="Stock mín" style="width: 100px; background-color: #1e293b !important;" value="{{ request.GET.min }}">
-                <input type="number" name="max" class="form-control bg-surface border-white-10 text-white-50 text-center rounded-3 py-2" 
-                       placeholder="Stock máx" style="width: 100px; background-color: #1e293b !important;" value="{{ request.GET.max }}">
                 
                 <button type="submit" class="btn btn-outline-light rounded-pill px-4 py-2 d-flex align-items-center gap-2" style="font-size: 0.9rem; border-color: rgba(255,255,255,0.3);">
                     <i class="bi bi-funnel"></i> Filtrar
                 </button>
 
-                <button type="button" class="btn btn-primary rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg ms-2" 
-                        style="width: 42px; height: 42px; min-width: 42px;" onclick="prepararCrear()" data-bs-toggle="modal" data-bs-target="#modalMaterial">
-                    <i class="bi bi-plus-lg fs-5 text-white"></i>
-                </button>
+                <a href="{% url 'inventario:crear_material' %}" class="btn btn-primary rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg ms-2" 
+                        style="width: 42px; height: 42px; min-width: 42px; background-color: var(--color-primary) !important; border: none;">
+                    <i class="bi bi-plus-lg fs-5 text-dark"></i>
+                </a>
             </div>
         </form>
     </div>
 </div>
 
-<div class="table-container p-0">
+<div class="table-container p-0" data-aos="fade-up" data-aos-delay="200">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead>
@@ -65,8 +55,7 @@
                     <th class="text-center">ID</th>
                     <th>Material</th>
                     <th>Tipo</th>
-                    <th class="text-center">Stock</th>
-                    <th class="text-center">Precio</th>
+                    <th class="text-center">Precio Unitario</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>
@@ -76,256 +65,29 @@
                     <td class="text-center text-muted fw-bold">#{{ material.id }}</td>
                     <td>
                         <div class="fw-bold text-white">{{ material.nombre }}</div>
-                        <div class="text-white-50 small">{{ material.descripcion|truncatechars:50 }}</div>
+                        <div class="text-white-50 small">{{ material.descripcion|truncatechars:100 }}</div>
                     </td>
                     <td><span class="badge-tipo">{{ material.tipo }}</span></td>
-                    <td class="text-center">
-                        <span class="fw-bold {% if material.stock < 10 %}text-danger{% else %}text-white{% endif %}">
-                            {{ material.stock }}
-                        </span>
-                    </td>
-                    <td class="text-center fw-800 text-accent">${{ material.precio|floatformat:0|intcomma }}</td>
+                    <td class="text-center fw-800 text-accent">{{ material.precio|currency }}</td>
                     <td class="text-center">
                         <div class="d-flex justify-content-center gap-2">
-                            <button class="btn-action" onclick="abrirModalEditar({{ material.id }})" title="Editar">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
-                            <form action="{% url 'inventario:eliminar_material' material.id %}" method="POST" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn-action text-danger" title="Eliminar" onclick="return confirm('¿Estás seguro?')">
-                                    <i class="bi bi-trash3-fill"></i>
-                                </button>
-                            </form>
+                            <a href="{% url 'inventario:editar_material' material.id %}" class="btn-action" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'inventario:eliminar_material' material.id %}" class="btn-action text-danger confirm-delete" title="Eliminar" data-title="¿Eliminar material?" data-text="¿Estás seguro de que deseas eliminar {{ material.nombre }}? Esta acción no se puede deshacer si el material tiene registros asociados.">
+                                <i class="bi bi-trash"></i>
+                            </a>
                         </div>
                     </td>
                 </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="text-center py-5">
-                    <i class="bi bi-box-seam display-4 text-muted mb-3 d-block"></i>
-                    <p class="text-muted">No hay materiales registrados en el inventario</p>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<!-- VENTANA EMERGENTE (MODAL) ÚNICA PARA CREAR Y EDITAR -->
-<div class="modal fade" id="modalMaterial" tabindex="-1" aria-labelledby="modalMaterialLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="background-color: var(--color-secondary); border-radius: 24px;">
-            <div class="modal-header border-bottom border-white-10 p-4">
-                <div class="d-flex align-items-center">
-                    <div class="bg-accent rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
-                        <i class="bi bi-box-seam text-dark fs-5"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title fw-800 text-white mb-0" id="modalMaterialLabel">Material</h5>
-                        <p class="text-muted small mb-0">Gestión de inventario de materiales</p>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="formMaterial">
-                {% csrf_token %}
-                <div class="modal-body p-4">
-                    <input type="hidden" id="material_id" name="id">
-                    
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Nombre del Material</label>
-                        <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Ej: Cemento Gris" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Tipo</label>
-                        <select id="tipo" name="tipo" class="form-select" required>
-                            <option value="">Seleccione tipo...</option>
-                            <option value="Cemento">Cemento</option>
-                            <option value="Arena">Arena</option>
-                            <option value="Grava">Grava</option>
-                            <option value="Ladrillo">Ladrillo</option>
-                            <option value="Herramientas">Herramientas</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Descripción Corta</label>
-                        <textarea id="descripcion" name="descripcion" class="form-control" rows="3" placeholder="Detalles del material..."></textarea>
-                    </div>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Precio Unitario</label>
-                            <div class="input-group">
-                                <span class="input-group-text border-0 text-white-50" style="background: rgba(255,255,255,0.05);">$</span>
-                                <input type="number" id="precio" name="precio" class="form-control no-spin" placeholder="0.00" min="0" step="0.01" required onkeypress="return event.charCode >= 48 && event.charCode <= 57 || event.charCode == 46" oninput="validarPositivo(this)">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Stock Inicial</label>
-                            <input type="number" id="stock" name="stock" class="form-control no-spin" placeholder="0" min="0" required onkeypress="return event.charCode >= 48 && event.charCode <= 57" oninput="validarPositivo(this)">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-top border-white-10 p-4">
-                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="submit" class="btn btn-gold rounded-pill px-5 fw-800" id="btnGuardar">Guardar Material</button>
-                </div>
-            </form>
-        </div>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">No se encontraron materiales en el catálogo.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
-
-<style>
-    /* Estilos Premium para el Modal de Materiales */
-    #modalMaterial .modal-content {
-        background-color: #1a1a1a !important; 
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        border-radius: 28px !important;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
-    }
-
-    #modalMaterial .modal-header {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-        padding: 1.5rem 2rem !important;
-    }
-    
-    #modalMaterial .modal-body {
-        padding: 2rem !important;
-    }
-
-    #modalMaterial .form-label {
-        font-family: 'Inter', sans-serif;
-        font-weight: 700;
-        font-size: 0.75rem;
-        letter-spacing: 1.2px;
-        color: var(--color-accent) !important;
-        margin-bottom: 0.75rem;
-        display: block;
-        text-transform: uppercase;
-    }
-
-    #modalMaterial .form-control, 
-    #modalMaterial .form-select {
-        background-color: #333333 !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 16px !important;
-        padding: 12px 20px !important;
-        color: #ffffff !important;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-    }
-
-    #modalMaterial .form-control:focus, 
-    #modalMaterial .form-select:focus {
-        background-color: #444444 !important;
-        border-color: var(--color-accent) !important;
-        box-shadow: 0 0 0 4px rgba(243, 156, 18, 0.25) !important;
-        color: #ffffff !important;
-    }
-
-    #modalMaterial .btn-gold {
-        background: var(--color-accent) !important;
-        color: #000 !important;
-        font-weight: 800 !important;
-        padding: 14px 30px !important;
-        border-radius: 50px !important;
-        border: none !important;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3) !important;
-    }
-
-    #modalMaterial .btn-gold:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(243, 156, 18, 0.5) !important;
-    }
-
-    /* Ocultar flechas en inputs numéricos */
-    .no-spin::-webkit-inner-spin-button,
-    .no-spin::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    .no-spin {
-        -moz-appearance: textfield;
-    }
-</style>
-
-<script>
-    // Función para prevenir números negativos en tiempo real
-    function validarPositivo(input) {
-        if (input.value < 0) {
-            input.value = Math.abs(input.value);
-        }
-    }
-    
-    let modalInstance;
-    document.addEventListener('DOMContentLoaded', function() {
-        const modalElement = document.getElementById('modalMaterial');
-        if (modalElement) {
-            modalInstance = new bootstrap.Modal(modalElement);
-        }
-    });
-
-    const formMaterial = document.getElementById('formMaterial');
-
-    function prepararCrear() {
-        formMaterial.reset();
-        document.getElementById('material_id').value = '';
-        document.getElementById('modalMaterialLabel').innerText = 'Nuevo Material';
-        document.getElementById('btnGuardar').innerText = 'Crear Material';
-    }
-
-    function abrirModalEditar(id) {
-        document.getElementById('modalMaterialLabel').innerText = 'Editar Material';
-        document.getElementById('btnGuardar').innerText = 'Actualizar Material';
-        
-        const url = "{% url 'inventario:editar_material' 0 %}".replace('0', id);
-        
-        fetch(url, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('material_id').value = data.id;
-            document.getElementById('nombre').value = data.nombre;
-            document.getElementById('tipo').value = data.tipo;
-            document.getElementById('descripcion').value = data.descripcion;
-            document.getElementById('precio').value = data.precio;
-            document.getElementById('stock').value = data.stock;
-            modalInstance.show();
-        })
-        .catch(error => alert('Error al cargar datos'));
-    }
-
-    formMaterial.onsubmit = function(e) {
-        e.preventDefault();
-        const id = document.getElementById('material_id').value;
-        const url = id ? "{% url 'inventario:editar_material' 0 %}".replace('0', id) : "{% url 'inventario:crear_material' %}";
-        const formData = new FormData(formMaterial);
-
-        fetch(url, {
-            method: 'POST',
-            body: formData,
-            headers: { 
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                location.reload(); 
-            } else {
-                alert('Error al guardar: ' + (data.message || 'Error desconocido'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error crítico al procesar la solicitud');
-        });
-    }
-</script>
 
 {% endblock %}

@@ -18,16 +18,9 @@ class Orden(models.Model):
         blank=True,
         related_name="ordenes_conductor"
     )
-    material = models.ForeignKey(
-        Material,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
-    cantidad = models.IntegerField(default=1, validators=[MinValueValidator(1)])
 
-    direccion_origen = models.CharField(max_length=200)
-    direccion_destino = models.CharField(max_length=200)
+    direccion_origen = models.CharField(max_length=200, default="Bodega Central")
+    direccion_destino = models.CharField(max_length=200, default="")
     fecha = models.DateTimeField(auto_now_add=True)
     fecha_entrega_programada = models.DateTimeField(null=True, blank=True)
     fecha_toma_entrega = models.DateTimeField(null=True, blank=True)
@@ -52,11 +45,18 @@ class Orden(models.Model):
     )
 
     precio = models.DecimalField(
-        max_digits=10,
+        max_digits=12,
         decimal_places=2,
         default=0,
         validators=[MinValueValidator(0)]
     )
+
+    def calcular_total(self):
+        """Recalcula el total basado en los detalles"""
+        total = sum(d.cantidad * d.precio_unitario for d in self.detalles.all())
+        self.precio = total
+        self.save()
+        return total
 
     class Meta:
         ordering = ["-fecha"]
@@ -84,6 +84,10 @@ class DetalleOrden(models.Model):
 
     def __str__(self):
         return f"{self.cantidad} x {self.material.nombre} (Orden {self.orden.id})"
+
+    @property
+    def subtotal(self):
+        return self.cantidad * self.precio_unitario
 
 
 class Entrega(models.Model):
@@ -121,9 +125,32 @@ class Entrega(models.Model):
         return f"Entrega de pedido {self.pedido.id}"
 
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Orden)
+def crear_factura_auto(sender, instance, **kwargs):
+    """Genera la factura automáticamente cuando el pedido se marca como entregado"""
+    if instance.estado == 'entregado' and not hasattr(instance, 'factura'):
+        from apps.facturacion.models import Factura
+        Factura.objects.create(
+            numero=f"F-{instance.id:06d}",
+            orden=instance,
+            cliente=instance.cliente,
+            subtotal=instance.precio,
+            total=instance.precio
+        )
+
 @receiver(post_save, sender=Entrega)
 def actualizar_estado_orden(sender, instance, created, **kwargs):
-    if created:
+    """Actualiza el estado de la orden solo cuando la entrega cambia a 'entregado'"""
+    if instance.estado == 'entregado':
         pedido = instance.pedido
         pedido.estado = Orden.ENTREGADO
+        import datetime
+        pedido.fecha_entrega_real = datetime.datetime.now()
+        pedido.save()
+    elif instance.estado == 'en_ruta':
+        pedido = instance.pedido
+        pedido.estado = Orden.EN_RUTA
         pedido.save()

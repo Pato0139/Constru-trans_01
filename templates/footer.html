@@ -1,9 +1,19 @@
-<footer class="footer mt-auto py-3 bg-dark border-top border-secondary">
+{% load static %}
+<footer class="footer mt-auto py-5" style="background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); border-top: 1px solid rgba(255,255,255,0.05);">
     <div class="container text-center">
-        <span class="text-muted small">© 2026 Constru-Trans. Todos los derechos reservados.</span>
-        <br>
-        <span class="text-muted" style="font-size: 0.7rem;">
-            <i class="bi bi-shield-check me-1"></i> Imágenes utilizadas bajo licencia y verificación de derechos de autor.
-        </span>
+        <div class="mb-3">
+            <img src="{% static 'img/Logo1.jpeg' %}" height="30" class="rounded-1 opacity-50 hover-opacity-100 transition-all" alt="Logo">
+        </div>
+        <span class="text-muted small fw-600">© 2026 <span class="text-white">Constru-Trans</span>. Elevando estándares en logística.</span>
+        <div class="mt-2 d-flex justify-content-center gap-3">
+            <a href="#" class="text-muted hover-text-gold transition-all"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="text-muted hover-text-gold transition-all"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="text-muted hover-text-gold transition-all"><i class="bi bi-linkedin"></i></a>
+        </div>
     </div>
 </footer>
+
+<style>
+    .hover-text-gold:hover { color: var(--color-primary) !important; }
+    .hover-opacity-100:hover { opacity: 1 !important; }
+</style>

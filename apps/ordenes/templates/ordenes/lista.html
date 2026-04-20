@@ -55,7 +55,7 @@
                             <a href="{% url 'ordenes:editar_orden' pedido.id %}" class="btn-action text-warning" title="Modificar">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <a href="{% url 'ordenes:eliminar_orden' pedido.id %}" class="btn-action text-danger" title="Cancelar" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
+                            <a href="{% url 'ordenes:eliminar_orden' pedido.id %}" class="btn-action text-danger confirm-delete" title="Cancelar" data-title="¿Cancelar pedido?" data-text="El pedido #CT-{{ pedido.id }} será eliminado permanentemente.">
                                 <i class="bi bi-x-circle"></i>
                             </a>
                         </div>

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Proveedores - Constru-trans{% endblock %}
+
+{% block header_title %}Gestión de Proveedores{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-5" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-0 text-white">Directorio de Proveedores</h2>
+        <p class="text-white-50 small mb-0">Administre sus aliados estratégicos y suministros</p>
+    </div>
+    <a href="{% url 'usuarios:crear_proveedor' %}" class="btn btn-premium btn-premium-gold d-flex align-items-center gap-2">
+        <i class="bi bi-plus-lg"></i> Nuevo Proveedor
+    </a>
+</div>
+
+<div class="table-container p-0" data-aos="fade-up">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Empresa / NIT</th>
+                    <th>Contacto</th>
+                    <th>Categoría</th>
+                    <th>Información de Contacto</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proveedor in proveedores %}
+                <tr>
+                    <td>
+                        <div class="fw-bold text-white">{{ proveedor.nombre_empresa }}</div>
+                        <div class="text-muted small">NIT: {{ proveedor.nit }}</div>
+                    </td>
+                    <td class="text-white-50">{{ proveedor.contacto_nombre }}</td>
+                    <td><span class="badge-tipo" style="background: rgba(0, 86, 179, 0.1); color: var(--color-accent); border-color: rgba(0, 86, 179, 0.2);">{{ proveedor.categoria }}</span></td>
+                    <td>
+                        <div class="small text-white-50"><i class="bi bi-envelope me-2"></i>{{ proveedor.email }}</div>
+                        <div class="small text-white-50"><i class="bi bi-telephone me-2"></i>{{ proveedor.telefono }}</div>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{% url 'usuarios:editar_proveedor' proveedor.id %}" class="btn-action" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'usuarios:eliminar_proveedor' proveedor.id %}" class="btn-action text-danger confirm-delete" title="Eliminar" data-title="¿Eliminar proveedor?" data-text="¿Estás seguro de que deseas eliminar a {{ proveedor.nombre_empresa }}?">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">No hay proveedores registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

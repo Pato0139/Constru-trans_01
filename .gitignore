@@ -1,4 +1,4 @@
-# --- Base de Datos (Crucial para evitar los conflictos que tenías) ---
+# --- Base de Datos ---
 *.sqlite3
 *.sqlite3-journal
 
@@ -7,15 +7,9 @@
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
 node_modules/
-bin/
-include/
-lib/
-share/
 
-# --- Archivos de Configuración Sensibles (Seguridad) ---
+# --- Archivos de Configuración Sensibles ---
 .env
 local_settings.py
 secrets.json
@@ -39,9 +33,6 @@ wheels/
 *.egg-info/
 
 # --- Migraciones ---
-# Las migraciones deben estar en el repositorio para que la base de datos sea consistente
-# **/migrations/*.py
-# !**/migrations/__init__.py
 **/migrations/__pycache__/
 
 # --- Archivos de Medios y Logs ---
@@ -50,12 +41,12 @@ static_collected/
 staticfiles/
 *.log
 
-# --- Archivos de Sistema y Editores (VS Code / Windows) ---
+# --- Archivos de Sistema y Editores ---
 .vscode/
 .idea/
 *.swp
 *.bak
 .DS_Store
 Thumbs.db
-ehthumbs.db
 Desktop.ini
+.git/

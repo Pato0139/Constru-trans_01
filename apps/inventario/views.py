@@ -1,10 +1,45 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from apps.usuarios.views import admin_required
 from django.db.models import Q
 from django.contrib import messages
 from django.http import JsonResponse
-from apps.usuarios.models import Material
-from historial.utils import registrar_actividad
+from apps.usuarios.models import Material, Stock
+from apps.historial.utils import registrar_actividad
+from django.db import transaction
+from django.views.decorators.http import require_POST
+from .models import MovimientoInventario
+
+@admin_required
+@require_POST
+def registrar_entrada(request):
+    material_id = request.POST.get('material_id')
+    cantidad = int(request.POST.get('cantidad', 0))
+    if cantidad <= 0:
+        return JsonResponse({'error': 'Cantidad debe ser > 0'}, status=400)
+    try:
+        with transaction.atomic():
+            material = Material.objects.select_for_update().get(id=material_id)
+            stock, _ = Stock.objects.select_for_update().get_or_create(material=material)
+            stock.cantidad += cantidad
+            stock.save()
+            MovimientoInventario.objects.create(
+                material=material,
+                tipo='entrada',
+                cantidad=cantidad,
+                motivo=request.POST.get('motivo', 'entrada manual'),
+                usuario=request.user
+            )
+        return JsonResponse({'status': 'ok', 'stock': stock.cantidad})
+    except Material.DoesNotExist:
+        return JsonResponse({'error': 'Material no existe'}, status=404)
+
+@login_required
+def movimientos_lista(request):
+    movimientos = MovimientoInventario.objects.all().select_related('material', 'usuario')
+    return render(request, "inventario/movimientos.html", {
+        "movimientos": movimientos
+    })
 
 def buscar_materiales(query=None):
     """
@@ -20,6 +55,24 @@ def buscar_materiales(query=None):
     return materiales
 
 @login_required
+def stock_lista(request):
+    stocks = Stock.objects.all().select_related('material')
+    return render(request, "inventario/stock.html", {
+        "stocks": stocks
+    })
+
+@login_required
+def editar_stock(request, id):
+    stock = get_object_or_404(Stock, id=id)
+    if request.method == "POST":
+        stock.cantidad = request.POST.get("cantidad")
+        stock.ubicacion = request.POST.get("ubicacion")
+        stock.save()
+        messages.success(request, f"Stock de {stock.material.nombre} actualizado.")
+        return redirect("inventario:stock_lista")
+    return render(request, "inventario/form_stock.html", {"stock": stock})
+
+@login_required
 def materiales_lista(request):
     query = request.GET.get('q')
     materiales = buscar_materiales(query)
@@ -31,94 +84,77 @@ def materiales_lista(request):
 
 @login_required
 def api_materiales(request):
-    materiales = Material.objects.all().values('id', 'nombre', 'precio', 'stock', 'tipo')
-    return JsonResponse(list(materiales), safe=False)
+    materiales = Material.objects.all().select_related('stock_info')
+    data = []
+    for m in materiales:
+        data.append({
+            'id': m.id,
+            'nombre': m.nombre,
+            'precio': m.precio,
+            'stock': m.stock, # Usa la property que definimos
+            'tipo': m.tipo
+        })
+    return JsonResponse(data, safe=False)
 
-@login_required
+from apps.usuarios.forms import MaterialForm
+from apps.usuarios.views import admin_required
+
+@admin_required
 def crear_material(request):
-    if request.user.usuario.rol != 'admin':
-        messages.error(request, "No tienes permisos para realizar esta acción.")
-        return redirect("usuarios:panel")
-
     if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        tipo = request.POST.get("tipo")
-        descripcion = request.POST.get("descripcion")
-        precio = request.POST.get("precio")
-        stock = request.POST.get("stock")
-
-        if not all([nombre, tipo, precio, stock]):
-            error_msg = "Los campos Nombre, Tipo, Precio y Stock son obligatorios."
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({"status": "error", "message": error_msg}, status=400)
-            messages.error(request, error_msg)
-            return render(request, "inventario/form.html", {"material": request.POST, "action": "crear"})
-
-        try:
-            material = Material.objects.create(
-                nombre=nombre,
-                tipo=tipo,
-                descripcion=descripcion,
-                precio=precio,
-                stock=stock
-            )
-            registrar_actividad(request, 'crear', 'inventario', material.id, f"Material creado: {nombre}")
-            
-            success_msg = "Material creado correctamente."
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        form = MaterialForm(request.POST)
+        if form.is_valid():
+            try:
+                material = form.save()
+                # El Stock se crea vía signals en apps.usuarios.signals
+                registrar_actividad(request, 'crear', 'inventario', material.id, f"Material creado: {material.nombre}")
+                
+                success_msg = "Material creado correctamente."
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    messages.success(request, success_msg)
+                    return JsonResponse({"status": "success", "message": success_msg})
+                
                 messages.success(request, success_msg)
-                return JsonResponse({"status": "success", "message": success_msg})
-            
-            messages.success(request, success_msg)
-            return redirect("inventario:materiales_lista")
-        except Exception as e:
-            error_msg = f"Error al crear material: {str(e)}"
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({"status": "error", "message": error_msg}, status=500)
-            
-            messages.error(request, error_msg)
-            return render(request, "inventario/form.html", {
-                "error": error_msg,
-                "material": request.POST,
-                "action": "crear"
-            })
+                return redirect("inventario:materiales_lista")
+            except Exception as e:
+                error_msg = f"Error al crear material: {str(e)}"
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({"status": "error", "message": error_msg}, status=500)
+                messages.error(request, error_msg)
+    else:
+        form = MaterialForm()
 
-    return render(request, "inventario/form.html", {"action": "crear"})
+    return render(request, "inventario/form.html", {"form": form, "action": "crear"})
 
-@login_required
+@admin_required
 def editar_material(request, id):
     material = get_object_or_404(Material, id=id)
     if request.method == "POST":
-        material.nombre = request.POST.get("nombre")
-        material.descripcion = request.POST.get("descripcion")
-        material.tipo = request.POST.get("tipo")
-        material.precio = request.POST.get("precio")
-        material.stock = request.POST.get("stock")
-        material.save()
-        registrar_actividad(request, 'editar', 'inventario', material.id, f"Material editado: {material.nombre}")
-        
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        form = MaterialForm(request.POST, instance=material)
+        if form.is_valid():
+            form.save()
+            registrar_actividad(request, 'editar', 'inventario', material.id, f"Material editado: {material.nombre}")
             messages.success(request, "Material actualizado correctamente.")
-            return JsonResponse({"status": "success"})
-            
-        messages.success(request, "Material actualizado")
-        return redirect("inventario:materiales_lista")
-    
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({
-            "id": material.id,
-            "nombre": material.nombre,
-            "descripcion": material.descripcion,
-            "tipo": material.tipo,
-            "precio": str(material.precio),
-            "stock": material.stock
-        })
-        
-    return render(request, "inventario/form.html", {"material": material, "action": "editar"})
+            return redirect("inventario:materiales_lista")
+    else:
+        form = MaterialForm(instance=material)
+    return render(request, "inventario/form.html", {"form": form, "action": "editar"})
 
-@login_required
+@admin_required
 def eliminar_material(request, id):
     material = get_object_or_404(Material, id=id)
+    
+    # Validaciones antes de eliminar
+    if material.stock > 0:
+        messages.error(request, f"No se puede eliminar {material.nombre} porque aún tiene stock disponible ({material.stock}).")
+        return redirect("inventario:materiales_lista")
+        
+    if material.detalles.exists(): # Detalles de orden
+        messages.error(request, f"No se puede eliminar {material.nombre} porque está asociado a pedidos existentes.")
+        return redirect("inventario:materiales_lista")
+
+    nombre = material.nombre
     material.delete()
-    messages.success(request, "Material eliminado correctamente")
+    registrar_actividad(request, 'eliminar', 'inventario', id, f"Material eliminado: {nombre}")
+    messages.success(request, f"Material {nombre} eliminado correctamente.")
     return redirect("inventario:materiales_lista")

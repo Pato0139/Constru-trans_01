@@ -3,7 +3,7 @@ from django import template
 
 register = template.Library()
 
-@register.filter
+@register.filter(name='gravatar_url')
 def gravatar_url(email, size=100):
     """
     Genera la URL de Gravatar para un correo electrónico dado.

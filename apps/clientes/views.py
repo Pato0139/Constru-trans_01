@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.contrib import messages
-from apps.ordenes.models import Orden
-from apps.usuarios.models import Material, Usuario
+from apps.ordenes.models import Orden, DetalleOrden
+from apps.usuarios.models import Material, Usuario, Stock
+from django.db import transaction
 
 @login_required
 def panel_cliente(request):
@@ -96,9 +97,6 @@ def crear_pedido(request):
             })
 
         try:
-            from apps.ordenes.models import DetalleOrden
-            from django.db import transaction
-
             total_general = 0
 
             with transaction.atomic():
@@ -111,14 +109,17 @@ def crear_pedido(request):
                 )
 
                 for m_id, cant in zip(materiales_ids, cantidades):
+                    # Bloqueamos la fila de stock para evitar sobreventa simultánea
                     material = get_object_or_404(Material, id=m_id)
+                    stock_obj = Stock.objects.select_for_update().get(material=material)
+                    
                     cantidad = int(cant)
 
                     if cantidad <= 0:
                         raise ValueError(f"La cantidad para {material.nombre} debe ser mayor a 0.")
 
-                    if material.stock < cantidad:
-                        raise ValueError(f"Stock insuficiente para {material.nombre}. Quedan {material.stock}.")
+                    if stock_obj.cantidad < cantidad:
+                        raise ValueError(f"Stock insuficiente para {material.nombre}. Quedan {stock_obj.cantidad}.")
 
                     precio_unitario = material.precio
                     total_item = precio_unitario * cantidad
@@ -131,8 +132,20 @@ def crear_pedido(request):
                         precio_unitario=precio_unitario
                     )
                     
-                    material.stock -= cantidad
-                    material.save()
+                    # Descontamos stock sobre el objeto Stock
+                    stock_obj.cantidad = F('cantidad') - cantidad
+                    stock_obj.save()
+
+                    # HU-18: Registrar movimiento de salida
+                    from apps.inventario.models import MovimientoInventario
+                    MovimientoInventario.objects.create(
+                        material=material,
+                        tipo='salida',
+                        cantidad=cantidad,
+                        motivo=f"orden #{nueva_orden.id}",
+                        referencia_id=nueva_orden.id,
+                        usuario=request.user
+                    )
 
                 nueva_orden.precio = total_general
                 nueva_orden.save()
@@ -163,22 +176,67 @@ def editar_pedido(request, id):
     orden = get_object_or_404(Orden, id=id)
     materiales = Material.objects.all()
     
-    if request.method == "POST":
-        material_id = request.POST.get("material")
-        cantidad = int(request.POST.get("cantidad"))
-        direccion = request.POST.get("direccion")
-        
-        material = get_object_or_404(Material, id=material_id)
-        
-        orden.material = material
-        orden.cantidad = cantidad
-        orden.direccion_destino = direccion
-        orden.precio = material.precio * cantidad
-        orden.save()
-        
-        messages.success(request, f"Pedido #{orden.id} actualizado correctamente.")
+    # Solo el cliente dueño puede editar y solo si está pendiente
+    if request.user.usuario != orden.cliente or orden.estado != 'pendiente':
+        messages.error(request, "No puedes editar este pedido.")
         return redirect("clientes:mis_pedidos")
-        
+
+    if request.method == "POST":
+        materiales_ids = request.POST.getlist('material_id[]')
+        cantidades = request.POST.getlist('cantidad[]')
+        direccion = request.POST.get("direccion")
+        fecha_entrega = request.POST.get("fecha_entrega")
+
+        if not materiales_ids or not direccion:
+            messages.error(request, "Datos incompletos.")
+            return render(request, "clientes/form.html", {
+                "orden": orden,
+                "materiales": materiales,
+                "action": "editar"
+            })
+
+        try:
+            with transaction.atomic():
+                # Devolver stock de los detalles anteriores
+                for detalle in orden.detalles.all():
+                    stock_obj = Stock.objects.select_for_update().get(material=detalle.material)
+                    stock_obj.cantidad = F('cantidad') + detalle.cantidad
+                    stock_obj.save()
+                
+                # Eliminar detalles antiguos
+                orden.detalles.all().delete()
+
+                total_general = 0
+                for m_id, cant in zip(materiales_ids, cantidades):
+                    material = get_object_or_404(Material, id=m_id)
+                    stock_obj = Stock.objects.select_for_update().get(material=material)
+                    cantidad = int(cant)
+
+                    if stock_obj.cantidad < cantidad:
+                        raise ValueError(f"Stock insuficiente para {material.nombre}")
+
+                    DetalleOrden.objects.create(
+                        orden=orden,
+                        material=material,
+                        cantidad=cantidad,
+                        precio_unitario=material.precio
+                    )
+                    
+                    stock_obj.cantidad = F('cantidad') - cantidad
+                    stock_obj.save()
+                    total_general += material.precio * cantidad
+
+                orden.direccion_destino = direccion
+                orden.fecha_entrega_programada = fecha_entrega if fecha_entrega else None
+                orden.precio = total_general
+                orden.save()
+
+            messages.success(request, f"Pedido #{orden.id} actualizado.")
+            return redirect("clientes:mis_pedidos")
+
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+            
     return render(request, "clientes/form.html", {
         "orden": orden,
         "materiales": materiales,

@@ -101,13 +101,15 @@
 </style>
 <div class="animate-up">
     <h1 class="welcome-h1">¡BIENVENIDO!</h1>
-    <p class="welcome-p">¿No tienes una cuenta? <a href="{% url 'usuarios:registro' %}">Regístrate</a></p>
+    <p class="welcome-p">¿No tiene una cuenta? <a href="{% url 'usuarios:registro' %}">Regístrese</a></p>
 </div>
 
-{% if error %}
-    <div class="alert-custom animate__animated animate__shakeX">
-        <i class="bi bi-exclamation-circle-fill me-2"></i> {{ error }}
-    </div>
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert-custom animate__animated animate__shakeX">
+            <i class="bi bi-exclamation-circle-fill me-2"></i> {{ message }}
+        </div>
+    {% endfor %}
 {% endif %}
 
 <form method="POST" class="animate-up delay-1">
@@ -128,36 +130,20 @@
         </div>
     </div>
 
-    <div class="form-group-custom mb-4">
-        <!-- Simplified "No soy un robot" -->
-        <div class="recaptcha-mock" id="recaptchaBox">
-            <div class="recaptcha-left">
-                <div class="form-check">
-                    {{ form.no_robot }}
-                    <label class="recaptcha-text ms-2" for="{{ form.no_robot.id_for_label }}">No soy un robot</label>
-                </div>
-            </div>
-            <div class="recaptcha-right">
-                <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" class="recaptcha-logo" alt="reCAPTCHA">
-                <span class="recaptcha-privacy">Privacidad - Términos</span>
-            </div>
-        </div>
-    </div>
-
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="form-check">
             <input class="form-check-input" type="checkbox" id="rememberMe" style="background-color: transparent; border: 2px solid var(--primary-gold);">
             <label class="form-check-label small text-white fw-bold ms-2" for="rememberMe">
-                Recuérdame
+                Recordarme
             </label>
         </div>
         <a href="{% url 'usuarios:password_reset' %}" class="text-decoration-none small fw-bold" style="color: var(--primary-gold);">
-            ¿Olvidaste tu contraseña?
+            ¿Se le olvidó la clave?
         </a>
     </div>
 
     <button type="submit" class="btn-main d-flex align-items-center justify-content-center">
-        <i class="bi bi-file-earmark-text me-2"></i> Iniciar Sesión
+        <i class="bi bi-box-arrow-in-right me-2"></i> Entrar
     </button>
 </form>
 

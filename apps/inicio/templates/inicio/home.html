@@ -4,80 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte Profesional | Logística</title>
+    <title>Constru-trans | Logística de Élite</title>
     <link rel="shortcut icon" href="{% static 'img/Logo1.jpeg' %}" type="image/x-icon">
+    
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{% static 'css/principal.css' %}?v=1.2">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+    
+    <!-- AOS & Animate.css -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{% static 'css/principal.css' %}?v=2.0">
     <link rel="stylesheet" href="{% static 'css/loader.css' %}">
-    <style>
-        :root {
-            --color-primary: #0056B3;
-            --color-secondary: #333333;
-            --color-accent: #F39C12;
-            --color-dark: #000000;
-            --color-surface: #38517C;
-            --color-border: rgba(255,255,255,0.1);
-            --color-text: #FFFFFF;
-            --color-muted: #CCCCCC;
-            --color-bg: #000000;
-        }
-
-        body {
-            background-color: var(--color-secondary);
-            color: var(--color-text);
-        }
-
-        .shadow-text {
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
-        }
-
-        .carousel-caption {
-            background: rgba(0,0,0,0.4);
-            border-radius: 20px;
-            padding: 20px;
-            bottom: 40px;
-        }
-
-        .navbar-brand span {
-            color: var(--color-accent) !important;
-        }
-
-        .nav-link-landing {
-            color: rgba(255,255,255,0.8) !important;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .nav-link-landing:hover {
-            color: var(--color-accent) !important;
-        }
-
-        .section-anchor {
-            padding-top: 100px;
-            margin-top: -100px;
-        }
-
-        .card-custom {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            transition: transform 0.3s;
-        }
-
-        .card-custom:hover {
-            transform: translateY(-10px);
-            border-color: var(--color-accent);
-        }
-
-        .text-accent {
-            color: var(--color-accent) !important;
-        }
-
-        .bg-accent {
-            background-color: var(--color-accent) !important;
-            color: #000 !important;
-        }
-    </style>
 </head>
 
 <body>
@@ -87,454 +32,241 @@
     <div class="loader">
         <div class="progress-bar"></div>
     </div>
-    <p>Cargando Constru-trans...</p>
 </div>
 
-<header class="color-principal-bg position-fixed w-100 top-0 z-3 shadow-lg py-2">
+<header class="navbar-premium fixed-top w-100 z-3">
     <div class="container d-flex justify-content-between align-items-center">
-
         <a class="navbar-brand d-flex align-items-center m-0" href="{% url 'inicio:inicio' %}">
-            <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo" height="40" class="rounded-2 me-2">
-            <span class="fs-5 fw-bold text-white" style="letter-spacing: -0.5px;">CONSTRU<span class="text-accent">TRANS</span></span>
+            <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo" height="50" class="rounded-3 me-3 shadow-lg">
+            <span class="fs-4 fw-bold text-white d-none d-md-inline" style="font-family: 'Montserrat', sans-serif; letter-spacing: -1.5px;">
+                CONSTRU<span style="color: var(--color-primary);">TRANS</span>
+            </span>
         </a>
 
-        <nav class="d-none d-lg-flex gap-4">
-            <a href="#inicio" class="nav-link-landing text-decoration-none">Inicio</a>
-            <a href="#nosotros" class="nav-link-landing text-decoration-none">Nosotros</a>
-            <a href="#servicios" class="nav-link-landing text-decoration-none">Servicios</a>
-            <a href="#contacto" class="nav-link-landing text-decoration-none">Contacto</a>
+        <nav class="d-none d-lg-flex gap-5">
+            <a href="#inicio" class="nav-link-premium">Inicio</a>
+            <a href="#nosotros" class="nav-link-premium">Nosotros</a>
+            <a href="#servicios" class="nav-link-premium">Servicios</a>
+            <a href="#contacto" class="nav-link-premium">Contacto</a>
         </nav>
 
-        <div class="d-flex gap-2">
-            <a href="{% url 'usuarios:registro' %}" class="btn btn-outline-light btn-sm rounded-pill px-4 fw-600">
+        <div class="d-flex gap-3">
+            <a href="{% url 'usuarios:login' %}" class="btn-premium btn-premium-outline d-none d-sm-block">
+                Iniciar Sesión
+            </a>
+            <a href="{% url 'usuarios:registro' %}" class="btn-premium btn-premium-gold">
                 Registrarse
             </a>
-            <a href="{% url 'usuarios:login' %}" class="btn btn-accent btn-sm rounded-pill px-4 fw-bold">
-                Iniciar sesión
-            </a>
         </div>
-
     </div>
 </header>
 
-<div class="container py-4 mt-5">
-    <div id="carouselExampleCaptions" class="carousel slide shadow-lg rounded-4 overflow-hidden" data-bs-ride="carousel">
-        <div class="carousel-indicators">
-            <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-            <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1" aria-label="Slide 2"></button>
-            <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2" aria-label="Slide 3"></button>
-        </div>
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <img src="{% static 'img/Excavadora.png' %}" class="d-block w-100 carousel-img" alt="Excavadora">
-                <div class="carousel-caption d-none d-md-block shadow-text">
-                    <h5 class="display-4 fw-bold">Transporte Profesional</h5>
-                    <p class="fs-5">Transportamos tus materiales a tiempo, siempre.</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img src="{% static 'img/Obra.jpeg' %}" class="d-block w-100 carousel-img" alt="Logística">
-                <div class="carousel-caption d-none d-md-block shadow-text">
-                    <h5 class="display-4 fw-bold">Logística Avanzada</h5>
-                    <p class="fs-5">Optimiza tu obra con nuestra red de transporte.</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img src="{% static 'img/Trabajadores.jpeg' %}" class="d-block w-100 carousel-img" alt="Eficiencia">
-                <div class="carousel-caption d-none d-md-block shadow-text">
-                    <h5 class="display-4 fw-bold">Eficiencia Garantizada</h5>
-                    <p class="fs-5">Seguimiento en tiempo real de todos tus pedidos.</p>
-                </div>
-            </div>
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Anterior</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Siguiente</span>
-        </button>
-    </div>
-</div>
-
-<section id="nosotros" class="py-5 section-anchor">
-    <div class="container py-5">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6">
-                <h2 class="display-5 fw-bold mb-4 text-accent">Nuestra Misión</h2>
-                <p class="lead text-white-50">Garantizamos la eficiencia en el transporte de materiales pesados con precisión técnica.</p>
-                <ul class="list-check text-white-50">
-                    <li>Planificación de rutas con seguimiento en tiempo real</li>
-                    <li>Flota adecuada para materiales y maquinaria</li>
-                    <li>Equipo de soporte para imprevistos</li>
-                </ul>
-                <a href="#servicios" class="btn btn-accent rounded-pill px-4 fw-bold">Saber más</a>
-            </div>
-            <div class="col-lg-6 text-center">
-                <img src="{% static 'img/Plan (1).png' %}" alt="Plan" class="img-fluid img-mision shadow-lg">
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="py-5 section-anchor">
-    <div class="container">
-        <h2 class="display-6 fw-bold text-center mb-4 text-white">¿Por qué elegirnos?</h2>
-        <p class="text-center text-white-50 mb-5">Maximizamos la eficiencia de tu obra con logística precisa y soporte constante.</p>
-        <div class="row g-4">
-            <div class="col-md-3">
-                <div class="card h-100 card-custom p-4 rounded-4 shadow-sm">
-                    <div class="card-body text-center">
-                        <div class="icon-xl mb-3 text-accent">⏱️</div>
-                        <h5 class="fw-bold mb-2 text-white">Puntualidad 98%</h5>
-                        <p class="small text-muted">Entregas a tiempo gracias a rutas optimizadas y monitoreo.</p>
+<main>
+    <!-- Hero Section -->
+    <section id="inicio" class="hero-premium">
+        <div class="hero-bg-text">LOGISTICS</div>
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-7" data-aos="fade-right" data-aos-duration="1200">
+                    <div class="d-inline-flex align-items-center bg-white-10 rounded-pill px-3 py-2 mb-4 backdrop-blur shadow-sm">
+                        <span class="badge rounded-pill bg-primary me-2" style="background-color: var(--color-primary) !important;">NUEVO</span>
+                        <span class="small fw-bold text-white-50">SISTEMA DE RASTREO SATELITAL 2.0</span>
+                    </div>
+                    <h1 class="hero-title-premium">Poder en cada <br><span style="color: var(--color-primary);">Kilómetro.</span></h1>
+                    <p class="fs-5 hero-subtitle-premium mb-5" style="max-width: 600px;">
+                        Lideramos la industria del transporte pesado con tecnología de vanguardia y una flota imparable. Su carga, nuestra prioridad absoluta.
+                    </p>
+                    <div class="d-flex flex-wrap gap-4">
+                        <a href="{% url 'usuarios:registro' %}" class="btn-premium btn-premium-gold px-5">Explorar Plataforma</a>
+                        <a href="#servicios" class="btn-premium btn-premium-outline px-5">Ver Catálogo</a>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card h-100 card-custom p-4 rounded-4 shadow-sm">
-                    <div class="card-body text-center">
-                        <div class="icon-xl mb-3 text-accent">🗺️</div>
-                        <h5 class="fw-bold mb-2 text-white">Cobertura regional</h5>
-                        <p class="small text-muted">Alcance en principales ciudades y corredores industriales.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card h-100 card-custom p-4 rounded-4 shadow-sm">
-                    <div class="card-body text-center">
-                        <div class="icon-xl mb-3 text-accent">📡</div>
-                        <h5 class="fw-bold mb-2 text-white">Rastreo en vivo</h5>
-                        <p class="small text-muted">Seguimiento de cada envío y notificaciones en tiempo real.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card h-100 card-custom p-4 rounded-4 shadow-sm">
-                    <div class="card-body text-center">
-                        <div class="icon-xl mb-3 text-accent">🛠️</div>
-                        <h5 class="fw-bold mb-2 text-white">Soporte 24/7</h5>
-                        <p class="small text-muted">Equipo dedicado para atender imprevistos y solicitudes.</p>
+                <div class="col-lg-5 d-none d-lg-block" data-aos="zoom-in-left" data-aos-duration="1500">
+                    <div class="position-relative">
+                        <div class="hero-glow-sphere"></div>
+                        <img src="{% static 'img/Excavadora.png' %}" alt="Maquinaria" class="img-fluid float-anim" style="filter: drop-shadow(0 20px 50px rgba(0,0,0,0.8));">
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     </section>
 
-<section id="servicios" class="py-5 section-anchor">
-    <div class="container py-5">
-        <h2 class="display-6 fw-bold text-center mb-5 text-white">Nuestros Servicios</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card h-100 card-custom p-4 rounded-4 shadow-sm">
-                    <div class="card-body text-center">
-                        <div class="icon-xl mb-3 text-accent">🚛</div>
-                        <h4 class="fw-bold text-white">Carga Pesada</h4>
-                        <p class="text-white-50 small">Transporte especializado de materiales y maquinaria.</p>
+    <!-- Stats Section -->
+    <section class="stats-premium-box">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="100">
+                    <div class="stat-item-premium">
+                        <div class="stat-number-premium">99%</div>
+                        <div class="stat-label-premium">EFICIENCIA</div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 card-custom p-4 rounded-4 shadow-sm">
-                    <div class="card-body text-center">
-                        <div class="icon-xl mb-3 text-accent">⏱️</div>
-                        <h4 class="fw-bold text-white">Logística Express</h4>
-                        <p class="text-white-50 small">Entregas programadas sin retrasos.</p>
+                <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="200">
+                    <div class="stat-item-premium">
+                        <div class="stat-number-premium">2.5k</div>
+                        <div class="stat-label-premium">CLIENTES</div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 card-custom p-4 rounded-4 shadow-sm">
-                    <div class="card-body text-center">
-                        <div class="icon-xl mb-3 text-accent">🛡️</div>
-                        <h4 class="fw-bold text-white">Seguridad</h4>
-                        <p class="text-white-50 small">Cargas 100% aseguradas.</p>
+                <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="300">
+                    <div class="stat-item-premium">
+                        <div class="stat-number-premium">120</div>
+                        <div class="stat-label-premium">VEHÍCULOS</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="400">
+                    <div class="stat-item-premium">
+                        <div class="stat-number-premium">24/7</div>
+                        <div class="stat-label-premium">SOPORTE</div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
-
-<section class="py-5 section-anchor">
-    <div class="container">
-        <h2 class="display-6 fw-bold text-center mb-4 text-white">¿Cómo trabajamos?</h2>
-        <div class="row g-4">
-            <div class="col-md-3">
-                <div class="h-100 p-4 border-0 rounded-4 card-custom text-center">
-                    <div class="step-number mx-auto mb-3">1</div>
-                    <h6 class="fw-bold mb-2 text-white">Solicitud</h6>
-                    <p class="small text-white-50">Recibimos tu requerimiento y validamos disponibilidad.</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="h-100 p-4 border-0 rounded-4 card-custom text-center">
-                    <div class="step-number mx-auto mb-3">2</div>
-                    <h6 class="fw-bold mb-2 text-white">Planificación</h6>
-                    <p class="small text-white-50">Definimos ruta, vehículo y cronograma óptimos.</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="h-100 p-4 border-0 rounded-4 card-custom text-center">
-                    <div class="step-number mx-auto mb-3">3</div>
-                    <h6 class="fw-bold mb-2 text-white">Ejecución</h6>
-                    <p class="small text-white-50">Transporte con monitoreo en tiempo real.</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="h-100 p-4 border-0 rounded-4 card-custom text-center">
-                    <div class="step-number mx-auto mb-3">4</div>
-                    <h6 class="fw-bold mb-2 text-white">Entrega</h6>
-                    <p class="small text-white-50">Cierre con confirmación y reporte de entrega.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="py-5 section-anchor mt-5">
-    <div class="container">
-        <div class="cta-band d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3">
-            <div>
-                <h3 class="h4 fw-bold m-0">¿Listo para optimizar tu logística?</h3>
-                <div class="text-white-50 small">Solicita una cotización o explora nuestros servicios.</div>
-            </div>
-            <div class="d-flex gap-2">
-                <a href="#servicios" class="btn btn-accion rounded-pill px-4 text-white">Ver servicios</a>
-            </div>
-        </div>
-    </div>
     </section>
 
-<section id="contacto" class="py-5 section-anchor">
-    <div class="container py-5">
-        <div class="row g-5">
-            <div class="col-lg-5">
-                <h2 class="display-6 fw-bold mb-4 text-white">Contáctanos</h2>
-                <p class="text-white-50 mb-5">Estamos listos para atender tus requerimientos de logística y transporte.</p>
-                
-                <div class="d-flex gap-3 mb-4">
-                    <div class="icon-circle bg-accent">
-                        <i class="bi bi-geo-alt-fill"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-0 text-white">Ubicación</h6>
-                        <p class="small text-white-50">Calle Principal #123, Zona Industrial</p>
-                    </div>
+    <!-- Services Section -->
+    <section id="servicios" class="py-10" style="padding: 120px 0;">
+        <div class="container">
+            <div class="row mb-5 align-items-end" data-aos="fade-up">
+                <div class="col-lg-6">
+                    <h6 class="text-primary fw-bold text-uppercase letter-spacing-2 mb-3" style="color: var(--color-primary) !important;">NUESTRAS CAPACIDADES</h6>
+                    <h2 class="display-4 text-white">Soluciones que mueven <br> <span class="text-muted">montañas.</span></h2>
                 </div>
-
-                <div class="d-flex gap-3 mb-4">
-                    <div class="icon-circle bg-accent">
-                        <i class="bi bi-telephone-fill"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-0 text-white">Teléfono</h6>
-                        <p class="small text-white-50">+57 300 123 4567</p>
-                    </div>
-                </div>
-
-                <div class="d-flex gap-3">
-                    <div class="icon-circle bg-accent">
-                        <i class="bi bi-envelope-fill"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-0 text-white">Email</h6>
-                        <p class="small text-white-50">contacto@constru-trans.com</p>
-                    </div>
+                <div class="col-lg-6 text-lg-end d-none d-lg-block">
+                    <p class="text-muted mb-0">Tecnología y experiencia unidas para <br> brindar un servicio sin precedentes.</p>
                 </div>
             </div>
             
-            <div class="col-lg-7">
-                <div class="card-custom p-4 rounded-4 shadow-sm">
-                    <form>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-white-50 small">Nombre Completo</label>
-                                <input type="text" class="form-control bg-dark border-0 text-white rounded-pill px-4" placeholder="Tu nombre">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-white-50 small">Correo Electrónico</label>
-                                <input type="email" class="form-control bg-dark border-0 text-white rounded-pill px-4" placeholder="tu@email.com">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label text-white-50 small">Asunto</label>
-                                <input type="text" class="form-control bg-dark border-0 text-white rounded-pill px-4" placeholder="¿En qué podemos ayudarte?">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label text-white-50 small">Mensaje</label>
-                                <textarea class="form-control bg-dark border-0 text-white rounded-4 px-4 py-3" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
-                            </div>
-                            <div class="col-12 mt-4">
-                                <button type="submit" class="btn btn-accent rounded-pill px-5 py-2 fw-bold w-100">
-                                    Enviar Mensaje
-                                </button>
-                            </div>
+            <div class="row g-4">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="card-glass overflow-hidden p-0">
+                        <img src="{% static 'img/Trabajadores.jpeg' %}" class="w-100" style="height: 200px; object-fit: cover;" alt="Trabajadores">
+                        <div class="p-5">
+                            <div class="icon-box-premium"><i class="bi bi-truck"></i></div>
+                            <h4 class="text-white mb-3">Transporte Pesado</h4>
+                            <p class="text-muted">Movilización de maquinaria y materiales de construcción a gran escala con máxima seguridad.</p>
                         </div>
-                    </form>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card-glass overflow-hidden p-0">
+                        <img src="{% static 'img/Plan (1).png' %}" class="w-100" style="height: 200px; object-fit: cover;" alt="Plan">
+                        <div class="p-5">
+                            <div class="icon-box-premium"><i class="bi bi-geo-alt"></i></div>
+                            <h4 class="text-white mb-3">Rastreo en Vivo</h4>
+                            <p class="text-muted">Panel de control avanzado para el seguimiento satelital de sus pedidos en tiempo real.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="card-glass overflow-hidden p-0">
+                        <img src="{% static 'img/OIP (1).webp' %}" class="w-100" style="height: 200px; object-fit: cover;" alt="Seguridad">
+                        <div class="p-5">
+                            <div class="icon-box-premium"><i class="bi bi-shield-lock"></i></div>
+                            <h4 class="text-white mb-3">Protección Total</h4>
+                            <p class="text-muted">Garantía extendida y seguros de carga premium para su total tranquilidad operativa.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<style>
-    .icon-circle {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        flex-shrink: 0;
-    }
-    .btn-accent {
-        background-color: var(--color-accent);
-        color: #000000 !important;
-        border: none;
-        transition: all 0.3s;
-    }
-    .btn-accent:hover {
-        background-color: #e67e22;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
-        color: #000000 !important;
-    }
-</style>
-    </div>
-</section>
-
-<footer class="footer-custom pt-5 pb-3 mt-5">
-    <div class="container">
-        <div class="row g-4 mb-5 text-center text-lg-start">
-            <!-- Columna Logo y Descripción -->
-            <div class="col-lg-4">
-                <div class="footer-brand mb-4 d-flex align-items-center justify-content-center justify-content-lg-start">
-                    <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo" height="40" class="rounded-2 me-3">
-                    <h5 class="fw-900 mb-0 text-white" style="letter-spacing: -0.5px;">CONSTRU<span style="color: var(--color-accent);">TRANS</span></h5>
+    <!-- CTA Section -->
+    <section class="py-5">
+        <div class="container" data-aos="zoom-in">
+            <div class="p-5 p-lg-10 rounded-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, var(--color-primary), #d35400); padding: 80px;">
+                <div class="position-relative z-1 text-center text-lg-start">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h2 class="display-5 fw-900 text-black mb-4">¿Listo para transformar su cadena logística?</h2>
+                            <p class="fs-5 text-black mb-5 mb-lg-0 opacity-75">Únase a los líderes de la industria y experimente el poder de la eficiencia real.</p>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <a href="{% url 'usuarios:registro' %}" class="btn-premium btn-dark px-5 py-3 rounded-pill fw-bold text-white text-decoration-none shadow-lg">Registrarse Ahora</a>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-white-50 small pe-lg-4 mb-4">
-                    Líderes en soluciones logísticas y transporte de materiales pesados. Brindamos eficiencia, seguridad y tecnología en cada kilómetro.
-                </p>
-                <div class="d-flex gap-3 justify-content-center justify-content-lg-start social-links">
-                    <a href="#" class="social-icon" title="Facebook"><i class="bi bi-facebook"></i></a>
-                    <a href="#" class="social-icon" title="Instagram"><i class="bi bi-instagram"></i></a>
-                    <a href="#" class="social-icon" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
-                    <a href="#" class="social-icon" title="Twitter"><i class="bi bi-twitter-x"></i></a>
-                </div>
-            </div>
-
-            <!-- Columna Enlaces Rápidos -->
-            <div class="col-6 col-lg-2 ms-lg-auto">
-                <h6 class="text-white fw-800 mb-4 text-uppercase small" style="letter-spacing: 1px;">Navegación</h6>
-                <ul class="list-unstyled footer-links">
-                    <li><a href="#inicio">Inicio</a></li>
-                    <li><a href="#nosotros">Nosotros</a></li>
-                    <li><a href="#servicios">Servicios</a></li>
-                    <li><a href="#contacto">Contacto</a></li>
-                </ul>
-            </div>
-
-            <!-- Columna Servicios -->
-            <div class="col-6 col-lg-2">
-                <h6 class="text-white fw-800 mb-4 text-uppercase small" style="letter-spacing: 1px;">Servicios</h6>
-                <ul class="list-unstyled footer-links">
-                    <li><a href="#">Carga Pesada</a></li>
-                    <li><a href="#">Logística Express</a></li>
-                    <li><a href="#">Maquinaria</a></li>
-                    <li><a href="#">Asesoría</a></li>
-                </ul>
-            </div>
-
-            <!-- Columna Contacto Rápido -->
-            <div class="col-lg-3">
-                <h6 class="text-white fw-800 mb-4 text-uppercase small" style="letter-spacing: 1px;">Contacto</h6>
-                <ul class="list-unstyled footer-contact">
-                    <li class="d-flex align-items-center justify-content-center justify-content-lg-start mb-3 gap-2 text-white-50 small">
-                        <i class="bi bi-geo-alt-fill text-accent"></i>
-                        Calle Principal #123, Zona Industrial
-                    </li>
-                    <li class="d-flex align-items-center justify-content-center justify-content-lg-start mb-3 gap-2 text-white-50 small">
-                        <i class="bi bi-telephone-fill text-accent"></i>
-                        +57 300 123 4567
-                    </li>
-                    <li class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2 text-white-50 small">
-                        <i class="bi bi-envelope-fill text-accent"></i>
-                        info@constru-trans.com
-                    </li>
-                </ul>
+                <div class="cta-decoration"></div>
             </div>
         </div>
+    </section>
 
-        <hr class="border-secondary opacity-25 mb-4">
-
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <p class="small text-white-50 mb-0">
-                © 2026 Constru-trans. Todos los derechos reservados.
-            </p>
-            <div class="d-flex gap-4">
-                <a href="#" class="small text-white-50 text-decoration-none hover-accent">Privacidad</a>
-                <a href="#" class="small text-white-50 text-decoration-none hover-accent">Términos</a>
+    <!-- Contact Section -->
+    <section id="contacto" class="py-10" style="padding: 120px 0;">
+        <div class="container">
+            <div class="card-glass p-0 overflow-hidden">
+                <div class="row g-0">
+                    <div class="col-lg-5 p-5 p-lg-10 bg-white-5">
+                        <h2 class="text-white mb-4">Contáctanos.</h2>
+                        <p class="text-muted mb-5">Estamos listos para camellar en su próximo gran proyecto de construcción.</p>
+                        
+                        <div class="d-flex gap-4 mb-4 align-items-center">
+                            <div class="icon-box-premium m-0" style="width: 50px; height: 50px; font-size: 1.2rem;"><i class="bi bi-geo-alt"></i></div>
+                            <span class="text-white-50">Zona Industrial, Bogotá D.C, Colombia</span>
+                        </div>
+                        <div class="d-flex gap-4 mb-4 align-items-center">
+                            <div class="icon-box-premium m-0" style="width: 50px; height: 50px; font-size: 1.2rem;"><i class="bi bi-telephone"></i></div>
+                            <span class="text-white-50">+57 300 123 4567</span>
+                        </div>
+                        <div class="d-flex gap-4 align-items-center">
+                            <div class="icon-box-premium m-0" style="width: 50px; height: 50px; font-size: 1.2rem;"><i class="bi bi-envelope"></i></div>
+                            <span class="text-white-50">info@constru-trans.com</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-7 p-5 p-lg-10">
+                        <form action="#" class="row g-4">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control-premium" placeholder="Nombre Completo">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="email" class="form-control-premium" placeholder="Correo Electrónico">
+                            </div>
+                            <div class="col-12">
+                                <textarea class="form-control-premium" rows="5" placeholder="Cuéntenos qué necesita..."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn-premium btn-premium-gold w-100">Enviar Mensaje</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
+    </section>
+</main>
+
+<footer class="py-5" style="background: #050505; border-top: 1px solid var(--color-border);">
+    <div class="container text-center">
+        <div class="mb-4">
+            <img src="{% static 'img/Logo1.jpeg' %}" height="40" class="rounded-1 opacity-75">
+        </div>
+        <div class="d-flex justify-content-center gap-4 mb-4">
+            <a href="#" class="text-muted text-decoration-none hover-white"><i class="bi bi-facebook fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none hover-white"><i class="bi bi-instagram fs-5"></i></a>
+            <a href="#" class="text-muted text-decoration-none hover-white"><i class="bi bi-linkedin fs-5"></i></a>
+        </div>
+        <p class="text-muted small">© 2026 CONSTRU-TRANS. LOGÍSTICA DE ÉLITE SIN FRONTERAS.</p>
     </div>
 </footer>
 
-<style>
-    .footer-custom {
-        background-color: #03070d;
-        border-top: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .footer-links li {
-        margin-bottom: 12px;
-    }
-
-    .footer-links a {
-        color: rgba(255,255,255,0.5);
-        text-decoration: none;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-    }
-
-    .footer-links a:hover {
-        color: var(--color-accent);
-        padding-left: 5px;
-    }
-
-    .social-icon {
-        width: 38px;
-        height: 38px;
-        background: rgba(255,255,255,0.03);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgba(255,255,255,0.6);
-        text-decoration: none;
-        transition: all 0.3s ease;
-        border: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .social-icon:hover {
-        background: var(--color-accent);
-        color: #000;
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(202, 160, 48, 0.2);
-    }
-
-    .hover-accent:hover {
-        color: var(--color-accent) !important;
-    }
-
-    .fw-900 { font-weight: 900; }
-    .fw-800 { font-weight: 800; }
-</style>
-
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="{% static 'js/loader.js' %}"></script>
+<script>
+    AOS.init({
+        duration: 1200,
+        once: true,
+        easing: 'ease-out-cubic'
+    });
 
+    $(window).scroll(function() {
+        if ($(this).scrollTop() > 50) {
+            $('.navbar-premium').addClass('scrolled');
+        } else {
+            $('.navbar-premium').removeClass('scrolled');
+        }
+    });
+</script>
 </body>
 </html>

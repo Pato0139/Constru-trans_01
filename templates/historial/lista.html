@@ -3,114 +3,160 @@
 {% block title %}Historial de Actividades{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h2 class="text-white"><i class="bi bi-clock-history me-2"></i>Historial de Actividades</h2>
-            <p class="text-muted">Registro automático de acciones realizadas en el sistema Constru-Trans.</p>
+<div class="container-fluid py-3">
+    <!-- Encabezado Estilo Premium -->
+    <div class="d-flex justify-content-between align-items-end mb-4 px-2">
+        <div>
+            <h2 class="fw-900 text-white mb-1" style="letter-spacing: -1px;">
+                <i class="bi bi-clock-history text-accent me-2"></i>Historial de Actividades
+            </h2>
+            <p class="text-muted small mb-0 fw-600">Registro detallado de acciones y movimientos del sistema.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'reportes:reportes_admin' %}" class="btn btn-outline-light rounded-pill px-3 fw-800 shadow-sm small d-flex align-items-center gap-2 border-white-10" style="height: 38px;">
+                <i class="bi bi-arrow-left"></i> Volver a Reportes
+            </a>
+            <a href="{% url 'historial:lista_historial' %}" class="btn btn-gold rounded-pill px-3 fw-800 shadow-sm small d-flex align-items-center gap-2" style="height: 38px;">
+                <i class="bi bi-arrow-counterclockwise"></i> Limpiar Filtros
+            </a>
         </div>
     </div>
 
-    <!-- Filtros -->
-    <div class="card bg-dark border-secondary mb-4">
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-2">
-                    <label class="form-label text-white">Usuario</label>
-                    <input type="text" name="usuario" class="form-control bg-secondary text-white border-0" value="{{ filtros.usuario|default:'' }}" placeholder="Nombre de usuario">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label text-white">Acción</label>
-                    <select name="accion" class="form-select bg-secondary text-white border-0">
-                        <option value="">Todas</option>
-                        {% for valor, etiqueta in acciones %}
-                            <option value="{{ valor }}" {% if filtros.accion == valor %}selected{% endif %}>{{ etiqueta }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label text-white">Módulo</label>
-                    <select name="modulo" class="form-select bg-secondary text-white border-0">
-                        <option value="">Todos</option>
-                        {% for mod in modulos %}
-                            <option value="{{ mod }}" {% if filtros.modulo == mod %}selected{% endif %}>{{ mod|capfirst }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label text-white">Fecha Inicio</label>
-                    <input type="date" name="fecha_inicio" class="form-control bg-secondary text-white border-0" value="{{ filtros.fecha_inicio|default:'' }}">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label text-white">Fecha Fin</label>
-                    <input type="date" name="fecha_fin" class="form-control bg-secondary text-white border-0" value="{{ filtros.fecha_fin|default:'' }}">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100 me-2">Filtrar</button>
-                    <a href="{% url 'historial:lista' %}" class="btn btn-outline-light">Limpiar</a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Tabla de Registros -->
-    <div class="card bg-dark border-secondary">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0">
-                    <thead class="table-secondary">
-                        <tr>
-                            <th>ID</th>
-                            <th>Usuario</th>
-                            <th>Acción</th>
-                            <th>Módulo</th>
-                            <th>Elemento ID</th>
-                            <th>Descripción</th>
-                            <th>Fecha y Hora</th>
-                            <th>IP</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for registro in registros %}
-                        <tr>
-                            <td>{{ registro.id }}</td>
-                            <td>
-                                {% if registro.usuario %}
-                                    <span class="badge bg-info text-dark">{{ registro.usuario.username }}</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Sistema/Anónimo</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if registro.accion == 'crear' %}
-                                    <span class="text-success"><i class="bi bi-plus-circle me-1"></i>Crear</span>
-                                {% elif registro.accion == 'editar' %}
-                                    <span class="text-warning"><i class="bi bi-pencil me-1"></i>Editar</span>
-                                {% elif registro.accion == 'eliminar' %}
-                                    <span class="text-danger"><i class="bi bi-trash me-1"></i>Eliminar</span>
-                                {% elif registro.accion == 'login' %}
-                                    <span class="text-info"><i class="bi bi-box-arrow-in-right me-1"></i>Login</span>
-                                {% elif registro.accion == 'logout' %}
-                                    <span class="text-secondary"><i class="bi bi-box-arrow-right me-1"></i>Logout</span>
-                                {% else %}
-                                    {{ registro.get_accion_display }}
-                                {% endif %}
-                            </td>
-                            <td>{{ registro.modulo|capfirst }}</td>
-                            <td>{{ registro.elemento_id|default:"-" }}</td>
-                            <td><small>{{ registro.descripcion }}</small></td>
-                            <td>{{ registro.fecha_hora|date:"Y-m-d H:i" }}</td>
-                            <td><small class="text-muted">{{ registro.ip_address|default:"-" }}</small></td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center py-4">No se encontraron registros de actividad.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <!-- Filtros Premium -->
+    <div class="table-container p-4 mb-4" data-aos="fade-up">
+        <form method="GET" class="row g-3">
+            <div class="col-md-2">
+                <label class="x-small fw-800 text-muted text-uppercase mb-2 px-1" style="letter-spacing: 1px;">Usuario</label>
+                <input type="text" name="usuario" class="form-control bg-dark text-white border-white-10 rounded-pill px-3 small" value="{{ filtros.usuario|default:'' }}" placeholder="Buscar user...">
             </div>
+            <div class="col-md-2">
+                <label class="x-small fw-800 text-muted text-uppercase mb-2 px-1" style="letter-spacing: 1px;">Acción</label>
+                <select name="accion" class="form-select bg-dark text-white border-white-10 rounded-pill px-3 small">
+                    <option value="">Todas</option>
+                    {% for valor, etiqueta in acciones %}
+                        <option value="{{ valor }}" {% if filtros.accion == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="x-small fw-800 text-muted text-uppercase mb-2 px-1" style="letter-spacing: 1px;">Módulo</label>
+                <select name="modulo" class="form-select bg-dark text-white border-white-10 rounded-pill px-3 small">
+                    <option value="">Todos</option>
+                    {% for mod in modulos %}
+                        <option value="{{ mod }}" {% if filtros.modulo == mod %}selected{% endif %}>{{ mod|capfirst }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="x-small fw-800 text-muted text-uppercase mb-2 px-1" style="letter-spacing: 1px;">Desde</label>
+                <input type="date" name="fecha_inicio" class="form-control bg-dark text-white border-white-10 rounded-pill px-3 small" value="{{ filtros.fecha_inicio|default:'' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="x-small fw-800 text-muted text-uppercase mb-2 px-1" style="letter-spacing: 1px;">Hasta</label>
+                <input type="date" name="fecha_fin" class="form-control bg-dark text-white border-white-10 rounded-pill px-3 small" value="{{ filtros.fecha_fin|default:'' }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-accent w-100 rounded-pill fw-800 shadow-sm small py-2">
+                    <i class="bi bi-filter me-1"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de Registros Premium -->
+    <div class="table-container p-0 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">ID</th>
+                        <th>USUARIO</th>
+                        <th>ACCIÓN</th>
+                        <th>MÓDULO</th>
+                        <th>DESCRIPCIÓN</th>
+                        <th>FECHA / HORA</th>
+                        <th class="pe-4 text-end">DIRECCIÓN IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in registros %}
+                    <tr class="border-white-5">
+                        <td class="ps-4 text-muted x-small">#{{ registro.id }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-dark rounded-circle border border-white-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <i class="bi bi-person text-accent"></i>
+                                </div>
+                                <div>
+                                    {% if registro.usuario %}
+                                        <span class="text-white fw-700 small">{{ registro.usuario.username }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">Sistema</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if registro.accion == 'crear' %}
+                                <span class="badge bg-success-glow text-success border border-success-glow rounded-pill px-3 x-small fw-800 text-uppercase">Crear</span>
+                            {% elif registro.accion == 'editar' %}
+                                <span class="badge bg-warning-glow text-warning border border-warning-glow rounded-pill px-3 x-small fw-800 text-uppercase">Editar</span>
+                            {% elif registro.accion == 'eliminar' %}
+                                <span class="badge bg-danger-glow text-danger border border-danger-glow rounded-pill px-3 x-small fw-800 text-uppercase">Borrar</span>
+                            {% elif registro.accion == 'login' %}
+                                <span class="badge bg-info-glow text-info border border-info-glow rounded-pill px-3 x-small fw-800 text-uppercase">Acceso</span>
+                            {% else %}
+                                <span class="badge bg-dark text-muted border border-white-10 rounded-pill px-3 x-small fw-800 text-uppercase">{{ registro.accion }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="text-white fw-600 small">{{ registro.modulo|capfirst }}</span>
+                        </td>
+                        <td>
+                            <p class="text-muted mb-0 x-small fw-600" style="max-width: 300px; line-height: 1.4;">{{ registro.descripcion }}</p>
+                        </td>
+                        <td>
+                            <div class="text-white small fw-700">{{ registro.fecha_hora|date:"d M, Y" }}</div>
+                            <div class="text-muted x-small fw-600">{{ registro.fecha_hora|date:"H:i:s" }}</div>
+                        </td>
+                        <td class="pe-4 text-end">
+                            <code class="x-small text-accent opacity-75 fw-700">{{ registro.ip_address|default:"-" }}</code>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="bi bi-inbox fs-1 d-block mb-3 text-muted opacity-25"></i>
+                            <h6 class="text-muted fw-700">No se encontraron registros de actividad</h6>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
+<style>
+    .bg-success-glow { background: rgba(46, 204, 113, 0.1) !important; }
+    .bg-warning-glow { background: rgba(243, 156, 18, 0.1) !important; }
+    .bg-danger-glow { background: rgba(231, 76, 60, 0.1) !important; }
+    .bg-info-glow { background: rgba(52, 152, 219, 0.1) !important; }
+    
+    .border-success-glow { border-color: rgba(46, 204, 113, 0.2) !important; }
+    .border-warning-glow { border-color: rgba(243, 156, 18, 0.2) !important; }
+    .border-danger-glow { border-color: rgba(231, 76, 60, 0.2) !important; }
+    .border-info-glow { border-color: rgba(52, 152, 219, 0.2) !important; }
+
+    .btn-accent {
+        background: var(--color-accent);
+        color: white;
+        border: none;
+    }
+    .btn-accent:hover {
+        background: #004494;
+        color: white;
+        transform: translateY(-2px);
+    }
+</style>
 {% endblock %}

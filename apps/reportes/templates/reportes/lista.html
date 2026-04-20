@@ -4,189 +4,224 @@
 {% block title %}Reportes del Sistema - Constru-trans{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-primary">
-            <i class="bi bi-bar-chart-fill me-2"></i>Reportes del Sistema
-        </h2>
-        <div class="text-muted small">
-            Última actualización: {{ now|date:"d/m/Y H:i" }}
+<div class="container-fluid py-3">
+    <!-- Encabezado Estilo Premium -->
+    <div class="d-flex justify-content-between align-items-end mb-4 px-2">
+        <div>
+            <h2 class="fw-900 text-white mb-1" style="letter-spacing: -1px;">
+                <i class="bi bi-bar-chart-line-fill text-accent me-2"></i>Reportes del Sistema
+            </h2>
+            <p class="text-muted small mb-0 fw-600">Panel de control estratégico para generación de informes y analítica.</p>
         </div>
-    </div>
-
-    <!-- Resumen de Órdenes -->
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="card border-0 shadow-sm bg-primary text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <p class="mb-1">Total Órdenes</p>
-                            <h2 class="mb-0 fw-bold">{{ total_ordenes }}</h2>
-                        </div>
-                        <i class="bi bi-box-seam fs-1 opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="card border-0 shadow-sm bg-warning text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <p class="mb-1">Pendientes</p>
-                            <h2 class="mb-0 fw-bold">{{ pendientes }}</h2>
-                        </div>
-                        <i class="bi bi-clock-history fs-1 opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="card border-0 shadow-sm bg-info text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <p class="mb-1">En Ruta</p>
-                            <h2 class="mb-0 fw-bold">{{ en_ruta }}</h2>
-                        </div>
-                        <i class="bi bi-truck fs-1 opacity-50"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-            <div class="card border-0 shadow-sm bg-success text-white h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <p class="mb-1">Entregadas</p>
-                            <h2 class="mb-0 fw-bold">{{ entregadas }}</h2>
-                        </div>
-                        <i class="bi bi-check-circle fs-1 opacity-50"></i>
-                    </div>
-                </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'historial:lista_historial' %}" class="btn btn-gold rounded-pill px-3 fw-800 shadow-sm small d-flex align-items-center gap-2" style="height: 38px;">
+                <i class="bi bi-clock-history"></i> Historial de Reportes
+            </a>
+            <div class="p-2 rounded-pill bg-dark border border-white-10 d-flex align-items-center px-3" style="height: 38px;">
+                <span class="text-muted x-small fw-700 me-2 text-uppercase" style="letter-spacing: 1px;">Última actualización:</span>
+                <span class="text-white x-small fw-800">{{ now|date:"H:i" }}</span>
             </div>
         </div>
     </div>
 
-    <!-- Sección de Descargas -->
+    <!-- Resumen de Órdenes (Cards Premium) -->
     <div class="row g-3 mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-download me-2 text-primary"></i>Generar Reportes PDF</h5>
+        <div class="col-12 col-sm-6 col-md-3" data-aos="fade-up" data-aos-delay="100">
+            <div class="stat-card-ultra p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted x-small fw-800 text-uppercase mb-1" style="letter-spacing: 1.5px;">Total Órdenes</p>
+                        <h2 class="fw-900 text-white mb-0 h1">{{ total_ordenes }}</h2>
+                    </div>
+                    <div class="icon-box bg-accent-glow rounded-3 p-2">
+                        <i class="bi bi-box-seam text-accent fs-4"></i>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <a href="{% url 'reportes:exportar_reporte_pdf' 'clientes' %}" class="btn btn-outline-danger w-100 py-3 shadow-sm">
-                                <i class="bi bi-file-pdf-fill me-2"></i>Reporte de Clientes
-                            </a>
-                        </div>
-                        <div class="col-md-4">
-                            <a href="{% url 'reportes:exportar_reporte_pdf' 'materiales' %}" class="btn btn-outline-danger w-100 py-3 shadow-sm">
-                                <i class="bi bi-file-pdf-fill me-2"></i>Reporte de Inventario
-                            </a>
-                        </div>
-                        <div class="col-md-4">
-                            <a href="{% url 'reportes:exportar_reporte_pdf' 'ventas' %}" class="btn btn-outline-danger w-100 py-3 shadow-sm">
-                                <i class="bi bi-file-pdf-fill me-2"></i>Reporte de Ventas
-                            </a>
-                        </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3" data-aos="fade-up" data-aos-delay="200">
+            <div class="stat-card-ultra p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted x-small fw-800 text-uppercase mb-1" style="letter-spacing: 1.5px;">Pendientes</p>
+                        <h2 class="fw-900 text-warning mb-0 h1">{{ pendientes }}</h2>
+                    </div>
+                    <div class="icon-box bg-warning-glow rounded-3 p-2">
+                        <i class="bi bi-clock-history text-warning fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3" data-aos="fade-up" data-aos-delay="300">
+            <div class="stat-card-ultra p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted x-small fw-800 text-uppercase mb-1" style="letter-spacing: 1.5px;">En Ruta</p>
+                        <h2 class="fw-900 text-info mb-0 h1">{{ en_ruta }}</h2>
+                    </div>
+                    <div class="icon-box bg-info-glow rounded-3 p-2">
+                        <i class="bi bi-truck text-info fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3" data-aos="fade-up" data-aos-delay="400">
+            <div class="stat-card-ultra p-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted x-small fw-800 text-uppercase mb-1" style="letter-spacing: 1.5px;">Entregadas</p>
+                        <h2 class="fw-900 text-success mb-0 h1">{{ entregadas }}</h2>
+                    </div>
+                    <div class="icon-box bg-success-glow rounded-3 p-2">
+                        <i class="bi bi-check-circle text-success fs-4"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Resumen de Recursos -->
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-md-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark">Estadísticas de Órdenes</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="graficaOrdenes" style="max-height: 300px;"></canvas>
+    <!-- Sección de Descargas (Generar Reportes) -->
+    <div class="table-container p-3 mb-4" data-aos="fade-up">
+        <h6 class="fw-800 text-accent text-uppercase small mb-3 px-2" style="letter-spacing: 1px;">
+            <i class="bi bi-file-earmark-pdf-fill me-2"></i>Generar Reportes PDF
+        </h6>
+        <div class="row g-3 px-2">
+            <div class="col-md-4">
+                <a href="{% url 'reportes:exportar_reporte_pdf' 'clientes' %}" class="btn btn-outline-light w-100 py-3 rounded-4 d-flex align-items-center justify-content-center gap-2 border-white-10 hover-accent" style="background: rgba(255,255,255,0.02);">
+                    <i class="bi bi-people-fill fs-5 text-accent"></i>
+                    <span class="fw-700">Reporte de Clientes</span>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'reportes:exportar_reporte_pdf' 'materiales' %}" class="btn btn-outline-light w-100 py-3 rounded-4 d-flex align-items-center justify-content-center gap-2 border-white-10 hover-accent" style="background: rgba(255,255,255,0.02);">
+                    <i class="bi bi-boxes fs-5 text-accent"></i>
+                    <span class="fw-700">Reporte de Inventario</span>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{% url 'reportes:exportar_reporte_pdf' 'ventas' %}" class="btn btn-outline-light w-100 py-3 rounded-4 d-flex align-items-center justify-content-center gap-2 border-white-10 hover-accent" style="background: rgba(255,255,255,0.02);">
+                    <i class="bi bi-currency-dollar fs-5 text-accent"></i>
+                    <span class="fw-700">Reporte de Ventas</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficas e Indicadores -->
+    <div class="row g-4">
+        <div class="col-lg-8" data-aos="fade-right">
+            <div class="table-container p-4 h-100">
+                <h6 class="fw-800 text-accent text-uppercase small mb-4" style="letter-spacing: 1px;">Estadísticas de Órdenes</h6>
+                <div style="height: 300px;">
+                    <canvas id="graficaOrdenes"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col-12 col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark">Otros Indicadores</h5>
-                </div>
-                <div class="card-body p-0">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div><i class="bi bi-people me-2 text-primary"></i>Clientes</div>
-                            <span class="badge bg-primary rounded-pill">{{ total_clientes }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div><i class="bi bi-person-badge me-2 text-primary"></i>Conductores</div>
-                            <span class="badge bg-primary rounded-pill">{{ total_conductores }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div><i class="bi bi-bricks me-2 text-primary"></i>Materiales</div>
-                            <span class="badge bg-primary rounded-pill">{{ total_materiales }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div><i class="bi bi-truck-flatbed me-2 text-primary"></i>Vehículos</div>
-                            <span class="badge bg-primary rounded-pill">{{ total_vehiculos }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3 bg-light">
-                            <div class="fw-bold"><i class="bi bi-cash-stack me-2 text-success"></i>Total Ingresos</div>
-                            <span class="fw-bold text-success">${{ total_ingresos|floatformat:0|intcomma }}</span>
-                        </li>
-                    </ul>
+        <div class="col-lg-4" data-aos="fade-left">
+            <div class="table-container p-4 h-100">
+                <h6 class="fw-800 text-accent text-uppercase small mb-4" style="letter-spacing: 1px;">Otros Indicadores</h6>
+                <div class="list-group list-group-flush bg-transparent">
+                    <div class="list-group-item bg-transparent border-white-5 d-flex justify-content-between align-items-center py-3 px-0">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-dark rounded-circle p-2 border border-white-10"><i class="bi bi-people text-accent"></i></div>
+                            <span class="text-white fw-600">Clientes</span>
+                        </div>
+                        <span class="badge rounded-pill bg-accent text-dark fw-800">{{ total_clientes }}</span>
+                    </div>
+                    <div class="list-group-item bg-transparent border-white-5 d-flex justify-content-between align-items-center py-3 px-0">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-dark rounded-circle p-2 border border-white-10"><i class="bi bi-person-badge text-accent"></i></div>
+                            <span class="text-white fw-600">Conductores</span>
+                        </div>
+                        <span class="badge rounded-pill bg-accent text-dark fw-800">{{ total_conductores }}</span>
+                    </div>
+                    <div class="list-group-item bg-transparent border-white-5 d-flex justify-content-between align-items-center py-3 px-0">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-dark rounded-circle p-2 border border-white-10"><i class="bi bi-bricks text-accent"></i></div>
+                            <span class="text-white fw-600">Materiales</span>
+                        </div>
+                        <span class="badge rounded-pill bg-accent text-dark fw-800">{{ total_materiales }}</span>
+                    </div>
+                    <div class="list-group-item bg-transparent border-white-5 d-flex justify-content-between align-items-center py-3 px-0">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-dark rounded-circle p-2 border border-white-10"><i class="bi bi-truck-flatbed text-accent"></i></div>
+                            <span class="text-white fw-600">Vehículos</span>
+                        </div>
+                        <span class="badge rounded-pill bg-accent text-dark fw-800">{{ total_vehiculos }}</span>
+                    </div>
+                    <div class="list-group-item bg-transparent border-0 mt-3 p-3 rounded-4" style="background: rgba(46, 204, 113, 0.05); border: 1px solid rgba(46, 204, 113, 0.1) !important;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-success rounded-circle p-2"><i class="bi bi-cash-stack text-white"></i></div>
+                                <span class="text-success fw-800 text-uppercase small" style="letter-spacing: 1px;">Total Ingresos</span>
+                            </div>
+                            <h4 class="text-white fw-900 mb-0">${{ total_ingresos|floatformat:0|intcomma }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .bg-accent-glow { background: rgba(0, 86, 179, 0.15); }
+    .bg-warning-glow { background: rgba(243, 156, 18, 0.15); }
+    .bg-info-glow { background: rgba(13, 202, 240, 0.15); }
+    .bg-success-glow { background: rgba(46, 204, 113, 0.15); }
+    
+    .hover-accent:hover {
+        border-color: var(--color-accent) !important;
+        background: rgba(0, 86, 179, 0.05) !important;
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+</style>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('graficaOrdenes');
         
+        Chart.defaults.color = 'rgba(255,255,255,0.5)';
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Pendientes', 'En Ruta', 'Entregadas'],
+                labels: ['PENDIENTES', 'EN RUTA', 'ENTREGADAS'],
                 datasets: [{
-                    label: 'Cantidad de Órdenes',
+                    label: 'Órdenes',
                     data: [{{ pendientes }}, {{ en_ruta }}, {{ entregadas }}],
                     backgroundColor: [
-                        'rgba(255, 193, 7, 0.7)',  // Warning (Pendientes)
-                        'rgba(13, 202, 240, 0.7)',  // Info (En Ruta)
-                        'rgba(25, 135, 84, 0.7)'   // Success (Entregadas)
+                        'rgba(243, 156, 18, 0.4)',
+                        'rgba(13, 202, 240, 0.4)',
+                        'rgba(46, 204, 113, 0.4)'
                     ],
                     borderColor: [
-                        'rgba(255, 193, 7, 1)',
-                        'rgba(13, 202, 240, 1)',
-                        'rgba(25, 135, 84, 1)'
+                        '#F39C12',
+                        '#0DCAF0',
+                        '#2ECC71'
                     ],
-                    borderWidth: 1,
-                    borderRadius: 5
+                    borderWidth: 2,
+                    borderRadius: 12,
+                    barThickness: 40
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
                 scales: {
                     y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
+                        grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                        ticks: { stepSize: 1, font: { weight: 'bold' } }
+                    },
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { font: { weight: 'bold', size: 10 } }
                     }
                 }
             }

@@ -24,6 +24,8 @@
                     <th class="text-center">Tipo</th>
                     <th class="text-center">Capacidad</th>
                     <th class="text-center">Estado</th>
+                    <th class="text-center">Conductor</th>
+                    <th class="text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -49,6 +51,28 @@
                             {{ vehiculo.estado|title }}
                         </span>
                         {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if vehiculo.conductor %}
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; background: rgba(243, 156, 18, 0.1);">
+                                    <i class="bi bi-person-fill text-accent small"></i>
+                                </div>
+                                <span class="text-white small fw-bold">{{ vehiculo.conductor.nombres }} {{ vehiculo.conductor.apellidos }}</span>
+                            </div>
+                        {% else %}
+                            <span class="text-muted small opacity-50"><i>No asignado</i></span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{% url 'transporte:editar_vehiculo' vehiculo.id %}" class="btn-action" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'transporte:eliminar_vehiculo' vehiculo.id %}" class="btn-action text-danger confirm-delete" title="Eliminar" data-title="¿Eliminar vehículo?" data-text="Se eliminará el vehículo con placa {{ vehiculo.placa }} permanentemente.">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}

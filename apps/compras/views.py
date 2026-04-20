@@ -2,13 +2,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Proveedor, Compra, DetalleCompra
 from django.contrib import messages
-from historial.utils import registrar_actividad
+from apps.historial.utils import registrar_actividad
 
 from django.db.models import Q
 from django.core.mail import send_mail
 from django.conf import settings
 
-@login_required
+from apps.usuarios.views import admin_required
+
+@admin_required
 def contactar_proveedor(request, id):
     proveedor = get_object_or_404(Proveedor, id=id)
     if request.method == "POST":
@@ -37,7 +39,7 @@ def contactar_proveedor(request, id):
         
     return render(request, "compras/proveedor_contacto.html", {"proveedor": proveedor})
 
-@login_required
+@admin_required
 def lista_proveedores(request):
     q = request.GET.get('q', '')
     if q:
@@ -52,7 +54,7 @@ def lista_proveedores(request):
         proveedores = Proveedor.objects.all()
     return render(request, "compras/proveedores_lista.html", {"proveedores": proveedores, "query": q})
 
-@login_required
+@admin_required
 def crear_proveedor(request):
     if request.method == "POST":
         nombre = request.POST.get("nombre")
@@ -76,7 +78,7 @@ def crear_proveedor(request):
         
     return render(request, "compras/proveedor_form.html", {"action": "Crear"})
 
-@login_required
+@admin_required
 def editar_proveedor(request, id):
     proveedor = get_object_or_404(Proveedor, id=id)
     if request.method == "POST":

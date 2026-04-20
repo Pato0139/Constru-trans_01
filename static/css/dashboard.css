@@ -1,259 +1,251 @@
-/* Estilos globales para Dashboard con paleta premium */
+:root {
+    --color-bg: #000000; 
+    --color-surface: #1a1a1a;
+    --color-primary: #F39C12;
+    --color-accent: #0056B3;
+    --color-accent-glow: rgba(243, 156, 18, 0.3);
+    --color-text: #ffffff;
+    --color-muted: #9ca3af;
+    --color-border: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.07);
+    --font-main: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* --- Global Zoom & Scale Optimization --- */
+html {
+    font-size: 14px; /* Reducción de tamaño base para mayor densidad */
+}
+
+@media (min-width: 1400px) {
+    html {
+        font-size: 15px;
+    }
+}
+
+body {
+    background-color: var(--color-bg);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(243, 156, 18, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(0, 86, 179, 0.05) 0px, transparent 50%);
+    color: var(--color-text);
+    font-family: var(--font-main);
+    letter-spacing: -0.01em;
+}
+
+.sidebar-custom {
+    width: 240px;
+    height: 100vh;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--color-border);
+    padding: 20px 15px;
+    position: sticky;
+    top: 0;
+    z-index: 1100; /* Sidebar siempre arriba de los contenidos */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link-ultra {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 12px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    margin-bottom: 3px;
+    border: 1px solid transparent;
+}
+
+.nav-link-ultra:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-primary);
+    transform: translateX(5px);
+}
+
+.nav-link-ultra.active {
+    background: var(--nav-active-bg);
+    color: var(--color-primary);
+    border-color: rgba(243, 156, 18, 0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* Glassmorphism Refined */
+.glass-effect {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+}
+
+/* Buttons Evolution */
+.btn-premium {
+    position: relative;
+    padding: 12px 28px;
+    border-radius: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn-premium-gold {
+    background: linear-gradient(135deg, #F39C12 0%, #d35400 100%);
+    color: #000 !important;
+    box-shadow: 0 4px 15px var(--color-accent-glow);
+}
+
+.btn-premium-gold:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 25px var(--color-accent-glow);
+    filter: brightness(1.1);
+}
+
+.btn-premium-gold::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: 0.5s;
+    z-index: -1;
+}
+
+.btn-premium-gold:hover::before {
+    left: 100%;
+}
+
+/* Tables Redesign */
+.table-container {
+    background: rgba(10, 10, 10, 0.6) !important;
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    padding: 15px !important;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+}
+
+.table thead th {
+    background: transparent !important;
+    color: var(--color-accent) !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    font-size: 0.7rem !important;
+    letter-spacing: 1.5px;
+    padding: 18px 12px !important;
+    border-bottom: 1px solid var(--glass-border) !important;
+}
+
+.table tbody tr, .table tfoot tr {
+    transition: all 0.3s ease;
+    background: transparent !important;
+}
+
+.table tbody td, .table tfoot td {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,0.03) !important;
+    padding: 15px 12px !important;
+    color: rgba(255,255,255,0.9) !important;
+}
+
+.table tbody tr:hover {
+    background: rgba(255,255,255,0.02) !important;
+    transform: scale(1.002);
+}
+
+/* Stat Cards Evolution */
+.stat-card, .stat-card-ultra {
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    border-radius: 24px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover, .stat-card-ultra:hover {
+    transform: translateY(-10px);
+    border-color: var(--color-primary);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.1), 0 0 20px var(--glow-primary);
+}
+
+/* Tables Styling */
+.table-container {
+    background: var(--card-bg);
+    border-radius: 32px;
+    border: 1px solid var(--color-border);
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
+
 .table {
     color: var(--color-text) !important;
-    margin-bottom: 0;
-    background-color: transparent !important;
-    border-collapse: separate !important;
-    border-spacing: 0 !important;
 }
 
-.table thead {
-    background-color: rgba(255,255,255,0.05) !important;
-}
-
-.table th {
-    font-weight: 800 !important;
-    text-transform: uppercase;
-    font-size: 0.8rem !important;
-    letter-spacing: 1px;
-    color: var(--color-accent) !important;
-    padding: 22px 15px !important;
-    border: none !important;
-    background-color: transparent !important;
-}
-
-.table tbody tr {
-    background-color: var(--color-secondary) !important; /* Fondo gris oscuro */
-}
-
-.table td {
-    padding: 20px 15px !important;
-    vertical-align: middle !important;
-    color: var(--color-text) !important; 
-    border-bottom: 1px solid var(--color-border) !important;
-    font-size: 0.95rem !important;
-    background-color: var(--color-secondary) !important; /* Forzar fondo en la celda */
-}
-
-.table-hover tbody tr:hover td {
-    background-color: rgba(255,255,255,0.05) !important;
-    color: #ffffff !important;
-}
-
-/* Forzar que el fondo del contenedor sea sólido */
-.table-container {
-    background: var(--color-dark) !important; /* Negro sólido */
-    border-radius: 28px;
-    overflow: hidden;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-    border: 1px solid var(--color-border);
-    padding: 0 !important; /* Asegurar padding 0 para DataTables */
-    margin-bottom: 30px;
-}
-
-/* DataTables Custom Styling */
-.dataTables_wrapper .dataTables_length select {
-    background-color: var(--color-surface) !important;
-    color: var(--color-text) !important;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 4px 8px;
-}
-
-.dataTables_wrapper .dataTables_filter input {
-    background-color: var(--color-surface) !important;
-    color: var(--color-text) !important;
-    border: 1px solid var(--color-border);
-    border-radius: 20px;
-    padding: 6px 15px;
-    margin-left: 10px;
-}
-
-.dataTables_wrapper .dataTables_info,
-.dataTables_wrapper .dataTables_paginate {
-    color: var(--color-text) !important;
-    margin-top: 15px;
-}
-
-.dataTables_wrapper .pagination .page-link {
-    background-color: var(--color-surface);
-    border-color: var(--color-border);
-    color: var(--color-text);
-}
-
-.dataTables_wrapper .pagination .page-item.active .page-link {
-    background-color: var(--color-accent);
-    border-color: var(--color-accent);
-    color: #000;
-}
-
-/* Mensajes de 'No hay registros' */
-.table td[colspan] {
-    text-align: center;
-    padding: 60px 20px !important;
+.table thead th {
+    background: var(--item-bg);
     color: var(--color-muted) !important;
-    font-style: italic;
-    background-color: var(--color-secondary) !important;
-    border: none !important;
-}
-
-/* Estilo para DataTables */
-.dataTables_wrapper .dataTables_length label,
-.dataTables_wrapper .dataTables_filter label,
-.dataTables_wrapper .dataTables_info,
-.dataTables_wrapper .dataTables_empty {
-    color: var(--color-text) !important;
-    font-weight: 600;
-}
-
-.dataTables_wrapper .dataTables_filter input {
-    background-color: rgba(255,255,255,0.05) !important;
-    border: 1px solid var(--color-border) !important;
-    color: white !important;
-    border-radius: 12px;
-    padding: 8px 15px;
-}
-
-/* Formularios de Pedido y Creación */
-.form-control, .form-select {
-    background: var(--color-secondary) !important;
-    border: 1.5px solid var(--color-border) !important;
-    border-radius: 15px !important;
-    color: #ffffff !important;
-    padding: 14px 20px !important;
-    font-weight: 500;
-}
-
-/* Forzar color de fondo de las opciones del select */
-.form-select option {
-    background-color: var(--color-secondary) !important;
-    color: #ffffff !important;
-}
-
-.form-control::placeholder {
-    color: var(--color-muted) !important;
-    opacity: 0.8;
-}
-
-.form-control:focus {
-    background: rgba(255,255,255,0.08) !important;
-    border-color: var(--color-accent) !important;
-    box-shadow: 0 0 0 4px rgba(243, 156, 18, 0.15) !important;
-}
-
-/* Labels de formularios en páginas de creación */
-.form-label, label {
-    color: #ffffff !important; /* Blanco puro */
-    font-weight: 700 !important;
-    margin-bottom: 12px;
-    font-size: 0.9rem;
-    display: block;
-    background: transparent !important; /* Evitar fondos blancos */
-}
-
-/* Secciones de formulario (como 1. SECCIÓN MATERIALES) */
-.text-accent.text-uppercase.small {
-    color: var(--color-accent) !important;
-    font-weight: 800 !important;
-    letter-spacing: 1.5px;
-}
-
-.table tr:last-child td {
-    border-bottom: none;
-}
-
-.desc-cell {
-    max-width: 400px;
-    color: var(--color-muted);
-    line-height: 1.6;
-    font-size: 0.9rem;
-}
-
-.badge-tipo {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    color: var(--color-accent) !important;
-    padding: 8px 16px !important;
-    border-radius: 100px !important;
-    font-weight: 800 !important;
-    font-size: 0.75rem !important;
-    border: 1.5px solid var(--color-accent) !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    display: inline-block !important;
-}
-
-.price-tag {
-    font-weight: 800;
-    color: #22c55e;
-    font-size: 1rem;
-}
-
-.stock-tag {
     font-weight: 700;
-    color: var(--color-accent);
-}
-
-/* Tarjetas informativas (Stats) */
-.stat-card h6 {
-    color: var(--color-muted) !important;
-    font-weight: 800 !important;
     text-transform: uppercase;
     font-size: 0.75rem;
-    letter-spacing: 1.2px;
-    opacity: 0.9;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--color-border);
+    padding: 20px;
 }
 
-.stat-card h2 {
-    color: var(--color-text) !important;
-    font-weight: 900;
-    margin-top: 10px;
+.table tbody td {
+    padding: 20px;
+    border-bottom: 1px solid var(--color-border);
 }
 
-.text-muted {
-    color: var(--color-muted) !important;
+.stat-card-ultra::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.05) 0%, transparent 70%);
+    pointer-events: none;
 }
 
-/* DataTables styling for visibility */
-.dataTables_wrapper .dataTables_length, 
-.dataTables_wrapper .dataTables_filter, 
-.dataTables_wrapper .dataTables_info, 
-.dataTables_wrapper .dataTables_processing, 
-.dataTables_wrapper .dataTables_paginate {
-    color: var(--color-muted) !important;
-    margin: 15px 0;
+/* Stock Pulse Animation */
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
-.dataTables_wrapper .dataTables_filter input, 
-.dataTables_wrapper .dataTables_length select {
-    background-color: rgba(255,255,255,0.05) !important;
-    border: 1px solid var(--color-border) !important;
-    color: white !important;
-    border-radius: 8px;
-    padding: 4px 10px;
+.stock-critical-pulse {
+    animation: pulse-red 2s infinite;
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button {
-    color: var(--color-muted) !important;
+/* Scrollbar Sleek */
+::-webkit-scrollbar {
+    width: 6px;
 }
-
-.dataTables_wrapper .dataTables_paginate .paginate_button.current {
-    background: var(--color-accent) !important;
-    color: #000 !important;
-    border: none !important;
-    border-radius: 8px;
+::-webkit-scrollbar-track {
+    background: var(--color-bg);
 }
-
-.stat-card {
-    background: var(--color-surface);
-    border-radius: 24px;
-    padding: 24px;
-    border: 1px solid var(--color-border);
-    transition: 0.3s ease;
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
 }
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--color-accent);
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
 }
 
 /* Formularios */
@@ -283,6 +275,10 @@
     border-color: var(--color-accent) !important;
     box-shadow: 0 0 0 4px rgba(243, 156, 18, 0.1) !important;
 }
+
+/* Utility Borders */
+.border-white-5 { border-color: rgba(255, 255, 255, 0.05) !important; }
+.border-white-10 { border-color: rgba(255, 255, 255, 0.1) !important; }
 
 /* Botones */
 .btn-primary {

@@ -1,1 +1,150 @@
-<!-- Inventario Movimientos -->
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Movimientos de Inventario{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-down">
+        <div>
+            <h2 class="fw-bold text-white mb-1">
+                <i class="bi bi-arrow-left-right text-accent me-2"></i>Movimientos de Inventario
+            </h2>
+            <p class="text-white-50 small mb-0">Historial detallado de entradas y salidas de materiales</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-premium btn-premium-gold px-4" data-bs-toggle="modal" data-bs-target="#modalEntrada">
+                <i class="bi bi-plus-lg me-2"></i>Registrar Entrada
+            </button>
+        </div>
+    </div>
+
+    <div class="card bg-surface border-white-10 shadow-lg overflow-hidden" data-aos="fade-up">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-white">
+                <thead class="bg-dark-subtle border-white-10">
+                    <tr>
+                        <th class="ps-4">Fecha</th>
+                        <th>Material</th>
+                        <th class="text-center">Tipo</th>
+                        <th class="text-end">Cantidad</th>
+                        <th>Motivo</th>
+                        <th>Usuario</th>
+                    </tr>
+                </thead>
+                <tbody class="border-white-10">
+                    {% for mov in movimientos %}
+                    <tr class="border-white-10">
+                        <td class="ps-4 text-white-50 small">{{ mov.fecha|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <div class="fw-bold">{{ mov.material.nombre }}</div>
+                            <div class="text-white-50 x-small text-uppercase">{{ mov.material.tipo }}</div>
+                        </td>
+                        <td class="text-center">
+                            {% if mov.tipo == 'entrada' %}
+                            <span class="badge rounded-pill bg-success-subtle text-success px-3">
+                                <i class="bi bi-arrow-down-left me-1"></i>Entrada
+                            </span>
+                            {% else %}
+                            <span class="badge rounded-pill bg-danger-subtle text-danger px-3">
+                                <i class="bi bi-arrow-up-right me-1"></i>Salida
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end fw-bold">{{ mov.cantidad|intcomma }}</td>
+                        <td class="text-white-50 small">{{ mov.motivo }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-sm bg-accent-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                    <i class="bi bi-person text-accent x-small"></i>
+                                </div>
+                                <span class="small">{{ mov.usuario.username }}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-white-50">No se han registrado movimientos de inventario.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Entrada -->
+<div class="modal fade" id="modalEntrada" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-white-10 shadow-2xl">
+            <div class="modal-header border-white-10">
+                <h5 class="modal-title text-white fw-bold"><i class="bi bi-plus-circle text-accent me-2"></i>Registrar Entrada Manual</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formEntrada" action="{% url 'inventario:registrar_entrada' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Material</label>
+                        <select name="material_id" class="form-select bg-dark border-white-10 text-white rounded-4" required>
+                            <option value="">Seleccione material...</option>
+                            {% regroup movimientos by material as material_list %}
+                            {% for group in material_list %}
+                                <option value="{{ group.grouper.id }}">{{ group.grouper.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Cantidad</label>
+                        <input type="number" name="cantidad" class="form-control bg-dark border-white-10 text-white rounded-4" min="1" required>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Motivo / Observación</label>
+                        <input type="text" name="motivo" class="form-control bg-dark border-white-10 text-white rounded-4" placeholder="Ej: Ajuste de inventario">
+                    </div>
+                </div>
+                <div class="modal-footer border-white-10 p-4">
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-premium btn-premium-gold px-4">Guardar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('formEntrada').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: 'Entrada registrada correctamente',
+                background: '#1a1a1a',
+                color: '#fff',
+                confirmButtonColor: '#f39c12'
+            }).then(() => location.reload());
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'Ocurrió un error inesperado',
+                background: '#1a1a1a',
+                color: '#fff'
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

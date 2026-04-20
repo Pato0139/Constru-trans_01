@@ -1,167 +1,229 @@
 {% load static %}
-<aside class="sidebar-custom vh-100" style="width:280px; background-color: var(--color-secondary); padding: 40px 20px; border-right: 1px solid rgba(255,255,255,0.03);">
+<aside class="sidebar-ultra" style="width:260px; height: 95vh; margin: 15px; background: rgba(15, 15, 15, 0.7); backdrop-filter: blur(30px); border-radius: 30px; border: 1px solid rgba(255,255,255,0.05); position: sticky; top: 15px; z-index: 1000; box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow-y: auto;">
 
-    <div class="brand-section mb-5 px-3">
-        <div class="d-flex align-items-center">
-            <img src="{% static 'img/Logo1.jpeg' %}" width="45" class="rounded-3 me-3">
-            <h5 class="fw-900 mb-0 text-white" style="font-family: 'Montserrat', sans-serif; letter-spacing: -0.5px;">CONSTRU<span style="color: var(--color-accent);">TRANS</span></h5>
+    <div class="brand-section mb-4 p-3 text-center" data-aos="zoom-in">
+        <div class="logo-outer-glow mb-3">
+            <img src="{% static 'img/Logo1.jpeg' %}" width="65" height="65" class="rounded-circle shadow-2xl" style="object-fit: cover; border: 2px solid rgba(255,255,255,0.1);">
+        </div>
+        <h5 class="fw-900 m-0 tracking-tight" style="color: #fff; font-family: 'Montserrat', sans-serif; font-size: 1.1rem;">
+            CONSTRU<span class="text-gradient-gold">TRANS</span>
+        </h5>
+        <div class="online-status mt-2">
+            <span class="pulse-dot" style="width: 8px; height: 8px;"></span> <span class="small text-muted fw-700" style="font-size: 0.7rem;">SISTEMA ACTIVO</span>
         </div>
     </div>
 
-    <div class="nav-wrapper">
-        <p class="nav-label small fw-800 text-muted text-uppercase mb-3 px-3" style="letter-spacing: 1px; font-size: 0.7rem;">Menú Principal</p>
-        
-        <ul class="nav flex-column gap-2">
+    <div class="nav-container px-3 pb-5 mb-5">
+        <p class="section-label">PRINCIPAL</p>
+        <nav class="nav flex-column gap-2">
             {% if user.usuario.rol == 'admin' %}
-                <li class="nav-item">
-                    <a href="{% url 'usuarios:panel' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
-                        <i class="bi bi-grid-1x2-fill"></i> Panel General
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-custom {% if 'ordenes' in request.path %}active{% endif %}">
-                        <i class="bi bi-cart-fill"></i> Pedidos
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link-custom {% if 'usuarios' in request.path and 'usuarios/usuarios' in request.path %}active{% endif %}">
-                        <i class="bi bi-people-fill"></i> Usuarios
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-custom {% if 'materiales' in request.path %}active{% endif %}">
-                        <i class="bi bi-box-seam-fill"></i> Materiales
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'compras:lista_proveedores' %}" class="nav-link-custom {% if 'proveedores' in request.path %}active{% endif %}">
-                        <i class="bi bi-person-badge-fill"></i> Proveedores
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'transporte:lista_vehiculos' %}" class="nav-link-custom {% if 'vehiculo' in request.path %}active{% endif %}">
-                        <i class="bi bi-truck"></i> Vehículos
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'reportes:reportes_admin' %}" class="nav-link-custom {% if 'reportes' in request.path %}active{% endif %}">
-                        <i class="bi bi-pie-chart-fill"></i> Reportes
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'historial:lista' %}" class="nav-link-custom {% if 'historial' in request.path %}active{% endif %}">
-                        <i class="bi bi-clock-history"></i> Historial
-                    </a>
-                </li>
-            {% elif user.usuario.rol == 'cliente' %}
-                <li class="nav-item">
-                    <a href="{% url 'clientes:panel_cliente' %}" class="nav-link-custom {% if 'clientes/panel' in request.path %}active{% endif %}">
-                        <i class="bi bi-speedometer2"></i> Mi Panel
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'clientes:crear_pedido' %}" class="nav-link-custom {% if 'pedido/crear' in request.path %}active{% endif %}">
-                        <i class="bi bi-plus-circle-fill"></i> Solicitar Pedido
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'clientes:mis_pedidos' %}" class="nav-link-custom {% if 'mis-pedidos' in request.path %}active{% endif %}">
-                        <i class="bi bi-cart-check-fill"></i> Mis Pedidos
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'clientes:seguimiento_pedidos' %}" class="nav-link-custom {% if 'seguimiento' in request.path %}active{% endif %}">
-                        <i class="bi bi-geo-alt-fill"></i> Seguimiento
-                    </a>
-                </li>
+                <a href="{% url 'usuarios:panel' %}" class="nav-link-ultra {% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-grid-1x2-fill"></i></div>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-ultra {% if 'ordenes' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-truck-flatbed"></i></div>
+                    <span>Logística</span>
+                </a>
+                <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-ultra {% if 'materiales' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-box-seam-fill"></i></div>
+                    <span>Catálogo</span>
+                </a>
+                <a href="{% url 'inventario:stock_lista' %}" class="nav-link-ultra {% if 'stock' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-archive-fill"></i></div>
+                    <span>Inventario / Stock</span>
+                </a>
+                <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link-ultra {% if 'usuarios' in request.path and 'usuarios/usuarios' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-people-fill"></i></div>
+                    <span>Equipo</span>
+                </a>
+                <a href="{% url 'transporte:lista_vehiculos' %}" class="nav-link-ultra {% if 'transporte' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-truck"></i></div>
+                    <span>Vehículos</span>
+                </a>
+                <a href="{% url 'facturacion:lista_facturas' %}" class="nav-link-ultra {% if 'facturacion' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-receipt"></i></div>
+                    <span>Facturación</span>
+                </a>
+                <a href="{% url 'inventario:movimientos_lista' %}" class="nav-link-ultra {% if 'inventario/movimientos' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-arrow-left-right"></i></div>
+                    <span>Movimientos</span>
+                </a>
+                <a href="{% url 'usuarios:lista_proveedores' %}" class="nav-link-ultra {% if 'proveedores' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-briefcase-fill"></i></div>
+                    <span>Proveedores</span>
+                </a>
+                <a href="{% url 'reportes:reportes_admin' %}" class="nav-link-ultra {% if 'reportes' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                    <span>Análisis</span>
+                </a>
             {% elif user.usuario.rol == 'conductor' %}
-                <li class="nav-item">
-                    <a href="{% url 'usuarios:panel_conductor' %}" class="nav-link-custom {% if 'panel-conductor' in request.path %}active{% endif %}">
-                        <i class="bi bi-truck"></i> Mis Entregas
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'usuarios:mis_entregas' %}" class="nav-link-custom {% if 'mis-entregas' in request.path %}active{% endif %}">
-                        <i class="bi bi-clock-history"></i> Historial
-                    </a>
-                </li>
+                <a href="{% url 'usuarios:panel_conductor' %}" class="nav-link-ultra {% if request.resolver_match.url_name == 'panel_conductor' %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-speedometer2"></i></div>
+                    <span>Panel Conductor</span>
+                </a>
+                <a href="{% url 'usuarios:pedidos_conductor' %}" class="nav-link-ultra {% if 'pedidos-conductor' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-truck"></i></div>
+                    <span>Mis Entregas</span>
+                </a>
+                <a href="{% url 'usuarios:mis_entregas' %}" class="nav-link-ultra {% if 'mis-entregas' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-clock-history"></i></div>
+                    <span>Historial</span>
+                </a>
+            {% elif user.usuario.rol == 'cliente' %}
+                <a href="{% url 'clientes:panel_cliente' %}" class="nav-link-ultra {% if request.resolver_match.url_name == 'panel_cliente' %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-speedometer2"></i></div>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'clientes:crear_pedido' %}" class="nav-link-ultra {% if 'crear' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-plus-circle"></i></div>
+                    <span>Nuevo Pedido</span>
+                </a>
+                <a href="{% url 'clientes:mis_pedidos' %}" class="nav-link-ultra {% if 'mis-pedidos' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-box"></i></div>
+                    <span>Mis Pedidos</span>
+                </a>
+                <a href="{% url 'clientes:seguimiento_pedidos' %}" class="nav-link-ultra {% if 'seguimiento' in request.path %}active{% endif %}">
+                    <div class="nav-icon"><i class="bi bi-geo-alt"></i></div>
+                    <span>Seguimiento</span>
+                </a>
             {% endif %}
-        </ul>
+        </nav>
 
-        <p class="nav-label small fw-800 text-muted text-uppercase mt-5 mb-3 px-3" style="letter-spacing: 1px; font-size: 0.7rem;">Cuenta</p>
-        
-        <ul class="nav flex-column gap-2">
-            <li class="nav-item">
-                {% if user.usuario.rol == 'admin' %}
-                    <a href="{% url 'usuarios:perfil_admin' %}" class="nav-link-custom {% if 'perfil-admin' in request.path %}active{% endif %}">
-                        <i class="bi bi-person-fill"></i> Mi Perfil
-                    </a>
-                {% elif user.usuario.rol == 'conductor' %}
-                    <a href="{% url 'usuarios:perfil_conductor' %}" class="nav-link-custom {% if 'perfil-conductor' in request.path %}active{% endif %}">
-                        <i class="bi bi-person-fill"></i> Mi Perfil
-                    </a>
-                {% else %}
-                    <a href="{% url 'clientes:perfil_cliente' %}" class="nav-link-custom {% if 'clientes/perfil' in request.path %}active{% endif %}">
-                        <i class="bi bi-person-fill"></i> Mi Perfil
-                    </a>
-                {% endif %}
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'ayuda' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'ayuda' %}active{% endif %}">
-                    <i class="bi bi-question-circle-fill"></i> Ayuda
-                </a>
-            </li>
-            <li class="nav-item mt-4">
-                <a href="{% url 'usuarios:logout' %}" class="nav-link-custom text-danger logout-link">
-                    <i class="bi bi-power"></i> Cerrar Sesión
-                </a>
-            </li>
-        </ul>
+        <p class="section-label mt-3">CONFIGURACIÓN</p>
+        <nav class="nav flex-column gap-2">
+            {% if user.usuario.rol == 'admin' %}
+                <a href="{% url 'usuarios:perfil_admin' %}" class="nav-link-ultra {% if request.resolver_match.url_name == 'perfil_admin' %}active{% endif %}">
+            {% elif user.usuario.rol == 'conductor' %}
+                <a href="{% url 'usuarios:perfil_conductor' %}" class="nav-link-ultra {% if request.resolver_match.url_name == 'perfil_conductor' %}active{% endif %}">
+            {% elif user.usuario.rol == 'cliente' %}
+                <a href="{% url 'clientes:perfil_cliente' %}" class="nav-link-ultra {% if request.resolver_match.url_name == 'perfil_cliente' %}active{% endif %}">
+            {% else %}
+                <a href="#" class="nav-link-ultra">
+            {% endif %}
+                <div class="nav-icon"><i class="bi bi-person-circle"></i></div>
+                <span>Mi Cuenta</span>
+            </a>
+            <a href="{% url 'usuarios:logout' %}" class="nav-link-ultra logout-danger">
+                <div class="nav-icon"><i class="bi bi-power"></i></div>
+                <span>Cerrar Sesión</span>
+            </a>
+        </nav>
     </div>
 
     <style>
-        .nav-link-custom {
+        .sidebar-ultra { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-ultra::-webkit-scrollbar { width: 5px; }
+        .sidebar-ultra::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-ultra::-webkit-scrollbar-thumb { background: rgba(243, 156, 18, 0.2); border-radius: 10px; }
+        .sidebar-ultra::-webkit-scrollbar-thumb:hover { background: rgba(243, 156, 18, 0.5); }
+        
+        .logo-outer-glow {
+            position: relative;
+            display: inline-block;
+        }
+        .logo-outer-glow::after {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            background: var(--color-primary);
+            filter: blur(25px);
+            opacity: 0.15;
+            z-index: -1;
+            border-radius: 50%;
+        }
+
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #F39C12 0%, #d35400 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .online-status {
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 14px 20px;
-            color: var(--color-muted);
+            justify-content: center;
+            gap: 8px;
+        }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #10b981;
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .section-label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            padding-left: 20px;
+        }
+
+        .nav-link-ultra {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 18px;
+            color: rgba(255, 255, 255, 0.5);
             text-decoration: none;
-            border-radius: 16px;
+            border-radius: 15px;
             font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin: 0 5px;
         }
 
-        .nav-link-custom i {
-            font-size: 1.2rem;
-            transition: transform 0.3s ease;
+        .nav-icon {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
         }
 
-        .nav-link-custom:hover {
-            color: white;
-            background: rgba(255,255,255,0.03);
+        .nav-link-ultra:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(8px);
+        }
+        .nav-link-ultra:hover .nav-icon {
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--color-accent);
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
         }
 
-        .nav-link-custom:hover i {
-            transform: scale(1.1);
+        .nav-link-ultra.active {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.05) 100%);
+            color: var(--color-accent);
+            border: 1px solid rgba(251, 191, 36, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-
-        .nav-link-custom.active {
+        .nav-link-ultra.active .nav-icon {
             background: var(--color-accent);
             color: #000;
-            box-shadow: 0 10px 20px rgba(202, 160, 48, 0.2);
+            box-shadow: 0 0 20px var(--color-accent-glow);
         }
 
-        .nav-link-custom.active i {
-            color: #000;
+        .logout-danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
         }
-
-        .logout-link:hover {
-            background: rgba(239, 68, 68, 0.1) !important;
-            color: #ef4444 !important;
+        .logout-danger:hover .nav-icon {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
         }
-
-        .fw-900 { font-weight: 900; }
     </style>
 </aside>

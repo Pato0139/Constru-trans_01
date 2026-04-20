@@ -21,9 +21,14 @@
                 </p>
             </div>
 
-            {% if error %}
+            {% if form.errors %}
                 <div class="alert alert-danger rounded-4 px-4 mb-4 border-0 shadow-sm animate__animated animate__shakeX" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error }}
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <div>{{ field.label }}: {{ error }}</div>
+                        {% endfor %}
+                    {% endfor %}
                 </div>
             {% endif %}
 
@@ -34,36 +39,31 @@
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Nombre del Material</label>
                     <div class="input-group">
                         <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-tag"></i></span>
-                        <input type="text" name="nombre" class="form-control" placeholder="Ej: Cemento Gris" value="{{ material.nombre|default:'' }}" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;">
+                        {{ form.nombre }}
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Tipo de Material</label>
-                    <select name="tipo" class="form-select" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;">
-                        <option value="">Seleccione tipo...</option>
-                        <option value="Cemento" {% if material.tipo == 'Cemento' %}selected{% endif %}>Cemento</option>
-                        <option value="Arena" {% if material.tipo == 'Arena' %}selected{% endif %}>Arena</option>
-                        <option value="Grava" {% if material.tipo == 'Grava' %}selected{% endif %}>Grava</option>
-                        <option value="Ladrillo" {% if material.tipo == 'Ladrillo' %}selected{% endif %}>Ladrillo</option>
-                        <option value="Herramientas" {% if material.tipo == 'Herramientas' %}selected{% endif %}>Herramientas</option>
-                    </select>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-layers"></i></span>
+                        {{ form.tipo }}
+                    </div>
                 </div>
 
-                <div class="row g-4 mb-5">
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Precio Unitario ($)</label>
-                        <div class="input-group">
-                            <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-currency-dollar"></i></span>
-                            <input type="number" name="precio" class="form-control" placeholder="0.00" value="{{ material.precio|default:'' }}" min="0" step="0.01" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;">
-                        </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Descripción</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-text-paragraph"></i></span>
+                        {{ form.descripcion }}
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Stock Disponible</label>
-                        <div class="input-group">
-                            <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-archive"></i></span>
-                            <input type="number" name="stock" class="form-control" placeholder="0" value="{{ material.stock|default:'' }}" min="0" required style="background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;">
-                        </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Precio Unitario ($)</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-currency-dollar"></i></span>
+                        {{ form.precio }}
                     </div>
                 </div>
 

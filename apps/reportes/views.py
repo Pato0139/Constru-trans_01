@@ -11,9 +11,11 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from django.utils.timezone import now
-from historial.utils import registrar_actividad
+from apps.historial.utils import registrar_actividad
 
-@login_required
+from apps.usuarios.views import admin_required
+
+@admin_required
 def reportes_admin(request):
     # Estadísticas de Órdenes
     ordenes = Orden.objects.all()
@@ -37,11 +39,8 @@ def reportes_admin(request):
     }
     return render(request, "reportes/lista.html", context)
 
-@login_required
+@admin_required
 def exportar_reporte_pdf(request, tipo):
-    if request.user.usuario.rol != 'admin':
-        return HttpResponse("No autorizado", status=403)
-
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.pdf"'
 
@@ -64,7 +63,7 @@ def exportar_reporte_pdf(request, tipo):
     
     elif tipo == 'materiales':
         data.append(['ID', 'Nombre', 'Tipo', 'Precio', 'Stock'])
-        for m in Material.objects.all():
+        for m in Material.objects.all().select_related('stock_info'):
             precio_formateado = f"${int(m.precio):,}".replace(",", ".")
             data.append([m.id, m.nombre, m.tipo, precio_formateado, m.stock])
 

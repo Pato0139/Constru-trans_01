@@ -1,6 +1,58 @@
+from functools import wraps
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import *
+
+def admin_required(view_func):
+    @wraps(view_func)
+    @login_required
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.usuario.rol == 'admin':
+            return view_func(request, *args, **kwargs)
+        raise PermissionDenied
+    return _wrapped_view
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Usuario, Administrador, Conductor, Cliente, Material, Vehiculo, Stock, Proveedor
 from apps.ordenes.models import Orden
+
+# --- PROVEEDORES ---
+@admin_required
+def lista_proveedores(request):
+    proveedores = Proveedor.objects.all().order_by('-fecha_registro')
+    return render(request, "usuarios/proveedores/lista.html", {"proveedores": proveedores})
+
+@admin_required
+def crear_proveedor(request):
+    if request.method == "POST":
+        form = ProveedorForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"¡Proveedor registrado con éxito!")
+            return redirect("usuarios:lista_proveedores")
+    else:
+        form = ProveedorForm()
+    return render(request, "usuarios/proveedores/form.html", {"form": form, "action": "crear"})
+
+@admin_required
+def editar_proveedor(request, id):
+    proveedor = get_object_or_404(Proveedor, id=id)
+    if request.method == "POST":
+        form = ProveedorForm(request.POST, instance=proveedor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Proveedor actualizado correctamente.")
+            return redirect("usuarios:lista_proveedores")
+    else:
+        form = ProveedorForm(instance=proveedor)
+    return render(request, "usuarios/proveedores/form.html", {"form": form, "action": "editar"})
+
+@admin_required
+def eliminar_proveedor(request, id):
+    proveedor = get_object_or_404(Proveedor, id=id)
+    nombre = proveedor.nombre_empresa
+    proveedor.delete()
+    messages.success(request, f"Proveedor {nombre} eliminado.")
+    return redirect("usuarios:lista_proveedores")
 
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
@@ -11,8 +63,8 @@ from django.utils.timezone import now
 from django.contrib import messages
 from django.http import JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from historial.utils import registrar_actividad
-from .forms import LoginForm, RegistroForm
+from apps.historial.utils import registrar_actividad
+from .forms import LoginForm, RegistroForm, MaterialForm, ProveedorForm
 
 def buscar_usuarios_generales(query=None):
     """
@@ -48,62 +100,32 @@ def registro(request):
     if request.method == "POST":
         form = RegistroForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data.get("correo")
-            username = email  # Usar el correo como nombre de usuario por simplicidad
-            
-            nombres = form.cleaned_data.get("nombres")
-            apellidos = form.cleaned_data.get("apellidos")
-            telefono = form.cleaned_data.get("telefono")
-            tipo_documento = form.cleaned_data.get("tipo_documento")
-            documento = form.cleaned_data.get("documento")
-            rol = "cliente" # Rol predeterminado (HU-01)
-            password = form.cleaned_data.get("contrasena")
-            confirm_password = form.cleaned_data.get("confirmar_contrasena")
-
-            if password != confirm_password:
-                return render(request, "usuarios/registro.html", {
-                    "error": "Las contraseñas no coinciden",
-                    "form": form
-                })
-
-            if User.objects.filter(username=username).exists() or User.objects.filter(email=email).exists():
-                return render(request, "usuarios/registro.html", {
-                    "error": "Este correo ya está registrado",
-                    "form": form
-                })
-
             try:
+                # El formulario ya validó correos, documentos y contraseñas coincidentes
+                email = form.cleaned_data.get("correo")
+                password = form.cleaned_data.get("contrasena")
+                
                 user = User.objects.create_user(
-                    username=username,
+                    username=email,
                     email=email,
                     password=password
                 )
 
-                Usuario.objects.create(
-                    user=user,
-                    nombres=nombres,
-                    apellidos=apellidos,
-                    telefono=telefono,
-                    rol=rol,
-                    tipo_documento=tipo_documento,
-                    documento=documento
-                )
+                # El formulario ModelForm puede guardar el objeto Usuario directamente
+                perfil = form.save(commit=False)
+                perfil.user = user
+                perfil.rol = "cliente"
+                perfil.save()
                 
-                registrar_actividad(request, 'crear', 'usuarios', user.id, f"Nuevo registro de usuario: {email} como {rol}")
-                
-                messages.success(request, "Registro exitoso. Ahora puedes iniciar sesión.")
+                registrar_actividad(request, 'crear', 'usuarios', user.id, f"Nuevo registro: {email}")
+                messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
                 return redirect("usuarios:login")
                 
             except Exception as e:
-                return render(request, "usuarios/registro.html", {
-                    "error": f"Error al crear el usuario: {str(e)}",
-                    "form": form
-                })
+                messages.error(request, f"Error al crear el usuario: {str(e)}")
         else:
-            return render(request, "usuarios/registro.html", {
-                "error": "Por favor revisa los datos ingresados y marca la casilla 'No soy un robot'.",
-                "form": form
-            })
+            # Los errores del formulario se mostrarán en la plantilla
+            pass
 
     else:
         form = RegistroForm()
@@ -136,21 +158,8 @@ def login_usuario(request):
             if user is not None:
                 login(request, user)
                 
-                registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión del usuario: {user.username}")
+                registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
                 
-                if user.is_superuser:
-                    Usuario.objects.get_or_create(
-                        user=user,
-                        defaults={
-                            'nombres': user.username, 
-                            'apellidos': 'Admin', 
-                            'rol': 'admin',
-                            'tipo_documento': 'CC',
-                            'documento': '00000000'
-                        }
-                    )
-                    return redirect(request.GET.get('next') or "usuarios:panel")
-
                 perfil = Usuario.objects.filter(user=user).first()
                 if perfil:
                     next_url = request.GET.get('next')
@@ -167,20 +176,12 @@ def login_usuario(request):
                         return redirect("usuarios:panel")
                 else:
                     logout(request)
-                    return render(request, "usuarios/login.html", {
-                        "error": "Tu cuenta no tiene un perfil asignado.",
-                        "form": form
-                    })
+                    messages.error(request, "Tu cuenta no tiene un perfil asignado.")
             else:
-                return render(request, "usuarios/login.html", {
-                    "error": "Usuario o contraseña incorrectos",
-                    "form": form
-                })
+                messages.error(request, "Usuario o contraseña incorrectos.")
         else:
-            return render(request, "usuarios/login.html", {
-                "error": "Por favor marca la casilla 'No soy un robot'.",
-                "form": form
-            })
+            # Los errores de validación se manejan en el form
+            pass
 
     else:
         form = LoginForm()

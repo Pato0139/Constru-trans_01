@@ -193,14 +193,33 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    location.reload();
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Usuario Creado!',
+                        text: data.message,
+                        background: '#1a1a1a',
+                        color: '#fff',
+                        confirmButtonColor: '#f39c12'
+                    }).then(() => location.reload());
                 } else {
-                    alert(data.message || 'Error al crear usuario');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Error al crear usuario',
+                        background: '#1a1a1a',
+                        color: '#fff'
+                    });
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Error al procesar la solicitud');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al procesar la solicitud',
+                    background: '#1a1a1a',
+                    color: '#fff'
+                });
             });
         }
     }
@@ -259,7 +278,7 @@
         <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn-action" title="Editar">
             <i class="bi bi-pencil-square"></i>
         </a>
-        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn-action text-danger" title="Eliminar" onclick="return confirm('¿Estás seguro?')">
+        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn-action text-danger confirm-delete" title="Eliminar" data-title="¿Eliminar usuario?" data-text="Se borrará el perfil de {{ usuario.nombres }} {{ usuario.apellidos }} permanentemente.">
             <i class="bi bi-trash3-fill"></i>
         </a>
     </div>
@@ -306,7 +325,7 @@
         <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn-action" title="Editar">
             <i class="bi bi-pencil-square"></i>
         </a>
-        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn-action text-danger" title="Eliminar" onclick="return confirm('¿Estás seguro?')">
+        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn-action text-danger confirm-delete" title="Eliminar" data-title="¿Eliminar usuario?" data-text="Se borrará el perfil de {{ usuario.nombres }} {{ usuario.apellidos }} permanentemente.">
             <i class="bi bi-trash3-fill"></i>
         </a>
     </div>
@@ -353,7 +372,7 @@
         <a href="{% url 'usuarios:editar_usuario' usuario.id %}" class="btn-action" title="Editar">
             <i class="bi bi-pencil-square"></i>
         </a>
-        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn-action text-danger" title="Eliminar" onclick="return confirm('¿Estás seguro?')">
+        <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}" class="btn-action text-danger confirm-delete" title="Eliminar" data-title="¿Eliminar usuario?" data-text="Se borrará el perfil de {{ usuario.nombres }} {{ usuario.apellidos }} permanentemente.">
             <i class="bi bi-trash3-fill"></i>
         </a>
     </div>
@@ -383,70 +402,5 @@
         background-color: #e9ecef;
     }
 </style>
-
-<!-- MODAL NUEVO USUARIO -->
-<div class="modal fade" id="modalUsuario" tabindex="-1" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="modalUsuarioLabel">Registrar Nuevo Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{% url 'usuarios:crear_usuario' %}" method="POST">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Nombre Completo</label>
-                        <input type="text" name="nombre" class="form-control rounded-pill" placeholder="Ej: Juan Pérez" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Correo Electrónico (Username)</label>
-                        <input type="email" name="email" class="form-control rounded-pill" placeholder="correo@ejemplo.com" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Contraseña</label>
-                        <input type="password" name="password" class="form-control rounded-pill" placeholder="Contraseña segura" required>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Teléfono</label>
-                            <input type="text" name="telefono" class="form-control rounded-pill" placeholder="3001234567" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Rol</label>
-                            <select name="rol" class="form-select rounded-pill" required>
-                                <option value="cliente">Cliente</option>
-                                <option value="conductor">Conductor</option>
-                                <option value="admin">Administrador</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Tipo Documento</label>
-                            <select name="tipo_doc" class="form-select rounded-pill" required>
-                                <option value="CC">Cédula Ciudadanía</option>
-                                <option value="CE">Cédula Extranjería</option>
-                                <option value="NIT">NIT</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Número Documento</label>
-                            <input type="text" name="documento" class="form-control rounded-pill" placeholder="12345678" required>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">Registrar Usuario</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 {% endblock %}

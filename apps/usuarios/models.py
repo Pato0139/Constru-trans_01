@@ -80,18 +80,54 @@ class Cliente(Usuario):
 # -------------------------
 class Vehiculo(models.Model):
 
-    placa = models.CharField(max_length=10)
+    placa = models.CharField(max_length=10, unique=True)
     tipo = models.CharField(max_length=50)
     capacidad = models.CharField(max_length=50)
-    estado = models.CharField(max_length=50)
+    
+    ESTADOS_VEHICULO = [
+        ('disponible', 'Disponible'),
+        ('en_ruta', 'En Ruta'),
+        ('mantenimiento', 'Mantenimiento'),
+    ]
+    
+    estado = models.CharField(
+        max_length=20, 
+        choices=ESTADOS_VEHICULO, 
+        default='disponible'
+    )
+    
+    conductor = models.OneToOneField(
+        Usuario, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="vehiculo_asignado",
+        limit_choices_to={'rol': 'conductor'}
+    )
 
     def __str__(self):
-        return self.placa
+        return f"{self.placa} ({self.tipo})"
 
 
 # -------------------------
 # MATERIAL
 # -------------------------
+class Proveedor(models.Model):
+    nombre_empresa = models.CharField(max_length=150)
+    nit = models.CharField(max_length=20, unique=True)
+    contacto_nombre = models.CharField(max_length=100)
+    telefono = models.CharField(max_length=20)
+    email = models.EmailField()
+    direccion = models.CharField(max_length=255)
+    categoria = models.CharField(max_length=100, help_text="Ej: Materiales de Construcción, Repuestos, etc.")
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.nombre_empresa} ({self.nit})"
+
+    class Meta:
+        verbose_name_plural = "Proveedores"
+
 class Material(models.Model):
     nombre = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
@@ -106,12 +142,28 @@ class Material(models.Model):
         ]
     )
 
-    stock = models.IntegerField(
+    @property
+    def stock(self):
+        """Mantiene compatibilidad con lecturas de material.stock"""
+        try:
+            return self.stock_info.cantidad
+        except Stock.DoesNotExist:
+            return 0
+
+    def __str__(self):
+        return self.nombre
+
+class Stock(models.Model):
+    material = models.OneToOneField(Material, on_delete=models.CASCADE, related_name='stock_info')
+    cantidad = models.IntegerField(
+        default=0,
         validators=[
             MinValueValidator(0),
             MaxValueValidator(100000)
         ]
     )
+    ubicacion = models.CharField(max_length=100, default='Bodega Principal')
+    ultima_actualizacion = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.nombre
+        return f"Stock de {self.material.nombre}: {self.cantidad}"

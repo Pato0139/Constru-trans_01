@@ -7,11 +7,16 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-&y6)vj=3%-w(le0tev*pjq^6!daosp6f+0wt5nw@5%rfsfywbo'
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY and not os.getenv('DJANGO_DEVELOPMENT'):
+    raise ValueError("SECRET_KEY no configurada en el entorno.")
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# CSRF Trusted Origins
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000,http://127.0.0.1:8000').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -32,7 +37,7 @@ INSTALLED_APPS = [
     'apps.facturacion',
     'apps.reportes',
     'apps.inicio',
-    'historial',
+    'apps.historial',
 ]
 
 
@@ -69,10 +74,16 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': BASE_DIR / os.getenv('DB_NAME', 'db.sqlite3') if os.getenv('DB_ENGINE') is None else os.getenv('DB_NAME'),
     }
 }
+
+if os.getenv('DB_ENGINE') == 'django.db.backends.postgresql':
+    DATABASES['default']['USER'] = os.getenv('DB_USER')
+    DATABASES['default']['PASSWORD'] = os.getenv('DB_PASSWORD')
+    DATABASES['default']['HOST'] = os.getenv('DB_HOST', 'localhost')
+    DATABASES['default']['PORT'] = os.getenv('DB_PORT', '5432')
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -110,21 +121,27 @@ STATICFILES_DIRS = [
 ]
 
 # Email configuration
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = f'Constru-trans <{EMAIL_HOST_USER}>'
 
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Configuración de Correo para Recuperación de Contraseña (REAL)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'jhoansebastianR1118@gmail.com'
-# IMPORTANTE: Esta debe ser una "Contraseña de Aplicación" de Google, no tu clave normal.
-EMAIL_HOST_PASSWORD = 'zhyu idbm hsyv rkqy' 
-DEFAULT_FROM_EMAIL = f'Constru-trans <{EMAIL_HOST_USER}>'
+# Seguridad para Producción
+if not DEBUG:
+    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True') == 'True'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000 # 1 año
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 LOGIN_URL = '/usuarios/login/'
 LOGIN_REDIRECT_URL = '/usuarios/panel/'

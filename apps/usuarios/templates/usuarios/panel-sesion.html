@@ -19,14 +19,14 @@
     
     <style>
         :root {
-            --bg-body: #0a0a0a;
+            --bg-body: #000000;
             --bg-card: #1a1a1a;
             --primary-gold: #F39C12;
-            --primary-red: #0056B3;
+            --primary-blue: #0056B3;
             --text-white: #ffffff;
-            --text-muted: #888888;
-            --input-border: rgba(255,255,255,0.2);
-            --input-bg: rgba(255,255,255,0.05);
+            --text-muted: #94a3b8;
+            --input-border: rgba(255,255,255,0.1);
+            --input-bg: rgba(255,255,255,0.03);
             --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
@@ -111,7 +111,7 @@
             height: 100%;
             border-radius: 50%;
             background: url('{% static "img/Logo1.jpeg" %}') center/cover;
-            border: 12px solid var(--primary-red);
+            border: 12px solid var(--primary-blue);
             box-shadow: 0 0 80px rgba(0, 86, 179, 0.3);
             position: relative;
             z-index: 1;
@@ -199,23 +199,23 @@
         }
 
         .btn-main {
-            background: var(--primary-gold);
-            color: #000000;
-            border: none;
-            padding: 18px;
-            border-radius: 20px;
-            font-weight: 800;
-            font-size: 1.1rem;
             width: 100%;
-            transition: var(--transition);
-            margin-top: 10px;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, #d35400 100%) !important;
+            border: none !important;
+            border-radius: 12px !important;
+            padding: 16px !important;
+            color: black !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            transition: var(--transition) !important;
+            box-shadow: 0 10px 20px rgba(243, 156, 18, 0.2) !important;
         }
 
         .btn-main:hover {
-            background: #e67e22;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(243, 156, 18, 0.3);
-            color: #000000;
+            transform: translateY(-3px) !important;
+            box-shadow: 0 15px 30px rgba(243, 156, 18, 0.4) !important;
+            filter: brightness(1.1) !important;
         }
 
         .form-check-input:checked {

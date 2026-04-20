@@ -1,11 +1,16 @@
 from django.contrib import admin
-from .models import Orden, Entrega
+from .models import Orden, Entrega, DetalleOrden
+
+class DetalleOrdenInline(admin.TabularInline):
+    model = DetalleOrden
+    extra = 0
 
 @admin.register(Orden)
 class OrdenAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cliente_nombre', 'material', 'cantidad', 'precio', 'estado', 'fecha')
-    list_filter = ('estado', 'fecha', 'material')
+    list_display = ('id', 'cliente_nombre', 'precio', 'estado', 'fecha')
+    list_filter = ('estado', 'fecha')
     search_fields = ('cliente__nombres', 'cliente__apellidos', 'direccion_destino')
+    inlines = [DetalleOrdenInline]
     list_per_page = 20
     
     def cliente_nombre(self, obj):

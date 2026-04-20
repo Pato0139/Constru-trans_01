@@ -25,7 +25,7 @@ urlpatterns = [
     path('ordenes/', include('apps.ordenes.urls')),
     path('facturacion/', include('apps.facturacion.urls')),
     path('reportes/', include('apps.reportes.urls')),
-    path('historial/', include('historial.urls')),
+    path('historial/', include('apps.historial.urls')),
     path('ayuda/', lambda r: render(r, 'ayuda.html'), name='ayuda'),
 ]
 

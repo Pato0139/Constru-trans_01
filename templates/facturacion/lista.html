@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load humanize currency_tags %}
+
+{% block title %}Gestión de Facturación{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+        <div>
+            <h2 class="fw-bold text-white mb-1">
+                <i class="bi bi-receipt text-accent me-2"></i>Facturación
+            </h2>
+            <p class="text-white-50 small mb-0">Consulta de facturas y registro de pagos</p>
+        </div>
+
+        <div class="w-100" style="max-width: 600px;">
+            <form method="GET" class="d-flex gap-2">
+                <div class="input-group bg-surface rounded-pill border border-white-10 overflow-hidden flex-grow-1">
+                    <span class="input-group-text bg-transparent border-0 text-white-50 ps-3">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none" 
+                           placeholder="Buscar por Nº de factura..." value="{{ request.GET.q|default:'' }}">
+                </div>
+                
+                <select name="estado" class="form-select rounded-pill border-white-10 bg-surface text-white w-auto px-4" onchange="this.form.submit()">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="pagada" {% if estado == 'pagada' %}selected{% endif %}>Pagada</option>
+                    <option value="anulada" {% if estado == 'anulada' %}selected{% endif %}>Anulada</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-container p-0" data-aos="fade-up">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-white">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Nº Factura</th>
+                        <th>Cliente</th>
+                        <th>Fecha Emisión</th>
+                        <th class="text-end">Total</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Pagos</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for factura in facturas %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-accent">{{ factura.numero }}</td>
+                        <td>
+                            <div class="fw-bold">{{ factura.cliente.nombres }} {{ factura.cliente.apellidos }}</div>
+                            <div class="text-white-50 small">CC: {{ factura.cliente.documento }}</div>
+                        </td>
+                        <td class="text-white-50 small">{{ factura.fecha_emision|date:"d/m/Y H:i" }}</td>
+                        <td class="text-end fw-bold">{{ factura.total|currency }}</td>
+                        <td class="text-center">
+                            {% if factura.estado == 'pendiente' %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle px-3">Pendiente</span>
+                            {% elif factura.estado == 'pagada' %}
+                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3">Pagada</span>
+                            {% else %}
+                            <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3">Anulada</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <span class="text-white-50 small">{{ factura.pagos.count }} registros</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                {% if factura.estado == 'pendiente' %}
+                                <button class="btn-action" title="Registrar Pago" 
+                                        onclick="abrirModalPago('{{ factura.id }}', '{{ factura.numero }}', '{{ factura.total }}')">
+                                    <i class="bi bi-cash-coin"></i>
+                                </button>
+                                {% endif %}
+                                <a href="{% url 'ordenes:descargar_factura' factura.orden.id %}" class="btn-action" title="Ver PDF" target="_blank">
+                                    <i class="bi bi-file-pdf"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-white-50">No se encontraron facturas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Pago -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-white-10 shadow-2xl">
+            <div class="modal-header border-white-10">
+                <h5 class="modal-title text-white fw-bold">
+                    <i class="bi bi-cash-stack text-accent me-2"></i>Registrar Pago - <span id="modalFacturaNum"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formPago" action="{% url 'facturacion:registrar_pago' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="factura_id" id="modalFacturaId">
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Monto a Pagar</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-white-10 text-white-50">$</span>
+                            <input type="number" name="monto" id="modalMonto" class="form-control bg-dark border-white-10 text-white rounded-end-4" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Método de Pago</label>
+                        <select name="metodo" class="form-select bg-dark border-white-10 text-white rounded-4" required>
+                            <option value="">Seleccione método...</option>
+                            {% for val, label in metodos_pago %}
+                            <option value="{{ val }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Referencia (Opcional)</label>
+                        <input type="text" name="referencia" class="form-control bg-dark border-white-10 text-white rounded-4" placeholder="Nº de comprobante">
+                    </div>
+                </div>
+                <div class="modal-footer border-white-10 p-4">
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-premium btn-premium-gold px-4">Confirmar Pago</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirModalPago(id, numero, total) {
+    document.getElementById('modalFacturaId').value = id;
+    document.getElementById('modalFacturaNum').innerText = numero;
+    document.getElementById('modalMonto').value = total;
+    new bootstrap.Modal(document.getElementById('modalPago')).show();
+}
+
+document.getElementById('formPago').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Pago Registrado',
+                text: 'El pago se ha procesado correctamente.',
+                background: '#1a1a1a', color: '#fff', confirmButtonColor: '#f39c12'
+            }).then(() => location.reload());
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error,
+                background: '#1a1a1a', color: '#fff'
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

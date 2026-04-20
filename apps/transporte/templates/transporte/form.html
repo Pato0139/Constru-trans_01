@@ -28,7 +28,7 @@
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Placa del Vehículo</label>
                     <div class="input-group">
                         <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-hash"></i></span>
-                        <input type="text" name="placa" class="form-control" placeholder="Ej: ABC-123" value="{{ vehiculo.placa|default:'' }}" required>
+                        <input type="text" name="placa" class="form-control plate-only" placeholder="Ej: ABC123" value="{{ vehiculo.placa|default:'' }}" required>
                     </div>
                 </div>
 
@@ -36,9 +36,12 @@
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Tipo de Vehículo</label>
                     <select name="tipo" class="form-select" required>
                         <option value="">Seleccione tipo...</option>
-                        <option value="Camión" {% if vehiculo.tipo == 'Camión' %}selected{% endif %}>Camión</option>
-                        <option value="Volqueta" {% if vehiculo.tipo == 'Volqueta' %}selected{% endif %}>Volqueta</option>
+                        <option value="Bolqueta" {% if vehiculo.tipo == 'Bolqueta' %}selected{% endif %}>Bolqueta</option>
+                        <option value="Camión Sencillo" {% if vehiculo.tipo == 'Camión Sencillo' %}selected{% endif %}>Camión Sencillo</option>
+                        <option value="Doble Troque" {% if vehiculo.tipo == 'Doble Troque' %}selected{% endif %}>Doble Troque</option>
+                        <option value="Minitransporte" {% if vehiculo.tipo == 'Minitransporte' %}selected{% endif %}>Minitransporte</option>
                         <option value="Turbo" {% if vehiculo.tipo == 'Turbo' %}selected{% endif %}>Turbo</option>
+                        <option value="Maquinaria Amarilla" {% if vehiculo.tipo == 'Maquinaria Amarilla' %}selected{% endif %}>Maquinaria Amarilla</option>
                     </select>
                 </div>
 
@@ -46,7 +49,7 @@
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Capacidad de Carga (Ton)</label>
                     <div class="input-group">
                         <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-speedometer2"></i></span>
-                        <input type="number" name="capacidad" class="form-control" placeholder="Ej: 5" value="{{ vehiculo.capacidad|default:'' }}" required>
+                        <input type="text" name="capacidad" class="form-control numeric-only" placeholder="Ej: 5" value="{{ vehiculo.capacidad|default:'' }}" required>
                     </div>
                 </div>
 
@@ -60,6 +63,21 @@
                     </select>
                 </div>
                 {% endif %}
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Conductor Asignado</label>
+                    <select name="conductor" class="form-select">
+                        <option value="">Sin asignar (Disponible)</option>
+                        {% for cond in conductores %}
+                            <option value="{{ cond.id }}" {% if vehiculo.conductor.id == cond.id %}selected{% endif %}>
+                                {{ cond.nombres }} {{ cond.apellidos }} ({{ cond.documento }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text text-white-50 small mt-1">
+                        <i class="bi bi-info-circle me-1"></i> Solo conductores sin vehículo asignado aparecen en esta lista.
+                    </div>
+                </div>
 
                 <div class="d-grid gap-3 mt-4">
                     <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">

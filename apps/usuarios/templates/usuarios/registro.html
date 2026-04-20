@@ -105,13 +105,21 @@
     }
 </style>
 <div class="animate-up">
-    <h1 class="welcome-h1">REGÍSTRATE</h1>
-    <p class="welcome-p">¿Ya tienes una cuenta? <a href="{% url 'usuarios:login' %}">Inicia sesión</a></p>
+    <h1 class="welcome-h1">CREAR CUENTA</h1>
+    <p class="welcome-p">¿Ya tiene una cuenta? <a href="{% url 'usuarios:login' %}">Ingrese aquí</a></p>
 </div>
 
-{% if error %}
+{% if form.errors %}
     <div class="alert-custom animate__animated animate__shakeX">
-        <i class="bi bi-exclamation-circle-fill me-2"></i> {{ error }}
+        <i class="bi bi-exclamation-circle-fill me-2"></i>
+        {% for field in form %}
+            {% for error in field.errors %}
+                <div>{{ field.label }}: {{ error }}</div>
+            {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+        {% endfor %}
     </div>
 {% endif %}
 
@@ -171,33 +179,8 @@
         </div>
     </div>
 
-    <div class="mb-4">
-        <div class="form-check">
-            {{ form.acepto_terminos }}
-            <label class="form-check-label text-white-50 small ms-2" for="{{ form.acepto_terminos.id_for_label }}">
-                Acepto los términos y condiciones
-            </label>
-        </div>
-    </div>
-
-    <div class="form-group-custom mb-4">
-        <!-- Simplified "No soy un robot" -->
-        <div class="recaptcha-mock" id="recaptchaBox">
-            <div class="recaptcha-left">
-                <div class="form-check">
-                    {{ form.no_robot }}
-                    <label class="recaptcha-text ms-2" for="{{ form.no_robot.id_for_label }}">No soy un robot</label>
-                </div>
-            </div>
-            <div class="recaptcha-right">
-                <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" class="recaptcha-logo" alt="reCAPTCHA">
-                <span class="recaptcha-privacy">Privacidad - Términos</span>
-            </div>
-        </div>
-    </div>
-
-    <button type="submit" class="btn-main">
-        Crear Cuenta
+    <button type="submit" class="btn-main d-flex align-items-center justify-content-center">
+        <i class="bi bi-person-plus-fill me-2"></i> Unirme ahora
     </button>
 </form>
 
