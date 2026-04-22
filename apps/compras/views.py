@@ -4,10 +4,12 @@ from .models import Proveedor, Compra, DetalleCompra
 from django.contrib import messages
 from historial.utils import registrar_actividad
 
+
 @login_required
 def lista_proveedores(request):
     proveedores = Proveedor.objects.all()
     return render(request, "compras/proveedores_lista.html", {"proveedores": proveedores})
+
 
 @login_required
 def crear_proveedor(request):
@@ -18,7 +20,7 @@ def crear_proveedor(request):
         telefono = request.POST.get("telefono")
         email = request.POST.get("email")
         direccion = request.POST.get("direccion")
-        
+
         Proveedor.objects.create(
             nombre=nombre,
             nit=nit,
@@ -30,8 +32,9 @@ def crear_proveedor(request):
         registrar_actividad(request, 'crear', 'proveedores', nit, f"Proveedor creado: {nombre}")
         messages.success(request, "Proveedor registrado con éxito.")
         return redirect("compras:lista_proveedores")
-        
+
     return render(request, "compras/proveedor_form.html", {"action": "Crear"})
+
 
 @login_required
 def editar_proveedor(request, id):
@@ -44,16 +47,18 @@ def editar_proveedor(request, id):
         proveedor.email = request.POST.get("email")
         proveedor.direccion = request.POST.get("direccion")
         proveedor.save()
-        
+
         registrar_actividad(request, 'editar', 'proveedores', proveedor.nit, f"Proveedor editado: {proveedor.nombre}")
         messages.success(request, "Proveedor actualizado.")
         return redirect("compras:lista_proveedores")
-        
+
     return render(request, "compras/proveedor_form.html", {"proveedor": proveedor, "action": "Editar"})
+
 
 # ── HU-23 ──────────────────────────────────────────────────────────────────
 import json
 from .models import OrdenCompra, ItemOrdenCompra
+
 
 @login_required
 def registrar_orden_compra(request):
@@ -118,7 +123,7 @@ def editar_orden_compra(request, pk):
     proveedores = Proveedor.objects.filter(estado=True)
 
     if request.method == 'POST':
-        orden.proveedor_id = request.POST.get('proveedor_id')
+        orden.proveedor_id  = request.POST.get('proveedor_id')
         orden.observaciones = request.POST.get('observaciones', '')
         orden.save()
 
@@ -136,7 +141,6 @@ def editar_orden_compra(request, pk):
     })
 
 
-# 🔥 NUEVA FUNCIÓN (CAMBIAR ESTADO)
 @login_required
 def cambiar_estado_orden(request, pk, estado):
     orden = get_object_or_404(OrdenCompra, pk=pk)
@@ -151,12 +155,48 @@ def cambiar_estado_orden(request, pk, estado):
     orden.save()
 
     registrar_actividad(
-        request,
-        'editar',
-        'compras',
-        orden.numero_orden,
+        request, 'editar', 'compras', orden.numero_orden,
         f'Estado cambiado a {estado}'
     )
 
     messages.success(request, f'Estado actualizado a {estado}.')
     return redirect('compras:detalle_orden', pk=pk)
+
+
+# ── HU-24: Registrar detalle de compra ────────────────────────────────────
+from .forms import ItemOrdenCompraFormSet
+
+
+@login_required
+def registrar_detalle_orden(request, pk):
+    """
+    CT-461: Permite agregar uno o más materiales a la orden.
+    CT-462: Valida campos obligatorios mediante el formset.
+    CT-463: Guarda los ítems vinculados a la orden y recalcula el total.
+    """
+    orden = get_object_or_404(OrdenCompra, pk=pk)
+
+    if request.method == 'POST':
+        formset = ItemOrdenCompraFormSet(request.POST, instance=orden)
+
+        if formset.is_valid():                  # CT-462: validación
+            formset.save()                      # CT-463: guardado vinculado
+            orden.calcular_total()              # Recalcula el total de la orden
+
+            registrar_actividad(
+                request, 'crear', 'compras', orden.numero_orden,
+                f'Detalles registrados en orden: {orden.numero_orden}'
+            )
+
+            messages.success(request, 'Materiales registrados correctamente.')
+            return redirect('compras:detalle_orden', pk=orden.pk)
+
+        messages.error(request, 'Corrige los errores antes de guardar.')
+
+    else:
+        formset = ItemOrdenCompraFormSet(instance=orden)
+
+    return render(request, 'compras/registrar_detalle.html', {
+        'orden': orden,
+        'formset': formset,
+    })

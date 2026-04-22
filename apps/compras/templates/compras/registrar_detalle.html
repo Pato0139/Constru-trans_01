@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Registrar Detalle — {{ orden.numero_orden }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  {# ── Encabezado ── #}
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <a href="{% url 'compras:detalle_orden' orden.pk %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+    <div>
+      <h4 class="mb-0 fw-bold">Registrar Materiales</h4>
+      <small class="text-muted">{{ orden.numero_orden }} — {{ orden.proveedor }}</small>
+    </div>
+  </div>
+
+  {# ── Mensajes ── #}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+
+  {# ── Formulario ── #}
+  <form method="post" id="detalle-form">
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold"><i class="bi bi-box-seam me-2"></i>Materiales de la orden</span>
+        <button type="button" id="btn-agregar" class="btn btn-success btn-sm">
+          <i class="bi bi-plus-lg me-1"></i> Agregar material
+        </button>
+      </div>
+
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover mb-0" id="tabla-detalles">
+            <thead class="table-light">
+              <tr>
+                <th style="width:40%">Material <span class="text-danger">*</span></th>
+                <th style="width:18%">Cantidad <span class="text-danger">*</span></th>
+                <th style="width:22%">Precio Unitario <span class="text-danger">*</span></th>
+                <th style="width:12%" class="text-center">Subtotal</th>
+                <th style="width:8%" class="text-center">Quitar</th>
+              </tr>
+            </thead>
+            <tbody id="formset-body">
+              {% for form in formset %}
+              <tr class="detalle-row">
+                {# Campos ocultos del formset #}
+                <td class="d-none">
+                  {{ form.id }}
+                  {% if form.DELETE %}{{ form.DELETE }}{% endif %}
+                </td>
+                <td>
+                  {{ form.nombre_material }}
+                  {% if form.nombre_material.errors %}
+                    <div class="invalid-feedback d-block">{{ form.nombre_material.errors|join:", " }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  {{ form.cantidad }}
+                  {% if form.cantidad.errors %}
+                    <div class="invalid-feedback d-block">{{ form.cantidad.errors|join:", " }}</div>
+                  {% endif %}
+                </td>
+                <td>
+                  {{ form.precio_unitario }}
+                  {% if form.precio_unitario.errors %}
+                    <div class="invalid-feedback d-block">{{ form.precio_unitario.errors|join:", " }}</div>
+                  {% endif %}
+                </td>
+                <td class="text-center align-middle fw-semibold subtotal-cell">—</td>
+                <td class="text-center align-middle">
+                  <button type="button" class="btn btn-outline-danger btn-sm btn-quitar">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+
+            <tfoot>
+              <tr class="table-light fw-bold">
+                <td colspan="3" class="text-end">Total estimado:</td>
+                <td class="text-center" id="total-general">$0.00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="card-footer d-flex justify-content-end gap-2">
+        <a href="{% url 'compras:detalle_orden' orden.pk %}" class="btn btn-outline-secondary">
+          Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-floppy me-1"></i> Guardar materiales
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+{# ── Fila plantilla para clonación (oculta) ── #}
+<template id="fila-template">
+  <tr class="detalle-row">
+    <td class="d-none">
+      <input type="hidden" name="items-__prefix__-id" value="">
+    </td>
+    <td>
+      <input type="text" name="items-__prefix__-nombre_material"
+             class="form-control detalle-material" placeholder="Ej: Cemento Portland" required>
+    </td>
+    <td>
+      <input type="number" name="items-__prefix__-cantidad"
+             class="form-control detalle-cantidad" min="1" step="0.01" placeholder="0" required>
+    </td>
+    <td>
+      <input type="number" name="items-__prefix__-precio_unitario"
+             class="form-control detalle-precio" min="0" step="0.01" placeholder="0.00" required>
+    </td>
+    <td class="text-center align-middle fw-semibold subtotal-cell">—</td>
+    <td class="text-center align-middle">
+      <button type="button" class="btn btn-outline-danger btn-sm btn-quitar">
+        <i class="bi bi-trash"></i>
+      </button>
+    </td>
+  </tr>
+</template>
+
+<script>
+(function () {
+  const body       = document.getElementById('formset-body');
+  const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+  const btnAgregar = document.getElementById('btn-agregar');
+  const totalCell  = document.getElementById('total-general');
+
+  // ── Agrega nueva fila ─────────────────────────────────────────
+  btnAgregar.addEventListener('click', function () {
+    const tmpl  = document.getElementById('fila-template');
+    const clone = tmpl.content.cloneNode(true);
+    const idx   = parseInt(totalForms.value);
+
+    clone.querySelectorAll('[name]').forEach(el => {
+      el.name = el.name.replace('__prefix__', idx);
+    });
+    clone.querySelectorAll('[id]').forEach(el => {
+      el.id = el.id.replace('__prefix__', idx);
+    });
+
+    body.appendChild(clone);
+    totalForms.value = idx + 1;
+    actualizarEventos();
+    recalcularTotal();
+  });
+
+  // ── Eliminar fila ─────────────────────────────────────────────
+  function actualizarEventos() {
+    document.querySelectorAll('.btn-quitar').forEach(btn => {
+      btn.onclick = function () {
+        const fila   = btn.closest('.detalle-row');
+        const chkDel = fila.querySelector('[name$="-DELETE"]');
+        if (chkDel) {
+          chkDel.checked = true;
+          fila.style.display = 'none';
+        } else {
+          fila.remove();
+        }
+        recalcularTotal();
+      };
+    });
+  }
+
+  // ── Calcular subtotales y total ───────────────────────────────
+  function recalcularTotal() {
+    let total = 0;
+    document.querySelectorAll('.detalle-row').forEach(fila => {
+      if (fila.style.display === 'none') return;
+      const cant   = parseFloat(fila.querySelector('.detalle-cantidad')?.value)  || 0;
+      const precio = parseFloat(fila.querySelector('.detalle-precio')?.value)    || 0;
+      const sub    = cant * precio;
+      const cell   = fila.querySelector('.subtotal-cell');
+      if (cell) cell.textContent = sub > 0 ? '$' + sub.toFixed(2) : '—';
+      total += sub;
+    });
+    totalCell.textContent = '$' + total.toFixed(2);
+  }
+
+  // ── Listener en inputs ────────────────────────────────────────
+  body.addEventListener('input', function (e) {
+    if (e.target.classList.contains('detalle-cantidad') ||
+        e.target.classList.contains('detalle-precio')) {
+      recalcularTotal();
+    }
+  });
+
+  actualizarEventos();
+  recalcularTotal();
+})();
+</script>
+{% endblock %}

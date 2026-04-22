@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white">
+            <i class="bi bi-pencil-square me-2"></i>Editar Orden
+        </h2>
+        <a href="{% url 'compras:detalle_orden' orden.pk %}" class="btn btn-outline-light">
+            <i class="bi bi-arrow-left me-1"></i> Volver
+        </a>
+    </div>
+
+    {% if messages %}{% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}{% endif %}
+
+    <div class="row g-4">
+
+        <div class="col-md-8">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header border-secondary py-3">
+                    <h5 class="mb-0 text-white">
+                        <i class="bi bi-info-circle me-2 text-primary"></i>Datos de la Orden
+                        <span class="badge bg-warning text-dark ms-2">{{ orden.numero_orden }}</span>
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label class="form-label text-muted">Proveedor <span class="text-danger">*</span></label>
+                            <select name="proveedor_id" class="form-select bg-dark text-white border-secondary" required>
+                                <option value="">-- Selecciona un proveedor activo --</option>
+                                {% for prov in proveedores %}
+                                <option value="{{ prov.pk }}"
+                                    {% if prov.pk == orden.proveedor.pk %}selected{% endif %}>
+                                    {{ prov.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-muted">Observaciones</label>
+                            <textarea name="observaciones" rows="4"
+                                class="form-control bg-dark text-white border-secondary"
+                                placeholder="Notas adicionales...">{{ orden.observaciones|default:'' }}</textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'compras:detalle_orden' orden.pk %}"
+                               class="btn btn-outline-light px-4">
+                                Cancelar
+                            </a>
+                            <button type="submit"
+                                class="btn px-4 fw-semibold"
+                                style="background-color:#F39C12; color:#000; border:none;">
+                                <i class="bi bi-floppy me-1"></i> Guardar Cambios
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-header border-secondary py-3">
+                    <h5 class="mb-0 text-white">
+                        <i class="bi bi-receipt me-2 text-success"></i>Resumen
+                    </h5>
+                </div>
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <p class="text-muted mb-1">Número de Orden</p>
+                    <h4 class="text-white fw-bold">{{ orden.numero_orden }}</h4>
+
+                    <hr class="border-secondary">
+
+                    <p class="text-muted mb-1">Total actual</p>
+                    <h1 class="text-success fw-bold">${{ orden.total|floatformat:2 }}</h1>
+
+                    <hr class="border-secondary">
+
+                    <p class="text-muted mb-1">Estado</p>
+                    <span class="badge fs-6
+                        {% if orden.estado == 'pendiente' %}bg-warning text-dark
+                        {% elif orden.estado == 'aprobada' %}bg-success
+                        {% elif orden.estado == 'recibida' %}bg-primary
+                        {% else %}bg-danger{% endif %}">
+                        {{ orden.get_estado_display }}
+                    </span>
+
+                    <hr class="border-secondary">
+
+                    <p class="text-muted mb-1">Materiales</p>
+                    <h4 class="text-primary">{{ orden.items.count }}</h4>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

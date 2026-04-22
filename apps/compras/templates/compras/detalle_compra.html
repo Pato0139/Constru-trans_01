@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Detalle Compra #{{ compra.pk }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+    <div>
+      <h4 class="mb-0 fw-bold">Compra #{{ compra.pk }}</h4>
+      <small class="text-muted">{{ compra.proveedor }} — {{ compra.fecha|date:"d/m/Y H:i" }}</small>
+    </div>
+    <a href="{% url 'compras:registrar_detalle' compra.id %}" class="btn btn-primary btn-sm ms-auto">
+      <i class="bi bi-plus-lg me-1"></i> Agregar materiales
+    </a>
+  </div>
+
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+
+  <div class="card shadow-sm">
+    <div class="card-header fw-semibold">
+      <i class="bi bi-list-ul me-2"></i>Materiales de la compra
+    </div>
+    <div class="card-body p-0">
+      {% if compra.detalles.all %}
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Material</th>
+                <th class="text-center">Cantidad</th>
+                <th class="text-center">Precio Unitario</th>
+                <th class="text-center">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for detalle in compra.detalles.all %}
+              <tr>
+                <td>{{ detalle.material }}</td>
+                <td class="text-center">{{ detalle.cantidad }}</td>
+                <td class="text-center">${{ detalle.precio_unitario|floatformat:2 }}</td>
+                <td class="text-center fw-semibold">
+                  ${% widthratio detalle.cantidad 1 detalle.precio_unitario %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="table-light fw-bold">
+                <td colspan="3" class="text-end">Total:</td>
+                <td class="text-center">${{ compra.total|floatformat:2 }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-4 text-center text-muted">
+          <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+          No hay materiales registrados aún.
+          <a href="{% url 'compras:registrar_detalle' compra.id %}">Agregar ahora</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
