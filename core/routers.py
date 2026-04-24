@@ -24,6 +24,11 @@ class EnrutadorInventario:
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         """Controla dónde se aplican las migraciones."""
+        import os
+        # Si no hay credenciales de base de datos remota, solo permitimos migraciones en local
+        if not os.getenv("DB_PASSWORD"):
+            return db == 'default'
+
         if app_label in self.APPS_REMOTAS:
-            return db == 'remota' or db == 'default' # Permitimos en ambas para redundancia
+            return db == 'remota' or db == 'default'
         return db == 'default'
