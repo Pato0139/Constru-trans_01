@@ -24,8 +24,21 @@ def protect_global_admin_update(sender, instance, **kwargs):
         instance.is_staff = True
         instance.is_active = True
 
+@receiver(pre_save, sender=Usuario)
+def protect_usuario_rol_update(sender, instance, **kwargs):
+    """Evita que se le quite el rol de admin al administrador global en su perfil"""
+    if instance.user and instance.user.username == PROTECTED_USERNAME:
+        instance.rol = 'admin'
+        instance.estado = 'activo'
+
 @receiver(pre_delete, sender=User)
 def protect_global_admin_delete(sender, instance, **kwargs):
     """Evita que el administrador global sea eliminado"""
     if instance.username == PROTECTED_USERNAME:
         raise PermissionDenied("No se puede eliminar al Administrador Global del sistema.")
+
+@receiver(pre_delete, sender=Usuario)
+def protect_usuario_perfil_delete(sender, instance, **kwargs):
+    """Evita que el perfil de Usuario del administrador global sea eliminado"""
+    if instance.user and instance.user.username == PROTECTED_USERNAME:
+        raise PermissionDenied("No se puede eliminar el perfil del Administrador Global.")
