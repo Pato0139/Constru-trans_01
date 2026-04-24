@@ -1,16 +1,5 @@
 @echo off
-:: PAUSA DE DIAGNOSTICO - Presiona una tecla para continuar
-echo [DEBUG] Iniciando script...
-pause
-
-setlocal enabledelayedexpansion
-
-:: Si el script se cierra solo, esto ayudara a ver el error
-if "%~1"=="debug" (
-    echo [MODO DEBUG ACTIVADO]
-) else (
-    echo Iniciando instalador...
-)
+setlocal
 
 :: Asegurar que el script corra en la carpeta donde esta ubicado
 cd /d "%~dp0"
@@ -21,12 +10,12 @@ echo   Sincronizado con GitHub: %date% %time%
 echo ===================================================
 
 :: 1. Verificar Python (intentar 'python' y luego 'py')
-set PYTHON_CMD=python
-%PYTHON_CMD% --version >nul 2>&1
+set "PYTHON_CMD=python"
+python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    set PYTHON_CMD=py
-    !PYTHON_CMD! --version >nul 2>&1
-    if !errorlevel! neq 0 (
+    set "PYTHON_CMD=py"
+    py --version >nul 2>&1
+    if %errorlevel% neq 0 (
         echo [ERROR] No se encontro Python ni el lanzador 'py'.
         echo Por favor instala Python desde https://www.python.org/
         pause
@@ -42,7 +31,7 @@ if not exist ".env" (
         copy .env.example .env >nul
         echo [OK] .env creado desde .env.example
     ) else (
-        echo SECRET_KEY=django-insecure-!%random%!%random% > .env
+        echo SECRET_KEY=django-insecure-generic-key-%random%%random% > .env
         echo DEBUG=True >> .env
         echo ALLOWED_HOSTS=127.0.0.1,localhost >> .env
         echo [OK] .env basico generado
