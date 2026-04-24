@@ -6,6 +6,7 @@ cd /d "%~dp0"
 
 echo ===================================================
 echo   ConstruTrans - Script de Inicializacion Pro
+echo   Ultima actualizacion: %date% %time%
 echo ===================================================
 
 :: 1. Verificar Python
