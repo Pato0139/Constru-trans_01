@@ -58,6 +58,8 @@ class Usuario(models.Model):
         choices=ESTADO_USUARIO,
         default='activo'
     )
+    
+    sincronizado = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"

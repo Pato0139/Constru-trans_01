@@ -1,7 +1,8 @@
 import time
 from django.core.management.base import BaseCommand
 from django.db import OperationalError, connections
-from apps.usuarios.models import Material, Proveedor, Vehiculo
+from apps.usuarios.models import Material, Proveedor, Vehiculo, Usuario
+from django.contrib.auth.models import User
 from apps.inventario.models import MovimientoInventario
 from apps.compras.models import Compra
 from apps.ordenes.models import Orden
@@ -19,6 +20,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS('Conexión con la nube establecida.'))
                 
                 # 2. Sincronizar modelos
+                self.sincronizar_usuarios()
                 self.sincronizar_modelo(Material)
                 self.sincronizar_modelo(Proveedor)
                 self.sincronizar_modelo(Vehiculo)
@@ -54,3 +56,25 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS(f'  [OK] {obj} y sus detalles sincronizados.'))
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(f'  [ERROR] Falló sincronización de {obj}: {e}'))
+
+    def sincronizar_usuarios(self):
+        """Sincroniza usuarios de Django (User) y perfiles extendidos (Usuario)."""
+        usuarios_pendientes = Usuario.objects.using('default').filter(sincronizado=False)
+        
+        if usuarios_pendientes.exists():
+            self.stdout.write(f'Sincronizando {usuarios_pendientes.count()} usuarios...')
+            for perfil in usuarios_pendientes:
+                try:
+                    # 1. Sincronizar el User de Django primero
+                    user_django = perfil.user
+                    user_django.save(using='remota')
+                    
+                    # 2. Sincronizar el perfil Usuario
+                    perfil.save(using='remota')
+                    
+                    # 3. Marcar como sincronizado local
+                    perfil.sincronizado = True
+                    perfil.save(using='default')
+                    self.stdout.write(self.style.SUCCESS(f'  [OK] Usuario {perfil.user.username} sincronizado.'))
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f'  [ERROR] Falló sincronización de usuario {perfil}: {e}'))

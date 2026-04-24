@@ -5,7 +5,10 @@ class EnrutadorInventario:
     """
     
     # Apps que queremos sincronizar con la nube
-    APPS_REMOTAS = ['inventario', 'compras', 'ordenes', 'facturacion', 'pagos', 'clientes', 'transporte']
+    APPS_REMOTAS = [
+        'inventario', 'compras', 'ordenes', 'facturacion', 'pagos', 
+        'clientes', 'transporte', 'usuarios', 'auth', 'sessions', 'admin'
+    ]
 
     def db_for_read(self, model, **hints):
         """Lecturas: Por defecto leemos de local para velocidad y offline-first."""
