@@ -1,6 +1,7 @@
 @echo off
-:: Quita el REM de la siguiente linea si quieres ver que pasa paso a paso
-:: pause
+:: PAUSA DE DIAGNOSTICO - Presiona una tecla para continuar
+echo [DEBUG] Iniciando script...
+pause
 
 setlocal enabledelayedexpansion
 
