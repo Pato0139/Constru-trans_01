@@ -1,0 +1,1714 @@
+[
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$az9GEkioGO6ajFGtHpvgYj$3swvWSAJ8NAC9YTzdogG1Hi4iBveRwX+L02pWoZd9Yo=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Edward_Fonseca_Old",
+    "first_name": "",
+    "last_name": "",
+    "email": "edwardf5432@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-23T04:00:03.182Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$jvkYa9kytJ300XoeJI0eMp$j1aLa93d6O5t7lofB99uPEqqt1MAaatKUl3pMZD1PHE=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "conductor_test",
+    "first_name": "",
+    "last_name": "",
+    "email": "cond@test.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-23T04:00:05.274Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$ovjEhOUAzMJxcgCHSdOK1u$C4V6mJ9FbXSBkqzrHCyaV71dm1Z3oDEoUl4yHCfXki4=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "edwardf5432@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-04-23T04:13:23.513Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$N7B86HQxxJVNAYzBPUX9qG$U0fnz0u/+7Ug84j72bflvouhnHIfuhpj7+hPWWY5X+c=",
+    "last_login": "2026-04-23T05:07:44.444Z",
+    "is_superuser": true,
+    "username": "Edward_Fonseca",
+    "first_name": "",
+    "last_name": "",
+    "email": "edwardf5432@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-04-23T04:18:24.612Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$tVmpbxTrdO0GjXSYe0cSM1$n2F9kZkjoMBPgL9TsQ+hvdahJIq1/JShv0IMQskzL3o=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "carlos_chofer",
+    "first_name": "",
+    "last_name": "",
+    "email": "carlos@constru.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-23T04:30:35.980Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 6,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$tEcDch9flqGVpHO8ZwVNyz$hycgnNr5n3q6uqjzWyzFY2FC+u07JHXOkzcvmj49EpU=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "pedro_trans",
+    "first_name": "",
+    "last_name": "",
+    "email": "pedro@constru.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-23T04:30:38.804Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 7,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$1F7u33sUC7tEjvXv701S2T$lcwFQf3MCUocpPM0Xf47Ds6k08ZqpZbGpvZ8IYqsVpc=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "constructora_alfa",
+    "first_name": "",
+    "last_name": "",
+    "email": "proyectos@alfa.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-23T04:30:41.588Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 8,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$PQIjjQYN9cYzABJH93qSPR$p/4HfvX3KfIhqX+/i3SVWhpXXsHl4RzHSEZc3Sn2AxI=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "ferreteria_central",
+    "first_name": "",
+    "last_name": "",
+    "email": "compras@central.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-23T04:30:45.546Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "rol": "cliente",
+    "nombres": "Juan",
+    "apellidos": "Perez",
+    "telefono": "",
+    "foto_perfil": "",
+    "tipo_documento": "CC",
+    "documento": "12345",
+    "estado": "activo"
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 2,
+  "fields": {
+    "user": 2,
+    "rol": "conductor",
+    "nombres": "Carlos",
+    "apellidos": "Ruedas",
+    "telefono": "",
+    "foto_perfil": "",
+    "tipo_documento": "CC",
+    "documento": "67890",
+    "estado": "activo"
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 3,
+  "fields": {
+    "user": 4,
+    "rol": "admin",
+    "nombres": "Edward",
+    "apellidos": "Fonseca",
+    "telefono": "321 2510998",
+    "foto_perfil": "perfiles/descargar_5.jpg",
+    "tipo_documento": "CC",
+    "documento": "1052389613",
+    "estado": "activo"
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 4,
+  "fields": {
+    "user": 5,
+    "rol": "conductor",
+    "nombres": "Carlos",
+    "apellidos": "Mendoza",
+    "telefono": "",
+    "foto_perfil": "",
+    "tipo_documento": "CC",
+    "documento": "778899",
+    "estado": "activo"
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 5,
+  "fields": {
+    "user": 6,
+    "rol": "conductor",
+    "nombres": "Pedro",
+    "apellidos": "Salas",
+    "telefono": "",
+    "foto_perfil": "",
+    "tipo_documento": "CC",
+    "documento": "554433",
+    "estado": "activo"
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 6,
+  "fields": {
+    "user": 7,
+    "rol": "cliente",
+    "nombres": "Ing. Roberto",
+    "apellidos": "Torres",
+    "telefono": "",
+    "foto_perfil": "",
+    "tipo_documento": "CC",
+    "documento": "112233",
+    "estado": "activo"
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 7,
+  "fields": {
+    "user": 8,
+    "rol": "cliente",
+    "nombres": "Lucía",
+    "apellidos": "Pérez",
+    "telefono": "",
+    "foto_perfil": "",
+    "tipo_documento": "CC",
+    "documento": "445566",
+    "estado": "activo"
+  }
+},
+{
+  "model": "usuarios.vehiculo",
+  "pk": 1,
+  "fields": {
+    "placa": "TRX-789",
+    "tipo": "Bolqueta",
+    "capacidad": "10 Ton",
+    "estado": "disponible",
+    "conductor": 2
+  }
+},
+{
+  "model": "usuarios.vehiculo",
+  "pk": 2,
+  "fields": {
+    "placa": "TRX-101",
+    "tipo": "Camión 5 Ton",
+    "capacidad": "10 Ton",
+    "estado": "disponible",
+    "conductor": 4
+  }
+},
+{
+  "model": "usuarios.vehiculo",
+  "pk": 3,
+  "fields": {
+    "placa": "KLM-202",
+    "tipo": "Bolqueta 10 Ton",
+    "capacidad": "10 Ton",
+    "estado": "disponible",
+    "conductor": 5
+  }
+},
+{
+  "model": "usuarios.proveedor",
+  "pk": 1,
+  "fields": {
+    "nombre_empresa": "Aceros de Colombia S.A.",
+    "nit": "900123456",
+    "contacto_nombre": "Roberto Gómez",
+    "telefono": "3105556677",
+    "email": "ventas@aceroscol.com",
+    "direccion": "Zona Industrial, Bogotá",
+    "categoria": "Materiales de Construcción",
+    "fecha_registro": "2026-04-23T04:30:34.579Z"
+  }
+},
+{
+  "model": "usuarios.proveedor",
+  "pk": 2,
+  "fields": {
+    "nombre_empresa": "Cales y Arenas del Sur",
+    "nit": "800987654",
+    "contacto_nombre": "Marta Lucía",
+    "telefono": "3208889900",
+    "email": "contacto@calessur.com",
+    "direccion": "Vía 40, Barranquilla",
+    "categoria": "Agregados",
+    "fecha_registro": "2026-04-23T04:30:34.969Z"
+  }
+},
+{
+  "model": "usuarios.material",
+  "pk": 1,
+  "fields": {
+    "nombre": "Cemento Gris Argos",
+    "tipo": "Cemento",
+    "descripcion": "Bulto de cemento 50kg",
+    "precio": "28500.00"
+  }
+},
+{
+  "model": "usuarios.material",
+  "pk": 2,
+  "fields": {
+    "nombre": "Arena de Rio",
+    "tipo": "Arena",
+    "descripcion": "Metro cubico de arena fina",
+    "precio": "85000.00"
+  }
+},
+{
+  "model": "usuarios.material",
+  "pk": 3,
+  "fields": {
+    "nombre": "Grava 3/4",
+    "tipo": "Grava",
+    "descripcion": "Grava para concreto",
+    "precio": "92000.00"
+  }
+},
+{
+  "model": "usuarios.material",
+  "pk": 4,
+  "fields": {
+    "nombre": "Cemento Gris Argos 50kg",
+    "tipo": "Cemento",
+    "descripcion": "Bulto de cemento gris para construcción general",
+    "precio": "28500.00"
+  }
+},
+{
+  "model": "usuarios.material",
+  "pk": 5,
+  "fields": {
+    "nombre": "Varilla Corrugada 1/2\"",
+    "tipo": "Acero",
+    "descripcion": "Varilla de acero estructural 6 metros",
+    "precio": "35000.00"
+  }
+},
+{
+  "model": "usuarios.material",
+  "pk": 6,
+  "fields": {
+    "nombre": "Arena de Río (m3)",
+    "tipo": "Arena",
+    "descripcion": "Arena fina para acabados",
+    "precio": "85000.00"
+  }
+},
+{
+  "model": "usuarios.material",
+  "pk": 7,
+  "fields": {
+    "nombre": "Grava 3/4 (m3)",
+    "tipo": "Grava",
+    "descripcion": "Grava triturada para concreto",
+    "precio": "92000.00"
+  }
+},
+{
+  "model": "usuarios.material",
+  "pk": 8,
+  "fields": {
+    "nombre": "Ladrillo Estructural",
+    "tipo": "Ladrillo",
+    "descripcion": "Ladrillo de arcilla cocida",
+    "precio": "1200.00"
+  }
+},
+{
+  "model": "usuarios.stock",
+  "pk": 1,
+  "fields": {
+    "material": 1,
+    "cantidad": 483,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-23T04:03:56.408Z"
+  }
+},
+{
+  "model": "usuarios.stock",
+  "pk": 2,
+  "fields": {
+    "material": 2,
+    "cantidad": 490,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-23T04:03:56.435Z"
+  }
+},
+{
+  "model": "usuarios.stock",
+  "pk": 3,
+  "fields": {
+    "material": 3,
+    "cantidad": 595,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-23T04:03:56.490Z"
+  }
+},
+{
+  "model": "usuarios.stock",
+  "pk": 4,
+  "fields": {
+    "material": 4,
+    "cantidad": 1000,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-23T04:45:31.702Z"
+  }
+},
+{
+  "model": "usuarios.stock",
+  "pk": 5,
+  "fields": {
+    "material": 5,
+    "cantidad": 1000,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-23T04:45:31.718Z"
+  }
+},
+{
+  "model": "usuarios.stock",
+  "pk": 6,
+  "fields": {
+    "material": 6,
+    "cantidad": 1000,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-23T04:45:31.733Z"
+  }
+},
+{
+  "model": "usuarios.stock",
+  "pk": 7,
+  "fields": {
+    "material": 7,
+    "cantidad": 1000,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-23T04:45:31.745Z"
+  }
+},
+{
+  "model": "usuarios.stock",
+  "pk": 8,
+  "fields": {
+    "material": 8,
+    "cantidad": 1000,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-23T04:45:31.760Z"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 1,
+  "fields": {
+    "usuario": 3,
+    "mensaje": "Pedido #16 entregado. Materiales: ",
+    "leida": false,
+    "fecha": "2026-04-23T04:45:18.721Z",
+    "link": "/ordenes/pedido/16/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 2,
+  "fields": {
+    "usuario": 3,
+    "mensaje": "Pedido #18 entregado. Materiales: ",
+    "leida": false,
+    "fecha": "2026-04-23T04:45:20.524Z",
+    "link": "/ordenes/pedido/18/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 3,
+  "fields": {
+    "usuario": 3,
+    "mensaje": "Pedido #20 entregado. Materiales: ",
+    "leida": false,
+    "fecha": "2026-04-23T04:45:31.891Z",
+    "link": "/ordenes/pedido/20/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 4,
+  "fields": {
+    "usuario": 3,
+    "mensaje": "Pedido #22 entregado. Materiales: ",
+    "leida": false,
+    "fecha": "2026-04-23T04:45:32.011Z",
+    "link": "/ordenes/pedido/22/"
+  }
+},
+{
+  "model": "clientes.cliente",
+  "pk": 1,
+  "fields": {
+    "usuario": 1,
+    "nit_rut": null,
+    "razon_social": null,
+    "direccion_fiscal": null,
+    "ciudad": null,
+    "telefono_contacto": null,
+    "email_empresa": null,
+    "fecha_registro": "2026-04-23T04:00:05.267Z"
+  }
+},
+{
+  "model": "clientes.cliente",
+  "pk": 2,
+  "fields": {
+    "usuario": 6,
+    "nit_rut": null,
+    "razon_social": "Constructora Alfa SAS",
+    "direccion_fiscal": "Av Siempre Viva 123",
+    "ciudad": null,
+    "telefono_contacto": null,
+    "email_empresa": null,
+    "fecha_registro": "2026-04-23T04:30:44.539Z"
+  }
+},
+{
+  "model": "clientes.cliente",
+  "pk": 3,
+  "fields": {
+    "usuario": 7,
+    "nit_rut": null,
+    "razon_social": "Ferretería Central",
+    "direccion_fiscal": "Av Siempre Viva 123",
+    "ciudad": null,
+    "telefono_contacto": null,
+    "email_empresa": null,
+    "fecha_registro": "2026-04-23T04:30:48.270Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 1,
+  "fields": {
+    "material": 3,
+    "tipo": "entrada",
+    "cantidad": 100,
+    "motivo": "Reposición de inventario semanal",
+    "referencia_id": null,
+    "usuario": 1,
+    "fecha": "2026-04-23T04:00:07.457Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 2,
+  "fields": {
+    "material": 3,
+    "tipo": "entrada",
+    "cantidad": 100,
+    "motivo": "Reposición de inventario semanal",
+    "referencia_id": null,
+    "usuario": 1,
+    "fecha": "2026-04-23T04:03:56.499Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 3,
+  "fields": {
+    "material": 4,
+    "tipo": "entrada",
+    "cantidad": 1000,
+    "motivo": "Carga inicial de inventario - Seeding",
+    "referencia_id": 0,
+    "usuario": null,
+    "fecha": "2026-04-23T04:45:21.094Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 4,
+  "fields": {
+    "material": 5,
+    "tipo": "entrada",
+    "cantidad": 1000,
+    "motivo": "Carga inicial de inventario - Seeding",
+    "referencia_id": 0,
+    "usuario": null,
+    "fecha": "2026-04-23T04:45:21.249Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 5,
+  "fields": {
+    "material": 6,
+    "tipo": "entrada",
+    "cantidad": 1000,
+    "motivo": "Carga inicial de inventario - Seeding",
+    "referencia_id": 0,
+    "usuario": null,
+    "fecha": "2026-04-23T04:45:21.397Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 6,
+  "fields": {
+    "material": 7,
+    "tipo": "entrada",
+    "cantidad": 1000,
+    "motivo": "Carga inicial de inventario - Seeding",
+    "referencia_id": 0,
+    "usuario": null,
+    "fecha": "2026-04-23T04:45:21.560Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 7,
+  "fields": {
+    "material": 8,
+    "tipo": "entrada",
+    "cantidad": 1000,
+    "motivo": "Carga inicial de inventario - Seeding",
+    "referencia_id": 0,
+    "usuario": null,
+    "fecha": "2026-04-23T04:45:21.698Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 8,
+  "fields": {
+    "material": 4,
+    "tipo": "entrada",
+    "cantidad": 1000,
+    "motivo": "Carga inicial de inventario - Seeding",
+    "referencia_id": 0,
+    "usuario": null,
+    "fecha": "2026-04-23T04:45:32.051Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 9,
+  "fields": {
+    "material": 5,
+    "tipo": "entrada",
+    "cantidad": 1000,
+    "motivo": "Carga inicial de inventario - Seeding",
+    "referencia_id": 0,
+    "usuario": null,
+    "fecha": "2026-04-23T04:45:32.062Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 10,
+  "fields": {
+    "material": 6,
+    "tipo": "entrada",
+    "cantidad": 1000,
+    "motivo": "Carga inicial de inventario - Seeding",
+    "referencia_id": 0,
+    "usuario": null,
+    "fecha": "2026-04-23T04:45:32.075Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 11,
+  "fields": {
+    "material": 7,
+    "tipo": "entrada",
+    "cantidad": 1000,
+    "motivo": "Carga inicial de inventario - Seeding",
+    "referencia_id": 0,
+    "usuario": null,
+    "fecha": "2026-04-23T04:45:32.085Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 12,
+  "fields": {
+    "material": 8,
+    "tipo": "entrada",
+    "cantidad": 1000,
+    "motivo": "Carga inicial de inventario - Seeding",
+    "referencia_id": 0,
+    "usuario": null,
+    "fecha": "2026-04-23T04:45:32.096Z"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 1,
+  "fields": {
+    "cliente": 1,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Calle 100 # 15-20, Bogotá",
+    "fecha": "2026-04-23T04:00:07.365Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": "2026-04-23T04:00:07.364Z",
+    "estado": "entregado",
+    "precio": "1794500.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 2,
+  "fields": {
+    "cliente": 1,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Calle 100 # 15-20, Bogotá",
+    "fecha": "2026-04-23T04:03:56.351Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": "2026-04-23T04:03:56.348Z",
+    "estado": "entregado",
+    "precio": "1794500.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 3,
+  "fields": {
+    "cliente": 2,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:30:44.867Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 4,
+  "fields": {
+    "cliente": 3,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:30:48.696Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 5,
+  "fields": {
+    "cliente": 2,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:30:56.978Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 6,
+  "fields": {
+    "cliente": 3,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:30:57.039Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 7,
+  "fields": {
+    "cliente": 2,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:31:15.093Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 8,
+  "fields": {
+    "cliente": 3,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:31:15.981Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 9,
+  "fields": {
+    "cliente": 2,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:31:26.664Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 10,
+  "fields": {
+    "cliente": 3,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:31:26.726Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 11,
+  "fields": {
+    "cliente": 2,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:44:40.369Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 12,
+  "fields": {
+    "cliente": 3,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:44:41.125Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 13,
+  "fields": {
+    "cliente": 2,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:44:49.250Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 14,
+  "fields": {
+    "cliente": 3,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:44:49.314Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 15,
+  "fields": {
+    "cliente": 2,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:45:17.744Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 16,
+  "fields": {
+    "cliente": 2,
+    "conductor": 2,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Edificio Sur - Carrera 7",
+    "fecha": "2026-04-23T04:45:18.378Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": "2026-04-23T04:45:18.880Z",
+    "estado": "entregado",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 17,
+  "fields": {
+    "cliente": 3,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:45:19.602Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 18,
+  "fields": {
+    "cliente": 3,
+    "conductor": 2,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Edificio Sur - Carrera 7",
+    "fecha": "2026-04-23T04:45:20.230Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": "2026-04-23T04:45:20.668Z",
+    "estado": "entregado",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 19,
+  "fields": {
+    "cliente": 2,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:45:31.802Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 20,
+  "fields": {
+    "cliente": 2,
+    "conductor": 2,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Edificio Sur - Carrera 7",
+    "fecha": "2026-04-23T04:45:31.848Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": "2026-04-23T04:45:31.904Z",
+    "estado": "entregado",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 21,
+  "fields": {
+    "cliente": 3,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Obra Norte - Calle 170",
+    "fecha": "2026-04-23T04:45:31.945Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.orden",
+  "pk": 22,
+  "fields": {
+    "cliente": 3,
+    "conductor": 2,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "Edificio Sur - Carrera 7",
+    "fecha": "2026-04-23T04:45:31.981Z",
+    "fecha_entrega_programada": null,
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": "2026-04-23T04:45:32.022Z",
+    "estado": "entregado",
+    "precio": "3175000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 1,
+  "fields": {
+    "orden": 1,
+    "material": 1,
+    "cantidad": 17,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 2,
+  "fields": {
+    "orden": 1,
+    "material": 2,
+    "cantidad": 10,
+    "precio_unitario": "85000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 3,
+  "fields": {
+    "orden": 1,
+    "material": 3,
+    "cantidad": 5,
+    "precio_unitario": "92000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 4,
+  "fields": {
+    "orden": 2,
+    "material": 1,
+    "cantidad": 17,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 5,
+  "fields": {
+    "orden": 2,
+    "material": 2,
+    "cantidad": 10,
+    "precio_unitario": "85000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 6,
+  "fields": {
+    "orden": 2,
+    "material": 3,
+    "cantidad": 5,
+    "precio_unitario": "92000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 7,
+  "fields": {
+    "orden": 3,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 8,
+  "fields": {
+    "orden": 3,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 9,
+  "fields": {
+    "orden": 4,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 10,
+  "fields": {
+    "orden": 4,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 11,
+  "fields": {
+    "orden": 5,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 12,
+  "fields": {
+    "orden": 5,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 13,
+  "fields": {
+    "orden": 6,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 14,
+  "fields": {
+    "orden": 6,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 15,
+  "fields": {
+    "orden": 7,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 16,
+  "fields": {
+    "orden": 7,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 17,
+  "fields": {
+    "orden": 8,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 18,
+  "fields": {
+    "orden": 8,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 19,
+  "fields": {
+    "orden": 9,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 20,
+  "fields": {
+    "orden": 9,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 21,
+  "fields": {
+    "orden": 10,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 22,
+  "fields": {
+    "orden": 10,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 23,
+  "fields": {
+    "orden": 11,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 24,
+  "fields": {
+    "orden": 11,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 25,
+  "fields": {
+    "orden": 12,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 26,
+  "fields": {
+    "orden": 12,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 27,
+  "fields": {
+    "orden": 13,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 28,
+  "fields": {
+    "orden": 13,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 29,
+  "fields": {
+    "orden": 14,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 30,
+  "fields": {
+    "orden": 14,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 31,
+  "fields": {
+    "orden": 15,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 32,
+  "fields": {
+    "orden": 15,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 33,
+  "fields": {
+    "orden": 16,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 34,
+  "fields": {
+    "orden": 16,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 35,
+  "fields": {
+    "orden": 17,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 36,
+  "fields": {
+    "orden": 17,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 37,
+  "fields": {
+    "orden": 18,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 38,
+  "fields": {
+    "orden": 18,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 39,
+  "fields": {
+    "orden": 19,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 40,
+  "fields": {
+    "orden": 19,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 41,
+  "fields": {
+    "orden": 20,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 42,
+  "fields": {
+    "orden": 20,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 43,
+  "fields": {
+    "orden": 21,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 44,
+  "fields": {
+    "orden": 21,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 45,
+  "fields": {
+    "orden": 22,
+    "material": 4,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 46,
+  "fields": {
+    "orden": 22,
+    "material": 5,
+    "cantidad": 50,
+    "precio_unitario": "35000.00"
+  }
+},
+{
+  "model": "facturacion.factura",
+  "pk": 1,
+  "fields": {
+    "numero": "F-000001",
+    "orden": 1,
+    "cliente": 1,
+    "fecha_emision": "2026-04-23T04:00:07.374Z",
+    "subtotal": "0.00",
+    "iva": "0.00",
+    "total": "0.00",
+    "estado": "pendiente"
+  }
+},
+{
+  "model": "facturacion.factura",
+  "pk": 2,
+  "fields": {
+    "numero": "F-000002",
+    "orden": 2,
+    "cliente": 1,
+    "fecha_emision": "2026-04-23T04:03:56.371Z",
+    "subtotal": "0.00",
+    "iva": "0.00",
+    "total": "0.00",
+    "estado": "pendiente"
+  }
+},
+{
+  "model": "facturacion.factura",
+  "pk": 3,
+  "fields": {
+    "numero": "F-000016",
+    "orden": 16,
+    "cliente": 6,
+    "fecha_emision": "2026-04-23T04:45:18.532Z",
+    "subtotal": "0.00",
+    "iva": "0.00",
+    "total": "0.00",
+    "estado": "pendiente"
+  }
+},
+{
+  "model": "facturacion.factura",
+  "pk": 4,
+  "fields": {
+    "numero": "F-000018",
+    "orden": 18,
+    "cliente": 7,
+    "fecha_emision": "2026-04-23T04:45:20.368Z",
+    "subtotal": "0.00",
+    "iva": "0.00",
+    "total": "0.00",
+    "estado": "pendiente"
+  }
+},
+{
+  "model": "facturacion.factura",
+  "pk": 5,
+  "fields": {
+    "numero": "F-000020",
+    "orden": 20,
+    "cliente": 6,
+    "fecha_emision": "2026-04-23T04:45:31.868Z",
+    "subtotal": "0.00",
+    "iva": "0.00",
+    "total": "0.00",
+    "estado": "pendiente"
+  }
+},
+{
+  "model": "facturacion.factura",
+  "pk": 6,
+  "fields": {
+    "numero": "F-000022",
+    "orden": 22,
+    "cliente": 7,
+    "fecha_emision": "2026-04-23T04:45:31.995Z",
+    "subtotal": "0.00",
+    "iva": "0.00",
+    "total": "0.00",
+    "estado": "pendiente"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 1,
+  "fields": {
+    "usuario": 4,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "4",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-23T04:19:21.019Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 2,
+  "fields": {
+    "usuario": 4,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "4",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-23T04:19:51.608Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 3,
+  "fields": {
+    "usuario": 4,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "4",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-23T04:22:07.647Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 4,
+  "fields": {
+    "usuario": 4,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "4",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-23T04:27:56.154Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 5,
+  "fields": {
+    "usuario": 4,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "4",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-23T04:32:35.873Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 6,
+  "fields": {
+    "usuario": 4,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "4",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-23T04:43:52.359Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 7,
+  "fields": {
+    "usuario": 4,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "4",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-23T04:47:15.165Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 8,
+  "fields": {
+    "usuario": 4,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "4",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-23T05:07:44.468Z",
+    "ip_address": "127.0.0.1"
+  }
+}
+]

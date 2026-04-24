@@ -1,0 +1,100 @@
+<header class="navbar-premium d-flex justify-content-between align-items-center p-4" 
+        style="background: var(--color-bg); border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 900;">
+    {% load static gravatar %}
+    <div>
+        <h2 class="h4 fw-bold m-0 text-white" style="letter-spacing: -0.5px;">
+            Panel de Control
+        </h2>
+        <p class="text-muted small mb-0">Bienvenido de nuevo, ¡qué bueno verte!</p>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+        <!-- Notificaciones -->
+        <div class="dropdown">
+            <button class="btn btn-dark-premium rounded-circle p-2 position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-bell text-white fs-5 opacity-75"></i>
+                {% if notif_unread_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger p-1" style="font-size: 0.5rem;">
+                    {{ notif_unread_count }}
+                </span>
+                {% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-2" style="width: 300px; max-height: 400px; overflow-y: auto;">
+                <li class="px-3 py-2 border-bottom border-white-5">
+                    <h6 class="mb-0 fw-bold">Notificaciones</h6>
+                </li>
+                {% for notif in notif_recent %}
+                <li>
+                    <a class="dropdown-item rounded-2 p-3 {% if not notif.leida %}bg-primary-subtle{% endif %}" href="{% url 'usuarios:marcar_notificacion_leida' notif.id %}">
+                        <div class="d-flex gap-2">
+                            <div class="flex-shrink-0">
+                                <i class="bi {% if notif.tipo == 'info' %}bi-info-circle text-info{% elif notif.tipo == 'success' %}bi-check-circle text-success{% elif notif.tipo == 'warning' %}bi-exclamation-triangle text-warning{% else %}bi-bell text-primary{% endif %} fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="small mb-1 fw-bold text-white">{{ notif.titulo }}</p>
+                                <p class="small mb-1 text-muted" style="font-size: 0.75rem;">{{ notif.mensaje }}</p>
+                                <span class="small text-muted" style="font-size: 0.65rem;">{{ notif.fecha|timesince }}</span>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                {% empty %}
+                <li class="px-3 py-4 text-center text-muted">
+                    <i class="bi bi-bell-slash fs-2 d-block mb-2"></i>
+                    <span class="small">No tienes notificaciones</span>
+                </li>
+                {% endfor %}
+                <li class="border-top border-white-5 pt-2">
+                    <a class="dropdown-item text-center small text-primary fw-bold" href="{% url 'usuarios:notificaciones' %}">Ver todas</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Accesibilidad -->
+        <div class="dropdown">
+            <button class="btn btn-dark-premium rounded-pill px-3 py-2 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-eye"></i>
+                <span class="small fw-bold">Accesibilidad</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-white-5 p-2">
+                <li><a class="dropdown-item rounded-2" href="#" onclick="setTheme('light')">Modo Claro</a></li>
+                <li><a class="dropdown-item rounded-2" href="#" onclick="setTheme('dark')">Modo Oscuro</a></li>
+                <li><a class="dropdown-item rounded-2" href="#" onclick="setTheme('accessibility')">Alto Contraste</a></li>
+            </ul>
+        </div>
+
+        <div class="vr opacity-10 mx-2"></div>
+
+        <div class="text-end d-none d-md-block">
+            <p class="small text-white fw-bold mb-0">{{ user.usuario.nombres|default:user.username }}</p>
+            <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; letter-spacing: 1px;">{{ user.usuario.get_rol_display|upper|default:"ADMIN" }}</span>
+        </div>
+
+        <div class="avatar-container">
+            {% if user.usuario.foto_perfil %}
+                <img src="{{ user.usuario.foto_perfil.url }}" class="rounded-circle" width="45" height="45" alt="Avatar">
+            {% else %}
+                <img src="{{ user.email|gravatar_url:45 }}" class="rounded-circle" width="45" height="45" alt="Avatar">
+            {% endif %}
+        </div>
+    </div>
+
+    <style>
+        .btn-dark-premium {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .btn-dark-premium:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--color-primary);
+        }
+        .border-white-5 { border-color: rgba(255,255,255,0.05) !important; }
+        .avatar-container img {
+            border: 2px solid var(--color-primary);
+            padding: 2px;
+            background: var(--color-bg);
+        }
+    </style>
+</header>

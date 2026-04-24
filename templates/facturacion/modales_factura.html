@@ -1,0 +1,77 @@
+<!-- Modal Registrar Pago -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-white-10 shadow-lg" style="border-radius: 20px; backdrop-filter: blur(20px);">
+            <div class="modal-header border-white-5 p-4">
+                <h5 class="modal-title text-white fw-bold">
+                    <i class="bi bi-cash-stack text-accent me-2"></i>Registrar Pago - <span id="modalFacturaNum"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formPago" action="{% url 'facturacion:registrar_pago' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="factura_id" id="modalFacturaId">
+                <div class="modal-body p-4 text-white">
+                    <div class="mb-4 text-center">
+                        <div class="text-white-50 small text-uppercase fw-bold mb-2">Total Pendiente</div>
+                        <h2 class="text-accent fw-bold" id="displayMonto"></h2>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Monto a pagar</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark-premium border-white-10 text-white">$</span>
+                            <input type="number" name="monto" id="modalMonto" step="0.01" class="form-control bg-dark-premium border-white-10 text-white" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Método de Pago</label>
+                        <select name="metodo" class="form-select bg-dark-premium border-white-10 text-white" required>
+                            {% for val, label in metodos_pago %}
+                                <option value="{{ val }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Referencia (Opcional)</label>
+                        <input type="text" name="referencia" class="form-control bg-dark-premium border-white-10 text-white" placeholder="N° comprobante, transferencia, etc.">
+                    </div>
+                </div>
+                <div class="modal-footer border-white-5 p-4">
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-premium btn-premium-gold rounded-pill px-4">Confirmar Pago</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Monto -->
+<div class="modal fade" id="modalEditar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-white-10 shadow-lg" style="border-radius: 20px; backdrop-filter: blur(20px);">
+            <div class="modal-header border-white-5 p-4">
+                <h5 class="modal-title text-white fw-bold">
+                    <i class="bi bi-pencil text-primary me-2"></i>Editar Monto Factura <span id="modalEditarNum" class="text-primary"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formEditar" method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="factura_id" id="modalEditarId">
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold mb-3">Nuevo Monto Total</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark-premium border-white-10 text-white">$</span>
+                            <input type="number" name="monto" id="modalEditarMonto" step="0.01" class="form-control bg-dark-premium border-white-10 text-white py-3" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-white-5 p-4">
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

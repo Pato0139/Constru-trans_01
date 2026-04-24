@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Seguimiento de Pedidos - Constru-trans{% endblock %}
+
+{% block header_title %}Estado de Mis Entregas{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+    {% for pedido in pedidos %}
+    <div class="col-md-6 col-lg-4">
+        <div class="table-container p-4 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="text-accent fw-800 small text-uppercase mb-1 d-block">Pedido #CT-{{ pedido.id }}</span>
+                    <h5 class="fw-800 text-white mb-0">{{ pedido.material.nombre|default:"Pedido de Materiales" }}</h5>
+                </div>
+                {% if pedido.estado == "pendiente" %}
+                <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                {% elif pedido.estado == "en_ruta" %}
+                <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">En ruta</span>
+                {% elif pedido.estado == "entregado" %}
+                <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Entregado</span>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="small text-muted">Progreso de entrega</span>
+                    <span class="small fw-700 text-white">
+                        {% if pedido.estado == 'pendiente' %}25%{% elif pedido.estado == 'en_ruta' %}75%{% elif pedido.estado == 'entregado' %}100%{% endif %}
+                    </span>
+                </div>
+                <div class="progress" style="height: 6px; background: rgba(255,255,255,0.05);">
+                    <div class="progress-bar {% if pedido.estado == 'pendiente' %}bg-warning{% elif pedido.estado == 'en_ruta' %}bg-info{% elif pedido.estado == 'entregado' %}bg-success{% endif %}" 
+                         role="progressbar" 
+                         style="width: {% if pedido.estado == 'pendiente' %}25%{% elif pedido.estado == 'en_ruta' %}75%{% elif pedido.estado == 'entregado' %}100%{% endif %}; transition: width 1s ease-in-out;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-auto pt-3 border-top border-secondary">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-geo-alt text-accent"></i>
+                    <span class="small text-muted">{{ pedido.direccion_destino|truncatechars:35 }}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar-event text-accent"></i>
+                    <span class="small text-muted">Fecha: {{ pedido.fecha|date:"d M, Y" }}</span>
+                </div>
+            </div>
+            
+            <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn btn-outline-light btn-sm w-100 mt-4 rounded-pill">
+                Ver detalles completos
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="table-container p-5 text-center">
+            <i class="bi bi-search text-muted fs-1 mb-3 d-block"></i>
+            <h5 class="text-white">No tienes pedidos activos</h5>
+            <p class="text-muted">Cuando realices un pedido, aparecerá aquí para su seguimiento.</p>
+            <a href="{% url 'clientes:crear_pedido' %}" class="btn btn-gold px-4 mt-3">Solicitar mi primer pedido</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .fw-800 { font-weight: 800; }
+    .text-accent { color: var(--color-accent) !important; }
+</style>
+
+{% endblock %}

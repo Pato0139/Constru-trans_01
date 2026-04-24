@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% load static humanize currency_tags %}
+
+{% block title %}Análisis del Sistema - ConstruTrans{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Encabezado -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+        <div>
+            <h2 class="fw-bold text-white mb-1">
+                <i class="bi bi-graph-up-arrow text-accent me-2"></i>Análisis del Sistema
+            </h2>
+            <p class="text-white-50 small mb-0">Panel de control para generar y consultar reportes detallados.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'historial:lista_historial' %}" class="btn btn-outline-warning rounded-pill px-4 btn-sm d-flex align-items-center gap-2">
+                <i class="bi bi-clock-history"></i> HISTORIAL DE REPORTES
+            </a>
+            <div class="btn btn-dark-premium rounded-pill px-3 py-1 d-flex align-items-center gap-2 border-white-10">
+                <i class="bi bi-calendar3 text-accent"></i>
+                <span class="small text-white-50">{{ now|date:"d/m/Y" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Resumen (Órdenes) -->
+    <div class="row g-4 mb-5" data-aos="fade-up">
+        <div class="col-md-3">
+            <div class="stats-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <p class="text-white-50 small text-uppercase fw-bold mb-1">Total Órdenes</p>
+                        <h2 class="fw-bold text-white mb-0">{{ total_ordenes }}</h2>
+                    </div>
+                    <div class="stats-icon bg-primary-subtle text-primary">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card p-4 h-100 border-start-orange">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <p class="text-white-50 small text-uppercase fw-bold mb-1">Pendientes</p>
+                        <h2 class="fw-bold text-white mb-0">{{ pendientes }}</h2>
+                    </div>
+                    <div class="stats-icon bg-warning-subtle text-warning">
+                        <i class="bi bi-clock"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card p-4 h-100 border-start-blue">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <p class="text-white-50 small text-uppercase fw-bold mb-1">En Ruta</p>
+                        <h2 class="fw-bold text-white mb-0">{{ en_ruta }}</h2>
+                    </div>
+                    <div class="stats-icon bg-info-subtle text-info">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card p-4 h-100 border-start-green">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <p class="text-white-50 small text-uppercase fw-bold mb-1">Entregadas</p>
+                        <h2 class="fw-bold text-white mb-0">{{ entregadas }}</h2>
+                    </div>
+                    <div class="stats-icon bg-success-subtle text-success">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección Exportar Reportes -->
+    <div class="mb-5" data-aos="fade-up" style="position: relative; z-index: 100;">
+        <h6 class="text-white-50 small text-uppercase fw-bold mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-arrow-down text-accent"></i> Exportar Reportes Detallados
+        </h6>
+        <div class="row g-3">
+            {% for tipo, label, icon in "clientes,CLIENTES,people-fill|materiales,MATERIALES,box-seam-fill|ventas,VENTAS,cash-stack|pedidos,PEDIDOS,cart-fill"|split_list %}
+            <div class="col-md-3">
+                <div class="dropdown">
+                    <button class="btn btn-dark-premium w-100 py-3 rounded-4 border-white-10 d-flex align-items-center justify-content-center gap-2 dropdown-toggle" 
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-{{ icon }} text-primary"></i>
+                        <span class="small fw-bold">{{ label }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-white-10 p-2">
+                        <li>
+                            <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" href="{% url 'reportes:exportar_reporte_pdf' tipo %}">
+                                <i class="bi bi-file-pdf text-danger"></i> Descargar PDF
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" href="#">
+                                <i class="bi bi-file-excel text-success"></i> Descargar Excel
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item rounded-2 py-2 d-flex align-items-center gap-2" href="#">
+                                <i class="bi bi-file-code text-warning"></i> Descargar XML
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Gráfico y Stock Crítico -->
+    <div class="row g-4 mb-5" data-aos="fade-up">
+        <div class="col-lg-6">
+            <div class="stats-card p-4 h-100">
+                <h6 class="text-white fw-bold mb-4">Distribución de Órdenes</h6>
+                <div style="height: 300px;" class="d-flex align-items-center justify-content-center">
+                    <canvas id="ordersChart"></canvas>
+                </div>
+                <div class="d-flex justify-content-center gap-4 mt-4">
+                    <div class="d-flex align-items-center gap-2 small">
+                        <span style="width: 12px; height: 12px; background: #f59e0b; border-radius: 2px;"></span>
+                        <span class="text-white-50">Pendientes</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 small">
+                        <span style="width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>
+                        <span class="text-white-50">En Ruta</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 small">
+                        <span style="width: 12px; height: 12px; background: #10b981; border-radius: 2px;"></span>
+                        <span class="text-white-50">Entregadas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="stats-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="text-white fw-bold mb-0">
+                        <i class="bi bi-exclamation-triangle text-danger me-2"></i> Stock Crítico (< 10)
+                    </h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted small fw-bold text-uppercase">
+                                <th class="border-0">Material</th>
+                                <th class="border-0">Tipo</th>
+                                <th class="border-0 text-end">Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in stock_critico %}
+                            <tr>
+                                <td class="border-0 text-white small">{{ item.nombre }}</td>
+                                <td class="border-0 text-white-50 small">{{ item.tipo }}</td>
+                                <td class="border-0 text-end fw-bold text-danger">{{ item.stock }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-5 text-white-50 small">
+                                    No hay materiales con stock crítico.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicadores de Rendimiento -->
+    <div data-aos="fade-up">
+        <h6 class="text-white fw-bold mb-4">Indicadores de Rendimiento</h6>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="stats-card p-3 d-flex align-items-center gap-3">
+                    <div class="stats-icon-small bg-primary-subtle text-primary">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div>
+                        <p class="text-white-50 small mb-0">Clientes</p>
+                        <h5 class="fw-bold text-white mb-0">{{ total_clientes }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card p-3 d-flex align-items-center gap-3">
+                    <div class="stats-icon-small bg-warning-subtle text-warning">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    <div>
+                        <p class="text-white-50 small mb-0">Conductores</p>
+                        <h5 class="fw-bold text-white mb-0">{{ total_conductores }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card p-3 d-flex align-items-center gap-3">
+                    <div class="stats-icon-small bg-info-subtle text-info">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div>
+                        <p class="text-white-50 small mb-0">Materiales</p>
+                        <h5 class="fw-bold text-white mb-0">{{ total_materiales }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card p-3 d-flex align-items-center gap-3">
+                    <div class="stats-icon-small bg-success-subtle text-success">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+                    <div>
+                        <p class="text-white-50 small mb-0">Ingresos Totales</p>
+                        <h5 class="fw-bold text-success mb-0">{{ total_ingresos|currency }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stats-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        transition: transform 0.3s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .stats-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .stats-icon-small {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .border-start-orange { border-left: 4px solid #f59e0b; }
+    .border-start-blue { border-left: 4px solid #3b82f6; }
+    .border-start-green { border-left: 4px solid #10b981; }
+    
+    .btn-dark-premium {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: #fff;
+        transition: all 0.3s ease;
+    }
+    .btn-dark-premium:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--color-primary);
+    }
+    .border-white-10 { border-color: rgba(255,255,255,0.1) !important; }
+
+    /* Estilo Premium para los dropdowns de reportes */
+    .dropdown-menu {
+        background: rgba(20, 20, 20, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .stats-card {
+        position: relative;
+        z-index: 5;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('ordersChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pendientes', 'En Ruta', 'Entregadas'],
+                datasets: [{
+                    data: [{{ pendientes }}, {{ en_ruta }}, {{ entregadas }}],
+                    backgroundColor: ['#f59e0b', '#3b82f6', '#10b981'],
+                    borderWidth: 0,
+                    cutout: '70%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

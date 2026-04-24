@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if action == 'crear' %}Solicitar Pedido{% else %}Editar Pedido{% endif %} - Constru-trans
+{% endblock %}
+
+{% block header_title %}
+    {% if action == 'crear' %}Nueva Solicitud de Servicio{% else %}Modificar Solicitud #CT-{{ orden.id }}{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="table-container p-4 p-md-5 border-0 shadow-lg" style="background: rgba(255,255,255,0.02); border-radius: 32px;">
+            <div class="text-center mb-5">
+                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 70px; height: 70px;">
+                    <i class="bi {% if action == 'crear' %}bi-cart-plus{% else %}bi-pencil-square{% endif %} text-dark fs-2"></i>
+                </div>
+                <h3 class="fw-900 text-white mb-2">
+                    {% if action == 'crear' %}Detalles del Pedido{% else %}Editar Detalles del Pedido{% endif %}
+                </h3>
+                <p class="text-muted small text-uppercase fw-700" style="letter-spacing: 2px;">
+                    {% if action == 'crear' %}Nueva Solicitud de Suministro{% else %}Modificación de pedido #CT-{{ orden.id }}{% endif %}
+                </p>
+            </div>
+
+            {% if error %}
+                <div class="alert alert-danger rounded-4 px-4 mb-4 border-0 shadow-sm animate__animated animate__shakeX" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error }}
+                </div>
+            {% endif %}
+
+            <form method="POST" id="form-pedido">
+                {% csrf_token %}
+
+                {% if action == 'crear' %}
+                <!-- SECCIÓN AGREGAR MATERIALES (SOLO CREAR) -->
+                <div class="mb-5 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                    <label class="form-label fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">1. Selección de Materiales</label>
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <select id="select-material" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;">
+                                <option value="" data-precio="0">Seleccione un material...</option>
+                                {% for m in materiales %}
+                                    <option value="{{ m.id }}" data-precio="{{ m.precio }}">{{ m.nombre }} - ${{ m.precio|floatformat:0 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" id="input-cantidad" class="form-control rounded-pill border-0 px-4 py-2" placeholder="Cant." min="1" value="1" style="background: rgba(255,255,255,0.05) !important;">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-gold rounded-pill w-100 py-2 h-100" onclick="agregarMaterial()">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TABLA DE MATERIALES AGREGADOS -->
+                    <div class="table-responsive mt-4">
+                        <table class="table table-hover align-middle no-datatable" id="tabla-materiales">
+                            <thead>
+                                <tr class="text-muted small border-bottom border-white-10">
+                                    <th class="ps-0 py-3">Material</th>
+                                    <th class="text-center py-3">Cant.</th>
+                                    <th class="text-end py-3">Subtotal</th>
+                                    <th class="text-end pe-0 py-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-detalles">
+                                <!-- Aquí se agregarán los materiales dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% else %}
+                <!-- SECCIÓN EDITAR MATERIAL (SOLO EDITAR) -->
+                <div class="mb-5 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                    <label class="form-label fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Material del Pedido</label>
+                    <div class="row g-4">
+                        <div class="col-md-8">
+                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Material Seleccionado</label>
+                            <select name="material_id[]" id="select-material-edit" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" required onchange="calcularTotalEdit()">
+                                {% for m in materiales %}
+                                    <option value="{{ m.id }}" data-precio="{{ m.precio }}" {% if m.id == orden.detalles.first.material.id %}selected{% endif %}>
+                                        {{ m.nombre }} - ${{ m.precio|floatformat:0 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Cantidad</label>
+                            <input type="number" name="cantidad[]" id="input-cantidad-edit" value="{{ orden.detalles.first.cantidad }}" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" required oninput="calcularTotalEdit()" min="1">
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="p-4 rounded-4 mb-5 shadow-sm" style="background: rgba(243, 156, 18, 0.08); border: 1px solid rgba(243, 156, 18, 0.15);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-800 text-muted small text-uppercase" style="letter-spacing: 1px;">Total Estimado del Pedido:</span>
+                        <h3 class="mb-0 fw-900 text-accent" id="display-total" style="font-size: 2rem; letter-spacing: -1px;">{% if action == 'editar' %}${{ orden.precio|floatformat:0 }}{% else %}$0{% endif %}</h3>
+                    </div>
+                </div>
+
+                <!-- DETALLES DE ENTREGA -->
+                <div class="mb-5 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                    <label class="form-label fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">2. Detalles Logísticos</label>
+                    <div class="row g-4">
+                        <div class="col-md-12">
+                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Dirección de destino</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" name="direccion" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" placeholder="Ej: Calle Principal #123, Barrio Norte" value="{{ orden.direccion_destino|default:'' }}" required>
+                            </div>
+                        </div>
+                        {% if action == 'crear' %}
+                        <div class="col-md-12">
+                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Fecha y Hora Programada</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-calendar-event"></i></span>
+                                <input type="datetime-local" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" required>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-grid gap-3 mt-4">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">
+                        <i class="bi bi-check2-all me-2"></i> {% if action == 'crear' %}Confirmar y Enviar Pedido{% else %}Guardar Cambios{% endif %}
+                    </button>
+                    <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light rounded-pill py-2 opacity-75 hover-opacity-100">
+                        <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let totalGeneral = 0;
+
+function agregarMaterial() {
+    const select = document.getElementById('select-material');
+    const cantidadInput = document.getElementById('input-cantidad');
+    const lista = document.getElementById('lista-detalles');
+    
+    const materialId = select.value;
+    const materialNombre = select.options[select.selectedIndex].text;
+    const precio = parseFloat(select.options[select.selectedIndex].getAttribute('data-precio'));
+    const cantidad = parseInt(cantidadInput.value);
+
+    if (!materialId || cantidad <= 0) {
+        alert("Seleccione un material y una cantidad válida");
+        return;
+    }
+
+    const subtotal = precio * cantidad;
+    totalGeneral += subtotal;
+
+    const row = document.createElement('tr');
+    row.className = 'material-item';
+    row.innerHTML = `
+        <td class="ps-0 py-3">
+            <span class="text-white fw-600">${materialNombre}</span>
+            <input type="hidden" name="material_id[]" value="${materialId}">
+        </td>
+        <td class="text-center text-white-50 py-3">
+            <span class="badge rounded-pill px-3" style="background-color: #FF8C00 !important; color: #000000 !important; font-weight: 800;">${cantidad}</span>
+            <input type="hidden" name="cantidad[]" value="${cantidad}">
+        </td>
+        <td class="text-end text-accent fw-800 py-3">$${subtotal.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+        <td class="text-end pe-0 py-3">
+            <button type="button" class="btn btn-link text-danger p-0" onclick="eliminarFila(this, ${subtotal})">
+                <i class="bi bi-trash3-fill"></i>
+            </button>
+        </td>
+    `;
+    
+    lista.appendChild(row);
+    actualizarTotalDisplay();
+    
+    // Reset inputs
+    select.value = "";
+    cantidadInput.value = 1;
+}
+
+function eliminarFila(btn, subtotal) {
+    btn.closest('tr').remove();
+    totalGeneral -= subtotal;
+    actualizarTotalDisplay();
+}
+
+function actualizarTotalDisplay() {
+    document.getElementById('display-total').innerText = '$' + totalGeneral.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+}
+
+function calcularTotalEdit() {
+    const select = document.getElementById('select-material-edit');
+    const cantidadInput = document.getElementById('input-cantidad-edit');
+    const display = document.getElementById('display-total');
+    
+    const precio = parseFloat(select.options[select.selectedIndex].getAttribute('data-precio')) || 0;
+    let cantidad = parseInt(cantidadInput.value) || 0;
+    
+    const total = precio * cantidad;
+    display.innerText = '$' + total.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+}
+</script>
+
+<style>
+    .fw-900 { font-weight: 900; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+    .text-accent { color: var(--color-accent) !important; }
+    .bg-accent { background-color: var(--color-accent) !important; }
+    .border-white-10 { border-color: rgba(255,255,255,0.1) !important; }
+
+    .form-control, .form-select {
+        background: rgba(255,255,255,0.03) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        padding: 12px 20px !important;
+        color: white !important;
+        border-radius: 12px !important;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--color-accent) !important;
+        box-shadow: 0 0 15px rgba(243, 156, 18, 0.1) !important;
+        background: rgba(255,255,255,0.05) !important;
+    }
+
+    .btn-gold {
+        background: var(--color-accent);
+        color: #000;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-gold:hover {
+        background: #d68910;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(243, 156, 18, 0.3);
+    }
+
+    .hover-opacity-100:hover {
+        opacity: 1 !important;
+    }
+
+    .material-item {
+        transition: all 0.2s ease;
+    }
+    .material-item:hover {
+        background: rgba(255,255,255,0.02);
+    }
+</style>
+
+{% endblock %}

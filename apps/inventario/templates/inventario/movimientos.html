@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Movimientos de Inventario - ConstruTrans{% endblock %}
+
+{% block content %}
+
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <h2 class="fw-bold text-white mb-0">Movimientos de Inventario</h2>
+    <button class="btn btn-warning px-4 fw-bold text-dark" style="border-radius: var(--radius-lg); background-color: var(--color-accent); border: none;" data-bs-toggle="modal" data-bs-target="#modalEntrada">
+        <i class="bi bi-plus-lg me-2"></i> Registrar Entrada
+    </button>
+</div>
+
+<div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
+    <div class="table-responsive">
+        <table class="table table-dark mb-0">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <th class="p-4 text-muted small fw-bold">Fecha</th>
+                    <th class="p-4 text-muted small fw-bold">Material</th>
+                    <th class="p-4 text-muted small fw-bold">Tipo</th>
+                    <th class="p-4 text-muted small fw-bold">Cantidad</th>
+                    <th class="p-4 text-muted small fw-bold">Motivo</th>
+                    <th class="p-4 text-muted small fw-bold">Usuario</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in movimientos %}
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <td class="p-4 text-muted small">{{ m.fecha|date:"d/m/Y H:i" }}</td>
+                    <td class="p-4 fw-bold">{{ m.material.nombre }}</td>
+                    <td class="p-4">
+                        {% if m.tipo == 'entrada' %}
+                            <span class="badge bg-success-subtle text-success px-3">
+                                <i class="bi bi-arrow-down-left me-1"></i>Entrada
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger px-3">
+                                <i class="bi bi-arrow-up-right me-1"></i>Salida
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 fw-bold {% if m.tipo == 'entrada' %}text-success{% else %}text-danger{% endif %}">
+                        {% if m.tipo == 'entrada' %}+{% else %}-{% endif %}{{ m.cantidad }}
+                    </td>
+                    <td class="p-4 text-muted">{{ m.motivo }}</td>
+                    <td class="p-4 small">
+                        {% if m.usuario %}
+                            {{ m.usuario.username }}
+                        {% else %}
+                            <span class="text-muted italic">Sistema</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-arrow-left-right mb-3 d-block" style="font-size: 3rem; opacity: 0.3;"></i>
+                        No hay movimientos registrados en el sistema
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Registrar Entrada -->
+<div class="modal fade" id="modalEntrada" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold">Registrar Entrada de Material</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formEntrada">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Seleccionar Material</label>
+                        <select name="material_id" class="form-select bg-black border-secondary text-white" required>
+                            <option value="">Elegir material...</option>
+                            {% for mat in materiales %}
+                            <option value="{{ mat.id }}">{{ mat.nombre }} ({{ mat.tipo }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Cantidad</label>
+                        <input type="number" name="cantidad" class="form-control bg-black border-secondary text-white" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Motivo / Referencia</label>
+                        <textarea name="motivo" class="form-control bg-black border-secondary text-white" rows="2" placeholder="Ej: Compra a proveedor X, Devolución..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning px-4 fw-bold text-dark" style="background-color: var(--color-accent); border: none;">
+                        GUARDAR ENTRADA
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('formEntrada').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('{% url "inventario:registrar_entrada" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            location.reload();
+        } else {
+            alert(data.error || 'Error al registrar la entrada');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ocurrió un error inesperado');
+    });
+});
+</script>
+
+{% endblock %}

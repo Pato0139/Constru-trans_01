@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% load humanize currency_tags %}
+
+{% block title %}Mis Facturas - Constru-trans{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+        <div>
+            <h2 class="fw-bold text-white mb-1">
+                <i class="bi bi-wallet2 text-accent me-2"></i>Mis Facturas
+            </h2>
+            <p class="text-white-50 small mb-0">Consulta tus cuentas y realiza pagos en línea</p>
+        </div>
+    </div>
+
+    <div class="table-container p-0" data-aos="fade-up">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-white">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Nº Factura</th>
+                        <th>Fecha Emisión</th>
+                        <th class="text-end">Total</th>
+                        <th class="text-end">Pagado</th>
+                        <th class="text-end">Por Pagar</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Historial</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for factura in facturas %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-accent">{{ factura.numero }}</td>
+                        <td class="text-white-50 small">{{ factura.fecha_emision|date:"d/m/Y H:i" }}</td>
+                        <td class="text-end text-white-50">{{ factura.total|currency }}</td>
+                        <td class="text-end text-success-emphasis">{{ factura.total_pagado|currency }}</td>
+                        <td class="text-end fw-bold text-accent">{{ factura.saldo_pendiente|currency }}</td>
+                        <td class="text-center">
+                            {% if factura.estado == 'pendiente' %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle px-3">Pendiente</span>
+                            {% elif factura.estado == 'pagada' %}
+                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3">Pagada</span>
+                            {% else %}
+                            <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3">Anulada</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-info rounded-pill px-3" 
+                                    onclick="verHistorial('{{ factura.numero }}', '{{ factura.id }}')">
+                                <i class="bi bi-list-check me-1"></i> Ver Pagos
+                            </button>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                {% if factura.estado == 'pendiente' %}
+                                <button class="btn btn-premium btn-premium-gold btn-sm px-3" 
+                                        onclick="abrirModalPago('{{ factura.id }}', '{{ factura.numero }}', '{{ factura.saldo_pendiente }}')">
+                                    <i class="bi bi-credit-card me-1"></i> Pagar Ahora
+                                </button>
+                                {% endif %}
+                                <a href="{% url 'ordenes:descargar_factura' factura.orden.id %}" class="btn-action" title="Ver PDF" target="_blank">
+                                    <i class="bi bi-file-pdf"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-white-50">No tienes facturas registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Pago Cliente -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-white-10 shadow-2xl">
+            <div class="modal-header border-white-10">
+                <h5 class="modal-title text-white fw-bold">
+                    <i class="bi bi-cash-stack text-accent me-2"></i>Realizar Pago - <span id="modalFacturaNum"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formPago" action="{% url 'facturacion:registrar_pago' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="factura_id" id="modalFacturaId">
+                <div class="modal-body p-4">
+                    <div class="mb-4 text-center">
+                        <div class="text-white-50 small text-uppercase fw-bold mb-2">Total a Pagar</div>
+                        <h2 class="text-accent fw-bold" id="displayMonto"></h2>
+                        <input type="hidden" name="monto" id="modalMonto">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Método de Pago</label>
+                        <div class="row g-2">
+                            {% for val, label in metodos_pago %}
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="metodo" id="metodo_{{ val }}" value="{{ val }}" required>
+                                <label class="btn btn-outline-light w-100 py-3 rounded-4" for="metodo_{{ val }}">
+                                    <i class="bi bi-{% if val == 'efectivo' %}cash{% elif val == 'transferencia' %}bank{% elif val == 'tarjeta' %}credit-card{% else %}phone{% endif %} d-block mb-1 fs-4"></i>
+                                    {{ label }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Referencia (Opcional)</label>
+                        <input type="text" name="referencia" class="form-control bg-dark border-white-10 text-white rounded-4" placeholder="Ej: Nº de transferencia, recibo, etc.">
+                    </div>
+                    
+                    <div class="alert alert-info bg-info-subtle border-0 text-info small rounded-4 mb-0">
+                        <i class="bi bi-info-circle me-2"></i> Al confirmar, el administrador recibirá una notificación de tu pago.
+                    </div>
+                </div>
+                <div class="modal-footer border-white-10 p-4">
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-premium btn-premium-gold px-4">Confirmar y Pagar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Historial de Pagos -->
+<div class="modal fade" id="modalHistorial" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-surface border-white-10 shadow-2xl">
+            <div class="modal-header border-white-10">
+                <h5 class="modal-title text-white fw-bold">
+                    <i class="bi bi-clock-history text-accent me-2"></i>Mi Historial de Pagos - <span id="historialFacturaNum"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-white">
+                        <thead class="bg-dark">
+                            <tr>
+                                <th class="ps-4">Fecha</th>
+                                <th>Método</th>
+                                <th>Referencia</th>
+                                <th class="text-end pe-4">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaPagos">
+                            <!-- Se llena vía JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Datos de pagos en formato JSON para el historial
+const pagosData = {
+    {% for factura in facturas %}
+    "{{ factura.id }}": [
+        {% for pago in factura.pagos.all %}
+        {
+            "fecha": "{{ pago.fecha|date:'d/m/Y H:i' }}",
+            "metodo": "{{ pago.get_metodo_display }}",
+            "referencia": "{{ pago.referencia|default:'-' }}",
+            "monto": "{{ pago.monto|currency }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]{% if not forloop.last %},{% endif %}
+    {% endfor %}
+};
+
+function verHistorial(numero, id) {
+    document.getElementById('historialFacturaNum').innerText = numero;
+    const lista = document.getElementById('listaPagos');
+    lista.innerHTML = '';
+    
+    const pagos = pagosData[id] || [];
+    
+    if (pagos.length === 0) {
+        lista.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-white-50">Aún no has realizado pagos para esta factura.</td></tr>';
+    } else {
+        pagos.forEach(p => {
+            lista.innerHTML += `
+                <tr>
+                    <td class="ps-4 small text-white-50">${p.fecha}</td>
+                    <td><span class="badge bg-dark border border-white-10 text-white">${p.metodo}</span></td>
+                    <td class="small text-white-50">${p.referencia}</td>
+                    <td class="text-end pe-4 fw-bold text-accent">${p.monto}</td>
+                </tr>
+            `;
+        });
+    }
+    
+    new bootstrap.Modal(document.getElementById('modalHistorial')).show();
+}
+
+function abrirModalPago(id, numero, total) {
+    document.getElementById('modalFacturaId').value = id;
+    document.getElementById('modalFacturaNum').innerText = numero;
+    document.getElementById('modalMonto').value = total;
+    
+    // Formatear moneda para el display
+    const formatter = new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+    });
+    document.getElementById('displayMonto').innerText = formatter.format(total);
+    
+    new bootstrap.Modal(document.getElementById('modalPago')).show();
+}
+
+document.getElementById('formPago').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Pago Exitoso!',
+                text: 'Tu pago ha sido registrado y el administrador ha sido notificado.',
+                background: '#1a1a1a', color: '#fff', confirmButtonColor: '#f39c12'
+            }).then(() => location.reload());
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error,
+                background: '#1a1a1a', color: '#fff'
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

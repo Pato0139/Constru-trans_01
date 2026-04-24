@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Contactar Proveedor - Constru-trans{% endblock %}
+
+{% block header_title %}Mensajería con Proveedores{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="table-container p-4 p-md-5 border-0 shadow-lg" style="background: rgba(255,255,255,0.02); border-radius: 32px;">
+            <div class="text-center mb-5">
+                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 70px; height: 70px;">
+                    <i class="bi bi-envelope-paper-fill text-dark fs-2"></i>
+                </div>
+                <h3 class="fw-900 text-white mb-2">
+                    Enviar Mensaje a {{ proveedor.nombre_empresa }}
+                </h3>
+                <p class="text-muted small text-uppercase fw-700" style="letter-spacing: 2px;">
+                    Persona de contacto: {{ proveedor.contacto_nombre }}
+                </p>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Asunto del Mensaje</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-chat-left-dots"></i></span>
+                        <input type="text" name="asunto" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" placeholder="Ej: Pedido de Materiales - #ORD-2026" required>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Contenido del Mensaje</label>
+                    <textarea name="mensaje" class="form-control rounded-4 border-0 px-4 py-3" style="background: rgba(255,255,255,0.05) !important; min-height: 200px;" placeholder="Escribe aquí tu solicitud detallada..." required></textarea>
+                </div>
+
+                <div class="d-grid gap-3">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">
+                        <i class="bi bi-send-fill me-2"></i> Enviar Mensaje Directo
+                    </button>
+                    <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light rounded-pill py-2 opacity-75 hover-opacity-100">
+                        <i class="bi bi-arrow-left me-2"></i> Volver a la Lista
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Tarjeta de Información Adicional del Proveedor -->
+        <div class="mt-4 p-4 rounded-4" style="background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.1);">
+            <div class="row text-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <p class="text-muted small mb-1">Teléfono Directo</p>
+                    <p class="fw-700 text-white mb-0"><i class="bi bi-telephone text-accent me-2"></i>{{ proveedor.telefono }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted small mb-1">Correo Registrado</p>
+                    <p class="fw-700 text-white mb-0"><i class="bi bi-envelope text-accent me-2"></i>{{ proveedor.email }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-900 { font-weight: 900; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .text-accent { color: var(--color-accent) !important; }
+    .hover-opacity-100:hover {
+        opacity: 1 !important;
+    }
+</style>
+
+{% endblock %}

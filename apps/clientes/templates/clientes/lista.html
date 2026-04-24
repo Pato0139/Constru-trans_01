@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load humanize currency_tags %}
+
+{% block title %}Área de Cliente - Constru-trans{% endblock %}
+
+{% block header_title %}Mi Panel de Control{% endblock %}
+
+{% block content %}
+
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="stat-card" style="border-left: 4px solid var(--color-accent);">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted fw-700 m-0 text-uppercase small">Pedidos Activos</h6>
+                <i class="bi bi-clock-history text-warning fs-4"></i>
+            </div>
+            <h2 class="fw-900 text-color mb-0">{{ pedidos_activos }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stat-card" style="border-left: 4px solid #22c55e;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted fw-700 m-0 text-uppercase small">Entregas Completadas</h6>
+                <i class="bi bi-check-circle-fill text-success fs-4"></i>
+            </div>
+            <h2 class="fw-900 text-color mb-0">{{ entregas }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stat-card" style="border-left: 4px solid var(--color-primary);">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted fw-700 m-0 text-uppercase small">Total Invertido</h6>
+                <i class="bi bi-cash-coin text-primary fs-4"></i>
+            </div>
+            <h2 class="fw-900 text-color mb-0">{{ total_gastado|currency }}</h2>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-color { color: var(--color-text) !important; }
+</style>
+
+<div class="row g-4 mb-5">
+    <div class="col-lg-12">
+        <div class="table-container p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-800 m-0 text-white">Acciones Rápidas</h5>
+            </div>
+            <div class="d-flex gap-3 flex-wrap">
+                <a href="{% url 'clientes:crear_pedido' %}" class="btn btn-gold d-flex align-items-center gap-2 shadow-sm">
+                    <i class="bi bi-plus-circle-fill"></i> Solicitar Nuevo Pedido
+                </a>
+                <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light rounded-pill px-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-cart-check-fill"></i> Ver Mis Pedidos
+                </a>
+                <a href="{% url 'clientes:perfil_cliente' %}" class="btn btn-outline-light rounded-pill px-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-person-badge"></i> Mi Perfil
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+        <h5 class="fw-800 m-0 text-white">Últimos Pedidos</h5>
+        <a href="{% url 'clientes:mis_pedidos' %}" class="small text-accent text-decoration-none fw-700">Ver historial <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>ID Pedido</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th class="text-center">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in ultimos_pedidos %}
+                <tr>
+                    <td class="fw-700 text-accent">#CT-{{ pedido.id }}</td>
+                    <td class="text-muted small">{{ pedido.fecha|date:"d M, Y" }}</td>
+                    <td>
+                        {% if pedido.estado == "pendiente" %}
+                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                        {% elif pedido.estado == "en_ruta" %}
+                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">En ruta</span>
+                        {% elif pedido.estado == "entregado" %}
+                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Entregado</span>
+                        {% endif %}
+                    </td>
+                    <td class="price-tag">${{ pedido.precio|floatformat:0|intcomma }}</td>
+                    <td class="text-center">
+                        <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">Aún no has realizado ningún pedido.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .fw-900 { font-weight: 900; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .text-accent { color: var(--color-accent) !important; }
+</style>
+
+{% endblock %}

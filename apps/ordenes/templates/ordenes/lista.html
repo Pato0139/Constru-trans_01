@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Logística - ConstruTrans{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+    <h2 class="fw-bold text-white mb-1">{{ titulo_panel|default:"Control de Pedidos" }}</h2>
+</div>
+
+<div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
+    <div class="table-responsive">
+        <table class="table table-dark mb-0">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <th class="p-4 text-muted small fw-bold">ID</th>
+                    <th class="p-4 text-muted small fw-bold">Cliente</th>
+                    <th class="p-4 text-muted small fw-bold">Destino</th>
+                    <th class="p-4 text-muted small fw-bold">Estado</th>
+                    <th class="p-4 text-muted small fw-bold">Fecha</th>
+                    <th class="p-4 text-muted small fw-bold">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pedidos %}
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <td class="p-4 fw-bold">#{{ p.id }}</td>
+                    <td class="p-4">
+                        <div class="fw-medium">{{ p.cliente.nombres }} {{ p.cliente.apellidos }}</div>
+                        <div class="text-muted small">{{ p.cliente.user.email }}</div>
+                    </td>
+                    <td class="p-4 text-muted small">{{ p.direccion_destino|truncatechars:40 }}</td>
+                    <td class="p-4">
+                        {% if p.estado == 'pendiente' %}
+                            <span class="badge bg-warning-subtle text-warning px-3">Pendiente</span>
+                        {% elif p.estado == 'en_ruta' %}
+                            <span class="badge bg-primary-subtle text-primary px-3">En Ruta</span>
+                        {% elif p.estado == 'entregado' %}
+                            <span class="badge bg-success-subtle text-success px-3">Entregado</span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger px-3">{{ p.estado|title }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 text-muted small">{{ p.fecha|date:"d/m/Y H:i" }}</td>
+                    <td class="p-4">
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'ordenes:ver_pedido_admin' p.id %}" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'ordenes:editar_orden' p.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-box-seam mb-3 d-block" style="font-size: 3rem; opacity: 0.3;"></i>
+                        No hay pedidos registrados en el sistema
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

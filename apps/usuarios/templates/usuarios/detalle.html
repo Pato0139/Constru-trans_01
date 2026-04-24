@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load gravatar %}
+
+{% block title %}Mi Perfil Administrador - Constru-trans{% endblock %}
+
+{% block content %}
+
+<div class="row g-4 justify-content-center">
+    <!-- Perfil Principal -->
+    <div class="col-md-5">
+        <div class="table-container p-4 h-100 border-0" style="background: var(--card-bg);">
+            <div class="text-end mb-2">
+                <a href="{% url 'usuarios:editar_perfil' %}" class="btn btn-outline-accent btn-sm rounded-pill px-3">
+                    <i class="bi bi-pencil-square me-1"></i> Editar Perfil
+                </a>
+            </div>
+            <div class="text-center mb-5">
+                <div class="position-relative d-inline-block mb-3">
+                    {% if request.user.usuario.foto_perfil %}
+                        <img src="{{ request.user.usuario.foto_perfil.url }}" alt="Perfil" class="rounded-circle shadow-lg border border-4 border-dark" style="width: 120px; height: 120px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-900 shadow-lg" 
+                             style="width: 120px; height: 120px; background: var(--color-accent); color: #000; font-size: 2.5rem; border: 4px solid var(--color-surface);">
+                            {{ request.user.usuario.nombres|slice:":1" }}{{ request.user.usuario.apellidos|slice:":1" }}
+                        </div>
+                    {% endif %}
+                    <span class="position-absolute bottom-0 end-0 bg-success border border-3 border-dark rounded-circle p-2" style="width: 20px; height: 20px;"></span>
+                </div>
+                <h3 class="fw-900 text-white mb-1">{{ request.user.usuario.nombres }} {{ request.user.usuario.apellidos }}</h3>
+                <span class="badge-tipo" style="background: rgba(202, 160, 48, 0.05); color: var(--color-accent); border: 1px solid var(--color-accent);">ADMINISTRADOR GLOBAL</span>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="p-3 rounded-4" style="background: var(--item-bg); border: 1px solid var(--color-border);">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-envelope text-accent me-3 fs-5"></i>
+                        <div>
+                            <p class="text-muted small mb-0">Correo Electrónico</p>
+                            <p class="fw-700 text-white mb-0" style="font-size: 0.9rem;">{{ request.user.email }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-3 rounded-4" style="background: var(--item-bg); border: 1px solid var(--color-border);">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-shield-lock text-accent me-3 fs-5"></i>
+                        <div>
+                            <p class="text-muted small mb-0">Nivel de Acceso</p>
+                            <p class="fw-700 text-white mb-0" style="font-size: 0.9rem;">Superusuario / Personal</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-3 rounded-4" style="background: var(--item-bg); border: 1px solid var(--color-border);">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-clock-history text-accent me-3 fs-5"></i>
+                        <div>
+                            <p class="text-muted small mb-0">Última Conexión</p>
+                            <p class="fw-700 text-white mb-0" style="font-size: 0.9rem;">{{ request.user.last_login|date:"d M, Y H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gestión de Sistema -->
+    <div class="col-md-5">
+        <div class="table-container p-4 h-100 border-0" style="background: var(--card-bg);">
+            <h5 class="fw-800 text-white mb-4">Gestión de Sistema</h5>
+            
+            <div class="text-center p-5 rounded-4 mb-4" style="background: var(--item-bg); border: 1px dashed var(--color-accent);">
+                <i class="bi bi-gear-fill fs-1 text-accent mb-3 d-block"></i>
+                <h1 class="fw-900 text-accent mb-0" style="letter-spacing: 1px;">SOPORTE</h1>
+                <span class="small text-muted text-uppercase fw-800" style="letter-spacing: 1px;">MODO ADMINISTRACIÓN</span>
+            </div>
+            
+            <div class="px-2 mb-5">
+                <div class="d-flex justify-content-between align-items-center py-3 border-bottom border-secondary">
+                    <span class="text-muted fw-600">Total Usuarios</span>
+                    <span class="fw-700 text-white">{{ usuarios_count }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-3 border-bottom border-secondary">
+                    <span class="text-muted fw-600">Total Materiales</span>
+                    <span class="fw-700 text-white">{{ materiales_count }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-3">
+                    <span class="text-muted fw-600">Total Órdenes</span>
+                    <span class="fw-700 text-white">{{ ordenes_count }}</span>
+                </div>
+            </div>
+
+            <div class="mt-auto pt-4 border-top border-secondary">
+                <a href="{% url 'usuarios:panel' %}" class="btn btn-gold w-100 rounded-pill py-3 fw-800 shadow-sm d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-grid-1x2-fill"></i> Ir al Panel General
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-900 { font-weight: 900; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+    .text-accent { color: var(--color-accent) !important; }
+    .btn-outline-accent {
+        color: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+    .btn-outline-accent:hover {
+        background-color: var(--color-accent);
+        color: #000;
+    }
+    .space-y-4 > * + * { margin-top: 1.5rem; }
+    .space-y-3 > * + * { margin-top: 1rem; }
+</style>
+
+{% endblock %}

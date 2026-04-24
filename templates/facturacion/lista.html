@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% load humanize currency_tags %}
+
+{% block title %}Facturación - ConstruTrans{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+    <h2 class="fw-bold text-white mb-4">Facturación</h2>
+    
+    <div class="d-flex flex-column flex-md-row gap-3 align-items-center justify-content-between mb-4">
+        <div class="d-flex gap-3 align-items-center flex-grow-1" style="max-width: 800px;">
+            <form action="." method="GET" class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                <input type="text" name="q" class="form-control bg-dark border-secondary text-white ps-5" placeholder="Buscador por numero de factura" style="border-radius: var(--radius-lg);" value="{{ q|default:'' }}">
+            </form>
+            <form action="." method="GET" id="filterForm" class="d-flex gap-2">
+                <select name="estado" class="form-select bg-dark border-secondary text-white w-auto" style="border-radius: var(--radius-lg); min-width: 200px;" onchange="this.form.submit()">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="pagada" {% if estado == 'pagada' %}selected{% endif %}>Pagada</option>
+                    <option value="anulada" {% if estado == 'anulada' %}selected{% endif %}>Anulada</option>
+                </select>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
+    <div class="table-responsive">
+        <table class="table table-dark mb-0">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <th class="p-4 text-muted small fw-bold">N° Factura</th>
+                    <th class="p-4 text-muted small fw-bold">Cliente</th>
+                    <th class="p-4 text-muted small fw-bold">Fecha Emisión</th>
+                    <th class="p-4 text-muted small fw-bold text-end">Total</th>
+                    <th class="p-4 text-muted small fw-bold text-end">Pagado</th>
+                    <th class="p-4 text-muted small fw-bold text-end">Por Pagar</th>
+                    <th class="p-4 text-muted small fw-bold text-center">Estado</th>
+                    <th class="p-4 text-muted small fw-bold text-center">Historial</th>
+                    <th class="p-4 text-muted small fw-bold text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in facturas %}
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <td class="p-4 fw-bold text-accent">{{ f.numero }}</td>
+                    <td class="p-4">
+                        <div class="fw-medium text-white">{{ f.cliente.nombres }} {{ f.cliente.apellidos }}</div>
+                        <div class="text-muted small">ID: {{ f.cliente.id }}</div>
+                    </td>
+                    <td class="p-4 text-muted small">{{ f.fecha_emision|date:"d/m/Y H:i" }}</td>
+                    <td class="p-4 text-end text-white-50">{{ f.total|currency }}</td>
+                    <td class="p-4 text-end text-success-emphasis">{{ f.total_pagado|currency }}</td>
+                    <td class="p-4 text-end fw-bold text-accent">{{ f.saldo_pendiente|currency }}</td>
+                    <td class="p-4 text-center">
+                        {% if f.estado == 'pendiente' %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle px-3">Pendiente</span>
+                        {% elif f.estado == 'pagada' %}
+                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3">Pagada</span>
+                        {% else %}
+                            <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3">Anulada</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 text-center">
+                        <button class="btn btn-sm btn-outline-info rounded-pill px-3" 
+                                type="button"
+                                onclick="verHistorial('{{ f.numero }}', '{{ f.id }}')" title="Ver historial">
+                            <i class="bi bi-list-check"></i>
+                        </button>
+                    </td>
+                    <td class="p-4 text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            {% if f.estado == 'pendiente' %}
+                            <button class="btn btn-premium btn-premium-gold btn-sm px-3" 
+                                    type="button"
+                                    onclick="abrirModalPago('{{ f.id }}', '{{ f.numero }}', '{{ f.saldo_pendiente }}')"
+                                    title="Pagar">
+                                <i class="bi bi-cash-stack"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3" 
+                                    type="button"
+                                    onclick="abrirModalEditar('{{ f.id }}', '{{ f.numero }}', '{{ f.total }}')"
+                                    title="Editar Monto">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" 
+                                    type="button"
+                                    onclick="anularFactura('{{ f.id }}', '{{ f.numero }}')"
+                                    title="Anular/Cancelar">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                            {% endif %}
+                            <a href="{% url 'ordenes:descargar_factura' f.orden.id %}" class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3" title="Descargar PDF" target="_blank">
+                                <i class="bi bi-file-pdf"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-5 text-muted">
+                        <i class="bi bi-receipt mb-3 d-block" style="font-size: 3rem; opacity: 0.3;"></i>
+                        No hay facturas registradas en el sistema
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% include "facturacion/modales_factura.html" %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function abrirModalPago(id, numero, saldo) {
+    document.getElementById('modalFacturaId').value = id;
+    document.getElementById('modalFacturaNum').innerText = numero;
+    document.getElementById('displayMonto').innerText = '$' + parseFloat(saldo).toLocaleString();
+    document.getElementById('modalMonto').value = saldo;
+    
+    // Asegurarse de que el modal de Bootstrap esté inicializado correctamente
+    const modalElement = document.getElementById('modalPago');
+    let modal = bootstrap.Modal.getInstance(modalElement);
+    if (!modal) {
+        modal = new bootstrap.Modal(modalElement);
+    }
+    modal.show();
+}
+
+function abrirModalEditar(id, numero, total) {
+    document.getElementById('modalEditarId').value = id;
+    document.getElementById('modalEditarNum').innerText = numero;
+    document.getElementById('modalEditarMonto').value = total;
+    
+    const form = document.getElementById('formEditar');
+    form.action = "/facturacion/editar-monto/" + id + "/";
+    
+    const modalElement = document.getElementById('modalEditar');
+    let modal = bootstrap.Modal.getInstance(modalElement);
+    if (!modal) {
+        modal = new bootstrap.Modal(modalElement);
+    }
+    modal.show();
+}
+
+function anularFactura(id, numero) {
+    Swal.fire({
+        title: '¿Anular Factura?',
+        text: "Esta acción marcará la factura " + numero + " como anulada.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, anular',
+        cancelButtonText: 'Cancelar',
+        background: '#161a22',
+        color: '#fff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch("/facturacion/anular/" + id + "/", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Anulada',
+                        text: data.mensaje,
+                        background: '#161a22',
+                        color: '#fff'
+                    }).then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.error, 'error');
+                }
+            });
+        }
+    });
+}
+
+document.getElementById('formEditar').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Actualizado',
+                text: data.mensaje,
+                background: '#161a22',
+                color: '#fff'
+            }).then(() => location.reload());
+        } else {
+            Swal.fire('Error', data.error, 'error');
+        }
+    });
+});
+
+document.getElementById('formPago').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Pago Registrado',
+                text: data.mensaje,
+                confirmButtonColor: '#f59e0b',
+                background: '#161a22',
+                color: '#fff'
+            }).then(() => {
+                location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error,
+                confirmButtonColor: '#f59e0b',
+                background: '#161a22',
+                color: '#fff'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de conexión',
+            text: 'No se pudo registrar el pago',
+            confirmButtonColor: '#f59e0b',
+            background: '#161a22',
+            color: '#fff'
+        });
+    });
+});
+
+function verHistorial(numero, id) {
+    window.location.href = "{% url 'pagos:lista_pagos' %}?q=" + numero;
+}
+</script>
+{% endblock %}

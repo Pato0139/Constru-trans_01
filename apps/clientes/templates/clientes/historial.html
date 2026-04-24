@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Historial de Pedidos - Constru-trans{% endblock %}
+
+{% block header_title %}Mi Historial de Entregas{% endblock %}
+
+{% block content %}
+
+<div class="table-container p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+        <h5 class="fw-800 m-0 text-white">Pedidos Finalizados</h5>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>ID Pedido</th>
+                    <th>Material</th>
+                    <th>Cantidad</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                <tr>
+                    <td class="fw-700 text-accent">#CT-{{ pedido.id }}</td>
+                    <td class="fw-600 text-white">{{ pedido.material.nombre|default:"Materiales varios" }}</td>
+                    <td class="text-muted small">{{ pedido.cantidad }}</td>
+                    <td class="text-muted small">{{ pedido.fecha|date:"d M, Y" }}</td>
+                    <td class="price-tag">${{ pedido.precio|floatformat:0|intcomma }}</td>
+                    <td class="text-center">
+                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">
+                            <i class="bi bi-check-circle-fill me-1"></i> Entregado
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">No tienes pedidos finalizados aún.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .text-accent { color: var(--color-accent) !important; }
+</style>
+
+{% endblock %}

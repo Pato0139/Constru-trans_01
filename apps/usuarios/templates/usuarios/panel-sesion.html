@@ -1,0 +1,399 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Acceso - Constru-trans{% endblock %}</title>
+    
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="{% static 'css/loader.css' %}">
+    
+    <style>
+        :root {
+            --bg-body: #000000;
+            --bg-card: #1a1a1a;
+            --primary-gold: #F39C12;
+            --primary-blue: #0056B3;
+            --text-white: #ffffff;
+            --text-muted: #94a3b8;
+            --input-border: rgba(255,255,255,0.1);
+            --input-bg: rgba(255,255,255,0.03);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-body);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            color: var(--text-white);
+            overflow: hidden; /* Evitar scroll por partículas */
+        }
+
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .auth-master-card {
+            width: 100%;
+            max-width: 1100px;
+            background: var(--bg-card);
+            border-radius: 48px;
+            display: flex;
+            position: relative;
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 680px;
+            z-index: 1; /* Encima de las partículas */
+        }
+
+        /* Lado Izquierdo - Formulario */
+        .auth-form-section {
+            flex: 1.2;
+            padding: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .auth-brand {
+            margin-bottom: 40px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 1.4rem;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        .auth-brand span { color: var(--primary-gold); }
+
+        /* Lado Derecho - Visual */
+        .auth-visual-section {
+            flex: 0.8;
+            background: rgba(255, 255, 255, 0.01);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border-left: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 0 48px 48px 0;
+        }
+
+        .illustration-wrapper {
+            position: relative;
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .illustration-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: url('{% static "img/Logo1.jpeg" %}') center/cover;
+            border: 12px solid var(--primary-blue);
+            box-shadow: 0 0 80px rgba(0, 86, 179, 0.3);
+            position: relative;
+            z-index: 1;
+            transition: var(--transition);
+        }
+
+        /* Typography */
+        .welcome-h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 3rem;
+            line-height: 1;
+            margin-bottom: 12px;
+            color: var(--text-white);
+        }
+
+        .welcome-p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 48px;
+        }
+
+        .welcome-p a {
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        /* Form Elements */
+        .form-group-custom {
+            margin-bottom: 28px;
+        }
+
+        .label-custom {
+            display: block;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            color: var(--text-white);
+        }
+
+        .input-custom {
+            width: 100%;
+            background: var(--input-bg) !important;
+            border: 2px solid var(--input-border) !important;
+            border-radius: 12px !important;
+            padding: 12px 20px !important;
+            color: white !important;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .input-custom:focus {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-color: var(--primary-gold) !important;
+            box-shadow: 0 0 15px rgba(243, 156, 18, 0.2) !important;
+            outline: none;
+        }
+
+        .animate-up {
+            animation: slideUp 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+
+        /* Estilo para las opciones del select en el panel de sesión */
+        select.input-custom option {
+            background-color: var(--bg-card) !important;
+            color: white !important;
+        }
+
+        /* Estilo para navegadores modernos que usan el color de fondo */
+        select.input-custom {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 1.5rem center !important;
+            background-size: 16px 12px !important;
+        }
+
+        .btn-main {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, #d35400 100%) !important;
+            border: none !important;
+            border-radius: 12px !important;
+            padding: 16px !important;
+            color: black !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            transition: var(--transition) !important;
+            box-shadow: 0 10px 20px rgba(243, 156, 18, 0.2) !important;
+        }
+
+        .btn-main:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 15px 30px rgba(243, 156, 18, 0.4) !important;
+            filter: brightness(1.1) !important;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-gold) !important;
+            border-color: var(--primary-gold) !important;
+        }
+
+        /* Logo Branding Superior */
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            margin-right: 12px;
+            object-fit: cover;
+        }
+
+        .btn-back-home {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: var(--transition);
+        }
+        .btn-back-home:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--primary-gold);
+            border-color: var(--primary-gold);
+        }
+
+        /* Alerts */
+        .alert-custom {
+            background: rgba(96, 0, 0, 0.15);
+            border: 1px solid var(--primary-red);
+            color: #ffbaba;
+            border-radius: 20px;
+            padding: 16px 24px;
+            margin-bottom: 32px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 992px) {
+            .auth-visual-section { display: none; }
+            .auth-master-card { border-radius: 32px; min-height: auto; }
+            .auth-form-section { padding: 60px 32px; }
+            .welcome-h1 { font-size: 2.2rem; }
+        }
+
+        /* Zona de Soporte */
+        .support-badge {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: 1px solid rgba(243, 156, 18, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+        .support-badge:hover {
+            transform: scale(1.05) translateY(-5px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 15px 40px rgba(243, 156, 18, 0.2);
+        }
+        .support-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
+        }
+        .support-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .support-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+        .support-value {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-white);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div id="particles-js"></div>
+
+    <!-- Botón Flotante de Soporte -->
+    <a href="https://chat.whatsapp.com/EN3S08Z50IvGENZv7IX1AK" target="_blank" class="support-badge animate__animated animate__fadeInRight">
+        <div class="support-icon">
+            <i class="bi bi-whatsapp"></i>
+        </div>
+        <div class="support-text">
+            <span class="support-label">Soporte Técnico</span>
+            <span class="support-value">Grupo de Ayuda</span>
+        </div>
+    </a>
+
+<div id="loader-container">
+    <img src="{% static 'img/Logo1.jpeg' %}" class="loader-img" alt="Cargando...">
+    <div class="loader">
+        <div class="progress-bar"></div>
+    </div>
+    <p>Cargando Constru-trans...</p>
+</div>
+
+    <div class="auth-master-card animate__animated animate__fadeIn">
+        <div class="auth-form-section">
+            <div class="auth-brand d-flex align-items-center justify-content-between w-100">
+                <div class="d-flex align-items-center">
+                    <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo" class="brand-icon">
+                    CONSTRU<span>-TRANS</span>
+                </div>
+                <a href="{% url 'inicio:inicio' %}" class="btn-back-home d-none d-sm-block">
+                    <i class="bi bi-house-door-fill me-1"></i> Volver al Inicio
+                </a>
+                <a href="{% url 'inicio:inicio' %}" class="btn-back-home d-sm-none">
+                    <i class="bi bi-house-door-fill"></i>
+                </a>
+            </div>
+            
+            {% block content %}
+            {% endblock %}
+        </div>
+
+        <div class="auth-visual-section">
+            <div class="illustration-wrapper">
+                <div class="illustration-circle animate__animated animate__zoomIn"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/loader.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": ["#F39C12", "#0056B3", "#ffffff"] },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.2, "random": true },
+                "size": { "value": 3, "random": true },
+                "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.05, "width": 1 },
+                "move": { "enable": true, "speed": 2, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
+                "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 1 } }, "push": { "particles_nb": 4 } }
+            },
+            "retina_detect": true
+        });
+    </script>
+</body>
+</html>

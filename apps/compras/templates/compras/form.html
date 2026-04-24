@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white mb-0">
+            <i class="fas fa-cart-plus me-2"></i> {{ action }} Orden de Compra
+        </h2>
+        <a href="{% url 'compras:lista_compras' %}" class="btn btn-outline-light">
+            <i class="fas fa-arrow-left me-1"></i> Volver
+        </a>
+    </div>
+
+    <form method="post" id="compra-form">
+        {% csrf_token %}
+        <div class="row">
+            <!-- Datos Generales -->
+            <div class="col-lg-8">
+                <div class="card bg-dark border-secondary shadow-lg mb-4 glass-card">
+                    <div class="card-header border-secondary bg-transparent">
+                        <h5 class="text-white mb-0"><i class="fas fa-info-circle me-2 text-info"></i> Datos Generales</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="text-white-50 mb-2">Proveedor <span class="text-danger">*</span></label>
+                            {{ form.proveedor }}
+                        </div>
+                        <div class="mb-0">
+                            <label class="text-white-50 mb-2">Observaciones</label>
+                            {{ form.observaciones }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Materiales -->
+                <div class="card bg-dark border-secondary shadow-lg glass-card">
+                    <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
+                        <h5 class="text-white mb-0"><i class="fas fa-boxes me-2 text-warning"></i> Materiales</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover mb-0" id="detalles-table">
+                                <thead class="text-uppercase small text-muted border-secondary">
+                                    <tr>
+                                        <th class="ps-4">#</th>
+                                        <th>Material</th>
+                                        <th style="width: 150px;">Cantidad</th>
+                                        <th style="width: 200px;">Precio Unitario ($)</th>
+                                        <th class="text-end">Subtotal</th>
+                                        <th class="text-center">Quitar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{ formset.management_form }}
+                                    {% for detail_form in formset %}
+                                    <tr class="formset-row border-secondary">
+                                        <td class="ps-4 align-middle counter">{{ forloop.counter }}</td>
+                                        <td class="align-middle">
+                                            {% for hidden in detail_form.hidden_fields %}
+                                                {{ hidden }}
+                                            {% endfor %}
+                                            {{ detail_form.material }}
+                                        </td>
+                                        <td class="align-middle">
+                                            {{ detail_form.cantidad }}
+                                        </td>
+                                        <td class="align-middle">
+                                            {{ detail_form.precio_unitario }}
+                                        </td>
+                                        <td class="align-middle text-end fw-bold text-success subtotal-cell">
+                                            $0.00
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            {% if formset.can_delete %}
+                                                <div class="d-none">{{ detail_form.DELETE }}</div>
+                                            {% endif %}
+                                            <button type="button" class="btn btn-link text-danger remove-form-row">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-3 border-top border-secondary text-end">
+                            <button type="button" class="btn btn-primary btn-sm rounded-pill px-4" id="add-form-row">
+                                <i class="fas fa-plus me-1"></i> Agregar Material
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen -->
+            <div class="col-lg-4">
+                <div class="card bg-dark border-secondary shadow-lg glass-card sticky-top" style="top: 20px;">
+                    <div class="card-header border-secondary bg-transparent">
+                        <h5 class="text-white mb-0"><i class="fas fa-receipt me-2 text-success"></i> Resumen</h5>
+                    </div>
+                    <div class="card-body text-center py-4">
+                        <p class="text-white-50 mb-1">Total de la orden</p>
+                        <h2 class="text-white fw-bold mb-4" id="total-order">$0.00</h2>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-white-50">Materiales agregados</span>
+                            <span class="text-info fw-bold" id="material-count">0</span>
+                        </div>
+                        
+                        <hr class="border-secondary my-4">
+                        
+                        <button type="submit" class="btn btn-warning w-100 py-3 fw-bold text-uppercase shadow-sm">
+                            <i class="fas fa-save me-2"></i> Guardar Orden
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .glass-card {
+        background: rgba(30, 34, 45, 0.7) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    .form-control, .form-select {
+        background-color: rgba(0,0,0,0.2) !important;
+        border-color: rgba(255,255,255,0.1) !important;
+        color: white !important;
+    }
+    .form-control:focus {
+        border-color: var(--bs-warning) !important;
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25) !important;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tableBody = document.querySelector('#detalles-table tbody');
+    const totalForms = document.querySelector('#id_detalles-TOTAL_FORMS');
+    const totalOrderElement = document.getElementById('total-order');
+    const materialCountElement = document.getElementById('material-count');
+
+    function updateCalculations() {
+        let total = 0;
+        let count = 0;
+        const rows = document.querySelectorAll('.formset-row:not(.d-none)');
+        
+        rows.forEach(row => {
+            const qtyInput = row.querySelector('.cantidad-input');
+            const priceInput = row.querySelector('.precio-input');
+            const subtotalCell = row.querySelector('.subtotal-cell');
+            
+            const qty = parseFloat(qtyInput.value) || 0;
+            const price = parseFloat(priceInput.value) || 0;
+            const subtotal = qty * price;
+            
+            subtotalCell.textContent = '$' + subtotal.toLocaleString('es-CO', {minimumFractionDigits: 2});
+            total += subtotal;
+            if (qty > 0) count++;
+        });
+        
+        totalOrderElement.textContent = '$' + total.toLocaleString('es-CO', {minimumFractionDigits: 2});
+        materialCountElement.textContent = count;
+    }
+
+    // Add Row
+    document.getElementById('add-form-row').addEventListener('click', function() {
+        const formCount = parseInt(totalForms.value);
+        const firstRow = document.querySelector('.formset-row');
+        const newRow = firstRow.cloneNode(true);
+        
+        // Update names and IDs
+        newRow.querySelectorAll('input, select').forEach(input => {
+            if (input.getAttribute('name')) {
+                const name = input.getAttribute('name').replace('-0-', `-${formCount}-`);
+                const id = input.getAttribute('id').replace('-0-', `-${formCount}-`);
+                input.setAttribute('name', name);
+                input.setAttribute('id', id);
+                if (input.type !== 'hidden') input.value = '';
+                
+                // Asegurar que el checkbox de borrar esté desmarcado en la nueva fila
+                if (name.endsWith('-DELETE')) {
+                    input.checked = false;
+                }
+            }
+        });
+        
+        // Limpiar estilos y clases de la nueva fila
+        newRow.classList.remove('d-none');
+        
+        // Update counter
+        newRow.querySelector('.counter').textContent = formCount + 1;
+        newRow.querySelector('.subtotal-cell').textContent = '$0.00';
+        
+        tableBody.appendChild(newRow);
+        totalForms.value = formCount + 1;
+        
+        // Add events to new inputs
+        newRow.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', updateCalculations);
+        });
+        updateCalculations();
+    });
+
+    // Remove Row
+    tableBody.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-form-row')) {
+            const row = e.target.closest('.formset-row');
+            const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+            
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = true;
+                row.classList.add('d-none');
+            } else {
+                row.remove();
+                // Update management form
+                const rows = document.querySelectorAll('.formset-row');
+                totalForms.value = rows.length;
+            }
+            updateCalculations();
+        }
+    });
+
+    // Initial events
+    document.querySelectorAll('.cantidad-input, .precio-input').forEach(input => {
+        input.addEventListener('input', updateCalculations);
+    });
+    
+    updateCalculations();
+});
+</script>
+{% endblock %}

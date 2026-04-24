@@ -1,0 +1,147 @@
+{% load static %}
+<aside class="sidebar-premium" style="width:280px; height: 100vh; background: var(--sidebar-bg); border-right: 1px solid var(--color-border); position: sticky; top: 0; z-index: 1000; overflow-y: auto; display: flex; flex-direction: column;">
+
+    <div class="brand-section p-4 text-center">
+        <div class="logo-container mb-3">
+            <img src="{% static 'img/Logo1.jpeg' %}" width="70" height="70" class="rounded-circle shadow-lg" style="object-fit: cover; border: 2px solid var(--color-primary);">
+        </div>
+        <h5 class="fw-bold m-0" style="color: var(--color-text); font-size: 1.2rem; letter-spacing: 1px;">
+            ConstruTrans
+        </h5>
+        <div class="online-status mt-2 d-flex align-items-center justify-content-center gap-2">
+            <span class="status-dot"></span> 
+            <span class="text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">SISTEMA ACTIVO</span>
+        </div>
+    </div>
+
+    <div class="nav-container px-3 flex-grow-1">
+        <nav class="nav flex-column gap-1">
+            {% if user.usuario.rol == 'admin' %}
+                <a href="{% url 'usuarios:panel' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Panel General</span>
+                </a>
+                <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' %}active{% endif %}">
+                    <i class="bi bi-cart-fill"></i>
+                    <span>Pedidos Pendientes</span>
+                </a>
+                <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' %}active{% endif %}">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Usuarios</span>
+                </a>
+                <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' %}active{% endif %}">
+                    <i class="bi bi-box-seam-fill"></i>
+                    <span>Materiales</span>
+                </a>
+                <a href="{% url 'compras:lista_proveedores' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'lista_proveedores' %}active{% endif %}">
+                    <i class="bi bi-briefcase-fill"></i>
+                    <span>Proveedores</span>
+                </a>
+                <a href="{% url 'compras:lista_compras' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'compras' and request.resolver_match.url_name == 'lista_compras' %}active{% endif %}">
+                    <i class="bi bi-bag-check-fill"></i>
+                    <span>Compras</span>
+                </a>
+                <a href="{% url 'transporte:lista_vehiculos' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'transporte' %}active{% endif %}">
+                    <i class="bi bi-truck"></i>
+                    <span>Vehiculos</span>
+                </a>
+                <a href="{% url 'ordenes:lista_entregas_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}active{% endif %}">
+                    <i class="bi bi-truck-flatbed"></i>
+                    <span>Control de Entregas</span>
+                </a>
+                <a href="{% url 'facturacion:lista_facturas' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'facturacion' %}active{% endif %}">
+                    <i class="bi bi-receipt"></i>
+                    <span>Facturación</span>
+                </a>
+                <a href="{% url 'pagos:lista_pagos' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' %}active{% endif %}">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>Pagos</span>
+                </a>
+                <a href="{% url 'reportes:reportes_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'reportes' %}active{% endif %}">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>Análisis</span>
+                </a>
+                <a href="{% url 'historial:lista_historial' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'historial' %}active{% endif %}">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Historial</span>
+                </a>
+            {% endif %}
+        </nav>
+
+        <div class="mt-4 pt-4 border-top border-white-5">
+            <p class="text-muted small fw-bold px-3 mb-2" style="font-size: 0.65rem; letter-spacing: 1px;">CONFIGURACIÓN</p>
+            <nav class="nav flex-column gap-1">
+                {% if user.usuario.rol == 'admin' %}
+                    <a href="{% url 'usuarios:perfil_admin' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_admin' %}active{% endif %}">
+                {% elif user.usuario.rol == 'conductor' %}
+                    <a href="{% url 'usuarios:perfil_conductor' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_conductor' %}active{% endif %}">
+                {% elif user.usuario.rol == 'cliente' %}
+                    <a href="{% url 'clientes:perfil_cliente' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_cliente' %}active{% endif %}">
+                {% else %}
+                    <a href="#" class="nav-link-premium">
+                {% endif %}
+                    <i class="bi bi-person-circle"></i>
+                    <span>Mi Cuenta</span>
+                </a>
+                <a href="{% url 'usuarios:logout' %}" class="nav-link-premium text-danger confirm-logout">
+                    <i class="bi bi-power"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <style>
+        .sidebar-premium::-webkit-scrollbar { width: 4px; }
+        .sidebar-premium::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 10px; }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            display: inline-block;
+        }
+
+        .nav-link-premium {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            color: var(--color-text);
+            opacity: 0.7;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            border-radius: 0;
+            position: relative;
+        }
+
+        .nav-link-premium:hover {
+            color: var(--color-primary);
+            opacity: 1;
+            background: var(--item-bg);
+        }
+
+        .nav-link-premium.active {
+            color: #fff !important;
+            opacity: 1;
+            background: var(--color-primary) !important;
+            border-right: 4px solid #f59e0b; /* Borde derecho dorado */
+        }
+
+        .nav-link-premium.active i {
+            color: #fff !important;
+        }
+
+        .nav-link-premium i {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .border-white-5 { border-color: var(--color-border) !important; }
+    </style>
+</aside>

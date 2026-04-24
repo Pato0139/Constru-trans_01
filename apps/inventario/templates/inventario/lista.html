@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Catálogo - ConstruTrans{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-0 text-white"><i class="bi bi-box-seam-fill text-accent me-2"></i>Catálogo de Materiales</h2>
+        <div class="d-flex align-items-center gap-2 mt-1">
+            <p class="text-white-50 small mb-0">Gestión de productos y precios base</p>
+            <span class="badge rounded-pill px-3" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: 1px solid rgba(59, 130, 246, 0.2);">{{ materiales|length }} registros</span>
+        </div>
+    </div>
+
+    <div class="w-100" style="max-width: 520px;">
+        <div class="d-flex flex-column gap-2" data-aos="fade-left">
+            <form action="{% url 'inventario:materiales_lista' %}" method="GET" class="d-flex flex-column gap-2">
+                <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm" style="background: var(--card-bg); border-color: var(--color-border) !important;">
+                    <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                        <i class="bi bi-search text-dark" style="font-size: 0.9rem;"></i>
+                    </div>
+                    <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
+                           placeholder="Buscar en el catálogo..." value="{{ query|default:'' }}">
+                </div>
+
+                <div class="d-flex gap-2">
+                    <select name="tipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2" style="background: var(--card-bg); color: white; border-color: var(--color-border);" onchange="this.form.submit()">
+                        <option value="">Todos los tipos</option>
+                        <option value="Cemento" {% if tipo_actual == 'Cemento' %}selected{% endif %}>Cemento</option>
+                        <option value="Arena" {% if tipo_actual == 'Arena' %}selected{% endif %}>Arena</option>
+                        <option value="Grava" {% if tipo_actual == 'Grava' %}selected{% endif %}>Grava</option>
+                        <option value="Ladrillo" {% if tipo_actual == 'Ladrillo' %}selected{% endif %}>Ladrillo</option>
+                        <option value="Herramientas" {% if tipo_actual == 'Herramientas' %}selected{% endif %}>Herramientas</option>
+                    </select>
+                    
+                    <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2" style="border-color: var(--color-border); color: var(--color-text-muted);">
+                        <i class="bi bi-funnel"></i> Filtrar
+                    </button>
+
+                    <a href="{% url 'inventario:crear_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg ms-2" 
+                            style="width: 42px; height: 42px; min-width: 42px; background: var(--color-accent); border: none; color: white;">
+                        <i class="bi bi-plus-lg fs-5"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);" data-aos="fade-up">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02);">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--color-border);">
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 80px;">ID</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Material</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Tipo</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Precio Unitario</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 120px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in materiales %}
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <td class="py-3 px-4 text-center fw-bold">#{{ m.id }}</td>
+                    <td class="py-3 px-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                {{ m.nombre|first }}
+                            </div>
+                            <span class="fw-medium">{{ m.nombre }}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="badge bg-dark text-white-50 border border-white-10">{{ m.tipo }}</span>
+                    </td>
+                    <td class="py-3 px-4 text-center fw-bold text-accent">
+                        ${{ m.precio }}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{% url 'inventario:editar_material' m.id %}" class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'inventario:eliminar_material' m.id %}" class="btn btn-sm btn-outline-danger border-white-10 rounded-pill px-3 confirm-delete" data-title="¿Eliminar material?" data-text="¿Estás seguro de que deseas eliminar {{ m.nombre }}?">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5">
+                        <div class="py-5">
+                            <i class="bi bi-box-seam text-muted mb-3 d-block" style="font-size: 3rem;"></i>
+                            <p class="text-muted fw-medium mb-0">No se encontraron materiales en el catálogo.</p>
+                            <small class="text-muted">Los productos registrados aparecerán en esta lista.</small>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .text-accent { color: var(--color-accent) !important; }
+    .btn-premium:hover {
+        opacity: 0.9;
+        transform: scale(1.05);
+        transition: all 0.3s ease;
+    }
+    .form-select option {
+        background: #1a1a1a;
+        color: white;
+    }
+</style>
+{% endblock %}

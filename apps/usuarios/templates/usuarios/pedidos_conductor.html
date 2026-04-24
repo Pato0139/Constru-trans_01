@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Pedidos Asignados - Constru-trans{% endblock %}
+
+{% block header_title %}Mi Ruta de Entregas{% endblock %}
+
+{% block content %}
+
+<div class="table-container p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+        <h5 class="fw-800 m-0 text-white">Entregas por Realizar</h5>
+        <span class="badge-tipo" style="background: rgba(202, 160, 48, 0.1); color: var(--color-accent); border-color: rgba(202, 160, 48, 0.2);">
+            {{ pedidos|length }} Pedidos Asignados
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>ID Pedido</th>
+                    <th>Origen</th>
+                    <th>Destino</th>
+                    <th>Estado</th>
+                    <th>Precio</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                <tr>
+                    <td class="fw-700 text-accent">#CT-{{ pedido.id }}</td>
+                    <td class="text-muted small">
+                        <i class="bi bi-geo-alt text-success me-1"></i> {{ pedido.direccion_origen }}
+                    </td>
+                    <td class="fw-600 text-white">
+                        <i class="bi bi-geo-fill text-danger me-1"></i> {{ pedido.direccion_destino }}
+                    </td>
+                    <td>
+                        {% if pedido.estado == "pendiente" %}
+                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                        {% elif pedido.estado == "en_ruta" %}
+                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">En ruta</span>
+                        {% elif pedido.estado == "entregado" %}
+                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Entregado</span>
+                        {% endif %}
+                    </td>
+                    <td class="price-tag">${{ pedido.precio|floatformat:0|intcomma }}</td>
+                    <td class="text-center">
+                        <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-2 mb-3 d-block"></i>
+                        No tienes pedidos asignados actualmente.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+    .text-accent { color: var(--color-accent) !important; }
+</style>
+
+{% endblock %}

@@ -1,0 +1,52 @@
+# --- Base de Datos ---
+*.sqlite3
+*.sqlite3-journal
+
+# --- Entornos Virtuales y Dependencias ---
+.venv/
+env/
+venv/
+ENV/
+node_modules/
+
+# --- Archivos de Configuración Sensibles ---
+.env
+local_settings.py
+secrets.json
+
+# --- Archivos Temporales de Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+
+# --- Migraciones ---
+**/migrations/__pycache__/
+
+# --- Archivos de Medios y Logs ---
+media/
+static_collected/
+staticfiles/
+*.log
+
+# --- Archivos de Sistema y Editores ---
+.vscode/
+.idea/
+*.swp
+*.bak
+.DS_Store
+Thumbs.db
+Desktop.ini
+.git/

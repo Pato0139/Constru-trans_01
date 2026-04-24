@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if action == 'crear' %}Registrar Vehículo{% else %}Editar Vehículo{% endif %} - Constru-trans
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="table-container p-4 p-md-5 border-0 shadow-lg" style="background: rgba(255,255,255,0.02); border-radius: 32px;">
+            <div class="text-center mb-5">
+                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 70px; height: 70px;">
+                    <i class="bi bi-truck text-dark fs-2"></i>
+                </div>
+                <h3 class="fw-900 text-white mb-2">
+                    {% if action == 'crear' %}Registrar Vehículo{% else %}Editar Vehículo{% endif %}
+                </h3>
+                <p class="text-muted small text-uppercase fw-700" style="letter-spacing: 2px;">
+                    Gestión de flota y transporte logístico
+                </p>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Placa del Vehículo</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-hash"></i></span>
+                        <input type="text" name="placa" class="form-control plate-only" placeholder="Ej: ABC123" value="{{ vehiculo.placa|default:'' }}" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Tipo de Vehículo</label>
+                    <select name="tipo" class="form-select" required>
+                        <option value="">Seleccione tipo...</option>
+                        <option value="Bolqueta" {% if vehiculo.tipo == 'Bolqueta' %}selected{% endif %}>Bolqueta</option>
+                        <option value="Camión Sencillo" {% if vehiculo.tipo == 'Camión Sencillo' %}selected{% endif %}>Camión Sencillo</option>
+                        <option value="Doble Troque" {% if vehiculo.tipo == 'Doble Troque' %}selected{% endif %}>Doble Troque</option>
+                        <option value="Minitransporte" {% if vehiculo.tipo == 'Minitransporte' %}selected{% endif %}>Minitransporte</option>
+                        <option value="Turbo" {% if vehiculo.tipo == 'Turbo' %}selected{% endif %}>Turbo</option>
+                        <option value="Maquinaria Amarilla" {% if vehiculo.tipo == 'Maquinaria Amarilla' %}selected{% endif %}>Maquinaria Amarilla</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Capacidad de Carga (Ton)</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-speedometer2"></i></span>
+                        <input type="text" name="capacidad" class="form-control numeric-only" placeholder="Ej: 5" value="{{ vehiculo.capacidad|default:'' }}" required>
+                    </div>
+                </div>
+
+                {% if action == 'editar' %}
+                <div class="mb-5">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Estado Operativo</label>
+                    <select name="estado" class="form-select" required>
+                        <option value="disponible" {% if vehiculo.estado == 'disponible' %}selected{% endif %}>Disponible</option>
+                        <option value="en_ruta" {% if vehiculo.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
+                        <option value="mantenimiento" {% if vehiculo.estado == 'mantenimiento' %}selected{% endif %}>En Mantenimiento</option>
+                    </select>
+                </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Conductor Asignado</label>
+                    <select name="conductor" class="form-select">
+                        <option value="">Sin asignar (Disponible)</option>
+                        {% for cond in conductores %}
+                            <option value="{{ cond.id }}" {% if vehiculo.conductor.id == cond.id %}selected{% endif %}>
+                                {{ cond.nombres }} {{ cond.apellidos }} ({{ cond.documento }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text text-white-50 small mt-1">
+                        <i class="bi bi-info-circle me-1"></i> Solo conductores sin vehículo asignado aparecen en esta lista.
+                    </div>
+                </div>
+
+                <div class="d-grid gap-3 mt-4">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">
+                        <i class="bi bi-check2-circle me-2"></i> {% if action == 'crear' %}Registrar Vehículo{% else %}Actualizar Vehículo{% endif %}
+                    </button>
+                    <a href="{% url 'transporte:lista_vehiculos' %}" class="btn btn-outline-light rounded-pill py-2 opacity-75 hover-opacity-100">
+                        <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-900 { font-weight: 900; }
+    .fw-800 { font-weight: 800; }
+    .text-accent { color: var(--color-accent) !important; }
+    .bg-accent { background-color: var(--color-accent) !important; }
+
+    .form-control, .form-select {
+        background: rgba(255,255,255,0.03) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        padding: 12px 20px !important;
+        color: white !important;
+        border-radius: 12px !important;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--color-accent) !important;
+        box-shadow: 0 0 15px rgba(243, 156, 18, 0.1) !important;
+        background: rgba(255,255,255,0.05) !important;
+    }
+
+    .btn-gold {
+        background: var(--color-accent);
+        color: #000;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-gold:hover {
+        background: #d68910;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(243, 156, 18, 0.3);
+    }
+
+    .hover-opacity-100:hover {
+        opacity: 1 !important;
+    }
+</style>
+
+{% endblock %}
