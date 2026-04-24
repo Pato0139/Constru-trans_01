@@ -5,8 +5,8 @@ setlocal
 cd /d "%~dp0"
 
 echo ===================================================
-echo   ConstruTrans - Script de Inicializacion Pro
-echo   Version: 1.0.6 - FORCED PUSH
+echo   ConstruTrans - Script para Inicializar ConstruTrans
+echo   Sincronizacion Final: %date% %time%
 echo ===================================================
 
 :: 1. Verificar Python
