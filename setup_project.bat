@@ -1,22 +1,37 @@
 @echo off
+:: Quita el REM de la siguiente linea si quieres ver que pasa paso a paso
+:: pause
+
 setlocal enabledelayedexpansion
+
+:: Si el script se cierra solo, esto ayudara a ver el error
+if "%~1"=="debug" (
+    echo [MODO DEBUG ACTIVADO]
+) else (
+    echo Iniciando instalador...
+)
 
 :: Asegurar que el script corra en la carpeta donde esta ubicado
 cd /d "%~dp0"
 
 echo ===================================================
 echo   ConstruTrans - Script de Inicializacion Pro
-echo   Ultima actualizacion: %date% %time%
 echo ===================================================
 
-:: 1. Verificar Python
-python --version >nul 2>&1
+:: 1. Verificar Python (intentar 'python' y luego 'py')
+set PYTHON_CMD=python
+%PYTHON_CMD% --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [ERROR] Python no esta instalado o no esta en el PATH.
-    echo Por favor descargalo de python.org e intentalo de nuevo.
-    pause
-    exit /b
+    set PYTHON_CMD=py
+    !PYTHON_CMD! --version >nul 2>&1
+    if !errorlevel! neq 0 (
+        echo [ERROR] No se encontro Python ni el lanzador 'py'.
+        echo Por favor instala Python desde https://www.python.org/
+        pause
+        exit /b
+    )
 )
+echo [OK] Usando: %PYTHON_CMD%
 
 :: 2. Configurar .env
 if not exist ".env" (
@@ -35,7 +50,7 @@ if not exist ".env" (
 :: 3. Crear y Activar VENV
 if not exist "venv" (
     echo [2/5] Creando entorno virtual (venv)...
-    python -m venv venv
+    %PYTHON_CMD% -m venv venv
     if %errorlevel% neq 0 (
         echo [ERROR] No se pudo crear el entorno virtual.
         pause
