@@ -6,7 +6,7 @@ cd /d "%~dp0"
 
 echo ===================================================
 echo   ConstruTrans - Script de Inicializacion Pro
-echo   Version: 1.0.5 - FIX SINTAXIS
+echo   Version: 1.0.6 - FORCED PUSH
 echo ===================================================
 
 :: 1. Verificar Python
