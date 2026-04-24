@@ -65,6 +65,40 @@
                     <i class="bi bi-clock-history"></i>
                     <span>Historial</span>
                 </a>
+            {% elif user.usuario.rol == 'cliente' %}
+                <a href="{% url 'clientes:panel_cliente' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel_cliente' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Panel de Control</span>
+                </a>
+                <a href="{% url 'clientes:crear_pedido' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'crear_pedido' %}active{% endif %}">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>Solicitar Pedido</span>
+                </a>
+                <a href="{% url 'clientes:mis_pedidos' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'mis_pedidos' %}active{% endif %}">
+                    <i class="bi bi-cart-fill"></i>
+                    <span>Mis Pedidos</span>
+                </a>
+                <a href="{% url 'clientes:seguimiento_pedidos' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'seguimiento_pedidos' %}active{% endif %}">
+                    <i class="bi bi-truck"></i>
+                    <span>Seguimiento</span>
+                </a>
+                <a href="{% url 'clientes:historial_pedidos' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'historial_pedidos' %}active{% endif %}">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Historial</span>
+                </a>
+            {% elif user.usuario.rol == 'conductor' %}
+                <a href="{% url 'usuarios:panel_conductor' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel_conductor' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Panel Conductor</span>
+                </a>
+                <a href="{% url 'usuarios:pedidos_conductor' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'pedidos_conductor' %}active{% endif %}">
+                    <i class="bi bi-box-seam-fill"></i>
+                    <span>Mis Entregas</span>
+                </a>
+                <a href="{% url 'usuarios:mis_entregas' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'mis_entregas' %}active{% endif %}">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Historial</span>
+                </a>
             {% endif %}
         </nav>
 

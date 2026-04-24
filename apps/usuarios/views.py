@@ -363,6 +363,11 @@ def crear_usuario(request):
                 estado='activo'
             )
             
+            # Manejo de la imagen de perfil en la creación
+            if 'foto_perfil' in request.FILES:
+                perfil.foto_perfil = request.FILES['foto_perfil']
+                perfil.save()
+            
             registrar_actividad(request, 'crear', 'usuarios', user.id, f"Administrador creó usuario: {email} como {rol}")
 
             success_msg = f"Usuario {nombres} creado correctamente."
