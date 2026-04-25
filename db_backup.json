@@ -286,7 +286,7 @@
     "tipo": "Agregados",
     "descripcion": "Grava para concreto",
     "precio": "17358.00",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -297,7 +297,7 @@
     "tipo": "Mampostería",
     "descripcion": "Ladrillo de arcilla cocida",
     "precio": "128134.00",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -588,3 +588,6 @@
   }
 }
 ]
+
+
+
