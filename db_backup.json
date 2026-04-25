@@ -237,7 +237,7 @@
     "tipo": "Bolqueta",
     "capacidad": "180",
     "estado": "disponible",
-    "sincronizado": false,
+    "sincronizado": true,
     "conductor": 2
   }
 },
@@ -344,6 +344,32 @@
     "cantidad": 350,
     "ubicacion": "Bodega Principal",
     "ultima_actualizacion": "2026-04-25T02:54:24.753Z"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 1,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $8000 para la Factura F-000001",
+    "tipo": "info",
+    "leida": false,
+    "fecha": "2026-04-25T03:04:42.195Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 2,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $10039 para la Factura F-000001",
+    "tipo": "info",
+    "leida": false,
+    "fecha": "2026-04-25T03:06:13.912Z",
+    "link": "/facturacion/"
   }
 },
 {
@@ -588,6 +614,30 @@
     "iva": "0.00",
     "total": "10047200.00",
     "estado": "pendiente"
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 1,
+  "fields": {
+    "factura": 1,
+    "monto": "8000.00",
+    "metodo": "transferencia",
+    "referencia": "",
+    "fecha": "2026-04-25T03:04:42.186Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 2,
+  "fields": {
+    "factura": 1,
+    "monto": "10039.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:06:13.903Z",
+    "registrado_por": 1
   }
 },
 {
@@ -1107,6 +1157,19 @@
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-25T03:04:00.011Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 41,
+  "fields": {
+    "usuario": 1,
+    "accion": "otro",
+    "modulo": "pedidos",
+    "elemento_id": "1",
+    "descripcion": "Factura descargada por Edward_Fonseca",
+    "fecha_hora": "2026-04-25T03:06:29.755Z",
     "ip_address": "127.0.0.1"
   }
 }
