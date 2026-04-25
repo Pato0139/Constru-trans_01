@@ -106,7 +106,7 @@
     "tipo_documento": "CC",
     "documento": "12345678",
     "estado": "activo",
-    "sincronizado": true
+    "sincronizado": false
   }
 },
 {
