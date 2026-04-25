@@ -230,6 +230,18 @@
   }
 },
 {
+  "model": "usuarios.vehiculo",
+  "pk": 1,
+  "fields": {
+    "placa": "HGE312",
+    "tipo": "Bolqueta",
+    "capacidad": "180",
+    "estado": "en_ruta",
+    "sincronizado": false,
+    "conductor": 2
+  }
+},
+{
   "model": "usuarios.material",
   "pk": 1,
   "fields": {
@@ -493,14 +505,14 @@
   "pk": 1,
   "fields": {
     "cliente": 2,
-    "conductor": null,
+    "conductor": 2,
     "direccion_origen": "Bodega Central",
     "direccion_destino": "cra 44",
     "fecha": "2026-04-25T02:56:24.678Z",
     "fecha_entrega_programada": "2026-06-04T22:03:00Z",
-    "fecha_toma_entrega": null,
+    "fecha_toma_entrega": "2026-04-25T03:00:50.522Z",
     "fecha_entrega_real": null,
-    "estado": "pendiente",
+    "estado": "en_ruta",
     "precio": "10047200.00",
     "sincronizado": false
   }
@@ -550,6 +562,18 @@
     "material": 3,
     "cantidad": 30,
     "precio_unitario": "114479.00"
+  }
+},
+{
+  "model": "ordenes.entrega",
+  "pk": 1,
+  "fields": {
+    "pedido": 1,
+    "conductor": 2,
+    "vehiculo": 1,
+    "fecha": "2026-04-25T03:00:50.510Z",
+    "fecha_finalizacion": null,
+    "estado": "en_ruta"
   }
 },
 {
@@ -939,6 +963,19 @@
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-25T02:59:09.614Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 31,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "pedidos",
+    "elemento_id": "1",
+    "descripcion": "Pedido asignado a conductor: Iván_Camilo con vehículo HGE312",
+    "fecha_hora": "2026-04-25T03:00:50.531Z",
     "ip_address": "127.0.0.1"
   }
 }
