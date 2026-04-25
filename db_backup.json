@@ -4,7 +4,7 @@
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$1200000$rcA358dIqXuahH3V1hSU8I$VK/DgeJbwRVFW0BHdgyB6YlDujRdQArskfcpjKwosvQ=",
-    "last_login": "2026-04-25T04:23:59.423Z",
+    "last_login": "2026-04-25T22:05:51.421Z",
     "is_superuser": true,
     "username": "Edward_Fonseca",
     "first_name": "",
@@ -260,7 +260,7 @@
     "tipo_documento": "CC",
     "documento": "1852345289",
     "estado": "activo",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -1809,6 +1809,19 @@
     "elemento_id": "8",
     "descripcion": "Inicio de sesión: eo3456@gmail.com",
     "fecha_hora": "2026-04-25T21:56:38.164Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 75,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T22:05:51.434Z",
     "ip_address": "127.0.0.1"
   }
 }
