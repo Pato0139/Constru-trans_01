@@ -91,6 +91,7 @@ def registro(request):
                 perfil = form.save(commit=False)
                 perfil.user = user
                 perfil.rol = "cliente"
+                perfil.sincronizado = False
                 perfil.save()
                 
                 registrar_actividad(request, 'crear', 'usuarios', user.id, f"Nuevo registro: {email}")
@@ -293,6 +294,7 @@ def editar_perfil(request):
         usuario.telefono = telefono
         usuario.tipo_documento = tipo_documento
         usuario.documento = documento
+        usuario.sincronizado = False
         usuario.save()
         
         # Actualizar el correo del User de Django
@@ -360,7 +362,8 @@ def crear_usuario(request):
                 rol=rol,
                 tipo_documento=tipo_doc,
                 documento=documento,
-                estado='activo'
+                estado='activo',
+                sincronizado=False
             )
             
             # Manejo de la imagen de perfil en la creación
@@ -470,6 +473,7 @@ def editar_usuario(request, id):
             if request.user.usuario.rol == "admin" and rol:
                 usuario.rol = rol
                 
+            usuario.sincronizado = False
             usuario.save()
             registrar_actividad(request, 'editar', 'usuarios', usuario.user.id, f"Perfil de usuario editado: {usuario.user.username}")
             messages.success(request, "Cambios guardados exitosamente.")
