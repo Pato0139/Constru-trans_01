@@ -4,7 +4,7 @@
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$1200000$rcA358dIqXuahH3V1hSU8I$VK/DgeJbwRVFW0BHdgyB6YlDujRdQArskfcpjKwosvQ=",
-    "last_login": "2026-04-25T04:05:20.808Z",
+    "last_login": "2026-04-25T04:06:42.877Z",
     "is_superuser": true,
     "username": "Edward_Fonseca",
     "first_name": "",
@@ -129,8 +129,8 @@
   "model": "sessions.session",
   "pk": "z26q4ur3ch6yvx5c8krocsfvq0sucxp5",
   "fields": {
-    "session_data": ".eJxVjEEOwiAQRe_C2hCYdmBw6d4zEGCmUjVtUtqV8e7apAvd_vfef6mYtrXGrckSR1ZnZdXpd8upPGTaAd_TdJt1mad1GbPeFX3Qpq8zy_NyuH8HNbX6rSl5kYQAHebOEWPfCwIToQWgUgY3GEfOgzBxDmi9CwhWMvpQDBj1_gDNazb5:1wGUGe:_PkOrYFuei__sKLsvkzurOBozlWFIJdw9E4m2IJ95KY",
-    "expire_date": "2026-05-09T04:05:20.848Z"
+    "session_data": ".eJxVjEEOwiAQRe_C2hCYdmBw6d4zEGCmUjVtUtqV8e7apAvd_vfef6mYtrXGrckSR1ZnZdXpd8upPGTaAd_TdJt1mad1GbPeFX3Qpq8zy_NyuH8HNbX6rSl5kYQAHebOEWPfCwIToQWgUgY3GEfOgzBxDmi9CwhWMvpQDBj1_gDNazb5:1wGUHy:wn-p_gu9KNhpR9ULVlqamSwR2-thfMEuil7HjhesM24",
+    "expire_date": "2026-05-09T04:06:42.910Z"
   }
 },
 {
@@ -1657,6 +1657,19 @@
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-25T04:05:20.819Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 67,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T04:06:42.890Z",
     "ip_address": "127.0.0.1"
   }
 }
