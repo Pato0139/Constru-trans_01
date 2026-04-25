@@ -4,7 +4,7 @@
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$1200000$rcA358dIqXuahH3V1hSU8I$VK/DgeJbwRVFW0BHdgyB6YlDujRdQArskfcpjKwosvQ=",
-    "last_login": "2026-04-25T03:03:59.994Z",
+    "last_login": "2026-04-25T03:40:20.531Z",
     "is_superuser": true,
     "username": "Edward_Fonseca",
     "first_name": "",
@@ -129,8 +129,8 @@
   "model": "sessions.session",
   "pk": "tb97xbm13bf2cdi2htygzt1blbey08w2",
   "fields": {
-    "session_data": ".eJxVjEEOwiAQRe_C2hCYdmBw6d4zEGCmUjVtUtqV8e7apAvd_vfef6mYtrXGrckSR1ZnZdXpd8upPGTaAd_TdJt1mad1GbPeFX3Qpq8zy_NyuH8HNbX6rSl5kYQAHebOEWPfCwIToQWgUgY3GEfOgzBxDmi9CwhWMvpQDBj1_gDNazb5:1wGTJI:Oe4legfYuYdxLHQZJbKSvnngqkvMWW0tPDUMW2UbLL4",
-    "expire_date": "2026-05-09T03:04:00.058Z"
+    "session_data": ".eJxVjEEOwiAQRe_C2hCYdmBw6d4zEGCmUjVtUtqV8e7apAvd_vfef6mYtrXGrckSR1ZnZdXpd8upPGTaAd_TdJt1mad1GbPeFX3Qpq8zy_NyuH8HNbX6rSl5kYQAHebOEWPfCwIToQWgUgY3GEfOgzBxDmi9CwhWMvpQDBj1_gDNazb5:1wGTsS:DuWJxHRiTQ4GjnUADRGwYzcM2Haj3m-AepmOwmTxYA4",
+    "expire_date": "2026-05-09T03:40:20.595Z"
   }
 },
 {
@@ -424,8 +424,8 @@
     "motivo": "Falta de material\r\n",
     "referencia_id": null,
     "usuario": 1,
-    "fecha": "2026-04-25T02:53:49.345Z",
-    "sincronizado": false
+    "fecha": "2026-04-25T03:12:35.601Z",
+    "sincronizado": true
   }
 },
 {
@@ -438,8 +438,8 @@
     "motivo": "falta de material",
     "referencia_id": null,
     "usuario": 1,
-    "fecha": "2026-04-25T02:54:06.888Z",
-    "sincronizado": false
+    "fecha": "2026-04-25T03:12:35.405Z",
+    "sincronizado": true
   }
 },
 {
@@ -452,8 +452,8 @@
     "motivo": "falta de material",
     "referencia_id": null,
     "usuario": 1,
-    "fecha": "2026-04-25T02:54:24.756Z",
-    "sincronizado": false
+    "fecha": "2026-04-25T03:12:35.217Z",
+    "sincronizado": true
   }
 },
 {
@@ -466,8 +466,8 @@
     "motivo": "falta de material",
     "referencia_id": null,
     "usuario": 1,
-    "fecha": "2026-04-25T02:54:53.604Z",
-    "sincronizado": false
+    "fecha": "2026-04-25T03:12:35.028Z",
+    "sincronizado": true
   }
 },
 {
@@ -480,8 +480,8 @@
     "motivo": "falta de material",
     "referencia_id": null,
     "usuario": 1,
-    "fecha": "2026-04-25T02:55:08.086Z",
-    "sincronizado": false
+    "fecha": "2026-04-25T03:12:34.827Z",
+    "sincronizado": true
   }
 },
 {
@@ -494,8 +494,8 @@
     "motivo": "orden #1",
     "referencia_id": 1,
     "usuario": 3,
-    "fecha": "2026-04-25T02:56:24.704Z",
-    "sincronizado": false
+    "fecha": "2026-04-25T03:12:34.627Z",
+    "sincronizado": true
   }
 },
 {
@@ -508,8 +508,8 @@
     "motivo": "orden #2",
     "referencia_id": 2,
     "usuario": 3,
-    "fecha": "2026-04-25T02:57:11.808Z",
-    "sincronizado": false
+    "fecha": "2026-04-25T03:12:34.435Z",
+    "sincronizado": true
   }
 },
 {
@@ -522,8 +522,8 @@
     "motivo": "orden #2",
     "referencia_id": 2,
     "usuario": 3,
-    "fecha": "2026-04-25T02:57:11.818Z",
-    "sincronizado": false
+    "fecha": "2026-04-25T03:12:34.229Z",
+    "sincronizado": true
   }
 },
 {
@@ -1170,6 +1170,19 @@
     "elemento_id": "1",
     "descripcion": "Factura descargada por Edward_Fonseca",
     "fecha_hora": "2026-04-25T03:06:29.755Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 42,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T03:40:20.560Z",
     "ip_address": "127.0.0.1"
   }
 }
