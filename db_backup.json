@@ -57,7 +57,7 @@
   "model": "auth.user",
   "pk": 4,
   "fields": {
-    "password": "",
+    "password": "pbkdf2_sha256$1200000$rubFucPszpOcHRESh4QvTt$54Gmiqxsr+PhWYTnK4RrDNzelK2hloyzrDjPk46+7YI=",
     "last_login": null,
     "is_superuser": false,
     "username": "carlos@test.com",
@@ -128,6 +128,22 @@
   }
 },
 {
+  "model": "usuarios.usuario",
+  "pk": 4,
+  "fields": {
+    "user": 4,
+    "rol": "cliente",
+    "nombres": "Carlos",
+    "apellidos": "Perez",
+    "telefono": "",
+    "foto_perfil": "",
+    "tipo_documento": "CC",
+    "documento": "1171169",
+    "estado": "activo",
+    "sincronizado": false
+  }
+},
+{
   "model": "clientes.cliente",
   "pk": 1,
   "fields": {
@@ -153,6 +169,20 @@
     "telefono_contacto": null,
     "email_empresa": null,
     "fecha_registro": "2026-04-25T01:18:08.146Z"
+  }
+},
+{
+  "model": "clientes.cliente",
+  "pk": 3,
+  "fields": {
+    "usuario": 4,
+    "nit_rut": null,
+    "razon_social": null,
+    "direccion_fiscal": null,
+    "ciudad": null,
+    "telefono_contacto": null,
+    "email_empresa": null,
+    "fecha_registro": "2026-04-25T01:28:41.815Z"
   }
 },
 {
@@ -334,6 +364,24 @@
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-25T01:10:37.221Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 15,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T01:20:41.793Z",
+    "ip_address": "127.0.0.1"
+  }
+}
+]
+ "fecha_hora": "2026-04-25T01:10:37.221Z",
     "ip_address": "127.0.0.1"
   }
 },
