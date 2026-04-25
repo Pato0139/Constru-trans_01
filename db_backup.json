@@ -279,9 +279,9 @@
   "pk": 4,
   "fields": {
     "nombre": "Piedra Triturada",
-    "tipo": "Agregados",
+    "tipo": "Ladrillo",
     "descripcion": "Grava para concreto",
-    "precio": "17358.00",
+    "precio": "1735.00",
     "sincronizado": true
   }
 },
@@ -1501,6 +1501,19 @@
     "elemento_id": "3",
     "descripcion": "Material editado: Varilla 1/2",
     "fecha_hora": "2026-04-25T03:49:02.998Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 55,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "4",
+    "descripcion": "Material editado: Piedra Triturada",
+    "fecha_hora": "2026-04-25T03:49:15.083Z",
     "ip_address": "127.0.0.1"
   }
 }
