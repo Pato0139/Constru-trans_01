@@ -270,7 +270,7 @@
     "nombre": "Varilla 1/2",
     "tipo": "Herramientas",
     "descripcion": "Varilla corrugada de refuerzo",
-    "precio": "1144.00",
+    "precio": "11440.00",
     "sincronizado": true
   }
 },
@@ -1566,6 +1566,19 @@
     "elemento_id": "2",
     "descripcion": "Material editado: Arena de Rio",
     "fecha_hora": "2026-04-25T03:50:00.957Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 60,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "3",
+    "descripcion": "Material editado: Varilla 1/2",
+    "fecha_hora": "2026-04-25T03:50:06.643Z",
     "ip_address": "127.0.0.1"
   }
 }
