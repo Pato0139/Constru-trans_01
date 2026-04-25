@@ -581,6 +581,20 @@
   }
 },
 {
+  "model": "facturacion.factura",
+  "pk": 1,
+  "fields": {
+    "numero": "F-000001",
+    "orden": 1,
+    "cliente": 3,
+    "fecha_emision": "2026-04-25T21:40:34.914Z",
+    "subtotal": "10047200.00",
+    "iva": "0.00",
+    "total": "10047200.00",
+    "estado": "pendiente"
+  }
+},
+{
   "model": "historial.historial",
   "pk": 1,
   "fields": {
