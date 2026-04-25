@@ -130,7 +130,7 @@
   "pk": 8,
   "fields": {
     "password": "pbkdf2_sha256$1200000$Tyx1EDJenOYDNGCTTm9xcC$lA/g0YR5gk3ub0xnE7bAru6g/UAas5bq9b3CNoCaVRE=",
-    "last_login": null,
+    "last_login": "2026-04-25T21:56:38.153Z",
     "is_superuser": false,
     "username": "eo3456@gmail.com",
     "first_name": "",
@@ -1796,6 +1796,19 @@
     "elemento_id": "8",
     "descripcion": "Nuevo registro: eo3456@gmail.com",
     "fecha_hora": "2026-04-25T21:56:27.315Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 74,
+  "fields": {
+    "usuario": 8,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "8",
+    "descripcion": "Inicio de sesión: eo3456@gmail.com",
+    "fecha_hora": "2026-04-25T21:56:38.164Z",
     "ip_address": "127.0.0.1"
   }
 }
