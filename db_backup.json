@@ -259,7 +259,7 @@
     "nombre": "Arena de Rio",
     "tipo": "Arena",
     "descripcion": "Arena fina para acabados",
-    "precio": "1250.00",
+    "precio": "12500.00",
     "sincronizado": true
   }
 },
@@ -1553,6 +1553,19 @@
     "elemento_id": "1",
     "descripcion": "Material editado: Cemento Argus",
     "fecha_hora": "2026-04-25T03:49:47.441Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 59,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "2",
+    "descripcion": "Material editado: Arena de Rio",
+    "fecha_hora": "2026-04-25T03:50:00.957Z",
     "ip_address": "127.0.0.1"
   }
 }
