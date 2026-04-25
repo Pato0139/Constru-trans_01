@@ -108,6 +108,24 @@
   }
 },
 {
+  "model": "auth.user",
+  "pk": 7,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$ZFifbeBHwvFBPMmJiKvCKq$EhpyQDwwVe5sxRSivfOiO6VRbnx1xM8YOCayvCyffTg=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "ana@test.com",
+    "first_name": "",
+    "last_name": "",
+    "email": "ana@test.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-25T01:28:53.835Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
   "model": "sessions.session",
   "pk": "xnugk6qlo69tk6xb9cjw9f871yjygizt",
   "fields": {
@@ -212,6 +230,22 @@
   }
 },
 {
+  "model": "usuarios.usuario",
+  "pk": 7,
+  "fields": {
+    "user": 7,
+    "rol": "cliente",
+    "nombres": "Ana",
+    "apellidos": "Martinez",
+    "telefono": "",
+    "foto_perfil": "",
+    "tipo_documento": "CC",
+    "documento": "6705906",
+    "estado": "activo",
+    "sincronizado": false
+  }
+},
+{
   "model": "clientes.cliente",
   "pk": 1,
   "fields": {
@@ -251,6 +285,20 @@
     "telefono_contacto": null,
     "email_empresa": null,
     "fecha_registro": "2026-04-25T01:28:41.815Z"
+  }
+},
+{
+  "model": "clientes.cliente",
+  "pk": 4,
+  "fields": {
+    "usuario": 7,
+    "nit_rut": null,
+    "razon_social": null,
+    "direccion_fiscal": null,
+    "ciudad": null,
+    "telefono_contacto": null,
+    "email_empresa": null,
+    "fecha_registro": "2026-04-25T01:29:00.660Z"
   }
 },
 {
@@ -432,24 +480,6 @@
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-25T01:10:37.221Z",
-    "ip_address": "127.0.0.1"
-  }
-},
-{
-  "model": "historial.historial",
-  "pk": 15,
-  "fields": {
-    "usuario": 3,
-    "accion": "login",
-    "modulo": "usuarios",
-    "elemento_id": "3",
-    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
-    "fecha_hora": "2026-04-25T01:20:41.793Z",
-    "ip_address": "127.0.0.1"
-  }
-}
-]
-cha_hora": "2026-04-25T01:10:37.221Z",
     "ip_address": "127.0.0.1"
   }
 },
