@@ -40,7 +40,7 @@
   "pk": 3,
   "fields": {
     "password": "pbkdf2_sha256$1200000$W7ksGdB5Y1dJUWxqFJvFWS$PpipIYB8lquBx7Jf9oMgPEssCz0499I2O59bcg5N43E=",
-    "last_login": "2026-04-25T01:20:41.775Z",
+    "last_login": "2026-04-25T02:48:30.294Z",
     "is_superuser": false,
     "username": "Alvaro@gmail.com",
     "first_name": "",
@@ -127,10 +127,10 @@
 },
 {
   "model": "sessions.session",
-  "pk": "cnk7u972mbk2rfn3riea6yz5oxqdiuhk",
+  "pk": "r0fz3jr4bs58jxanuxyxmwcpk6owljar",
   "fields": {
-    "session_data": ".eJxVjEEOwiAQRe_C2pBCYQCX7j0DGZhBqoYmpV0Z765NutDtf-_9l4i4rTVunZc4kTgLLU6_W8L84LYDumO7zTLPbV2mJHdFHrTL60z8vBzu30HFXr91NgxcqAQF1ms7eq1AOQXsHCiDyvOQKY2GLNtsjSYqKQdMNAAUDCjeH9n_ODo:1wGT3q:fdOhj-ltIHl-9OWdl6AM3h3FVOP3KsZ06mGrqs8cWts",
-    "expire_date": "2026-05-09T02:48:02.518Z"
+    "session_data": ".eJxVjEEOwiAQRe_C2pBSYACX7j0DGZhBqoYmpV0Z765NutDtf-_9l4i4rTVunZc4kTgLLU6_W8L84LYDumO7zTLPbV2mJHdFHrTL60z8vBzu30HFXr81cAZiZ5NW4FJQCsCSIWajDQZMONjMUHwxXrMuPHoMhkZHqiDDYMX7A_WTOHI:1wGT4I:wN80Yu8pH07PVc78GZ1isttv7OcB6ZJMnwbzQ_Yx3Fc",
+    "expire_date": "2026-05-09T02:48:30.329Z"
   }
 },
 {
@@ -620,6 +620,32 @@
     "elemento_id": "2",
     "descripcion": "Inicio de sesión: camipenagoz345@gmail.com",
     "fecha_hora": "2026-04-25T02:48:02.479Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 20,
+  "fields": {
+    "usuario": 2,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "2",
+    "descripcion": "Cierre de sesión del usuario: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-25T02:48:18.403Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 21,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T02:48:30.304Z",
     "ip_address": "127.0.0.1"
   }
 }
