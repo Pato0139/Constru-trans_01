@@ -178,7 +178,7 @@
     "tipo_documento": "CC",
     "documento": "12345678",
     "estado": "activo",
-    "sincronizado": true
+    "sincronizado": false
   }
 },
 {
@@ -194,7 +194,7 @@
     "tipo_documento": "CC",
     "documento": "1171169",
     "estado": "activo",
-    "sincronizado": true
+    "sincronizado": false
   }
 },
 {
@@ -210,7 +210,7 @@
     "tipo_documento": "CC",
     "documento": "6484377",
     "estado": "activo",
-    "sincronizado": true
+    "sincronizado": false
   }
 },
 {
@@ -226,7 +226,7 @@
     "tipo_documento": "CC",
     "documento": "6349169",
     "estado": "activo",
-    "sincronizado": true
+    "sincronizado": false
   }
 },
 {
@@ -242,7 +242,7 @@
     "tipo_documento": "CC",
     "documento": "6705906",
     "estado": "activo",
-    "sincronizado": true
+    "sincronizado": false
   }
 },
 {
@@ -253,7 +253,7 @@
     "tipo": "Construcción",
     "descripcion": "Bulto de cemento gris",
     "precio": "69012.00",
-    "sincronizado": true
+    "sincronizado": false
   }
 },
 {
@@ -264,7 +264,7 @@
     "tipo": "Agregados",
     "descripcion": "Arena fina para acabados",
     "precio": "125590.00",
-    "sincronizado": true
+    "sincronizado": false
   }
 },
 {
@@ -275,7 +275,7 @@
     "tipo": "Acero",
     "descripcion": "Varilla corrugada de refuerzo",
     "precio": "114479.00",
-    "sincronizado": true
+    "sincronizado": false
   }
 },
 {
@@ -286,7 +286,7 @@
     "tipo": "Agregados",
     "descripcion": "Grava para concreto",
     "precio": "17358.00",
-    "sincronizado": true
+    "sincronizado": false
   }
 },
 {
@@ -297,7 +297,7 @@
     "tipo": "Mampostería",
     "descripcion": "Ladrillo de arcilla cocida",
     "precio": "128134.00",
-    "sincronizado": true
+    "sincronizado": false
   }
 },
 {
@@ -385,8 +385,8 @@
     "usuario": 4,
     "nit_rut": "800.123.456-1",
     "razon_social": "Constructora Perez SAS",
-    "direccion_fiscal": "Calle 29 # 97",
-    "ciudad": "Cali",
+    "direccion_fiscal": "Calle 68 # 21",
+    "ciudad": "Barranquilla",
     "telefono_contacto": null,
     "email_empresa": null,
     "fecha_registro": "2026-04-25T01:28:41.815Z"
@@ -399,8 +399,8 @@
     "usuario": 7,
     "nit_rut": "900.987.654-2",
     "razon_social": "Ferretería Ana",
-    "direccion_fiscal": "Calle 32 # 62",
-    "ciudad": "Cali",
+    "direccion_fiscal": "Calle 26 # 92",
+    "ciudad": "Medellín",
     "telefono_contacto": null,
     "email_empresa": null,
     "fecha_registro": "2026-04-25T01:29:00.660Z"
