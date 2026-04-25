@@ -292,7 +292,7 @@
     "nombre": "Ladrillo Común",
     "tipo": "Ladrillo",
     "descripcion": "Ladrillo de arcilla cocida",
-    "precio": "1281.00",
+    "precio": "12810.00",
     "sincronizado": true
   }
 },
@@ -1592,6 +1592,19 @@
     "elemento_id": "4",
     "descripcion": "Material editado: Piedra Triturada",
     "fecha_hora": "2026-04-25T03:50:12.224Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 62,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "5",
+    "descripcion": "Material editado: Ladrillo Común",
+    "fecha_hora": "2026-04-25T03:50:16.278Z",
     "ip_address": "127.0.0.1"
   }
 }
