@@ -248,7 +248,7 @@
     "nombre": "Cemento Argus",
     "tipo": "Cemento",
     "descripcion": "Bulto de cemento gris",
-    "precio": "600.00",
+    "precio": "600000.00",
     "sincronizado": true
   }
 },
@@ -1449,6 +1449,19 @@
     "elemento_id": "1",
     "descripcion": "Material editado: Cemento Argus",
     "fecha_hora": "2026-04-25T03:48:18.182Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 51,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "1",
+    "descripcion": "Material editado: Cemento Argus",
+    "fecha_hora": "2026-04-25T03:48:25.031Z",
     "ip_address": "127.0.0.1"
   }
 }
