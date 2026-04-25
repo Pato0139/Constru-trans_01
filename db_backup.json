@@ -236,7 +236,7 @@
     "placa": "HGE312",
     "tipo": "Bolqueta",
     "capacidad": "180",
-    "estado": "en_ruta",
+    "estado": "disponible",
     "sincronizado": false,
     "conductor": 2
   }
@@ -511,8 +511,8 @@
     "fecha": "2026-04-25T02:56:24.678Z",
     "fecha_entrega_programada": "2026-06-04T22:03:00Z",
     "fecha_toma_entrega": "2026-04-25T03:00:50.522Z",
-    "fecha_entrega_real": null,
-    "estado": "en_ruta",
+    "fecha_entrega_real": "2026-04-25T03:02:59.056Z",
+    "estado": "entregado",
     "precio": "10047200.00",
     "sincronizado": false
   }
@@ -573,7 +573,21 @@
     "vehiculo": 1,
     "fecha": "2026-04-25T03:00:50.510Z",
     "fecha_finalizacion": null,
-    "estado": "en_ruta"
+    "estado": "entregado"
+  }
+},
+{
+  "model": "facturacion.factura",
+  "pk": 1,
+  "fields": {
+    "numero": "F-000001",
+    "orden": 1,
+    "cliente": 3,
+    "fecha_emision": "2026-04-25T03:02:59.073Z",
+    "subtotal": "10047200.00",
+    "iva": "0.00",
+    "total": "10047200.00",
+    "estado": "pendiente"
   }
 },
 {
@@ -1028,6 +1042,19 @@
     "elemento_id": "2",
     "descripcion": "Inicio de sesión: camipenagoz345@gmail.com",
     "fecha_hora": "2026-04-25T03:02:30.710Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 36,
+  "fields": {
+    "usuario": 2,
+    "accion": "confirmar_entrega",
+    "modulo": "pedidos",
+    "elemento_id": "1",
+    "descripcion": "Conductor confirmó entrega exitosa",
+    "fecha_hora": "2026-04-25T03:02:59.086Z",
     "ip_address": "127.0.0.1"
   }
 }
