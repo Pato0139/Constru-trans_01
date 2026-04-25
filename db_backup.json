@@ -4,7 +4,7 @@
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$1200000$rcA358dIqXuahH3V1hSU8I$VK/DgeJbwRVFW0BHdgyB6YlDujRdQArskfcpjKwosvQ=",
-    "last_login": "2026-04-25T21:28:38.734Z",
+    "last_login": "2026-04-25T04:23:59.423Z",
     "is_superuser": true,
     "username": "Edward_Fonseca",
     "first_name": "",
@@ -22,7 +22,7 @@
   "pk": 2,
   "fields": {
     "password": "pbkdf2_sha256$1200000$EhezjKXwavfTZT7BOOSuuT$dh5mGqXFrn54ns3IaHWuikAqUJj7wJKmA0DwDeYL+0w=",
-    "last_login": "2026-04-24T04:51:45.392Z",
+    "last_login": "2026-04-25T03:02:30.695Z",
     "is_superuser": false,
     "username": "camipenagoz345@gmail.com",
     "first_name": "",
@@ -40,7 +40,7 @@
   "pk": 3,
   "fields": {
     "password": "pbkdf2_sha256$1200000$W7ksGdB5Y1dJUWxqFJvFWS$PpipIYB8lquBx7Jf9oMgPEssCz0499I2O59bcg5N43E=",
-    "last_login": "2026-04-25T01:20:41.775Z",
+    "last_login": "2026-04-25T03:45:38.996Z",
     "is_superuser": false,
     "username": "Alvaro@gmail.com",
     "first_name": "",
@@ -126,11 +126,29 @@
   }
 },
 {
-  "model": "sessions.session",
-  "pk": "k7c6dbhk38rmvq6v6nvxnihzjpwf0ko7",
+  "model": "auth.user",
+  "pk": 8,
   "fields": {
-    "session_data": ".eJxVjEEOwiAQRe_C2hCYdmBw6d4zEGCmUjVtUtqV8e7apAvd_vfef6mYtrXGrckSR1ZnZdXpd8upPGTaAd_TdJt1mad1GbPeFX3Qpq8zy_NyuH8HNbX6rSl5kYQAHebOEWPfCwIToQWgUgY3GEfOgzBxDmi9CwhWMvpQDBj1_gDNazb5:1wGjI0:xsKW5fl8Jqr-1osS6uKcjcXwDKMIavScpz-XdgenLk4",
-    "expire_date": "2026-05-09T20:07:44.173Z"
+    "password": "pbkdf2_sha256$1200000$Tyx1EDJenOYDNGCTTm9xcC$lA/g0YR5gk3ub0xnE7bAru6g/UAas5bq9b3CNoCaVRE=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "eo3456@gmail.com",
+    "first_name": "",
+    "last_name": "",
+    "email": "eo3456@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-25T21:56:24.899Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "z26q4ur3ch6yvx5c8krocsfvq0sucxp5",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hCYdmBw6d4zEGCmUjVtUtqV8e7apAvd_vfef6mYtrXGrckSR1ZnZdXpd8upPGTaAd_TdJt1mad1GbPeFX3Qpq8zy_NyuH8HNbX6rSl5kYQAHebOEWPfCwIToQWgUgY3GEfOgzBxDmi9CwhWMvpQDBj1_gDNazb5:1wGUYh:vMWj7ppMcDAodzQ8xNEboxeTEPhGiI1OeLbbalwrFds",
+    "expire_date": "2026-05-09T04:23:59.460Z"
   }
 },
 {
@@ -146,7 +164,7 @@
     "tipo_documento": "CC",
     "documento": "1052389613",
     "estado": "activo",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -162,7 +180,7 @@
     "tipo_documento": "CC",
     "documento": "19283912831",
     "estado": "activo",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -178,7 +196,7 @@
     "tipo_documento": "CC",
     "documento": "12345678",
     "estado": "activo",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -194,23 +212,7 @@
     "tipo_documento": "CC",
     "documento": "1171169",
     "estado": "activo",
-    "sincronizado": false
-  }
-},
-{
-  "model": "usuarios.usuario",
-  "pk": 5,
-  "fields": {
-    "user": 5,
-    "rol": "admin",
-    "nombres": "Maria",
-    "apellidos": "Gomez",
-    "telefono": "",
-    "foto_perfil": "",
-    "tipo_documento": "CC",
-    "documento": "6484377",
-    "estado": "activo",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -226,7 +228,7 @@
     "tipo_documento": "CC",
     "documento": "6349169",
     "estado": "activo",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -242,6 +244,22 @@
     "tipo_documento": "CC",
     "documento": "6705906",
     "estado": "activo",
+    "sincronizado": true
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 8,
+  "fields": {
+    "user": 8,
+    "rol": "cliente",
+    "nombres": "Juanito",
+    "apellidos": "Ochoa",
+    "telefono": "304 3493398",
+    "foto_perfil": "",
+    "tipo_documento": "CC",
+    "documento": "1852345289",
+    "estado": "activo",
     "sincronizado": false
   }
 },
@@ -252,8 +270,8 @@
     "placa": "HGE312",
     "tipo": "Bolqueta",
     "capacidad": "180",
-    "estado": "disponible",
-    "sincronizado": false,
+    "estado": "en_ruta",
+    "sincronizado": true,
     "conductor": 2
   }
 },
@@ -262,10 +280,10 @@
   "pk": 1,
   "fields": {
     "nombre": "Cemento Argus",
-    "tipo": "Construcción",
+    "tipo": "Cemento",
     "descripcion": "Bulto de cemento gris",
-    "precio": "69012.00",
-    "sincronizado": false
+    "precio": "60000.00",
+    "sincronizado": true
   }
 },
 {
@@ -273,10 +291,10 @@
   "pk": 2,
   "fields": {
     "nombre": "Arena de Rio",
-    "tipo": "Agregados",
+    "tipo": "Arena",
     "descripcion": "Arena fina para acabados",
-    "precio": "125590.00",
-    "sincronizado": false
+    "precio": "12500.00",
+    "sincronizado": true
   }
 },
 {
@@ -284,10 +302,10 @@
   "pk": 3,
   "fields": {
     "nombre": "Varilla 1/2",
-    "tipo": "Acero",
+    "tipo": "Herramientas",
     "descripcion": "Varilla corrugada de refuerzo",
-    "precio": "114479.00",
-    "sincronizado": false
+    "precio": "11440.00",
+    "sincronizado": true
   }
 },
 {
@@ -295,10 +313,10 @@
   "pk": 4,
   "fields": {
     "nombre": "Piedra Triturada",
-    "tipo": "Agregados",
+    "tipo": "Ladrillo",
     "descripcion": "Grava para concreto",
-    "precio": "17358.00",
-    "sincronizado": false
+    "precio": "17350.00",
+    "sincronizado": true
   }
 },
 {
@@ -306,60 +324,164 @@
   "pk": 5,
   "fields": {
     "nombre": "Ladrillo Común",
-    "tipo": "Mampostería",
+    "tipo": "Ladrillo",
     "descripcion": "Ladrillo de arcilla cocida",
-    "precio": "128134.00",
-    "sincronizado": false
+    "precio": "12810.00",
+    "sincronizado": true
   }
 },
 {
   "model": "usuarios.stock",
   "pk": 1,
   "fields": {
-    "material": 3,
-    "cantidad": 80,
-    "ubicacion": "Almacén General",
-    "ultima_actualizacion": "2026-04-25T19:02:37.999Z"
+    "material": 1,
+    "cantidad": 120,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-25T02:57:11.801Z"
   }
 },
 {
   "model": "usuarios.stock",
   "pk": 2,
   "fields": {
-    "material": 4,
-    "cantidad": 500,
-    "ubicacion": "Almacén General",
-    "ultima_actualizacion": "2026-04-25T19:02:38.536Z"
+    "material": 2,
+    "cantidad": 410,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-25T02:56:24.700Z"
   }
 },
 {
   "model": "usuarios.stock",
   "pk": 3,
   "fields": {
-    "material": 5,
-    "cantidad": 350,
-    "ubicacion": "Almacén General",
-    "ultima_actualizacion": "2026-04-25T19:02:39.067Z"
+    "material": 3,
+    "cantidad": 20,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-25T02:57:11.817Z"
   }
 },
 {
   "model": "usuarios.stock",
   "pk": 4,
   "fields": {
-    "material": 1,
-    "cantidad": 280,
-    "ubicacion": "Almacén General",
-    "ultima_actualizacion": "2026-04-25T19:02:39.599Z"
+    "material": 4,
+    "cantidad": 500,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-25T02:54:53.602Z"
   }
 },
 {
   "model": "usuarios.stock",
   "pk": 5,
   "fields": {
-    "material": 2,
-    "cantidad": 570,
-    "ubicacion": "Almacén General",
-    "ultima_actualizacion": "2026-04-25T19:02:40.128Z"
+    "material": 5,
+    "cantidad": 350,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-25T02:54:24.753Z"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 1,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $8000 para la Factura F-000001",
+    "tipo": "info",
+    "leida": false,
+    "fecha": "2026-04-25T03:04:42.195Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 2,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $10039 para la Factura F-000001",
+    "tipo": "info",
+    "leida": false,
+    "fecha": "2026-04-25T03:06:13.912Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 3,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $100000 para la Factura F-000001",
+    "tipo": "info",
+    "leida": false,
+    "fecha": "2026-04-25T03:42:00.772Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 4,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $99.000 para la Factura F-000001",
+    "tipo": "info",
+    "leida": true,
+    "fecha": "2026-04-25T03:42:19.460Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 5,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $99000 para la Factura F-000001",
+    "tipo": "info",
+    "leida": true,
+    "fecha": "2026-04-25T03:42:48.780Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 6,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $21710 para la Factura F-000001",
+    "tipo": "info",
+    "leida": true,
+    "fecha": "2026-04-25T03:43:24.213Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 7,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $238848 para la Factura F-000001",
+    "tipo": "info",
+    "leida": true,
+    "fecha": "2026-04-25T03:43:53.929Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 8,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $9569504 para la Factura F-000001",
+    "tipo": "info",
+    "leida": true,
+    "fecha": "2026-04-25T03:44:28.032Z",
+    "link": "/facturacion/"
   }
 },
 {
@@ -405,6 +527,20 @@
   }
 },
 {
+  "model": "clientes.cliente",
+  "pk": 5,
+  "fields": {
+    "usuario": 8,
+    "nit_rut": null,
+    "razon_social": null,
+    "direccion_fiscal": null,
+    "ciudad": null,
+    "telefono_contacto": null,
+    "email_empresa": null,
+    "fecha_registro": "2026-04-25T21:56:27.298Z"
+  }
+},
+{
   "model": "inventario.movimientoinventario",
   "pk": 1,
   "fields": {
@@ -415,7 +551,7 @@
     "referencia_id": null,
     "usuario": 1,
     "fecha": "2026-04-25T03:12:35.601Z",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -429,7 +565,7 @@
     "referencia_id": null,
     "usuario": 1,
     "fecha": "2026-04-25T03:12:35.405Z",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -443,7 +579,7 @@
     "referencia_id": null,
     "usuario": 1,
     "fecha": "2026-04-25T03:12:35.217Z",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -457,7 +593,7 @@
     "referencia_id": null,
     "usuario": 1,
     "fecha": "2026-04-25T03:12:35.028Z",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -471,7 +607,7 @@
     "referencia_id": null,
     "usuario": 1,
     "fecha": "2026-04-25T03:12:34.827Z",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -485,7 +621,7 @@
     "referencia_id": 1,
     "usuario": 3,
     "fecha": "2026-04-25T03:12:34.627Z",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -499,7 +635,7 @@
     "referencia_id": 2,
     "usuario": 3,
     "fecha": "2026-04-25T03:12:34.435Z",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -513,7 +649,7 @@
     "referencia_id": 2,
     "usuario": 3,
     "fecha": "2026-04-25T03:12:34.229Z",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -530,7 +666,7 @@
     "fecha_entrega_real": "2026-04-25T03:02:59.056Z",
     "estado": "entregado",
     "precio": "10047200.00",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -538,16 +674,16 @@
   "pk": 2,
   "fields": {
     "cliente": 2,
-    "conductor": null,
+    "conductor": 2,
     "direccion_origen": "Bodega Central",
     "direccion_destino": "cra 44",
     "fecha": "2026-04-25T03:12:33.247Z",
     "fecha_entrega_programada": "2026-06-07T23:48:00Z",
-    "fecha_toma_entrega": null,
+    "fecha_toma_entrega": "2026-04-25T03:44:59.696Z",
     "fecha_entrega_real": null,
-    "estado": "pendiente",
+    "estado": "en_ruta",
     "precio": "8955330.00",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -581,17 +717,137 @@
   }
 },
 {
+  "model": "ordenes.entrega",
+  "pk": 1,
+  "fields": {
+    "pedido": 1,
+    "conductor": 2,
+    "vehiculo": 1,
+    "fecha": "2026-04-25T03:00:50.510Z",
+    "fecha_finalizacion": null,
+    "estado": "entregado"
+  }
+},
+{
+  "model": "ordenes.entrega",
+  "pk": 2,
+  "fields": {
+    "pedido": 2,
+    "conductor": 2,
+    "vehiculo": 1,
+    "fecha": "2026-04-25T03:44:59.687Z",
+    "fecha_finalizacion": null,
+    "estado": "en_ruta"
+  }
+},
+{
   "model": "facturacion.factura",
   "pk": 1,
   "fields": {
     "numero": "F-000001",
     "orden": 1,
     "cliente": 3,
-    "fecha_emision": "2026-04-25T21:40:34.914Z",
+    "fecha_emision": "2026-04-25T03:02:59.073Z",
     "subtotal": "10047200.00",
     "iva": "0.00",
     "total": "10047200.00",
-    "estado": "pendiente"
+    "estado": "pagada"
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 1,
+  "fields": {
+    "factura": 1,
+    "monto": "8000.00",
+    "metodo": "transferencia",
+    "referencia": "",
+    "fecha": "2026-04-25T03:04:42.186Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 2,
+  "fields": {
+    "factura": 1,
+    "monto": "10039.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:06:13.903Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 3,
+  "fields": {
+    "factura": 1,
+    "monto": "100000.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:42:00.766Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 4,
+  "fields": {
+    "factura": 1,
+    "monto": "99.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:42:19.455Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 5,
+  "fields": {
+    "factura": 1,
+    "monto": "99000.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:42:48.774Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 6,
+  "fields": {
+    "factura": 1,
+    "monto": "21710.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:43:24.207Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 7,
+  "fields": {
+    "factura": 1,
+    "monto": "238848.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:43:53.923Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 8,
+  "fields": {
+    "factura": 1,
+    "monto": "9569504.00",
+    "metodo": "transferencia",
+    "referencia": "",
+    "fecha": "2026-04-25T03:44:28.027Z",
+    "registrado_por": 1
   }
 },
 {
@@ -603,7 +859,7 @@
     "modulo": "usuarios",
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
-    "fecha_hora": "2026-04-25T04:30:45.487Z",
+    "fecha_hora": "2026-04-24T04:46:24.117Z",
     "ip_address": "127.0.0.1"
   }
 },
@@ -612,11 +868,11 @@
   "pk": 2,
   "fields": {
     "usuario": 1,
-    "accion": "login",
+    "accion": "logout",
     "modulo": "usuarios",
     "elemento_id": "1",
-    "descripcion": "Inicio de sesión: Edward_Fonseca",
-    "fecha_hora": "2026-04-25T04:36:57.566Z",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-24T04:46:53.516Z",
     "ip_address": "127.0.0.1"
   }
 },
@@ -624,12 +880,12 @@
   "model": "historial.historial",
   "pk": 3,
   "fields": {
-    "usuario": 1,
-    "accion": "login",
+    "usuario": null,
+    "accion": "crear",
     "modulo": "usuarios",
-    "elemento_id": "1",
-    "descripcion": "Inicio de sesión: Edward_Fonseca",
-    "fecha_hora": "2026-04-25T04:42:20.931Z",
+    "elemento_id": "2",
+    "descripcion": "Nuevo registro: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-24T04:47:58.096Z",
     "ip_address": "127.0.0.1"
   }
 },
@@ -637,12 +893,12 @@
   "model": "historial.historial",
   "pk": 4,
   "fields": {
-    "usuario": 1,
+    "usuario": 2,
     "accion": "login",
     "modulo": "usuarios",
-    "elemento_id": "1",
-    "descripcion": "Inicio de sesión: Edward_Fonseca",
-    "fecha_hora": "2026-04-25T04:48:33.723Z",
+    "elemento_id": "2",
+    "descripcion": "Inicio de sesión: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-24T04:48:10.907Z",
     "ip_address": "127.0.0.1"
   }
 },
@@ -650,12 +906,12 @@
   "model": "historial.historial",
   "pk": 5,
   "fields": {
-    "usuario": 1,
-    "accion": "login",
+    "usuario": 2,
+    "accion": "logout",
     "modulo": "usuarios",
-    "elemento_id": "1",
-    "descripcion": "Inicio de sesión: Edward_Fonseca",
-    "fecha_hora": "2026-04-25T19:00:27.904Z",
+    "elemento_id": "2",
+    "descripcion": "Cierre de sesión del usuario: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-24T04:48:47.525Z",
     "ip_address": "127.0.0.1"
   }
 },
@@ -668,7 +924,7 @@
     "modulo": "usuarios",
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
-    "fecha_hora": "2026-04-25T20:04:57.960Z",
+    "fecha_hora": "2026-04-24T04:49:07.204Z",
     "ip_address": "127.0.0.1"
   }
 },
@@ -677,11 +933,11 @@
   "pk": 7,
   "fields": {
     "usuario": 1,
-    "accion": "login",
+    "accion": "editar",
     "modulo": "usuarios",
-    "elemento_id": "1",
-    "descripcion": "Inicio de sesión: Edward_Fonseca",
-    "fecha_hora": "2026-04-25T20:07:43.990Z",
+    "elemento_id": "2",
+    "descripcion": "Perfil de usuario editado: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-24T04:49:19.898Z",
     "ip_address": "127.0.0.1"
   }
 },
@@ -690,11 +946,856 @@
   "pk": 8,
   "fields": {
     "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-24T04:50:35.192Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 9,
+  "fields": {
+    "usuario": 2,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "2",
+    "descripcion": "Inicio de sesión: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-24T04:50:46.290Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 10,
+  "fields": {
+    "usuario": 2,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "2",
+    "descripcion": "Cierre de sesión del usuario: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-24T04:50:55.693Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 11,
+  "fields": {
+    "usuario": 2,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "2",
+    "descripcion": "Inicio de sesión: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-24T04:51:46.996Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 12,
+  "fields": {
+    "usuario": 2,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "2",
+    "descripcion": "Cierre de sesión del usuario: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-24T04:51:52.715Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 13,
+  "fields": {
+    "usuario": 1,
     "accion": "login",
     "modulo": "usuarios",
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
-    "fecha_hora": "2026-04-25T21:28:38.853Z",
+    "fecha_hora": "2026-04-25T00:53:11.087Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 14,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T01:10:37.221Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 15,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T01:20:41.793Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 16,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T02:46:14.676Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 17,
+  "fields": {
+    "usuario": 1,
+    "accion": "eliminar",
+    "modulo": "usuarios",
+    "elemento_id": "5",
+    "descripcion": "Usuario eliminado: maria@test.com",
+    "fecha_hora": "2026-04-25T02:46:47.230Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 18,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T02:47:51.556Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 19,
+  "fields": {
+    "usuario": 2,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "2",
+    "descripcion": "Inicio de sesión: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-25T02:48:02.479Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 20,
+  "fields": {
+    "usuario": 2,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "2",
+    "descripcion": "Cierre de sesión del usuario: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-25T02:48:18.403Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 21,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T02:48:30.304Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 22,
+  "fields": {
+    "usuario": 3,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Cierre de sesión del usuario: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T02:49:23.056Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 23,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T02:49:35.007Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 24,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T02:52:39.195Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 25,
+  "fields": {
+    "usuario": 3,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Cierre de sesión del usuario: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T02:52:48.140Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 26,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T02:52:59.808Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 27,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T02:55:39.582Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 28,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T02:55:53.732Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 29,
+  "fields": {
+    "usuario": 3,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Cierre de sesión del usuario: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T02:58:49.882Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 30,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T02:59:09.614Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 31,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "pedidos",
+    "elemento_id": "1",
+    "descripcion": "Pedido asignado a conductor: Iván_Camilo con vehículo HGE312",
+    "fecha_hora": "2026-04-25T03:00:50.531Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 32,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T03:01:05.665Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 33,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T03:01:25.546Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 34,
+  "fields": {
+    "usuario": 3,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Cierre de sesión del usuario: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T03:01:33.123Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 35,
+  "fields": {
+    "usuario": 2,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "2",
+    "descripcion": "Inicio de sesión: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-25T03:02:30.710Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 36,
+  "fields": {
+    "usuario": 2,
+    "accion": "confirmar_entrega",
+    "modulo": "pedidos",
+    "elemento_id": "1",
+    "descripcion": "Conductor confirmó entrega exitosa",
+    "fecha_hora": "2026-04-25T03:02:59.086Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 37,
+  "fields": {
+    "usuario": 2,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "2",
+    "descripcion": "Cierre de sesión del usuario: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-25T03:03:10.857Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 38,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T03:03:30.100Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 39,
+  "fields": {
+    "usuario": 3,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Cierre de sesión del usuario: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T03:03:46.031Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 40,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T03:04:00.011Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 41,
+  "fields": {
+    "usuario": 1,
+    "accion": "otro",
+    "modulo": "pedidos",
+    "elemento_id": "1",
+    "descripcion": "Factura descargada por Edward_Fonseca",
+    "fecha_hora": "2026-04-25T03:06:29.755Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 42,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T03:40:20.560Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 43,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "pedidos",
+    "elemento_id": "2",
+    "descripcion": "Pedido asignado a conductor: Iván_Camilo con vehículo HGE312",
+    "fecha_hora": "2026-04-25T03:44:59.706Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 44,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T03:45:25.659Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 45,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T03:45:39.011Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 46,
+  "fields": {
+    "usuario": 3,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Cierre de sesión del usuario: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T03:46:11.940Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 47,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T03:46:27.620Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 48,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "1",
+    "descripcion": "Material editado: Cemento Argus",
+    "fecha_hora": "2026-04-25T03:47:40.207Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 49,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "2",
+    "descripcion": "Material editado: Arena de Rio",
+    "fecha_hora": "2026-04-25T03:48:04.091Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 50,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "1",
+    "descripcion": "Material editado: Cemento Argus",
+    "fecha_hora": "2026-04-25T03:48:18.182Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 51,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "1",
+    "descripcion": "Material editado: Cemento Argus",
+    "fecha_hora": "2026-04-25T03:48:25.031Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 52,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "1",
+    "descripcion": "Material editado: Cemento Argus",
+    "fecha_hora": "2026-04-25T03:48:36.231Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 53,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "2",
+    "descripcion": "Material editado: Arena de Rio",
+    "fecha_hora": "2026-04-25T03:48:49.294Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 54,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "3",
+    "descripcion": "Material editado: Varilla 1/2",
+    "fecha_hora": "2026-04-25T03:49:02.998Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 55,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "4",
+    "descripcion": "Material editado: Piedra Triturada",
+    "fecha_hora": "2026-04-25T03:49:15.083Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 56,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "5",
+    "descripcion": "Material editado: Ladrillo Común",
+    "fecha_hora": "2026-04-25T03:49:26.280Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 57,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "1",
+    "descripcion": "Material editado: Cemento Argus",
+    "fecha_hora": "2026-04-25T03:49:37.793Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 58,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "1",
+    "descripcion": "Material editado: Cemento Argus",
+    "fecha_hora": "2026-04-25T03:49:47.441Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 59,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "2",
+    "descripcion": "Material editado: Arena de Rio",
+    "fecha_hora": "2026-04-25T03:50:00.957Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 60,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "3",
+    "descripcion": "Material editado: Varilla 1/2",
+    "fecha_hora": "2026-04-25T03:50:06.643Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 61,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "4",
+    "descripcion": "Material editado: Piedra Triturada",
+    "fecha_hora": "2026-04-25T03:50:12.224Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 62,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "5",
+    "descripcion": "Material editado: Ladrillo Común",
+    "fecha_hora": "2026-04-25T03:50:16.278Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 63,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T03:56:46.879Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 64,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T03:58:38.565Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 65,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T04:01:02.568Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 66,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T04:05:20.819Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 67,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T04:06:42.890Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 68,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T04:09:54.140Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 69,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T04:12:31.338Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 70,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T04:14:28.706Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 71,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T04:17:11.926Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 72,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T04:23:59.440Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 73,
+  "fields": {
+    "usuario": null,
+    "accion": "crear",
+    "modulo": "usuarios",
+    "elemento_id": "8",
+    "descripcion": "Nuevo registro: eo3456@gmail.com",
+    "fecha_hora": "2026-04-25T21:56:27.315Z",
     "ip_address": "127.0.0.1"
   }
 }
