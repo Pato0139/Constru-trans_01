@@ -40,7 +40,7 @@
   "pk": 3,
   "fields": {
     "password": "pbkdf2_sha256$1200000$W7ksGdB5Y1dJUWxqFJvFWS$PpipIYB8lquBx7Jf9oMgPEssCz0499I2O59bcg5N43E=",
-    "last_login": "2026-04-25T03:03:30.080Z",
+    "last_login": "2026-04-25T03:45:38.996Z",
     "is_superuser": false,
     "username": "Alvaro@gmail.com",
     "first_name": "",
@@ -127,10 +127,10 @@
 },
 {
   "model": "sessions.session",
-  "pk": "tb97xbm13bf2cdi2htygzt1blbey08w2",
+  "pk": "o9in9ppto6d27ug2cxucddnq2uwh4vo1",
   "fields": {
-    "session_data": ".eJxVjEEOwiAQRe_C2hCYdmBw6d4zEGCmUjVtUtqV8e7apAvd_vfef6mYtrXGrckSR1ZnZdXpd8upPGTaAd_TdJt1mad1GbPeFX3Qpq8zy_NyuH8HNbX6rSl5kYQAHebOEWPfCwIToQWgUgY3GEfOgzBxDmi9CwhWMvpQDBj1_gDNazb5:1wGTsS:DuWJxHRiTQ4GjnUADRGwYzcM2Haj3m-AepmOwmTxYA4",
-    "expire_date": "2026-05-09T03:40:20.595Z"
+    "session_data": ".eJxVjEEOwiAQRe_C2pBSYACX7j0DGZhBqoYmpV0Z765NutDtf-_9l4i4rTVunZc4kTgLLU6_W8L84LYDumO7zTLPbV2mJHdFHrTL60z8vBzu30HFXr81cAZiZ5NW4FJQCsCSIWajDQZMONjMUHwxXrMuPHoMhkZHqiDDYMX7A_WTOHI:1wGTxb:FZvdlHZShtL3-YdLzyl8X7bGNhMyjUIWjrFwhK5o_DI",
+    "expire_date": "2026-05-09T03:45:39.036Z"
   }
 },
 {
@@ -1358,6 +1358,32 @@
     "elemento_id": "2",
     "descripcion": "Pedido asignado a conductor: Iván_Camilo con vehículo HGE312",
     "fecha_hora": "2026-04-25T03:44:59.706Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 44,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T03:45:25.659Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 45,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T03:45:39.011Z",
     "ip_address": "127.0.0.1"
   }
 }
