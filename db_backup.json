@@ -246,9 +246,9 @@
   "pk": 1,
   "fields": {
     "nombre": "Cemento Argus",
-    "tipo": "Construcción",
+    "tipo": "Cemento",
     "descripcion": "Bulto de cemento gris",
-    "precio": "69012.00",
+    "precio": "600000.00",
     "sincronizado": true
   }
 },
@@ -393,7 +393,7 @@
     "titulo": "Nueva notificación",
     "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $99.000 para la Factura F-000001",
     "tipo": "info",
-    "leida": false,
+    "leida": true,
     "fecha": "2026-04-25T03:42:19.460Z",
     "link": "/facturacion/"
   }
@@ -406,7 +406,7 @@
     "titulo": "Nueva notificación",
     "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $99000 para la Factura F-000001",
     "tipo": "info",
-    "leida": false,
+    "leida": true,
     "fecha": "2026-04-25T03:42:48.780Z",
     "link": "/facturacion/"
   }
@@ -419,7 +419,7 @@
     "titulo": "Nueva notificación",
     "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $21710 para la Factura F-000001",
     "tipo": "info",
-    "leida": false,
+    "leida": true,
     "fecha": "2026-04-25T03:43:24.213Z",
     "link": "/facturacion/"
   }
@@ -432,7 +432,7 @@
     "titulo": "Nueva notificación",
     "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $238848 para la Factura F-000001",
     "tipo": "info",
-    "leida": false,
+    "leida": true,
     "fecha": "2026-04-25T03:43:53.929Z",
     "link": "/facturacion/"
   }
@@ -445,7 +445,7 @@
     "titulo": "Nueva notificación",
     "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $9569504 para la Factura F-000001",
     "tipo": "info",
-    "leida": false,
+    "leida": true,
     "fecha": "2026-04-25T03:44:28.032Z",
     "link": "/facturacion/"
   }
@@ -1410,6 +1410,19 @@
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-25T03:46:27.620Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 48,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "inventario",
+    "elemento_id": "1",
+    "descripcion": "Material editado: Cemento Argus",
+    "fecha_hora": "2026-04-25T03:47:40.207Z",
     "ip_address": "127.0.0.1"
   }
 }
