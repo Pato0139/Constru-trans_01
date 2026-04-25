@@ -289,9 +289,9 @@
   "pk": 1,
   "fields": {
     "material": 1,
-    "cantidad": 200,
+    "cantidad": 120,
     "ubicacion": "Bodega Principal",
-    "ultima_actualizacion": "2026-04-25T02:54:06.884Z"
+    "ultima_actualizacion": "2026-04-25T02:57:11.801Z"
   }
 },
 {
@@ -309,9 +309,9 @@
   "pk": 3,
   "fields": {
     "material": 3,
-    "cantidad": 50,
+    "cantidad": 20,
     "ubicacion": "Bodega Principal",
-    "ultima_actualizacion": "2026-04-25T02:55:08.083Z"
+    "ultima_actualizacion": "2026-04-25T02:57:11.817Z"
   }
 },
 {
@@ -461,6 +461,34 @@
   }
 },
 {
+  "model": "inventario.movimientoinventario",
+  "pk": 7,
+  "fields": {
+    "material": 1,
+    "tipo": "salida",
+    "cantidad": 80,
+    "motivo": "orden #2",
+    "referencia_id": 2,
+    "usuario": 3,
+    "fecha": "2026-04-25T02:57:11.808Z",
+    "sincronizado": false
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 8,
+  "fields": {
+    "material": 3,
+    "tipo": "salida",
+    "cantidad": 30,
+    "motivo": "orden #2",
+    "referencia_id": 2,
+    "usuario": 3,
+    "fecha": "2026-04-25T02:57:11.818Z",
+    "sincronizado": false
+  }
+},
+{
   "model": "ordenes.orden",
   "pk": 1,
   "fields": {
@@ -478,6 +506,23 @@
   }
 },
 {
+  "model": "ordenes.orden",
+  "pk": 2,
+  "fields": {
+    "cliente": 2,
+    "conductor": null,
+    "direccion_origen": "Bodega Central",
+    "direccion_destino": "cra 44",
+    "fecha": "2026-04-25T02:57:11.790Z",
+    "fecha_entrega_programada": "2026-06-07T23:48:00Z",
+    "fecha_toma_entrega": null,
+    "fecha_entrega_real": null,
+    "estado": "pendiente",
+    "precio": "8955330.00",
+    "sincronizado": false
+  }
+},
+{
   "model": "ordenes.detalleorden",
   "pk": 1,
   "fields": {
@@ -485,6 +530,26 @@
     "material": 2,
     "cantidad": 80,
     "precio_unitario": "125590.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 2,
+  "fields": {
+    "orden": 2,
+    "material": 1,
+    "cantidad": 80,
+    "precio_unitario": "69012.00"
+  }
+},
+{
+  "model": "ordenes.detalleorden",
+  "pk": 3,
+  "fields": {
+    "orden": 2,
+    "material": 3,
+    "cantidad": 30,
+    "precio_unitario": "114479.00"
   }
 },
 {
