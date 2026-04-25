@@ -93,7 +93,7 @@
   "model": "auth.user",
   "pk": 6,
   "fields": {
-    "password": "",
+    "password": "pbkdf2_sha256$1200000$r17n4zsjvU6882ZKzt75Sf$i1c9EGw6mcfV30qZpFajWms4KLqNT6ILl4eFw8UGZrk=",
     "last_login": null,
     "is_superuser": false,
     "username": "luis@test.com",
@@ -191,6 +191,22 @@
     "foto_perfil": "",
     "tipo_documento": "CC",
     "documento": "6484377",
+    "estado": "activo",
+    "sincronizado": false
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 6,
+  "fields": {
+    "user": 6,
+    "rol": "conductor",
+    "nombres": "Luis",
+    "apellidos": "Rodriguez",
+    "telefono": "",
+    "foto_perfil": "",
+    "tipo_documento": "CC",
+    "documento": "6349169",
     "estado": "activo",
     "sincronizado": false
   }
@@ -416,6 +432,24 @@
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-25T01:10:37.221Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 15,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T01:20:41.793Z",
+    "ip_address": "127.0.0.1"
+  }
+}
+]
+cha_hora": "2026-04-25T01:10:37.221Z",
     "ip_address": "127.0.0.1"
   }
 },
