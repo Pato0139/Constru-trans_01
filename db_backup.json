@@ -236,7 +236,7 @@
     "placa": "HGE312",
     "tipo": "Bolqueta",
     "capacidad": "180",
-    "estado": "disponible",
+    "estado": "en_ruta",
     "sincronizado": true,
     "conductor": 2
   }
@@ -369,6 +369,84 @@
     "tipo": "info",
     "leida": false,
     "fecha": "2026-04-25T03:06:13.912Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 3,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $100000 para la Factura F-000001",
+    "tipo": "info",
+    "leida": false,
+    "fecha": "2026-04-25T03:42:00.772Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 4,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $99.000 para la Factura F-000001",
+    "tipo": "info",
+    "leida": false,
+    "fecha": "2026-04-25T03:42:19.460Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 5,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $99000 para la Factura F-000001",
+    "tipo": "info",
+    "leida": false,
+    "fecha": "2026-04-25T03:42:48.780Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 6,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $21710 para la Factura F-000001",
+    "tipo": "info",
+    "leida": false,
+    "fecha": "2026-04-25T03:43:24.213Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 7,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $238848 para la Factura F-000001",
+    "tipo": "info",
+    "leida": false,
+    "fecha": "2026-04-25T03:43:53.929Z",
+    "link": "/facturacion/"
+  }
+},
+{
+  "model": "usuarios.notificacion",
+  "pk": 8,
+  "fields": {
+    "usuario": 1,
+    "titulo": "Nueva notificación",
+    "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $9569504 para la Factura F-000001",
+    "tipo": "info",
+    "leida": false,
+    "fecha": "2026-04-25T03:44:28.032Z",
     "link": "/facturacion/"
   }
 },
@@ -548,14 +626,14 @@
   "pk": 2,
   "fields": {
     "cliente": 2,
-    "conductor": null,
+    "conductor": 2,
     "direccion_origen": "Bodega Central",
     "direccion_destino": "cra 44",
     "fecha": "2026-04-25T03:12:33.247Z",
     "fecha_entrega_programada": "2026-06-07T23:48:00Z",
-    "fecha_toma_entrega": null,
+    "fecha_toma_entrega": "2026-04-25T03:44:59.696Z",
     "fecha_entrega_real": null,
-    "estado": "pendiente",
+    "estado": "en_ruta",
     "precio": "8955330.00",
     "sincronizado": true
   }
@@ -603,6 +681,18 @@
   }
 },
 {
+  "model": "ordenes.entrega",
+  "pk": 2,
+  "fields": {
+    "pedido": 2,
+    "conductor": 2,
+    "vehiculo": 1,
+    "fecha": "2026-04-25T03:44:59.687Z",
+    "fecha_finalizacion": null,
+    "estado": "en_ruta"
+  }
+},
+{
   "model": "facturacion.factura",
   "pk": 1,
   "fields": {
@@ -613,7 +703,7 @@
     "subtotal": "10047200.00",
     "iva": "0.00",
     "total": "10047200.00",
-    "estado": "pendiente"
+    "estado": "pagada"
   }
 },
 {
@@ -637,6 +727,78 @@
     "metodo": "efectivo",
     "referencia": "",
     "fecha": "2026-04-25T03:06:13.903Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 3,
+  "fields": {
+    "factura": 1,
+    "monto": "100000.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:42:00.766Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 4,
+  "fields": {
+    "factura": 1,
+    "monto": "99.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:42:19.455Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 5,
+  "fields": {
+    "factura": 1,
+    "monto": "99000.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:42:48.774Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 6,
+  "fields": {
+    "factura": 1,
+    "monto": "21710.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:43:24.207Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 7,
+  "fields": {
+    "factura": 1,
+    "monto": "238848.00",
+    "metodo": "efectivo",
+    "referencia": "",
+    "fecha": "2026-04-25T03:43:53.923Z",
+    "registrado_por": 1
+  }
+},
+{
+  "model": "pagos.pago",
+  "pk": 8,
+  "fields": {
+    "factura": 1,
+    "monto": "9569504.00",
+    "metodo": "transferencia",
+    "referencia": "",
+    "fecha": "2026-04-25T03:44:28.027Z",
     "registrado_por": 1
   }
 },
@@ -1183,6 +1345,19 @@
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-25T03:40:20.560Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 43,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "pedidos",
+    "elemento_id": "2",
+    "descripcion": "Pedido asignado a conductor: Iván_Camilo con vehículo HGE312",
+    "fecha_hora": "2026-04-25T03:44:59.706Z",
     "ip_address": "127.0.0.1"
   }
 }
