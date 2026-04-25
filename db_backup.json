@@ -40,7 +40,7 @@
   "pk": 3,
   "fields": {
     "password": "pbkdf2_sha256$1200000$W7ksGdB5Y1dJUWxqFJvFWS$PpipIYB8lquBx7Jf9oMgPEssCz0499I2O59bcg5N43E=",
-    "last_login": "2026-04-25T02:52:39.175Z",
+    "last_login": "2026-04-25T02:55:53.707Z",
     "is_superuser": false,
     "username": "Alvaro@gmail.com",
     "first_name": "",
@@ -127,10 +127,10 @@
 },
 {
   "model": "sessions.session",
-  "pk": "mgyuibbfvyvar3uytaprhmhq99gnlhz6",
+  "pk": "79pt7suydnhiuq3ovotnh1hryao1rixu",
   "fields": {
-    "session_data": ".eJxVjEEOwiAQRe_C2hCYdmBw6d4zEGCmUjVtUtqV8e7apAvd_vfef6mYtrXGrckSR1ZnZdXpd8upPGTaAd_TdJt1mad1GbPeFX3Qpq8zy_NyuH8HNbX6rSl5kYQAHebOEWPfCwIToQWgUgY3GEfOgzBxDmi9CwhWMvpQDBj1_gDNazb5:1wGT8d:uNSyms2nBpq_m9jI1iWiPqqUlpVkcdC4lpRUD3WcMoE",
-    "expire_date": "2026-05-09T02:52:59.832Z"
+    "session_data": ".eJxVjEEOwiAQRe_C2pBSYACX7j0DGZhBqoYmpV0Z765NutDtf-_9l4i4rTVunZc4kTgLLU6_W8L84LYDumO7zTLPbV2mJHdFHrTL60z8vBzu30HFXr81cAZiZ5NW4FJQCsCSIWajDQZMONjMUHwxXrMuPHoMhkZHqiDDYMX7A_WTOHI:1wGTBR:6GT4htfxHRo5DipDfnqzVt_oF7azKkSIO94iPdHM0sE",
+    "expire_date": "2026-05-09T02:55:53.764Z"
   }
 },
 {
@@ -289,9 +289,9 @@
   "pk": 1,
   "fields": {
     "material": 1,
-    "cantidad": 0,
+    "cantidad": 200,
     "ubicacion": "Bodega Principal",
-    "ultima_actualizacion": "2026-04-25T01:29:48.204Z"
+    "ultima_actualizacion": "2026-04-25T02:54:06.884Z"
   }
 },
 {
@@ -299,9 +299,9 @@
   "pk": 2,
   "fields": {
     "material": 2,
-    "cantidad": 0,
+    "cantidad": 490,
     "ubicacion": "Bodega Principal",
-    "ultima_actualizacion": "2026-04-25T01:29:48.608Z"
+    "ultima_actualizacion": "2026-04-25T02:53:49.342Z"
   }
 },
 {
@@ -309,9 +309,9 @@
   "pk": 3,
   "fields": {
     "material": 3,
-    "cantidad": 0,
+    "cantidad": 50,
     "ubicacion": "Bodega Principal",
-    "ultima_actualizacion": "2026-04-25T01:29:48.820Z"
+    "ultima_actualizacion": "2026-04-25T02:55:08.083Z"
   }
 },
 {
@@ -319,9 +319,9 @@
   "pk": 4,
   "fields": {
     "material": 4,
-    "cantidad": 0,
+    "cantidad": 500,
     "ubicacion": "Bodega Principal",
-    "ultima_actualizacion": "2026-04-25T01:29:49.055Z"
+    "ultima_actualizacion": "2026-04-25T02:54:53.602Z"
   }
 },
 {
@@ -329,9 +329,9 @@
   "pk": 5,
   "fields": {
     "material": 5,
-    "cantidad": 0,
+    "cantidad": 350,
     "ubicacion": "Bodega Principal",
-    "ultima_actualizacion": "2026-04-25T01:29:49.325Z"
+    "ultima_actualizacion": "2026-04-25T02:54:24.753Z"
   }
 },
 {
@@ -374,6 +374,76 @@
     "telefono_contacto": null,
     "email_empresa": null,
     "fecha_registro": "2026-04-25T01:29:00.660Z"
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 1,
+  "fields": {
+    "material": 2,
+    "tipo": "entrada",
+    "cantidad": 490,
+    "motivo": "Falta de material\r\n",
+    "referencia_id": null,
+    "usuario": 1,
+    "fecha": "2026-04-25T02:53:49.345Z",
+    "sincronizado": false
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 2,
+  "fields": {
+    "material": 1,
+    "tipo": "entrada",
+    "cantidad": 200,
+    "motivo": "falta de material",
+    "referencia_id": null,
+    "usuario": 1,
+    "fecha": "2026-04-25T02:54:06.888Z",
+    "sincronizado": false
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 3,
+  "fields": {
+    "material": 5,
+    "tipo": "entrada",
+    "cantidad": 350,
+    "motivo": "falta de material",
+    "referencia_id": null,
+    "usuario": 1,
+    "fecha": "2026-04-25T02:54:24.756Z",
+    "sincronizado": false
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 4,
+  "fields": {
+    "material": 4,
+    "tipo": "entrada",
+    "cantidad": 500,
+    "motivo": "falta de material",
+    "referencia_id": null,
+    "usuario": 1,
+    "fecha": "2026-04-25T02:54:53.604Z",
+    "sincronizado": false
+  }
+},
+{
+  "model": "inventario.movimientoinventario",
+  "pk": 5,
+  "fields": {
+    "material": 3,
+    "tipo": "entrada",
+    "cantidad": 50,
+    "motivo": "falta de material",
+    "referencia_id": null,
+    "usuario": 1,
+    "fecha": "2026-04-25T02:55:08.086Z",
+    "sincronizado": false
   }
 },
 {
@@ -711,6 +781,32 @@
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-25T02:52:59.808Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 27,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T02:55:39.582Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 28,
+  "fields": {
+    "usuario": 3,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "3",
+    "descripcion": "Inicio de sesión: Alvaro@gmail.com",
+    "fecha_hora": "2026-04-25T02:55:53.732Z",
     "ip_address": "127.0.0.1"
   }
 }
