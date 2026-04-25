@@ -22,7 +22,7 @@
   "pk": 2,
   "fields": {
     "password": "pbkdf2_sha256$1200000$EhezjKXwavfTZT7BOOSuuT$dh5mGqXFrn54ns3IaHWuikAqUJj7wJKmA0DwDeYL+0w=",
-    "last_login": "2026-04-24T04:51:45.392Z",
+    "last_login": "2026-04-25T02:48:02.464Z",
     "is_superuser": false,
     "username": "camipenagoz345@gmail.com",
     "first_name": "",
@@ -127,10 +127,10 @@
 },
 {
   "model": "sessions.session",
-  "pk": "kpsudzvs3brkr6gjlev8yhzoc477zm2h",
+  "pk": "cnk7u972mbk2rfn3riea6yz5oxqdiuhk",
   "fields": {
-    "session_data": ".eJxVjEEOwiAQRe_C2hCYdmBw6d4zEGCmUjVtUtqV8e7apAvd_vfef6mYtrXGrckSR1ZnZdXpd8upPGTaAd_TdJt1mad1GbPeFX3Qpq8zy_NyuH8HNbX6rSl5kYQAHebOEWPfCwIToQWgUgY3GEfOgzBxDmi9CwhWMvpQDBj1_gDNazb5:1wGT26:Tko5f7i_3bjRnPhU47Fs9DDzxvpJOXz124cuQxE8eBY",
-    "expire_date": "2026-05-09T02:46:14.723Z"
+    "session_data": ".eJxVjEEOwiAQRe_C2pBCYQCX7j0DGZhBqoYmpV0Z765NutDtf-_9l4i4rTVunZc4kTgLLU6_W8L84LYDumO7zTLPbV2mJHdFHrTL60z8vBzu30HFXr91NgxcqAQF1ms7eq1AOQXsHCiDyvOQKY2GLNtsjSYqKQdMNAAUDCjeH9n_ODo:1wGT3q:fdOhj-ltIHl-9OWdl6AM3h3FVOP3KsZ06mGrqs8cWts",
+    "expire_date": "2026-05-09T02:48:02.518Z"
   }
 },
 {
@@ -193,22 +193,6 @@
     "foto_perfil": "",
     "tipo_documento": "CC",
     "documento": "1171169",
-    "estado": "activo",
-    "sincronizado": true
-  }
-},
-{
-  "model": "usuarios.usuario",
-  "pk": 5,
-  "fields": {
-    "user": 5,
-    "rol": "admin",
-    "nombres": "Maria",
-    "apellidos": "Gomez",
-    "telefono": "",
-    "foto_perfil": "",
-    "tipo_documento": "CC",
-    "documento": "6484377",
     "estado": "activo",
     "sincronizado": true
   }
@@ -597,6 +581,45 @@
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-25T02:46:14.676Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 17,
+  "fields": {
+    "usuario": 1,
+    "accion": "eliminar",
+    "modulo": "usuarios",
+    "elemento_id": "5",
+    "descripcion": "Usuario eliminado: maria@test.com",
+    "fecha_hora": "2026-04-25T02:46:47.230Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 18,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-25T02:47:51.556Z",
+    "ip_address": "127.0.0.1"
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 19,
+  "fields": {
+    "usuario": 2,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "2",
+    "descripcion": "Inicio de sesión: camipenagoz345@gmail.com",
+    "fecha_hora": "2026-04-25T02:48:02.479Z",
     "ip_address": "127.0.0.1"
   }
 }
