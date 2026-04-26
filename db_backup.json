@@ -4,7 +4,7 @@
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$1200000$rcA358dIqXuahH3V1hSU8I$VK/DgeJbwRVFW0BHdgyB6YlDujRdQArskfcpjKwosvQ=",
-    "last_login": "2026-04-26T02:34:25.666Z",
+    "last_login": "2026-04-26T04:31:17.855Z",
     "is_superuser": true,
     "username": "Edward_Fonseca",
     "first_name": "",
@@ -2309,6 +2309,20 @@
     "fecha_hora": "2026-04-26T02:34:25.694Z",
     "ip_address": "127.0.0.1",
     "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 79,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-26T04:31:17.867Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": false
   }
 }
 ]
