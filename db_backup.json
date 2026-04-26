@@ -887,6 +887,18 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
+    "sincronizado": true
+  }
+},
+{
+  "model": "compras.compra",
+  "pk": 2,
+  "fields": {
+    "proveedor": 1,
+    "fecha": "2026-04-26T02:30:10.149Z",
+    "total": "1425000.00",
+    "estado": "recibida",
+    "observaciones": "Compra inicial de stock",
     "sincronizado": false
   }
 },
@@ -895,6 +907,16 @@
   "pk": 1,
   "fields": {
     "compra": 1,
+    "material": 1,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
+  }
+},
+{
+  "model": "compras.detallecompra",
+  "pk": 2,
+  "fields": {
+    "compra": 2,
     "material": 1,
     "cantidad": 50,
     "precio_unitario": "28500.00"
