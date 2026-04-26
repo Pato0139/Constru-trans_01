@@ -4,7 +4,7 @@
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$1200000$rcA358dIqXuahH3V1hSU8I$VK/DgeJbwRVFW0BHdgyB6YlDujRdQArskfcpjKwosvQ=",
-    "last_login": "2026-04-26T04:35:23.688Z",
+    "last_login": "2026-04-26T04:37:21.401Z",
     "is_superuser": true,
     "username": "Edward_Fonseca",
     "first_name": "",
@@ -130,7 +130,7 @@
   "pk": 8,
   "fields": {
     "password": "pbkdf2_sha256$1200000$Tyx1EDJenOYDNGCTTm9xcC$lA/g0YR5gk3ub0xnE7bAru6g/UAas5bq9b3CNoCaVRE=",
-    "last_login": "2026-04-25T21:56:38.153Z",
+    "last_login": "2026-04-26T04:44:14.779Z",
     "is_superuser": false,
     "username": "eo3456@gmail.com",
     "first_name": "",
@@ -270,7 +270,7 @@
   "pk": 8,
   "fields": {
     "user": 8,
-    "rol": "cliente",
+    "rol": "admin",
     "nombres": "Juanito",
     "apellidos": "Ochoa",
     "telefono": "304 3493398",
@@ -294,7 +294,7 @@
     "tipo_documento": "CC",
     "documento": "1052987345",
     "estado": "activo",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -921,6 +921,7 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
+    "usuario": null,
     "sincronizado": true
   }
 },
@@ -933,6 +934,7 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
+    "usuario": null,
     "sincronizado": true
   }
 },
@@ -945,6 +947,7 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
+    "usuario": null,
     "sincronizado": true
   }
 },
@@ -957,6 +960,7 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
+    "usuario": null,
     "sincronizado": true
   }
 },
@@ -969,6 +973,7 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
+    "usuario": null,
     "sincronizado": true
   }
 },
@@ -981,6 +986,7 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
+    "usuario": null,
     "sincronizado": true
   }
 },
@@ -2383,6 +2389,90 @@
     "elemento_id": "9",
     "descripcion": "Administrador creó usuario: johansebastian18@gmail.com como admin",
     "fecha_hora": "2026-04-26T04:36:21.954Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 82,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-26T04:36:45.464Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 83,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-26T04:37:21.410Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 84,
+  "fields": {
+    "usuario": 1,
+    "accion": "editar",
+    "modulo": "usuarios",
+    "elemento_id": "8",
+    "descripcion": "Perfil de usuario editado: eo3456@gmail.com",
+    "fecha_hora": "2026-04-26T04:38:36.404Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 85,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-26T04:38:39.841Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 86,
+  "fields": {
+    "usuario": 8,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "8",
+    "descripcion": "Inicio de sesión: eo3456@gmail.com",
+    "fecha_hora": "2026-04-26T04:39:38.371Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 87,
+  "fields": {
+    "usuario": 8,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "8",
+    "descripcion": "Inicio de sesión: eo3456@gmail.com",
+    "fecha_hora": "2026-04-26T04:44:14.791Z",
     "ip_address": "127.0.0.1",
     "sincronizado": false
   }
