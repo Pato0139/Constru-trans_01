@@ -4,7 +4,7 @@
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$1200000$rcA358dIqXuahH3V1hSU8I$VK/DgeJbwRVFW0BHdgyB6YlDujRdQArskfcpjKwosvQ=",
-    "last_login": "2026-04-26T04:31:17.855Z",
+    "last_login": "2026-04-26T04:35:23.688Z",
     "is_superuser": true,
     "username": "Edward_Fonseca",
     "first_name": "",
@@ -144,6 +144,24 @@
   }
 },
 {
+  "model": "auth.user",
+  "pk": 9,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$J7kwNNRRboppZbGyVP3xtw$maFjM3Ex/s8Zg62BeiZ4d1+DdJaF4Vn2LFzNx2D8oDo=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "johansebastian18@gmail.com",
+    "first_name": "",
+    "last_name": "",
+    "email": "johansebastian18@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-26T04:36:20.084Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
   "model": "sessions.session",
   "pk": "z26q4ur3ch6yvx5c8krocsfvq0sucxp5",
   "fields": {
@@ -261,6 +279,22 @@
     "documento": "1852345289",
     "estado": "activo",
     "sincronizado": true
+  }
+},
+{
+  "model": "usuarios.usuario",
+  "pk": 9,
+  "fields": {
+    "user": 9,
+    "rol": "admin",
+    "nombres": "Jhoan Sebastian",
+    "apellidos": "Rodriguez Rodriguez",
+    "telefono": "311 3969320",
+    "foto_perfil": "",
+    "tipo_documento": "CC",
+    "documento": "1052987345",
+    "estado": "activo",
+    "sincronizado": false
   }
 },
 {
@@ -2321,6 +2355,34 @@
     "elemento_id": "1",
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-26T04:31:17.867Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 80,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-26T04:35:23.700Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 81,
+  "fields": {
+    "usuario": 1,
+    "accion": "crear",
+    "modulo": "usuarios",
+    "elemento_id": "9",
+    "descripcion": "Administrador creó usuario: johansebastian18@gmail.com como admin",
+    "fecha_hora": "2026-04-26T04:36:21.954Z",
     "ip_address": "127.0.0.1",
     "sincronizado": false
   }
