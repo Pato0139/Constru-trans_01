@@ -18,6 +18,7 @@ class MovimientoInventario(models.Model):
     
     class Meta:
         ordering = ['-fecha']
+        db_table = 'movimiento_inventario'
 
     def __str__(self):
         return f"{self.tipo.upper()}: {self.cantidad} de {self.material.nombre}"

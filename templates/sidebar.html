@@ -19,19 +19,27 @@
             {% if user.usuario.rol == 'admin' %}
                 <a href="{% url 'usuarios:panel' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
                     <i class="bi bi-grid-1x2-fill"></i>
-                    <span>Panel General</span>
+                    <span>General</span>
                 </a>
                 <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' %}active{% endif %}">
                     <i class="bi bi-cart-fill"></i>
-                    <span>Pedidos Pendientes</span>
+                    <span>Pedidos</span>
                 </a>
                 <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' %}active{% endif %}">
                     <i class="bi bi-people-fill"></i>
                     <span>Usuarios</span>
                 </a>
-                <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' %}active{% endif %}">
+                <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'materiales_lista' %}active{% endif %}">
                     <i class="bi bi-box-seam-fill"></i>
                     <span>Materiales</span>
+                </a>
+                <a href="{% url 'inventario:stock_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'stock_lista' %}active{% endif %}">
+                    <i class="bi bi-clipboard-data-fill"></i>
+                    <span>Stock / Inventario</span>
+                </a>
+                <a href="{% url 'inventario:movimientos_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'movimientos_lista' %}active{% endif %}">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Movimientos</span>
                 </a>
                 <a href="{% url 'compras:lista_proveedores' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'lista_proveedores' %}active{% endif %}">
                     <i class="bi bi-briefcase-fill"></i>
@@ -47,7 +55,7 @@
                 </a>
                 <a href="{% url 'ordenes:lista_entregas_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}active{% endif %}">
                     <i class="bi bi-truck-flatbed"></i>
-                    <span>Control de Entregas</span>
+                    <span>Entregas</span>
                 </a>
                 <a href="{% url 'facturacion:lista_facturas' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'facturacion' %}active{% endif %}">
                     <i class="bi bi-receipt"></i>
@@ -59,11 +67,11 @@
                 </a>
                 <a href="{% url 'reportes:reportes_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'reportes' %}active{% endif %}">
                     <i class="bi bi-graph-up-arrow"></i>
-                    <span>Análisis</span>
+                    <span>Reportes</span>
                 </a>
                 <a href="{% url 'historial:lista_historial' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'historial' %}active{% endif %}">
                     <i class="bi bi-clock-history"></i>
-                    <span>Historial</span>
+                    <span>Registros</span>
                 </a>
             {% elif user.usuario.rol == 'cliente' %}
                 <a href="{% url 'clientes:panel_cliente' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel_cliente' %}active{% endif %}">
@@ -85,6 +93,10 @@
                 <a href="{% url 'clientes:historial_pedidos' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'historial_pedidos' %}active{% endif %}">
                     <i class="bi bi-clock-history"></i>
                     <span>Historial</span>
+                </a>
+                <a href="{% url 'facturacion:mis_facturas' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'facturacion' %}active{% endif %}">
+                    <i class="bi bi-receipt"></i>
+                    <span>Mis Facturas</span>
                 </a>
             {% elif user.usuario.rol == 'conductor' %}
                 <a href="{% url 'usuarios:panel_conductor' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel_conductor' %}active{% endif %}">

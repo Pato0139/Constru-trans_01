@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load currency_tags %}
 
 {% block title %}Historial de Pedidos - Constru-trans{% endblock %}
 
@@ -32,7 +33,7 @@
                     <td class="fw-600 text-white">{{ pedido.material.nombre|default:"Materiales varios" }}</td>
                     <td class="text-muted small">{{ pedido.cantidad }}</td>
                     <td class="text-muted small">{{ pedido.fecha|date:"d M, Y" }}</td>
-                    <td class="price-tag">${{ pedido.precio|floatformat:0|intcomma }}</td>
+                    <td class="price-tag">{{ pedido.precio|currency }}</td>
                     <td class="text-center">
                         <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">
                             <i class="bi bi-check-circle-fill me-1"></i> Entregado

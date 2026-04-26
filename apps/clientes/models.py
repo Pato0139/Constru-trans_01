@@ -9,6 +9,9 @@ class Cliente(models.Model):
     email_empresa = models.EmailField(null=True, blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        db_table = 'perfil_cliente'
+
     def __str__(self):
         return f"{self.usuario.nombres} {self.usuario.apellidos}"
 

@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
@@ -6,20 +6,108 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from apps.usuarios.views import admin_required
 from django.utils import timezone
 from django.db.models import Q, F
 from django.db import transaction
 from django.contrib import messages
 from .models import Orden, Entrega, DetalleOrden
+from .utils import revertir_stock_pedido, liberar_vehiculo_pedido
 from apps.usuarios.models import Usuario, Vehiculo, Material, Stock
 from apps.inventario.models import MovimientoInventario
 from apps.historial.utils import registrar_actividad
+@admin_required
+def calcular_total(request, id):
+    orden = get_object_or_404(Orden, id=id)
+    total = orden.calcular_total()
+    return JsonResponse({'total': float(total)})
+
+@admin_required
+def eliminar_detalle(request, id):
+    detalle = get_object_or_404(DetalleOrden, id=id)
+    orden = detalle.orden
+    
+    with transaction.atomic():
+        # Devolver stock
+        stock_obj = Stock.objects.get(material=detalle.material)
+        stock_obj.cantidad = F('cantidad') + detalle.cantidad
+        stock_obj.save()
+        
+        # Registrar movimiento de devolución
+        MovimientoInventario.objects.create(
+            material=detalle.material,
+            tipo='entrada',
+            cantidad=detalle.cantidad,
+            motivo=f"Eliminación detalle orden #{orden.id}",
+            referencia_id=orden.id,
+            usuario=request.user
+        )
+        
+        detalle.delete()
+        orden.calcular_total()
+        
+    messages.success(request, "Material eliminado de la orden.")
+    return redirect("ordenes:agregar_materiales", id=orden.id)
+
+@admin_required
+def agregar_materiales(request, id):
+    orden = get_object_or_404(Orden, id=id)
+    materiales = Material.objects.filter(stock_info__cantidad__gt=0).select_related('stock_info')
+    detalles = orden.detalles.all()
+
+    if request.method == "POST":
+        material_id = request.POST.get("material")
+        cantidad = float(request.POST.get("cantidad", 0))
+
+        if material_id and cantidad > 0:
+            material = get_object_or_404(Material, id=material_id)
+            stock_obj = Stock.objects.get(material=material)
+
+            if stock_obj.cantidad >= cantidad:
+                with transaction.atomic():
+                    # Crear o actualizar detalle
+                    detalle, created = DetalleOrden.objects.get_or_create(
+                        orden=orden,
+                        material=material,
+                        defaults={'cantidad': cantidad, 'precio_unitario': material.precio}
+                    )
+                    if not created:
+                        detalle.cantidad += cantidad
+                        detalle.save()
+                    
+                    # Descontar stock
+                    stock_obj.cantidad = F('cantidad') - cantidad
+                    stock_obj.save()
+
+                    # Registrar movimiento
+                    MovimientoInventario.objects.create(
+                        material=material,
+                        tipo='salida',
+                        cantidad=cantidad,
+                        motivo=f"Agregado a orden #{orden.id}",
+                        referencia_id=orden.id,
+                        usuario=request.user
+                    )
+                    
+                    orden.calcular_total()
+                    messages.success(request, f"Se agregaron {cantidad} de {material.nombre}")
+            else:
+                messages.error(request, "Stock insuficiente")
+        
+        return redirect("ordenes:agregar_materiales", id=orden.id)
+
+    return render(request, "ordenes/agregar_materiales.html", {
+        "orden": orden,
+        "materiales": materiales,
+        "detalles": detalles
+    })
 
 def buscar_pedidos_admin(cliente_query=None, fecha_query=None):
     """
     Lógica unificada para buscar pedidos por cliente o fecha.
+    Optimizado con select_related para evitar N+1.
     """
-    pedidos = Orden.objects.all().order_by("-fecha")
+    pedidos = Orden.objects.all().select_related('cliente', 'conductor').order_by("-fecha")
     
     if cliente_query:
         pedidos = pedidos.filter(
@@ -56,9 +144,9 @@ def lista_entregas_admin(request):
     cliente_query = request.GET.get('cliente')
     fecha_query = request.GET.get('fecha')
     
-    # Filtramos para mostrar solo pedidos que están en ruta o entregados (logística)
+    # Filtramos para mostrar solo pedidos que están en ruta (logística activa)
     pedidos = buscar_pedidos_admin(cliente_query, fecha_query).filter(
-        estado__in=[Orden.EN_RUTA, Orden.ENTREGADO]
+        estado=Orden.EN_RUTA
     )
         
     return render(request, "ordenes/lista.html", {
@@ -72,7 +160,7 @@ def lista_entregas_admin(request):
 def ver_pedido_admin(request, id):
     orden = get_object_or_404(Orden, id=id)
     # Si es cliente, solo puede ver sus propios pedidos
-    if request.user.usuario.rol == 'cliente' and orden.cliente != request.user.usuario:
+    if request.user.usuario.rol == 'cliente' and orden.cliente.usuario != request.user.usuario:
         messages.error(request, "No tienes permiso para ver este pedido.")
         return redirect("clientes:mis_pedidos")
     
@@ -104,16 +192,16 @@ def ver_pedido_admin(request, id):
                 return redirect("usuarios:panel")
                 
             elif accion == "cancelar":
-                if orden.estado != Orden.ENTREGADO:
+                if orden.estado != Orden.ENTREGADO and orden.estado != Orden.CANCELADO:
                     with transaction.atomic():
+                        # Liberar el vehículo
+                        liberar_vehiculo_pedido(orden)
+                        
+                        # Revertir stock usando utilidad
+                        revertir_stock_pedido(orden, request.user, "Cancelación (Conductor)")
+
                         orden.estado = Orden.CANCELADO
                         orden.save()
-                        
-                        # Liberar el vehículo
-                        entrega = orden.entregas.filter(conductor=request.user.usuario).first()
-                        if entrega and entrega.vehiculo:
-                            entrega.vehiculo.estado = 'disponible'
-                            entrega.vehiculo.save()
                         
                         registrar_actividad(request, 'cancelar_entrega', 'pedidos', orden.id, "Conductor canceló la entrega")
                         messages.warning(request, f"Entrega del pedido #{orden.id} cancelada.")
@@ -137,12 +225,12 @@ def ver_pedido_admin(request, id):
                             orden.fecha_entrega_real = timezone.now()
                             orden.save()
                     else:
-                        # Si se marca como cancelado, liberar el vehículo si existe una entrega
-                        if nuevo_estado == "cancelado":
-                            entrega = orden.entregas.first()
-                            if entrega and entrega.vehiculo:
-                                entrega.vehiculo.estado = 'disponible'
-                                entrega.vehiculo.save()
+                        # Si se marca como cancelado, liberar el vehículo y REVERTIR STOCK
+                        if nuevo_estado == "cancelado" and orden.estado != "cancelado":
+                            liberar_vehiculo_pedido(orden)
+                            
+                            # Revertir stock usando utilidad
+                            revertir_stock_pedido(orden, request.user, "Cancelación (Admin)")
                                 
                         orden.estado = nuevo_estado
                         if nuevo_estado == "en_ruta" and not orden.fecha_toma_entrega:
@@ -229,30 +317,12 @@ def crear_entrega(request, orden_id):
         "conductores": conductores,
     })
 
-@admin_required
-def editar_orden(request, id):
-    orden = get_object_or_404(Orden, id=id)
-    if request.method == "POST":
-        nuevo_estado = request.POST.get("estado")
-        
-        if nuevo_estado == "en_ruta" and orden.estado != "en_ruta":
-            orden.fecha_toma_entrega = timezone.now()
-        elif nuevo_estado == "entregado" and orden.estado != "entregado":
-            orden.fecha_entrega_real = timezone.now()
-            
-        orden.estado = nuevo_estado
-        orden.save()
-        registrar_actividad(request, 'editar', 'pedidos', orden.id, f"Estado de pedido cambiado a: {nuevo_estado}")
-        messages.success(request, f"Estado del pedido #{orden.id} actualizado a {nuevo_estado}.")
-        return redirect("ordenes:lista_pedidos_admin")
-    return render(request, "ordenes/detalle.html", {"orden": orden})
-
 @login_required
 def descargar_factura(request, id):
     orden = get_object_or_404(Orden, id=id)
     
     # Solo el cliente dueño del pedido o un admin pueden descargarla
-    if request.user.usuario.rol != 'admin' and orden.cliente != request.user.usuario:
+    if request.user.usuario.rol != 'admin' and orden.cliente.usuario != request.user.usuario:
         return HttpResponse("No autorizado", status=403)
 
     response = HttpResponse(content_type='application/pdf')
@@ -296,6 +366,14 @@ def descargar_factura(request, id):
     elements.append(info_table)
     elements.append(Spacer(1, 30))
 
+    def format_money(val):
+        try:
+            v = float(val) / 100
+            formatted = "{:,.2f}".format(v)
+            return f"${formatted.replace(',', 'X').replace('.', ',').replace('X', '.')}"
+        except:
+            return "$0,00"
+
     # Detalle de Materiales
     data = [['MATERIAL', 'CANTIDAD', 'PRECIO UNIT.', 'SUBTOTAL']]
     
@@ -303,8 +381,8 @@ def descargar_factura(request, id):
     if detalles.exists():
         for detalle in detalles:
             subtotal = detalle.cantidad * detalle.precio_unitario
-            precio_u_f = f"${int(detalle.precio_unitario):,}".replace(",", ".")
-            subtotal_f = f"${int(subtotal):,}".replace(",", ".")
+            precio_u_f = format_money(detalle.precio_unitario)
+            subtotal_f = format_money(subtotal)
             data.append([
                 detalle.material.nombre.upper(),
                 str(detalle.cantidad),
@@ -312,19 +390,19 @@ def descargar_factura(request, id):
                 subtotal_f
             ])
     else:
-        precio_formateado = f"${int(orden.precio):,}".replace(",", ".")
+        precio_formateado = format_money(orden.precio)
         data.append(['SERVICIO GENERAL', '1', precio_formateado, precio_formateado])
 
     # Filas de Totales
-    total_f = f"${int(orden.precio):,}".replace(",", ".")
+    total_f = format_money(orden.precio)
     
     # Obtener información de pagos si existe factura asociada
     try:
         factura = orden.factura
-        total_pagado = f"${int(factura.total_pagado):,}".replace(",", ".")
-        por_pagar = f"${int(factura.saldo_pendiente):,}".replace(",", ".")
+        total_pagado = format_money(factura.total_pagado)
+        por_pagar = format_money(factura.saldo_pendiente)
     except:
-        total_pagado = "$0"
+        total_pagado = "$0,00"
         por_pagar = total_f
 
     data.append(['', '', 'TOTAL:', total_f])
@@ -386,63 +464,18 @@ def descargar_factura(request, id):
 def eliminar_orden(request, id):
     orden = get_object_or_404(Orden, id=id)
     order_id = orden.id
-    registrar_actividad(request, 'eliminar', 'pedidos', id, f"Pedido eliminado de cliente: {orden.cliente}")
+    
+    # Si la orden no está entregada ni cancelada, revertimos el stock antes de eliminar
+    if orden.estado not in ['entregado', 'cancelado']:
+        try:
+            with transaction.atomic():
+                # Revertir stock y registrar movimiento usando utilidad
+                revertir_stock_pedido(orden, request.user, "Eliminación")
+        except Exception as e:
+            messages.error(request, f"Error al devolver stock: {e}")
+            return redirect("ordenes:lista_pedidos_admin")
+
+    registrar_actividad(request, 'eliminar', 'pedidos', id, f"Pedido #{id} eliminado definitivamente por admin")
     orden.delete()
     messages.success(request, f"Pedido #{order_id} eliminado correctamente.")
     return redirect("ordenes:lista_pedidos_admin")
-
-@login_required
-def crear_pedido(request):
-    materiales = Material.objects.all()
-    if request.method == "POST":
-        materiales_ids = request.POST.getlist('material_id[]')
-        cantidades = request.POST.getlist('cantidad[]')
-        direccion = request.POST.get("direccion")
-        fecha_entrega = request.POST.get("fecha_entrega")
-
-        if not materiales_ids or not direccion:
-            messages.error(request, "Por favor selecciona al menos un material y una dirección.")
-            return render(request, "clientes/form.html", {"materiales": materiales, "action": "crear"})
-
-        try:
-            with transaction.atomic():
-                nueva_orden = Orden.objects.create(
-                    cliente=request.user.usuario,
-                    direccion_destino=direccion,
-                    fecha_entrega_programada=fecha_entrega if fecha_entrega else None,
-                    estado='pendiente'
-                )
-
-                total_general = 0
-                for m_id, cant in zip(materiales_ids, cantidades):
-                    material = get_object_or_404(Material, id=m_id)
-                    cantidad = int(cant)
-                    precio_unitario = material.precio
-                    
-                    # Validar stock (pero no descontar aún, se hará al entregar)
-                    stock_obj = Stock.objects.get(material=material)
-                    if stock_obj.cantidad < cantidad:
-                        raise ValueError(f"Stock insuficiente para {material.nombre}")
-
-                    DetalleOrden.objects.create(
-                        orden=nueva_orden,
-                        material=material,
-                        cantidad=cantidad,
-                        precio_unitario=precio_unitario
-                    )
-                    
-                    total_general += precio_unitario * cantidad
-
-                nueva_orden.precio = total_general
-                nueva_orden.save()
-
-            messages.success(request, f"Pedido #{nueva_orden.id} creado con éxito.")
-            return redirect("clientes:mis_pedidos")
-
-        except Exception as e:
-            messages.error(request, f"Error al crear el pedido: {str(e)}")
-            
-    return render(request, "clientes/form.html", {
-        "materiales": materiales,
-        "action": "crear"
-    })

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load humanize %}
+{% load currency_tags %}
 
 {% block title %}Orden #{{ orden.id }} - Materiales{% endblock %}
 
@@ -112,7 +113,7 @@
                     </td>
                     <td class="pe-0 text-end py-3">
                       <div class="d-flex align-items-center justify-content-end gap-3">
-                        <span class="fw-700">${{ d.subtotal|floatformat:0|intcomma }}</span>
+                        <span class="fw-700">{{ d.subtotal|currency }}</span>
                         <form method="post" action="{% url 'ordenes:eliminar_detalle' d.id %}" onsubmit="return confirm('¿Eliminar material?')">
                           {% csrf_token %}
                           <button class="btn btn-link text-danger p-0 border-0" title="Eliminar">
@@ -135,7 +136,7 @@
                 <tr>
                   <td class="ps-0 pt-4 text-white-50 fw-600" style="font-style: italic; font-size: 1.1rem;">Total de la Orden</td>
                   <td colspan="2" class="pe-0 pt-4 text-end">
-                    <span class="fw-900" id="d-total" style="font-size: 2.2rem; color: #ffffff;">${{ orden.precio|floatformat:0|intcomma }}</span>
+                    <span class="fw-900" id="d-total" style="font-size: 2.2rem; color: #ffffff;">{{ orden.precio|currency }}</span>
                   </td>
                 </tr>
               </tfoot>
@@ -171,10 +172,10 @@
     const stock = document.getElementById('txt-stock');
 
     if (opt && opt.dataset.precio && cant > 0) {
-      const sub = cant * parseFloat(opt.dataset.precio);
+      const sub = (cant * parseFloat(opt.dataset.precio)) / 100;
       val.textContent = '$' + sub.toLocaleString('es-CO', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
       });
       box.classList.remove('d-none');
       stock.textContent = 'Stock disponible: ' + opt.dataset.stock + ' ' + opt.dataset.unidad;
@@ -189,9 +190,9 @@
     fetch(URL_TOTAL)
       .then(r => r.json())
       .then(data => {
-        const fmt = v => '$' + v.toLocaleString('es-CO', {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0
+        const fmt = v => '$' + (v / 100).toLocaleString('es-CO', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
         });
         // Actualizar el total en el tfoot del resumen
         const totalElem = document.getElementById('d-total');

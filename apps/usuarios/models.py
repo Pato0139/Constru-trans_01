@@ -59,7 +59,10 @@ class Usuario(models.Model):
         default='activo'
     )
     
-    sincronizado = models.BooleanField(default=False)
+    sincronizado = models.BooleanField(default=False, verbose_name="Sincronizado con Nube")
+
+    class Meta:
+        db_table = 'usuario'
 
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
@@ -116,6 +119,9 @@ class Vehiculo(models.Model):
         limit_choices_to={'rol': 'conductor'}
     )
 
+    class Meta:
+        db_table = 'vehiculo'
+
     def __str__(self):
         return f"{self.placa} ({self.tipo})"
 
@@ -139,6 +145,7 @@ class Proveedor(models.Model):
 
     class Meta:
         verbose_name_plural = "Proveedores"
+        db_table = 'proveedor'
 
 class Material(models.Model):
     nombre = models.CharField(max_length=100)
@@ -154,6 +161,9 @@ class Material(models.Model):
         ]
     )
     sincronizado = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'material'
 
     @property
     def stock(self):
@@ -178,6 +188,9 @@ class Stock(models.Model):
     ubicacion = models.CharField(max_length=100, default='Bodega Principal')
     ultima_actualizacion = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        db_table = 'stock'
+
     def __str__(self):
         return f"Stock de {self.material.nombre}: {self.cantidad}"
 
@@ -198,6 +211,7 @@ class Notificacion(models.Model):
 
     class Meta:
         ordering = ['-fecha']
+        db_table = 'notificacion'
 
     def __str__(self):
         return f"Notificación para {self.usuario}: {self.mensaje[:20]}..."

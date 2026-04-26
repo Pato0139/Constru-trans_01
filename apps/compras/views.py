@@ -55,7 +55,8 @@ def crear_compra(request):
 
 @admin_required
 def detalle_compra(request, id):
-    compra = get_object_or_404(Compra, id=id)
+    # Optimizado con prefetch_related para evitar N+1 en la tabla de materiales
+    compra = get_object_or_404(Compra.objects.select_related('proveedor').prefetch_related('detalles__material'), id=id)
     return render(request, "compras/detalle.html", {"compra": compra})
 
 @admin_required

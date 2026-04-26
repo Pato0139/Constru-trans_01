@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load currency_tags %}
 
 {% block title %}Dashboard - ConstruTrans{% endblock %}
 
@@ -110,7 +111,7 @@
                             </div>
                         </td>
                         <td class="py-3 px-4 text-muted">{{ orden.fecha|date:"d/m/Y" }}</td>
-                        <td class="py-3 px-4 fw-bold">${{ orden.precio }}</td>
+                        <td class="py-3 px-4 fw-bold">{{ orden.precio|currency }}</td>
                         <td class="py-3 px-4">
                             {% if orden.estado == 'pendiente' %}
                                 <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Pendiente</span>

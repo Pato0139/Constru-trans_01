@@ -47,14 +47,14 @@
     <div class="col-lg-12">
         <div class="table-container p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-800 m-0 text-white">Acciones Rápidas</h5>
+                <h5 class="fw-800 m-0 text-white">General</h5>
             </div>
             <div class="d-flex gap-3 flex-wrap">
                 <a href="{% url 'clientes:crear_pedido' %}" class="btn btn-gold d-flex align-items-center gap-2 shadow-sm">
-                    <i class="bi bi-plus-circle-fill"></i> Solicitar Nuevo Pedido
+                    <i class="bi bi-plus-circle-fill"></i> Solicitar Pedido
                 </a>
                 <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light rounded-pill px-4 d-flex align-items-center gap-2">
-                    <i class="bi bi-cart-check-fill"></i> Ver Mis Pedidos
+                    <i class="bi bi-cart-check-fill"></i> Mis Pedidos
                 </a>
                 <a href="{% url 'clientes:perfil_cliente' %}" class="btn btn-outline-light rounded-pill px-4 d-flex align-items-center gap-2">
                     <i class="bi bi-person-badge"></i> Mi Perfil
@@ -95,7 +95,7 @@
                         <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Entregado</span>
                         {% endif %}
                     </td>
-                    <td class="price-tag">${{ pedido.precio|floatformat:0|intcomma }}</td>
+                    <td class="price-tag">{{ pedido.precio|currency }}</td>
                     <td class="text-center">
                         <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
                             <i class="bi bi-eye"></i>

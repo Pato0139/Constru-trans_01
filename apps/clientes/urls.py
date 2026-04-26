@@ -11,5 +11,5 @@ urlpatterns = [
     path("mis-pedidos/", views.mis_pedidos, name="mis_pedidos"),
     path("seguimiento/", views.seguimiento_pedidos, name="seguimiento_pedidos"),
     path("historial/", views.historial_pedidos, name="historial_pedidos"),
-    path("orden/eliminar/<int:id>/", views.eliminar_orden, name="eliminar_orden"),
+    path("orden/cancelar/<int:id>/", views.cancelar_pedido, name="cancelar_pedido"),
 ]

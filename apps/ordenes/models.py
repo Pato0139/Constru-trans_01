@@ -59,6 +59,7 @@ class Orden(models.Model):
 
     class Meta:
         ordering = ["-fecha"]
+        db_table = 'orden'
 
     def __str__(self):
         return f"Orden {self.id} - {self.estado}"
@@ -80,6 +81,9 @@ class DetalleOrden(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
+
+    class Meta:
+        db_table = 'detalle_orden'
 
     def __str__(self):
         return f"{self.cantidad} x {self.material.nombre} (Orden {self.orden.id})"
@@ -107,8 +111,11 @@ class Entrega(models.Model):
     )
     fecha = models.DateTimeField(auto_now_add=True)
 
+    fecha_finalizacion = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         ordering = ["-fecha"]
+        db_table = 'entrega'
 
     estado = models.CharField(
         max_length=20,
@@ -119,9 +126,10 @@ class Entrega(models.Model):
         ],
         default="pendiente"
     )
+    sincronizado = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Entrega de pedido {self.pedido.id}"
+        return f"Entrega {self.id} - Orden {self.pedido.id}"
 
 
 from django.db.models.signals import post_save
@@ -138,13 +146,24 @@ def post_save_orden(sender, instance, created, **kwargs):
     # 1. Generar factura automáticamente cuando el pedido se marca como entregado
     if instance.estado == 'entregado' and not hasattr(instance, 'factura'):
         from apps.facturacion.models import Factura
+        
+        # Asegurar que el precio esté actualizado antes de facturar
+        # Si el precio es 0, intentamos calcularlo de nuevo
+        precio_final = instance.precio
+        if precio_final <= 0:
+            detalles = instance.detalles.all()
+            if detalles.exists():
+                precio_final = sum(d.cantidad * d.precio_unitario for d in detalles)
+                # Actualizar el precio en la instancia para que coincida
+                Orden.objects.filter(id=instance.id).update(precio=precio_final)
+
         Factura.objects.create(
             numero=f"F-{instance.id:06d}",
             orden=instance,
             cliente=instance.cliente.usuario,
-            subtotal=instance.precio,
+            subtotal=precio_final,
             iva=0,
-            total=instance.precio
+            total=precio_final
         )
         
         # 2. Descontar stock y registrar movimientos (Solo si no se ha hecho antes)
@@ -179,7 +198,7 @@ def post_save_orden(sender, instance, created, **kwargs):
                 
                 # Obtener quién entregó si existe
                 entrega = instance.entregas.filter(estado='entregado').first()
-                conductor_msg = f" por {entrega.conductor.nombres}" if entrega else ""
+                conductor_msg = f" por {entrega.conductor.nombres}" if entrega else " (Marcar manual en admin)"
                 
                 mensaje = f"Pedido #{instance.id} entregado{conductor_msg}. Materiales: {activos_msg}"
                 

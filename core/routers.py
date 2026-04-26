@@ -7,7 +7,8 @@ class EnrutadorInventario:
     # Apps que queremos sincronizar con la nube
     APPS_REMOTAS = [
         'inventario', 'compras', 'ordenes', 'facturacion', 'pagos', 
-        'clientes', 'transporte', 'usuarios', 'auth', 'sessions', 'admin'
+        'clientes', 'transporte', 'usuarios', 'auth', 'sessions', 'admin',
+        'historial'
     ]
 
     def db_for_read(self, model, **hints):

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load currency_tags %}
 
 {% block title %}
     {% if action == 'crear' %}Solicitar Pedido{% else %}Editar Pedido{% endif %} - Constru-trans
@@ -34,8 +35,7 @@
             <form method="POST" id="form-pedido">
                 {% csrf_token %}
 
-                {% if action == 'crear' %}
-                <!-- SECCIÓN AGREGAR MATERIALES (SOLO CREAR) -->
+                <!-- SECCIÓN AGREGAR MATERIALES -->
                 <div class="mb-5 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
                     <label class="form-label fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">1. Selección de Materiales</label>
                     <div class="row g-3">
@@ -43,7 +43,7 @@
                             <select id="select-material" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;">
                                 <option value="" data-precio="0">Seleccione un material...</option>
                                 {% for m in materiales %}
-                                    <option value="{{ m.id }}" data-precio="{{ m.precio }}">{{ m.nombre }} - ${{ m.precio|floatformat:0 }}</option>
+                                    <option value="{{ m.id }}" data-precio="{{ m.precio }}">{{ m.nombre }} - {{ m.precio|currency }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -69,38 +69,35 @@
                                 </tr>
                             </thead>
                             <tbody id="lista-detalles">
-                                <!-- Aquí se agregarán los materiales dinámicamente -->
+                                {% if action == 'editar' %}
+                                    {% for detalle in orden.detalles.all %}
+                                    <tr class="material-item">
+                                        <td class="ps-0 py-3">
+                                            <span class="text-white fw-600">{{ detalle.material.nombre }}</span>
+                                            <input type="hidden" name="material_id[]" value="{{ detalle.material.id }}">
+                                        </td>
+                                        <td class="text-center text-white-50 py-3">
+                                            <span class="badge rounded-pill px-3" style="background-color: #FF8C00 !important; color: #000000 !important; font-weight: 800;">{{ detalle.cantidad }}</span>
+                                            <input type="hidden" name="cantidad[]" value="{{ detalle.cantidad }}">
+                                        </td>
+                                        <td class="text-end text-accent fw-800 py-3">{{ detalle.subtotal|currency }}</td>
+                                        <td class="text-end pe-0 py-3">
+                                            <button type="button" class="btn btn-link text-danger p-0" onclick="eliminarFila(this, {{ detalle.subtotal }})">
+                                                <i class="bi bi-trash3-fill"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
                 </div>
-                {% else %}
-                <!-- SECCIÓN EDITAR MATERIAL (SOLO EDITAR) -->
-                <div class="mb-5 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
-                    <label class="form-label fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Material del Pedido</label>
-                    <div class="row g-4">
-                        <div class="col-md-8">
-                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Material Seleccionado</label>
-                            <select name="material_id[]" id="select-material-edit" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" required onchange="calcularTotalEdit()">
-                                {% for m in materiales %}
-                                    <option value="{{ m.id }}" data-precio="{{ m.precio }}" {% if m.id == orden.detalles.first.material.id %}selected{% endif %}>
-                                        {{ m.nombre }} - ${{ m.precio|floatformat:0 }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Cantidad</label>
-                            <input type="number" name="cantidad[]" id="input-cantidad-edit" value="{{ orden.detalles.first.cantidad }}" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" required oninput="calcularTotalEdit()" min="1">
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
 
                 <div class="p-4 rounded-4 mb-5 shadow-sm" style="background: rgba(243, 156, 18, 0.08); border: 1px solid rgba(243, 156, 18, 0.15);">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-800 text-muted small text-uppercase" style="letter-spacing: 1px;">Total Estimado del Pedido:</span>
-                        <h3 class="mb-0 fw-900 text-accent" id="display-total" style="font-size: 2rem; letter-spacing: -1px;">{% if action == 'editar' %}${{ orden.precio|floatformat:0 }}{% else %}$0{% endif %}</h3>
+                        <h3 class="mb-0 fw-900 text-accent" id="display-total" style="font-size: 2rem; letter-spacing: -1px;">{% if action == 'editar' %}{{ orden.precio|currency }}{% else %}$0,00{% endif %}</h3>
                     </div>
                 </div>
 
@@ -115,15 +112,14 @@
                                 <input type="text" name="direccion" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" placeholder="Ej: Calle Principal #123, Barrio Norte" value="{{ orden.direccion_destino|default:'' }}" required>
                             </div>
                         </div>
-                        {% if action == 'crear' %}
                         <div class="col-md-12">
                             <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Fecha y Hora Programada</label>
                             <div class="input-group">
                                 <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-calendar-event"></i></span>
-                                <input type="datetime-local" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" required>
+                                <input type="datetime-local" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" 
+                                    value="{% if action == 'editar' %}{{ orden.fecha_entrega_programada|date:'Y-m-d\TH:i' }}{% endif %}" required>
                             </div>
                         </div>
-                        {% endif %}
                     </div>
                 </div>
 
@@ -141,7 +137,15 @@
 </div>
 
 <script>
-let totalGeneral = 0;
+let totalGeneral = {% if action == 'editar' %}{{ orden.precio|default:0 }}{% else %}0{% endif %};
+
+function formatCurrency(value) {
+    let val = parseFloat(value) / 100;
+    let formatted = val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    // Formato es-CO: . para miles, , para decimales
+    let res = formatted.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
+    return '$' + res;
+}
 
 function agregarMaterial() {
     const select = document.getElementById('select-material');
@@ -172,7 +176,7 @@ function agregarMaterial() {
             <span class="badge rounded-pill px-3" style="background-color: #FF8C00 !important; color: #000000 !important; font-weight: 800;">${cantidad}</span>
             <input type="hidden" name="cantidad[]" value="${cantidad}">
         </td>
-        <td class="text-end text-accent fw-800 py-3">$${subtotal.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
+        <td class="text-end text-accent fw-800 py-3">${formatCurrency(subtotal)}</td>
         <td class="text-end pe-0 py-3">
             <button type="button" class="btn btn-link text-danger p-0" onclick="eliminarFila(this, ${subtotal})">
                 <i class="bi bi-trash3-fill"></i>
@@ -195,7 +199,7 @@ function eliminarFila(btn, subtotal) {
 }
 
 function actualizarTotalDisplay() {
-    document.getElementById('display-total').innerText = '$' + totalGeneral.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+    document.getElementById('display-total').innerText = formatCurrency(totalGeneral);
 }
 
 function calcularTotalEdit() {
@@ -207,7 +211,7 @@ function calcularTotalEdit() {
     let cantidad = parseInt(cantidadInput.value) || 0;
     
     const total = precio * cantidad;
-    display.innerText = '$' + total.toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+    display.innerText = formatCurrency(total);
 }
 </script>
 

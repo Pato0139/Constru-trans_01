@@ -117,11 +117,20 @@
 
 {% block extra_js %}
 <script>
+function formatCurrency(value) {
+    let val = parseFloat(value);
+    let formatted = val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    // Formato es-CO: . para miles, , para decimales
+    let res = formatted.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
+    return '$' + res;
+}
+
 function abrirModalPago(id, numero, saldo) {
     document.getElementById('modalFacturaId').value = id;
     document.getElementById('modalFacturaNum').innerText = numero;
-    document.getElementById('displayMonto').innerText = '$' + parseFloat(saldo).toLocaleString();
-    document.getElementById('modalMonto').value = saldo;
+    
+    document.getElementById('displayMonto').innerText = formatCurrency(saldo);
+    document.getElementById('modalMonto').value = parseFloat(saldo);
     
     // Asegurarse de que el modal de Bootstrap esté inicializado correctamente
     const modalElement = document.getElementById('modalPago');
@@ -132,10 +141,17 @@ function abrirModalPago(id, numero, saldo) {
     modal.show();
 }
 
+// Interceptar el envío del formulario de pago
+document.getElementById('formPago').addEventListener('submit', function(e) {
+    // Ya no multiplicamos por 100 porque los DecimalField manejan el valor real
+});
+
 function abrirModalEditar(id, numero, total) {
     document.getElementById('modalEditarId').value = id;
     document.getElementById('modalEditarNum').innerText = numero;
-    document.getElementById('modalEditarMonto').value = total;
+    
+    // Mostramos el valor real en pesos
+    document.getElementById('modalEditarMonto').value = parseFloat(total);
     
     const form = document.getElementById('formEditar');
     form.action = "/facturacion/editar-monto/" + id + "/";
@@ -189,6 +205,9 @@ function anularFactura(id, numero) {
 document.getElementById('formEditar').addEventListener('submit', function(e) {
     e.preventDefault();
     const formData = new FormData(this);
+    
+    // Ya no multiplicamos por 100
+    
     fetch(this.action, {
         method: 'POST',
         body: formData,

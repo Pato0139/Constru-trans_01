@@ -34,7 +34,7 @@ def registrar_entrada(request):
     except Material.DoesNotExist:
         return JsonResponse({'error': 'Material no existe'}, status=404)
 
-@login_required
+@admin_required
 def movimientos_lista(request):
     movimientos = MovimientoInventario.objects.all().select_related('material', 'usuario')
     materiales = Material.objects.all().order_by('nombre')
@@ -46,8 +46,9 @@ def movimientos_lista(request):
 def buscar_materiales(query=None):
     """
     Lógica unificada para buscar materiales por nombre, descripción o tipo.
+    Optimizado con select_related('stock_info') para evitar N+1 al consultar stock.
     """
-    materiales = Material.objects.all()
+    materiales = Material.objects.all().select_related('stock_info')
     if query:
         materiales = materiales.filter(
             Q(nombre__icontains=query) | 
@@ -56,7 +57,7 @@ def buscar_materiales(query=None):
         )
     return materiales
 
-@login_required
+@admin_required
 def stock_lista(request):
     q = request.GET.get('q')
     stocks = Stock.objects.all().select_related('material')
@@ -73,7 +74,7 @@ def stock_lista(request):
         "query": q
     })
 
-@login_required
+@admin_required
 def editar_stock(request, id):
     stock = get_object_or_404(Stock, id=id)
     if request.method == "POST":
@@ -84,7 +85,7 @@ def editar_stock(request, id):
         return redirect("inventario:stock_lista")
     return render(request, "inventario/form_stock.html", {"stock": stock})
 
-@login_required
+@admin_required
 def materiales_lista(request):
     query = request.GET.get('q')
     tipo = request.GET.get('tipo')
@@ -99,16 +100,16 @@ def materiales_lista(request):
         "tipo_actual": tipo
     })
 
-@login_required
+@admin_required
 def api_materiales(request):
-    materiales = Material.objects.all().select_related('stock_info')
+    materiales = Material.objects.filter(stock_info__cantidad__gt=0).select_related('stock_info')
     data = []
     for m in materiales:
         data.append({
             'id': m.id,
             'nombre': m.nombre,
-            'precio': m.precio,
-            'stock': m.stock, # Usa la property que definimos
+            'precio': float(m.precio),
+            'stock': m.stock,
             'tipo': m.tipo
         })
     return JsonResponse(data, safe=False)

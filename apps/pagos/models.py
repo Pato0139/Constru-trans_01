@@ -11,6 +11,10 @@ class Pago(models.Model):
     referencia = models.CharField(max_length=100, blank=True)
     fecha = models.DateTimeField(auto_now_add=True)
     registrado_por = models.ForeignKey('auth.User', null=True, on_delete=models.SET_NULL)
+    sincronizado = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'pago'
 
     def __str__(self):
         return f"Pago de {self.monto} a {self.factura.numero}"

@@ -44,12 +44,17 @@
                     <td class="p-4 text-muted small">{{ p.fecha|date:"d/m/Y H:i" }}</td>
                     <td class="p-4">
                         <div class="d-flex gap-2">
-                            <a href="{% url 'ordenes:ver_pedido_admin' p.id %}" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                            <a href="{% url 'ordenes:ver_pedido_admin' p.id %}" class="btn btn-sm btn-outline-info rounded-pill px-3" title="Ver Detalles">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="{% url 'ordenes:editar_orden' p.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            {% if p.estado == 'pendiente' %}
+                            <a href="{% url 'clientes:editar_pedido' p.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
+                            <a href="{% url 'clientes:cancelar_pedido' p.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Cancelar" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

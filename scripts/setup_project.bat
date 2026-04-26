@@ -1,8 +1,8 @@
 @echo off
 setlocal
 
-:: Asegurar que el script corra en la carpeta donde esta ubicado
-cd /d "%~dp0"
+:: Asegurar que el script corra en la carpeta raiz del proyecto
+cd /d "%~dp0\.."
 
 echo ===================================================
 echo   ConstruTrans - Script para Inicializar ConstruTrans

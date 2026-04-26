@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static currency_tags %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -69,7 +69,7 @@
                                             {{ detail_form.precio_unitario }}
                                         </td>
                                         <td class="align-middle text-end fw-bold text-success subtotal-cell">
-                                            $0.00
+                                            {% if detail_form.instance.pk %}{{ detail_form.instance.subtotal|currency }}{% else %}$0,00{% endif %}
                                         </td>
                                         <td class="text-center align-middle">
                                             {% if formset.can_delete %}
@@ -101,7 +101,7 @@
                     </div>
                     <div class="card-body text-center py-4">
                         <p class="text-white-50 mb-1">Total de la orden</p>
-                        <h2 class="text-white fw-bold mb-4" id="total-order">$0.00</h2>
+                        <h2 class="text-white fw-bold mb-4" id="total-order">{% if compra %}{{ compra.total|currency }}{% else %}$0,00{% endif %}</h2>
                         
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-white-50">Materiales agregados</span>
@@ -144,6 +144,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalOrderElement = document.getElementById('total-order');
     const materialCountElement = document.getElementById('material-count');
 
+    function formatCurrency(value) {
+        let val = parseFloat(value) / 100;
+        let formatted = val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        // Formato es-CO: . para miles, , para decimales
+        let res = formatted.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
+        return '$' + res;
+    }
+
     function updateCalculations() {
         let total = 0;
         let count = 0;
@@ -156,14 +164,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const qty = parseFloat(qtyInput.value) || 0;
             const price = parseFloat(priceInput.value) || 0;
-            const subtotal = qty * price;
+            const subtotal = (qty * price);
             
-            subtotalCell.textContent = '$' + subtotal.toLocaleString('es-CO', {minimumFractionDigits: 2});
+            subtotalCell.textContent = formatCurrency(subtotal);
             total += subtotal;
             if (qty > 0) count++;
         });
         
-        totalOrderElement.textContent = '$' + total.toLocaleString('es-CO', {minimumFractionDigits: 2});
+        totalOrderElement.textContent = formatCurrency(total);
         materialCountElement.textContent = count;
     }
 

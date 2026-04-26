@@ -14,9 +14,11 @@ class Factura(models.Model):
     iva = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=12, decimal_places=2)
     estado = models.CharField(max_length=15, choices=ESTADOS, default=PENDIENTE)
+    sincronizado = models.BooleanField(default=False)
     
     class Meta:
         ordering = ['-fecha_emision']
+        db_table = 'factura'
 
     @property
     def total_pagado(self):

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load currency_tags %}
 
 {% block title %}Detalle del Pedido - Constru-trans{% endblock %}
 
@@ -91,14 +92,14 @@
                                             <div class="text-muted x-small text-uppercase mt-1">{{ detalle.material.tipo }}</div>
                                         </td>
                                         <td class="text-center text-muted fw-700">{{ detalle.cantidad }}</td>
-                                        <td class="text-end pe-0 text-accent fw-800">${{ detalle.subtotal|floatformat:0|intcomma }}</td>
+                                        <td class="text-end pe-0 text-accent fw-800">{{ detalle.subtotal|currency }}</td>
                                     </tr>
                                     {% empty %}
                                         {% if orden.material %}
                                         <tr class="border-bottom border-white-5">
                                             <td class="ps-0 text-white fw-600">{{ orden.material.nombre }} (Unificado)</td>
                                             <td class="text-center text-muted fw-700">{{ orden.cantidad }}</td>
-                                            <td class="text-end pe-0 text-accent fw-800">${{ orden.precio|floatformat:0|intcomma }}</td>
+                                            <td class="text-end pe-0 text-accent fw-800">{{ orden.precio|currency }}</td>
                                         </tr>
                                         {% else %}
                                         <tr>
@@ -114,7 +115,7 @@
                                     <tr style="background: transparent !important; color: white !important;">
                                         <td colspan="2" class="ps-0 pt-4 fw-800 text-uppercase" style="letter-spacing: 2px; font-size: 0.7rem; background: transparent !important; border: none !important; color: rgba(255,255,255,0.6) !important;">Total de la Orden</td>
                                         <td class="pe-0 pt-4 text-end" style="background: transparent !important; border: none !important;">
-                                            <h2 class="fw-900 text-white mb-0" style="letter-spacing: -1px; text-shadow: 0 0 10px rgba(243, 156, 18, 0.5); font-size: 1.8rem;">${{ orden.precio|floatformat:0|intcomma }}</h2>
+                                            <h2 class="fw-900 text-white mb-0" style="letter-spacing: -1px; text-shadow: 0 0 10px rgba(243, 156, 18, 0.5); font-size: 1.8rem;">{{ orden.precio|currency }}</h2>
                                         </td>
                                     </tr>
                                 </tfoot>
@@ -123,34 +124,32 @@
                     </div>
 
                     <!-- Sección para Admin y Cliente (Modificar/Cancelar) -->
-                    {% if user.usuario.rol == "admin" or user.usuario.rol == "cliente" and orden.estado != "entregado" and orden.estado != "cancelado" %}
-                    <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px; font-size: 0.7rem;">Gestión del Pedido</h6>
-                        <div class="d-grid gap-2">
-                            {% if user.usuario.rol == "admin" %}
-                                {% if orden.estado == "pendiente" %}
-                                <a href="{% url 'ordenes:crear_entrega' orden.id %}" class="btn btn-gold rounded-pill py-2 fw-800 shadow-sm mb-1 small">
-                                    <i class="bi bi-person-plus-fill me-1"></i> Asignar Conductor
-                                </a>
-                                {% elif orden.estado == "en_ruta" %}
-                                <a href="{% url 'ordenes:crear_entrega' orden.id %}" class="btn btn-outline-info rounded-pill py-2 fw-800 shadow-sm mb-1 small">
-                                    <i class="bi bi-person-gear me-1"></i> Reasignar Conductor
-                                </a>
+                    {% if orden.estado == "pendiente" %}
+                        {% if user.usuario.rol == "admin" or user.usuario.rol == "cliente" %}
+                        <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                            <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px; font-size: 0.7rem;">Gestión del Pedido</h6>
+                            <div class="d-grid gap-2">
+                                {% if user.usuario.rol == "admin" %}
+                                    <a href="{% url 'ordenes:crear_entrega' orden.id %}" class="btn btn-gold rounded-pill py-2 fw-800 shadow-sm mb-1 small">
+                                        <i class="bi bi-person-plus-fill me-1"></i> Asignar Conductor
+                                    </a>
                                 {% endif %}
-                                <a href="{% url 'ordenes:editar_orden' orden.id %}" class="btn btn-outline-warning rounded-pill py-2 fw-700 small">
-                                    <i class="bi bi-pencil-square me-1"></i> Modificar
-                                </a>
-                                <a href="{% url 'ordenes:eliminar_orden' orden.id %}" class="btn btn-outline-danger rounded-pill py-2 fw-700 small" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
-                                    <i class="bi bi-x-circle me-1"></i> Cancelar
-                                </a>
-                            {% else %}
                                 <a href="{% url 'clientes:editar_pedido' orden.id %}" class="btn btn-outline-warning rounded-pill py-2 fw-700 small">
                                     <i class="bi bi-pencil-square me-1"></i> Modificar
                                 </a>
-                                <a href="{% url 'clientes:eliminar_orden' orden.id %}" class="btn btn-outline-danger rounded-pill py-2 fw-700 small" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
+                                <a href="{% url 'clientes:cancelar_pedido' orden.id %}" class="btn btn-outline-danger rounded-pill py-2 fw-700 small" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
                                     <i class="bi bi-x-circle me-1"></i> Cancelar
                                 </a>
-                            {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% elif orden.estado == "en_ruta" and user.usuario.rol == "admin" %}
+                    <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px; font-size: 0.7rem;">Gestión del Pedido (Admin)</h6>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'ordenes:crear_entrega' orden.id %}" class="btn btn-outline-info rounded-pill py-2 fw-800 shadow-sm mb-1 small">
+                                <i class="bi bi-person-gear me-1"></i> Reasignar Conductor
+                            </a>
                         </div>
                     </div>
                     {% endif %}

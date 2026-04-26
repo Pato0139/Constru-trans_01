@@ -32,6 +32,7 @@ class Compra(models.Model):
         verbose_name = "Compra"
         verbose_name_plural = "Compras"
         ordering = ['-fecha']
+        db_table = 'compra'
 
     def __str__(self):
         return f"{self.numero_orden} - {self.proveedor.nombre}"
@@ -41,6 +42,9 @@ class DetalleCompra(models.Model):
     material = models.ForeignKey(Material, on_delete=models.CASCADE, verbose_name="Material")
     cantidad = models.PositiveIntegerField(verbose_name="Cantidad")
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Precio de Compra")
+
+    class Meta:
+        db_table = 'detalle_compra'
 
     @property
     def subtotal(self):

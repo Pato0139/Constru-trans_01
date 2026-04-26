@@ -74,32 +74,43 @@ def exportar_reporte_pdf(request, tipo):
     elements.append(Paragraph(f"Fecha de generación: {now().strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
     elements.append(Spacer(1, 24))
 
+    def format_money(val):
+        try:
+            v = float(val) / 100
+            formatted = "{:,.2f}".format(v)
+            return f"${formatted.replace(',', 'X').replace('.', ',').replace('X', '.')}"
+        except:
+            return "$0,00"
+
     data = []
     if tipo == 'clientes':
         data.append(['ID', 'Nombre', 'Correo', 'Teléfono', 'Estado'])
-        for u in Usuario.objects.filter(rol='cliente'):
+        # Optimizado con select_related('user')
+        for u in Usuario.objects.filter(rol='cliente').select_related('user'):
             data.append([u.id, f"{u.nombres} {u.apellidos}", u.user.email, u.telefono, u.estado])
     
     elif tipo == 'materiales':
         data.append(['ID', 'Nombre', 'Tipo', 'Precio', 'Stock'])
         for m in Material.objects.all().select_related('stock_info'):
             p = m.precio or 0
-            precio_formateado = f"${int(p):,}".replace(",", ".")
+            precio_formateado = format_money(p)
             data.append([m.id, m.nombre, m.tipo, precio_formateado, m.stock])
 
     elif tipo == 'ventas':
         data.append(['ID', 'Cliente', 'Fecha', 'Total', 'Estado'])
-        for o in Orden.objects.all():
+        # Optimizado con select_related('cliente__usuario')
+        for o in Orden.objects.all().select_related('cliente__usuario'):
             p = o.precio or 0
-            precio_formateado = f"${int(p):,}".replace(",", ".")
+            precio_formateado = format_money(p)
             data.append([o.id, f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}", o.fecha.strftime('%Y-%m-%d'), precio_formateado, o.estado])
 
     elif tipo == 'pedidos':
         data.append(['ID', 'Cliente', 'Materiales', 'Total', 'Estado'])
-        for o in Orden.objects.all().prefetch_related('detalles__material'):
+        # Optimizado con select_related('cliente__usuario') y prefetch_related('detalles__material')
+        for o in Orden.objects.all().select_related('cliente__usuario').prefetch_related('detalles__material'):
             materiales = ", ".join([f"{d.cantidad}x {d.material.nombre}" for d in o.detalles.all()])
             p = o.precio or 0
-            precio_formateado = f"${int(p):,}".replace(",", ".")
+            precio_formateado = format_money(p)
             data.append([o.id, f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}", materiales[:50] + "..." if len(materiales) > 50 else materiales, precio_formateado, o.estado])
 
     # Estilo de la tabla

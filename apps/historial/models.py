@@ -18,11 +18,13 @@ class Historial(models.Model):
     descripcion = models.TextField(verbose_name="Descripción detallada")
     fecha_hora = models.DateTimeField(auto_now_add=True, verbose_name="Fecha y Hora")
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="Dirección IP")
+    sincronizado = models.BooleanField(default=False)
 
     class Meta:
-        verbose_name = "Registro de Actividad"
+        verbose_name = "Historial de Actividad"
         verbose_name_plural = "Historial de Actividades"
         ordering = ['-fecha_hora']
+        db_table = 'historial_actividad'
 
     def __str__(self):
         return f"{self.usuario} - {self.accion} - {self.modulo} ({self.fecha_hora})"

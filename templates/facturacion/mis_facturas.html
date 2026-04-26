@@ -178,6 +178,14 @@ const pagosData = {
     {% endfor %}
 };
 
+function formatCurrency(value) {
+    let val = parseFloat(value);
+    let formatted = val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    // Formato es-CO: . para miles, , para decimales
+    let res = formatted.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
+    return '$' + res;
+}
+
 function verHistorial(numero, id) {
     document.getElementById('historialFacturaNum').innerText = numero;
     const lista = document.getElementById('listaPagos');
@@ -208,13 +216,7 @@ function abrirModalPago(id, numero, total) {
     document.getElementById('modalFacturaNum').innerText = numero;
     document.getElementById('modalMonto').value = total;
     
-    // Formatear moneda para el display
-    const formatter = new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 0
-    });
-    document.getElementById('displayMonto').innerText = formatter.format(total);
+    document.getElementById('displayMonto').innerText = formatCurrency(total);
     
     new bootstrap.Modal(document.getElementById('modalPago')).show();
 }
@@ -226,7 +228,10 @@ document.getElementById('formPago').addEventListener('submit', function(e) {
     fetch(this.action, {
         method: 'POST',
         body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: { 
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
     })
     .then(response => response.json())
     .then(data => {

@@ -2,79 +2,198 @@ import time
 from django.core.management.base import BaseCommand
 from django.db import OperationalError, connections
 from apps.usuarios.models import Material, Proveedor, Vehiculo, Usuario
+from apps.clientes.models import Cliente
 from django.contrib.auth.models import User
 from apps.inventario.models import MovimientoInventario
 from apps.compras.models import Compra
-from apps.ordenes.models import Orden
+from apps.ordenes.models import Orden, Entrega
+from apps.facturacion.models import Factura
+from apps.pagos.models import Pago
+from apps.historial.models import Historial
+from django.contrib.admin.models import LogEntry
 
 class Command(BaseCommand):
     help = 'Sincroniza los datos locales pendientes con la base de datos remota (Neon)'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--once',
+            action='store_true',
+            help='Ejecuta la sincronización una sola vez y termina',
+        )
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            help='Sincroniza todos los registros, ignorando el estado de sincronización actual',
+        )
+
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('--- Iniciando Sincronizador (El Celador) ---'))
         
+        force = options.get('force', False)
+        if force:
+            self.stdout.write(self.style.WARNING('MODO FORZADO: Se sincronizarán todos los registros.'))
+
         while True:
             try:
                 # 1. Verificar si hay conexión con la base remota
                 connections['remota'].ensure_connection()
                 self.stdout.write(self.style.SUCCESS('Conexión con la nube establecida.'))
                 
-                # 2. Sincronizar modelos
-                self.sincronizar_usuarios()
-                self.sincronizar_modelo(Material)
-                self.sincronizar_modelo(Proveedor)
-                self.sincronizar_modelo(Vehiculo)
-                self.sincronizar_modelo(Compra)
-                self.sincronizar_modelo(Orden)
-                self.sincronizar_modelo(MovimientoInventario)
+                # 2. Sincronizar modelos en orden de dependencia
+                self.sincronizar_usuarios(force=force)
+                self.sincronizar_modelo(Proveedor, force=force)
+                self.sincronizar_modelo(Material, force=force)
+                self.sincronizar_modelo(Vehiculo, force=force)
+                self.sincronizar_modelo(Compra, force=force)
+                self.sincronizar_modelo(Orden, force=force)
+                self.sincronizar_modelo(Entrega, force=force)
+                self.sincronizar_modelo(Factura, force=force)
+                self.sincronizar_modelo(Pago, force=force)
+                self.sincronizar_modelo(MovimientoInventario, force=force)
+                self.sincronizar_modelo(Historial, force=force)
+                self.sincronizar_log_admin() # Sincronizar logs de Django Admin
                 
             except OperationalError:
                 self.stdout.write(self.style.WARNING('Sin conexión con la nube. Reintentando en 30 segundos...'))
             
+            if options['once']:
+                self.stdout.write(self.style.SUCCESS('Sincronización única completada.'))
+                break
+
             # Esperar antes de la siguiente revisión
             time.sleep(30)
 
-    def sincronizar_modelo(self, modelo):
-        """Busca registros no sincronizados localmente y los sube a la nube."""
-        pendientes = modelo.objects.using('default').filter(sincronizado=False)
+    def sincronizar_modelo(self, modelo, force=False):
+        """Busca registros no sincronizados localmente y los sube a la nube en orden."""
+        # Ordenamos por ID para asegurar que se sincronicen en el orden en que fueron creados
+        if force:
+            pendientes = modelo.objects.using('default').all().order_by('id')
+        else:
+            pendientes = modelo.objects.using('default').filter(sincronizado=False).order_by('id')
         
         if pendientes.exists():
             self.stdout.write(f'Sincronizando {pendientes.count()} registros de {modelo.__name__}...')
             for obj in pendientes:
                 try:
                     # 1. Guardamos el objeto principal en la remota
-                    obj.save(using='remota')
+                    # Usamos update_or_create para evitar duplicados por ID
+                    data = {}
+                    for field in obj._meta.fields:
+                        if field.name != 'sincronizado':
+                            # Manejar campos ForeignKey para asegurar que el ID se pase correctamente
+                            if field.is_relation and field.many_to_one:
+                                data[field.name + '_id'] = getattr(obj, field.name + '_id')
+                            else:
+                                data[field.name] = getattr(obj, field.name)
+                    
+                    # Forzar el ID para mantener consistencia
+                    modelo.objects.using('remota').update_or_create(
+                        id=obj.id,
+                        defaults=data
+                    )
                     
                     # 2. Si tiene detalles (Compra/Orden), los sincronizamos también
-                    if hasattr(obj, 'detalles'):
-                        for detalle in obj.detalles.all():
-                            detalle.save(using='remota')
+                    for rel in obj._meta.related_objects:
+                        if rel.get_accessor_name() == 'detalles':
+                            detalles = getattr(obj, 'detalles').all().order_by('id')
+                            for detalle in detalles:
+                                d_data = {}
+                                for d_field in detalle._meta.fields:
+                                    if d_field.is_relation and d_field.many_to_one:
+                                        d_data[d_field.name + '_id'] = getattr(detalle, d_field.name + '_id')
+                                    else:
+                                        d_data[d_field.name] = getattr(detalle, d_field.name)
+                                
+                                detalle.__class__.objects.using('remota').update_or_create(
+                                    id=detalle.id,
+                                    defaults=d_data
+                                )
                     
                     # 3. Marcamos como sincronizado localmente
                     obj.sincronizado = True
                     obj.save(using='default')
                     self.stdout.write(self.style.SUCCESS(f'  [OK] {obj} y sus detalles sincronizados.'))
                 except Exception as e:
-                    self.stdout.write(self.style.ERROR(f'  [ERROR] Falló sincronización de {obj}: {e}'))
+                    self.stdout.write(self.style.ERROR(f'  [ERROR] Falló sincronización de {obj}: {str(e)}'))
 
-    def sincronizar_usuarios(self):
-        """Sincroniza usuarios de Django (User) y perfiles extendidos (Usuario)."""
-        usuarios_pendientes = Usuario.objects.using('default').filter(sincronizado=False)
-        
-        if usuarios_pendientes.exists():
+    def sincronizar_log_admin(self):
+        """Sincroniza los logs del administrador de Django."""
+        try:
+            # Obtenemos el último ID sincronizado en la remota
+            ultimo_id_remoto = LogEntry.objects.using('remota').order_by('-id').first()
+            ultimo_id = ultimo_id_remoto.id if ultimo_id_remoto else 0
+            
+            pendientes = LogEntry.objects.using('default').filter(id__gt=ultimo_id).order_by('id')
+            
+            if pendientes.exists():
+                self.stdout.write(f'Sincronizando {pendientes.count()} logs de Django Admin...')
+                for log in pendientes:
+                    data = {}
+                    for field in log._meta.fields:
+                        if field.is_relation and field.many_to_one:
+                            data[field.name + '_id'] = getattr(log, field.name + '_id')
+                        else:
+                            data[field.name] = getattr(log, field.name)
+                    
+                    LogEntry.objects.using('remota').update_or_create(
+                        id=log.id,
+                        defaults=data
+                    )
+                self.stdout.write(self.style.SUCCESS(f'  [OK] {pendientes.count()} logs sincronizados.'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'  [ERROR] Falló sincronización de LogEntry: {str(e)}'))
+
+    def sincronizar_usuarios(self, force=False):
+        """Sincroniza usuarios de Django (User), perfiles extendidos (Usuario) y perfiles específicos (Cliente)."""
+        if force:
+            usuarios_pendientes = Usuario.objects.using('default').all().order_by('id')
+        else:
+            usuarios_pendientes = Usuario.objects.using('default').filter(sincronizado=False).order_by('id')
             self.stdout.write(f'Sincronizando {usuarios_pendientes.count()} usuarios...')
             for perfil in usuarios_pendientes:
                 try:
                     # 1. Sincronizar el User de Django primero
                     user_django = perfil.user
-                    user_django.save(using='remota')
+                    u_data = {}
+                    for field in user_django._meta.fields:
+                        u_data[field.name] = getattr(user_django, field.name)
+                    
+                    User.objects.using('remota').update_or_create(
+                        id=user_django.id,
+                        defaults=u_data
+                    )
                     
                     # 2. Sincronizar el perfil Usuario
-                    perfil.save(using='remota')
+                    p_data = {}
+                    for field in perfil._meta.fields:
+                        if field.name != 'sincronizado':
+                            p_data[field.name] = getattr(perfil, field.name)
                     
-                    # 3. Marcar como sincronizado local
+                    Usuario.objects.using('remota').update_or_create(
+                        id=perfil.id,
+                        defaults=p_data
+                    )
+                    
+                    # 3. Sincronizar perfiles específicos si existen
+                    if perfil.rol == 'cliente':
+                        try:
+                            cliente_perfil = Cliente.objects.using('default').get(usuario=perfil)
+                            c_data = {}
+                            for field in cliente_perfil._meta.fields:
+                                c_data[field.name] = getattr(cliente_perfil, field.name)
+                            
+                            Cliente.objects.using('remota').update_or_create(
+                                id=cliente_perfil.id,
+                                defaults=c_data
+                            )
+                            self.stdout.write(self.style.SUCCESS(f'    [OK] Perfil de Cliente sincronizado para {perfil.user.username}'))
+                        except Cliente.DoesNotExist:
+                            pass
+                    
+                    # 4. Marcar como sincronizado local
                     perfil.sincronizado = True
                     perfil.save(using='default')
-                    self.stdout.write(self.style.SUCCESS(f'  [OK] Usuario {perfil.user.username} sincronizado.'))
+                    self.stdout.write(self.style.SUCCESS(f'  [OK] Usuario {perfil.user.username} y sus perfiles sincronizados.'))
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(f'  [ERROR] Falló sincronización de usuario {perfil}: {e}'))

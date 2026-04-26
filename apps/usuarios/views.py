@@ -45,8 +45,9 @@ from .forms import LoginForm, RegistroForm, MaterialForm, ProveedorForm
 def buscar_usuarios_generales(query=None):
     """
     Lógica unificada para buscar usuarios por nombre, email o documento.
+    Optimizado con select_related para evitar N+1 en plantillas.
     """
-    usuarios = Usuario.objects.all().order_by('-id')
+    usuarios = Usuario.objects.all().select_related('user', 'perfil_cliente').order_by('-id')
     if query:
         usuarios = usuarios.filter(
             Q(nombres__icontains=query) | 
@@ -58,8 +59,9 @@ def buscar_usuarios_generales(query=None):
 def buscar_conductores(query=None):
     """
     Lógica unificada para buscar conductores por múltiples campos.
+    Optimizado con select_related para evitar N+1.
     """
-    conductores = Usuario.objects.filter(rol="conductor")
+    conductores = Usuario.objects.filter(rol="conductor").select_related('user')
     if query:
         conductores = conductores.filter(
             Q(nombres__icontains=query) |
@@ -187,6 +189,7 @@ def panel(request):
             return redirect("usuarios:login")
 
     if usuario.rol == "admin":
+        # Optimizamos consultas usando select_related y prefetch_related si fuera necesario
         context = {
             "pedidos_pendientes": Orden.objects.filter(estado="pendiente").count(),
             "conductores": Usuario.objects.filter(rol="conductor").count(),
@@ -195,7 +198,7 @@ def panel(request):
                 fecha__date=now().date()
             ).count(),
             "clientes": Usuario.objects.filter(rol="cliente").count(),
-            "pedidos_recientes": Orden.objects.all().order_by("-fecha")[:5]
+            "pedidos_recientes": Orden.objects.all().select_related('cliente', 'conductor').order_by("-fecha")[:5]
         }
         return render(request, "usuarios/panel-admin.html", context)
     elif usuario.rol == "cliente":
@@ -215,7 +218,7 @@ def panel_conductor(request):
         logout(request)
         return redirect("usuarios:login")
         
-    pedidos_asignados = Orden.objects.filter(conductor=conductor).exclude(estado="entregado")
+    pedidos_asignados = Orden.objects.filter(conductor=conductor).select_related('cliente').exclude(estado="entregado")
     entregas_completadas = Orden.objects.filter(conductor=conductor, estado="entregado")
     
     context = {
@@ -232,7 +235,7 @@ def pedidos_conductor(request):
     conductor = request.user.usuario
     pedidos = Orden.objects.filter(
         conductor=conductor
-    ).exclude(estado="entregado")
+    ).select_related('cliente').exclude(estado="entregado")
     return render(request, "usuarios/pedidos_conductor.html", {
         "pedidos": pedidos
     })
@@ -244,7 +247,7 @@ def mis_entregas(request):
     entregas = Orden.objects.filter(
         conductor=conductor,
         estado="entregado"
-    ).order_by("-fecha")
+    ).select_related('cliente').order_by("-fecha")
     return render(request, "usuarios/mis-entregas.html", {
         "entregas": entregas
     })
@@ -396,14 +399,17 @@ def crear_usuario(request):
 @login_required
 def lista_usuarios(request):
     query = request.GET.get('q')
-    active_tab = request.GET.get('tab', 'clientes')
+    active_tab = request.GET.get('tab', 'general')
+    
     usuarios_list = buscar_usuarios_generales(query)
     
+    # Separamos por roles para las pestañas específicas
     admins = usuarios_list.filter(rol='admin')
     clientes = usuarios_list.filter(rol='cliente')
     conductores = usuarios_list.filter(rol='conductor')
     
     context = {
+        "usuarios_todos": usuarios_list, # Lista general
         "admins": admins,
         "clientes": clientes,
         "conductores": conductores,

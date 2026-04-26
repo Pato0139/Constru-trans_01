@@ -1,5 +1,10 @@
 import os
+import sys
 from pathlib import Path
+
+# Añadir el directorio raíz al sys.path
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.append(str(BASE_DIR))
 
 # --- CONFIGURACIÓN ---
 VENV_DIR = '.venv'
@@ -27,11 +32,12 @@ def limpiar_proyecto():
     print("\n" + "="*60)
     print("  HERRAMIENTA DE RESETEO: MIGRACIONES Y BASE DE DATOS")
     print("="*60)
+    print(f"[*] Trabajando en: {BASE_DIR}")
     print(f"[*] Ignorando entorno virtual: '{VENV_DIR}'")
 
     # 1. Identificar archivos
-    archivos_migracion = buscar_archivos_migracion('.', VENV_DIR)
-    db_path = Path(DB_FILE)
+    archivos_migracion = buscar_archivos_migracion(BASE_DIR, VENV_DIR)
+    db_path = BASE_DIR / DB_FILE
     db_existe = db_path.exists()
 
     # 2. Resumen de hallazgos
