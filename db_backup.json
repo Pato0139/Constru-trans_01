@@ -921,7 +921,6 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
-    "usuario": null,
     "sincronizado": true
   }
 },
@@ -934,7 +933,6 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
-    "usuario": null,
     "sincronizado": true
   }
 },
@@ -947,7 +945,6 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
-    "usuario": null,
     "sincronizado": true
   }
 },
@@ -960,7 +957,6 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
-    "usuario": null,
     "sincronizado": true
   }
 },
@@ -973,7 +969,6 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
-    "usuario": null,
     "sincronizado": true
   }
 },
@@ -986,7 +981,6 @@
     "total": "1425000.00",
     "estado": "recibida",
     "observaciones": "Compra inicial de stock",
-    "usuario": null,
     "sincronizado": true
   }
 },
@@ -2474,7 +2468,7 @@
     "descripcion": "Inicio de sesión: eo3456@gmail.com",
     "fecha_hora": "2026-04-26T04:44:14.791Z",
     "ip_address": "127.0.0.1",
-    "sincronizado": false
+    "sincronizado": true
   }
 }
 ]
