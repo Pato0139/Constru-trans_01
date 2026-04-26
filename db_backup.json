@@ -270,9 +270,94 @@
     "placa": "HGE312",
     "tipo": "Bolqueta",
     "capacidad": "180",
+    "tipo_adquisicion": "propio",
     "estado": "en_ruta",
     "sincronizado": true,
     "conductor": 2
+  }
+},
+{
+  "model": "usuarios.vehiculo",
+  "pk": 2,
+  "fields": {
+    "placa": "JIK456",
+    "tipo": "Camión Sencillo",
+    "capacidad": "120",
+    "tipo_adquisicion": "alquilado",
+    "estado": "alquilado",
+    "sincronizado": false,
+    "conductor": null
+  }
+},
+{
+  "model": "usuarios.vehiculo",
+  "pk": 3,
+  "fields": {
+    "placa": "KLO789",
+    "tipo": "Mixer Concreto",
+    "capacidad": "250",
+    "tipo_adquisicion": "propio",
+    "estado": "disponible",
+    "sincronizado": false,
+    "conductor": null
+  }
+},
+{
+  "model": "usuarios.vehiculo",
+  "pk": 4,
+  "fields": {
+    "placa": "OLD999",
+    "tipo": "Camioneta Estacas",
+    "capacidad": "60",
+    "tipo_adquisicion": "propio",
+    "estado": "desactivado",
+    "sincronizado": false,
+    "conductor": null
+  }
+},
+{
+  "model": "usuarios.proveedor",
+  "pk": 1,
+  "fields": {
+    "nombre_empresa": "Cemex Colombia",
+    "nit": "800.032.124-5",
+    "contacto_nombre": "Juan Castro",
+    "telefono": "3101234567",
+    "email": "ventas@cemex.com",
+    "direccion": "Zona Industrial Bogotá",
+    "categoria": "Cemento y Concreto",
+    "fecha_registro": "2026-04-26T02:28:42.711Z",
+    "sincronizado": true
+  }
+},
+{
+  "model": "usuarios.proveedor",
+  "pk": 2,
+  "fields": {
+    "nombre_empresa": "Aceros Diaco",
+    "nit": "900.555.222-1",
+    "contacto_nombre": "Marta Herrera",
+    "telefono": "3209876543",
+    "email": "compras@diaco.com",
+    "direccion": "Tuta, Boyacá",
+    "categoria": "Acero y Hierro",
+    "fecha_registro": "2026-04-26T02:28:42.894Z",
+    "sincronizado": true
+  }
+},
+{
+  "model": "usuarios.proveedor",
+  "pk": 3,
+  "fields": {
+    "nombre_empresa": "Holcim",
+    "nit": "860.000.123-9",
+    "contacto_nombre": "Pedro Picapiedra",
+    "telefono": "3001112233",
+    "email": "contacto@holcim.co",
+    "direccion": "Sogamoso",
+    "categoria": "Agregados y Cemento",
+    "fecha_registro": "2026-04-26T02:28:42.973Z",
+    "sincronizado": true
   }
 },
 {
@@ -331,6 +416,39 @@
   }
 },
 {
+  "model": "usuarios.material",
+  "pk": 6,
+  "fields": {
+    "nombre": "Cemento Gris 50kg",
+    "tipo": "Agregados",
+    "descripcion": "Bulto de cemento tipo I",
+    "precio": "28500.00",
+    "sincronizado": true
+  }
+},
+{
+  "model": "usuarios.material",
+  "pk": 7,
+  "fields": {
+    "nombre": "Varilla 1/2 pulgada",
+    "tipo": "Acero",
+    "descripcion": "Varilla corrugada de 6 metros",
+    "precio": "45000.00",
+    "sincronizado": true
+  }
+},
+{
+  "model": "usuarios.material",
+  "pk": 8,
+  "fields": {
+    "nombre": "Arena de Río",
+    "tipo": "Agregados",
+    "descripcion": "Metro cúbico de arena lavada",
+    "precio": "65000.00",
+    "sincronizado": true
+  }
+},
+{
   "model": "usuarios.stock",
   "pk": 1,
   "fields": {
@@ -378,6 +496,36 @@
     "cantidad": 350,
     "ubicacion": "Bodega Principal",
     "ultima_actualizacion": "2026-04-25T02:54:24.753Z"
+  }
+},
+{
+  "model": "usuarios.stock",
+  "pk": 6,
+  "fields": {
+    "material": 6,
+    "cantidad": 0,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-26T02:28:43.065Z"
+  }
+},
+{
+  "model": "usuarios.stock",
+  "pk": 7,
+  "fields": {
+    "material": 7,
+    "cantidad": 0,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-26T02:28:43.190Z"
+  }
+},
+{
+  "model": "usuarios.stock",
+  "pk": 8,
+  "fields": {
+    "material": 8,
+    "cantidad": 0,
+    "ubicacion": "Bodega Principal",
+    "ultima_actualizacion": "2026-04-26T02:28:43.508Z"
   }
 },
 {
@@ -728,6 +876,28 @@
     "usuario": 3,
     "fecha": "2026-04-25T03:12:34.229Z",
     "sincronizado": true
+  }
+},
+{
+  "model": "compras.compra",
+  "pk": 1,
+  "fields": {
+    "proveedor": 1,
+    "fecha": "2026-04-26T02:29:36.345Z",
+    "total": "1425000.00",
+    "estado": "recibida",
+    "observaciones": "Compra inicial de stock",
+    "sincronizado": false
+  }
+},
+{
+  "model": "compras.detallecompra",
+  "pk": 1,
+  "fields": {
+    "compra": 1,
+    "material": 1,
+    "cantidad": 50,
+    "precio_unitario": "28500.00"
   }
 },
 {
@@ -2000,7 +2170,7 @@
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-25T23:15:33.617Z",
     "ip_address": "127.0.0.1",
-    "sincronizado": false
+    "sincronizado": true
   }
 },
 {
@@ -2014,7 +2184,7 @@
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-26T02:21:47.500Z",
     "ip_address": "127.0.0.1",
-    "sincronizado": false
+    "sincronizado": true
   }
 }
 ]
