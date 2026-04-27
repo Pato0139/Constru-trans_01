@@ -41,6 +41,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS('Conexión con la nube establecida.'))
                 
                 # 2. Sincronizar modelos en orden de dependencia
+                self.descargar_usuarios() # Traer usuarios nuevos de la nube
                 self.sincronizar_grupos(force=force) # auth_group y auth_user_groups
                 self.sincronizar_usuarios(force=force) # auth_user, usuario, cliente
                 self.sincronizar_modelo(Proveedor, force=force)
@@ -226,3 +227,43 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS(f'  [OK] Usuario {perfil.user.username} y sus perfiles sincronizados.'))
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(f'  [ERROR] Falló sincronización de usuario {perfil}: {e}'))
+
+    def descargar_usuarios(self):
+        """Descarga usuarios desde la nube a la base de datos local para permitir login multidispositivo."""
+        try:
+            self.stdout.write('Descargando usuarios nuevos desde la nube...')
+            usuarios_remotos = User.objects.using('remota').all()
+            for u_remoto in usuarios_remotos:
+                # 1. Crear/Actualizar User de Django
+                u_local, created = User.objects.using('default').update_or_create(
+                    id=u_remoto.id,
+                    defaults={
+                        'username': u_remoto.username,
+                        'password': u_remoto.password,
+                        'email': u_remoto.email,
+                        'first_name': u_remoto.first_name,
+                        'last_name': u_remoto.last_name,
+                        'is_staff': u_remoto.is_staff,
+                        'is_active': u_remoto.is_active,
+                        'is_superuser': u_remoto.is_superuser,
+                        'last_login': u_remoto.last_login,
+                        'date_joined': u_remoto.date_joined,
+                    }
+                )
+                
+                # 2. Crear/Actualizar perfil Usuario
+                p_remoto = Usuario.objects.using('remota').filter(user_id=u_remoto.id).first()
+                if p_remoto:
+                    Usuario.objects.using('default').update_or_create(
+                        id=p_remoto.id,
+                        defaults={
+                            'user_id': u_remoto.id,
+                            'rol': p_remoto.rol,
+                            'telefono': p_remoto.telefono,
+                            'direccion': p_remoto.direccion,
+                            'sincronizado': True
+                        }
+                    )
+            self.stdout.write(self.style.SUCCESS('  [OK] Usuarios actualizados desde la nube.'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'  [ERROR] Falló la descarga de usuarios: {str(e)}'))
