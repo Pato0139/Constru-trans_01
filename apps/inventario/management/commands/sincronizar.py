@@ -229,13 +229,14 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.ERROR(f'  [ERROR] Falló sincronización de usuario {perfil}: {e}'))
 
     def descargar_usuarios(self):
-        """Descarga usuarios desde la nube a la base de datos local para permitir login multidispositivo."""
+        """Descarga datos base (Usuarios, Materiales, Vehículos, Proveedores) desde la nube."""
         try:
-            self.stdout.write('Descargando usuarios nuevos desde la nube...')
+            self.stdout.write('Descargando datos base desde la nube...')
+            
+            # 1. Usuarios
             usuarios_remotos = User.objects.using('remota').all()
             for u_remoto in usuarios_remotos:
-                # 1. Crear/Actualizar User de Django
-                u_local, created = User.objects.using('default').update_or_create(
+                User.objects.using('default').update_or_create(
                     id=u_remoto.id,
                     defaults={
                         'username': u_remoto.username,
@@ -250,20 +251,31 @@ class Command(BaseCommand):
                         'date_joined': u_remoto.date_joined,
                     }
                 )
-                
-                # 2. Crear/Actualizar perfil Usuario
                 p_remoto = Usuario.objects.using('remota').filter(user_id=u_remoto.id).first()
                 if p_remoto:
                     Usuario.objects.using('default').update_or_create(
                         id=p_remoto.id,
-                        defaults={
-                            'user_id': u_remoto.id,
-                            'rol': p_remoto.rol,
-                            'telefono': p_remoto.telefono,
-                            'direccion': p_remoto.direccion,
-                            'sincronizado': True
-                        }
+                        defaults={'user_id': u_remoto.id, 'rol': p_remoto.rol, 'telefono': p_remoto.telefono, 'direccion': p_remoto.direccion, 'sincronizado': True}
                     )
-            self.stdout.write(self.style.SUCCESS('  [OK] Usuarios actualizados desde la nube.'))
+
+            # 2. Proveedores
+            for p in Proveedor.objects.using('remota').all():
+                Proveedor.objects.using('default').update_or_create(
+                    id=p.id, defaults={'nombre': p.nombre, 'nit': p.nit, 'telefono': p.telefono, 'correo': p.correo, 'direccion': p.direccion, 'sincronizado': True}
+                )
+
+            # 3. Materiales
+            for m in Material.objects.using('remota').all():
+                Material.objects.using('default').update_or_create(
+                    id=m.id, defaults={'nombre': m.nombre, 'descripcion': m.descripcion, 'precio_unitario': m.precio_unitario, 'stock_actual': m.stock_actual, 'stock_minimo': m.stock_minimo, 'unidad_medida': m.unidad_medida, 'sincronizado': True}
+                )
+
+            # 4. Vehículos
+            for v in Vehiculo.objects.using('remota').all():
+                Vehiculo.objects.using('default').update_or_create(
+                    id=v.id, defaults={'placa': v.placa, 'modelo': v.modelo, 'capacidad_carga': v.capacidad_carga, 'estado': v.estado, 'sincronizado': True}
+                )
+
+            self.stdout.write(self.style.SUCCESS('  [OK] Datos base actualizados desde la nube.'))
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f'  [ERROR] Falló la descarga de usuarios: {str(e)}'))
+            self.stdout.write(self.style.ERROR(f'  [ERROR] Falló la descarga de datos: {str(e)}'))
