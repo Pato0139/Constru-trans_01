@@ -15,7 +15,7 @@ from apps.usuarios.views import admin_required
 @admin_required
 def lista_compras(request):
     q = request.GET.get('q', '')
-    compras = Compra.objects.select_related('proveedor').prefetch_related('detalles').all()
+    compras = Compra.objects.select_related('proveedor', 'usuario').prefetch_related('detalles').all()
     if q:
         compras = compras.filter(
             Q(proveedor__nombre__icontains=q) |
@@ -31,7 +31,9 @@ def crear_compra(request):
         formset = DetalleCompraFormSet(request.POST)
         
         if form.is_valid() and formset.is_valid():
-            compra = form.save()
+            compra = form.save(commit=False)
+            compra.usuario = request.user
+            compra.save()
             formset.instance = compra
             formset.save()
             

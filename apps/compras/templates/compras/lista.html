@@ -73,6 +73,7 @@
                             <th>Fecha</th>
                             <th class="text-center">Materiales</th>
                             <th class="text-end">Total</th>
+                            <th class="text-center">Registrado Por</th>
                             <th class="text-center">Estado</th>
                             <th class="text-center pe-4">Acciones</th>
                         </tr>
@@ -103,6 +104,15 @@
                             </td>
                             <td class="text-end fw-bold text-success">
                                 {{ compra.total|currency }}
+                            </td>
+                            <td class="text-center">
+                                {% if compra.usuario %}
+                                    <span class="badge bg-info-subtle text-info rounded-pill px-3">
+                                        <i class="fas fa-user-circle me-1"></i> {{ compra.usuario.username }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted small">N/A</span>
+                                {% endif %}
                             </td>
                             <td class="text-center">
                                 <span class="badge rounded-pill px-3 py-2 

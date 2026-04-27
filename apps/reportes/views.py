@@ -12,6 +12,10 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 from django.utils.timezone import now
 from apps.historial.utils import registrar_actividad
+import openpyxl
+from openpyxl.styles import Font, Alignment, PatternFill
+import xml.etree.ElementTree as ET
+from io import BytesIO
 
 from apps.usuarios.views import admin_required
 
@@ -133,4 +137,128 @@ def exportar_reporte_pdf(request, tipo):
     
     registrar_actividad(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a PDF")
     
+    return response
+
+@admin_required
+def exportar_reporte_excel(request, tipo):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f"Reporte {tipo.capitalize()}"
+
+    # Estilos
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    center_aligned = Alignment(horizontal="center")
+
+    def format_money_raw(val):
+        try:
+            return float(val) / 100
+        except:
+            return 0.0
+
+    if tipo == 'clientes':
+        headers = ['ID', 'Nombre', 'Correo', 'Teléfono', 'Estado']
+        ws.append(headers)
+        for u in Usuario.objects.filter(rol='cliente').select_related('user'):
+            ws.append([u.id, f"{u.nombres} {u.apellidos}", u.user.email, u.telefono, u.estado])
+    
+    elif tipo == 'materiales':
+        headers = ['ID', 'Nombre', 'Tipo', 'Precio', 'Stock']
+        ws.append(headers)
+        for m in Material.objects.all().select_related('stock_info'):
+            ws.append([m.id, m.nombre, m.tipo, format_money_raw(m.precio), m.stock])
+
+    elif tipo == 'ventas':
+        headers = ['ID', 'Cliente', 'Fecha', 'Total', 'Estado']
+        ws.append(headers)
+        for o in Orden.objects.all().select_related('cliente__usuario'):
+            ws.append([o.id, f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}", o.fecha.strftime('%Y-%m-%d'), format_money_raw(o.precio), o.estado])
+
+    elif tipo == 'pedidos':
+        headers = ['ID', 'Cliente', 'Materiales', 'Total', 'Estado']
+        ws.append(headers)
+        for o in Orden.objects.all().select_related('cliente__usuario').prefetch_related('detalles__material'):
+            materiales = ", ".join([f"{d.cantidad}x {d.material.nombre}" for d in o.detalles.all()])
+            ws.append([o.id, f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}", materiales, format_money_raw(o.precio), o.estado])
+
+    # Aplicar estilos a cabecera
+    for cell in ws[1]:
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center_aligned
+
+    # Ajustar ancho de columnas
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.xlsx"'
+    wb.save(response)
+    
+    registrar_actividad(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a Excel")
+    return response
+
+@admin_required
+def exportar_reporte_xml(request, tipo):
+    root = ET.Element("reporte")
+    root.set("tipo", tipo)
+    root.set("fecha_generacion", now().strftime('%Y-%m-%d %H:%M:%S'))
+
+    if tipo == 'clientes':
+        for u in Usuario.objects.filter(rol='cliente').select_related('user'):
+            item = ET.SubElement(root, "cliente")
+            ET.SubElement(item, "id").text = str(u.id)
+            ET.SubElement(item, "nombre").text = f"{u.nombres} {u.apellidos}"
+            ET.SubElement(item, "email").text = u.user.email
+            ET.SubElement(item, "telefono").text = u.telefono or ""
+            ET.SubElement(item, "estado").text = u.estado
+
+    elif tipo == 'materiales':
+        for m in Material.objects.all().select_related('stock_info'):
+            item = ET.SubElement(root, "material")
+            ET.SubElement(item, "id").text = str(m.id)
+            ET.SubElement(item, "nombre").text = m.nombre
+            ET.SubElement(item, "tipo").text = m.tipo
+            ET.SubElement(item, "precio").text = str(m.precio or 0)
+            ET.SubElement(item, "stock").text = str(m.stock)
+
+    elif tipo == 'ventas':
+        for o in Orden.objects.all().select_related('cliente__usuario'):
+            item = ET.SubElement(root, "venta")
+            ET.SubElement(item, "id").text = str(o.id)
+            ET.SubElement(item, "cliente").text = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
+            ET.SubElement(item, "fecha").text = o.fecha.strftime('%Y-%m-%d')
+            ET.SubElement(item, "total").text = str(o.precio or 0)
+            ET.SubElement(item, "estado").text = o.estado
+
+    elif tipo == 'pedidos':
+        for o in Orden.objects.all().select_related('cliente__usuario').prefetch_related('detalles__material'):
+            item = ET.SubElement(root, "pedido")
+            ET.SubElement(item, "id").text = str(o.id)
+            ET.SubElement(item, "cliente").text = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
+            ET.SubElement(item, "total").text = str(o.precio or 0)
+            ET.SubElement(item, "estado").text = o.estado
+            dets = ET.SubElement(item, "detalles")
+            for d in o.detalles.all():
+                det = ET.SubElement(dets, "detalle")
+                ET.SubElement(det, "material").text = d.material.nombre
+                ET.SubElement(det, "cantidad").text = str(d.cantidad)
+
+    # Convertir a string indentado
+    from xml.dom import minidom
+    xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="   ")
+
+    response = HttpResponse(xmlstr, content_type='application/xml')
+    response['Content-Disposition'] = f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.xml"'
+    
+    registrar_actividad(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a XML")
     return response

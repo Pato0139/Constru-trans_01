@@ -3,9 +3,9 @@ from django.core.management.base import BaseCommand
 from django.db import OperationalError, connections
 from apps.usuarios.models import Material, Proveedor, Vehiculo, Usuario
 from apps.clientes.models import Cliente
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from apps.inventario.models import MovimientoInventario
-from apps.compras.models import Compra
+from apps.compras.models import Compra, DetalleCompra
 from apps.ordenes.models import Orden, Entrega
 from apps.facturacion.models import Factura
 from apps.pagos.models import Pago
@@ -41,18 +41,19 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS('Conexión con la nube establecida.'))
                 
                 # 2. Sincronizar modelos en orden de dependencia
-                self.sincronizar_usuarios(force=force)
+                self.sincronizar_grupos(force=force) # auth_group y auth_user_groups
+                self.sincronizar_usuarios(force=force) # auth_user, usuario, cliente
                 self.sincronizar_modelo(Proveedor, force=force)
                 self.sincronizar_modelo(Material, force=force)
                 self.sincronizar_modelo(Vehiculo, force=force)
-                self.sincronizar_modelo(Compra, force=force)
-                self.sincronizar_modelo(Orden, force=force)
+                self.sincronizar_modelo(Compra, force=force) # Sincroniza Compra y DetalleCompra
+                self.sincronizar_modelo(Orden, force=force) # Sincroniza Orden y DetalleOrden
                 self.sincronizar_modelo(Entrega, force=force)
                 self.sincronizar_modelo(Factura, force=force)
                 self.sincronizar_modelo(Pago, force=force)
                 self.sincronizar_modelo(MovimientoInventario, force=force)
                 self.sincronizar_modelo(Historial, force=force)
-                self.sincronizar_log_admin() # Sincronizar logs de Django Admin
+                self.sincronizar_log_admin() # django_admin_log
                 
             except OperationalError:
                 self.stdout.write(self.style.WARNING('Sin conexión con la nube. Reintentando en 30 segundos...'))
@@ -63,6 +64,34 @@ class Command(BaseCommand):
 
             # Esperar antes de la siguiente revisión
             time.sleep(30)
+
+    def sincronizar_grupos(self, force=False):
+        """Sincroniza grupos de Django (Group) y las relaciones con usuarios (auth_user_groups)."""
+        try:
+            self.stdout.write('Sincronizando Grupos y Permisos...')
+            # 1. Sincronizar Grupos
+            grupos = Group.objects.using('default').all()
+            for group in grupos:
+                Group.objects.using('remota').update_or_create(
+                    id=group.id,
+                    defaults={'name': group.name}
+                )
+            
+            # 2. Sincronizar relaciones de usuarios con grupos (auth_user_groups)
+            # Como Django no expone auth_user_groups como un modelo directo fácilmente,
+            # usamos el manager de la relación through
+            users = User.objects.using('default').all()
+            for user in users:
+                user_remoto = User.objects.using('remota').filter(id=user.id).first()
+                if user_remoto:
+                    # Obtenemos los IDs de los grupos locales
+                    grupos_ids = list(user.groups.values_list('id', flat=True))
+                    # Limpiamos y asignamos en la remota
+                    user_remoto.groups.set(Group.objects.using('remota').filter(id__in=grupos_ids))
+            
+            self.stdout.write(self.style.SUCCESS('  [OK] Grupos y relaciones sincronizados.'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'  [ERROR] Falló sincronización de Grupos: {str(e)}'))
 
     def sincronizar_modelo(self, modelo, force=False):
         """Busca registros no sincronizados localmente y los sube a la nube en orden."""

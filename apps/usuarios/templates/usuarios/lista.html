@@ -119,6 +119,21 @@
                                 <a href="{% url 'usuarios:editar_usuario' u.id %}" class="btn btn-sm btn-outline-light border-0" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                {% if u.user.username != 'Edward_Fonseca' and u.user != request.user %}
+                                <a href="{% url 'usuarios:toggle_estado_usuario' u.id %}" 
+                                   class="btn btn-sm {% if u.estado == 'activo' %}btn-outline-warning{% else %}btn-outline-success{% endif %} border-0" 
+                                   title="{% if u.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                                    <i class="bi {% if u.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
+                                </a>
+                                <form action="{% url 'usuarios:eliminar_usuario' u.id %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 confirm-delete-form" 
+                                            data-title="¿Eliminar usuario?" 
+                                            data-text="¿Estás seguro de que deseas eliminar a {{ u.nombres }}? Esta acción no se puede deshacer.">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -180,6 +195,11 @@
                             <div class="d-flex gap-2">
                                 <a href="{% url 'usuarios:editar_usuario' cliente.id %}" class="btn btn-sm btn-outline-light border-0" title="Editar">
                                     <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'usuarios:toggle_estado_usuario' cliente.id %}" 
+                                   class="btn btn-sm {% if cliente.estado == 'activo' %}btn-outline-warning{% else %}btn-outline-success{% endif %} border-0" 
+                                   title="{% if cliente.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                                    <i class="bi {% if cliente.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
                                 </a>
                                 <form action="{% url 'usuarios:eliminar_usuario' cliente.id %}" method="POST" class="d-inline">
                                     {% csrf_token %}
@@ -245,6 +265,11 @@
                             <div class="d-flex gap-2">
                                 <a href="{% url 'usuarios:editar_usuario' conductor.id %}" class="btn btn-sm btn-outline-light border-0" title="Editar">
                                     <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'usuarios:toggle_estado_usuario' conductor.id %}" 
+                                   class="btn btn-sm {% if conductor.estado == 'activo' %}btn-outline-warning{% else %}btn-outline-success{% endif %} border-0" 
+                                   title="{% if conductor.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                                    <i class="bi {% if conductor.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
                                 </a>
                                 <form action="{% url 'usuarios:eliminar_usuario' conductor.id %}" method="POST" class="d-inline">
                                     {% csrf_token %}
@@ -325,7 +350,12 @@
                                     <a href="{% url 'usuarios:editar_usuario' admin.id %}" class="btn btn-sm btn-outline-light border-0" title="Editar">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    {% if admin.user != request.user %}
+                                    {% if admin.user.username != 'Edward_Fonseca' and admin.user != request.user %}
+                                    <a href="{% url 'usuarios:toggle_estado_usuario' admin.id %}" 
+                                       class="btn btn-sm {% if admin.estado == 'activo' %}btn-outline-warning{% else %}btn-outline-success{% endif %} border-0" 
+                                       title="{% if admin.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                                        <i class="bi {% if admin.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
+                                    </a>
                                     <form action="{% url 'usuarios:eliminar_usuario' admin.id %}" method="POST" class="d-inline">
                                         {% csrf_token %}
                                         <button type="button" class="btn btn-sm btn-outline-danger border-0 confirm-delete-form" 

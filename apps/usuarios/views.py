@@ -421,6 +421,33 @@ def lista_usuarios(request):
 
 
 @login_required
+def toggle_estado_usuario(request, id):
+    if request.user.usuario.rol != 'admin':
+        messages.error(request, "No tienes permisos para realizar esta acción.")
+        return redirect("usuarios:panel")
+
+    usuario_obj = get_object_or_404(Usuario, id=id)
+    
+    # PROTECCIÓN: Nadie puede desactivar al administrador global
+    if usuario_obj.user.username == 'Edward_Fonseca':
+        messages.error(request, "El Administrador Global no puede ser desactivado.")
+        return redirect("usuarios:lista_usuarios")
+
+    nuevo_estado = 'inactivo' if usuario_obj.estado == 'activo' else 'activo'
+    usuario_obj.estado = nuevo_estado
+    usuario_obj.save()
+    
+    # También desactivar/activar el usuario de Django
+    usuario_obj.user.is_active = (nuevo_estado == 'activo')
+    usuario_obj.user.save()
+
+    accion = 'desactivado' if nuevo_estado == 'inactivo' else 'activado'
+    registrar_actividad(request, 'editar', 'usuarios', id, f"Usuario {accion}: {usuario_obj.user.username}")
+    messages.success(request, f"Usuario {usuario_obj.user.username} {accion} correctamente.")
+    return redirect("usuarios:lista_usuarios")
+
+
+@login_required
 def eliminar_usuario(request, id):
     if request.user.usuario.rol != 'admin':
         messages.error(request, "No tienes permisos para realizar esta acción.")

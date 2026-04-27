@@ -124,7 +124,7 @@
                 {% elif user.usuario.rol == 'cliente' %}
                     <a href="{% url 'clientes:perfil_cliente' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_cliente' %}active{% endif %}">
                 {% else %}
-                    <a href="#" class="nav-link-premium">
+                    <a href="{% url 'usuarios:panel' %}" class="nav-link-premium">
                 {% endif %}
                     <i class="bi bi-person-circle"></i>
                     <span>Mi Cuenta</span>

@@ -100,7 +100,22 @@ class Vehiculo(models.Model):
         ('disponible', 'Disponible'),
         ('en_ruta', 'En Ruta'),
         ('mantenimiento', 'Mantenimiento'),
+        ('alquilado', 'Alquilado'),
+        ('comprado', 'Comprado'),
+        ('desactivado', 'Desactivado'),
     ]
+    
+    TIPO_ADQUISICION = [
+        ('propio', 'Propio (Comprado)'),
+        ('alquilado', 'Alquilado'),
+    ]
+
+    tipo_adquisicion = models.CharField(
+        max_length=20,
+        choices=TIPO_ADQUISICION,
+        default='propio',
+        verbose_name="Tipo de Adquisición"
+    )
     
     estado = models.CharField(
         max_length=20, 

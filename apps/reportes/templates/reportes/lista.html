@@ -77,32 +77,79 @@
 
     <!-- Sección de Descargas -->
     <div class="table-container p-4 rounded-4 shadow-sm mb-5" style="background: var(--card-bg); border: 1px solid var(--color-border);">
-        <h5 class="mb-4 fw-bold text-white">
-            <i class="bi bi-download me-2 text-accent"></i>Generar Reportes PDF
-        </h5>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0 fw-bold text-white">
+                <i class="bi bi-download me-2 text-accent"></i>Generar Reportes
+            </h5>
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-file-earmark-arrow-down me-1"></i> Formato de Exportación
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg">
+                    <li><h6 class="dropdown-header">Seleccionar Formato</h6></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="cambiarFormato('pdf')"><i class="bi bi-file-earmark-pdf text-danger"></i> PDF</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="cambiarFormato('excel')"><i class="bi bi-file-earmark-excel text-success"></i> Excel</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="cambiarFormato('xml')"><i class="bi bi-file-earmark-code text-info"></i> XML</a></li>
+                </ul>
+            </div>
+        </div>
+        
         <div class="row g-3">
             <div class="col-md-3">
-                <a href="#" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                <a id="btn-rep-clientes" href="{% url 'reportes:exportar_reporte_pdf' 'clientes' %}" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
                     <i class="bi bi-people-fill text-primary"></i> Clientes
                 </a>
             </div>
             <div class="col-md-3">
-                <a href="#" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                <a id="btn-rep-materiales" href="{% url 'reportes:exportar_reporte_pdf' 'materiales' %}" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
                     <i class="bi bi-bricks text-accent"></i> Inventario
                 </a>
             </div>
             <div class="col-md-3">
-                <a href="#" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                <a id="id-rep-ventas" href="{% url 'reportes:exportar_reporte_pdf' 'ventas' %}" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
                     <i class="bi bi-cash-stack text-success"></i> Ventas
                 </a>
             </div>
             <div class="col-md-3">
-                <a href="#" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                <a id="btn-rep-pedidos" href="{% url 'reportes:exportar_reporte_pdf' 'pedidos' %}" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
                     <i class="bi bi-list-task text-info"></i> Pedidos
                 </a>
             </div>
         </div>
     </div>
+
+    <script>
+        function cambiarFormato(formato) {
+            const urls = {
+                pdf: {
+                    clientes: "{% url 'reportes:exportar_reporte_pdf' 'clientes' %}",
+                    materiales: "{% url 'reportes:exportar_reporte_pdf' 'materiales' %}",
+                    ventas: "{% url 'reportes:exportar_reporte_pdf' 'ventas' %}",
+                    pedidos: "{% url 'reportes:exportar_reporte_pdf' 'pedidos' %}"
+                },
+                excel: {
+                    clientes: "{% url 'reportes:exportar_reporte_excel' 'clientes' %}",
+                    materiales: "{% url 'reportes:exportar_reporte_excel' 'materiales' %}",
+                    ventas: "{% url 'reportes:exportar_reporte_excel' 'ventas' %}",
+                    pedidos: "{% url 'reportes:exportar_reporte_excel' 'pedidos' %}"
+                },
+                xml: {
+                    clientes: "{% url 'reportes:exportar_reporte_xml' 'clientes' %}",
+                    materiales: "{% url 'reportes:exportar_reporte_xml' 'materiales' %}",
+                    ventas: "{% url 'reportes:exportar_reporte_xml' 'ventas' %}",
+                    pedidos: "{% url 'reportes:exportar_reporte_xml' 'pedidos' %}"
+                }
+            };
+
+            document.getElementById('btn-rep-clientes').href = urls[formato].clientes;
+            document.getElementById('btn-rep-materiales').href = urls[formato].materiales;
+            document.getElementById('id-rep-ventas').href = urls[formato].ventas;
+            document.getElementById('btn-rep-pedidos').href = urls[formato].pedidos;
+            
+            // Actualizar el texto del botón dropdown si se desea
+        }
+    </script>
 
     <!-- Indicadores Detallados (Empty State) -->
     <div class="row g-4">

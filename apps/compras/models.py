@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.contrib.auth.models import User
 from apps.usuarios.models import Material, Proveedor
 
 class Compra(models.Model):
@@ -17,6 +18,7 @@ class Compra(models.Model):
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0, verbose_name="Total Compra")
     estado = models.CharField(max_length=20, choices=ESTADOS, default=PENDIENTE, verbose_name="Estado")
     observaciones = models.TextField(blank=True, null=True, verbose_name="Observaciones")
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Registrado por")
     sincronizado = models.BooleanField(default=False)
 
     @property
@@ -35,7 +37,7 @@ class Compra(models.Model):
         db_table = 'compra'
 
     def __str__(self):
-        return f"{self.numero_orden} - {self.proveedor.nombre}"
+        return f"{self.numero_orden} - {self.proveedor.nombre_empresa}"
 
 class DetalleCompra(models.Model):
     compra = models.ForeignKey(Compra, on_delete=models.CASCADE, related_name="detalles")

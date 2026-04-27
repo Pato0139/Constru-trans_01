@@ -15,6 +15,7 @@ urlpatterns = [
     path("usuarios/", views.lista_usuarios, name="lista_usuarios"),
     path("usuarios/crear/", views.crear_usuario, name="crear_usuario"),
     path("usuarios/eliminar/<int:id>/", views.eliminar_usuario, name="eliminar_usuario"),
+    path("usuarios/toggle-estado/<int:id>/", views.toggle_estado_usuario, name="toggle_estado_usuario"),
     path("usuarios/editar/<int:id>/", views.editar_usuario, name="editar_usuario"),
 
     path("perfil/admin/", views.perfil_admin, name="perfil_admin"),
