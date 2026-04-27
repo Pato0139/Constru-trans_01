@@ -9,7 +9,6 @@ from django.http import JsonResponse
 from decimal import Decimal
 from django.contrib import messages
 
-# HU-37
 @admin_required
 def lista_facturas(request):
     estado = request.GET.get('estado')
@@ -39,7 +38,6 @@ def mis_facturas(request):
         'metodos_pago': Pago.METODOS
     })
 
-# HU-38
 @login_required
 @require_POST
 def registrar_pago(request):

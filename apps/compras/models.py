@@ -56,7 +56,7 @@ class DetalleCompra(models.Model):
         # Solo actualizar stock y registrar movimiento si la compra pasa a 'recibida'
         # o si ya estaba recibida y se agrega un nuevo detalle (caso raro)
         # Por ahora, mantendremos la lógica original pero solo si el estado de la compra es 'recibida'
-        # Pero según el HU-23, se guarda como 'pendiente'. El stock debería actualizarse al cambiar a 'recibida'.
+        # Pero según la lógica de negocio, se guarda como 'pendiente'. El stock debería actualizarse al cambiar a 'recibida'.
         
         is_new = self.pk is None
         super().save(*args, **kwargs)

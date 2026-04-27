@@ -169,7 +169,6 @@ def login_usuario(request):
 
 
 # ---------------- PANEL ADMIN ----------------
-# HU-10
 @login_required
 def panel(request):
     try:
@@ -448,7 +447,6 @@ def toggle_estado_usuario(request, id):
     return redirect("usuarios:lista_usuarios")
 
 
-# HU-09
 @login_required
 def eliminar_usuario(request, id):
     # OBTENER USUARIO A ELIMINAR

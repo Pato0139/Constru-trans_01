@@ -136,7 +136,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-# HU-18
 @receiver(post_save, sender=Orden)
 def post_save_orden(sender, instance, created, **kwargs):
     """Acciones automáticas al guardar una Orden"""

@@ -73,7 +73,7 @@ def editar_vehiculo(request, id):
     if request.method == "POST":
         nuevo_estado = request.POST.get("estado")
         
-        # Validación HU-33: No desactivar si tiene entregas activas
+        # Validación: No desactivar si tiene entregas activas
         if nuevo_estado in ['mantenimiento', 'fuera_de_servicio'] and vehiculo.estado == 'en_ruta':
             messages.error(request, "No se puede cambiar el estado mientras el vehículo tenga una entrega activa (En Ruta).")
         else:

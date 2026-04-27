@@ -17,8 +17,7 @@
     <div class="nav-container px-3 flex-grow-1">
         <nav class="nav flex-column gap-1">
             {% if user.usuario.rol == 'admin' %}
-                <!-- HU-UI -->
-        <a href="{% url 'usuarios:panel' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
+                <a href="{% url 'usuarios:panel' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
             <i class="bi bi-grid-1x2-fill"></i>
             <span>General</span>
         </a>
