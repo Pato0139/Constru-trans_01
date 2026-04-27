@@ -2488,6 +2488,20 @@
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-27T18:37:24.124Z",
     "ip_address": "127.0.0.1",
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 89,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-27T18:52:54.421Z",
+    "ip_address": "127.0.0.1",
     "sincronizado": false
   }
 }
