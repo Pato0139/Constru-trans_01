@@ -22,7 +22,7 @@
   "pk": 2,
   "fields": {
     "password": "pbkdf2_sha256$1200000$EhezjKXwavfTZT7BOOSuuT$dh5mGqXFrn54ns3IaHWuikAqUJj7wJKmA0DwDeYL+0w=",
-    "last_login": "2026-04-25T03:02:30.695Z",
+    "last_login": "2026-04-24T04:51:45.392Z",
     "is_superuser": false,
     "username": "camipenagoz345@gmail.com",
     "first_name": "",
@@ -165,8 +165,8 @@
   "model": "sessions.session",
   "pk": "ooc5emh8bdmzdj7ihj0jxr69erog1frm",
   "fields": {
-    "session_data": ".eJxVjM0KgkAURt9l1iHO1RnHlpEhZQRFmzYyP9fUUsEZIYnePQU3br9zzvclubZ94boXtmRL6ix94Olw3N_pp72MzWhCd00hkUmYqRs2ZENyObgyHyz2eWWmhK43JfV0NQNTy_bZebprXV8pb1a8hVrv3Bl87xZ3dVBKW061kBGiZAABUwEXhoUhMjBCMAogtC544XPBI0AjjIoZjXjMgKJiUax98MnvD_5fRtU:1wHRTh:y3GELjHChm_C_rsqZTFWDOJr3qxdlEh0xSRD6thCDr8",
-    "expire_date": "2026-05-11T19:18:45.025Z"
+    "session_data": ".eJxVjM0KgkAURt9l1iHO1RnHlpEhZQRFmzYyP9fUUsEZIYnePQU3br9zzvclubZ94boXtmRL6ix94Olw3N_pp72MzWhCd00hkUmYqRs2ZENyObgyHyz2eWWmhK43JfV0NQNTy_bZebprXV8pb1a8hVrv3Bl87xZ3dVBKW061kBGiZAABUwEXhoUhMjBCMAogtC544XPBI0AjjIoZjXjMgKJiUax98MnvD_5fRtU:1wHRVu:15QNZDYcMeuQbmzgO7lKqrNDeGTlfQbCF5eQhBNxLmI",
+    "expire_date": "2026-05-11T19:21:02.597Z"
   }
 },
 {
@@ -695,7 +695,7 @@
     "titulo": "Nueva notificación",
     "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $99.00 para la Factura F-000001",
     "tipo": "info",
-    "leida": false,
+    "leida": true,
     "fecha": "2026-04-25T22:32:37.439Z",
     "link": "/facturacion/"
   }
@@ -708,7 +708,7 @@
     "titulo": "Nueva notificación",
     "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $99000.00 para la Factura F-000001",
     "tipo": "info",
-    "leida": false,
+    "leida": true,
     "fecha": "2026-04-25T22:32:37.747Z",
     "link": "/facturacion/"
   }
@@ -721,7 +721,7 @@
     "titulo": "Nueva notificación",
     "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $21710.00 para la Factura F-000001",
     "tipo": "info",
-    "leida": false,
+    "leida": true,
     "fecha": "2026-04-25T22:32:38.064Z",
     "link": "/facturacion/"
   }
@@ -734,7 +734,7 @@
     "titulo": "Nueva notificación",
     "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $238848.00 para la Factura F-000001",
     "tipo": "info",
-    "leida": false,
+    "leida": true,
     "fecha": "2026-04-25T22:32:38.373Z",
     "link": "/facturacion/"
   }
@@ -747,7 +747,7 @@
     "titulo": "Nueva notificación",
     "mensaje": "Nuevo pago registrado de Alvaro Sanchez por $9569504.00 para la Factura F-000001",
     "tipo": "info",
-    "leida": false,
+    "leida": true,
     "fecha": "2026-04-25T22:32:38.680Z",
     "link": "/facturacion/"
   }
@@ -2538,7 +2538,35 @@
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-27T19:18:44.991Z",
     "ip_address": "127.0.0.1",
-    "sincronizado": false
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 92,
+  "fields": {
+    "usuario": 1,
+    "accion": "otro",
+    "modulo": "reportes",
+    "elemento_id": null,
+    "descripcion": "Reporte de clientes exportado a PDF",
+    "fecha_hora": "2026-04-27T19:19:32.022Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 93,
+  "fields": {
+    "usuario": 1,
+    "accion": "otro",
+    "modulo": "pedidos",
+    "elemento_id": "1",
+    "descripcion": "Factura descargada por Edward_Fonseca",
+    "fecha_hora": "2026-04-27T19:19:42.874Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
   }
 }
 ]
