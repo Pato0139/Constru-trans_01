@@ -12,17 +12,11 @@ class EnrutadorInventario:
     ]
 
     def db_for_read(self, model, **hints):
-        """Lecturas: Las apps remotas leen de la nube si está configurada."""
-        import os
-        if os.getenv("DB_PASSWORD") and model._meta.app_label in self.APPS_REMOTAS:
-            return 'remota'
+        """Lecturas: Offline-First. Leemos localmente para que siempre funcione."""
         return 'default'
 
     def db_for_write(self, model, **hints):
-        """Escrituras: Las apps remotas escriben en la nube si está configurada."""
-        import os
-        if os.getenv("DB_PASSWORD") and model._meta.app_label in self.APPS_REMOTAS:
-            return 'remota'
+        """Escrituras: Offline-First. Siempre escribimos localmente para no perder datos sin internet."""
         return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):
