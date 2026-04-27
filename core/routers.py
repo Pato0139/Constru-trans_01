@@ -12,11 +12,17 @@ class EnrutadorInventario:
     ]
 
     def db_for_read(self, model, **hints):
-        """Lecturas: Por defecto leemos de local para velocidad y offline-first."""
+        """Lecturas: Las apps remotas leen de la nube si está configurada."""
+        import os
+        if os.getenv("DB_PASSWORD") and model._meta.app_label in self.APPS_REMOTAS:
+            return 'remota'
         return 'default'
 
     def db_for_write(self, model, **hints):
-        """Escrituras: Intentamos local por defecto, el Celador se encarga de subirlo."""
+        """Escrituras: Las apps remotas escriben en la nube si está configurada."""
+        import os
+        if os.getenv("DB_PASSWORD") and model._meta.app_label in self.APPS_REMOTAS:
+            return 'remota'
         return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):

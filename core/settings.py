@@ -108,16 +108,18 @@ if os.getenv('DB_ENGINE') == 'django.db.backends.postgresql':
 # Enrutador de base de datos para sincronización offline-first
 DATABASE_ROUTERS = ['core.routers.EnrutadorInventario']
 
-# Sesiones en caché para mayor velocidad
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+# Configuración de Sesiones y Cookies para multidispositivo
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Sesiones en BD para compartir entre PCs
+SESSION_COOKIE_AGE = 1209600  # 2 semanas en segundos
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Mantener sesión al cerrar navegador
+SESSION_SAVE_EVERY_REQUEST = True  # Renovar sesión en cada interacción
 
-# CACHE (LocMem para velocidad instantánea en desarrollo)
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-    }
-}
+# Seguridad de Cookies (Ajustar según entorno)
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_USE_SESSIONS = True  # Almacenar CSRF en la sesión para mayor compatibilidad
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
