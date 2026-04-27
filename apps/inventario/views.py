@@ -10,6 +10,7 @@ from django.db import transaction
 from django.views.decorators.http import require_POST
 from .models import MovimientoInventario
 
+# HU-17: Registrar entrada de inventario
 @admin_required
 @require_POST
 def registrar_entrada(request):
