@@ -169,7 +169,7 @@ def login_usuario(request):
 
 
 # ---------------- PANEL ADMIN ----------------
-# HU-10: Consultar pedidos de un cliente
+# HU-10
 @login_required
 def panel(request):
     try:
@@ -448,7 +448,7 @@ def toggle_estado_usuario(request, id):
     return redirect("usuarios:lista_usuarios")
 
 
-# HU-09: Eliminar cliente
+# HU-09
 @login_required
 def eliminar_usuario(request, id):
     if request.user.usuario.rol != 'admin':
