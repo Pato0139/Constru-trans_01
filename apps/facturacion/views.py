@@ -47,11 +47,13 @@ def registrar_pago(request):
     monto_str = request.POST.get('monto', '0')
     metodo = request.POST.get('metodo')
     
+    # VALIDACIÓN: Monto numérico
     try:
         monto = Decimal(monto_str)
     except:
         return JsonResponse({'error': 'Monto inválido'}, status=400)
         
+    # VALIDACIÓN: cantidad > 0
     if monto <= 0:
         return JsonResponse({'error': 'El monto debe ser mayor a cero'}, status=400)
     
@@ -59,10 +61,12 @@ def registrar_pago(request):
         return JsonResponse({'error': 'Método de pago inválido'}, status=400)
         
     try:
+        # TRANSACCIÓN ATÓMICA: o todo o nada
         with transaction.atomic():
+            # Bloqueamos la factura para evitar pagos duplicados concurrentes
             factura = Factura.objects.select_for_update().get(id=factura_id)
             
-            # Seguridad: Si no es admin, solo puede pagar sus propias facturas
+            # Seguridad: Solo admin o el dueño pueden pagar
             if request.user.usuario.rol != 'admin' and factura.cliente != request.user.usuario:
                 return JsonResponse({'error': 'No autorizado'}, status=403)
 
@@ -71,10 +75,11 @@ def registrar_pago(request):
             if factura.estado == 'pagada':
                 return JsonResponse({'error': 'La factura ya ha sido pagada totalmente'}, status=400)
             
-            # Validar que no se pague más del saldo pendiente
+            # VALIDACIÓN: No exceder saldo
             if monto > factura.saldo_pendiente:
                 return JsonResponse({'error': f'El monto excede el saldo pendiente (${factura.saldo_pendiente})'}, status=400)
                 
+            # REGISTRAR PAGO
             Pago.objects.create(
                 factura=factura, 
                 monto=monto, 
@@ -83,7 +88,7 @@ def registrar_pago(request):
                 registrado_por=request.user
             )
             
-            # Recalcular saldo
+            # ACTUALIZAR ESTADO SI SE COMPLETA EL PAGO
             if factura.saldo_pendiente <= 0:
                 factura.estado = 'pagada'
                 factura.save()

@@ -16,14 +16,22 @@ from .models import MovimientoInventario
 def registrar_entrada(request):
     material_id = request.POST.get('material_id')
     cantidad = int(request.POST.get('cantidad', 0))
+    
+    # VALIDACIÓN: cantidad > 0
     if cantidad <= 0:
         return JsonResponse({'error': 'Cantidad debe ser > 0'}, status=400)
     try:
+        # TRANSACCIÓN ATÓMICA: o todo o nada
         with transaction.atomic():
+            # Bloqueamos el material y el stock para evitar concurrencia
             material = Material.objects.select_for_update().get(id=material_id)
             stock, _ = Stock.objects.select_for_update().get_or_create(material=material)
+            
+            # Sumar al stock
             stock.cantidad += cantidad
             stock.save()
+            
+            # REGISTRAR EN HISTORIAL
             MovimientoInventario.objects.create(
                 material=material,
                 tipo='entrada',

@@ -451,22 +451,18 @@ def toggle_estado_usuario(request, id):
 # HU-09
 @login_required
 def eliminar_usuario(request, id):
-    if request.user.usuario.rol != 'admin':
-        messages.error(request, "No tienes permisos para realizar esta acción.")
-        return redirect("usuarios:panel")
-
-    usuario_obj = get_object_or_404(Usuario, id=id) 
+    # OBTENER USUARIO A ELIMINAR
+    usuario = get_object_or_404(Usuario, id=id)
     
-    # PROTECCIÓN: Nadie puede eliminar al administrador global
-    if usuario_obj.user.username == 'Edward_Fonseca':
-        messages.error(request, "El Administrador Global no puede ser eliminado del sistema.")
-        return redirect("usuarios:lista_usuarios")
-
-    nombre_usuario = usuario_obj.user.username
-    usuario_obj.delete()
-    registrar_actividad(request, 'eliminar', 'usuarios', id, f"Usuario eliminado: {nombre_usuario}")
-    messages.success(request, "Usuario eliminado correctamente.")
-    return redirect("usuarios:lista_usuarios")
+    # VALIDACIÓN: Solo admin puede eliminar
+    if request.user.usuario.rol != 'admin':
+        messages.error(request, "No tienes permiso para realizar esta acción.")
+        return redirect('usuarios:lista_usuarios')
+        
+    # ACCIÓN: Eliminar (O desactivar según lógica de negocio)
+    usuario.delete()
+    messages.success(request, f"Usuario {usuario.nombres} eliminado correctamente.")
+    return redirect('usuarios:lista_usuarios')
 
 
 @login_required

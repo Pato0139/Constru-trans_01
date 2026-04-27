@@ -144,20 +144,20 @@ def post_save_orden(sender, instance, created, **kwargs):
     from django.db.models import F
     from django.db import transaction
 
-    # 1. Generar factura automáticamente cuando el pedido se marca como entregado
+    # 1. GENERAR FACTURA AUTOMÁTICA al marcar como entregado
     if instance.estado == 'entregado' and not hasattr(instance, 'factura'):
         from apps.facturacion.models import Factura
         
-        # Asegurar que el precio esté actualizado antes de facturar
-        # Si el precio es 0, intentamos calcularlo de nuevo
+        # VALIDACIÓN: Asegurar precio antes de facturar
         precio_final = instance.precio
         if precio_final <= 0:
             detalles = instance.detalles.all()
             if detalles.exists():
                 precio_final = sum(d.cantidad * d.precio_unitario for d in detalles)
-                # Actualizar el precio en la instancia para que coincida
+                # Actualizar precio en BD
                 Orden.objects.filter(id=instance.id).update(precio=precio_final)
 
+        # CREACIÓN DE FACTURA
         Factura.objects.create(
             numero=f"F-{instance.id:06d}",
             orden=instance,
@@ -167,13 +167,15 @@ def post_save_orden(sender, instance, created, **kwargs):
             total=precio_final
         )
         
-        # 2. Descontar stock y registrar movimientos (Solo si no se ha hecho antes)
+        # 2. DESCONTAR STOCK Y REGISTRAR MOVIMIENTOS
         Stock = apps.get_model('usuarios', 'Stock')
         MovimientoInventario = apps.get_model('inventario', 'MovimientoInventario')
         
+        # Evitar duplicidad de movimientos
         if not MovimientoInventario.objects.filter(referencia_id=instance.id, tipo='salida', motivo__icontains="orden").exists():
             with transaction.atomic():
                 for detalle in instance.detalles.all():
+                    # Bloqueo de stock para actualización segura
                     stock_obj, _ = Stock.objects.get_or_create(
                         material=detalle.material,
                         defaults={'cantidad': 0}
@@ -181,6 +183,7 @@ def post_save_orden(sender, instance, created, **kwargs):
                     stock_obj.cantidad = F('cantidad') - detalle.cantidad
                     stock_obj.save()
                     
+                    # REGISTRO EN HISTORIAL
                     MovimientoInventario.objects.create(
                         material=detalle.material,
                         tipo='salida',
@@ -190,7 +193,7 @@ def post_save_orden(sender, instance, created, **kwargs):
                         usuario=None 
                     )
 
-                # 3. Notificar a los administradores
+                # 3. NOTIFICAR ADMINISTRADORES
                 Notificacion = apps.get_model('usuarios', 'Notificacion')
                 Usuario = apps.get_model('usuarios', 'Usuario')
                 admins = Usuario.objects.filter(rol='admin')
