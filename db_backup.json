@@ -3,8 +3,8 @@
   "model": "auth.user",
   "pk": 1,
   "fields": {
-    "password": "pbkdf2_sha256$1200000$rcA358dIqXuahH3V1hSU8I$VK/DgeJbwRVFW0BHdgyB6YlDujRdQArskfcpjKwosvQ=",
-    "last_login": "2026-04-27T19:18:44.976Z",
+    "password": "pbkdf2_sha256$870000$jyg6tqTOuwZoNv1GyNmVDh$nF3vESbg5oV179V98nr/hvFErPR7w5chAqYIVu5jgy8=",
+    "last_login": "2026-04-29T19:27:06.153Z",
     "is_superuser": true,
     "username": "Edward_Fonseca",
     "first_name": "",
@@ -2608,7 +2608,21 @@
     "descripcion": "Inicio de sesión: Edward_Fonseca",
     "fecha_hora": "2026-04-29T19:25:50.837Z",
     "ip_address": "127.0.0.1",
-    "sincronizado": false
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 97,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-29T19:26:18.871Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
   }
 }
 ]
