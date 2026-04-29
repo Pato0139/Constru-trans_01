@@ -298,6 +298,7 @@ class Command(BaseCommand):
                     ('orden', 'id'),
                     ('factura', 'id'),
                     ('historial_actividad', 'id'),
+                    ('perfil_cliente', 'id'),
                 ]
                 for tabla, columna in tablas:
                     try:

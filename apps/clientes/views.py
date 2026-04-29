@@ -14,7 +14,16 @@ def panel_cliente(request):
     try:
         usuario = request.user.usuario
         # Intentamos obtener el perfil de cliente, si no existe lo creamos (Modo Resiliente)
-        cliente, created = Cliente.objects.get_or_create(usuario=usuario)
+        try:
+            cliente, created = Cliente.objects.get_or_create(usuario=usuario)
+        except Exception as e_c:
+            if "duplicate key" in str(e_c).lower():
+                from django.db import connections
+                with connections['remota'].cursor() as cursor:
+                    cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
+                cliente, created = Cliente.objects.get_or_create(usuario=usuario)
+            else:
+                raise e_c
     except (Usuario.DoesNotExist, AttributeError):
         # Si no tiene perfil de usuario base, intentamos crearlo para superusuarios o redirigir
         if request.user.is_superuser:

@@ -224,7 +224,16 @@ def login_usuario(request):
                         # Aseguramos que si es cliente, tenga su perfil de cliente
                         if perfil.rol == 'cliente':
                             from apps.clientes.models import Cliente
-                            Cliente.objects.get_or_create(usuario=perfil)
+                            try:
+                                Cliente.objects.get_or_create(usuario=perfil)
+                            except Exception as e_c:
+                                if "duplicate key" in str(e_c).lower():
+                                    from django.db import connections
+                                    with connections['remota'].cursor() as cursor:
+                                        cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
+                                    Cliente.objects.get_or_create(usuario=perfil)
+                                else:
+                                    raise e_c
                     except Exception:
                         # Si falla por ID duplicado, usamos la lógica de reparación de secuencias
                         from django.db import connections
@@ -245,7 +254,16 @@ def login_usuario(request):
                         )
                         if perfil.rol == 'cliente':
                             from apps.clientes.models import Cliente
-                            Cliente.objects.get_or_create(usuario=perfil)
+                            try:
+                                Cliente.objects.get_or_create(usuario=perfil)
+                            except Exception as e_c:
+                                if "duplicate key" in str(e_c).lower():
+                                    from django.db import connections
+                                    with connections['remota'].cursor() as cursor:
+                                        cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
+                                    Cliente.objects.get_or_create(usuario=perfil)
+                                else:
+                                    raise e_c
 
                 if perfil:
                     # Logueamos al usuario después de asegurar el perfil
@@ -314,7 +332,16 @@ def panel(request):
         )
         if usuario.rol == 'cliente':
             from apps.clientes.models import Cliente
-            Cliente.objects.get_or_create(usuario=usuario)
+            try:
+                Cliente.objects.get_or_create(usuario=usuario)
+            except Exception as e_c:
+                if "duplicate key" in str(e_c).lower():
+                    from django.db import connections
+                    with connections['remota'].cursor() as cursor:
+                        cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
+                    Cliente.objects.get_or_create(usuario=usuario)
+                else:
+                    raise e_c
 
     if usuario.rol == "admin":
         # Optimizamos consultas usando select_related y prefetch_related si fuera necesario
