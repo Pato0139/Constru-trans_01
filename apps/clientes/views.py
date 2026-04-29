@@ -12,9 +12,17 @@ from django.db import transaction
 def panel_cliente(request):
     try:
         usuario = request.user.usuario
-        cliente = usuario.perfil_cliente
+        # Intentamos obtener el perfil de cliente, si no existe lo creamos (Modo Resiliente)
+        cliente, created = Cliente.objects.get_or_create(usuario=usuario)
     except (Usuario.DoesNotExist, AttributeError):
+        # Si no tiene perfil de usuario base, intentamos crearlo para superusuarios o redirigir
+        if request.user.is_superuser:
+            return redirect("usuarios:panel")
         logout(request)
+        messages.error(request, "Su cuenta no tiene un perfil de usuario asignado.")
+        return redirect("usuarios:login")
+    except Exception as e:
+        messages.error(request, f"Error al cargar el panel: {str(e)}")
         return redirect("usuarios:login")
         
     pedidos = Orden.objects.filter(cliente=cliente)

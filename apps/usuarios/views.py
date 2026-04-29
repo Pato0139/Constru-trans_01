@@ -210,7 +210,6 @@ def login_usuario(request):
 
                 if not perfil:
                     # REPARACIÓN DE EMERGENCIA: Si el usuario existe pero no tiene perfil, lo creamos
-                    # Esto ocurre cuando el registro falló a la mitad por el error de ID anterior
                     try:
                         perfil = Usuario.objects.create(
                             user=user,
@@ -222,6 +221,10 @@ def login_usuario(request):
                             estado="activo",
                             sincronizado=False
                         )
+                        # Aseguramos que si es cliente, tenga su perfil de cliente
+                        if perfil.rol == 'cliente':
+                            from apps.clientes.models import Cliente
+                            Cliente.objects.get_or_create(usuario=perfil)
                     except Exception:
                         # Si falla por ID duplicado, usamos la lógica de reparación de secuencias
                         from django.db import connections
@@ -240,16 +243,28 @@ def login_usuario(request):
                             estado="activo",
                             sincronizado=False
                         )
+                        if perfil.rol == 'cliente':
+                            from apps.clientes.models import Cliente
+                            Cliente.objects.get_or_create(usuario=perfil)
 
                 if perfil:
                     # Logueamos al usuario después de asegurar el perfil
+                    # Especificamos el backend para evitar problemas con múltiples BD
+                    if not hasattr(user, 'backend'):
+                        user.backend = 'django.contrib.auth.backends.ModelBackend'
+                    
                     login(request, user)
+                    
+                    # Forzamos el guardado de la sesión antes de redireccionar
+                    request.session.save()
                     
                     # Registramos actividad (Ahora Historial también va a la nube por el router)
                     try:
                         registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
                     except Exception:
                         pass # Que no se caiga el login si falla el historial
+                    
+                    messages.success(request, f"¡Bienvenido de nuevo, {perfil.nombres}!")
                     
                     next_url = request.GET.get('next')
                     if next_url:
@@ -270,6 +285,9 @@ def login_usuario(request):
                 messages.error(request, "Usuario o contraseña incorrectos.")
         else:
             # Los errores de validación se manejan en el form
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
             pass
 
     else:
@@ -284,19 +302,19 @@ def panel(request):
     try:
         usuario = request.user.usuario
     except Usuario.DoesNotExist:
-        if request.user.is_superuser:
-            usuario = Usuario.objects.create(
-                user=request.user,
-                nombres=request.user.username,
-                apellidos='Admin',
-                rol='admin',
-                tipo_documento='CC',
-                documento='00000000',
-                estado='activo'
-            )
-        else:
-            logout(request)
-            return redirect("usuarios:login")
+        # REPARACIÓN AUTOMÁTICA: Si el usuario existe pero no tiene perfil
+        usuario = Usuario.objects.create(
+            user=request.user,
+            nombres=request.user.username.split('@')[0],
+            apellidos='Admin' if request.user.is_staff else 'Usuario',
+            rol='admin' if request.user.is_staff else 'cliente',
+            tipo_documento='CC',
+            documento='00000000',
+            estado='activo'
+        )
+        if usuario.rol == 'cliente':
+            from apps.clientes.models import Cliente
+            Cliente.objects.get_or_create(usuario=usuario)
 
     if usuario.rol == "admin":
         # Optimizamos consultas usando select_related y prefetch_related si fuera necesario
