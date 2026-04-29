@@ -4,7 +4,7 @@
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$870000$w0FvTrLbePQrI1J2BumeI9$q0h3/dqzyf+vlmrYASEGL0vCc8G4nGu0C3P0hlc72+Y=",
-    "last_login": null,
+    "last_login": "2026-04-29T22:14:12.491Z",
     "is_superuser": true,
     "username": "ivan",
     "first_name": "",
@@ -15,6 +15,14 @@
     "date_joined": "2026-04-29T22:13:36.470Z",
     "groups": [],
     "user_permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "4kdmmogmt3ij1qchoaogp706zmyfeot2",
+  "fields": {
+    "session_data": ".eJxVjDsPgjAURv9LZ0PaW8rD0bBVFx0cyW25PJUSCppo_O9CwsL6nfOdL8utH8vJddSzIxtUdrZZCl2l-_s1_IB-D-2Na3o2L6UHYAeW4zzV-expzJtiuYj9ZtAuqRUULfaVC6zrp7ExwaoEG_XBxRX0OG3uLlCjr9dsohB4LGOhQlDIZSIVpBjFoJQgDCEp05R4Yg1J5MIgIhAVnKSNuBSG_f60vEbS:1wIDAb:dVQLpDZM8BPt7ax6nlFJZslPLxW31jt9jxyfRoQSsQ8",
+    "expire_date": "2026-05-13T22:14:13.083Z"
   }
 }
 ]
