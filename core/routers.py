@@ -18,7 +18,7 @@ class EnrutadorInventario:
         from django.db.utils import OperationalError
 
         # Apps que se centralizan en la nube para permitir login multidispositivo
-        APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial']
+        APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial', 'clientes']
 
         if os.getenv("DB_PASSWORD") and model._meta.app_label in APPS_NUBE:
             try:
@@ -37,7 +37,7 @@ class EnrutadorInventario:
         from django.db.utils import OperationalError
 
         # Apps que se centralizan en la nube para permitir login multidispositivo
-        APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial']
+        APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial', 'clientes']
 
         if os.getenv("DB_PASSWORD") and model._meta.app_label in APPS_NUBE:
             try:
