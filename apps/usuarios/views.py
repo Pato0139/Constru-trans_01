@@ -146,11 +146,40 @@ def login_usuario(request):
                     user = None
 
             if user is not None:
+                # IMPORTANTE: Antes de loguear, verificamos si el perfil existe en la BD actual
+                # (Para evitar IntegrityError si la sesión intenta usar un perfil que no existe localmente)
+                perfil = Usuario.objects.filter(user=user).first()
+                
+                if not perfil and not user.is_superuser:
+                    # Si no hay perfil, intentamos descargarlo de la nube si hay conexión
+                    try:
+                        from django.db import connections
+                        connections['remota'].ensure_connection()
+                        perfil_remoto = Usuario.objects.using('remota').filter(user_id=user.id).first()
+                        if perfil_remoto:
+                            perfil = Usuario.objects.create(
+                                id=perfil_remoto.id,
+                                user=user,
+                                nombres=perfil_remoto.nombres,
+                                apellidos=perfil_remoto.apellidos,
+                                rol=perfil_remoto.rol,
+                                telefono=perfil_remoto.telefono,
+                                tipo_documento=perfil_remoto.tipo_documento,
+                                documento=perfil_remoto.documento,
+                                estado=perfil_remoto.estado,
+                                sincronizado=True
+                            )
+                    except Exception:
+                        pass
+
                 login(request, user)
                 
                 registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
                 
-                perfil = Usuario.objects.filter(user=user).first()
+                # Volvemos a buscar el perfil después del posible fix
+                if not perfil:
+                    perfil = Usuario.objects.filter(user=user).first()
+
                 if perfil:
                     next_url = request.GET.get('next')
                     if next_url:
