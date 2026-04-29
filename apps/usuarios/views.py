@@ -204,6 +204,36 @@ def login_usuario(request):
                 if not perfil:
                     perfil = Usuario.objects.filter(user=user).first()
 
+                if not perfil:
+                    # REPARACIÓN DE EMERGENCIA: Si el usuario existe pero no tiene perfil, lo creamos
+                    # Esto ocurre cuando el registro falló a la mitad por el error de ID anterior
+                    try:
+                        perfil = Usuario.objects.create(
+                            user=user,
+                            nombres=user.first_name or user.username.split('@')[0],
+                            apellidos=user.last_name or "Usuario",
+                            rol="cliente",
+                            tipo_documento="CC",
+                            documento="00000000",
+                            estado="activo",
+                            sincronizado=False
+                        )
+                    except Exception:
+                        # Si falla por ID duplicado, usamos la lógica de reparación de secuencias
+                        from django.db import connections
+                        with connections['remota'].cursor() as cursor:
+                            cursor.execute("SELECT setval('usuario_id_seq', (SELECT MAX(id) FROM usuario));")
+                        perfil = Usuario.objects.create(
+                            user=user,
+                            nombres=user.first_name or user.username.split('@')[0],
+                            apellidos=user.last_name or "Usuario",
+                            rol="cliente",
+                            tipo_documento="CC",
+                            documento="00000000",
+                            estado="activo",
+                            sincronizado=False
+                        )
+
                 if perfil:
                     # Logueamos al usuario después de asegurar el perfil
                     login(request, user)
