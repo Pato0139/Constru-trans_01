@@ -34,5 +34,13 @@
     "groups": [],
     "user_permissions": []
   }
+},
+{
+  "model": "sessions.session",
+  "pk": "1fssxpixn4chs3atxhbjk484oba2ocsa",
+  "fields": {
+    "session_data": "eyJfY3NyZnRva2VuIjoiaVRjd2RTbUNXaDJTWVhoTXJKYjIxNVpyMFI3dFdPT0MifQ:1wID00:vuJbHVLhaPiYdFpcu8qwMFwzJucT71BBKkYKhuXNQi4",
+    "expire_date": "2026-05-13T22:03:16.367Z"
+  }
 }
 ]
