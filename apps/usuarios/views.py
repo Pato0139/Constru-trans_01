@@ -703,7 +703,20 @@ class CustomPasswordResetView(auth_views.PasswordResetView):
 # ---------------- LOGOUT ----------------
 def cerrar_sesion(request):
     if request.user.is_authenticated:
-        registrar_actividad(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
+        try:
+            registrar_actividad(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
+        except Exception as e:
+            # Si falla por ID duplicado en el historial, intentamos reparar secuencias
+            if "duplicate key" in str(e).lower() and "historial" in str(e).lower():
+                try:
+                    from django.db import connections
+                    with connections['remota'].cursor() as cursor:
+                        cursor.execute("SELECT setval('historial_actividad_id_seq', (SELECT MAX(id) FROM historial_actividad));")
+                    registrar_actividad(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
+                except Exception:
+                    pass # Si falla de nuevo, que no detenga el logout
+            else:
+                pass # Otras excepciones tampoco detienen el logout
     logout(request)
     return redirect("usuarios:login")
 
