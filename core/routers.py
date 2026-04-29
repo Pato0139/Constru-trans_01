@@ -17,7 +17,10 @@ class EnrutadorInventario:
         from django.db import connections
         from django.db.utils import OperationalError
 
-        if os.getenv("DB_PASSWORD") and model._meta.app_label in ['auth', 'usuarios', 'sessions', 'admin']:
+        # Apps que se centralizan en la nube para permitir login multidispositivo
+        APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial']
+
+        if os.getenv("DB_PASSWORD") and model._meta.app_label in APPS_NUBE:
             try:
                 # Verificamos conexión rápida solo si es necesario
                 connections['remota'].ensure_connection()
@@ -28,12 +31,15 @@ class EnrutadorInventario:
         return 'default'
 
     def db_for_write(self, model, **hints):
-        """Escrituras: Intenta usar la nube para auth/sessions, si falla usa local."""
+        """Escrituras: Intenta usar la nube para auth/sessions/historial, si falla usa local."""
         import os
         from django.db import connections
         from django.db.utils import OperationalError
 
-        if os.getenv("DB_PASSWORD") and model._meta.app_label in ['auth', 'usuarios', 'sessions', 'admin']:
+        # Apps que se centralizan en la nube para permitir login multidispositivo
+        APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial']
+
+        if os.getenv("DB_PASSWORD") and model._meta.app_label in APPS_NUBE:
             try:
                 connections['remota'].ensure_connection()
                 return 'remota'

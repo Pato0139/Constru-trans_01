@@ -179,8 +179,11 @@ def login_usuario(request):
                     # Logueamos al usuario después de asegurar el perfil
                     login(request, user)
                     
-                    # Registramos actividad después de asegurar que el perfil existe localmente
-                    registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
+                    # Registramos actividad (Ahora Historial también va a la nube por el router)
+                    try:
+                        registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
+                    except Exception:
+                        pass # Que no se caiga el login si falla el historial
                     
                     next_url = request.GET.get('next')
                     if next_url:
