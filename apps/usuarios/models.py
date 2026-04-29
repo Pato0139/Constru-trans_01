@@ -175,6 +175,7 @@ class Material(models.Model):
             MaxValueValidator(100000000)
         ]
     )
+    activo = models.BooleanField(default=True)
     sincronizado = models.BooleanField(default=False)
 
     class Meta:

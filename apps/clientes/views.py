@@ -123,7 +123,7 @@ def crear_pedido(request):
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
         
-    materiales = Material.objects.filter(stock_info__cantidad__gt=0).select_related('stock_info')
+    materiales = Material.objects.filter(activo=True, stock_info__cantidad__gt=0).select_related('stock_info')
 
     if request.method == "POST":
         materiales_ids = request.POST.getlist('material_id[]')
@@ -216,7 +216,7 @@ def crear_pedido(request):
 @login_required
 def editar_pedido(request, id):
     orden = get_object_or_404(Orden, id=id)
-    materiales = Material.objects.filter(stock__cantidad__gt=0)
+    materiales = Material.objects.filter(activo=True, stock_info__cantidad__gt=0).select_related('stock_info')
     
     # Seguridad: Solo el dueño o admin pueden editar y solo si está pendiente
     es_admin = request.user.usuario.rol == 'admin'

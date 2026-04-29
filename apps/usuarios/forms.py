@@ -58,7 +58,7 @@ class RegistroForm(forms.ModelForm):
 class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
-        fields = ['nombre', 'tipo', 'descripcion', 'precio']
+        fields = ['nombre', 'tipo', 'descripcion', 'precio', 'activo']
         widgets = {
             'nombre': forms.TextInput(attrs={
                 'class': 'form-control', 
@@ -86,6 +86,10 @@ class MaterialForm(forms.ModelForm):
                 'class': 'form-control numeric-only', 
                 'step': '0.01',
                 'placeholder': '0.00',
+                'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
+            }),
+            'activo': forms.CheckboxInput(attrs={
+                'class': 'form-check-input',
                 'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
             }),
         }

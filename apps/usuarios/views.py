@@ -419,7 +419,7 @@ def perfil_admin(request):
     context = {
         "usuario": usuario,
         "usuarios_count": Usuario.objects.count(),
-        "materiales_count": Material.objects.count(),
+        "materiales_count": Material.objects.filter(activo=True).count(),
         "ordenes_count": Orden.objects.count(),
         "total_ventas": Orden.objects.aggregate(total=Sum("precio"))["total"] or 0,
         "entregados_count": Orden.objects.filter(estado="entregado").count()
