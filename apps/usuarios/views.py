@@ -119,6 +119,16 @@ from .forms import LoginForm
 
 # ---------------- LOGIN ----------------
 def login_usuario(request):
+    # Verificación de conexión a la nube para informar al usuario
+    from django.db import connections
+    from django.db.utils import OperationalError
+    modo_local = False
+    try:
+        if os.getenv("DB_PASSWORD"):
+            connections['remota'].ensure_connection()
+    except OperationalError:
+        modo_local = True
+
     if request.method == "POST":
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -165,7 +175,7 @@ def login_usuario(request):
     else:
         form = LoginForm()
 
-    return render(request, "usuarios/login.html", {"form": form})
+    return render(request, "usuarios/login.html", {"form": form, "modo_local": modo_local})
 
 
 # ---------------- PANEL ADMIN ----------------

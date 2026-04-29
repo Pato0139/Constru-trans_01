@@ -12,17 +12,33 @@ class EnrutadorInventario:
     ]
 
     def db_for_read(self, model, **hints):
-        """Lecturas: Usuarios y Sesiones siempre en la nube para multidispositivo."""
+        """Lecturas: Intenta usar la nube para auth/sessions, si falla usa local."""
         import os
+        from django.db import connections
+        from django.db.utils import OperationalError
+
         if os.getenv("DB_PASSWORD") and model._meta.app_label in ['auth', 'usuarios', 'sessions', 'admin']:
-            return 'remota'
+            try:
+                # Verificamos conexión rápida solo si es necesario
+                connections['remota'].ensure_connection()
+                return 'remota'
+            except OperationalError:
+                # Si falla la nube (sin internet o mala clave), usamos la local sin morir
+                return 'default'
         return 'default'
 
     def db_for_write(self, model, **hints):
-        """Escrituras: Usuarios y Sesiones siempre en la nube para multidispositivo."""
+        """Escrituras: Intenta usar la nube para auth/sessions, si falla usa local."""
         import os
+        from django.db import connections
+        from django.db.utils import OperationalError
+
         if os.getenv("DB_PASSWORD") and model._meta.app_label in ['auth', 'usuarios', 'sessions', 'admin']:
-            return 'remota'
+            try:
+                connections['remota'].ensure_connection()
+                return 'remota'
+            except OperationalError:
+                return 'default'
         return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):
