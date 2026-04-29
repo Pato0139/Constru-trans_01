@@ -290,22 +290,22 @@ class Command(BaseCommand):
             with connections['remota'].cursor() as cursor:
                 # Lista de tablas y sus secuencias comunes en Django
                 tablas = [
-                    ('auth_user', 'auth_user_id_seq'),
-                    ('usuario', 'usuario_id_seq'),
-                    ('material', 'material_id_seq'),
-                    ('vehiculo', 'vehiculo_id_seq'),
-                    ('proveedor', 'proveedor_id_seq'),
-                    ('orden', 'orden_id_seq'),
-                    ('factura', 'factura_id_seq'),
-                    ('historial_actividad', 'historial_actividad_id_seq'),
+                    ('auth_user', 'id'),
+                    ('usuario', 'id'),
+                    ('material', 'id'),
+                    ('vehiculo', 'id'),
+                    ('proveedor', 'id'),
+                    ('orden', 'id'),
+                    ('factura', 'id'),
+                    ('historial_actividad', 'id'),
                 ]
-                for tabla, secuencia in tablas:
+                for tabla, columna in tablas:
                     try:
-                        # SQL para PostgreSQL que pone la secuencia al día
-                        sql = f"SELECT setval('{secuencia}', (SELECT MAX(id) FROM {tabla}));"
+                        # SQL robusto para PostgreSQL que detecta el nombre de la secuencia automáticamente
+                        sql = f"SELECT setval(pg_get_serial_sequence('{tabla}', '{columna}'), (SELECT MAX({columna}) FROM {tabla}));"
                         cursor.execute(sql)
                     except Exception:
-                        continue # Si una tabla no existe o la secuencia es distinta, seguimos
+                        continue # Si una tabla no existe o no tiene secuencia, seguimos
             self.stdout.write(self.style.SUCCESS('  [OK] Secuencias de la nube corregidas.'))
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'  [ERROR] Falló corregir secuencias: {str(e)}'))

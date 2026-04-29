@@ -117,11 +117,15 @@ def registro(request):
                     perfil.save()
                 except Exception as e_perfil:
                     # Si falla el perfil por ID duplicado (usuarios_usuario_pkey)
-                    if "duplicate key" in str(e_perfil).lower() and "usuario_pkey" in str(e_perfil).lower():
+                    if "duplicate key" in str(e_perfil).lower():
                         from django.db import connections
-                        with connections['remota'].cursor() as cursor:
-                            # Corregimos la secuencia de la tabla usuario (perfiles)
-                            cursor.execute("SELECT setval('usuario_id_seq', (SELECT MAX(id) FROM usuario));")
+                        # Intentamos reparar secuencias de forma robusta
+                        try:
+                            with connections['remota'].cursor() as cursor:
+                                # Usamos pg_get_serial_sequence para no depender del nombre exacto de la secuencia
+                                cursor.execute("SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));")
+                        except Exception:
+                            pass
                         perfil.save()
                     else:
                         raise e_perfil
@@ -221,8 +225,11 @@ def login_usuario(request):
                     except Exception:
                         # Si falla por ID duplicado, usamos la lógica de reparación de secuencias
                         from django.db import connections
-                        with connections['remota'].cursor() as cursor:
-                            cursor.execute("SELECT setval('usuario_id_seq', (SELECT MAX(id) FROM usuario));")
+                        try:
+                            with connections['remota'].cursor() as cursor:
+                                cursor.execute("SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));")
+                        except Exception:
+                            pass
                         perfil = Usuario.objects.create(
                             user=user,
                             nombres=user.first_name or user.username.split('@')[0],
@@ -461,18 +468,21 @@ def crear_usuario(request):
                     password=password
                 )
             except Exception as e:
-                # Reparación de secuencias si hay duplicado
-                if "duplicate key" in str(e).lower() and "auth_user_pkey" in str(e).lower():
-                    from django.db import connections
-                    with connections['remota'].cursor() as cursor:
-                        cursor.execute("SELECT setval('auth_user_id_seq', (SELECT MAX(id) FROM auth_user));")
-                    user = User.objects.create_user(
-                        username=email,
-                        email=email,
-                        password=password
-                    )
-                else:
-                    raise e
+                    # Reparación de secuencias si hay duplicado
+                    if "duplicate key" in str(e).lower():
+                        from django.db import connections
+                        try:
+                            with connections['remota'].cursor() as cursor:
+                                cursor.execute("SELECT setval(pg_get_serial_sequence('auth_user', 'id'), (SELECT MAX(id) FROM auth_user));")
+                        except Exception:
+                            pass
+                        user = User.objects.create_user(
+                            username=email,
+                            email=email,
+                            password=password
+                        )
+                    else:
+                        raise e
 
             perfil = Usuario.objects.create(
                 user=user,
@@ -487,10 +497,13 @@ def crear_usuario(request):
             )
         except Exception as e_perfil:
             # Reparación de secuencia para el perfil
-            if "duplicate key" in str(e_perfil).lower() and "usuario_pkey" in str(e_perfil).lower():
+            if "duplicate key" in str(e_perfil).lower():
                 from django.db import connections
-                with connections['remota'].cursor() as cursor:
-                    cursor.execute("SELECT setval('usuario_id_seq', (SELECT MAX(id) FROM usuario));")
+                try:
+                    with connections['remota'].cursor() as cursor:
+                        cursor.execute("SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));")
+                except Exception:
+                    pass
                 perfil = Usuario.objects.create(
                     user=user,
                     nombres=nombres,
