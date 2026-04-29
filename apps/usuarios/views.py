@@ -84,12 +84,29 @@ def registro(request):
                 email = form.cleaned_data.get("correo")
                 password = form.cleaned_data.get("contrasena")
                 
-                user = User.objects.create_user(
-                    username=email,
-                    email=email,
-                    password=password
-                )
-
+                try:
+                    user = User.objects.create_user(
+                        username=email,
+                        email=email,
+                        password=password
+                    )
+                except Exception as e:
+                    # Si hay error de ID duplicado, es un problema de secuencias en Postgres
+                    if "duplicate key" in str(e).lower() and "auth_user_pkey" in str(e).lower():
+                        # Intentamos una reparación rápida de secuencias y reintentamos una vez
+                        from django.db import connections
+                        with connections['remota'].cursor() as cursor:
+                            cursor.execute("SELECT setval('auth_user_id_seq', (SELECT MAX(id) FROM auth_user));")
+                        
+                        # Reintento tras reparar secuencia
+                        user = User.objects.create_user(
+                            username=email,
+                            email=email,
+                            password=password
+                        )
+                    else:
+                        raise e
+                
                 # El formulario ModelForm puede guardar el objeto Usuario directamente
                 perfil = form.save(commit=False)
                 perfil.user = user
@@ -101,8 +118,8 @@ def registro(request):
                 messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
                 return redirect("usuarios:login")
                 
-            except Exception as e:
-                messages.error(request, f"Error al crear el usuario: {str(e)}")
+            except Exception as e_final:
+                messages.error(request, f"Error al crear el usuario: {str(e_final)}")
         else:
             # Los errores del formulario se mostrarán en la plantilla
             pass
@@ -395,11 +412,25 @@ def crear_usuario(request):
             return render(request, "usuarios/form.html", {"form_data": request.POST, "action": "crear"})
 
         try:
-            user = User.objects.create_user(
-                username=email,
-                email=email,
-                password=password
-            )
+            try:
+                user = User.objects.create_user(
+                    username=email,
+                    email=email,
+                    password=password
+                )
+            except Exception as e:
+                # Reparación de secuencias si hay duplicado
+                if "duplicate key" in str(e).lower() and "auth_user_pkey" in str(e).lower():
+                    from django.db import connections
+                    with connections['remota'].cursor() as cursor:
+                        cursor.execute("SELECT setval('auth_user_id_seq', (SELECT MAX(id) FROM auth_user));")
+                    user = User.objects.create_user(
+                        username=email,
+                        email=email,
+                        password=password
+                    )
+                else:
+                    raise e
 
             perfil = Usuario.objects.create(
                 user=user,

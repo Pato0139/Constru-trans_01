@@ -56,6 +56,9 @@ class Command(BaseCommand):
                 self.sincronizar_modelo(Historial, force=force)
                 self.sincronizar_log_admin() # django_admin_log
                 
+                # 3. Corregir secuencias en PostgreSQL (IMPORTANTE para evitar errores de ID duplicado)
+                self.corregir_secuencias_remotas()
+                
             except OperationalError:
                 self.stdout.write(self.style.WARNING('Sin conexión con la nube. Reintentando en 30 segundos...'))
             
@@ -276,6 +279,33 @@ class Command(BaseCommand):
                     id=v.id, defaults={'placa': v.placa, 'modelo': v.modelo, 'capacidad_carga': v.capacidad_carga, 'estado': v.estado, 'sincronizado': True}
                 )
 
-            self.stdout.write(self.style.SUCCESS('  [OK] Datos base actualizados desde la nube.'))
+            self.stdout.write(self.style.SUCCESS('  [OK] Usuarios actualizados desde la nube.'))
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'  [ERROR] Falló la descarga de datos: {str(e)}'))
+
+    def corregir_secuencias_remotas(self):
+        """Reinicia las secuencias de PostgreSQL para que coincidan con el máximo ID actual."""
+        try:
+            self.stdout.write('Corrigiendo secuencias en la nube...')
+            with connections['remota'].cursor() as cursor:
+                # Lista de tablas y sus secuencias comunes en Django
+                tablas = [
+                    ('auth_user', 'auth_user_id_seq'),
+                    ('usuario', 'usuario_id_seq'),
+                    ('material', 'material_id_seq'),
+                    ('vehiculo', 'vehiculo_id_seq'),
+                    ('proveedor', 'proveedor_id_seq'),
+                    ('orden', 'orden_id_seq'),
+                    ('factura', 'factura_id_seq'),
+                    ('historial_actividad', 'historial_actividad_id_seq'),
+                ]
+                for tabla, secuencia in tablas:
+                    try:
+                        # SQL para PostgreSQL que pone la secuencia al día
+                        sql = f"SELECT setval('{secuencia}', (SELECT MAX(id) FROM {tabla}));"
+                        cursor.execute(sql)
+                    except Exception:
+                        continue # Si una tabla no existe o la secuencia es distinta, seguimos
+            self.stdout.write(self.style.SUCCESS('  [OK] Secuencias de la nube corregidas.'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'  [ERROR] Falló corregir secuencias: {str(e)}'))
