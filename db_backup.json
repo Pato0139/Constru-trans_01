@@ -4,7 +4,7 @@
   "pk": 1,
   "fields": {
     "password": "pbkdf2_sha256$870000$jyg6tqTOuwZoNv1GyNmVDh$nF3vESbg5oV179V98nr/hvFErPR7w5chAqYIVu5jgy8=",
-    "last_login": "2026-04-29T19:27:06.153Z",
+    "last_login": "2026-04-29T19:34:42.277Z",
     "is_superuser": true,
     "username": "Edward_Fonseca",
     "first_name": "",
