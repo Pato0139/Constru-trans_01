@@ -119,7 +119,7 @@ CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
-CSRF_USE_SESSIONS = True  # Almacenar CSRF en la sesión para mayor compatibilidad
+# CSRF_USE_SESSIONS = True  # Almacenar CSRF en la sesión para mayor compatibilidad
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

@@ -191,23 +191,34 @@ class Material(models.Model):
     def __str__(self):
         return self.nombre
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 class Stock(models.Model):
     material = models.OneToOneField(Material, on_delete=models.CASCADE, related_name='stock_info')
     cantidad = models.IntegerField(
         default=0,
         validators=[
             MinValueValidator(0),
-            MaxValueValidator(100000)
         ]
     )
-    ubicacion = models.CharField(max_length=100, default='Bodega Principal')
+    ubicacion = models.CharField(max_length=100, default='Bodega Central')
     ultima_actualizacion = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'stock'
 
     def __str__(self):
-        return f"Stock de {self.material.nombre}: {self.cantidad}"
+        return f"Stock: {self.cantidad} de {self.material.nombre}"
+
+@receiver(post_save, sender=Material)
+def crear_stock_automatico(sender, instance, created, **kwargs):
+    """Crea un registro de stock automáticamente al crear un material"""
+    if created:
+        Stock.objects.get_or_create(
+            material=instance, 
+            defaults={'cantidad': 0, 'ubicacion': 'Bodega Central'}
+        )
 
 class Notificacion(models.Model):
     TIPOS = [

@@ -3,7 +3,7 @@ from apps.facturacion.models import Factura
 
 class Pago(models.Model):
     METODOS = [('efectivo', 'Efectivo'), ('transferencia', 'Transferencia'),
-               ('tarjeta', 'Tarjeta'), ('nequi', 'Nequi')]
+               ('tarjeta', 'Tarjeta')]
     
     factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name='pagos')
     monto = models.DecimalField(max_digits=12, decimal_places=2)

@@ -36,10 +36,22 @@ class Orden(models.Model):
         (CANCELADO, "Cancelado"),
     ]
 
+    METODOS_PAGO = [
+        ('efectivo', 'Efectivo'),
+        ('transferencia', 'Transferencia'),
+        ('tarjeta', 'Tarjeta'),
+    ]
+
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
         default=PENDIENTE
+    )
+
+    metodo_pago = models.CharField(
+        max_length=20,
+        choices=METODOS_PAGO,
+        default='efectivo'
     )
 
     precio = models.DecimalField(
@@ -143,7 +155,7 @@ def post_save_orden(sender, instance, created, **kwargs):
     from django.db.models import F
     from django.db import transaction
 
-    # 1. GENERAR FACTURA AUTOMÁTICA al marcar como entregado
+    # 1. GENERAR FACTURA AUTOMÁTICA al marcar como entregado (Solo si no existe ya)
     if instance.estado == 'entregado' and not hasattr(instance, 'factura'):
         from apps.facturacion.models import Factura
         

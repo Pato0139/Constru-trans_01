@@ -112,6 +112,7 @@ def crear_pedido(request):
         cantidades = request.POST.getlist('cantidad[]')
         direccion = request.POST.get("direccion")
         fecha_entrega = request.POST.get("fecha_entrega")
+        metodo_pago = request.POST.get("metodo_pago", "efectivo")
 
         if not materiales_ids or not direccion:
             messages.error(request, "Por favor, agrega al menos un material y la dirección.")
@@ -129,6 +130,7 @@ def crear_pedido(request):
                     direccion_origen="Bodega Central",
                     direccion_destino=direccion,
                     estado="pendiente",
+                    metodo_pago=metodo_pago,
                     fecha_entrega_programada=fecha_entrega if fecha_entrega else None
                 )
 
@@ -173,6 +175,27 @@ def crear_pedido(request):
 
                 nueva_orden.precio = total_general
                 nueva_orden.save()
+
+                # GENERAR FACTURA Y PAGO INMEDIATAMENTE
+                from apps.facturacion.models import Factura
+                from apps.pagos.models import Pago
+
+                factura = Factura.objects.create(
+                    numero=f"F-{nueva_orden.id:06d}",
+                    orden=nueva_orden,
+                    cliente=nueva_orden.cliente.usuario,
+                    subtotal=total_general,
+                    iva=0,
+                    total=total_general
+                )
+
+                if metodo_pago:
+                    Pago.objects.create(
+                        factura=factura,
+                        monto=total_general,
+                        metodo=metodo_pago,
+                        referencia=f"AUTO-ORDEN-{nueva_orden.id}"
+                    )
 
             messages.success(request, f"Pedido #{nueva_orden.id} creado correctamente.")
             return redirect("clientes:mis_pedidos")
