@@ -16,5 +16,23 @@
     "groups": [],
     "user_permissions": []
   }
+},
+{
+  "model": "auth.user",
+  "pk": 12,
+  "fields": {
+    "password": "pbkdf2_sha256$870000$zsPZHn3cYKhgFNvgUiKWbG$hn26A1Bk73fXOfv8hGu8OB4f9ReSVJs/truMl6cxiaI=",
+    "last_login": "2026-04-29T21:40:23.467Z",
+    "is_superuser": false,
+    "username": "juanpilates123@gmail.com",
+    "first_name": "",
+    "last_name": "",
+    "email": "juanpilates123@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-29T21:22:51.099Z",
+    "groups": [],
+    "user_permissions": []
+  }
 }
 ]
