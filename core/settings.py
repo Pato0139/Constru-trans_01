@@ -108,8 +108,8 @@ if os.getenv('DB_ENGINE') == 'django.db.backends.postgresql':
 # Enrutador de base de datos para sincronización offline-first
 DATABASE_ROUTERS = ['core.routers.EnrutadorInventario']
 
-# Configuración de Sesiones y Cookies para modo Híbrido (Offline/Online)
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'  # Usa caché y BD local para mayor velocidad
+# Configuración de Sesiones y Cookies para multidispositivo (Nube)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Sesiones en la nube para compartir entre PCs
 SESSION_COOKIE_AGE = 1209600  # 2 semanas en segundos
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Mantener sesión al cerrar navegador
 SESSION_SAVE_EVERY_REQUEST = True  # Renovar sesión en cada interacción

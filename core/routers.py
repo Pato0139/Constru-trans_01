@@ -12,11 +12,17 @@ class EnrutadorInventario:
     ]
 
     def db_for_read(self, model, **hints):
-        """Lecturas: Offline-First. Leemos localmente para que siempre funcione."""
+        """Lecturas: Usuarios y Sesiones siempre en la nube para multidispositivo."""
+        import os
+        if os.getenv("DB_PASSWORD") and model._meta.app_label in ['auth', 'usuarios', 'sessions', 'admin']:
+            return 'remota'
         return 'default'
 
     def db_for_write(self, model, **hints):
-        """Escrituras: Offline-First. Siempre escribimos localmente para no perder datos sin internet."""
+        """Escrituras: Usuarios y Sesiones siempre en la nube para multidispositivo."""
+        import os
+        if os.getenv("DB_PASSWORD") and model._meta.app_label in ['auth', 'usuarios', 'sessions', 'admin']:
+            return 'remota'
         return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):
