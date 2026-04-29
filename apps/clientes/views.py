@@ -6,6 +6,7 @@ from django.contrib import messages
 from apps.ordenes.models import Orden, DetalleOrden
 from apps.ordenes.utils import revertir_stock_pedido
 from apps.usuarios.models import Material, Usuario, Stock
+from .models import Cliente
 from django.db import transaction
 
 @login_required
