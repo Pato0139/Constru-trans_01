@@ -2582,5 +2582,33 @@
     "ip_address": "127.0.0.1",
     "sincronizado": true
   }
+},
+{
+  "model": "historial.historial",
+  "pk": 95,
+  "fields": {
+    "usuario": 1,
+    "accion": "logout",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Cierre de sesión del usuario: Edward_Fonseca",
+    "fecha_hora": "2026-04-29T19:15:09.494Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": true
+  }
+},
+{
+  "model": "historial.historial",
+  "pk": 96,
+  "fields": {
+    "usuario": 1,
+    "accion": "login",
+    "modulo": "usuarios",
+    "elemento_id": "1",
+    "descripcion": "Inicio de sesión: Edward_Fonseca",
+    "fecha_hora": "2026-04-29T19:25:50.837Z",
+    "ip_address": "127.0.0.1",
+    "sincronizado": false
+  }
 }
 ]
