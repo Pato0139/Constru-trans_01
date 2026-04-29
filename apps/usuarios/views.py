@@ -157,11 +157,18 @@ def login_usuario(request):
     from django.db import connections
     from django.db.utils import OperationalError
     modo_local = False
+    error_msg = None
+    
     try:
         if os.getenv("DB_PASSWORD"):
+            # Intentamos una conexión rápida
             connections['remota'].ensure_connection()
-    except OperationalError:
+    except Exception as e:
         modo_local = True
+        if "remaining connection slots" in str(e).lower():
+            error_msg = "La base de datos en la nube está saturada (límite de conexiones). Los cambios se guardarán localmente."
+        else:
+            error_msg = "No se pudo conectar a la nube. Los cambios solo se guardarán en este equipo hasta que sincronice."
 
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -311,7 +318,11 @@ def login_usuario(request):
     else:
         form = LoginForm()
 
-    return render(request, "usuarios/login.html", {"form": form, "modo_local": modo_local})
+    return render(request, "usuarios/login.html", {
+        "form": form, 
+        "modo_local": modo_local,
+        "error_msg": error_msg
+    })
 
 
 # ---------------- PANEL ADMIN ----------------

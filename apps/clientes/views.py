@@ -130,6 +130,7 @@ def crear_pedido(request):
         cantidades = request.POST.getlist('cantidad[]')
         direccion = request.POST.get("direccion")
         fecha_entrega = request.POST.get("fecha_entrega")
+        metodo_pago = request.POST.get("metodo_pago", "efectivo")
 
         if not materiales_ids or not direccion:
             messages.error(request, "Por favor, agrega al menos un material y la dirección.")
@@ -147,7 +148,8 @@ def crear_pedido(request):
                     direccion_origen="Bodega Central",
                     direccion_destino=direccion,
                     estado="pendiente",
-                    fecha_entrega_programada=fecha_entrega if fecha_entrega else None
+                    fecha_entrega_programada=fecha_entrega if fecha_entrega else None,
+                    metodo_pago=metodo_pago
                 )
 
                 for m_id, cant in zip(materiales_ids, cantidades):
@@ -237,6 +239,7 @@ def editar_pedido(request, id):
         cantidades = request.POST.getlist('cantidad[]')
         direccion = request.POST.get("direccion")
         fecha_entrega = request.POST.get("fecha_entrega")
+        metodo_pago = request.POST.get("metodo_pago", "efectivo")
 
         if not materiales_ids or not direccion:
             messages.error(request, "Datos incompletos.")
@@ -279,6 +282,7 @@ def editar_pedido(request, id):
 
                 orden.direccion_destino = direccion
                 orden.fecha_entrega_programada = fecha_entrega if fecha_entrega else None
+                orden.metodo_pago = metodo_pago
                 orden.precio = total_general
                 orden.save()
 

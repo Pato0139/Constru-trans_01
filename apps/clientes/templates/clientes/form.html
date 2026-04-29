@@ -11,6 +11,26 @@
 
 {% block content %}
 
+<style>
+    .btn-outline-payment {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.7);
+        transition: all 0.3s ease;
+    }
+    .btn-outline-payment:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--color-accent);
+        color: white;
+    }
+    .btn-check:checked + .btn-outline-payment {
+        background: rgba(243, 156, 18, 0.1) !important;
+        border-color: var(--color-accent) !important;
+        color: white !important;
+        box-shadow: 0 0 15px rgba(243, 156, 18, 0.2);
+    }
+</style>
+
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="table-container p-4 p-md-5 border-0 shadow-lg" style="background: rgba(255,255,255,0.02); border-radius: 32px;">
@@ -119,6 +139,36 @@
                                 <input type="datetime-local" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" 
                                     value="{% if action == 'editar' %}{{ orden.fecha_entrega_programada|date:'Y-m-d\TH:i' }}{% endif %}" required>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MÉTODO DE PAGO -->
+                <div class="mb-5 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                    <label class="form-label fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">3. Método de Pago</label>
+                    <p class="text-muted small px-3 mb-3 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Seleccione su método de pago</p>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="metodo_pago" id="pago_efectivo" value="efectivo" {% if action == 'crear' or orden.metodo_pago == 'efectivo' %}checked{% endif %} required>
+                            <label class="btn btn-outline-payment w-100 p-3 rounded-4 d-flex align-items-center" for="pago_efectivo">
+                                <i class="bi bi-cash-stack fs-4 me-3 text-accent"></i>
+                                <span class="fw-bold">Efectivo</span>
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="metodo_pago" id="pago_transferencia" value="transferencia" {% if orden.metodo_pago == 'transferencia' %}checked{% endif %} required>
+                            <label class="btn btn-outline-payment w-100 p-3 rounded-4 d-flex align-items-center" for="pago_transferencia">
+                                <i class="bi bi-bank fs-4 me-3 text-accent"></i>
+                                <span class="fw-bold">Transferencia</span>
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="radio" class="btn-check" name="metodo_pago" id="pago_tarjeta" value="tarjeta" {% if orden.metodo_pago == 'tarjeta' %}checked{% endif %} required>
+                            <label class="btn btn-outline-payment w-100 p-3 rounded-4 d-flex align-items-center" for="pago_tarjeta">
+                                <i class="bi bi-credit-card fs-4 me-3 text-accent"></i>
+                                <span class="fw-bold">Tarjeta</span>
+                            </label>
                         </div>
                     </div>
                 </div>

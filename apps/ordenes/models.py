@@ -36,10 +36,22 @@ class Orden(models.Model):
         (CANCELADO, "Cancelado"),
     ]
 
+    METODOS_PAGO = [
+        ("efectivo", "Efectivo"),
+        ("transferencia", "Transferencia"),
+        ("tarjeta", "Tarjeta"),
+    ]
+
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
         default=PENDIENTE
+    )
+
+    metodo_pago = models.CharField(
+        max_length=20,
+        choices=METODOS_PAGO,
+        default="efectivo"
     )
 
     precio = models.DecimalField(

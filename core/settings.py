@@ -100,8 +100,10 @@ if os.getenv('DB_ENGINE') == 'django.db.backends.postgresql':
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT', '5432'),
+        'CONN_MAX_AGE': 0,  # Importante para Serverless/Neon: cerrar conexiones rápido
         'OPTIONS': {
             'sslmode': os.getenv('DB_SSLMODE', 'require'),
+            'connect_timeout': 3,  # Reducimos a 3 segundos para que el fallback sea más rápido
         }
     }
 

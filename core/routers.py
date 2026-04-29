@@ -15,18 +15,19 @@ class EnrutadorInventario:
         """Lecturas: Intenta usar la nube para auth/sessions, si falla usa local."""
         import os
         from django.db import connections
-        from django.db.utils import OperationalError
-
+        
         # Apps que se centralizan en la nube para permitir login multidispositivo
         APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial', 'clientes']
 
         if os.getenv("DB_PASSWORD") and model._meta.app_label in APPS_NUBE:
             try:
-                # Verificamos conexión rápida solo si es necesario
-                connections['remota'].ensure_connection()
+                # Verificación ultra-rápida de conexión
+                conn = connections['remota']
+                if conn.connection is None:
+                    conn.ensure_connection()
                 return 'remota'
-            except OperationalError:
-                # Si falla la nube (sin internet o mala clave), usamos la local sin morir
+            except Exception:
+                # Fallback inmediato a local si la nube no responde
                 return 'default'
         return 'default'
 
@@ -34,16 +35,17 @@ class EnrutadorInventario:
         """Escrituras: Intenta usar la nube para auth/sessions/historial, si falla usa local."""
         import os
         from django.db import connections
-        from django.db.utils import OperationalError
 
         # Apps que se centralizan en la nube para permitir login multidispositivo
         APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial', 'clientes']
 
         if os.getenv("DB_PASSWORD") and model._meta.app_label in APPS_NUBE:
             try:
-                connections['remota'].ensure_connection()
+                conn = connections['remota']
+                if conn.connection is None:
+                    conn.ensure_connection()
                 return 'remota'
-            except OperationalError:
+            except Exception:
                 return 'default'
         return 'default'
 
