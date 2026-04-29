@@ -112,7 +112,19 @@ def registro(request):
                 perfil.user = user
                 perfil.rol = "cliente"
                 perfil.sincronizado = False
-                perfil.save()
+                
+                try:
+                    perfil.save()
+                except Exception as e_perfil:
+                    # Si falla el perfil por ID duplicado (usuarios_usuario_pkey)
+                    if "duplicate key" in str(e_perfil).lower() and "usuario_pkey" in str(e_perfil).lower():
+                        from django.db import connections
+                        with connections['remota'].cursor() as cursor:
+                            # Corregimos la secuencia de la tabla usuario (perfiles)
+                            cursor.execute("SELECT setval('usuario_id_seq', (SELECT MAX(id) FROM usuario));")
+                        perfil.save()
+                    else:
+                        raise e_perfil
                 
                 registrar_actividad(request, 'crear', 'usuarios', user.id, f"Nuevo registro: {email}")
                 messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
@@ -443,7 +455,27 @@ def crear_usuario(request):
                 estado='activo',
                 sincronizado=False
             )
-            
+        except Exception as e_perfil:
+            # Reparación de secuencia para el perfil
+            if "duplicate key" in str(e_perfil).lower() and "usuario_pkey" in str(e_perfil).lower():
+                from django.db import connections
+                with connections['remota'].cursor() as cursor:
+                    cursor.execute("SELECT setval('usuario_id_seq', (SELECT MAX(id) FROM usuario));")
+                perfil = Usuario.objects.create(
+                    user=user,
+                    nombres=nombres,
+                    apellidos=apellidos,
+                    telefono=telefono,
+                    rol=rol,
+                    tipo_documento=tipo_doc,
+                    documento=documento,
+                    estado='activo',
+                    sincronizado=False
+                )
+            else:
+                raise e_perfil
+
+        try:
             # Manejo de la imagen de perfil en la creación
             if 'foto_perfil' in request.FILES:
                 perfil.foto_perfil = request.FILES['foto_perfil']
