@@ -172,15 +172,16 @@ def login_usuario(request):
                     except Exception:
                         pass
 
-                login(request, user)
-                
-                registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
-                
-                # Volvemos a buscar el perfil después del posible fix
                 if not perfil:
                     perfil = Usuario.objects.filter(user=user).first()
 
                 if perfil:
+                    # Logueamos al usuario después de asegurar el perfil
+                    login(request, user)
+                    
+                    # Registramos actividad después de asegurar que el perfil existe localmente
+                    registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
+                    
                     next_url = request.GET.get('next')
                     if next_url:
                         return redirect(next_url)
