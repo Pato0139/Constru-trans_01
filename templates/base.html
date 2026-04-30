@@ -371,6 +371,7 @@ $(document).on('click', '.confirm-delete', function(e) {
     const url = $(this).attr('href');
     const title = $(this).data('title') || '¿Estás seguro?';
     const text = $(this).data('text') || 'Esta acción no se puede deshacer.';
+    const confirmBtnText = $(this).data('confirm') || 'Sí, eliminar';
     
     Swal.fire({
         title: title,
@@ -379,7 +380,7 @@ $(document).on('click', '.confirm-delete', function(e) {
         showCancelButton: true,
         confirmButtonColor: '#ef4444',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, eliminar',
+        confirmButtonText: confirmBtnText,
         cancelButtonText: 'Cancelar',
         background: '#1a1a1a',
         color: '#ffffff',

@@ -45,7 +45,7 @@ def registrar_entrada(request):
 @admin_required
 def movimientos_lista(request):
     movimientos = MovimientoInventario.objects.all().select_related('material', 'usuario')
-    materiales = Material.objects.all().order_by('nombre')
+    materiales = Material.objects.filter(activo=True).order_by('nombre')
     return render(request, "inventario/movimientos.html", {
         "movimientos": movimientos,
         "materiales": materiales
@@ -56,7 +56,7 @@ def buscar_materiales(query=None):
     Lógica unificada para buscar materiales por nombre, descripción o tipo.
     Optimizado con select_related('stock_info') para evitar N+1 al consultar stock.
     """
-    materiales = Material.objects.all().select_related('stock_info')
+    materiales = Material.objects.filter(activo=True).select_related('stock_info')
     if query:
         materiales = materiales.filter(
             Q(nombre__icontains=query) | 
@@ -110,7 +110,7 @@ def materiales_lista(request):
 
 @admin_required
 def api_materiales(request):
-    materiales = Material.objects.filter(stock_info__cantidad__gt=0).select_related('stock_info')
+    materiales = Material.objects.filter(activo=True, stock_info__cantidad__gt=0).select_related('stock_info')
     data = []
     for m in materiales:
         data.append({
@@ -170,17 +170,15 @@ def editar_material(request, id):
 def eliminar_material(request, id):
     material = get_object_or_404(Material, id=id)
     
-    # Validaciones antes de eliminar
+    # Validaciones antes de deshabilitar
     if material.stock > 0:
-        messages.error(request, f"No se puede eliminar {material.nombre} porque aún tiene stock disponible ({material.stock}).")
+        messages.error(request, f"No se puede deshabilitar {material.nombre} porque aún tiene stock disponible ({material.stock}).")
         return redirect("inventario:materiales_lista")
         
-    if material.detalles.exists(): # Detalles de orden
-        messages.error(request, f"No se puede eliminar {material.nombre} porque está asociado a pedidos existentes.")
-        return redirect("inventario:materiales_lista")
-
     nombre = material.nombre
-    material.delete()
-    registrar_actividad(request, 'eliminar', 'inventario', id, f"Material eliminado: {nombre}")
-    messages.success(request, f"Material {nombre} eliminado correctamente.")
+    material.activo = False
+    material.save()
+    
+    registrar_actividad(request, 'eliminar', 'inventario', id, f"Material deshabilitado: {nombre}")
+    messages.success(request, f"Material {nombre} deshabilitado correctamente.")
     return redirect("inventario:materiales_lista")

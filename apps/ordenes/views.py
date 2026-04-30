@@ -52,7 +52,7 @@ def eliminar_detalle(request, id):
 @admin_required
 def agregar_materiales(request, id):
     orden = get_object_or_404(Orden, id=id)
-    materiales = Material.objects.filter(stock_info__cantidad__gt=0).select_related('stock_info')
+    materiales = Material.objects.filter(activo=True, stock_info__cantidad__gt=0).select_related('stock_info')
     detalles = orden.detalles.all()
 
     if request.method == "POST":

@@ -34,7 +34,7 @@ def reportes_admin(request):
     pct_entregadas = (entregadas * 100 / total) if total > 0 else 0
 
     # Materiales con stock crítico (< 10)
-    stock_critico = Material.objects.filter(stock_info__cantidad__lt=10).select_related('stock_info')
+    stock_critico = Material.objects.filter(activo=True, stock_info__cantidad__lt=10).select_related('stock_info')
 
     context = {
         # Resumen de Órdenes
@@ -51,7 +51,7 @@ def reportes_admin(request):
         "total_conductores": Usuario.objects.filter(rol="conductor").count(),
         
         # Resumen de Inventario y Vehículos
-        "total_materiales": Material.objects.count(),
+        "total_materiales": Material.objects.filter(activo=True).count(),
         "total_vehiculos": Vehiculo.objects.count(),
         
         # Financiero
@@ -95,7 +95,7 @@ def exportar_reporte_pdf(request, tipo):
     
     elif tipo == 'materiales':
         data.append(['ID', 'Nombre', 'Tipo', 'Precio', 'Stock'])
-        for m in Material.objects.all().select_related('stock_info'):
+        for m in Material.objects.filter(activo=True).select_related('stock_info'):
             p = m.precio or 0
             precio_formateado = format_money(p)
             data.append([m.id, m.nombre, m.tipo, precio_formateado, m.stock])
