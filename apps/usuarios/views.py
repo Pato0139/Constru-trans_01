@@ -3,6 +3,20 @@ from functools import wraps
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect, get_object_or_404
 
+def conexion_remota_disponible():
+    """Función auxiliar para verificar si la conexión remota está disponible"""
+    try:
+        from django.db import connections
+        from django.db.utils import OperationalError, ConnectionDoesNotExist
+        if 'remota' not in connections:
+            return False
+        if not os.getenv("DB_ENGINE") or not os.getenv("DB_PASSWORD"):
+            return False
+        connections['remota'].ensure_connection()
+        return True
+    except (OperationalError, ConnectionDoesNotExist, Exception):
+        return False
+
 def admin_required(view_func):
     @wraps(view_func)
     @login_required
@@ -92,7 +106,7 @@ def registro(request):
                     )
                 except Exception as e:
                     # Si hay error de ID duplicado, es un problema de secuencias en Postgres
-                    if "duplicate key" in str(e).lower() and "auth_user_pkey" in str(e).lower():
+                    if "duplicate key" in str(e).lower() and "auth_user_pkey" in str(e).lower() and conexion_remota_disponible():
                         # Intentamos una reparación rápida de secuencias y reintentamos una vez
                         from django.db import connections
                         with connections['remota'].cursor() as cursor:
@@ -117,7 +131,7 @@ def registro(request):
                     perfil.save()
                 except Exception as e_perfil:
                     # Si falla el perfil por ID duplicado (usuarios_usuario_pkey)
-                    if "duplicate key" in str(e_perfil).lower():
+                    if "duplicate key" in str(e_perfil).lower() and conexion_remota_disponible():
                         from django.db import connections
                         # Intentamos reparar secuencias de forma robusta
                         try:
@@ -154,14 +168,8 @@ from .forms import LoginForm
 # ---------------- LOGIN ----------------
 def login_usuario(request):
     # Verificación de conexión a la nube para informar al usuario
-    from django.db import connections
     from django.db.utils import OperationalError
-    modo_local = False
-    try:
-        if os.getenv("DB_PASSWORD"):
-            connections['remota'].ensure_connection()
-    except OperationalError:
-        modo_local = True
+    modo_local = not conexion_remota_disponible()
 
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -185,25 +193,26 @@ def login_usuario(request):
                 
                 if not perfil and not user.is_superuser:
                     # Si no hay perfil, intentamos descargarlo de la nube si hay conexión
-                    try:
-                        from django.db import connections
-                        connections['remota'].ensure_connection()
-                        perfil_remoto = Usuario.objects.using('remota').filter(user_id=user.id).first()
-                        if perfil_remoto:
-                            perfil = Usuario.objects.create(
-                                id=perfil_remoto.id,
-                                user=user,
-                                nombres=perfil_remoto.nombres,
-                                apellidos=perfil_remoto.apellidos,
-                                rol=perfil_remoto.rol,
-                                telefono=perfil_remoto.telefono,
-                                tipo_documento=perfil_remoto.tipo_documento,
-                                documento=perfil_remoto.documento,
-                                estado=perfil_remoto.estado,
-                                sincronizado=True
-                            )
-                    except Exception:
-                        pass
+                    if conexion_remota_disponible():
+                        try:
+                            from django.db import connections
+                            connections['remota'].ensure_connection()
+                            perfil_remoto = Usuario.objects.using('remota').filter(user_id=user.id).first()
+                            if perfil_remoto:
+                                perfil = Usuario.objects.create(
+                                    id=perfil_remoto.id,
+                                    user=user,
+                                    nombres=perfil_remoto.nombres,
+                                    apellidos=perfil_remoto.apellidos,
+                                    rol=perfil_remoto.rol,
+                                    telefono=perfil_remoto.telefono,
+                                    tipo_documento=perfil_remoto.tipo_documento,
+                                    documento=perfil_remoto.documento,
+                                    estado=perfil_remoto.estado,
+                                    sincronizado=True
+                                )
+                        except Exception:
+                            pass
 
                 if not perfil:
                     perfil = Usuario.objects.filter(user=user).first()
@@ -227,7 +236,7 @@ def login_usuario(request):
                             try:
                                 Cliente.objects.get_or_create(usuario=perfil)
                             except Exception as e_c:
-                                if "duplicate key" in str(e_c).lower():
+                                if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
                                     from django.db import connections
                                     with connections['remota'].cursor() as cursor:
                                         cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
@@ -257,7 +266,7 @@ def login_usuario(request):
                             try:
                                 Cliente.objects.get_or_create(usuario=perfil)
                             except Exception as e_c:
-                                if "duplicate key" in str(e_c).lower():
+                                if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
                                     from django.db import connections
                                     with connections['remota'].cursor() as cursor:
                                         cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
@@ -335,7 +344,7 @@ def panel(request):
             try:
                 Cliente.objects.get_or_create(usuario=usuario)
             except Exception as e_c:
-                if "duplicate key" in str(e_c).lower():
+                if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
                     from django.db import connections
                     with connections['remota'].cursor() as cursor:
                         cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
@@ -514,7 +523,7 @@ def crear_usuario(request):
                 )
             except Exception as e:
                     # Reparación de secuencias si hay duplicado
-                    if "duplicate key" in str(e).lower():
+                    if "duplicate key" in str(e).lower() and conexion_remota_disponible():
                         from django.db import connections
                         try:
                             with connections['remota'].cursor() as cursor:
@@ -542,7 +551,7 @@ def crear_usuario(request):
             )
         except Exception as e_perfil:
             # Reparación de secuencia para el perfil
-            if "duplicate key" in str(e_perfil).lower():
+            if "duplicate key" in str(e_perfil).lower() and conexion_remota_disponible():
                 from django.db import connections
                 try:
                     with connections['remota'].cursor() as cursor:
@@ -765,7 +774,7 @@ def cerrar_sesion(request):
             registrar_actividad(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
         except Exception as e:
             # Si falla por ID duplicado en el historial, intentamos reparar secuencias
-            if "duplicate key" in str(e).lower() and "historial" in str(e).lower():
+            if "duplicate key" in str(e).lower() and "historial" in str(e).lower() and conexion_remota_disponible():
                 try:
                     from django.db import connections
                     with connections['remota'].cursor() as cursor:

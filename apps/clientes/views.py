@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
@@ -9,6 +10,20 @@ from apps.usuarios.models import Material, Usuario, Stock
 from .models import Cliente
 from django.db import transaction
 
+def conexion_remota_disponible():
+    """Función auxiliar para verificar si la conexión remota está disponible"""
+    try:
+        from django.db import connections
+        from django.db.utils import OperationalError, ConnectionDoesNotExist
+        if 'remota' not in connections:
+            return False
+        if not os.getenv("DB_ENGINE") or not os.getenv("DB_PASSWORD"):
+            return False
+        connections['remota'].ensure_connection()
+        return True
+    except (OperationalError, ConnectionDoesNotExist, Exception):
+        return False
+
 @login_required
 def panel_cliente(request):
     try:
@@ -17,7 +32,7 @@ def panel_cliente(request):
         try:
             cliente, created = Cliente.objects.get_or_create(usuario=usuario)
         except Exception as e_c:
-            if "duplicate key" in str(e_c).lower():
+            if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
                 from django.db import connections
                 with connections['remota'].cursor() as cursor:
                     cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")

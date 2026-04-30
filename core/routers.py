@@ -11,40 +11,38 @@ class EnrutadorInventario:
         'historial'
     ]
 
-    def db_for_read(self, model, **hints):
-        """Lecturas: Intenta usar la nube para auth/sessions, si falla usa local."""
+    def _conexion_remota_disponible(self):
+        """Verifica si la conexión remota está configurada y disponible."""
         import os
         from django.db import connections
-        from django.db.utils import OperationalError
+        from django.db.utils import OperationalError, ConnectionDoesNotExist
 
-        # Apps que se centralizan en la nube para permitir login multidispositivo
-        APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial', 'clientes']
+        try:
+            if 'remota' not in connections:
+                return False
+            if not os.getenv("DB_ENGINE") or not os.getenv("DB_PASSWORD"):
+                return False
+            connections['remota'].ensure_connection()
+            return True
+        except (OperationalError, ConnectionDoesNotExist, Exception):
+            return False
 
-        if os.getenv("DB_PASSWORD") and model._meta.app_label in APPS_NUBE:
-            try:
-                # Verificamos conexión rápida solo si es necesario
-                connections['remota'].ensure_connection()
+    def db_for_read(self, model, **hints):
+        """Lecturas: Intenta usar la nube para auth/sessions, si falla usa local."""
+        if self._conexion_remota_disponible():
+            # Apps que se centralizan en la nube para permitir login multidispositivo
+            APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial', 'clientes']
+            if model._meta.app_label in APPS_NUBE:
                 return 'remota'
-            except OperationalError:
-                # Si falla la nube (sin internet o mala clave), usamos la local sin morir
-                return 'default'
         return 'default'
 
     def db_for_write(self, model, **hints):
         """Escrituras: Intenta usar la nube para auth/sessions/historial, si falla usa local."""
-        import os
-        from django.db import connections
-        from django.db.utils import OperationalError
-
-        # Apps que se centralizan en la nube para permitir login multidispositivo
-        APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial', 'clientes']
-
-        if os.getenv("DB_PASSWORD") and model._meta.app_label in APPS_NUBE:
-            try:
-                connections['remota'].ensure_connection()
+        if self._conexion_remota_disponible():
+            # Apps que se centralizan en la nube para permitir login multidispositivo
+            APPS_NUBE = ['auth', 'usuarios', 'sessions', 'admin', 'historial', 'clientes']
+            if model._meta.app_label in APPS_NUBE:
                 return 'remota'
-            except OperationalError:
-                return 'default'
         return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):
@@ -56,11 +54,5 @@ class EnrutadorInventario:
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         """Controla dónde se aplican las migraciones."""
-        import os
-        # Si no hay credenciales de base de datos remota, solo permitimos migraciones en local
-        if not os.getenv("DB_PASSWORD"):
-            return db == 'default'
-
-        if app_label in self.APPS_REMOTAS:
-            return db == 'remota' or db == 'default'
+        # Solo permitimos migraciones en la base local para simplificar
         return db == 'default'

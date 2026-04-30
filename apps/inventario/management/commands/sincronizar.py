@@ -1,4 +1,5 @@
 import time
+import os
 from django.core.management.base import BaseCommand
 from django.db import OperationalError, connections
 from apps.usuarios.models import Material, Proveedor, Vehiculo, Usuario
@@ -11,6 +12,18 @@ from apps.facturacion.models import Factura
 from apps.pagos.models import Pago
 from apps.historial.models import Historial
 from django.contrib.admin.models import LogEntry
+
+def conexion_remota_disponible():
+    try:
+        from django.db.utils import ConnectionDoesNotExist
+        if 'remota' not in connections:
+            return False
+        if not os.getenv("DB_ENGINE") or not os.getenv("DB_PASSWORD"):
+            return False
+        connections['remota'].ensure_connection()
+        return True
+    except (OperationalError, ConnectionDoesNotExist, Exception):
+        return False
 
 class Command(BaseCommand):
     help = 'Sincroniza los datos locales pendientes con la base de datos remota (Neon)'
@@ -36,28 +49,29 @@ class Command(BaseCommand):
 
         while True:
             try:
-                # 1. Verificar si hay conexión con la base remota
-                connections['remota'].ensure_connection()
-                self.stdout.write(self.style.SUCCESS('Conexión con la nube establecida.'))
-                
-                # 2. Sincronizar modelos en orden de dependencia
-                self.descargar_usuarios() # Traer usuarios nuevos de la nube
-                self.sincronizar_grupos(force=force) # auth_group y auth_user_groups
-                self.sincronizar_usuarios(force=force) # auth_user, usuario, cliente
-                self.sincronizar_modelo(Proveedor, force=force)
-                self.sincronizar_modelo(Material, force=force)
-                self.sincronizar_modelo(Vehiculo, force=force)
-                self.sincronizar_modelo(Compra, force=force) # Sincroniza Compra y DetalleCompra
-                self.sincronizar_modelo(Orden, force=force) # Sincroniza Orden y DetalleOrden
-                self.sincronizar_modelo(Entrega, force=force)
-                self.sincronizar_modelo(Factura, force=force)
-                self.sincronizar_modelo(Pago, force=force)
-                self.sincronizar_modelo(MovimientoInventario, force=force)
-                self.sincronizar_modelo(Historial, force=force)
-                self.sincronizar_log_admin() # django_admin_log
-                
-                # 3. Corregir secuencias en PostgreSQL (IMPORTANTE para evitar errores de ID duplicado)
-                self.corregir_secuencias_remotas()
+                if not conexion_remota_disponible():
+                    self.stdout.write(self.style.WARNING('Sin conexión con la nube. Reintentando en 30 segundos...'))
+                else:
+                    self.stdout.write(self.style.SUCCESS('Conexión con la nube establecida.'))
+                    
+                    # 2. Sincronizar modelos en orden de dependencia
+                    self.descargar_usuarios() # Traer usuarios nuevos de la nube
+                    self.sincronizar_grupos(force=force) # auth_group y auth_user_groups
+                    self.sincronizar_usuarios(force=force) # auth_user, usuario, cliente
+                    self.sincronizar_modelo(Proveedor, force=force)
+                    self.sincronizar_modelo(Material, force=force)
+                    self.sincronizar_modelo(Vehiculo, force=force)
+                    self.sincronizar_modelo(Compra, force=force) # Sincroniza Compra y DetalleCompra
+                    self.sincronizar_modelo(Orden, force=force) # Sincroniza Orden y DetalleOrden
+                    self.sincronizar_modelo(Entrega, force=force)
+                    self.sincronizar_modelo(Factura, force=force)
+                    self.sincronizar_modelo(Pago, force=force)
+                    self.sincronizar_modelo(MovimientoInventario, force=force)
+                    self.sincronizar_modelo(Historial, force=force)
+                    self.sincronizar_log_admin() # django_admin_log
+                    
+                    # 3. Corregir secuencias en PostgreSQL (IMPORTANTE para evitar errores de ID duplicado)
+                    self.corregir_secuencias_remotas()
                 
             except OperationalError:
                 self.stdout.write(self.style.WARNING('Sin conexión con la nube. Reintentando en 30 segundos...'))

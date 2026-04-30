@@ -15,64 +15,135 @@
     </div>
 
     <div class="nav-container px-3 flex-grow-1">
-        <nav class="nav flex-column gap-1">
+        <nav class="nav flex-column gap-2">
             {% if user.usuario.rol == 'admin' %}
                 <a href="{% url 'usuarios:panel' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
-            <i class="bi bi-grid-1x2-fill"></i>
-            <span>General</span>
-        </a>
-                <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' %}active{% endif %}">
-                    <i class="bi bi-cart-fill"></i>
-                    <span>Pedidos</span>
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>General</span>
                 </a>
-                <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' %}active{% endif %}">
-                    <i class="bi bi-people-fill"></i>
-                    <span>Usuarios</span>
-                </a>
-                <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'materiales_lista' %}active{% endif %}">
-                    <i class="bi bi-box-seam-fill"></i>
-                    <span>Materiales</span>
-                </a>
-                <a href="{% url 'inventario:stock_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'stock_lista' %}active{% endif %}">
-                    <i class="bi bi-clipboard-data-fill"></i>
-                    <span>Stock / Inventario</span>
-                </a>
-                <a href="{% url 'inventario:movimientos_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'movimientos_lista' %}active{% endif %}">
-                    <i class="bi bi-arrow-left-right"></i>
-                    <span>Movimientos</span>
-                </a>
-                <a href="{% url 'compras:lista_proveedores' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'lista_proveedores' %}active{% endif %}">
-                    <i class="bi bi-briefcase-fill"></i>
-                    <span>Proveedores</span>
-                </a>
-                <a href="{% url 'compras:lista_compras' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'compras' and request.resolver_match.url_name == 'lista_compras' %}active{% endif %}">
-                    <i class="bi bi-bag-check-fill"></i>
-                    <span>Compras</span>
-                </a>
-                <a href="{% url 'transporte:lista_vehiculos' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'transporte' %}active{% endif %}">
-                    <i class="bi bi-truck"></i>
-                    <span>Vehiculos</span>
-                </a>
-                <a href="{% url 'ordenes:lista_entregas_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}active{% endif %}">
-                    <i class="bi bi-truck-flatbed"></i>
-                    <span>Entregas</span>
-                </a>
-                <a href="{% url 'facturacion:lista_facturas' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'facturacion' %}active{% endif %}">
-                    <i class="bi bi-receipt"></i>
-                    <span>Facturación</span>
-                </a>
-                <a href="{% url 'pagos:lista_pagos' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' %}active{% endif %}">
-                    <i class="bi bi-cash-stack"></i>
-                    <span>Pagos</span>
-                </a>
-                <a href="{% url 'reportes:reportes_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'reportes' %}active{% endif %}">
-                    <i class="bi bi-graph-up-arrow"></i>
-                    <span>Reportes</span>
-                </a>
-                <a href="{% url 'historial:lista_historial' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'historial' %}active{% endif %}">
-                    <i class="bi bi-clock-history"></i>
-                    <span>Registros</span>
-                </a>
+
+                <div class="sidebar-section">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse">
+                        <span class="d-flex align-items-center gap-3">
+                            <i class="bi bi-cart-fill"></i>
+                            <span>Ventas y Cobros</span>
+                        </span>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform"></i>
+                    </button>
+                    <div class="collapse" id="ventasCollapse">
+                        <div class="nav-submenu">
+                            <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' %}active{% endif %}">
+                                <i class="bi bi-cart3"></i>
+                                <span>Pedidos</span>
+                            </a>
+                            <a href="{% url 'facturacion:lista_facturas' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'facturacion' %}active{% endif %}">
+                                <i class="bi bi-receipt"></i>
+                                <span>Facturación</span>
+                            </a>
+                            <a href="{% url 'pagos:lista_pagos' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' %}active{% endif %}">
+                                <i class="bi bi-cash-stack"></i>
+                                <span>Pagos</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#inventarioCollapse">
+                        <span class="d-flex align-items-center gap-3">
+                            <i class="bi bi-box-seam-fill"></i>
+                            <span>Inventario y Flota</span>
+                        </span>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform"></i>
+                    </button>
+                    <div class="collapse" id="inventarioCollapse">
+                        <div class="nav-submenu">
+                            <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'materiales_lista' %}active{% endif %}">
+                                <i class="bi bi-box"></i>
+                                <span>Materiales</span>
+                            </a>
+                            <a href="{% url 'inventario:stock_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'stock_lista' %}active{% endif %}">
+                                <i class="bi bi-clipboard-data-fill"></i>
+                                <span>Stock</span>
+                            </a>
+                            <a href="{% url 'inventario:movimientos_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'movimientos_lista' %}active{% endif %}">
+                                <i class="bi bi-arrow-left-right"></i>
+                                <span>Movimientos</span>
+                            </a>
+                            <a href="{% url 'transporte:lista_vehiculos' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'transporte' %}active{% endif %}">
+                                <i class="bi bi-truck"></i>
+                                <span>Vehículos</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#comprasCollapse">
+                        <span class="d-flex align-items-center gap-3">
+                            <i class="bi bi-bag-fill"></i>
+                            <span>Compras</span>
+                        </span>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform"></i>
+                    </button>
+                    <div class="collapse" id="comprasCollapse">
+                        <div class="nav-submenu">
+                            <a href="{% url 'compras:lista_proveedores' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'lista_proveedores' %}active{% endif %}">
+                                <i class="bi bi-briefcase-fill"></i>
+                                <span>Proveedores</span>
+                            </a>
+                            <a href="{% url 'compras:lista_compras' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'compras' and request.resolver_match.url_name == 'lista_compras' %}active{% endif %}">
+                                <i class="bi bi-bag-check-fill"></i>
+                                <span>Compras</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#entregasCollapse">
+                        <span class="d-flex align-items-center gap-3">
+                            <i class="bi bi-truck-flatbed"></i>
+                            <span>Entregas</span>
+                        </span>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform"></i>
+                    </button>
+                    <div class="collapse" id="entregasCollapse">
+                        <div class="nav-submenu">
+                            <a href="{% url 'ordenes:lista_entregas_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}active{% endif %}">
+                                <i class="bi bi-truck"></i>
+                                <span>Entregas</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adminCollapse">
+                        <span class="d-flex align-items-center gap-3">
+                            <i class="bi bi-shield-lock-fill"></i>
+                            <span>Administración</span>
+                        </span>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform"></i>
+                    </button>
+                    <div class="collapse" id="adminCollapse">
+                        <div class="nav-submenu">
+                            <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' %}active{% endif %}">
+                                <i class="bi bi-people-fill"></i>
+                                <span>Gestión Usuarios</span>
+                            </a>
+                            <a href="{% url 'reportes:reportes_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'reportes' %}active{% endif %}">
+                                <i class="bi bi-graph-up-arrow"></i>
+                                <span>Reportes</span>
+                            </a>
+                            <a href="{% url 'historial:lista_historial' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'historial' %}active{% endif %}">
+                                <i class="bi bi-clock-history"></i>
+                                <span>Auditoría (Registros)</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             {% elif user.usuario.rol == 'cliente' %}
                 <a href="{% url 'clientes:panel_cliente' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel_cliente' %}active{% endif %}">
                     <i class="bi bi-grid-1x2-fill"></i>
@@ -98,6 +169,7 @@
                     <i class="bi bi-receipt"></i>
                     <span>Mis Facturas</span>
                 </a>
+
             {% elif user.usuario.rol == 'conductor' %}
                 <a href="{% url 'usuarios:panel_conductor' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel_conductor' %}active{% endif %}">
                     <i class="bi bi-grid-1x2-fill"></i>
@@ -154,14 +226,14 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            padding: 12px 20px;
+            padding: 12px 16px;
             color: var(--color-text);
-            opacity: 0.7;
+            opacity: 0.75;
             text-decoration: none;
             font-weight: 500;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            border-radius: 0;
+            font-size: 0.9rem;
+            transition: all 0.25s ease;
+            border-radius: 12px;
             position: relative;
         }
 
@@ -169,13 +241,14 @@
             color: var(--color-primary);
             opacity: 1;
             background: var(--item-bg);
+            transform: translateX(4px);
         }
 
         .nav-link-premium.active {
             color: #fff !important;
             opacity: 1;
-            background: var(--color-primary) !important;
-            border-right: 4px solid #f59e0b; /* Borde derecho dorado */
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%) !important;
+            box-shadow: 0 4px 15px var(--glow-primary);
         }
 
         .nav-link-premium.active i {
@@ -183,11 +256,82 @@
         }
 
         .nav-link-premium i {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             width: 24px;
             text-align: center;
         }
 
+        .sidebar-section {
+            margin-bottom: 4px;
+        }
+
+        .nav-submenu {
+            padding-left: 8px;
+            margin-top: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-submenu .nav-link-premium {
+            padding-left: 44px !important;
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+            font-size: 0.85rem;
+            opacity: 0.65;
+        }
+
+        .nav-submenu .nav-link-premium:hover {
+            opacity: 1;
+        }
+
+        .nav-submenu .nav-link-premium.active {
+            opacity: 1;
+        }
+
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            font-size: 0.9rem;
+            opacity: 0.5;
+        }
+
+        .collapse-icon.rotated {
+            transform: rotate(180deg);
+            opacity: 1;
+        }
+
         .border-white-5 { border-color: var(--color-border) !important; }
+
+        button.nav-link-premium {
+            border: none;
+            background: transparent;
+        }
+
+        button.nav-link-premium:focus {
+            outline: none;
+            box-shadow: none;
+        }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const collapseToggles = document.querySelectorAll('[data-bs-toggle="collapse"]');
+            
+            collapseToggles.forEach(toggle => {
+                const targetId = toggle.getAttribute('data-bs-target');
+                const target = document.querySelector(targetId);
+                const icon = toggle.querySelector('.collapse-icon');
+                
+                if (target && icon) {
+                    target.addEventListener('show.bs.collapse', function() {
+                        icon.classList.add('rotated');
+                    });
+                    
+                    target.addEventListener('hide.bs.collapse', function() {
+                        icon.classList.remove('rotated');
+                    });
+                }
+            });
+        });
+    </script>
 </aside>

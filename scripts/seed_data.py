@@ -84,7 +84,7 @@ def setup_data():
     for m_data in materiales_data:
         mat, created = Material.objects.get_or_create(
             nombre=m_data['nombre'],
-            defaults={'tipo': m_data['tipo'], 'precio': Decimal(m_data['precio']), 'descripcion': m_data['descripcion']}
+            defaults={'tipo': m_data['tipo'], 'precio': Decimal(m_data['precio']), 'descripcion': m_data['descripcion'], 'activo': True}
         )
         mats.append(mat)
         
