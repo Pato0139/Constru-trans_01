@@ -1,6 +1,24 @@
 [
 {
   "model": "auth.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$EhezjKXwavfTZT7BOOSuuT$dh5mGqXFrn54ns3IaHWuikAqUJj7wJKmA0DwDeYL+0w=",
+    "last_login": "2026-04-24T04:51:45.392Z",
+    "is_superuser": false,
+    "username": "camipenagoz345@gmail.com",
+    "first_name": "",
+    "last_name": "",
+    "email": "camipenagoz345@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-24T04:47:52.255Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
   "pk": 9,
   "fields": {
     "password": "pbkdf2_sha256$870000$Av47kkkk1KOUodGLZHQdds$lfEar32kSC20Vv4xhO2joSR9Ly/RnHrI+LRNUNt7MhA=",
