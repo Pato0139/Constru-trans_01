@@ -48,6 +48,22 @@ class Orden(models.Model):
         default=0,
         validators=[MinValueValidator(0)]
     )
+    
+    METODO_EFECTIVO = "efectivo"
+    METODO_TRANSFERENCIA = "transferencia"
+    METODO_TARJETA = "tarjeta"
+    
+    METODOS_PAGO = [
+        (METODO_EFECTIVO, "Efectivo"),
+        (METODO_TRANSFERENCIA, "Transferencia"),
+        (METODO_TARJETA, "Tarjeta"),
+    ]
+    
+    metodo_pago = models.CharField(
+        max_length=20,
+        choices=METODOS_PAGO,
+        default=METODO_EFECTIVO
+    )
     sincronizado = models.BooleanField(default=False)
 
     def calcular_total(self):
