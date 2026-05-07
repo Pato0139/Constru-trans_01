@@ -1,52 +1,61 @@
-# --- Base de Datos ---
+# Variables de entorno (NUNCA subir)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# Base de datos local
 *.sqlite3
 *.sqlite3-journal
+db_backup.json
 
-# --- Entornos Virtuales y Dependencias ---
-.venv/
-env/
-venv/
-ENV/
-node_modules/
-
-# --- Archivos de Configuración Sensibles ---
-.env
-local_settings.py
-secrets.json
-
-# --- Archivos Temporales de Python ---
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
 
-# --- Migraciones ---
-**/migrations/__pycache__/
+# Entornos virtuales
+venv/
+env/
+.venv/
+ENV/
 
-# --- Archivos de Medios y Logs ---
-media/
-static_collected/
-staticfiles/
+# Django
 *.log
+local_settings.py
+staticfiles/
+collected_static/
 
-# --- Archivos de Sistema y Editores ---
+# Media (keep the folder but ignore temporary files
+media/*
+!media/.gitkeep
+!media/perfiles/
+media/perfiles/*
+!media/perfiles/.gitkeep
+
+# Migraciones temporales (opcional, solo si trabajas en equipo)
+# **/migrations/0*.py
+
+# IDEs
 .vscode/
 .idea/
 *.swp
-*.bak
+*.swo
 .DS_Store
 Thumbs.db
-Desktop.ini
-.git/
+
+# Tests y coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Docker
+docker-compose.override.yml
+
+# Backups
+backups/*.sql
+backups/*.dump

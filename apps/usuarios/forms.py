@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from .models import Usuario, Material, Proveedor
+from .utils import limpiar_telefono
 
 class LoginForm(forms.Form):
     username = forms.CharField(label="Usuario o Correo", widget=forms.TextInput(attrs={'class': 'input-custom', 'placeholder': 'Usuario o Correo'}))
@@ -42,9 +43,15 @@ class RegistroForm(forms.ModelForm):
 
     def clean_documento(self):
         documento = self.cleaned_data.get('documento')
+        # Limpiar documento también
+        documento = limpiar_telefono(documento)
         if Usuario.objects.filter(documento=documento).exists():
             raise forms.ValidationError("Este documento ya está registrado.")
         return documento
+
+    def clean_telefono(self):
+        telefono = self.cleaned_data.get('telefono')
+        return limpiar_telefono(telefono)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -121,3 +128,11 @@ class ProveedorForm(forms.ModelForm):
                 ('Servicios', 'Servicios Logísticos'),
             ], attrs={'class': 'form-select'}),
         }
+
+    def clean_nit(self):
+        nit = self.cleaned_data.get('nit')
+        return limpiar_telefono(nit)
+
+    def clean_telefono(self):
+        telefono = self.cleaned_data.get('telefono')
+        return limpiar_telefono(telefono)

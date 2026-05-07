@@ -22,8 +22,9 @@
                                 {% if usuario.foto_perfil %}
                                     <img src="{{ usuario.foto_perfil.url }}" alt="Perfil" class="rounded-circle border border-4 border-accent shadow" style="width: 150px; height: 150px; object-fit: cover;">
                                 {% else %}
-                                    <div class="rounded-circle bg-accent d-flex align-items-center justify-content-center border border-4 border-accent shadow mx-auto" style="width: 150px; height: 150px;">
-                                        <span class="display-3 fw-bold text-dark">{{ usuario.nombres|first|upper }}</span>
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center border border-4 border-accent shadow mx-auto" 
+                                         style="width: 150px; height: 150px; background-color: {{ usuario.color_avatar }};">
+                                        <span class="display-3 fw-bold text-white">{{ usuario.iniciales }}</span>
                                     </div>
                                 {% endif %}
                                 <div class="mt-3">
@@ -123,25 +124,39 @@
 
 <script>
     // Preview image before upload
-    document.getElementById('foto_perfil').onchange = function (evt) {
-        const [file] = this.files
+    document.getElementById('foto_perfil').addEventListener('change', function (evt) {
+        const [file] = this.files;
         if (file) {
-            const container = this.parentElement.previousElementSibling;
+            // Validar que sea una imagen
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor selecciona un archivo de imagen válido.');
+                this.value = '';
+                return;
+            }
+            
+            // Validar tamaño máximo (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('La imagen es demasiado grande. El tamaño máximo es 5MB.');
+                this.value = '';
+                return;
+            }
+            
+            const container = this.closest('.text-center').querySelector('.position-relative');
             const img = container.querySelector('img');
+            const initialsDiv = container.querySelector('div');
+            
             if (img) {
-                img.src = URL.createObjectURL(file)
-            } else {
-                const div = container.querySelector('div');
+                img.src = URL.createObjectURL(file);
+            } else if (initialsDiv) {
                 const newImg = document.createElement('img');
                 newImg.src = URL.createObjectURL(file);
                 newImg.className = "rounded-circle border border-4 border-accent shadow";
                 newImg.style.width = "150px";
                 newImg.style.height = "150px";
                 newImg.style.objectFit = "cover";
-                container.innerHTML = '';
-                container.appendChild(newImg);
+                initialsDiv.replaceWith(newImg);
             }
         }
-    }
+    });
 </script>
 {% endblock %}

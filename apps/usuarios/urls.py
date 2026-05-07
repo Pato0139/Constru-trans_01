@@ -32,6 +32,9 @@ urlpatterns = [
     # Notificaciones
     path("notificaciones/", views.lista_notificaciones, name="notificaciones"),
     path("notificaciones/marcar-leida/<int:id>/", views.marcar_notificacion_leida, name="marcar_notificacion_leida"),
+    
+    # Configuraciones
+    path("configuraciones/", views.configuraciones_usuario, name="configuraciones"),
 
     # recuperar contraseña
     path(

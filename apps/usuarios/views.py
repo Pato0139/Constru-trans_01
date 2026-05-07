@@ -41,6 +41,7 @@ def admin_required(view_func):
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Usuario, Administrador, Conductor, Cliente, Material, Vehiculo, Stock, Proveedor
+from .utils import limpiar_telefono
 from apps.ordenes.models import Orden
 
 # Proveedores logic moved to apps.compras
@@ -447,9 +448,9 @@ def editar_perfil(request):
     if request.method == "POST":
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
-        telefono = request.POST.get("telefono")
+        telefono = limpiar_telefono(request.POST.get("telefono"))
         tipo_documento = request.POST.get("tipo_documento")
-        documento = request.POST.get("documento")
+        documento = limpiar_telefono(request.POST.get("documento"))
         email = request.POST.get("email")
         
         # Manejo de la imagen de perfil
@@ -495,10 +496,10 @@ def crear_usuario(request):
         apellidos = request.POST.get("apellidos")
         email = request.POST.get("email")
         password = request.POST.get("password")
-        telefono = request.POST.get("telefono")
+        telefono = limpiar_telefono(request.POST.get("telefono"))
         rol = request.POST.get("rol")
         tipo_doc = request.POST.get("tipo_doc")
-        documento = request.POST.get("documento")
+        documento = limpiar_telefono(request.POST.get("documento"))
 
         if not all([nombres, apellidos, email, password, telefono, rol, tipo_doc, documento]):
             error_msg = "Todos los campos son obligatorios."
@@ -683,7 +684,7 @@ def editar_usuario(request, id):
     if request.method == "POST":
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
-        telefono = request.POST.get("telefono")
+        telefono = limpiar_telefono(request.POST.get("telefono"))
         rol = request.POST.get("rol")
 
         if not all([nombres, apellidos, telefono]):
@@ -761,9 +762,29 @@ def perfil_conductor(request):
 
 
 # ---------------- PASSWORD RESET ----------------
-class CustomPasswordResetView(auth_views.PasswordResetView):
+from django.contrib.auth.views import (
+    PasswordResetView, PasswordResetDoneView,
+    PasswordResetConfirmView, PasswordResetCompleteView,
+)
+from django.urls import reverse_lazy
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+import logging
+
+logger = logging.getLogger(__name__)
+
+@method_decorator(ratelimit(key='ip', rate='5/h', method='POST'), name='post')
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'usuarios/recuperar_password.html'
+    email_template_name = 'registration/password_reset_email.txt'
+    html_email_template_name = 'registration/password_reset_email.html'
+    subject_template_name = 'registration/password_reset_subject.txt'
+    success_url = reverse_lazy('usuarios:password_reset_done')
+    from_email = None  # Usa DEFAULT_FROM_EMAIL
+
     def form_valid(self, form):
-        # Aseguramos que el correo sea el de edwardf5432@gmail.com configurado en el .env
+        email = form.cleaned_data['email']
+        logger.info(f"[Password Reset] Solicitud para: {email} desde IP: {self.request.META.get('REMOTE_ADDR')}")
         return super().form_valid(form)
 
 
@@ -808,3 +829,18 @@ def marcar_notificacion_leida(request, id):
     except Usuario.DoesNotExist:
         pass
     return redirect("usuarios:notificaciones")
+
+
+@login_required
+def configuraciones_usuario(request):
+    try:
+        usuario = request.user.usuario
+    except Usuario.DoesNotExist:
+        logout(request)
+        return redirect("usuarios:login")
+    
+    if request.method == "POST":
+        messages.success(request, "Configuraciones actualizadas correctamente.")
+        return redirect("usuarios:configuraciones")
+    
+    return render(request, "usuarios/configuraciones.html", {"usuario": usuario})

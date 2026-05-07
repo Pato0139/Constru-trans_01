@@ -96,7 +96,42 @@
         color: var(--color-text);
         font-family: 'Plus Jakarta Sans', sans-serif;
         margin: 0;
-        transition: background-color 0.3s, color 0.3s;
+        transition: background-color 0.3s, color 0.3s, font-size 0.2s ease;
+    }
+    
+    [data-font-size="small"] body,
+    [data-font-size="small"] {
+        font-size: 0.875rem !important;
+    }
+    
+    [data-font-size="normal"] body,
+    [data-font-size="normal"] {
+        font-size: 1rem !important;
+    }
+    
+    [data-font-size="large"] body,
+    [data-font-size="large"] {
+        font-size: 1.125rem !important;
+    }
+    
+    [data-font-size="xlarge"] body,
+    [data-font-size="xlarge"] {
+        font-size: 1.25rem !important;
+    }
+    
+    [data-font-size="small"] h1, [data-font-size="small"] h2, [data-font-size="small"] h3,
+    [data-font-size="small"] h4, [data-font-size="small"] h5, [data-font-size="small"] h6 {
+        font-size: calc(1em * 0.875) !important;
+    }
+    
+    [data-font-size="large"] h1, [data-font-size="large"] h2, [data-font-size="large"] h3,
+    [data-font-size="large"] h4, [data-font-size="large"] h5, [data-font-size="large"] h6 {
+        font-size: calc(1em * 1.125) !important;
+    }
+    
+    [data-font-size="xlarge"] h1, [data-font-size="xlarge"] h2, [data-font-size="xlarge"] h3,
+    [data-font-size="xlarge"] h4, [data-font-size="xlarge"] h5, [data-font-size="xlarge"] h6 {
+        font-size: calc(1em * 1.25) !important;
     }
 
     main {
@@ -196,9 +231,11 @@
     // Theme logic
     const savedTheme = localStorage.getItem('theme') || 'dark';
     const savedDaltonism = localStorage.getItem('daltonism') || 'none';
+    const savedFontSize = localStorage.getItem('fontSize') || 'normal';
     
     document.documentElement.setAttribute('data-theme', savedTheme);
     document.documentElement.setAttribute('data-daltonism', savedDaltonism);
+    document.documentElement.setAttribute('data-font-size', savedFontSize);
     document.documentElement.style.filter = '';
 
     function setTheme(theme) {

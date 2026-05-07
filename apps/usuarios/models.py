@@ -58,6 +58,28 @@ class Usuario(models.Model):
         choices=ESTADO_USUARIO,
         default='activo'
     )
+
+    @property
+    def iniciales(self):
+        """Obtiene las iniciales del nombre y apellido"""
+        inicial = ""
+        if self.nombres:
+            inicial += self.nombres[0].upper()
+        if self.apellidos:
+            inicial += self.apellidos[0].upper()
+        return inicial or "?"
+
+    @property
+    def color_avatar(self):
+        """Genera un color consistente basado en el nombre del usuario"""
+        colores = [
+            "#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6", 
+            "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1"
+        ]
+        # Usamos el ID del usuario para obtener un color consistente
+        if self.id:
+            return colores[self.id % len(colores)]
+        return colores[0]
     
     sincronizado = models.BooleanField(default=False, verbose_name="Sincronizado con Nube")
 

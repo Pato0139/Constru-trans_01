@@ -3,6 +3,9 @@ from django.db.models import F
 from apps.usuarios.models import Stock
 from apps.inventario.models import MovimientoInventario
 from apps.historial.utils import registrar_actividad
+import qrcode
+from io import BytesIO
+from django.core.files.base import ContentFile
 
 def revertir_stock_pedido(orden, usuario, motivo_prefijo="Cancelación"):
     """
@@ -39,3 +42,13 @@ def liberar_vehiculo_pedido(orden):
         vehiculo.save()
         return vehiculo
     return None
+
+
+def generar_qr_orden(orden):
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(f"https://tudominio.com/ordenes/{orden.id}/")
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="#1e40af", back_color="white")
+    buffer = BytesIO()
+    img.save(buffer, format='PNG')
+    return ContentFile(buffer.getvalue(), name=f'qr_orden_{orden.id}.png')
