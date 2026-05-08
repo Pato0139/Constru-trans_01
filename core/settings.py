@@ -226,6 +226,11 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     X_FRAME_OPTIONS = 'DENY'
+else:
+    SECURE_SSL_REDIRECT = False
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
 
 # ===== TOKENS DE RECUPERACIÓN =====
 PASSWORD_RESET_TIMEOUT = int(os.getenv('PASSWORD_RESET_TIMEOUT', 3600))
@@ -236,17 +241,20 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ===== MONITOREO CON SENTRY =====
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
-
 if os.getenv('SENTRY_DSN') and not DEBUG:
-    sentry_sdk.init(
-        dsn=os.getenv('SENTRY_DSN'),
-        integrations=[DjangoIntegration()],
-        traces_sample_rate=0.1,
-        send_default_pii=False,
-        environment='production',
-    )
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.django import DjangoIntegration
+        
+        sentry_sdk.init(
+            dsn=os.getenv('SENTRY_DSN'),
+            integrations=[DjangoIntegration()],
+            traces_sample_rate=0.1,
+            send_default_pii=False,
+            environment='production',
+        )
+    except ImportError:
+        pass
 
 # ===== MAPAS CON LEAFLET =====
 # Nota: Requiere GDAL instalado en el sistema
