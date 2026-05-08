@@ -65,6 +65,24 @@
             z-index: 1; /* Encima de las partículas */
         }
 
+        @media (max-width: 991.98px) {
+            .auth-master-card {
+                flex-direction: column;
+                min-height: auto;
+                border-radius: 32px;
+            }
+            .auth-visual-section {
+                display: none;
+            }
+            .auth-form-section {
+                padding: 40px 20px;
+            }
+            body {
+                padding: 10px;
+                overflow: auto;
+            }
+        }
+
         /* Lado Izquierdo - Formulario */
         .auth-form-section {
             flex: 1.2;

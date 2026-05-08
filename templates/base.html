@@ -257,12 +257,14 @@
 
 <body>
 
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <div class="container-fluid p-0">
 <div class="d-flex">
 
 {% include "sidebar.html" %}
 
-<main class="flex-grow-1 p-3 overflow-auto" style="min-height: 100vh;">
+<main class="main-content flex-grow-1 p-3 overflow-auto" style="min-height: 100vh;">
 
 {% include "navbar.html" %}
 
@@ -285,11 +287,41 @@
 
 <script>
 // Initialize AOS
-AOS.init({
-    duration: 800,
-    once: true,
-    easing: 'ease-in-out'
-});
+    AOS.init({
+        duration: 800,
+        once: true,
+        easing: 'ease-in-out'
+    });
+
+    // Sidebar Toggle Functionality
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.add('active');
+            sidebarOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    }
+
+    if (sidebarClose) {
+        sidebarClose.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+    }
 
 // Desactivar alertas de DataTables y redirigirlas a la consola para evitar ventanas emergentes
 $.fn.dataTable.ext.errMode = 'throw';

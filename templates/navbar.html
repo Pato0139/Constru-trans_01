@@ -1,11 +1,17 @@
 <header class="navbar-premium d-flex justify-content-between align-items-center p-4" 
         style="background: var(--color-bg); border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 900;">
     {% load static gravatar %}
-    <div>
-        <h2 class="h4 fw-bold m-0 text-white" style="letter-spacing: -0.5px;">
-            Panel de Control
-        </h2>
-        <p class="text-muted small mb-0">Bienvenido de nuevo, ¡qué bueno verte!</p>
+    <div class="d-flex align-items-center gap-3">
+        <!-- Sidebar Toggle (Mobile) -->
+        <button class="btn btn-dark-premium d-lg-none rounded-circle p-2" id="sidebarToggle">
+            <i class="bi bi-list text-white fs-4"></i>
+        </button>
+        <div>
+            <h2 class="h4 fw-bold m-0 text-white" style="letter-spacing: -0.5px;">
+                Panel de Control
+            </h2>
+            <p class="text-muted small mb-0 d-none d-sm-block">Bienvenido de nuevo, ¡qué bueno verte!</p>
+        </div>
     </div>
 
     <div class="d-flex align-items-center gap-3">

@@ -20,12 +20,12 @@ if not SECRET_KEY or SECRET_KEY == "insecure-dev-key-change-me":
     if not env_bool("DEBUG", False):
         raise ValueError("SECRET_KEY no configurada en producción")
     SECRET_KEY = "insecure-dev-key-change-me"
-DEBUG = env_bool("DEBUG", True)
+DEBUG = env_bool("DEBUG", False)
 
-ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "127.0.0.1,localhost")
+ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "127.0.0.1,localhost,.onrender.com")
 CSRF_TRUSTED_ORIGINS = env_list(
     "CSRF_TRUSTED_ORIGINS", 
-    "http://127.0.0.1:8000,http://localhost:8000"
+    "http://127.0.0.1:8000,http://localhost:8000,https://*.onrender.com"
 )
 
 INSTALLED_APPS = [
@@ -173,7 +173,10 @@ NUMBER_GROUPING = 3
 # STATIC FILES
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-# STATIC_ROOT = BASE_DIR / 'staticfiles' # Descomenta esto para producción (collectstatic)
+STATIC_ROOT = BASE_DIR / 'staticfiles' # Para producción (collectstatic)
+
+# Soporte para archivos estáticos en Render con WhiteNoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # MEDIA FILES
 MEDIA_URL = '/media/'
