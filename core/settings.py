@@ -14,13 +14,12 @@ def env_list(key: str, default=""):
     val = os.getenv(key, default)
     return [x.strip() for x in val.split(",") if x.strip()]
 
-# SEGURIDAD BÁSICA
+# SEGURIDAD ESTRICTA
 SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY or SECRET_KEY == "insecure-dev-key-change-me":
-    if not env_bool("DEBUG", False):
-        raise ValueError("SECRET_KEY no configurada en producción")
-    SECRET_KEY = "insecure-dev-key-change-me"
-DEBUG = env_bool("DEBUG", False)
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY no está definida en .env")
+
+DEBUG = env_bool("DEBUG", False)  # Default FALSE por seguridad
 
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "*")
 CSRF_TRUSTED_ORIGINS = env_list(
@@ -282,4 +281,28 @@ if USE_S3:
     AWS_S3_FILE_OVERWRITE = False
     AWS_DEFAULT_ACL = None
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# ===== LOGGING =====
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'django.log',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
 
