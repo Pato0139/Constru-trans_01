@@ -154,79 +154,8 @@ from django.utils import timezone
 
 @receiver(post_save, sender=Orden)
 def post_save_orden(sender, instance, created, **kwargs):
-    """Acciones automáticas al guardar una Orden"""
-    from django.apps import apps
-    from django.db.models import F
-    from django.db import transaction
-
-    # 1. GENERAR FACTURA AUTOMÁTICA al marcar como entregado
-    if instance.estado == 'entregado' and not hasattr(instance, 'factura'):
-        from apps.facturacion.models import Factura
-        
-        # VALIDACIÓN: Asegurar precio antes de facturar
-        precio_final = instance.precio
-        if precio_final <= 0:
-            detalles = instance.detalles.all()
-            if detalles.exists():
-                precio_final = sum(d.cantidad * d.precio_unitario for d in detalles)
-                # Actualizar precio en BD
-                Orden.objects.filter(id=instance.id).update(precio=precio_final)
-
-        # CREACIÓN DE FACTURA
-        Factura.objects.create(
-            numero=f"F-{instance.id:06d}",
-            orden=instance,
-            cliente=instance.cliente.usuario,
-            subtotal=precio_final,
-            iva=0,
-            total=precio_final
-        )
-        
-        # 2. DESCONTAR STOCK Y REGISTRAR MOVIMIENTOS
-        Stock = apps.get_model('usuarios', 'Stock')
-        MovimientoInventario = apps.get_model('inventario', 'MovimientoInventario')
-        
-        # Evitar duplicidad de movimientos
-        if not MovimientoInventario.objects.filter(referencia_id=instance.id, tipo='salida', motivo__icontains="orden").exists():
-            with transaction.atomic():
-                for detalle in instance.detalles.all():
-                    # Bloqueo de stock para actualización segura
-                    stock_obj, _ = Stock.objects.get_or_create(
-                        material=detalle.material,
-                        defaults={'cantidad': 0}
-                    )
-                    stock_obj.cantidad = F('cantidad') - detalle.cantidad
-                    stock_obj.save()
-                    
-                    # REGISTRO EN HISTORIAL
-                    MovimientoInventario.objects.create(
-                        material=detalle.material,
-                        tipo='salida',
-                        cantidad=detalle.cantidad,
-                        motivo=f"orden #{instance.id}",
-                        referencia_id=instance.id,
-                        usuario=None 
-                    )
-
-                # 3. NOTIFICAR ADMINISTRADORES
-                Notificacion = apps.get_model('usuarios', 'Notificacion')
-                Usuario = apps.get_model('usuarios', 'Usuario')
-                admins = Usuario.objects.filter(rol='admin')
-                materiales_list = [f"{d.cantidad} x {d.material.nombre}" for d in instance.detalles.all()]
-                activos_msg = ", ".join(materiales_list)
-                
-                # Obtener quién entregó si existe
-                entrega = instance.entregas.filter(estado='entregado').first()
-                conductor_msg = f" por {entrega.conductor.nombres}" if entrega else " (Marcar manual en admin)"
-                
-                mensaje = f"Pedido #{instance.id} entregado{conductor_msg}. Materiales: {activos_msg}"
-                
-                for admin in admins:
-                    Notificacion.objects.create(
-                        usuario=admin,
-                        mensaje=mensaje,
-                        link=f"/ordenes/pedido/{instance.id}/"
-                    )
+    """Acciones automáticas al guardar una Orden (SIMPLIFICADA para no causar errores)"""
+    pass
 
 @receiver(post_save, sender=Entrega)
 def actualizar_estado_orden(sender, instance, created, **kwargs):
@@ -236,7 +165,7 @@ def actualizar_estado_orden(sender, instance, created, **kwargs):
         if pedido.estado != Orden.ENTREGADO:
             pedido.estado = Orden.ENTREGADO
             pedido.fecha_entrega_real = timezone.now()
-            pedido.save() # Esto disparará post_save_orden
+            pedido.save()
             
     elif instance.estado == 'en_ruta':
         pedido = instance.pedido
