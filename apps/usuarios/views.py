@@ -2,6 +2,21 @@ import os
 from functools import wraps
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
+from django.db.models import Sum, Q
+from django.utils.timezone import now
+from django.http import JsonResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+from .models import Usuario, Administrador, Conductor, Cliente, Material, Vehiculo, Stock, Proveedor
+from .utils import limpiar_telefono
+from .forms import LoginForm, RegistroForm, MaterialForm, ProveedorForm
+from apps.ordenes.models import Orden
+from apps.historial.utils import registrar_actividad
+
 
 def conexion_remota_disponible():
     """Función auxiliar para verificar si la conexión remota está disponible"""
@@ -16,6 +31,7 @@ def conexion_remota_disponible():
         return True
     except (OperationalError, ConnectionDoesNotExist, Exception):
         return False
+
 
 def admin_required(view_func):
     @wraps(view_func)
@@ -38,25 +54,6 @@ def admin_required(view_func):
                 return view_func(request, *args, **kwargs)
         raise PermissionDenied
     return _wrapped_view
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .models import Usuario, Administrador, Conductor, Cliente, Material, Vehiculo, Stock, Proveedor
-from .utils import limpiar_telefono
-from apps.ordenes.models import Orden
-
-# Proveedores logic moved to apps.compras
-
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-
-from django.db.models import Sum, Q
-from django.utils.timezone import now
-from django.contrib import messages
-from django.http import JsonResponse
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from apps.historial.utils import registrar_actividad
-from .forms import LoginForm, RegistroForm, MaterialForm, ProveedorForm
 
 def buscar_usuarios_generales(query=None):
     """

@@ -108,6 +108,24 @@ class Cliente(Usuario):
         verbose_name_plural = 'Clientes'
 
 
+# -------------------------
+# PERFIL CONDUCTOR
+# -------------------------
+class PerfilConductor(models.Model):
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='perfil_conductor')
+    numero_licencia = models.CharField(max_length=50, unique=True)
+    categoria_licencia = models.CharField(max_length=10)
+    fecha_vencimiento_licencia = models.DateField()
+    codigo_eps = models.CharField(max_length=50, null=True, blank=True)
+    nombre_eps = models.CharField(max_length=100, null=True, blank=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'perfil_conductor'
+
+    def __str__(self):
+        return f"Perfil Conductor: {self.usuario.nombres} {self.usuario.apellidos}"
+
 
 # -------------------------
 # VEHICULO

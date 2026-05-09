@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.management import call_command
-from .models import Usuario, Material, Stock, Notificacion
+from .models import Usuario, Material, Stock, Notificacion, PerfilConductor
 import threading
 import os
 
@@ -20,6 +20,12 @@ def create_material_stock(sender, instance, created, **kwargs):
     """Crea un registro de Stock cuando se crea un nuevo Material"""
     if created:
         Stock.objects.get_or_create(material=instance)
+
+@receiver(post_save, sender=Usuario)
+def crear_perfil_conductor(sender, instance, created, **kwargs):
+    """Crea un PerfilConductor cuando se crea un Usuario con rol='conductor'"""
+    if created and instance.rol == 'conductor':
+        PerfilConductor.objects.get_or_create(usuario=instance)
 
 # -------------------------
 # RESPALDO AUTOMÁTICO A JSON (Para el Repositorio)

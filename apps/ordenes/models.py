@@ -1,6 +1,4 @@
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.core.validators import MinValueValidator
 
 class Orden(models.Model):
@@ -146,29 +144,3 @@ class Entrega(models.Model):
 
     def __str__(self):
         return f"Entrega {self.id} - Orden {self.pedido.id}"
-
-
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.utils import timezone
-
-@receiver(post_save, sender=Orden)
-def post_save_orden(sender, instance, created, **kwargs):
-    """Acciones automáticas al guardar una Orden (SIMPLIFICADA para no causar errores)"""
-    pass
-
-@receiver(post_save, sender=Entrega)
-def actualizar_estado_orden(sender, instance, created, **kwargs):
-    """Actualiza el estado de la orden solo cuando la entrega cambia a 'entregado'"""
-    if instance.estado == 'entregado':
-        pedido = instance.pedido
-        if pedido.estado != Orden.ENTREGADO:
-            pedido.estado = Orden.ENTREGADO
-            pedido.fecha_entrega_real = timezone.now()
-            pedido.save()
-            
-    elif instance.estado == 'en_ruta':
-        pedido = instance.pedido
-        if pedido.estado != Orden.EN_RUTA:
-            pedido.estado = Orden.EN_RUTA
-            pedido.save()

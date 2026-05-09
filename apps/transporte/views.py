@@ -142,4 +142,3 @@ def desactivar_vehiculo(request, id):
         messages.success(request, f"Vehículo {vehiculo.placa} marcado como no disponible.")
         
     return redirect("transporte:lista_vehiculos")
-    return redirect("transporte:lista_vehiculos")

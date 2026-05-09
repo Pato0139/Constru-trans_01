@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Usuario, Material, Vehiculo, Administrador, Conductor, Cliente, Stock
+from .models import Usuario, Material, Vehiculo, Administrador, Conductor, Cliente, Stock, PerfilConductor
 
 class BaseUsuarioAdmin(admin.ModelAdmin):
     list_display = ('nombres', 'apellidos', 'user_email', 'rol', 'documento', 'estado')
@@ -48,3 +48,9 @@ class VehiculoAdmin(admin.ModelAdmin):
     list_display = ('placa', 'tipo', 'capacidad', 'estado')
     list_filter = ('tipo', 'estado')
     search_fields = ('placa',)
+
+@admin.register(PerfilConductor)
+class PerfilConductorAdmin(admin.ModelAdmin):
+    list_display = ('usuario', 'numero_licencia', 'categoria_licencia', 'fecha_vencimiento_licencia', 'nombre_eps')
+    list_filter = ('categoria_licencia', 'nombre_eps')
+    search_fields = ('usuario__nombres', 'usuario__apellidos', 'numero_licencia')
