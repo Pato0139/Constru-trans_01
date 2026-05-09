@@ -145,11 +145,12 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Mantener sesión al cerrar navegador
 SESSION_SAVE_EVERY_REQUEST = True  # Renovar sesión en cada interacción
 
 # Seguridad de Cookies (Ajustar según entorno)
-CSRF_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_HTTPONLY = True
+# En Render, las cookies seguras son necesarias para HTTPS
+CSRF_COOKIE_SECURE = False if DEBUG else True
+SESSION_COOKIE_SECURE = False if DEBUG else True
+CSRF_COOKIE_HTTPONLY = False  # Permitir JavaScript acceder a CSRF (mayor compatibilidad)
 SESSION_COOKIE_HTTPONLY = True
-CSRF_USE_SESSIONS = True  # Almacenar CSRF en la sesión para mayor compatibilidad
+CSRF_USE_SESSIONS = False  # No usar sesiones para CSRF (mejor compatibilidad móvil)
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 
