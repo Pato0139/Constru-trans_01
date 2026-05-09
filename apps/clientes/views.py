@@ -153,9 +153,30 @@ def crear_pedido(request):
                 "materiales": materiales,
                 "action": "crear"
             })
+        
+        if not materiales_ids or len(materiales_ids) == 0:
+            messages.error(request, "Debes agregar al menos un material al pedido.")
+            return render(request, "clientes/form.html", {
+                "materiales": materiales,
+                "action": "crear"
+            })
 
         try:
             total_general = 0
+
+            if not materiales_ids or len(materiales_ids) == 0:
+                messages.error(request, "Debes agregar al menos un material al pedido.")
+                return render(request, "clientes/form.html", {
+                    "materiales": materiales,
+                    "action": "crear"
+                })
+
+            if len(materiales_ids) != len(cantidades):
+                messages.error(request, "Error en los datos del formulario. Intenta nuevamente.")
+                return render(request, "clientes/form.html", {
+                    "materiales": materiales,
+                    "action": "crear"
+                })
 
             with transaction.atomic():
                 nueva_orden = Orden.objects.create(
@@ -168,11 +189,17 @@ def crear_pedido(request):
                 )
 
                 for m_id, cant in zip(materiales_ids, cantidades):
+                    if not m_id or not cant:
+                        continue
+                        
                     # Bloqueamos la fila de stock para evitar sobreventa simultánea
                     material = get_object_or_404(Material, id=m_id)
                     stock_obj = Stock.objects.select_for_update().get(material=material)
                     
-                    cantidad = int(cant)
+                    try:
+                        cantidad = int(cant)
+                    except (ValueError, TypeError):
+                        raise ValueError(f"Cantidad inválida para {material.nombre}")
 
                     if cantidad <= 0:
                         raise ValueError(f"La cantidad para {material.nombre} debe ser mayor a 0.")

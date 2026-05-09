@@ -116,8 +116,7 @@
                             <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Fecha y Hora Programada</label>
                             <div class="input-group">
                                 <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-calendar-event"></i></span>
-                                <input type="datetime-local" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" 
-                                    value="{% if action == 'editar' %}{{ orden.fecha_entrega_programada|date:'Y-m-d\TH:i' }}{% endif %}" required>
+                                <input type="datetime-local" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;">
                             </div>
                         </div>
                     </div>
