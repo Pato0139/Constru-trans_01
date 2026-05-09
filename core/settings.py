@@ -22,10 +22,10 @@ if not SECRET_KEY or SECRET_KEY == "insecure-dev-key-change-me":
     SECRET_KEY = "insecure-dev-key-change-me"
 DEBUG = env_bool("DEBUG", False)
 
-ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "127.0.0.1,localhost,.onrender.com")
+ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "*")
 CSRF_TRUSTED_ORIGINS = env_list(
     "CSRF_TRUSTED_ORIGINS", 
-    "http://127.0.0.1:8000,http://localhost:8000,https://*.onrender.com"
+    "*"
 )
 
 INSTALLED_APPS = [
