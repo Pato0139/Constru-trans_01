@@ -65,7 +65,7 @@ class RegistroForm(forms.ModelForm):
 class MaterialForm(forms.ModelForm):
     class Meta:
         model = Material
-        fields = ['nombre', 'tipo', 'descripcion', 'precio']
+        fields = ['nombre', 'tipo', 'marca', 'unidad_medida', 'color', 'descripcion', 'precio_referencia', 'catalogo']
         widgets = {
             'nombre': forms.TextInput(attrs={
                 'class': 'form-control', 
@@ -83,13 +83,28 @@ class MaterialForm(forms.ModelForm):
                 'class': 'form-select',
                 'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
             }),
+            'marca': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Marca del material',
+                'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
+            }),
+            'unidad_medida': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'kg, m³, unidades, etc.',
+                'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
+            }),
+            'color': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Color del material (opcional)',
+                'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
+            }),
             'descripcion': forms.Textarea(attrs={
                 'class': 'form-control', 
                 'rows': 3,
                 'placeholder': 'Descripción detallada...',
                 'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
             }),
-            'precio': forms.NumberInput(attrs={
+            'precio_referencia': forms.NumberInput(attrs={
                 'class': 'form-control numeric-only', 
                 'step': '0.01',
                 'placeholder': '0.00',

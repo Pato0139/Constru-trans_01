@@ -43,7 +43,7 @@
                             <select id="select-material" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;">
                                 <option value="" data-precio="0">Seleccione un material...</option>
                                 {% for m in materiales %}
-                                    <option value="{{ m.id }}" data-precio="{{ m.precio }}">{{ m.nombre }} - {{ m.precio|currency }}</option>
+                                    <option value="{{ m.id }}" data-precio="{{ m.precio_referencia }}">{{ m.nombre }} - {{ m.precio_referencia|currency }}</option>
                                 {% endfor %}
                             </select>
                         </div>

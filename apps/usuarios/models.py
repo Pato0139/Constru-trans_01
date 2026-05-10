@@ -109,15 +109,36 @@ class Cliente(Usuario):
 
 
 # -------------------------
+# EPS
+# -------------------------
+class EPS(models.Model):
+    codigo_eps = models.CharField(max_length=20, primary_key=True)
+    nombre_eps = models.CharField(max_length=100)
+    ciudad = models.CharField(max_length=100)
+    direccion = models.CharField(max_length=200)
+    telefono = models.CharField(max_length=20)
+    correo = models.EmailField()
+
+    class Meta:
+        db_table = 'eps'
+        verbose_name_plural = "EPS"
+
+    def __str__(self):
+        return self.nombre_eps
+
+
+# -------------------------
 # PERFIL CONDUCTOR
 # -------------------------
 class PerfilConductor(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='perfil_conductor')
     numero_licencia = models.CharField(max_length=50, unique=True)
     categoria_licencia = models.CharField(max_length=10)
+    tipo_licencia = models.CharField(max_length=20)
     fecha_vencimiento_licencia = models.DateField()
-    codigo_eps = models.CharField(max_length=50, null=True, blank=True)
-    nombre_eps = models.CharField(max_length=100, null=True, blank=True)
+    telefono_empresa = models.CharField(max_length=20, blank=True)
+    fecha_ingreso = models.DateField(null=True, blank=True)
+    eps = models.ForeignKey(EPS, on_delete=models.SET_NULL, null=True, blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -128,13 +149,33 @@ class PerfilConductor(models.Model):
 
 
 # -------------------------
+# CONDUCTOR_VEHICULO (Tabla puente)
+# -------------------------
+class ConductorVehiculo(models.Model):
+    conductor = models.ForeignKey(Usuario, on_delete=models.CASCADE, limit_choices_to={'rol': 'conductor'}, related_name='asignaciones_vehiculo')
+    vehiculo = models.ForeignKey('Vehiculo', on_delete=models.CASCADE, related_name='asignaciones_conductor')
+    fecha_asignacion = models.DateTimeField(auto_now_add=True)
+    fecha_fin = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'conductor_vehiculo'
+        ordering = ['-fecha_asignacion']
+
+    def __str__(self):
+        return f"{self.conductor} - {self.vehiculo.placa}"
+
+
+# -------------------------
 # VEHICULO
 # -------------------------
 class Vehiculo(models.Model):
 
     placa = models.CharField(max_length=10, unique=True)
-    tipo = models.CharField(max_length=50)
-    capacidad = models.CharField(max_length=50)
+    marca = models.CharField(max_length=50)
+    modelo = models.CharField(max_length=50)
+    tipo_vehiculo = models.CharField(max_length=50)
+    capacidad_carga = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
     
     ESTADOS_VEHICULO = [
         ('disponible', 'Disponible'),
@@ -178,7 +219,21 @@ class Vehiculo(models.Model):
         db_table = 'vehiculo'
 
     def __str__(self):
-        return f"{self.placa} ({self.tipo})"
+        return f"{self.placa} ({self.marca} {self.modelo})"
+
+
+# -------------------------
+# CATALOGO
+# -------------------------
+class Catalogo(models.Model):
+    codigo_catalogo = models.CharField(max_length=20, primary_key=True)
+    nombre_empresa = models.CharField(max_length=150)
+
+    class Meta:
+        db_table = 'catalogo'
+
+    def __str__(self):
+        return self.nombre_empresa
 
 
 # -------------------------
@@ -205,9 +260,12 @@ class Proveedor(models.Model):
 class Material(models.Model):
     nombre = models.CharField(max_length=100)
     tipo = models.CharField(max_length=50)
+    marca = models.CharField(max_length=50, blank=True)
+    unidad_medida = models.CharField(max_length=20)
+    color = models.CharField(max_length=30, blank=True)
     descripcion = models.TextField()
 
-    precio = models.DecimalField(
+    precio_referencia = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[
@@ -215,6 +273,7 @@ class Material(models.Model):
             MaxValueValidator(100000000)
         ]
     )
+    catalogo = models.ForeignKey(Catalogo, on_delete=models.SET_NULL, null=True, blank=True, related_name='materiales')
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
@@ -240,6 +299,7 @@ class Stock(models.Model):
             MaxValueValidator(100000)
         ]
     )
+    stock_minimo = models.IntegerField(default=10, validators=[MinValueValidator(0)])
     ubicacion = models.CharField(max_length=100, default='Bodega Principal')
     ultima_actualizacion = models.DateTimeField(auto_now=True)
 
