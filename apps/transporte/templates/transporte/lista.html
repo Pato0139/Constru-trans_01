@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Vehículos - ConstruTrans{% endblock %}
+
+{% block content %}
+
+<div class="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <h2 class="fw-bold text-white mb-0">Gestión de Vehículos</h2>
+    
+    <div class="d-flex flex-column flex-md-row gap-2 align-items-center">
+        <form method="GET" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control form-control-sm bg-dark text-white border-secondary" style="width: 200px;" placeholder="Buscar placa, tipo o conductor..." value="{{ query|default:'' }}">
+            
+            <select name="estado" class="form-select form-select-sm bg-dark text-white border-secondary" style="width: 150px;" onchange="this.form.submit()">
+                <option value="">Todos los estados</option>
+                <option value="disponible" {% if estado_actual == 'disponible' %}selected{% endif %}>Disponible</option>
+                <option value="en_ruta" {% if estado_actual == 'en_ruta' %}selected{% endif %}>En Ruta</option>
+                <option value="mantenimiento" {% if estado_actual == 'mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+            </select>
+            
+            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+
+        <a href="{% url 'transporte:crear_vehiculo' %}" class="btn btn-premium px-4 fw-bold d-flex align-items-center gap-2" style="border-radius: var(--radius-lg); background: var(--color-primary); color: white; border: none; text-decoration: none;">
+            <i class="bi bi-plus-lg"></i> CREAR VEHÍCULO
+        </a>
+    </div>
+</div>
+
+<div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
+    <div class="table-responsive">
+        <table class="table table-dark mb-0">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <th class="p-4 text-muted small fw-bold">ID</th>
+                    <th class="p-4 text-muted small fw-bold">Placa</th>
+                    <th class="p-4 text-muted small fw-bold">Tipo</th>
+                    <th class="p-4 text-muted small fw-bold">Capacidad</th>
+                    <th class="p-4 text-muted small fw-bold">Estado</th>
+                    <th class="p-4 text-muted small fw-bold">Conductor</th>
+                    <th class="p-4 text-muted small fw-bold">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in vehiculos %}
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <td class="p-4 fw-bold">#{{ v.id }}</td>
+                    <td class="p-4"><span class="badge bg-dark border border-secondary px-3 py-2">{{ v.placa }}</span></td>
+                    <td class="p-4">{{ v.tipo }}</td>
+                    <td class="p-4 text-muted">{{ v.capacidad }}</td>
+                    <td class="p-4">
+                        {% if v.estado == 'disponible' %}
+                            <span class="badge bg-success-subtle text-success px-3">Disponible</span>
+                        {% elif v.estado == 'en_ruta' %}
+                            <span class="badge bg-warning-subtle text-warning px-3">En Ruta</span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger px-3">{{ v.estado|title }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        {% if v.conductor %}
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold text-white" style="width: 32px; height: 32px; font-size: 0.8rem; overflow: hidden; border: 1px solid var(--color-primary);">
+                                    {% if v.conductor.foto_perfil %}
+                                        <img src="{{ v.conductor.foto_perfil.url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        {{ v.conductor.nombres|first }}{{ v.conductor.apellidos|first }}
+                                    {% endif %}
+                                </div>
+                                <span>{{ v.conductor.nombres }} {{ v.conductor.apellidos }}</span>
+                            </div>
+                        {% else %}
+                            <span class="text-muted small italic">Sin asignar</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4">
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'transporte:editar_vehiculo' v.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if v.estado == 'disponible' %}
+                            <a href="{% url 'transporte:desactivar_vehiculo' v.id %}" class="btn btn-sm btn-outline-warning rounded-pill px-3" title="Desactivar">
+                                <i class="bi bi-slash-circle"></i>
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'transporte:eliminar_vehiculo' v.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3 confirm-delete" data-title="¿Eliminar vehículo?" data-text="¿Estás seguro de que deseas eliminar el vehículo {{ v.placa }}?" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-truck mb-3 d-block" style="font-size: 3rem; opacity: 0.3;"></i>
+                        No hay vehículos registrados en el sistema
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

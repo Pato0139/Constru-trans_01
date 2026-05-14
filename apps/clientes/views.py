@@ -1,0 +1,386 @@
+import os
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
+from django.db.models import Sum, F
+from django.contrib import messages
+from apps.ordenes.models import Orden, DetalleOrden
+from apps.ordenes.utils import revertir_stock_pedido
+from apps.usuarios.models import Material, Usuario, Stock
+from .models import Cliente
+from django.db import transaction
+
+def conexion_remota_disponible():
+    """Función auxiliar para verificar si la conexión remota está disponible"""
+    try:
+        from django.db import connections
+        from django.db.utils import OperationalError, ConnectionDoesNotExist
+        if 'remota' not in connections:
+            return False
+        if not os.getenv("DB_ENGINE") or not os.getenv("DB_PASSWORD"):
+            return False
+        connections['remota'].ensure_connection()
+        return True
+    except (OperationalError, ConnectionDoesNotExist, Exception):
+        return False
+
+@login_required
+def panel_cliente(request):
+    try:
+        usuario = request.user.usuario
+        # Intentamos obtener el perfil de cliente, si no existe lo creamos (Modo Resiliente)
+        try:
+            cliente, created = Cliente.objects.get_or_create(usuario=usuario)
+        except Exception as e_c:
+            if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
+                from django.db import connections
+                with connections['remota'].cursor() as cursor:
+                    cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
+                cliente, created = Cliente.objects.get_or_create(usuario=usuario)
+            else:
+                raise e_c
+    except (Usuario.DoesNotExist, AttributeError):
+        # Si no tiene perfil de usuario base, intentamos crearlo para superusuarios o redirigir
+        if request.user.is_superuser:
+            return redirect("usuarios:panel")
+        logout(request)
+        messages.error(request, "Su cuenta no tiene un perfil de usuario asignado.")
+        return redirect("usuarios:login")
+    except Exception as e:
+        messages.error(request, f"Error al cargar el panel: {str(e)}")
+        return redirect("usuarios:login")
+        
+    pedidos = Orden.objects.filter(cliente=cliente)
+    context = {
+        "pedidos_activos": pedidos.filter(estado="pendiente").count(),
+        "entregadas": pedidos.filter(estado="entregado").count(),
+        "total_gastado": pedidos.aggregate(total=Sum("precio"))["total"] or 0,
+        "ultimos_pedidos": pedidos.select_related('conductor').order_by("-fecha")[:5]
+    }
+    return render(request, "clientes/lista.html", context)
+
+@login_required
+def mis_pedidos(request):
+    try:
+        cliente = request.user.usuario.perfil_cliente
+    except AttributeError:
+        messages.error(request, "No tienes un perfil de cliente asociado.")
+        return redirect("usuarios:panel")
+        
+    pedidos = Orden.objects.filter(
+        cliente=cliente
+    ).select_related('conductor').order_by("-fecha")
+    return render(request, "clientes/mis_pedidos.html", {
+        "pedidos": pedidos
+    })
+
+@login_required
+def perfil_cliente(request):
+    try:
+        usuario = request.user.usuario
+        cliente_perfil = usuario.perfil_cliente
+    except (Usuario.DoesNotExist, AttributeError):
+        logout(request)
+        return redirect("usuarios:login")
+        
+    pedidos = Orden.objects.filter(cliente=cliente_perfil)
+    
+    context = {
+        "cliente": usuario,
+        "total_pedidos": pedidos.count(),
+        "pedidos_pendientes": pedidos.filter(estado="pendiente").count(),
+        "en_ruta": pedidos.filter(estado="en_ruta").count(),
+        "total_invertido": pedidos.aggregate(total=Sum("precio"))["total"] or 0
+    }
+    
+    return render(request, "clientes/detalle.html", context)
+
+@login_required
+def seguimiento_pedidos(request):
+    try:
+        cliente = request.user.usuario.perfil_cliente
+    except AttributeError:
+        messages.error(request, "No tienes un perfil de cliente asociado.")
+        return redirect("usuarios:panel")
+        
+    pedidos = Orden.objects.filter(cliente=cliente).select_related('conductor').order_by("-fecha")
+    return render(request, "clientes/seguimiento.html", {
+        "pedidos": pedidos
+    })
+
+@login_required
+def historial_pedidos(request):
+    try:
+        cliente = request.user.usuario.perfil_cliente
+    except AttributeError:
+        messages.error(request, "No tienes un perfil de cliente asociado.")
+        return redirect("usuarios:panel")
+        
+    pedidos = Orden.objects.filter(
+        cliente=cliente, 
+        estado="entregado"
+    ).select_related('conductor').order_by("-fecha")
+    return render(request, "clientes/historial.html", {
+        "pedidos": pedidos
+    })
+
+@login_required
+def crear_pedido(request):
+    # Restricción: Solo clientes pueden solicitar pedidos
+    usuario = request.user.usuario
+    if usuario.rol != 'cliente':
+        messages.error(request, "Solo los clientes pueden solicitar nuevos pedidos.")
+        return redirect("usuarios:panel")
+        
+    try:
+        cliente = usuario.perfil_cliente
+    except AttributeError:
+        messages.error(request, "No tienes un perfil de cliente asociado.")
+        return redirect("usuarios:panel")
+        
+    materiales = Material.objects.filter(stock_info__cantidad__gt=0).select_related('stock_info')
+
+    if request.method == "POST":
+        materiales_ids = request.POST.getlist('material_id[]')
+        cantidades = request.POST.getlist('cantidad[]')
+        direccion = request.POST.get("direccion")
+        fecha_entrega = request.POST.get("fecha_entrega")
+        metodo_pago = request.POST.get("metodo_pago", "efectivo")
+
+        if not materiales_ids or not direccion:
+            messages.error(request, "Por favor, agrega al menos un material y la dirección.")
+            return render(request, "clientes/form.html", {
+                "materiales": materiales,
+                "action": "crear"
+            })
+        
+        if not materiales_ids or len(materiales_ids) == 0:
+            messages.error(request, "Debes agregar al menos un material al pedido.")
+            return render(request, "clientes/form.html", {
+                "materiales": materiales,
+                "action": "crear"
+            })
+
+        try:
+            total_general = 0
+
+            if not materiales_ids or len(materiales_ids) == 0:
+                messages.error(request, "Debes agregar al menos un material al pedido.")
+                return render(request, "clientes/form.html", {
+                    "materiales": materiales,
+                    "action": "crear"
+                })
+
+            if len(materiales_ids) != len(cantidades):
+                messages.error(request, "Error en los datos del formulario. Intenta nuevamente.")
+                return render(request, "clientes/form.html", {
+                    "materiales": materiales,
+                    "action": "crear"
+                })
+
+            with transaction.atomic():
+                nueva_orden = Orden.objects.create(
+                    cliente=cliente,
+                    direccion_origen="Bodega Central",
+                    direccion_destino=direccion,
+                    estado="pendiente",
+                    fecha_entrega_programada=fecha_entrega if fecha_entrega else None,
+                    metodo_pago=metodo_pago
+                )
+
+                for m_id, cant in zip(materiales_ids, cantidades):
+                    if not m_id or not cant:
+                        continue
+                        
+                    # Bloqueamos la fila de stock para evitar sobreventa simultánea
+                    material = get_object_or_404(Material, id=m_id)
+                    stock_obj = Stock.objects.select_for_update().get(material=material)
+                    
+                    try:
+                        cantidad = int(cant)
+                    except (ValueError, TypeError):
+                        raise ValueError(f"Cantidad inválida para {material.nombre}")
+
+                    if cantidad <= 0:
+                        raise ValueError(f"La cantidad para {material.nombre} debe ser mayor a 0.")
+
+                    if stock_obj.cantidad < cantidad:
+                        raise ValueError(f"Stock insuficiente para {material.nombre}. Quedan {stock_obj.cantidad}.")
+
+                    precio_unitario = material.precio
+                    total_item = precio_unitario * cantidad
+                    total_general += total_item
+
+                    DetalleOrden.objects.create(
+                        orden=nueva_orden,
+                        material=material,
+                        cantidad=cantidad,
+                        precio_unitario=precio_unitario
+                    )
+                    
+                    # Descontamos stock sobre el objeto Stock
+                    stock_obj.cantidad = F('cantidad') - cantidad
+                    stock_obj.save()
+
+                    # HU-18: Registrar movimiento de salida
+                    from apps.inventario.models import MovimientoInventario
+                    MovimientoInventario.objects.create(
+                        material=material,
+                        tipo='salida',
+                        cantidad=cantidad,
+                        motivo=f"orden #{nueva_orden.id}",
+                        referencia_id=nueva_orden.id,
+                        usuario=request.user
+                    )
+
+                nueva_orden.precio = total_general
+                nueva_orden.save()
+
+            messages.success(request, f"Pedido #{nueva_orden.id} creado correctamente.")
+            return redirect("clientes:mis_pedidos")
+
+        except ValueError as e:
+            messages.error(request, str(e))
+            return render(request, "clientes/form.html", {
+                "materiales": materiales,
+                "action": "crear"
+            })
+        except Exception as e:
+            messages.error(request, f"Error interno: {e}")
+            return render(request, "clientes/form.html", {
+                "materiales": materiales,
+                "action": "crear"
+            })
+
+    return render(request, "clientes/form.html", {
+        "materiales": materiales,
+        "action": "crear"
+    })
+
+@login_required
+def editar_pedido(request, id):
+    orden = get_object_or_404(Orden, id=id)
+    materiales = Material.objects.filter(stock__cantidad__gt=0)
+    
+    # Seguridad: Solo el dueño o admin pueden editar y solo si está pendiente
+    es_admin = request.user.usuario.rol == 'admin'
+    es_dueno = False
+    try:
+        es_dueno = request.user.usuario.perfil_cliente == orden.cliente
+    except AttributeError:
+        pass
+
+    if not (es_admin or es_dueno) or orden.estado != 'pendiente':
+        messages.error(request, "No tienes permiso para editar este pedido o el pedido ya no se puede modificar.")
+        if es_admin:
+            return redirect("ordenes:lista_pedidos_admin")
+        return redirect("clientes:mis_pedidos")
+
+    if request.method == "POST":
+        materiales_ids = request.POST.getlist('material_id[]')
+        cantidades = request.POST.getlist('cantidad[]')
+        direccion = request.POST.get("direccion")
+        fecha_entrega = request.POST.get("fecha_entrega")
+        metodo_pago = request.POST.get("metodo_pago", "efectivo")
+
+        if not materiales_ids or not direccion:
+            messages.error(request, "Datos incompletos.")
+            return render(request, "clientes/form.html", {
+                "orden": orden,
+                "materiales": materiales,
+                "action": "editar"
+            })
+
+        try:
+            with transaction.atomic():
+                # Devolver stock de los detalles anteriores
+                for detalle in orden.detalles.all():
+                    stock_obj = Stock.objects.select_for_update().get(material=detalle.material)
+                    stock_obj.cantidad = F('cantidad') + detalle.cantidad
+                    stock_obj.save()
+                
+                # Eliminar detalles antiguos
+                orden.detalles.all().delete()
+
+                total_general = 0
+                for m_id, cant in zip(materiales_ids, cantidades):
+                    material = get_object_or_404(Material, id=m_id)
+                    stock_obj = Stock.objects.select_for_update().get(material=material)
+                    cantidad = int(cant)
+
+                    if stock_obj.cantidad < cantidad:
+                        raise ValueError(f"Stock insuficiente para {material.nombre}")
+
+                    DetalleOrden.objects.create(
+                        orden=orden,
+                        material=material,
+                        cantidad=cantidad,
+                        precio_unitario=material.precio
+                    )
+                    
+                    stock_obj.cantidad = F('cantidad') - cantidad
+                    stock_obj.save()
+                    total_general += material.precio * cantidad
+
+                orden.direccion_destino = direccion
+                orden.fecha_entrega_programada = fecha_entrega if fecha_entrega else None
+                orden.metodo_pago = metodo_pago
+                orden.precio = total_general
+                orden.save()
+
+            messages.success(request, f"Pedido #{orden.id} actualizado correctamente.")
+            if es_admin:
+                return redirect("ordenes:lista_pedidos_admin")
+            return redirect("clientes:mis_pedidos")
+
+        except Exception as e:
+            messages.error(request, f"Error al actualizar el pedido: {e}")
+            
+    return render(request, "clientes/form.html", {
+        "orden": orden,
+        "materiales": materiales,
+        "action": "editar"
+    })
+
+@login_required
+def cancelar_pedido(request, id):
+    orden = get_object_or_404(Orden, id=id)
+    
+    # Seguridad: Solo el dueño o admin pueden cancelar y solo si está pendiente
+    es_admin = request.user.usuario.rol == 'admin'
+    es_dueno = False
+    try:
+        es_dueno = request.user.usuario.perfil_cliente == orden.cliente
+    except AttributeError:
+        pass
+
+    if not (es_admin or es_dueno):
+        messages.error(request, "No tienes permiso para cancelar este pedido.")
+        if es_admin:
+            return redirect("ordenes:lista_pedidos_admin")
+        return redirect("clientes:mis_pedidos")
+
+    if orden.estado != 'pendiente':
+        messages.error(request, "Solo se pueden cancelar pedidos en estado pendiente.")
+        if es_admin:
+            return redirect("ordenes:lista_pedidos_admin")
+        return redirect("clientes:mis_pedidos")
+
+    try:
+        with transaction.atomic():
+            # Devolver stock usando la utilidad unificada
+            revertir_stock_pedido(orden, request.user)
+
+            orden.estado = "cancelado"
+            orden.save()
+            
+            from apps.historial.utils import registrar_actividad
+            registrar_actividad(request, 'cancelar_pedido', 'pedidos', orden.id, f"Pedido #{orden.id} cancelado por {'admin' if es_admin else 'cliente'}")
+
+        messages.warning(request, f"Pedido #{orden.id} ha sido cancelado y el stock ha sido devuelto.")
+    except Exception as e:
+        messages.error(request, f"Error al cancelar el pedido: {e}")
+
+    if es_admin:
+        return redirect("ordenes:lista_pedidos_admin")
+    return redirect("clientes:mis_pedidos")
