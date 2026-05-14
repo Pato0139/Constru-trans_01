@@ -7,15 +7,15 @@ from .models import Usuario
 @receiver(post_save, sender=User)
 def crear_usuario_perfil(sender, instance, created, **kwargs):
     if created:
-        from apps.usuarios.models import Rol
-        rol_default, _ = Rol.objects.get_or_create(nombre_rol='empleado')
         Usuario.objects.get_or_create(
             user=instance,
             defaults={
-                'nombre': instance.username,
-                'correo': instance.email if instance.email else f"{instance.username}@ejemplo.com",
+                'nombres': instance.first_name or instance.username,
+                'apellidos': instance.last_name or '',
+                'telefono': '',
                 'documento': '00000000',
                 'tipo_documento': 'CC',
-                'rol': rol_default
+                'rol': 'empleado',
+                'estado': 'activo'
             }
         )

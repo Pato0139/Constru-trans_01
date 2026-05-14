@@ -29,8 +29,6 @@ def conexion_remota_disponible():
         from django.db.utils import OperationalError, ConnectionDoesNotExist
         if 'remota' not in connections:
             return False
-        if not os.getenv("DB_ENGINE") or not os.getenv("DB_PASSWORD"):
-            return False
         connections['remota'].ensure_connection()
         return True
     except (OperationalError, ConnectionDoesNotExist, Exception):

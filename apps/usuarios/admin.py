@@ -1,20 +1,18 @@
 
 from django.contrib import admin
-from .models import Rol, Usuario, EPS, Conductor, Vehiculo, ConductorVehiculo
+from .models import Usuario, EPS, Conductor, Vehiculo, ConductorVehiculo
 from .models import Catalogo, Proveedor, MaterialConstruccion, Stock, MetodoPago, Notificacion
-
-
-@admin.register(Rol)
-class RolAdmin(admin.ModelAdmin):
-    list_display = ('id_rol', 'nombre_rol')
-    search_fields = ('nombre_rol',)
 
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'correo', 'documento', 'rol', 'estado')
+    list_display = ('nombres', 'apellidos', 'get_email', 'documento', 'rol', 'estado')
     list_filter = ('rol', 'estado', 'tipo_documento')
-    search_fields = ('nombre', 'correo', 'documento')
+    search_fields = ('nombres', 'apellidos', 'documento')
+    
+    def get_email(self, obj):
+        return obj.user.email
+    get_email.short_description = 'Correo'
 
 
 # Registra los demás:

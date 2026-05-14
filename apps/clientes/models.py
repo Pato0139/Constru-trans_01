@@ -31,13 +31,13 @@ class Cliente(models.Model):
         db_table = 'cliente'
 
     def __str__(self):
-        return self.usuario.nombre
+        return self.usuario.nombres
 
 
 @receiver(post_save, sender='usuarios.Usuario')
 def crear_perfil_cliente(sender, instance, created, **kwargs):
     """Auto-crea perfil Cliente si el usuario tiene rol 'cliente'."""
-    if created and instance.rol and instance.rol.nombre_rol == 'cliente':
+    if created and instance.rol == 'cliente':
         Cliente.objects.get_or_create(
             usuario=instance,
             defaults={'direccion_principal': 'Por definir'}

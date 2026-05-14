@@ -1,14 +1,14 @@
 
 from django import forms
 from django.contrib.auth.models import User
-from .models import Usuario, Rol, MaterialConstruccion, Proveedor
+from .models import Usuario, MaterialConstruccion, Proveedor
 from .utils import limpiar_telefono
 
 
 class UsuarioForm(forms.ModelForm):
     class Meta:
         model = Usuario
-        fields = ['nombre', 'correo', 'telefono', 'documento',
+        fields = ['nombres', 'apellidos', 'telefono', 'documento',
                   'tipo_documento', 'rol', 'estado', 'foto_perfil']
         widgets = {
             'rol': forms.Select(attrs={'class': 'form-select'}),
@@ -29,9 +29,10 @@ class RegistroForm(forms.ModelForm):
 
     class Meta:
         model = Usuario
-        fields = ['nombre', 'tipo_documento', 'documento', 'telefono']
+        fields = ['nombres', 'apellidos', 'tipo_documento', 'documento', 'telefono']
         widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'input-custom', 'placeholder': 'Juan Pérez'}),
+            'nombres': forms.TextInput(attrs={'class': 'input-custom', 'placeholder': 'Juan'}),
+            'apellidos': forms.TextInput(attrs={'class': 'input-custom', 'placeholder': 'Pérez'}),
             'tipo_documento': forms.Select(attrs={'class': 'input-custom form-select'}),
             'documento': forms.TextInput(attrs={
                 'class': 'input-custom',

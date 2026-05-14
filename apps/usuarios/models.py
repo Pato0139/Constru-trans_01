@@ -11,23 +11,8 @@ numeric_and_space_validator = RegexValidator(
 
 
 # =====================================================================
-# ROL  (MER: #ID_rol *nombre_rol)
-# =====================================================================
-class Rol(models.Model):
-    id_rol = models.AutoField(primary_key=True)
-    nombre_rol = models.CharField(max_length=50, unique=True)
-
-    class Meta:
-        db_table = 'rol'
-        verbose_name_plural = "Roles"
-
-    def __str__(self):
-        return self.nombre_rol
-
-
-# =====================================================================
-# USUARIO  (MER: #id_usuario *nombre *correo *telefono *documento *contraseña)
-# Un usuario tiene UN solo rol (FK simple 1:N).
+# USUARIO  (MER: #id_usuario *nombres *apellidos *telefono *documento *contraseña)
+# Un usuario tiene UN solo rol (VARCHAR).
 # =====================================================================
 class Usuario(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="usuario")
@@ -45,15 +30,21 @@ class Usuario(models.Model):
         ('inactivo', 'Inactivo'),
         ('suspendido', 'Suspendido'),
     ]
+    ROLES = [
+        ('admin', 'Admin'),
+        ('cliente', 'Cliente'),
+        ('conductor', 'Conductor'),
+        ('empleado', 'Empleado'),
+    ]
 
-    # Campos del MER
-    nombre = models.CharField(max_length=200)
-    correo = models.EmailField(unique=True)
-    telefono = models.CharField(max_length=20, blank=True, validators=[numeric_and_space_validator])
+    # Campos del MER - match remote database schema EXACTLY
+    nombres = models.CharField(max_length=200)
+    apellidos = models.CharField(max_length=200)
+    telefono = models.CharField(max_length=20, blank=True)
     documento = models.CharField(max_length=20, validators=[numeric_and_space_validator])
-
-    # FK a Rol (1:N) — un usuario tiene UN solo rol
-    rol = models.ForeignKey(Rol, on_delete=models.PROTECT, related_name='usuarios')
+    
+    # Rol is a VARCHAR column, not a foreign key!
+    rol = models.CharField(max_length=50, choices=ROLES)
 
     # Fuera del MER pero útil — NO se toca
     tipo_documento = models.CharField(max_length=5, choices=TIPOS_DOCUMENTO)
@@ -67,7 +58,7 @@ class Usuario(models.Model):
 
     @property
     def iniciales(self):
-        partes = self.nombre.split()
+        partes = self.nombres.split()
         return "".join([p[0].upper() for p in partes[:2]]) or "?"
 
     @property
@@ -78,33 +69,29 @@ class Usuario(models.Model):
 
     @property
     def es_admin(self):
-        return self.rol.nombre_rol == 'admin'
+        return self.rol == 'admin'
 
     @property
     def es_conductor(self):
-        return self.rol.nombre_rol == 'conductor'
+        return self.rol == 'conductor'
 
     @property
     def es_cliente(self):
-        return self.rol.nombre_rol == 'cliente'
+        return self.rol == 'cliente'
 
     @property
     def es_empleado(self):
-        return self.rol.nombre_rol == 'empleado'
+        return self.rol == 'empleado'
 
     @property
-    def nombres(self):
-        return self.nombre
-    
-    @property
-    def apellidos(self):
-        return ""
+    def nombre(self):
+        return self.nombres
 
     class Meta:
         db_table = 'usuario'
 
     def __str__(self):
-        return f"{self.nombre} ({self.rol.nombre_rol})"
+        return f"{self.nombres} {self.apellidos} ({self.rol})"
 
 
 # =====================================================================
@@ -147,7 +134,7 @@ class Conductor(models.Model):
         db_table = 'conductor'
 
     def __str__(self):
-        return f"Conductor: {self.usuario.nombre}"
+        return f"Conductor: {self.usuario.nombres}"
 
 
 # =====================================================================

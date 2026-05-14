@@ -53,7 +53,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    'axes',
+    # 'axes',  # Desactivado temporalmente para evitar bloqueos
     'django_otp',
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
@@ -92,7 +92,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
-    'axes.middleware.AxesMiddleware',
+    # 'axes.middleware.AxesMiddleware',  # Desactivado temporalmente
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -163,7 +163,7 @@ PASSWORD_HASHERS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'axes.backends.AxesStandaloneBackend',
+    # 'axes.backends.AxesStandaloneBackend',  # Desactivado temporalmente
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -190,7 +190,6 @@ LOGOUT_REDIRECT_URL = '/usuarios/login/'
 # ============================================================
 AXES_FAILURE_LIMIT = env('AXES_FAILURE_LIMIT')
 AXES_COOLOFF_TIME = env('AXES_COOLOFF_TIME')
-AXES_LOCKOUT_TEMPLATE = 'registration/locked_out.html'
 AXES_RESET_ON_SUCCESS = True
 
 # ============================================================
