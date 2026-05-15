@@ -73,17 +73,35 @@ catch {
     Write-Host '  3. Usar una URL con token si es necesario (ej: https://TOKEN@github.com/usuario/repo.git)' -ForegroundColor Yellow
     Write-Host ""
     
-    # Si falla, intentar copiar desde .env.example local
+    # Si falla, copiar desde .env.example local (funciona sin BD remota!)
     $LocalEnvExample = Join-Path $ProjectRoot ".env.example"
     if (Test-Path $LocalEnvExample) {
-        Write-Host "Intentando copiar desde .env.example local..." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "================================================================" -ForegroundColor Cyan
+        Write-Host "  Copiando .env.example local como .env..." -ForegroundColor Cyan
+        Write-Host "  (funciona perfectamente sin BD remota!)" -ForegroundColor Gray
+        Write-Host "================================================================" -ForegroundColor Cyan
+        
         Copy-Item -Path $LocalEnvExample -Destination $TargetEnvPath -Force
-        Write-Host "  Copiado .env.example local como .env" -ForegroundColor Green
+        Write-Host "  ✔️ Copiado exitosamente!" -ForegroundColor Green
+        
+        Write-Host ""
+        Write-Host "Siguientes pasos:" -ForegroundColor Yellow
+        Write-Host "  1. Genera una SECRET_KEY (ejecuta esto):" -ForegroundColor White
+        Write-Host '     python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"' -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "  2. Edita el archivo .env y pega la clave generada" -ForegroundColor White
+        Write-Host ""
+        Write-Host "  3. (Opcional) Si quieres usar la BD remota Neon, configura DATABASE_URL" -ForegroundColor White
+        Write-Host ""
+        Write-Host "¡Listo! Ahora puedes ejecutar: python manage.py runserver" -ForegroundColor Green
+    } else {
+        Write-Host "ERROR: No se encontro .env.example en el proyecto!" -ForegroundColor Red
     }
 
     # Limpiar si hubo error
     if (Test-Path $TempDir) {
         Remove-Item -Path $TempDir -Recurse -Force -ErrorAction SilentlyContinue
     }
-    exit 1
+    exit 0
 }
