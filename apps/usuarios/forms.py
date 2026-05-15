@@ -1,5 +1,6 @@
 
 from django import forms
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.models import User
 from .models import Usuario, MaterialConstruccion, Proveedor
 from .utils import limpiar_telefono
@@ -58,7 +59,6 @@ class RegistroForm(forms.ModelForm):
 
     def clean_documento(self):
         documento = self.cleaned_data.get('documento')
-        # Limpiar documento también
         documento = limpiar_telefono(documento)
         if Usuario.objects.filter(documento=documento).exists():
             raise forms.ValidationError("Este documento ya está registrado.")
@@ -139,3 +139,30 @@ class ProveedorForm(forms.ModelForm):
     def clean_telefono(self):
         telefono = self.cleaned_data.get('telefono')
         return limpiar_telefono(telefono)
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'tu_correo@ejemplo.com'
+        })
+        self.fields['email'].label = 'Correo Electrónico'
+
+
+class CustomSetPasswordForm(SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['new_password1'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': '••••••••'
+        })
+        self.fields['new_password1'].label = 'Nueva Contraseña'
+        
+        self.fields['new_password2'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': '••••••••'
+        })
+        self.fields['new_password2'].label = 'Confirmar Contraseña'
+

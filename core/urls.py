@@ -18,6 +18,7 @@ urlpatterns = [
     path('pagos/', include('apps.pagos.urls')),
     path('reportes/', include('apps.reportes.urls')),
     path('historial/', include('apps.historial.urls')),
+    path('transporte/', include('apps.transporte.urls')),
     path('', include('apps.inicio.urls')),
 
     # ===== Recuperación de contraseña (Django nativo) =====
