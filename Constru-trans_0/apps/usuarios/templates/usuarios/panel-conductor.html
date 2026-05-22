@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Conductor - Constru-trans{% endblock %}
+
+{% block header_title %}Panel del Conductor{% endblock %}
+
+{% block content %}
+
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="stat-card" style="border-left: 4px solid var(--color-accent);">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted fw-700 m-0 text-uppercase small">Entregas Pendientes</h6>
+                <i class="bi bi-truck text-warning fs-4"></i>
+            </div>
+            <h2 class="fw-900 mb-0">{{ pedidos_pendientes }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stat-card" style="border-left: 4px solid #22c55e;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted fw-700 m-0 text-uppercase small">Total Completadas</h6>
+                <i class="bi bi-check-circle-fill text-success fs-4"></i>
+            </div>
+            <h2 class="fw-900 mb-0">{{ entregas_totales }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="stat-card" style="border-left: 4px solid #3b82f6;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted fw-700 m-0 text-uppercase small">Última Entrega</h6>
+                <i class="bi bi-calendar-check text-info fs-4"></i>
+            </div>
+            <h2 class="fw-900 mb-0" style="font-size: 1.2rem;">{% if ultima_entrega %}{{ ultima_entrega.fecha|date:"d M" }}{% else %}N/A{% endif %}</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-lg-12">
+        <div class="table-container p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-800 m-0 text-color">Acciones Rápidas</h5>
+            </div>
+            <div class="d-flex gap-3 flex-wrap">
+                <a href="{% url 'usuarios:pedidos_conductor' %}" class="btn btn-gold d-flex align-items-center gap-2 shadow-sm">
+                    <i class="bi bi-map"></i> Ver Mapa de Entregas
+                </a>
+                <a href="{% url 'usuarios:mis_entregas' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history"></i> Mi Historial
+                </a>
+                <a href="{% url 'usuarios:perfil_conductor' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-person-badge"></i> Mi Perfil
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+        <h5 class="fw-800 m-0 text-color">Mis Entregas Asignadas</h5>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>ID Pedido</th>
+                    <th>Destino</th>
+                    <th>Programado</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                <tr>
+                    <td class="fw-700 text-accent">#CT-{{ pedido.id }}</td>
+                    <td class="fw-600 text-color">{{ pedido.direccion_destino }}</td>
+                    <td class="text-muted small">{{ pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">{{ pedido.estado|title }}</span>
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalle">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">No tienes entregas asignadas actualmente.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .fw-900 { font-weight: 900; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .text-accent { color: var(--color-accent) !important; }
+    .text-color { color: var(--color-text) !important; }
+</style>
+
+{% endblock %}

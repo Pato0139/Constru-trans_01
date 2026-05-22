@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Proveedores - ConstruTrans{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <h2 class="fw-bold text-white mb-0">
+            <i class="fas fa-truck-loading me-2 text-primary"></i> Directorio de Proveedores
+        </h2>
+        
+        <div class="d-flex flex-column flex-md-row gap-2 align-items-center">
+            <form method="GET" class="d-flex gap-0">
+                <div class="input-group search-group" style="width: 300px;">
+                    <span class="input-group-text bg-dark-premium border-white-10 text-white-50 ps-3">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" name="q" class="form-control bg-dark-premium border-white-10 text-white py-2" 
+                           placeholder="Buscar empresa, NIT, contacto..." value="{{ query|default:'' }}">
+                </div>
+                <button type="submit" class="btn btn-outline-warning rounded-3 ms-2 fw-bold border-white-10 px-3">
+                    Filtrar
+                </button>
+            </form>
+
+            <a href="{% url 'compras:crear_proveedor' %}" class="btn btn-primary px-4 fw-bold shadow-sm rounded-pill ms-md-2">
+                NUEVO PROVEEDOR
+            </a>
+        </div>
+    </div>
+
+    <style>
+        .bg-dark-premium {
+            background: rgba(255, 255, 255, 0.03) !important;
+            backdrop-filter: blur(10px);
+        }
+        .border-white-10 {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        .search-group .form-control {
+            border-left: none !important;
+            border-top-right-radius: 12px !important;
+            border-bottom-right-radius: 12px !important;
+        }
+        .search-group .input-group-text {
+            border-right: none !important;
+            border-top-left-radius: 12px !important;
+            border-bottom-left-radius: 12px !important;
+        }
+        .btn-outline-warning:hover {
+            background: #f59e0b;
+            color: #000;
+        }
+    </style>
+
+    <div class="card bg-dark border-secondary shadow-lg glass-card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                    <thead class="text-uppercase small text-muted border-secondary">
+                        <tr>
+                            <th class="ps-4">Empresa / NIT</th>
+                            <th>Contacto</th>
+                            <th>Categoría</th>
+                            <th>Información de Contacto</th>
+                            <th class="text-center pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in proveedores %}
+                        <tr class="border-secondary">
+                            <td class="ps-4">
+                                <div class="fw-bold text-white fs-5">{{ p.nombre_empresa }}</div>
+                                <div class="text-muted small">NIT: {{ p.nit }}</div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar avatar-xs bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                        <i class="fas fa-user text-primary" style="font-size: 0.7rem;"></i>
+                                    </div>
+                                    <span class="text-white">{{ p.contacto_nombre }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-secondary px-3 text-info">{{ p.categoria }}</span>
+                            </td>
+                            <td class="small">
+                                <div class="mb-1 text-white-50"><i class="fas fa-envelope me-2"></i>{{ p.email }}</div>
+                                <div class="text-white-50"><i class="fas fa-phone me-2"></i>{{ p.telefono }}</div>
+                            </td>
+                            <td class="text-center pe-4">
+                                <div class="btn-group shadow-sm">
+                                    <a href="{% url 'compras:contactar_proveedor' p.id %}" class="btn btn-sm btn-outline-info" title="Contactar">
+                                        <i class="fas fa-envelope"></i>
+                                    </a>
+                                    <a href="{% url 'compras:editar_proveedor' p.id %}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-white-50">
+                                <i class="fas fa-briefcase fs-1 mb-3 d-block opacity-25"></i>
+                                No hay proveedores registrados en el sistema
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-card {
+        background: rgba(30, 34, 45, 0.7) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+</style>
+{% endblock %}

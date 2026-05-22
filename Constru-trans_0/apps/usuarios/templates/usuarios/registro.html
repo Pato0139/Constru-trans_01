@@ -1,0 +1,200 @@
+{% extends "usuarios/panel-sesion.html" %}
+{% load static %}
+
+{% block title %}Crear Cuenta - Constru-trans{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilo "No soy un robot" mejorado */
+    .recaptcha-mock {
+        background: #2d2d2d;
+        border: 1px solid #444;
+        border-radius: 4px;
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .recaptcha-left {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .recaptcha-checkbox {
+        width: 24px;
+        height: 24px;
+        border: 2px solid #555;
+        border-radius: 2px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #333;
+        transition: all 0.2s;
+    }
+    .recaptcha-checkbox.checked {
+        border-color: #F39C12;
+        background: #F39C12;
+    }
+    .recaptcha-checkbox.checked i {
+        display: block !important;
+        color: white;
+        font-size: 16px;
+    }
+    .recaptcha-text {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        user-select: none;
+    }
+    .recaptcha-right {
+        text-align: center;
+        opacity: 0.8;
+    }
+    .recaptcha-logo {
+        width: 30px;
+        height: 30px;
+        margin-bottom: 2px;
+    }
+    .recaptcha-privacy {
+        font-size: 8px;
+        color: #888;
+        display: block;
+        text-decoration: none;
+    }
+
+    /* Challenge box (hidden initially) */
+    .captcha-challenge-box {
+        display: none;
+        background: #333;
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: -10px;
+        margin-bottom: 20px;
+        animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .captcha-container img {
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: block;
+        border: 2px solid #444;
+    }
+    .captcha-container input {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        padding: 10px 15px !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+        text-align: center !important;
+        font-weight: bold !important;
+        letter-spacing: 2px !important;
+    }
+    /* Dropdown oscuro */
+    select.input-custom option {
+        background-color: #333333 !important;
+        color: white !important;
+    }
+</style>
+<div class="animate-up">
+    <h1 class="welcome-h1">CREAR CUENTA</h1>
+    <p class="welcome-p">¿Ya tiene una cuenta? <a href="{% url 'usuarios:login' %}">Ingrese aquí</a></p>
+</div>
+
+{% if form.errors %}
+    <div class="alert-custom animate__animated animate__shakeX">
+        <i class="bi bi-exclamation-circle-fill me-2"></i>
+        {% for field in form %}
+            {% for error in field.errors %}
+                <div>{{ field.label }}: {{ error }}</div>
+            {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<form method="POST" class="animate-up delay-1">
+    {% csrf_token %}
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <label class="label-custom">Nombres</label>
+            {{ form.nombres }}
+        </div>
+        <div class="col-md-6">
+            <label class="label-custom">Apellidos</label>
+            {{ form.apellidos }}
+        </div>
+    </div>
+
+    <div class="form-group-custom">
+        <label class="label-custom">Correo Electrónico</label>
+        {{ form.correo }}
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <label class="label-custom">Tipo</label>
+            {{ form.tipo_documento }}
+        </div>
+        <div class="col-md-8">
+            <label class="label-custom">Documento</label>
+            {{ form.documento }}
+        </div>
+    </div>
+
+    <div class="form-group-custom">
+        <label class="label-custom">Teléfono</label>
+        {{ form.telefono }}
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <label class="label-custom">Contraseña</label>
+            <div class="position-relative">
+                {{ form.contrasena }}
+                <button type="button" onclick="togglePassword('id_contrasena', 'toggleIcon1')" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4" style="background: transparent; z-index: 10;">
+                    <i class="bi bi-eye-slash" id="toggleIcon1" style="font-size: 1.4rem; color: #F39C12; opacity: 1 !important; text-shadow: 0 0 5px rgba(0,0,0,0.5);"></i>
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <label class="label-custom">Confirmar</label>
+            <div class="position-relative">
+                {{ form.confirmar_contrasena }}
+                <button type="button" onclick="togglePassword('id_confirmar_contrasena', 'toggleIcon2')" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4" style="background: transparent; z-index: 10;">
+                    <i class="bi bi-eye-slash" id="toggleIcon2" style="font-size: 1.4rem; color: #F39C12; opacity: 1 !important; text-shadow: 0 0 5px rgba(0,0,0,0.5);"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn-main d-flex align-items-center justify-content-center">
+        <i class="bi bi-person-plus-fill me-2"></i> Unirme ahora
+    </button>
+</form>
+
+<script>
+function togglePassword(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const toggleIcon = document.getElementById(iconId);
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.replace('bi-eye-slash', 'bi-eye');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.replace('bi-eye', 'bi-eye-slash');
+    }
+}
+</script>
+{% endblock %}
