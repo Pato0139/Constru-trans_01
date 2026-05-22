@@ -1,19 +1,12 @@
 
 from django.core.management.base import BaseCommand
-from apps.usuarios.models import Rol, MetodoPago
+from apps.usuarios.models import MetodoPago
 
 
 class Command(BaseCommand):
-    help = "Carga datos iniciales para Rol y MetodoPago según el MER."
+    help = "Carga datos iniciales para MetodoPago según el MER."
 
     def handle(self, *args, **options):
-        # Roles
-        roles_base = ['admin', 'conductor', 'cliente', 'empleado']
-        for r in roles_base:
-            obj, creado = Rol.objects.get_or_create(nombre_rol=r)
-            if creado:
-                self.stdout.write(self.style.SUCCESS(f"  ✓ Rol creado: {r}"))
-
         # Métodos de pago
         metodos_base = [
             ('EFE', 'Efectivo'),
