@@ -13,7 +13,7 @@ echo -e "================================================================"
 echo -e "${NC}"
 
 # Paso 1: Verificar Python
-echo -e "${YELLOW}[1/6] Verificando Python...${NC}"
+echo -e "${YELLOW}[1/7] Verificando Python...${NC}"
 if command -v python3 &amp;&gt; /dev/null; then
     PYTHON_CMD="python3"
     echo -e "${GREEN}[OK] Python encontrado: $($PYTHON_CMD --version)${NC}"
@@ -27,7 +27,7 @@ fi
 
 # Paso 2: Crear entorno virtual
 echo -e ""
-echo -e "${YELLOW}[2/6] Creando entorno virtual...${NC}"
+echo -e "${YELLOW}[2/7] Creando entorno virtual...${NC}"
 if [ ! -d "venv" ]; then
     $PYTHON_CMD -m venv venv
     if [ $? -ne 0 ]; then
@@ -41,7 +41,7 @@ fi
 
 # Paso 3: Instalar dependencias
 echo -e ""
-echo -e "${YELLOW}[3/6] Instalando dependencias...${NC}"
+echo -e "${YELLOW}[3/7] Instalando dependencias...${NC}"
 source venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
@@ -53,7 +53,7 @@ echo -e "${GREEN}[OK] Dependencias instaladas${NC}"
 
 # Paso 4: Verificar .env
 echo -e ""
-echo -e "${YELLOW}[4/6] Verificando archivo .env...${NC}"
+echo -e "${YELLOW}[4/7] Verificando archivo .env...${NC}"
 if [ ! -f ".env" ]; then
     cp .env.example .env
     echo -e "${GREEN}[OK] Archivo .env creado${NC}"
@@ -63,13 +63,23 @@ fi
 
 # Paso 5: Aplicar migraciones
 echo -e ""
-echo -e "${YELLOW}[5/6] Aplicando migraciones...${NC}"
+echo -e "${YELLOW}[5/7] Aplicando migraciones...${NC}"
 python manage.py migrate
 if [ $? -ne 0 ]; then
     echo -e "${RED}[ERROR] Fallo al aplicar migraciones${NC}"
     exit 1
 fi
 echo -e "${GREEN}[OK] Migraciones aplicadas${NC}"
+
+# Paso 6: Cargar datos de la base de datos
+echo -e ""
+echo -e "${YELLOW}[6/7] Cargando datos de la base de datos...${NC}"
+python manage.py loaddata backups/db_backup_actualizado.json
+if [ $? -ne 0 ]; then
+    echo -e "${RED}[ERROR] Fallo al cargar datos${NC}"
+    exit 1
+fi
+echo -e "${GREEN}[OK] Datos cargados${NC}"
 
 # Final
 echo -e ""

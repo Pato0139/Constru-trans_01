@@ -5,7 +5,7 @@ Write-Host "================================================================" -F
 Write-Host ""
 
 # Paso 1: Verificar Python
-Write-Host "[1/6] Verificando Python..." -ForegroundColor Yellow
+Write-Host "[1/7] Verificando Python..." -ForegroundColor Yellow
 $pythonFound = $false
 $pythonCmd = $null
 
@@ -58,7 +58,7 @@ if (-not $pythonFound) {
 
 # Paso 2: Crear entorno virtual
 Write-Host ""
-Write-Host "[2/6] Creando entorno virtual..." -ForegroundColor Yellow
+Write-Host "[2/7] Creando entorno virtual..." -ForegroundColor Yellow
 if (-not (Test-Path "venv")) {
     & $pythonCmd -m venv venv
     if ($LASTEXITCODE -ne 0) {
@@ -73,7 +73,7 @@ if (-not (Test-Path "venv")) {
 
 # Paso 3: Instalar dependencias
 Write-Host ""
-Write-Host "[3/6] Instalando dependencias..." -ForegroundColor Yellow
+Write-Host "[3/7] Instalando dependencias..." -ForegroundColor Yellow
 & .\venv\Scripts\python.exe -m pip install --upgrade pip
 & .\venv\Scripts\python.exe -m pip install -r requirements.txt
 if ($LASTEXITCODE -ne 0) {
@@ -85,7 +85,7 @@ Write-Host "[OK] Dependencias instaladas" -ForegroundColor Green
 
 # Paso 4: Verificar .env
 Write-Host ""
-Write-Host "[4/6] Verificando archivo .env..." -ForegroundColor Yellow
+Write-Host "[4/7] Verificando archivo .env..." -ForegroundColor Yellow
 if (-not (Test-Path ".env")) {
     Copy-Item .env.example .env
     Write-Host "[OK] Archivo .env creado" -ForegroundColor Green
@@ -95,7 +95,7 @@ if (-not (Test-Path ".env")) {
 
 # Paso 5: Aplicar migraciones
 Write-Host ""
-Write-Host "[5/6] Aplicando migraciones..." -ForegroundColor Yellow
+Write-Host "[5/7] Aplicando migraciones..." -ForegroundColor Yellow
 & .\venv\Scripts\python.exe manage.py migrate
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Fallo al aplicar migraciones" -ForegroundColor Red
@@ -103,6 +103,17 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
+
+# Paso 6: Cargar datos de la base de datos
+Write-Host ""
+Write-Host "[6/7] Cargando datos de la base de datos..." -ForegroundColor Yellow
+& .\venv\Scripts\python.exe manage.py loaddata backups\db_backup_actualizado.json
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERROR] Fallo al cargar datos" -ForegroundColor Red
+    Read-Host "Presiona cualquier tecla para salir"
+    exit 1
+}
+Write-Host "[OK] Datos cargados" -ForegroundColor Green
 
 # Final
 Write-Host ""
