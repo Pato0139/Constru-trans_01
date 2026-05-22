@@ -771,24 +771,28 @@ from django.contrib.auth.views import (
     PasswordResetConfirmView, PasswordResetCompleteView,
 )
 from django.urls import reverse_lazy
-from django_ratelimit.decorators import ratelimit
-from django.utils.decorators import method_decorator
+from django.contrib.auth.models import User
 import logging
 
 logger = logging.getLogger(__name__)
 
-@method_decorator(ratelimit(key='ip', rate='5/h', method='POST'), name='post')
 class CustomPasswordResetView(PasswordResetView):
     template_name = 'usuarios/recuperar_password.html'
     email_template_name = 'registration/password_reset_email.txt'
     html_email_template_name = 'registration/password_reset_email.html'
     subject_template_name = 'registration/password_reset_subject.txt'
     success_url = reverse_lazy('usuarios:password_reset_done')
-    from_email = None  # Usa DEFAULT_FROM_EMAIL
+    from_email = None
+
+    def get_users(self, email):
+        users = User.objects.filter(email__iexact=email, is_active=True)
+        if not users:
+            users = User.objects.filter(username__iexact=email, is_active=True)
+        return users
 
     def form_valid(self, form):
         email = form.cleaned_data['email']
-        logger.info(f"[Password Reset] Solicitud para: {email} desde IP: {self.request.META.get('REMOTE_ADDR')}")
+        logger.info(f"[Password Reset] Solicitud para: {email}")
         return super().form_valid(form)
 
 
