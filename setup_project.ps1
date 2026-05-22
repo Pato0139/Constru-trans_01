@@ -107,9 +107,15 @@ Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
 # Paso 6: Cargar datos de la base de datos
 Write-Host ""
 Write-Host "[6/7] Cargando datos de la base de datos..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe manage.py loaddata backups\db_backup_actualizado.json
+& .\venv\Scripts\python.exe manage.py seed_mer
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Fallo al cargar datos" -ForegroundColor Red
+    Write-Host "[ERROR] Fallo al cargar datos MER" -ForegroundColor Red
+    Read-Host "Presiona cualquier tecla para salir"
+    exit 1
+}
+& .\venv\Scripts\python.exe manage.py seed_data
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERROR] Fallo al cargar datos de prueba" -ForegroundColor Red
     Read-Host "Presiona cualquier tecla para salir"
     exit 1
 }

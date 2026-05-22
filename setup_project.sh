@@ -74,9 +74,14 @@ echo -e "${GREEN}[OK] Migraciones aplicadas${NC}"
 # Paso 6: Cargar datos de la base de datos
 echo -e ""
 echo -e "${YELLOW}[6/7] Cargando datos de la base de datos...${NC}"
-python manage.py loaddata backups/db_backup_actualizado.json
+python manage.py seed_mer
 if [ $? -ne 0 ]; then
-    echo -e "${RED}[ERROR] Fallo al cargar datos${NC}"
+    echo -e "${RED}[ERROR] Fallo al cargar datos MER${NC}"
+    exit 1
+fi
+python manage.py seed_data
+if [ $? -ne 0 ]; then
+    echo -e "${RED}[ERROR] Fallo al cargar datos de prueba${NC}"
     exit 1
 fi
 echo -e "${GREEN}[OK] Datos cargados${NC}"
