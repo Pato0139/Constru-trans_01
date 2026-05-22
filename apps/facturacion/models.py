@@ -10,9 +10,14 @@ class Factura(models.Model):
 
     id_factura = models.AutoField(primary_key=True)
     pedido = models.OneToOneField('ordenes.Pedido', on_delete=models.PROTECT,
-                                   related_name='factura')
+                                   related_name='factura', null=True, blank=True)
+    cliente = models.ForeignKey('usuarios.Usuario', on_delete=models.PROTECT,
+                                related_name='facturas')
+    numero = models.CharField(max_length=50, unique=True)
     fecha = models.DateTimeField(auto_now_add=True)
-    total = models.DecimalField(max_digits=12, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    iva = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     estado = models.CharField(max_length=15, choices=ESTADOS, default='pendiente')
 
     # Fuera del MER pero útil — NO se toca
@@ -31,4 +36,4 @@ class Factura(models.Model):
         db_table = 'factura'
 
     def __str__(self):
-        return f"Factura {self.id_factura} - Pedido {self.pedido.codigo_pedido}"
+        return f"Factura {self.numero} - Pedido {self.pedido.codigo_pedido if self.pedido else 'N/A'}"

@@ -397,9 +397,9 @@ def panel_conductor(request):
 @login_required
 def pedidos_conductor(request):
     conductor = request.user.usuario
-    pedidos = Orden.objects.filter(
-        conductor=conductor
-    ).select_related('cliente').exclude(estado="entregado")
+    pedidos = Pedido.objects.filter(
+        usuario=conductor
+    ).exclude(estado="entregado")
     return render(request, "usuarios/pedidos_conductor.html", {
         "pedidos": pedidos
     })
@@ -408,10 +408,10 @@ def pedidos_conductor(request):
 @login_required
 def mis_entregas(request):
     conductor = request.user.usuario
-    entregas = Orden.objects.filter(
-        conductor=conductor,
+    entregas = Pedido.objects.filter(
+        usuario=conductor,
         estado="entregado"
-    ).select_related('cliente').order_by("-fecha")
+    ).order_by("-fecha_solicitud")
     return render(request, "usuarios/mis-entregas.html", {
         "entregas": entregas
     })
@@ -429,9 +429,9 @@ def perfil_admin(request):
         "usuario": usuario,
         "usuarios_count": Usuario.objects.count(),
         "materiales_count": Material.objects.count(),
-        "ordenes_count": Orden.objects.count(),
-        "total_ventas": Orden.objects.aggregate(total=Sum("precio"))["total"] or 0,
-        "entregados_count": Orden.objects.filter(estado="entregado").count()
+        "ordenes_count": Pedido.objects.count(),
+        "total_ventas": Pedido.objects.aggregate(total=Sum("total"))["total"] or 0,
+        "entregados_count": Pedido.objects.filter(estado="entregado").count()
     }
     return render(request, "usuarios/detalle.html", context)
 
@@ -747,11 +747,16 @@ def perfil_conductor(request):
             logout(request)
             return redirect("usuarios:login")
         
-    pedidos = Orden.objects.filter(conductor=conductor)
+    pedidos = Pedido.objects.filter(usuario=conductor)
     
     from apps.ordenes.models import Entrega
-    ultima_entrega = Entrega.objects.filter(conductor=conductor).order_by('-fecha').first()
-    vehiculo = ultima_entrega.vehiculo if ultima_entrega else None
+    try:
+        from apps.usuarios.models import Conductor as ConductorPerfil
+        conductor_perfil = ConductorPerfil.objects.get(usuario=conductor)
+        ultima_entrega = Entrega.objects.filter(conductor=conductor_perfil).order_by('-fecha_salida').first()
+        vehiculo = ultima_entrega.vehiculo if ultima_entrega else None
+    except Exception:
+        vehiculo = None
 
     return render(request, "usuarios/perfil-conductor.html", {
         "conductor": conductor,

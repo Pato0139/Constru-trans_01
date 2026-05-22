@@ -18,6 +18,8 @@ class Pedido(models.Model):
     codigo_pedido = models.AutoField(primary_key=True)
     usuario = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE,
                                 related_name='pedidos')
+    cliente = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE,
+                                related_name='pedidos_cliente', null=True, blank=True)
     fecha_solicitud = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0,
                                 validators=[MinValueValidator(0)])
@@ -27,12 +29,23 @@ class Pedido(models.Model):
     direccion_origen = models.CharField(max_length=200, default="Bodega Central")
     direccion_destino = models.CharField(max_length=200, default="")
     fecha_entrega_programada = models.DateTimeField(null=True, blank=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+    precio = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    conductor = models.ForeignKey('usuarios.Usuario', on_delete=models.SET_NULL,
+                                  related_name='pedidos_conductor', null=True, blank=True)
+    fecha_toma_entrega = models.DateTimeField(null=True, blank=True)
+    fecha_entrega_real = models.DateTimeField(null=True, blank=True)
     sincronizado = models.BooleanField(default=False)
 
     def calcular_total(self):
         self.total = sum(d.subtotal for d in self.detalles.all())
+        self.precio = self.total
         self.save()
         return self.total
+
+    @property
+    def id(self):
+        return self.codigo_pedido
 
     class Meta:
         ordering = ["-fecha_solicitud"]
