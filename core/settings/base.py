@@ -120,29 +120,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # ============================================================
-# BASES DE DATOS — HÍBRIDO (default = SQLite local, remota = Neon)
+# BASES DE DATOS — Simplificado (una sola BD compartida)
 # ============================================================
-DATABASES = {
-    # LOCAL: SQLite siempre disponible, funciona offline
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+import dj_database_url
 
-# REMOTA: Neon PostgreSQL — solo si DATABASE_URL está configurada
 DATABASE_URL = env('DATABASE_URL', default='')
 if DATABASE_URL:
-    import dj_database_url
-    DATABASES['remota'] = dj_database_url.parse(
-        DATABASE_URL,
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=True,
-    )
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,
+        )
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
-# Router que decide qué BD usar para cada app
-DATABASE_ROUTERS = ['core.routers.EnrutadorInventario']
+# Desactivar router temporalmente para simplificar
+DATABASE_ROUTERS = []
 
 # ============================================================
 # AUTH Y CONTRASEÑAS
