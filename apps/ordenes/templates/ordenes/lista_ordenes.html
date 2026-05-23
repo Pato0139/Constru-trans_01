@@ -87,7 +87,7 @@
                                 <i class="bi bi-person-plus"></i>
                             </a>
                             {% endif %}
-                            <form action="{% url 'clientes:eliminar_orden' orden.id %}" method="POST" class="d-inline delete-form">
+                            <form action="{% url 'ordenes:eliminar_orden' orden.id %}" method="POST" class="d-inline delete-form">
                                 {% csrf_token %}
                                 <button type="button" class="btn-action text-danger confirm-delete-form" 
                                         data-title="¿Cancelar orden?" 
