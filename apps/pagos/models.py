@@ -7,18 +7,11 @@ from apps.facturacion.models import Factura
 # PAGO  (MER: #id_pago *id_factura *monto *fecha *codigo_metodo_pago)
 # =====================================================================
 class Pago(models.Model):
-    METODOS = [
-        ('efectivo', 'Efectivo'),
-        ('transferencia', 'Transferencia Bancaria'),
-        ('tarjeta_credito', 'Tarjeta de Crédito'),
-        ('tarjeta_debito', 'Tarjeta de Débito'),
-    ]
-
     id_pago = models.AutoField(primary_key=True)
     factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name='pagos')
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     fecha = models.DateTimeField(auto_now_add=True)
-    metodo = models.CharField(max_length=50, choices=METODOS)
+    codigo_metodo_pago = models.ForeignKey('usuarios.MetodoPago', db_column='codigo_metodo_pago', on_delete=models.PROTECT)
 
     # Fuera del MER pero útil — NO se toca
     referencia = models.CharField(max_length=100, blank=True)

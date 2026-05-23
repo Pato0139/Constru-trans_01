@@ -12,12 +12,12 @@ class Factura(models.Model):
     pedido = models.OneToOneField('ordenes.Pedido', on_delete=models.PROTECT,
                                    related_name='factura', null=True, blank=True)
     cliente = models.ForeignKey('usuarios.Usuario', on_delete=models.PROTECT,
-                                related_name='facturas')
-    numero = models.CharField(max_length=50, unique=True)
+                                related_name='facturas', null=True, blank=True)
+    numero = models.CharField(max_length=50, unique=True, null=True, blank=True)
     fecha = models.DateTimeField(auto_now_add=True)
-    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    iva = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
+    iva = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
     estado = models.CharField(max_length=15, choices=ESTADOS, default='pendiente')
 
     # Fuera del MER pero útil — NO se toca

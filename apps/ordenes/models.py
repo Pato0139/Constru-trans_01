@@ -33,8 +33,8 @@ class Pedido(models.Model):
     direccion_origen = models.CharField(max_length=200, default="Bodega Central")
     direccion_destino = models.CharField(max_length=200, default="")
     fecha_entrega_programada = models.DateTimeField(null=True, blank=True)
-    fecha = models.DateTimeField(auto_now_add=True)
-    precio = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    fecha = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    precio = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
     conductor = models.ForeignKey('usuarios.Usuario', on_delete=models.SET_NULL,
                                   related_name='pedidos_conductor', null=True, blank=True)
     fecha_toma_entrega = models.DateTimeField(null=True, blank=True)
