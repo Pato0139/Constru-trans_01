@@ -14,6 +14,10 @@ class Pedido(models.Model):
         ('entregado', 'Entregado'),
         ('cancelado', 'Cancelado'),
     ]
+    PENDIENTE = "pendiente"
+    EN_RUTA = "en_ruta"
+    ENTREGADO = "entregado"
+    CANCELADO = "cancelado"
 
     codigo_pedido = models.AutoField(primary_key=True)
     usuario = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE,

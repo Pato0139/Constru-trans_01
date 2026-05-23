@@ -31,6 +31,10 @@ class Factura(models.Model):
     def saldo_pendiente(self):
         return self.total - self.total_pagado
 
+    @property
+    def orden(self):
+        return self.pedido
+
     class Meta:
         ordering = ['-fecha']
         db_table = 'factura'

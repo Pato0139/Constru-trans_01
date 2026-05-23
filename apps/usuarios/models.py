@@ -161,6 +161,23 @@ class Vehiculo(models.Model):
     # Fuera del MER pero útil — NO se toca
     sincronizado = models.BooleanField(default=False)
 
+    @property
+    def id(self):
+        return self.id_vehiculo
+
+    @property
+    def tipo(self):
+        return self.tipo_vehiculo
+
+    @property
+    def capacidad(self):
+        return self.capacidad_carga
+
+    @property
+    def conductor_actual(self):
+        asignacion = self.asignaciones_conductor.select_related("conductor__usuario").order_by("-fecha_asignacion").first()
+        return asignacion.conductor.usuario if asignacion else None
+
     class Meta:
         db_table = 'vehiculo'
 
@@ -256,6 +273,10 @@ class MaterialConstruccion(models.Model):
     def precio(self):
         return self.precio_referencia
 
+    @property
+    def tipo(self):
+        return self.catalogo.nombre_empresa if self.catalogo else ""
+
     def __str__(self):
         return self.nombre
 
@@ -271,7 +292,12 @@ class Stock(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(100000)]
     )
     stock_minimo = models.IntegerField(default=10, validators=[MinValueValidator(0)])
+    ubicacion = models.CharField(max_length=120, blank=True, default="")
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    @property
+    def cantidad(self):
+        return self.cantidad_actual
 
     class Meta:
         db_table = 'stock'
