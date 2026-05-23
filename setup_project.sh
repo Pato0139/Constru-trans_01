@@ -14,10 +14,10 @@ echo -e "${NC}"
 
 # Paso 1: Verificar Python
 echo -e "${YELLOW}[1/7] Verificando Python...${NC}"
-if command -v python3 &amp;&gt; /dev/null; then
+if command -v python3 &> /dev/null; then
     PYTHON_CMD="python3"
     echo -e "${GREEN}[OK] Python encontrado: $($PYTHON_CMD --version)${NC}"
-elif command -v python &amp;&gt; /dev/null; then
+elif command -v python &> /dev/null; then
     PYTHON_CMD="python"
     echo -e "${GREEN}[OK] Python encontrado: $($PYTHON_CMD --version)${NC}"
 else

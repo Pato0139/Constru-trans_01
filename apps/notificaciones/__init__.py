@@ -1,1 +1,1 @@
-ÿþ
+# apps.notificaciones package
