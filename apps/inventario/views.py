@@ -60,8 +60,7 @@ def buscar_materiales(query=None):
     if query:
         materiales = materiales.filter(
             Q(nombre__icontains=query) | 
-            Q(descripcion__icontains=query) |
-            Q(tipo__icontains=query)
+            Q(descripcion__icontains=query)
         )
     return materiales
 
@@ -73,8 +72,7 @@ def stock_lista(request):
     if q:
         stocks = stocks.filter(
             Q(material__nombre__icontains=q) |
-            Q(ubicacion__icontains=q) |
-            Q(material__tipo__icontains=q)
+            Q(ubicacion__icontains=q)
         )
         
     return render(request, "inventario/stock.html", {
@@ -96,21 +94,17 @@ def editar_stock(request, id):
 @admin_required
 def materiales_lista(request):
     query = request.GET.get('q')
-    tipo = request.GET.get('tipo')
     
     materiales = buscar_materiales(query)
-    if tipo:
-        materiales = materiales.filter(tipo=tipo)
     
     return render(request, "inventario/lista.html", {
         "materiales": materiales,
-        "query": query,
-        "tipo_actual": tipo
+        "query": query
     })
 
 @admin_required
 def api_materiales(request):
-    materiales = Material.objects.filter(stock_info__cantidad__gt=0).select_related('stock_info')
+    materiales = Material.objects.filter(stock_info__cantidad_actual__gt=0).select_related('stock_info')
     data = []
     for m in materiales:
         data.append({
