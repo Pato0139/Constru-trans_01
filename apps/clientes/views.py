@@ -188,7 +188,7 @@ def crear_pedido(request):
                     try:
                         stock_obj = Stock.objects.select_for_update().get(material=material)
                     except Stock.DoesNotExist:
-                        stock_obj = Stock.objects.create(material=material, cantidad=0)
+                        stock_obj = Stock.objects.create(material=material, cantidad_actual=0)
                     
                     try:
                         cantidad = int(cant)
@@ -198,8 +198,8 @@ def crear_pedido(request):
                     if cantidad <= 0:
                         raise ValueError(f"La cantidad para {material.nombre} debe ser mayor a 0.")
 
-                    if stock_obj.cantidad < cantidad:
-                        raise ValueError(f"Stock insuficiente para {material.nombre}. Quedan {stock_obj.cantidad}.")
+                    if stock_obj.cantidad_actual < cantidad:
+                        raise ValueError(f"Stock insuficiente para {material.nombre}. Quedan {stock_obj.cantidad_actual}.")
 
                     precio_unitario = material.precio
                     total_item = precio_unitario * cantidad
@@ -212,7 +212,7 @@ def crear_pedido(request):
                         precio_unitario=precio_unitario
                     )
                     
-                    stock_obj.cantidad = F('cantidad') - cantidad
+                    stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
                     stock_obj.save()
 
                 nuevo_pedido.total = total_general
@@ -274,8 +274,8 @@ def editar_pedido(request, id):
                     try:
                         stock_obj = Stock.objects.select_for_update().get(material=detalle.material)
                     except Stock.DoesNotExist:
-                        stock_obj = Stock.objects.create(material=detalle.material, cantidad=0)
-                    stock_obj.cantidad = F('cantidad') + detalle.cantidad
+                        stock_obj = Stock.objects.create(material=detalle.material, cantidad_actual=0)
+                    stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
                     stock_obj.save()
                 
                 pedido.detalles.all().delete()
@@ -286,10 +286,10 @@ def editar_pedido(request, id):
                     try:
                         stock_obj = Stock.objects.select_for_update().get(material=material)
                     except Stock.DoesNotExist:
-                        stock_obj = Stock.objects.create(material=material, cantidad=0)
+                        stock_obj = Stock.objects.create(material=material, cantidad_actual=0)
                     cantidad = int(cant)
 
-                    if stock_obj.cantidad < cantidad:
+                    if stock_obj.cantidad_actual < cantidad:
                         raise ValueError(f"Stock insuficiente para {material.nombre}")
 
                     DetallePedido.objects.create(
@@ -299,7 +299,7 @@ def editar_pedido(request, id):
                         precio_unitario=material.precio
                     )
                     
-                    stock_obj.cantidad = F('cantidad') - cantidad
+                    stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
                     stock_obj.save()
                     total_general += material.precio * cantidad
 
@@ -347,8 +347,8 @@ def cancelar_pedido(request, id):
                 try:
                     stock_obj = Stock.objects.select_for_update().get(material=detalle.material)
                 except Stock.DoesNotExist:
-                    stock_obj = Stock.objects.create(material=detalle.material, cantidad=0)
-                stock_obj.cantidad = F('cantidad') + detalle.cantidad
+                    stock_obj = Stock.objects.create(material=detalle.material, cantidad_actual=0)
+                stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
                 stock_obj.save()
 
             pedido.estado = "cancelado"
