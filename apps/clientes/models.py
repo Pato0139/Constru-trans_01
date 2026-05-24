@@ -19,10 +19,10 @@ class Cliente(models.Model):
                                    primary_key=True, related_name='perfil_cliente')
     direccion_principal = models.CharField(max_length=200, default='Por definir')
     tipo_cliente = models.CharField(max_length=20, choices=TIPOS_CLIENTE, default='persona')
-    nombre_empresa = models.CharField(max_length=200, null=True, blank=True)
-    nit = models.CharField(max_length=20, null=True, blank=True)
-    contacto_alternativo = models.CharField(max_length=100, null=True, blank=True)
-    observaciones = models.TextField(null=True, blank=True)
+    nombre_empresa = models.CharField(max_length=200, default='', blank=True)
+    nit = models.CharField(max_length=20, default='', blank=True)
+    contacto_alternativo = models.CharField(max_length=100, default='', blank=True)
+    observaciones = models.TextField(default='', blank=True)
 
     # Fuera del MER pero útil — NO se toca
     fecha_registro = models.DateTimeField(auto_now_add=True)

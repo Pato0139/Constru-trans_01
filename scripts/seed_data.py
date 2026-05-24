@@ -1,12 +1,13 @@
 
+
 import os
 import sys
 from decimal import Decimal
+from datetime import date, timedelta
 
 import django
 from django.utils import timezone
 
-# Configurar Django
 sys.path.append(os.getcwd())
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
@@ -16,14 +17,18 @@ from django.contrib.auth.models import User
 from apps.clientes.models import Cliente
 from apps.inventario.models import MovimientoInventario
 from apps.ordenes.models import DetallePedido, Entrega, Pedido
-from apps.usuarios.models import Conductor, Proveedor, Stock, Usuario, Vehiculo
+from apps.facturacion.models import Factura
+from apps.pagos.models import Pago
+from apps.usuarios.models import (
+    Conductor, Proveedor, Stock, Usuario, Vehiculo,
+    ConductorVehiculo, Catalogo, EPS, MetodoPago
+)
 from apps.usuarios.models import MaterialConstruccion as Material
 
 
 def setup_data():
     print("Iniciando creación de datos de prueba completos...")
 
-    # 0. Crear Superusuario Administrador (Edward_Fonseca)
     admin_user, created = User.objects.get_or_create(username='Edward_Fonseca', defaults={'email': 'edwardf5432@gmail.com'})
     if created:
         admin_user.set_password('davit12345')
@@ -46,25 +51,41 @@ def setup_data():
     if created:
         print("Perfil administrativo para Edward_Fonseca creado.")
 
-    # 1. Crear Proveedores
+    catalogo, _ = Catalogo.objects.get_or_create(
+        codigo_catalogo='CAT001',
+        defaults={'nombre_empresa': 'Constru-Trans'}
+    )
+
+    eps, _ = EPS.objects.get_or_create(
+        codigo_eps='EPS001',
+        defaults={
+            'numero_seguro': '123456789',
+            'ciudad': 'Bogotá',
+            'direccion': 'Calle 100 # 10-10',
+            'telefono': '3101234567',
+            'correo': 'contacto@eps.com'
+        }
+    )
+
+    metodo_pago, _ = MetodoPago.objects.get_or_create(
+        codigo_metodo_pago='EFECTIVO',
+        defaults={'metodo': 'Efectivo'}
+    )
+
     proveedores_data = [
         {
             'nombre_empresa': 'Aceros de Colombia S.A.',
             'nit': '900123456',
-            'contacto_nombre': 'Roberto Gómez',
             'telefono': '3105556677',
-            'email': 'ventas@aceroscol.com',
-            'direccion': 'Zona Industrial, Bogotá',
-            'categoria': 'Materiales de Construcción'
+            'correo': 'ventas@aceroscol.com',
+            'descripcion': 'Materiales de Construcción'
         },
         {
             'nombre_empresa': 'Cales y Arenas del Sur',
             'nit': '800987654',
-            'contacto_nombre': 'Marta Lucía',
             'telefono': '3208889900',
-            'email': 'contacto@calessur.com',
-            'direccion': 'Vía 40, Barranquilla',
-            'categoria': 'Agregados'
+            'correo': 'contacto@calessur.com',
+            'descripcion': 'Agregados'
         }
     ]
 
@@ -76,41 +97,44 @@ def setup_data():
         if created:
             print(f"Proveedor creado: {prov.nombre_empresa}")
 
-    # 2. Crear Materiales y Stock
     materiales_data = [
-        {'nombre': 'Cemento Gris Argos 50kg', 'tipo': 'Cemento', 'precio': 28500, 'descripcion': 'Bulto de cemento gris para construcción general'},
-        {'nombre': 'Varilla Corrugada 1/2"', 'tipo': 'Acero', 'precio': 35000, 'descripcion': 'Varilla de acero estructural 6 metros'},
-        {'nombre': 'Arena de Río (m³)', 'tipo': 'Arena', 'precio': 85000, 'descripcion': 'Arena fina para acabados'},
-        {'nombre': 'Grava 3/4 (m³)', 'tipo': 'Grava', 'precio': 92000, 'descripcion': 'Grava triturada para concreto'},
-        {'nombre': 'Ladrillo Estructural', 'tipo': 'Ladrillo', 'precio': 1200, 'descripcion': 'Ladrillo de arcilla cocida'},
+        {'nombre': 'Cemento Gris Argos 50kg', 'precio': 28500, 'descripcion': 'Bulto de cemento gris para construcción general', 'unidad_medida': 'und'},
+        {'nombre': 'Varilla Corrugada 1/2"', 'precio': 35000, 'descripcion': 'Varilla de acero estructural 6 metros', 'unidad_medida': 'm'},
+        {'nombre': 'Arena de Río (m³)', 'precio': 85000, 'descripcion': 'Arena fina para acabados', 'unidad_medida': 'm³'},
+        {'nombre': 'Grava 3/4 (m³)', 'precio': 92000, 'descripcion': 'Grava triturada para concreto', 'unidad_medida': 'm³'},
+        {'nombre': 'Ladrillo Estructural', 'precio': 1200, 'descripcion': 'Ladrillo de arcilla cocida', 'unidad_medida': 'und'},
     ]
 
     mats = []
     for m_data in materiales_data:
         mat, created = Material.objects.get_or_create(
             nombre=m_data['nombre'],
-            defaults={'tipo': m_data['tipo'], 'precio_referencia': Decimal(m_data['precio']), 'descripcion': m_data['descripcion'], 'activo': True}
+            defaults={
+                'catalogo': catalogo,
+                'precio_referencia': Decimal(m_data['precio']),
+                'descripcion': m_data['descripcion'],
+                'unidad_medida': m_data['unidad_medida']
+            }
         )
         mats.append(mat)
 
-        # Asegurar stock
         stock, s_created = Stock.objects.get_or_create(
             material=mat,
-            defaults={'cantidad': 1000, 'ubicacion': 'Bodega Principal'}
+            defaults={'cantidad_actual': 1000, 'ubicacion': 'Bodega Principal'}
         )
         if not s_created:
-            stock.cantidad = 1000
+            stock.cantidad_actual = 1000
             stock.save()
-        print(f"Material: {mat.nombre} - Stock: {stock.cantidad}")
+        print(f"Material: {mat.nombre} - Stock: {stock.cantidad_actual}")
 
-    # 3. Crear Conductores y Vehículos
     conductores_data = [
-        {'username': 'carlos_chofer', 'email': 'carlos@constru.com', 'nombres': 'Carlos', 'apellidos': 'Mendoza', 'doc': '778899', 'placa': 'TRX-101', 'tipo': 'Camión 5 Ton'},
-        {'username': 'pedro_trans', 'email': 'pedro@constru.com', 'nombres': 'Pedro', 'apellidos': 'Salas', 'doc': '554433', 'placa': 'KLM-202', 'tipo': 'Bolqueta 10 Ton'},
-        {'username': 'luis_driver', 'email': 'luis@constru.com', 'nombres': 'Luis', 'apellidos': 'García', 'doc': '998877', 'placa': 'ABC-123', 'tipo': 'Camión 3 Ton'},
+        {'username': 'carlos_chofer', 'email': 'carlos@constru.com', 'nombres': 'Carlos', 'apellidos': 'Mendoza', 'doc': '778899', 'placa': 'TRX-101', 'marca': 'Toyota', 'modelo': 'Hilux', 'tipo_vehiculo': 'Camión 5 Ton', 'capacidad_carga': 5.0},
+        {'username': 'pedro_trans', 'email': 'pedro@constru.com', 'nombres': 'Pedro', 'apellidos': 'Salas', 'doc': '554433', 'placa': 'KLM-202', 'marca': 'Chevrolet', 'modelo': 'Silverado', 'tipo_vehiculo': 'Bolqueta 10 Ton', 'capacidad_carga': 10.0},
+        {'username': 'luis_driver', 'email': 'luis@constru.com', 'nombres': 'Luis', 'apellidos': 'García', 'doc': '998877', 'placa': 'ABC-123', 'marca': 'Ford', 'modelo': 'F-150', 'tipo_vehiculo': 'Camión 3 Ton', 'capacidad_carga': 3.0},
     ]
 
     conductores_creados = []
+    vehiculos_creados = []
     for c_data in conductores_data:
         u_cond, created = User.objects.get_or_create(username=c_data['username'], defaults={'email': c_data['email']})
         if created:
@@ -129,25 +153,38 @@ def setup_data():
             }
         )
 
-        # Crear perfil Conductor
         cond_profile, cond_created = Conductor.objects.get_or_create(
             usuario=p_cond,
-            defaults={'licencia': f'LIC-{c_data["doc"]}', 'estado': 'activo'}
+            defaults={
+                'numero_licencia': f'LIC-{c_data["doc"]}',
+                'categoria_licencia': 'B2',
+                'fecha_vencimiento_licencia': date.today() + timedelta(days=365),
+                'estado': 'activo',
+                'eps': eps
+            }
         )
 
         vehiculo, v_created = Vehiculo.objects.get_or_create(
             placa=c_data['placa'],
             defaults={
-                'tipo': c_data['tipo'],
-                'capacidad': 10,
-                'estado': 'disponible',
-                'conductor': cond_profile
+                'marca': c_data['marca'],
+                'modelo': c_data['modelo'],
+                'tipo_vehiculo': c_data['tipo_vehiculo'],
+                'capacidad_carga': Decimal(str(c_data['capacidad_carga'])),
+                'estado': 'disponible'
             }
         )
+        vehiculos_creados.append(vehiculo)
+
+        if cond_created or v_created:
+            ConductorVehiculo.objects.get_or_create(
+                conductor=cond_profile,
+                vehiculo=vehiculo
+            )
+
         conductores_creados.append(cond_profile)
         print(f"Conductor {p_cond.nombres} y Vehículo {c_data['placa']} creados.")
 
-    # 4. Crear Clientes y Pedidos
     clientes_data = [
         {'username': 'constructora_alfa', 'email': 'proyectos@alfa.com', 'nombres': 'Ing. Roberto', 'apellidos': 'Torres', 'doc': '112233', 'empresa': 'Constructora Alfa SAS'},
         {'username': 'ferreteria_central', 'email': 'compras@central.com', 'nombres': 'Lucía', 'apellidos': 'Pérez', 'doc': '445566', 'empresa': 'Ferretería Central'},
@@ -172,15 +209,13 @@ def setup_data():
             }
         )
 
-        # El signal post_save ya crea el perfil Cliente, pero lo actualizamos
         cliente_perfil = Cliente.objects.get(usuario=p_cl)
         cliente_perfil.nombre_empresa = cl_data['empresa']
         cliente_perfil.direccion_principal = 'Av Siempre Viva 123'
         cliente_perfil.tipo_cliente = 'empresa'
         cliente_perfil.save()
 
-        # Crear pedidos para cada cliente
-        estados_pedido = ['pendiente', 'pendiente', 'en_ruta', 'entregado']
+        estados_pedido = ['pendiente', 'en_ruta', 'entregado']
         for idx, estado_p in enumerate(estados_pedido):
             pedido = Pedido.objects.create(
                 usuario=p_cl,
@@ -188,7 +223,6 @@ def setup_data():
                 estado=estado_p
             )
 
-            # Agregar materiales al pedido
             total_pedido = 0
             for mat in mats[:3]:
                 cantidad = 20 + (idx * 10)
@@ -202,13 +236,12 @@ def setup_data():
 
             pedido.calcular_total()
 
-            # Crear entrega si el pedido no está pendiente
-            if estado_p != 'pendiente' and conductores_creados:
+            if estado_p != 'pendiente' and conductores_creados and vehiculos_creados:
                 conductor_idx = idx % len(conductores_creados)
                 entrega = Entrega.objects.create(
                     pedido=pedido,
                     conductor=conductores_creados[conductor_idx],
-                    vehiculo=conductores_creados[conductor_idx].vehiculo_set.first(),
+                    vehiculo=vehiculos_creados[conductor_idx],
                     direccion_entrega=pedido.direccion_destino,
                     estado='pendiente' if estado_p == 'en_ruta' else 'entregado'
                 )
@@ -216,9 +249,28 @@ def setup_data():
                     entrega.fecha_entrega = timezone.now()
                     entrega.save()
 
-            print(f"Cliente {cl_data['empresa']} - Pedido #{pedido.codigo_pedido} ({estado_p}) creado.")
+            factura, _ = Factura.objects.get_or_create(
+                pedido=pedido,
+                defaults={
+                    'cliente': p_cl,
+                    'numero': f'FAC-{pedido.id:03d}',
+                    'subtotal': pedido.total,
+                    'iva': pedido.total * Decimal('0.19'),
+                    'total': pedido.total * Decimal('1.19')
+                }
+            )
 
-    # 5. Crear Movimientos de Inventario manuales (Entradas)
+            Pago.objects.get_or_create(
+                factura=factura,
+                defaults={
+                    'monto': factura.total,
+                    'codigo_metodo_pago': metodo_pago,
+                    'registrado_por': admin_user
+                }
+            )
+
+            print(f"Cliente {cl_data['empresa']} - Pedido #{pedido.codigo_pedido} ({estado_p}) - Factura #{factura.numero} creado.")
+
     print("\nGenerando movimientos de inventario...")
     for mat in mats:
         MovimientoInventario.objects.create(
@@ -238,4 +290,3 @@ def setup_data():
 
 if __name__ == "__main__":
     setup_data()
-

@@ -16,9 +16,7 @@ def env_list(key: str, default=""):
     return [x.strip() for x in val.split(",") if x.strip()]
 
 # SEGURIDAD ESTRICTA
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY no está definida en .env")
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-fallback-key-not-for-production-use-only")
 
 DEBUG = env_bool("DEBUG", False)  # Default FALSE por seguridad
 

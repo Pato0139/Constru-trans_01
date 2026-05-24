@@ -141,7 +141,6 @@ def crear_pedido(request):
         cantidades = request.POST.getlist('cantidad[]')
         direccion = request.POST.get("direccion")
         fecha_entrega = request.POST.get("fecha_entrega")
-        metodo_pago = request.POST.get("metodo_pago", "efectivo")
 
         if not materiales_ids or not direccion:
             messages.error(request, "Por favor, agrega al menos un material y la dirección.")
