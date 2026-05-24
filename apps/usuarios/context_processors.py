@@ -15,14 +15,31 @@ def notificaciones_context(request):
         try:
             if hasattr(request.user, 'usuario'):
                 usuario = request.user.usuario
-                notificaciones = Notificacion.objects.filter(usuario=usuario).only('id', 'mensaje', 'fecha', 'leida', 'tipo').order_by('-fecha')
-                unread_count = notificaciones.filter(leida=False).count()
+                unread_ids = list(
+                    Notificacion.objects.filter(usuario=usuario, leida=False)
+                    .values_list('id', flat=True)[:10]
+                )
+                unread_count = len(unread_ids)
+                
+                recientes_ids = list(
+                    Notificacion.objects.filter(usuario=usuario)
+                    .order_by('-fecha')
+                    .values_list('id', flat=True)[:5]
+                )
+                
+                if recientes_ids:
+                    recientes = list(
+                        Notificacion.objects.filter(id__in=recientes_ids)
+                        .only('id', 'titulo', 'mensaje', 'fecha', 'leida', 'tipo', 'link')
+                    )
+                else:
+                    recientes = []
 
                 data = {
-                    'notif_recent': list(notificaciones[:5]),
+                    'notif_recent': recientes,
                     'notif_unread_count': unread_count,
                 }
-                cache.set(cache_key, data, 60)
+                cache.set(cache_key, data, 300)
                 return data
         except Exception:
             pass

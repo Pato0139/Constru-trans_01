@@ -77,9 +77,17 @@ def stock_lista(request):
             Q(ubicacion__icontains=q)
         )
 
+    page = int(request.GET.get('page', 1))
+    per_page = 25
+    total = stocks.count()
+    stocks = stocks[(page - 1) * per_page:page * per_page]
+
     return render(request, "inventario/stock.html", {
         "stocks": stocks,
-        "query": q
+        "query": q,
+        "page": page,
+        "per_page": per_page,
+        "total": total,
     })
 
 @admin_required
@@ -96,12 +104,28 @@ def editar_stock(request, id):
 @admin_required
 def materiales_lista(request):
     query = request.GET.get('q')
+    tipo = request.GET.get('tipo')
 
-    materiales = buscar_materiales(query)
+    materiales = Material.objects.all().select_related('stock_info')
+
+    if query:
+        materiales = materiales.filter(
+            Q(nombre__icontains=query) |
+            Q(descripcion__icontains=query)
+        )
+
+    page = int(request.GET.get('page', 1))
+    per_page = 25
+    total = materiales.count()
+    materiales = materiales[(page - 1) * per_page:page * per_page]
 
     return render(request, "inventario/lista.html", {
         "materiales": materiales,
-        "query": query
+        "query": query,
+        "tipo_actual": tipo,
+        "page": page,
+        "per_page": per_page,
+        "total": total,
     })
 
 @admin_required

@@ -41,7 +41,7 @@ def panel_cliente(request):
         "pedidos_activos": pedidos.filter(estado="pendiente").count(),
         "entregadas": pedidos.filter(estado="entregado").count(),
         "total_gastado": pedidos.aggregate(total=Sum("total"))["total"] or 0,
-        "ultimos_pedidos": pedidos.order_by("-fecha_solicitud")[:5]
+        "ultimos_pedidos": pedidos.order_by("-fecha_solicitud").only('id', 'codigo_pedido', 'estado', 'total', 'fecha_solicitud', 'direccion_destino')[:5]
     }
     return render(request, "clientes/lista.html", context)
 

@@ -12,7 +12,7 @@ def lista_vehiculos(request):
     q = request.GET.get('q')
     estado = request.GET.get('estado')
 
-    vehiculos = Vehiculo.objects.all()
+    vehiculos = Vehiculo.objects.all().select_related('conductor')
 
     if q:
         vehiculos = vehiculos.filter(
@@ -23,10 +23,26 @@ def lista_vehiculos(request):
     if estado:
         vehiculos = vehiculos.filter(estado=estado)
 
+    page = int(request.GET.get('page', 1))
+    per_page = 20
+    total = vehiculos.count()
+    
+    total_pages = (total + per_page - 1) // per_page if total > 0 else 1
+    start_page = max(1, page - 2)
+    end_page = min(total_pages, page + 2)
+    pages_list = list(range(start_page, end_page + 1))
+    
+    vehiculos = vehiculos[(page - 1) * per_page:page * per_page]
+
     return render(request, "transporte/lista.html", {
         "vehiculos": vehiculos,
         "query": q,
-        "estado_actual": estado
+        "estado_actual": estado,
+        "page": page,
+        "per_page": per_page,
+        "total": total,
+        "total_pages": total_pages,
+        "pages_list": pages_list,
     })
 
 @login_required

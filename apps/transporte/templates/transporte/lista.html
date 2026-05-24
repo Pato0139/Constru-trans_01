@@ -122,6 +122,30 @@
             </tbody>
         </table>
     </div>
+    
+    {% if total_pages and total_pages > 1 %}
+    <nav class="mt-4 d-flex justify-content-center" aria-label="Paginación">
+        <ul class="pagination pagination-dark">
+            {% if page > 1 %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page|add:-1 }}{% if query %}&q={{ query }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">Anterior</a>
+            </li>
+            {% endif %}
+            
+            {% for p in pages_list %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}{% if query %}&q={{ query }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">{{ p }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page < total_pages %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page|add:1 }}{% if query %}&q={{ query }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">Siguiente</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 
 <style>
