@@ -1,6 +1,7 @@
 from django.core.cache import cache
 
-from .models import Notificacion
+from apps.usuarios.models import Notificacion
+from core.utils import conexion_remota_disponible
 
 
 def notificaciones_context(request):
@@ -12,18 +13,15 @@ def notificaciones_context(request):
             return cached_data
 
         try:
-            # Usamos select_related para evitar queries extras si se accede al user desde la notificacion
-            # Y verificamos si el usuario tiene el perfil 'usuario'
             if hasattr(request.user, 'usuario'):
                 usuario = request.user.usuario
                 notificaciones = Notificacion.objects.filter(usuario=usuario).only('id', 'mensaje', 'fecha', 'leida', 'tipo').order_by('-fecha')
                 unread_count = notificaciones.filter(leida=False).count()
 
                 data = {
-                    'notif_recent': list(notificaciones[:5]), # Convertimos a lista para cachear
+                    'notif_recent': list(notificaciones[:5]),
                     'notif_unread_count': unread_count,
                 }
-                # Cacheamos por 60 segundos
                 cache.set(cache_key, data, 60)
                 return data
         except Exception:
@@ -32,4 +30,14 @@ def notificaciones_context(request):
     return {
         'notif_recent': [],
         'notif_unread_count': 0,
+    }
+
+
+def modo_context(request):
+    """Agrega modo_local y modo_invitado al contexto de todas las plantillas."""
+    modo_local = not conexion_remota_disponible()
+    modo_invitado = modo_local and (not request.user.is_authenticated or not hasattr(request.user, 'usuario'))
+    return {
+        'modo_local': modo_local,
+        'modo_invitado': modo_invitado,
     }

@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
 from apps.pagos.models import Pago
+from apps.usuarios.models import MetodoPago
 from apps.usuarios.views import admin_required
 
 from .models import Factura
@@ -17,8 +18,8 @@ def lista_facturas(request):
     estado = request.GET.get('estado')
     q = request.GET.get('q')
 
-    # JOIN con cliente y orden, prefetch de pagos
-    qs = Factura.objects.select_related('cliente', 'orden').prefetch_related('pagos')
+    # JOIN con cliente y pedido, prefetch de pagos
+    qs = Factura.objects.select_related('cliente', 'pedido').prefetch_related('pagos')
 
     if estado in ['pendiente', 'pagada', 'anulada']:
         qs = qs.filter(estado=estado)
@@ -28,17 +29,17 @@ def lista_facturas(request):
     return render(request, 'facturacion/lista.html', {
         'facturas': qs,
         'estado': estado,
-        'metodos_pago': Pago.METODOS
+        'metodos_pago': MetodoPago.objects.all()
     })
 
 @login_required
 def mis_facturas(request):
     cliente = request.user.usuario
-    facturas = Factura.objects.filter(cliente=cliente).select_related('orden').prefetch_related('pagos')
+    facturas = Factura.objects.filter(cliente=cliente).select_related('pedido').prefetch_related('pagos')
 
     return render(request, 'facturacion/mis_facturas.html', {
         'facturas': facturas,
-        'metodos_pago': Pago.METODOS
+        'metodos_pago': MetodoPago.objects.all()
     })
 
 @login_required
@@ -46,7 +47,7 @@ def mis_facturas(request):
 def registrar_pago(request):
     factura_id = request.POST.get('factura_id')
     monto_str = request.POST.get('monto', '0')
-    metodo = request.POST.get('metodo')
+    metodo_codigo = request.POST.get('metodo')
 
     # VALIDACIÓN: Monto numérico
     try:
@@ -58,7 +59,10 @@ def registrar_pago(request):
     if monto <= 0:
         return JsonResponse({'error': 'El monto debe ser mayor a cero'}, status=400)
 
-    if metodo not in dict(Pago.METODOS):
+    # Obtener el método de pago
+    try:
+        metodo_pago = MetodoPago.objects.get(codigo_metodo_pago=metodo_codigo)
+    except MetodoPago.DoesNotExist:
         return JsonResponse({'error': 'Método de pago inválido'}, status=400)
 
     try:
@@ -84,7 +88,7 @@ def registrar_pago(request):
             Pago.objects.create(
                 factura=factura,
                 monto=monto,
-                metodo=metodo,
+                codigo_metodo_pago=metodo_pago,
                 referencia=request.POST.get('referencia', 'Pago realizado por cliente' if request.user.usuario.rol != 'admin' else ''),
                 registrado_por=request.user
             )

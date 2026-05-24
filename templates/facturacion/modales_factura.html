@@ -26,8 +26,8 @@
                     <div class="mb-3">
                         <label class="form-label small text-muted">Método de Pago</label>
                         <select name="metodo" class="form-select bg-dark-premium border-white-10 text-white" required>
-                            {% for val, label in metodos_pago %}
-                                <option value="{{ val }}">{{ label }}</option>
+                            {% for mp in metodos_pago %}
+                                <option value="{{ mp.codigo_metodo_pago }}">{{ mp.metodo }}</option>
                             {% endfor %}
                         </select>
                     </div>

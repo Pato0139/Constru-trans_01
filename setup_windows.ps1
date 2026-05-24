@@ -73,7 +73,7 @@ if (-not (Test-Path "venv")) {
 
 # Paso 3: Instalar dependencias
 Write-Host ""
-Write-Host "[3/7] Instalando dependencias..." -ForegroundColor Yellow
+Write-Host "[3/8] Instalando dependencias..." -ForegroundColor Yellow
 & .\venv\Scripts\python.exe -m pip install --upgrade pip
 & .\venv\Scripts\python.exe -m pip install -r requirements.txt
 if ($LASTEXITCODE -ne 0) {
@@ -81,21 +81,85 @@ if ($LASTEXITCODE -ne 0) {
     Read-Host "Presiona cualquier tecla para salir"
     exit 1
 }
+# Instalar psycopg2-binary para PostgreSQL (Neon)
+& .\venv\Scripts\python.exe -m pip install psycopg2-binary
 Write-Host "[OK] Dependencias instaladas" -ForegroundColor Green
 
-# Paso 4: Verificar .env
+# Paso 4: Descargar y fusionar credenciales de Neon usando el script dedicado
 Write-Host ""
-Write-Host "[4/7] Verificando archivo .env..." -ForegroundColor Yellow
+Write-Host "[4/9] Obteniendo credenciales de Neon..." -ForegroundColor Yellow
+& .\scripts\download_env.ps1
+
+# Eliminar neon-repo si existe (para limpieza)
+if (Test-Path "neon-repo") {
+    Write-Host "[LIMPIEZA] Eliminando carpeta neon-repo..." -ForegroundColor Cyan
+    Remove-Item -Path "neon-repo" -Recurse -Force
+}
+
+# Paso 5: Verificar archivo .env
+Write-Host ""
+Write-Host "[5/9] Verificando archivo .env..." -ForegroundColor Yellow
 if (-not (Test-Path ".env")) {
     Copy-Item .env.example .env
     Write-Host "[OK] Archivo .env creado" -ForegroundColor Green
 } else {
-    Write-Host "[OK] Archivo .env ya existe" -ForegroundColor Green
+    Write-Host "[OK] Archivo .env existe" -ForegroundColor Green
 }
 
-# Paso 5: Aplicar migraciones
+# Paso 6: Configurar archivos de settings para BD remota
 Write-Host ""
-Write-Host "[5/7] Aplicando migraciones..." -ForegroundColor Yellow
+Write-Host "[6/9] Configurando settings para BD remota..." -ForegroundColor Yellow
+& .\venv\Scripts\python.exe -c "
+import os
+import re
+
+BASE_DIR = r'$(Get-Location)'
+
+# Configurar core/settings.py
+settings_py = os.path.join(BASE_DIR, 'core', 'settings.py')
+with open(settings_py, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# Asegurar que DATABASES['remota'] esté presente
+if 'DATABASES[''remota''] = DATABASES[''default''].copy()' not in content:
+    # Buscar el bloque de if DATABASE_URL:
+    pattern = re.compile(r'(if DATABASE_URL:\s+DATABASES = \{[^}]+})\s+else:', re.DOTALL)
+    replacement = r'\1\n    # Agregar ''remota'' usando la misma URL para sincronización\n    DATABASES[''remota''] = DATABASES[''default''].copy()\nelse:'
+    content = pattern.sub(replacement, content)
+
+# Asegurar que DATABASE_ROUTERS esté configurado
+if 'DATABASE_ROUTERS = ['"'core.routers.EnrutadorInventario'"']' not in content:
+    # Reemplazar si está comentado o es []
+    content = re.sub(r'(# Desactivar router temporalmente para simplificar\n)?DATABASE_ROUTERS = \[\]', r'DATABASE_ROUTERS = [''core.routers.EnrutadorInventario'']', content)
+
+with open(settings_py, 'w', encoding='utf-8') as f:
+    f.write(content)
+
+# Configurar core/settings/base.py
+base_py = os.path.join(BASE_DIR, 'core', 'settings', 'base.py')
+with open(base_py, 'r', encoding='utf-8') as f:
+    base_content = f.read()
+
+if 'DATABASES[''remota''] = DATABASES[''default''].copy()' not in base_content:
+    base_pattern = re.compile(r'(if DATABASE_URL:\s+DATABASES = \{[^}]+})\s+else:', re.DOTALL)
+    base_replacement = r'\1\n    # Agregar ''remota'' usando la misma URL para sincronización\n    DATABASES[''remota''] = DATABASES[''default''].copy()\nelse:'
+    base_content = base_pattern.sub(base_replacement, base_content)
+
+if 'DATABASE_ROUTERS = ['"'core.routers.EnrutadorInventario'"']' not in base_content:
+    base_content = re.sub(r'(# Desactivar router temporalmente para simplificar\n)?DATABASE_ROUTERS = \[\]', r'DATABASE_ROUTERS = [''core.routers.EnrutadorInventario'']', base_content)
+
+with open(base_py, 'w', encoding='utf-8') as f:
+    f.write(base_content)
+
+print('[OK] Settings configurados para BD remota')
+"
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ADVERTENCIA] No se pudo actualizar los settings automáticamente" -ForegroundColor Yellow
+}
+
+# Paso 7: Aplicar migraciones
+Write-Host ""
+Write-Host "[7/9] Aplicando migraciones..." -ForegroundColor Yellow
 & .\venv\Scripts\python.exe manage.py migrate
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Fallo al aplicar migraciones" -ForegroundColor Red
@@ -104,9 +168,9 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
 
-# Paso 6: Cargar datos de la base de datos
+# Paso 8: Cargar datos de la base de datos
 Write-Host ""
-Write-Host "[6/7] Cargando datos de la base de datos..." -ForegroundColor Yellow
+Write-Host "[8/9] Cargando datos de la base de datos..." -ForegroundColor Yellow
 & .\venv\Scripts\python.exe manage.py seed_mer
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Fallo al cargar datos MER" -ForegroundColor Red

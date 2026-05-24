@@ -22,8 +22,8 @@
                 </div>
                 <select name="metodo" class="form-select bg-dark border-white-10 text-white rounded-pill w-auto" onchange="this.form.submit()">
                     <option value="">Todos los métodos</option>
-                    {% for val, label in metodos_pago %}
-                    <option value="{{ val }}" {% if metodo == val %}selected{% endif %}>{{ label }}</option>
+                    {% for mp in metodos_pago %}
+                    <option value="{{ mp.codigo_metodo_pago }}" {% if metodo == mp.codigo_metodo_pago %}selected{% endif %}>{{ mp.metodo }}</option>
                     {% endfor %}
                 </select>
             </form>
@@ -61,7 +61,7 @@
                         <td class="text-end fw-bold text-accent">{{ pago.monto|currency }}</td>
                         <td class="text-center">
                             <span class="badge rounded-pill bg-dark border border-white-10 text-white-50 px-3">
-                                {{ pago.get_metodo_display }}
+                                {{ pago.codigo_metodo_pago.metodo }}
                             </span>
                         </td>
                         <td class="text-center">

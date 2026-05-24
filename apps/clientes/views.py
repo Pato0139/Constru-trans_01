@@ -8,21 +8,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from apps.ordenes.models import DetallePedido, Pedido
 from apps.usuarios.models import MaterialConstruccion as Material
 from apps.usuarios.models import Stock, Usuario
+from core.utils import conexion_remota_disponible
 
 from .models import Cliente
-
-
-def conexion_remota_disponible():
-    """Función auxiliar para verificar si la conexión remota está disponible"""
-    try:
-        from django.db import connections
-        from django.db.utils import ConnectionDoesNotExist, OperationalError
-        if 'remota' not in connections:
-            return False
-        connections['remota'].ensure_connection()
-        return True
-    except (OperationalError, ConnectionDoesNotExist, Exception):
-        return False
 
 @login_required
 def panel_cliente(request):

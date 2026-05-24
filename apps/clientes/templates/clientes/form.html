@@ -122,58 +122,6 @@
                     </div>
                 </div>
 
-                <!-- MÉTODO DE PAGO -->
-                <div class="mb-5 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
-                    <label class="form-label fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">3. Método de Pago</label>
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label text-muted small px-3 mb-2 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Seleccione su método de pago</label>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="d-block">
-                                        <input type="radio" name="metodo_pago" value="efectivo" class="btn-check" {% if action == 'crear' or orden.metodo_pago == 'efectivo' %}checked{% endif %}>
-                                        <div class="p-4 rounded-4 border-2 text-center cursor-pointer transition-all" style="background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1);">
-                                            <i class="bi bi-cash-stack fs-2 mb-2" style="color: var(--color-accent);"></i>
-                                            <div class="fw-700 text-white">Efectivo</div>
-                                        </div>
-                                    </label>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="d-block">
-                                        <input type="radio" name="metodo_pago" value="transferencia" class="btn-check" {% if action == 'editar' and orden.metodo_pago == 'transferencia' %}checked{% endif %}>
-                                        <div class="p-4 rounded-4 border-2 text-center cursor-pointer transition-all" style="background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1);">
-                                            <i class="bi bi-building-columns fs-2 mb-2" style="color: var(--color-accent);"></i>
-                                            <div class="fw-700 text-white">Transferencia</div>
-                                        </div>
-                                    </label>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="d-block">
-                                        <input type="radio" name="metodo_pago" value="tarjeta" class="btn-check" {% if action == 'editar' and orden.metodo_pago == 'tarjeta' %}checked{% endif %}>
-                                        <div class="p-4 rounded-4 border-2 text-center cursor-pointer transition-all" style="background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1);">
-                                            <i class="bi bi-credit-card fs-2 mb-2" style="color: var(--color-accent);"></i>
-                                            <div class="fw-700 text-white">Tarjeta</div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <style>
-                    .btn-check:checked + div {
-                        background: rgba(243, 156, 18, 0.15) !important;
-                        border-color: var(--color-accent) !important;
-                        box-shadow: 0 0 20px rgba(243, 156, 18, 0.2);
-                    }
-                    
-                    .btn-check + div:hover {
-                        background: rgba(255,255,255,0.06);
-                        transform: translateY(-2px);
-                    }
-                </style>
-
                 <div class="d-grid gap-3 mt-4">
                     <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">
                         <i class="bi bi-check2-all me-2"></i> {% if action == 'crear' %}Confirmar y Enviar Pedido{% else %}Guardar Cambios{% endif %}

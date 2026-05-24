@@ -236,6 +236,22 @@ class Proveedor(models.Model):
         db_table = 'proveedor'
         verbose_name_plural = "Proveedores"
 
+    @property
+    def id(self):
+        return self.codigo_proveedor
+
+    @property
+    def email(self):
+        return self.correo
+
+    @property
+    def contacto_nombre(self):
+        return self.nombre_empresa
+
+    @property
+    def categoria(self):
+        return "General"
+
     def __str__(self):
         return f"{self.nombre_empresa} ({self.nit})"
 
@@ -261,6 +277,10 @@ class MaterialConstruccion(models.Model):
         db_table = 'material_construccion'
         verbose_name = "Material de Construcción"
         verbose_name_plural = "Materiales de Construcción"
+
+    @property
+    def id(self):
+        return self.cod_material
 
     @property
     def stock(self):
@@ -300,8 +320,16 @@ class Stock(models.Model):
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     @property
+    def id(self):
+        return self.material.cod_material
+
+    @property
     def cantidad(self):
         return self.cantidad_actual
+
+    @property
+    def ultima_actualizacion(self):
+        return self.fecha_actualizacion
 
     class Meta:
         db_table = 'stock'

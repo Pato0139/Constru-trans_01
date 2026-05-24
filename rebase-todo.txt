@@ -1,2 +1,0 @@
-reword 8c53d77 fix: sistema de licenciamiento
-reword 43c9f87 fix: archivos de Docker

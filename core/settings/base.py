@@ -114,6 +114,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.usuarios.context_processors.notificaciones_context',
+                'apps.usuarios.context_processors.modo_context',
             ],
         },
     },
@@ -136,6 +137,8 @@ if DATABASE_URL:
             ssl_require=True,
         )
     }
+    # Agregar 'remota' usando la misma URL para sincronización
+    DATABASES['remota'] = DATABASES['default'].copy()
 else:
     DATABASES = {
         "default": {
@@ -144,8 +147,22 @@ else:
         }
     }
 
-# Desactivar router temporalmente para simplificar
-DATABASE_ROUTERS = []
+# Enrutador de base de datos para sincronización offline-first
+DATABASE_ROUTERS = ['core.routers.EnrutadorInventario']
+
+# ============================================================
+# CACHÉ — Para precargar datos de paneles y optimizar velocidad
+# ============================================================
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 5 minutos de caché por defecto
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        }
+    }
+}
 
 # ============================================================
 # AUTH Y CONTRASEÑAS

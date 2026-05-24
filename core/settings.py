@@ -90,6 +90,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.usuarios.context_processors.notificaciones_context',
+                'apps.usuarios.context_processors.modo_context',
             ],
         },
     },
@@ -110,6 +111,8 @@ if DATABASE_URL:
             ssl_require=True,
         )
     }
+    # Agregar 'remota' usando la misma URL para sincronización
+    DATABASES['remota'] = DATABASES['default'].copy()
 else:
     DATABASES = {
         'default': {
@@ -118,22 +121,22 @@ else:
         }
     }
 
-# Configuración de PostgreSQL para Sincronización (Neon Cloud)
-if os.getenv('DB_ENGINE') == 'django.db.backends.postgresql':
-    DATABASES['remota'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'neondb'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'OPTIONS': {
-            'sslmode': os.getenv('DB_SSLMODE', 'require'),
-        }
-    }
-
 # Enrutador de base de datos para sincronización offline-first
 DATABASE_ROUTERS = ['core.routers.EnrutadorInventario']
+
+# ============================================================
+# CACHÉ — Para precargar datos de paneles y optimizar velocidad
+# ============================================================
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 5 minutos de caché por defecto
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,
+        }
+    }
+}
 
 # Configuración de Sesiones y Cookies para multidispositivo (Nube)
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Sesiones en la nube para compartir entre PCs

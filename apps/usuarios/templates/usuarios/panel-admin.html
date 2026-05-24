@@ -105,9 +105,9 @@
                         <td class="py-3 px-4">
                             <div class="d-flex align-items-center gap-2">
                                 <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 30px; height: 30px; font-size: 0.7rem;">
-                                    {{ orden.cliente.usuario.nombres|first }}{{ orden.cliente.usuario.apellidos|first }}
+                                    {{ orden.cliente.nombres|first }}{{ orden.cliente.apellidos|first }}
                                 </div>
-                                <span style="color: var(--color-text);">{{ orden.cliente.usuario.nombres }} {{ orden.cliente.usuario.apellidos }}</span>
+                                <span style="color: var(--color-text);">{{ orden.cliente.nombres }} {{ orden.cliente.apellidos }}</span>
                             </div>
                         </td>
                         <td class="py-3 px-4 text-muted">{{ orden.fecha|date:"d/m/Y" }}</td>

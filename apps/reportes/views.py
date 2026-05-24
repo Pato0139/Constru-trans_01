@@ -32,7 +32,7 @@ def reportes_admin(request):
     pct_entregadas = (entregadas * 100 / total) if total > 0 else 0
 
     # Materiales con stock crítico (< 10)
-    stock_critico = Material.objects.filter(stock_info__cantidad__lt=10).select_related('stock_info')
+    stock_critico = Material.objects.filter(stock_info__cantidad_actual__lt=10).select_related('stock_info')
 
     context = {
         # Resumen de Órdenes

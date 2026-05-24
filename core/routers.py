@@ -6,10 +6,7 @@ Router de bases de datos para modo híbrido offline-first.
   leen/escriben directamente en la nube → sincronización entre compañeros.
 - Las migraciones SIEMPRE se aplican en 'default' (SQLite local).
 """
-import os
-
-from django.db import connections
-from django.db.utils import ConnectionDoesNotExist, OperationalError
+from core.utils import conexion_remota_disponible
 
 
 class EnrutadorInventario:
@@ -24,28 +21,15 @@ class EnrutadorInventario:
         'historial', 'clientes',
     ]
 
-    def _conexion_remota_disponible(self):
-        """Verifica si la conexión remota (Neon) está configurada y viva."""
-        try:
-            if 'remota' not in connections.databases:
-                return False
-            # Si no hay DATABASE_URL en .env, no hay BD remota
-            if not os.getenv('DATABASE_URL'):
-                return False
-            connections['remota'].ensure_connection()
-            return True
-        except (OperationalError, ConnectionDoesNotExist, Exception):
-            return False
-
     def db_for_read(self, model, **hints):
         """Lecturas: usa nube para APPS_NUBE si está disponible; si no, local."""
-        if model._meta.app_label in self.APPS_NUBE and self._conexion_remota_disponible():
+        if model._meta.app_label in self.APPS_NUBE and conexion_remota_disponible():
             return 'remota'
         return 'default'
 
     def db_for_write(self, model, **hints):
         """Escrituras: igual que lecturas."""
-        if model._meta.app_label in self.APPS_NUBE and self._conexion_remota_disponible():
+        if model._meta.app_label in self.APPS_NUBE and conexion_remota_disponible():
             return 'remota'
         return 'default'
 

@@ -21,6 +21,6 @@ class Command(BaseCommand):
                 defaults={'metodo': met}
             )
             if creado:
-                self.stdout.write(self.style.SUCCESS(f"  ✓ Método creado: {met}"))
+                self.stdout.write(self.style.SUCCESS(f"  [OK] Método creado: {met}"))
 
-        self.stdout.write(self.style.SUCCESS("\n✅ Seed MER completado."))
+        self.stdout.write(self.style.SUCCESS("\n[OK] Seed MER completado."))

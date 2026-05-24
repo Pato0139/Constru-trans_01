@@ -100,12 +100,12 @@
                     <div class="mb-4">
                         <label class="form-label text-white-50 small text-uppercase fw-bold">Método de Pago</label>
                         <div class="row g-2">
-                            {% for val, label in metodos_pago %}
+                            {% for mp in metodos_pago %}
                             <div class="col-6">
-                                <input type="radio" class="btn-check" name="metodo" id="metodo_{{ val }}" value="{{ val }}" required>
-                                <label class="btn btn-outline-light w-100 py-3 rounded-4" for="metodo_{{ val }}">
-                                    <i class="bi bi-{% if val == 'efectivo' %}cash{% elif val == 'transferencia' %}bank{% elif val == 'tarjeta' %}credit-card{% else %}phone{% endif %} d-block mb-1 fs-4"></i>
-                                    {{ label }}
+                                <input type="radio" class="btn-check" name="metodo" id="metodo_{{ mp.codigo_metodo_pago }}" value="{{ mp.codigo_metodo_pago }}" required>
+                                <label class="btn btn-outline-light w-100 py-3 rounded-4" for="metodo_{{ mp.codigo_metodo_pago }}">
+                                    <i class="bi bi-{% if mp.metodo == 'Efectivo' %}cash{% elif mp.metodo == 'Transferencia' %}bank{% elif mp.metodo == 'Tarjeta' %}credit-card{% else %}phone{% endif %} d-block mb-1 fs-4"></i>
+                                    {{ mp.metodo }}
                                 </label>
                             </div>
                             {% endfor %}
@@ -169,7 +169,7 @@ const pagosData = {
         {% for pago in factura.pagos.all %}
         {
             "fecha": "{{ pago.fecha|date:'d/m/Y H:i' }}",
-            "metodo": "{{ pago.get_metodo_display }}",
+            "metodo": "{{ pago.codigo_metodo_pago.metodo }}",
             "referencia": "{{ pago.referencia|default:'-' }}",
             "monto": "{{ pago.monto|currency }}"
         }{% if not forloop.last %},{% endif %}

@@ -12,14 +12,12 @@ def lista_vehiculos(request):
     q = request.GET.get('q')
     estado = request.GET.get('estado')
 
-    vehiculos = Vehiculo.objects.all().select_related('conductor')
+    vehiculos = Vehiculo.objects.all()
 
     if q:
         vehiculos = vehiculos.filter(
             models.Q(placa__icontains=q) |
-            models.Q(tipo__icontains=q) |
-            models.Q(conductor__nombres__icontains=q) |
-            models.Q(conductor__apellidos__icontains=q)
+            models.Q(tipo_vehiculo__icontains=q)
         )
 
     if estado:

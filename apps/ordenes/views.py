@@ -12,7 +12,7 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 
 from apps.historial.utils import registrar_actividad
 from apps.inventario.models import MovimientoInventario
-from apps.usuarios.models import Material, Stock, Usuario
+from apps.usuarios.models import Material, Stock, Usuario, MetodoPago
 from apps.usuarios.views import admin_required
 
 from .models import DetalleOrden, Entrega, Orden
@@ -55,7 +55,7 @@ def eliminar_detalle(request, id):
 @admin_required
 def agregar_materiales(request, id):
     orden = get_object_or_404(Orden, id=id)
-    materiales = Material.objects.filter(stock_info__cantidad__gt=0).select_related('stock_info')
+    materiales = Material.objects.filter(stock_info__cantidad_actual__gt=0).select_related('stock_info')
     detalles = orden.detalles.all()
 
     if request.method == "POST":
@@ -110,7 +110,7 @@ def buscar_pedidos_admin(cliente_query=None, fecha_query=None):
     Lógica unificada para buscar pedidos por cliente o fecha.
     Optimizado con select_related para evitar N+1.
     """
-    pedidos = Orden.objects.all().select_related('cliente', 'conductor').order_by("-fecha")
+    pedidos = Orden.objects.all().select_related('usuario', 'cliente', 'conductor').prefetch_related('detalles__material', 'entregas').order_by("-fecha")
 
     if cliente_query:
         pedidos = pedidos.filter(
@@ -246,7 +246,8 @@ def ver_pedido_admin(request, id):
                 return redirect("ordenes:ver_pedido_admin", id=orden.id)
 
     return render(request, "ordenes/detalle.html", {
-        "orden": orden
+        "orden": orden,
+        "metodos_pago": MetodoPago.objects.all()
     })
 
 @admin_required

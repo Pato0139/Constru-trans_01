@@ -5,6 +5,9 @@
 .env.production
 .env.staging
 
+# Repositorio Neon (se clona durante setup)
+neon-repo/
+
 # Bases de datos locales (cada PC tiene la suya)
 *.sqlite3
 *.sqlite3-journal

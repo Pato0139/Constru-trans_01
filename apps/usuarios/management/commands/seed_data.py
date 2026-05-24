@@ -225,10 +225,9 @@ class Command(BaseCommand):
         for mat in mats:
             MovimientoInventario.objects.create(
                 material=mat,
-                tipo='entrada',
+                tipo_movimiento='entrada',
                 cantidad=1000,
-                motivo='Carga inicial de inventario - Seeding',
-                referencia_id=0
+                observacion='Carga inicial de inventario - Seeding'
             )
             self.stdout.write(f'Movimiento de entrada creado para: {mat.nombre}')
 

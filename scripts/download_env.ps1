@@ -1,4 +1,4 @@
-# Script para descargar .env desde un repositorio privado
+# Script para descargar .env desde un repositorio privado y fusionar con el local
 param(
     [string]$RepoUrl = "https://github.com/Pato0139/Neon.git",
     [string]$Branch = "main"
@@ -21,9 +21,47 @@ if (Test-Path $TempDir) {
     Remove-Item -Path $TempDir -Recurse -Force
 }
 
+function Read-EnvFile($Path) {
+    $env = @{}
+    if (Test-Path $Path) {
+        foreach ($line in Get-Content $Path) {
+            $line = $line.Trim()
+            if (-not $line -or $line.StartsWith("#")) {
+                continue
+            }
+            $equalsIndex = $line.IndexOf("=")
+            if ($equalsIndex -gt 0) {
+                $key = $line.Substring(0, $equalsIndex).Trim()
+                $value = $line.Substring($equalsIndex + 1).Trim()
+                if ($value.StartsWith('"') -and $value.EndsWith('"')) {
+                    $value = $value.Substring(1, $value.Length - 2)
+                }
+                $env[$key] = $value
+            }
+        }
+    }
+    return $env
+}
+
+function Write-EnvFile($Path, $EnvData) {
+    $lines = @()
+    foreach ($key in $EnvData.Keys) {
+        $value = $EnvData[$key]
+        if ($value -match '\s' -or $value -match '"') {
+            $value = "`"$($value -replace '"', '\"')`""
+        }
+        $lines += "$key=$value"
+    }
+    $lines | Out-File -FilePath $Path -Encoding utf8
+}
+
 try {
+    # Leer archivo .env local si existe
+    $localEnv = Read-EnvFile -Path $TargetEnvPath
+    $hasLocalEnv = $localEnv.Count -gt 0
+
     # Clonar el repositorio
-    Write-Host "[1/3] Clonando repositorio Neon..." -ForegroundColor Yellow
+    Write-Host "[1/4] Clonando repositorio Neon..." -ForegroundColor Yellow
     git clone --depth 1 --branch $Branch $RepoUrl $TempDir
     if ($LASTEXITCODE -ne 0) {
         throw "Error al clonar el repositorio. Verifica la URL y tus permisos."
@@ -37,24 +75,40 @@ try {
         throw "No se encontro el archivo .env ni .env.example en el repositorio."
     }
 
-    # Copiar archivo al proyecto
-    Write-Host "[2/3] Copiando archivo de configuracion..." -ForegroundColor Yellow
-    if (Test-Path $SourceEnvPath) {
-        Copy-Item -Path $SourceEnvPath -Destination $TargetEnvPath -Force
-        Write-Host "  Copiado .env desde el repositorio" -ForegroundColor Green
-    } else {
-        Copy-Item -Path $SourceEnvExamplePath -Destination $TargetEnvPath -Force
-        Write-Host "  Copiado .env.example como .env" -ForegroundColor Yellow
-        Write-Host ""
-        Write-Host "IMPORTANTE: Debes editar el archivo .env y configurar:" -ForegroundColor Red
-        Write-Host "  - SECRET_KEY (genera una clave aleatoria)" -ForegroundColor Red
-        Write-Host "  - DATABASE_URL (URL de tu base de datos Neon)" -ForegroundColor Red
-        Write-Host "  - Otras credenciales necesarias" -ForegroundColor Red
+    # Leer el archivo fuente
+    $sourcePath = if (Test-Path $SourceEnvPath) { $SourceEnvPath } else { $SourceEnvExamplePath }
+    $sourceEnv = Read-EnvFile -Path $sourcePath
+
+    # Fusionar: priorizar variables locales, agregar nuevas del fuente
+    $finalEnv = @{}
+    foreach ($key in $sourceEnv.Keys) {
+        if ($localEnv.ContainsKey($key)) {
+            $finalEnv[$key] = $localEnv[$key]
+        } else {
+            $finalEnv[$key] = $sourceEnv[$key]
+        }
+    }
+    # Agregar variables locales que no están en el fuente
+    foreach ($key in $localEnv.Keys) {
+        if (-not $finalEnv.ContainsKey($key)) {
+            $finalEnv[$key] = $localEnv[$key]
+        }
     }
 
-    Write-Host "[3/3] Limpiando archivos temporales..." -ForegroundColor Yellow
+    # Escribir el archivo final
+    Write-Host "[2/4] Fusionando variables de entorno..." -ForegroundColor Yellow
+    Write-EnvFile -Path $TargetEnvPath -EnvData $finalEnv
+    
+    if ($hasLocalEnv) {
+        Write-Host "  Fusionado con el .env local existente" -ForegroundColor Green
+    } else {
+        Write-Host "  Creado nuevo .env desde el repositorio" -ForegroundColor Yellow
+    }
+
+    Write-Host "[3/4] Limpiando archivos temporales..." -ForegroundColor Yellow
     Remove-Item -Path $TempDir -Recurse -Force
 
+    Write-Host "[4/4] Completado!" -ForegroundColor Green
     Write-Host ""
     Write-Host "================================================================" -ForegroundColor Green
     Write-Host "  .env configurado exitosamente!" -ForegroundColor Green

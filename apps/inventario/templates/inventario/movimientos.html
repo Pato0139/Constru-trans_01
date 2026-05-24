@@ -1,35 +1,77 @@
 {% extends "base.html" %}
+{% load currency_tags %}
 
 {% block title %}Movimientos de Inventario - ConstruTrans{% endblock %}
 
 {% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-0 text-white"><i class="bi bi-arrow-left-right text-accent me-2"></i>Movimientos de Inventario</h2>
+        <div class="d-flex align-items-center gap-2 mt-1">
+            <p class="text-white-50 small mb-0">Registro de entradas y salidas de materiales</p>
+            <span class="badge rounded-pill px-3" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: 1px solid rgba(59, 130, 246, 0.2);">{{ movimientos|length }} registros</span>
+        </div>
+    </div>
 
-<div class="mb-4 d-flex justify-content-between align-items-center">
-    <h2 class="fw-bold text-white mb-0">Movimientos de Inventario</h2>
-    <button class="btn btn-warning px-4 fw-bold text-dark" style="border-radius: var(--radius-lg); background-color: var(--color-accent); border: none;" data-bs-toggle="modal" data-bs-target="#modalEntrada">
-        <i class="bi bi-plus-lg me-2"></i> Registrar Entrada
-    </button>
+    <div class="d-flex flex-column flex-md-row gap-2 align-items-center">
+        <div class="w-100" style="max-width: 520px;">
+            <div class="d-flex flex-column gap-2" data-aos="fade-left">
+                <form action="{% url 'inventario:movimientos' %}" method="GET" class="d-flex flex-column gap-2">
+                    <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm" style="background: var(--card-bg); border-color: var(--color-border) !important;">
+                        <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                            <i class="bi bi-search text-dark" style="font-size: 0.9rem;"></i>
+                        </div>
+                        <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
+                               placeholder="Buscar por material..." value="{{ query|default:'' }}">
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <select name="tipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2" style="background: var(--card-bg); color: white; border-color: var(--color-border);" onchange="this.form.submit()">
+                            <option value="">Todos los tipos</option>
+                            <option value="entrada" {% if tipo_actual == 'entrada' %}selected{% endif %}>Entrada</option>
+                            <option value="salida" {% if tipo_actual == 'salida' %}selected{% endif %}>Salida</option>
+                        </select>
+                        
+                        <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2" style="border-color: var(--color-border); color: var(--color-text-muted);">
+                            <i class="bi bi-funnel"></i> Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <button class="btn btn-warning px-4 fw-bold text-dark" style="border-radius: var(--radius-lg); background-color: var(--color-accent); border: none;" data-bs-toggle="modal" data-bs-target="#modalEntrada">
+            <i class="bi bi-plus-lg me-2"></i> Registrar Entrada
+        </button>
+    </div>
 </div>
 
-<div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
+<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);" data-aos="fade-up">
     <div class="table-responsive">
-        <table class="table table-dark mb-0">
+        <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02);">
             <thead>
-                <tr style="border-bottom: 1px solid var(--color-border);">
-                    <th class="p-4 text-muted small fw-bold">Fecha</th>
-                    <th class="p-4 text-muted small fw-bold">Material</th>
-                    <th class="p-4 text-muted small fw-bold">Tipo</th>
-                    <th class="p-4 text-muted small fw-bold">Cantidad</th>
-                    <th class="p-4 text-muted small fw-bold">Motivo</th>
-                    <th class="p-4 text-muted small fw-bold">Usuario</th>
+                <tr style="border-bottom: 2px solid var(--color-border);">
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Fecha</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Material</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Tipo</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Cantidad</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Motivo</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Usuario</th>
                 </tr>
             </thead>
             <tbody>
                 {% for m in movimientos %}
                 <tr style="border-bottom: 1px solid var(--color-border);">
-                    <td class="p-4 text-muted small">{{ m.fecha|date:"d/m/Y H:i" }}</td>
-                    <td class="p-4 fw-bold">{{ m.material.nombre }}</td>
-                    <td class="p-4">
+                    <td class="py-3 px-4 text-muted small">{{ m.fecha|date:"d/m/Y H:i" }}</td>
+                    <td class="py-3 px-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                {{ m.material.nombre|first }}
+                            </div>
+                            <span class="fw-medium">{{ m.material.nombre }}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">
                         {% if m.tipo == 'entrada' %}
                             <span class="badge bg-success-subtle text-success px-3">
                                 <i class="bi bi-arrow-down-left me-1"></i>Entrada
@@ -40,11 +82,11 @@
                             </span>
                         {% endif %}
                     </td>
-                    <td class="p-4 fw-bold {% if m.tipo == 'entrada' %}text-success{% else %}text-danger{% endif %}">
+                    <td class="py-3 px-4 fw-bold {% if m.tipo == 'entrada' %}text-success{% else %}text-danger{% endif %}">
                         {% if m.tipo == 'entrada' %}+{% else %}-{% endif %}{{ m.cantidad }}
                     </td>
-                    <td class="p-4 text-muted">{{ m.motivo }}</td>
-                    <td class="p-4 small">
+                    <td class="py-3 px-4 text-muted">{{ m.motivo }}</td>
+                    <td class="py-3 px-4 small">
                         {% if m.usuario %}
                             {{ m.usuario.username }}
                         {% else %}
@@ -54,9 +96,11 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
-                        <i class="bi bi-arrow-left-right mb-3 d-block" style="font-size: 3rem; opacity: 0.3;"></i>
-                        No hay movimientos registrados en el sistema
+                    <td colspan="6" class="text-center py-5">
+                        <div class="py-5">
+                            <i class="bi bi-arrow-left-right text-muted mb-3 d-block" style="font-size: 3rem;"></i>
+                            <p class="text-muted fw-medium mb-0">No hay movimientos registrados en el sistema</p>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -133,4 +177,16 @@ document.getElementById('formEntrada').addEventListener('submit', function(e) {
 });
 </script>
 
+<style>
+    .text-accent { color: var(--color-accent) !important; }
+    .btn-premium:hover {
+        opacity: 0.9;
+        transform: scale(1.05);
+        transition: all 0.3s ease;
+    }
+    .form-select option {
+        background: #1a1a1a;
+        color: white;
+    }
+</style>
 {% endblock %}

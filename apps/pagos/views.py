@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.shortcuts import render
 
+from apps.usuarios.models import MetodoPago
 from apps.usuarios.views import admin_required
 
 from .models import Pago
@@ -12,7 +13,7 @@ def lista_pagos(request):
     fecha = request.GET.get('fecha', '')
     metodo = request.GET.get('metodo', '')
 
-    pagos = Pago.objects.select_related('factura', 'factura__cliente', 'registrado_por').all().order_by('-fecha')
+    pagos = Pago.objects.select_related('factura', 'factura__cliente', 'registrado_por', 'codigo_metodo_pago').all().order_by('-fecha')
 
     if q:
         pagos = pagos.filter(
@@ -26,12 +27,12 @@ def lista_pagos(request):
         pagos = pagos.filter(fecha__date=fecha)
 
     if metodo:
-        pagos = pagos.filter(metodo=metodo)
+        pagos = pagos.filter(codigo_metodo_pago__codigo_metodo_pago=metodo)
 
     return render(request, 'pagos/lista.html', {
         'pagos': pagos,
         'q': q,
         'fecha': fecha,
         'metodo': metodo,
-        'metodos_pago': Pago.METODOS
+        'metodos_pago': MetodoPago.objects.all()
     })

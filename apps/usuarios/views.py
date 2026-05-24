@@ -12,6 +12,7 @@ from django.utils.timezone import now
 
 from apps.historial.utils import registrar_actividad
 from apps.ordenes.models import Pedido
+from core.utils import conexion_remota_disponible
 
 from .forms import LoginForm, RegistroForm
 from .models import (
@@ -21,19 +22,6 @@ from .models import (
     Usuario,
 )
 from .utils import limpiar_telefono
-
-
-def conexion_remota_disponible():
-    """Función auxiliar para verificar si la conexión remota está disponible"""
-    try:
-        from django.db import connections
-        from django.db.utils import ConnectionDoesNotExist, OperationalError
-        if 'remota' not in connections:
-            return False
-        connections['remota'].ensure_connection()
-        return True
-    except (OperationalError, ConnectionDoesNotExist, Exception):
-        return False
 
 
 def admin_required(view_func):
@@ -351,17 +339,29 @@ def panel(request):
                     raise e_c
 
     if usuario.rol == "admin":
-        # Optimizamos consultas usando select_related y prefetch_related si fuera necesario
-        context = {
-            "pedidos_pendientes": Pedido.objects.filter(estado="pendiente").count(),
-            "conductores": Usuario.objects.filter(rol="conductor").count(),
-            "entregas_hoy": Pedido.objects.filter(
-                estado="entregado",
-                fecha_solicitud__date=now().date()
-            ).count(),
-            "clientes": Usuario.objects.filter(rol="cliente").count(),
-            "pedidos_recientes": Pedido.objects.all().select_related('usuario').order_by("-fecha_solicitud")[:5]
-        }
+        from django.core.cache import cache
+        from core.utils import get_cache_key
+        
+        # Creamos una clave de caché única para el panel de admin de este usuario
+        cache_key = get_cache_key('panel_admin', request.user.id)
+        
+        # Intentamos obtener los datos del caché primero
+        context = cache.get(cache_key)
+        
+        if not context:
+            # Si no está en caché, obtenemos los datos y los guardamos en caché por 5 minutos
+            context = {
+                "pedidos_pendientes": Pedido.objects.filter(estado="pendiente").count(),
+                "conductores": Usuario.objects.filter(rol="conductor").count(),
+                "entregas_hoy": Pedido.objects.filter(
+                    estado="entregado",
+                    fecha_solicitud__date=now().date()
+                ).count(),
+                "clientes": Usuario.objects.filter(rol="cliente").count(),
+                "pedidos_recientes": Pedido.objects.all().select_related('usuario').order_by("-fecha_solicitud")[:5]
+            }
+            cache.set(cache_key, context, 300)  # 300 segundos = 5 minutos
+        
         return render(request, "usuarios/panel-admin.html", context)
     elif usuario.rol == "cliente":
         return redirect("clientes:panel_cliente")
@@ -796,6 +796,10 @@ class CustomPasswordResetView(PasswordResetView):
 # ---------------- LOGOUT ----------------
 def cerrar_sesion(request):
     if request.user.is_authenticated:
+        # Limpiamos la caché del usuario antes de cerrar sesión
+        from core.utils import clear_user_cache
+        clear_user_cache(request.user.id)
+        
         try:
             registrar_actividad(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
         except Exception as e:
