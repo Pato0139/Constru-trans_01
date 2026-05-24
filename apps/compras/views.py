@@ -76,7 +76,7 @@ def cambiar_estado_compra(request, id):
 @admin_required
 def editar_compra(request, id):
     compra = get_object_or_404(Compra, id=id)
-    if compra.estado != Compra.PENDIENTE:
+    if compra.estado != 'pendiente':
         messages.error(request, "Solo se pueden editar órdenes en estado pendiente.")
         return redirect("compras:detalle_compra", id=compra.id)
 

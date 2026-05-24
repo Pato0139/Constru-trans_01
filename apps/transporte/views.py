@@ -47,8 +47,15 @@ def lista_vehiculos(request):
 
 @login_required
 def crear_vehiculo(request):
-    # Conductores sin vehículo asignado
-    conductores = Usuario.objects.filter(rol='conductor', vehiculo_asignado__isnull=True)
+    # Conductores sin vehículo asignado (relación vía ConductorVehiculo)
+    from apps.usuarios.models import Conductor
+    conductores_disponibles = Usuario.objects.filter(
+        rol='conductor'
+    ).exclude(
+        perfil_conductor__asignaciones_vehiculo__fecha_fin__isnull=False
+    ).exclude(
+        id__in=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values('conductor__usuario')
+    ).distinct()
 
     if request.method == "POST":
         placa = request.POST.get("placa")
@@ -57,13 +64,19 @@ def crear_vehiculo(request):
         conductor_id = request.POST.get("conductor")
 
         try:
-            conductor = Usuario.objects.get(id=conductor_id) if conductor_id else None
+            conductor = None
+            if conductor_id:
+                try:
+                    conductor_perfil = Conductor.objects.get(usuario_id=conductor_id)
+                    ConductorVehiculo.objects.create(conductor=conductor_perfil)
+                except Conductor.DoesNotExist:
+                    pass
+            
             Vehiculo.objects.create(
                 placa=placa,
-                tipo=tipo,
-                capacidad=capacidad,
-                estado="disponible",
-                conductor=conductor
+                tipo_vehiculo=tipo,
+                capacidad_carga=capacidad,
+                estado="disponible"
             )
             messages.success(request, f"Vehículo {placa} registrado correctamente.")
             return redirect("transporte:lista_vehiculos")
@@ -74,7 +87,7 @@ def crear_vehiculo(request):
 
     return render(request, "transporte/form.html", {
         "action": "crear",
-        "conductores": conductores
+        "conductores": conductores_disponibles
     })
 
 @login_required

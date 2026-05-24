@@ -94,8 +94,13 @@ def stock_lista(request):
 def editar_stock(request, id):
     stock = get_object_or_404(Stock, id=id)
     if request.method == "POST":
-        stock.cantidad = request.POST.get("cantidad")
-        stock.ubicacion = request.POST.get("ubicacion")
+        try:
+            cantidad = int(request.POST.get("cantidad", "0"))
+        except (ValueError, TypeError):
+            messages.error(request, "La cantidad debe ser un número válido.")
+            return redirect("inventario:stock_lista")
+        stock.cantidad = cantidad
+        stock.ubicacion = request.POST.get("ubicacion", "")
         stock.save()
         messages.success(request, f"Stock de {stock.material.nombre} actualizado.")
         return redirect("inventario:stock_lista")

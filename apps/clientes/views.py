@@ -137,30 +137,14 @@ def crear_pedido(request):
                 "action": "crear"
             })
 
-        if not materiales_ids or len(materiales_ids) == 0:
-            messages.error(request, "Debes agregar al menos un material al pedido.")
+        if len(materiales_ids) != len(cantidades):
+            messages.error(request, "Error en los datos del formulario. Intenta nuevamente.")
             return render(request, "clientes/form.html", {
                 "materiales": materiales,
                 "action": "crear"
             })
 
         try:
-            total_general = 0
-
-            if not materiales_ids or len(materiales_ids) == 0:
-                messages.error(request, "Debes agregar al menos un material al pedido.")
-                return render(request, "clientes/form.html", {
-                    "materiales": materiales,
-                    "action": "crear"
-                })
-
-            if len(materiales_ids) != len(cantidades):
-                messages.error(request, "Error en los datos del formulario. Intenta nuevamente.")
-                return render(request, "clientes/form.html", {
-                    "materiales": materiales,
-                    "action": "crear"
-                })
-
             with transaction.atomic():
                 nuevo_pedido = Pedido.objects.create(
                     usuario=usuario,

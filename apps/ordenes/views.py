@@ -123,8 +123,6 @@ def buscar_pedidos_admin(cliente_query=None, fecha_query=None):
 
     return pedidos
 
-from apps.usuarios.views import admin_required
-
 
 @admin_required
 def lista_pedidos_admin(request):

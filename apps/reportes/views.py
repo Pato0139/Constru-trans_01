@@ -87,33 +87,33 @@ def exportar_reporte_pdf(request, tipo):
     data = []
     if tipo == 'clientes':
         data.append(['ID', 'Nombre', 'Correo', 'Teléfono', 'Estado'])
-        # Optimizado con select_related('user')
         for u in Usuario.objects.filter(rol='cliente').select_related('user'):
-            data.append([u.id, f"{u.nombres} {u.apellidos}", u.user.email, u.telefono, u.estado])
+            data.append([u.id, f"{u.nombres} {u.apellidos}", u.user.email, u.telefono or "N/A", u.estado])
 
     elif tipo == 'materiales':
         data.append(['ID', 'Nombre', 'Tipo', 'Precio', 'Stock'])
         for m in Material.objects.all().select_related('stock_info'):
             p = m.precio or 0
             precio_formateado = format_money(p)
-            data.append([m.id, m.nombre, m.tipo, precio_formateado, m.stock])
+            data.append([m.id, m.nombre, m.tipo or "N/A", precio_formateado, m.stock])
 
     elif tipo == 'ventas':
         data.append(['ID', 'Cliente', 'Fecha', 'Total', 'Estado'])
-        # Optimizado con select_related('cliente__usuario')
         for o in Orden.objects.all().select_related('cliente__usuario'):
             p = o.precio or 0
             precio_formateado = format_money(p)
-            data.append([o.id, f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}", o.fecha.strftime('%Y-%m-%d'), precio_formateado, o.estado])
+            fecha_str = o.fecha.strftime('%Y-%m-%d') if o.fecha else 'N/A'
+            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if o.cliente and o.cliente.usuario else 'N/A'
+            data.append([o.id, cliente_nombre, fecha_str, precio_formateado, o.estado])
 
     elif tipo == 'pedidos':
         data.append(['ID', 'Cliente', 'Materiales', 'Total', 'Estado'])
-        # Optimizado con select_related('cliente__usuario') y prefetch_related('detalles__material')
         for o in Orden.objects.all().select_related('cliente__usuario').prefetch_related('detalles__material'):
             materiales = ", ".join([f"{d.cantidad}x {d.material.nombre}" for d in o.detalles.all()])
             p = o.precio or 0
             precio_formateado = format_money(p)
-            data.append([o.id, f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}", materiales[:50] + "..." if len(materiales) > 50 else materiales, precio_formateado, o.estado])
+            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if o.cliente and o.cliente.usuario else 'N/A'
+            data.append([o.id, cliente_nombre, materiales[:50] + "..." if len(materiales) > 50 else materiales, precio_formateado, o.estado])
 
     # Estilo de la tabla
     if data:
