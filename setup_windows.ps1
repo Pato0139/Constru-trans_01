@@ -109,52 +109,9 @@ if (-not (Test-Path ".env")) {
 # Paso 6: Configurar archivos de settings para BD remota
 Write-Host ""
 Write-Host "[6/9] Configurando settings para BD remota..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe -c "
-import os
-import re
-
-BASE_DIR = r'$(Get-Location)'
-
-# Configurar core/settings.py
-settings_py = os.path.join(BASE_DIR, 'core', 'settings.py')
-with open(settings_py, 'r', encoding='utf-8') as f:
-    content = f.read()
-
-# Asegurar que DATABASES['remota'] esté presente
-if 'DATABASES[''remota''] = DATABASES[''default''].copy()' not in content:
-    # Buscar el bloque de if DATABASE_URL:
-    pattern = re.compile(r'(if DATABASE_URL:\s+DATABASES = \{[^}]+})\s+else:', re.DOTALL)
-    replacement = r'\1\n    # Agregar ''remota'' usando la misma URL para sincronización\n    DATABASES[''remota''] = DATABASES[''default''].copy()\nelse:'
-    content = pattern.sub(replacement, content)
-
-# Asegurar que DATABASE_ROUTERS esté configurado
-if 'DATABASE_ROUTERS = ['"'core.routers.EnrutadorInventario'"']' not in content:
-    # Reemplazar si está comentado o es []
-    content = re.sub(r'(# Desactivar router temporalmente para simplificar\n)?DATABASE_ROUTERS = \[\]', r'DATABASE_ROUTERS = [''core.routers.EnrutadorInventario'']', content)
-
-with open(settings_py, 'w', encoding='utf-8') as f:
-    f.write(content)
-
-# Configurar core/settings/base.py
-base_py = os.path.join(BASE_DIR, 'core', 'settings', 'base.py')
-with open(base_py, 'r', encoding='utf-8') as f:
-    base_content = f.read()
-
-if 'DATABASES[''remota''] = DATABASES[''default''].copy()' not in base_content:
-    base_pattern = re.compile(r'(if DATABASE_URL:\s+DATABASES = \{[^}]+})\s+else:', re.DOTALL)
-    base_replacement = r'\1\n    # Agregar ''remota'' usando la misma URL para sincronización\n    DATABASES[''remota''] = DATABASES[''default''].copy()\nelse:'
-    base_content = base_pattern.sub(base_replacement, base_content)
-
-if 'DATABASE_ROUTERS = ['"'core.routers.EnrutadorInventario'"']' not in base_content:
-    base_content = re.sub(r'(# Desactivar router temporalmente para simplificar\n)?DATABASE_ROUTERS = \[\]', r'DATABASE_ROUTERS = [''core.routers.EnrutadorInventario'']', base_content)
-
-with open(base_py, 'w', encoding='utf-8') as f:
-    f.write(base_content)
-
-print('[OK] Settings configurados para BD remota')
-"
+& .\venv\Scripts\python.exe .\scripts\configure_settings.py
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ADVERTENCIA] No se pudo actualizar los settings automáticamente" -ForegroundColor Yellow
+    Write-Host "[ADVERTENCIA] No se pudo actualizar los settings automaticamente" -ForegroundColor Yellow
 }
 
 # Paso 7: Aplicar migraciones

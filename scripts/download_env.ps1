@@ -142,13 +142,13 @@ catch {
         Write-Host ""
         Write-Host "Siguientes pasos:" -ForegroundColor Yellow
         Write-Host "  1. Genera una SECRET_KEY (ejecuta esto):" -ForegroundColor White
-        Write-Host '     python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"' -ForegroundColor Gray
+        Write-Host "     python -c \"from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())\"" -ForegroundColor Gray
         Write-Host ""
         Write-Host "  2. Edita el archivo .env y pega la clave generada" -ForegroundColor White
         Write-Host ""
         Write-Host "  3. (Opcional) Si quieres usar la BD remota Neon, configura DATABASE_URL" -ForegroundColor White
         Write-Host ""
-        Write-Host "¡Listo! Ahora puedes ejecutar: python manage.py runserver" -ForegroundColor Green
+        Write-Host "Listo! Ahora puedes ejecutar: python manage.py runserver" -ForegroundColor Green
     } else {
         Write-Host "ERROR: No se encontro .env.example en el proyecto!" -ForegroundColor Red
     }
