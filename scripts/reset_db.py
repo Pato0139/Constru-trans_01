@@ -17,7 +17,7 @@ def buscar_archivos_migracion(base_path, ignore_dir):
         # Ignorar la carpeta del entorno virtual
         if ignore_dir in dirs:
             dirs.remove(ignore_dir)
-            
+
         # Solo buscar dentro de carpetas 'migrations'
         if 'migrations' in root:
             for file in files:
@@ -58,12 +58,12 @@ def limpiar_proyecto():
     print("\n" + "!"*60)
     print(" ADVERTENCIA: Esta acción eliminará permanentemente los archivos.")
     print(" " + "!"*58)
-    
+
     confirmar = input("\n¿Estás seguro de que deseas continuar? (s/n): ").lower()
-    
+
     if confirmar == 's':
         print("\n[*] Iniciando limpieza...")
-        
+
         # Borrar archivos de migración
         for arch in archivos_migracion:
             try:

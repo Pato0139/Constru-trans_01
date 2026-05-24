@@ -1,12 +1,13 @@
 from .models import Historial
 
+
 def registrar_actividad(request, accion, modulo, elemento_id=None, descripcion=""):
     """
     Registra una acción en el historial de actividades del sistema.
     """
     usuario = request.user if request and request.user.is_authenticated else None
     ip_address = get_client_ip(request) if request else None
-    
+
     Historial.objects.create(
         usuario=usuario,
         accion=accion,

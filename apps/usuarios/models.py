@@ -1,7 +1,7 @@
 
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.db import models
 
 numeric_and_space_validator = RegexValidator(
     regex=r'^[0-9\s]*$',
@@ -42,7 +42,7 @@ class Usuario(models.Model):
     apellidos = models.CharField(max_length=200)
     telefono = models.CharField(max_length=20, blank=True)
     documento = models.CharField(max_length=20, validators=[numeric_and_space_validator])
-    
+
     # Rol is a VARCHAR column, not a foreign key!
     rol = models.CharField(max_length=50, choices=ROLES)
 
@@ -272,6 +272,10 @@ class MaterialConstruccion(models.Model):
     @property
     def precio(self):
         return self.precio_referencia
+
+    @precio.setter
+    def precio(self, value):
+        self.precio_referencia = value
 
     @property
     def tipo(self):

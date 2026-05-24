@@ -1,6 +1,7 @@
-from django.urls import path, reverse_lazy
-from . import views
 from django.contrib.auth import views as auth_views
+from django.urls import path, reverse_lazy
+
+from . import views
 
 app_name = 'usuarios'
 
@@ -32,7 +33,7 @@ urlpatterns = [
     # Notificaciones
     path("notificaciones/", views.lista_notificaciones, name="notificaciones"),
     path("notificaciones/marcar-leida/<int:id>/", views.marcar_notificacion_leida, name="marcar_notificacion_leida"),
-    
+
     # Configuraciones
     path("configuraciones/", views.configuraciones_usuario, name="configuraciones"),
 

@@ -1,32 +1,33 @@
-import os
 from functools import wraps
-from django.core.exceptions import PermissionDenied
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
-from django.db.models import Sum, Q
-from django.utils.timezone import now
-from django.http import JsonResponse
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
+from django.db.models import Q, Sum
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.timezone import now
+
+from apps.historial.utils import registrar_actividad
+from apps.ordenes.models import Pedido
+
+from .forms import LoginForm, RegistroForm
 from .models import (
-    Usuario, Conductor, Vehiculo, Stock, Proveedor,
     MaterialConstruccion as Material,
 )
-from apps.clientes.models import Cliente
+from .models import (
+    Usuario,
+)
 from .utils import limpiar_telefono
-from .forms import LoginForm, RegistroForm, MaterialForm, ProveedorForm
-from apps.ordenes.models import Pedido
-from apps.historial.utils import registrar_actividad
 
 
 def conexion_remota_disponible():
     """Función auxiliar para verificar si la conexión remota está disponible"""
     try:
         from django.db import connections
-        from django.db.utils import OperationalError, ConnectionDoesNotExist
+        from django.db.utils import ConnectionDoesNotExist, OperationalError
         if 'remota' not in connections:
             return False
         connections['remota'].ensure_connection()
@@ -65,7 +66,7 @@ def buscar_usuarios_generales(query=None):
     usuarios = Usuario.objects.all().select_related('user', 'perfil_cliente').order_by('-id')
     if query:
         usuarios = usuarios.filter(
-            Q(nombres__icontains=query) | 
+            Q(nombres__icontains=query) |
             Q(user__email__icontains=query) |
             Q(documento__icontains=query)
         )
@@ -97,7 +98,7 @@ def registro(request):
                 # El formulario ya validó correos, documentos y contraseñas coincidentes
                 email = form.cleaned_data.get("correo")
                 password = form.cleaned_data.get("contrasena")
-                
+
                 try:
                     user = User.objects.create_user(
                         username=email,
@@ -111,7 +112,7 @@ def registro(request):
                         from django.db import connections
                         with connections['remota'].cursor() as cursor:
                             cursor.execute("SELECT setval('auth_user_id_seq', (SELECT MAX(id) FROM auth_user));")
-                        
+
                         # Reintento tras reparar secuencia
                         user = User.objects.create_user(
                             username=email,
@@ -120,13 +121,13 @@ def registro(request):
                         )
                     else:
                         raise e
-                
+
                 # El formulario ModelForm puede guardar el objeto Usuario directamente
                 perfil = form.save(commit=False)
                 perfil.user = user
                 perfil.rol = "cliente"
                 perfil.sincronizado = False
-                
+
                 try:
                     perfil.save()
                 except Exception as e_perfil:
@@ -143,11 +144,11 @@ def registro(request):
                         perfil.save()
                     else:
                         raise e_perfil
-                
+
                 registrar_actividad(request, 'crear', 'usuarios', user.id, f"Nuevo registro: {email}")
                 messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
                 return redirect("usuarios:login")
-                
+
             except Exception as e_final:
                 messages.error(request, f"Error al crear el usuario: {str(e_final)}")
         else:
@@ -160,15 +161,12 @@ def registro(request):
     return render(request, "usuarios/registro.html", {"form": form})
 
 
-from django.contrib.auth import views as auth_views
 
-from .forms import LoginForm
 
 
 # ---------------- LOGIN ----------------
 def login_usuario(request):
     # Verificación de conexión a la nube para informar al usuario
-    from django.db.utils import OperationalError
     modo_local = not conexion_remota_disponible()
 
     if request.method == "POST":
@@ -190,7 +188,7 @@ def login_usuario(request):
                 # IMPORTANTE: Antes de loguear, verificamos si el perfil existe en la BD actual
                 # (Para evitar IntegrityError si la sesión intenta usar un perfil que no existe localmente)
                 perfil = Usuario.objects.filter(user=user).first()
-                
+
                 if not perfil and not user.is_superuser:
                     # Si no hay perfil, intentamos descargarlo de la nube si hay conexión
                     if conexion_remota_disponible():
@@ -279,24 +277,24 @@ def login_usuario(request):
                     # Especificamos el backend para evitar problemas con múltiples BD
                     if not hasattr(user, 'backend'):
                         user.backend = 'django.contrib.auth.backends.ModelBackend'
-                    
+
                     login(request, user)
-                    
+
                     # Forzamos el guardado de la sesión antes de redireccionar
                     request.session.save()
-                    
+
                     # Registramos actividad (Ahora Historial también va a la nube por el router)
                     try:
                         registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
                     except Exception:
                         pass # Que no se caiga el login si falla el historial
-                    
+
                     messages.success(request, f"¡Bienvenido de nuevo, {perfil.nombres}!")
-                    
+
                     next_url = request.GET.get('next')
                     if next_url:
                         return redirect(next_url)
-                    
+
                     if perfil.rol == "admin":
                         return redirect("usuarios:panel")
                     elif perfil.rol == "cliente":
@@ -369,7 +367,7 @@ def panel(request):
         return redirect("clientes:panel_cliente")
     elif usuario.rol == "conductor":
         return panel_conductor(request)
-    
+
     return redirect("usuarios:login")
 
 
@@ -381,10 +379,10 @@ def panel_conductor(request):
     except Usuario.DoesNotExist:
         logout(request)
         return redirect("usuarios:login")
-        
+
     pedidos_asignados = Pedido.objects.filter(usuario=conductor).select_related('usuario').exclude(estado="entregado")
     entregas_completadas = Pedido.objects.filter(usuario=conductor, estado="entregado")
-    
+
     context = {
         "pedidos": pedidos_asignados,
         "entregas_totales": entregas_completadas.count(),
@@ -424,7 +422,7 @@ def perfil_admin(request):
     except Usuario.DoesNotExist:
         logout(request)
         return redirect("usuarios:login")
-        
+
     context = {
         "usuario": usuario,
         "usuarios_count": Usuario.objects.count(),
@@ -443,7 +441,7 @@ def editar_perfil(request):
     except Usuario.DoesNotExist:
         logout(request)
         return redirect("usuarios:login")
-        
+
     if request.method == "POST":
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
@@ -451,11 +449,11 @@ def editar_perfil(request):
         tipo_documento = request.POST.get("tipo_documento")
         documento = limpiar_telefono(request.POST.get("documento"))
         email = request.POST.get("email")
-        
+
         # Manejo de la imagen de perfil
         if 'foto_perfil' in request.FILES:
             usuario.foto_perfil = request.FILES['foto_perfil']
-            
+
         usuario.nombres = nombres
         usuario.apellidos = apellidos
         usuario.telefono = telefono
@@ -463,21 +461,21 @@ def editar_perfil(request):
         usuario.documento = documento
         usuario.sincronizado = False
         usuario.save()
-        
+
         # Actualizar el correo del User de Django
         if email:
             request.user.email = email
             request.user.save()
-            
+
         messages.success(request, "Perfil actualizado correctamente.")
-        
+
         if usuario.rol == 'admin':
             return redirect("usuarios:perfil_admin")
         elif usuario.rol == 'conductor':
             return redirect("usuarios:perfil_conductor")
         else:
             return redirect("clientes:perfil_cliente")
-            
+
     return render(request, "usuarios/editar_perfil.html", {"usuario": usuario})
 
 
@@ -577,20 +575,20 @@ def crear_usuario(request):
             if 'foto_perfil' in request.FILES:
                 perfil.foto_perfil = request.FILES['foto_perfil']
                 perfil.save()
-            
+
             registrar_actividad(request, 'crear', 'usuarios', user.id, f"Administrador creó usuario: {email} como {rol}")
 
             success_msg = f"Usuario {nombres} creado correctamente."
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"status": "success", "message": success_msg})
-            
+
             messages.success(request, success_msg)
             return redirect("usuarios:lista_usuarios")
         except Exception as e:
             error_msg = f"Error al crear usuario: {str(e)}"
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"status": "error", "message": error_msg}, status=500)
-            
+
             messages.error(request, error_msg)
             return render(request, "usuarios/form.html", {
                 "error": error_msg,
@@ -604,14 +602,14 @@ def crear_usuario(request):
 def lista_usuarios(request):
     query = request.GET.get('q')
     active_tab = request.GET.get('tab', 'general')
-    
+
     usuarios_list = buscar_usuarios_generales(query)
-    
+
     # Separamos por roles para las pestañas específicas
     admins = usuarios_list.filter(rol='admin')
     clientes = usuarios_list.filter(rol='cliente')
     conductores = usuarios_list.filter(rol='conductor')
-    
+
     context = {
         "usuarios_todos": usuarios_list, # Lista general
         "admins": admins,
@@ -620,7 +618,7 @@ def lista_usuarios(request):
         "query": query,
         "active_tab": active_tab
     }
-        
+
     return render(request, "usuarios/lista.html", context)
 
 
@@ -631,7 +629,7 @@ def toggle_estado_usuario(request, id):
         return redirect("usuarios:panel")
 
     usuario_obj = get_object_or_404(Usuario, id=id)
-    
+
     # PROTECCIÓN: Nadie puede desactivar al administrador global
     if usuario_obj.user.username == 'Edward_Fonseca':
         messages.error(request, "El Administrador Global no puede ser desactivado.")
@@ -640,7 +638,7 @@ def toggle_estado_usuario(request, id):
     nuevo_estado = 'inactivo' if usuario_obj.estado == 'activo' else 'activo'
     usuario_obj.estado = nuevo_estado
     usuario_obj.save()
-    
+
     # También desactivar/activar el usuario de Django
     usuario_obj.user.is_active = (nuevo_estado == 'activo')
     usuario_obj.user.save()
@@ -655,12 +653,12 @@ def toggle_estado_usuario(request, id):
 def eliminar_usuario(request, id):
     # OBTENER USUARIO A ELIMINAR
     usuario = get_object_or_404(Usuario, id=id)
-    
+
     # VALIDACIÓN: Solo admin puede eliminar
     if request.user.usuario.rol != 'admin':
         messages.error(request, "No tienes permiso para realizar esta acción.")
         return redirect('usuarios:lista_usuarios')
-        
+
     # ACCIÓN: Eliminar (O desactivar según lógica de negocio)
     usuario.delete()
     messages.success(request, f"Usuario {usuario.nombres} eliminado correctamente.")
@@ -670,7 +668,7 @@ def eliminar_usuario(request, id):
 @login_required
 def editar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
-    
+
     if request.user.usuario.rol != 'admin' and request.user.usuario != usuario:
         messages.error(request, "No tienes permisos para editar este perfil.")
         return redirect("usuarios:panel")
@@ -698,14 +696,14 @@ def editar_usuario(request, id):
             usuario.nombres = nombres
             usuario.apellidos = apellidos
             usuario.telefono = telefono
-            
+
             # Manejo de la imagen de perfil en la edición de usuario por admin
             if 'foto_perfil' in request.FILES:
                 usuario.foto_perfil = request.FILES['foto_perfil']
-                
+
             if request.user.usuario.rol == "admin" and rol:
                 usuario.rol = rol
-                
+
             usuario.sincronizado = False
             usuario.save()
             registrar_actividad(request, 'editar', 'usuarios', usuario.user.id, f"Perfil de usuario editado: {usuario.user.username}")
@@ -737,7 +735,7 @@ def lista_conductores(request):
 @login_required
 def perfil_conductor(request):
     conductor_id = request.GET.get('id')
-    
+
     if conductor_id and request.user.usuario.rol == 'admin':
         conductor = get_object_or_404(Usuario, id=conductor_id)
     else:
@@ -746,9 +744,9 @@ def perfil_conductor(request):
         except Usuario.DoesNotExist:
             logout(request)
             return redirect("usuarios:login")
-        
+
     pedidos = Pedido.objects.filter(usuario=conductor)
-    
+
     from apps.ordenes.models import Entrega
     try:
         from apps.usuarios.models import Conductor as ConductorPerfil
@@ -766,13 +764,12 @@ def perfil_conductor(request):
 
 
 # ---------------- PASSWORD RESET ----------------
+import logging
+
 from django.contrib.auth.views import (
-    PasswordResetView, PasswordResetDoneView,
-    PasswordResetConfirmView, PasswordResetCompleteView,
+    PasswordResetView,
 )
 from django.urls import reverse_lazy
-from django.contrib.auth.models import User
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -831,7 +828,7 @@ def marcar_notificacion_leida(request, id):
         notificacion = get_object_or_404(request.user.usuario.notificaciones, id=id)
         notificacion.leida = True
         notificacion.save()
-        
+
         if notificacion.link:
             return redirect(notificacion.link)
     except Usuario.DoesNotExist:
@@ -846,9 +843,9 @@ def configuraciones_usuario(request):
     except Usuario.DoesNotExist:
         logout(request)
         return redirect("usuarios:login")
-    
+
     if request.method == "POST":
         messages.success(request, "Configuraciones actualizadas correctamente.")
         return redirect("usuarios:configuraciones")
-    
+
     return render(request, "usuarios/configuraciones.html", {"usuario": usuario})

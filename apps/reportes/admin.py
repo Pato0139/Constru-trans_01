@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Reporte, HistorialReporte
+
+from .models import HistorialReporte, Reporte
 
 
 class HistorialReporteInline(admin.TabularInline):

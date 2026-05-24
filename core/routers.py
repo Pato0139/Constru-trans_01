@@ -7,8 +7,9 @@ Router de bases de datos para modo híbrido offline-first.
 - Las migraciones SIEMPRE se aplican en 'default' (SQLite local).
 """
 import os
+
 from django.db import connections
-from django.db.utils import OperationalError, ConnectionDoesNotExist
+from django.db.utils import ConnectionDoesNotExist, OperationalError
 
 
 class EnrutadorInventario:

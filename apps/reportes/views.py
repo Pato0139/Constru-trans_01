@@ -1,23 +1,21 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-from apps.ordenes.models import Orden
-from apps.usuarios.models import Usuario, Material, Vehiculo
-
-from django.http import HttpResponse
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
-from django.utils.timezone import now
-from apps.historial.utils import registrar_actividad
-import openpyxl
-from openpyxl.styles import Font, Alignment, PatternFill
 import xml.etree.ElementTree as ET
-from io import BytesIO
 
+import openpyxl
+from django.db.models import Sum
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.utils.timezone import now
+from openpyxl.styles import Alignment, Font, PatternFill
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+from apps.historial.utils import registrar_actividad
+from apps.ordenes.models import Orden
+from apps.usuarios.models import Material, Usuario, Vehiculo
 from apps.usuarios.views import admin_required
+
 
 @admin_required
 def reportes_admin(request):
@@ -27,7 +25,7 @@ def reportes_admin(request):
     pendientes = ordenes.filter(estado="pendiente").count()
     en_ruta = ordenes.filter(estado="en_ruta").count()
     entregadas = ordenes.filter(estado="entregado").count()
-    
+
     # Calcular porcentajes para la UI
     pct_pendientes = (pendientes * 100 / total) if total > 0 else 0
     pct_en_ruta = (en_ruta * 100 / total) if total > 0 else 0
@@ -45,15 +43,15 @@ def reportes_admin(request):
         "pct_pendientes": pct_pendientes,
         "pct_en_ruta": pct_en_ruta,
         "pct_entregadas": pct_entregadas,
-        
+
         # Resumen de Usuarios
         "total_clientes": Usuario.objects.filter(rol="cliente").count(),
         "total_conductores": Usuario.objects.filter(rol="conductor").count(),
-        
+
         # Resumen de Inventario y Vehículos
         "total_materiales": Material.objects.count(),
         "total_vehiculos": Vehiculo.objects.count(),
-        
+
         # Financiero
         "total_ingresos": ordenes.aggregate(total=Sum("precio"))["total"] or 0,
 
@@ -92,7 +90,7 @@ def exportar_reporte_pdf(request, tipo):
         # Optimizado con select_related('user')
         for u in Usuario.objects.filter(rol='cliente').select_related('user'):
             data.append([u.id, f"{u.nombres} {u.apellidos}", u.user.email, u.telefono, u.estado])
-    
+
     elif tipo == 'materiales':
         data.append(['ID', 'Nombre', 'Tipo', 'Precio', 'Stock'])
         for m in Material.objects.all().select_related('stock_info'):
@@ -134,9 +132,9 @@ def exportar_reporte_pdf(request, tipo):
         elements.append(Paragraph("No hay datos disponibles para este reporte.", styles['Normal']))
 
     doc.build(elements)
-    
+
     registrar_actividad(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a PDF")
-    
+
     return response
 
 @admin_required
@@ -161,7 +159,7 @@ def exportar_reporte_excel(request, tipo):
         ws.append(headers)
         for u in Usuario.objects.filter(rol='cliente').select_related('user'):
             ws.append([u.id, f"{u.nombres} {u.apellidos}", u.user.email, u.telefono, u.estado])
-    
+
     elif tipo == 'materiales':
         headers = ['ID', 'Nombre', 'Tipo', 'Precio', 'Stock']
         ws.append(headers)
@@ -203,7 +201,7 @@ def exportar_reporte_excel(request, tipo):
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.xlsx"'
     wb.save(response)
-    
+
     registrar_actividad(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a Excel")
     return response
 
@@ -259,6 +257,6 @@ def exportar_reporte_xml(request, tipo):
 
     response = HttpResponse(xmlstr, content_type='application/xml')
     response['Content-Disposition'] = f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.xml"'
-    
+
     registrar_actividad(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a XML")
     return response

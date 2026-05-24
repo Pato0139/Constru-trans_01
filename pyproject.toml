@@ -1,13 +1,13 @@
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "B", "DJ"]
 ignore = ["E501"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.13"
 plugins = ["mypy_django_plugin.main"]
 
 [tool.django-stubs]

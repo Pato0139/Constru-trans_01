@@ -1,5 +1,6 @@
 
 from django.db import models
+
 from apps.facturacion.models import Factura
 
 
@@ -28,6 +29,7 @@ class Pago(models.Model):
 # Signal: actualiza estado de factura
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
 
 @receiver(post_save, sender=Pago)
 def actualizar_estado_factura(sender, instance, created, **kwargs):

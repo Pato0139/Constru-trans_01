@@ -1,7 +1,19 @@
 
 from django.contrib import admin
-from .models import Usuario, EPS, Conductor, Vehiculo, ConductorVehiculo
-from .models import Catalogo, Proveedor, MaterialConstruccion, Stock, MetodoPago, Notificacion
+
+from .models import (
+    EPS,
+    Catalogo,
+    Conductor,
+    ConductorVehiculo,
+    MaterialConstruccion,
+    MetodoPago,
+    Notificacion,
+    Proveedor,
+    Stock,
+    Usuario,
+    Vehiculo,
+)
 
 
 @admin.register(Usuario)
@@ -9,7 +21,7 @@ class UsuarioAdmin(admin.ModelAdmin):
     list_display = ('nombres', 'apellidos', 'get_email', 'documento', 'rol', 'estado')
     list_filter = ('rol', 'estado', 'tipo_documento')
     search_fields = ('nombres', 'apellidos', 'documento')
-    
+
     def get_email(self, obj):
         return obj.user.email
     get_email.short_description = 'Correo'

@@ -1,19 +1,22 @@
-import os
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout
-from django.db.models import Sum, F
 from django.contrib import messages
-from apps.ordenes.models import Pedido, DetallePedido
-from apps.usuarios.models import MaterialConstruccion as Material, Usuario, Stock
-from .models import Cliente
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import F, Sum
+from django.shortcuts import get_object_or_404, redirect, render
+
+from apps.ordenes.models import DetallePedido, Pedido
+from apps.usuarios.models import MaterialConstruccion as Material
+from apps.usuarios.models import Stock, Usuario
+
+from .models import Cliente
+
 
 def conexion_remota_disponible():
     """Función auxiliar para verificar si la conexión remota está disponible"""
     try:
         from django.db import connections
-        from django.db.utils import OperationalError, ConnectionDoesNotExist
+        from django.db.utils import ConnectionDoesNotExist, OperationalError
         if 'remota' not in connections:
             return False
         connections['remota'].ensure_connection()
@@ -44,7 +47,7 @@ def panel_cliente(request):
     except Exception as e:
         messages.error(request, f"Error al cargar el panel: {str(e)}")
         return redirect("usuarios:login")
-        
+
     pedidos = Pedido.objects.filter(usuario=usuario)
     context = {
         "pedidos_activos": pedidos.filter(estado="pendiente").count(),
@@ -61,7 +64,7 @@ def mis_pedidos(request):
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
-        
+
     pedidos = Pedido.objects.filter(
         usuario=usuario
     ).order_by("-fecha_solicitud")
@@ -76,9 +79,9 @@ def perfil_cliente(request):
     except (Usuario.DoesNotExist, AttributeError):
         logout(request)
         return redirect("usuarios:login")
-        
+
     pedidos = Pedido.objects.filter(usuario=usuario)
-    
+
     context = {
         "cliente": usuario,
         "total_pedidos": pedidos.count(),
@@ -86,7 +89,7 @@ def perfil_cliente(request):
         "en_ruta": pedidos.filter(estado="en_ruta").count(),
         "total_invertido": pedidos.aggregate(total=Sum("total"))["total"] or 0
     }
-    
+
     return render(request, "clientes/detalle.html", context)
 
 @login_required
@@ -96,7 +99,7 @@ def seguimiento_pedidos(request):
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
-        
+
     pedidos = Pedido.objects.filter(usuario=usuario).order_by("-fecha_solicitud")
     return render(request, "clientes/seguimiento.html", {
         "pedidos": pedidos
@@ -109,9 +112,9 @@ def historial_pedidos(request):
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
-        
+
     pedidos = Pedido.objects.filter(
-        usuario=usuario, 
+        usuario=usuario,
         estado="entregado"
     ).order_by("-fecha_solicitud")
     return render(request, "clientes/historial.html", {
@@ -124,13 +127,13 @@ def crear_pedido(request):
     if usuario.rol != 'cliente':
         messages.error(request, "Solo los clientes pueden solicitar nuevos pedidos.")
         return redirect("usuarios:panel")
-        
+
     try:
         cliente, created = Cliente.objects.get_or_create(usuario=usuario)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
-        
+
     materiales = Material.objects.all()
 
     if request.method == "POST":
@@ -146,7 +149,7 @@ def crear_pedido(request):
                 "materiales": materiales,
                 "action": "crear"
             })
-        
+
         if not materiales_ids or len(materiales_ids) == 0:
             messages.error(request, "Debes agregar al menos un material al pedido.")
             return render(request, "clientes/form.html", {
@@ -180,16 +183,16 @@ def crear_pedido(request):
                     fecha_entrega_programada=fecha_entrega if fecha_entrega else None
                 )
 
-                for m_id, cant in zip(materiales_ids, cantidades):
+                for m_id, cant in zip(materiales_ids, cantidades, strict=False):
                     if not m_id or not cant:
                         continue
-                        
+
                     material = get_object_or_404(Material, id=m_id)
                     try:
                         stock_obj = Stock.objects.select_for_update().get(material=material)
                     except Stock.DoesNotExist:
                         stock_obj = Stock.objects.create(material=material, cantidad_actual=0)
-                    
+
                     try:
                         cantidad = int(cant)
                     except (ValueError, TypeError):
@@ -211,7 +214,7 @@ def crear_pedido(request):
                         cantidad=cantidad,
                         precio_unitario=precio_unitario
                     )
-                    
+
                     stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
                     stock_obj.save()
 
@@ -243,7 +246,7 @@ def crear_pedido(request):
 def editar_pedido(request, id):
     pedido = get_object_or_404(Pedido, codigo_pedido=id)
     materiales = Material.objects.all()
-    
+
     es_admin = request.user.usuario.rol == 'admin'
     es_dueno = request.user.usuario == pedido.usuario
 
@@ -277,11 +280,11 @@ def editar_pedido(request, id):
                         stock_obj = Stock.objects.create(material=detalle.material, cantidad_actual=0)
                     stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
                     stock_obj.save()
-                
+
                 pedido.detalles.all().delete()
 
                 total_general = 0
-                for m_id, cant in zip(materiales_ids, cantidades):
+                for m_id, cant in zip(materiales_ids, cantidades, strict=False):
                     material = get_object_or_404(Material, id=m_id)
                     try:
                         stock_obj = Stock.objects.select_for_update().get(material=material)
@@ -298,7 +301,7 @@ def editar_pedido(request, id):
                         cantidad=cantidad,
                         precio_unitario=material.precio
                     )
-                    
+
                     stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
                     stock_obj.save()
                     total_general += material.precio * cantidad
@@ -315,7 +318,7 @@ def editar_pedido(request, id):
 
         except Exception as e:
             messages.error(request, f"Error al actualizar el pedido: {e}")
-            
+
     return render(request, "clientes/form.html", {
         "orden": pedido,
         "materiales": materiales,
@@ -325,7 +328,7 @@ def editar_pedido(request, id):
 @login_required
 def cancelar_pedido(request, id):
     pedido = get_object_or_404(Pedido, codigo_pedido=id)
-    
+
     es_admin = request.user.usuario.rol == 'admin'
     es_dueno = request.user.usuario == pedido.usuario
 
@@ -353,7 +356,7 @@ def cancelar_pedido(request, id):
 
             pedido.estado = "cancelado"
             pedido.save()
-            
+
             from apps.historial.utils import registrar_actividad
             registrar_actividad(request, 'cancelar_pedido', 'pedidos', pedido.codigo_pedido, f"Pedido #{pedido.codigo_pedido} cancelado por {'admin' if es_admin else 'cliente'}")
 

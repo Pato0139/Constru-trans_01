@@ -1,8 +1,9 @@
 
+import os
 import smtplib
 from email.mime.text import MIMEText
+
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
@@ -28,22 +29,22 @@ try:
     print("STARTTLS OK")
     server.ehlo()
     print("EHLO después de TLS OK")
-    
+
     print(f"Intentando login con usuario: {EMAIL_HOST_USER}")
     server.login(EMAIL_HOST_USER, EMAIL_HOST_PASSWORD)
     print("LOGIN OK!")
-    
+
     print("Enviando correo de prueba...")
     msg = MIMEText("Este es un correo de prueba desde Django!")
     msg['Subject'] = "Prueba de correo"
     msg['From'] = DEFAULT_FROM_EMAIL
     msg['To'] = EMAIL_HOST_USER
-    
+
     server.sendmail(msg['From'], [msg['To']], msg.as_string())
     print("CORREO ENVIADO!")
-    
+
     server.quit()
-    
+
 except Exception as e:
     print(f"ERROR: {type(e).__name__}: {e}")
 

@@ -1,16 +1,15 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .models import Proveedor, Compra, DetalleCompra
-from .forms import CompraForm, DetalleCompraFormSet
-from django.contrib import messages
-from apps.historial.utils import registrar_actividad
-
-from django.db.models import Q
-from django.core.mail import send_mail
 from django.conf import settings
-from django.http import JsonResponse
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.historial.utils import registrar_actividad
 from apps.usuarios.views import admin_required
+
+from .forms import CompraForm, DetalleCompraFormSet
+from .models import Compra, Proveedor
+
 
 @admin_required
 def lista_compras(request):
@@ -29,17 +28,17 @@ def crear_compra(request):
     if request.method == "POST":
         form = CompraForm(request.POST)
         formset = DetalleCompraFormSet(request.POST)
-        
+
         if form.is_valid() and formset.is_valid():
             compra = form.save(commit=False)
             compra.usuario = request.user
             compra.save()
             formset.instance = compra
             formset.save()
-            
+
             # Recalcular total por si acaso
             compra.calcular_total()
-            
+
             registrar_actividad(request, 'crear', 'compras', compra.id, f"Orden de compra creada: {compra.numero_orden}")
             messages.success(request, f"Orden de compra {compra.numero_orden} creada con éxito.")
             return redirect("compras:detalle_compra", id=compra.id)
@@ -48,7 +47,7 @@ def crear_compra(request):
     else:
         form = CompraForm()
         formset = DetalleCompraFormSet()
-        
+
     return render(request, "compras/form.html", {
         "form": form,
         "formset": formset,
@@ -80,11 +79,11 @@ def editar_compra(request, id):
     if compra.estado != Compra.PENDIENTE:
         messages.error(request, "Solo se pueden editar órdenes en estado pendiente.")
         return redirect("compras:detalle_compra", id=compra.id)
-        
+
     if request.method == "POST":
         form = CompraForm(request.POST, instance=compra)
         formset = DetalleCompraFormSet(request.POST, instance=compra)
-        
+
         if form.is_valid() and formset.is_valid():
             form.save()
             formset.save()
@@ -94,7 +93,7 @@ def editar_compra(request, id):
     else:
         form = CompraForm(instance=compra)
         formset = DetalleCompraFormSet(instance=compra)
-        
+
     return render(request, "compras/form.html", {
         "form": form,
         "formset": formset,
@@ -108,7 +107,7 @@ def contactar_proveedor(request, id):
     if request.method == "POST":
         asunto = request.POST.get("asunto")
         mensaje_texto = request.POST.get("mensaje")
-        
+
         try:
             cuerpo_mensaje = f"Mensaje de {request.user.get_full_name()} ({request.user.email}):\n\n{mensaje_texto}"
             send_mail(
@@ -120,12 +119,12 @@ def contactar_proveedor(request, id):
             )
             registrar_actividad(request, 'otro', 'proveedores', proveedor.nit, f"Mensaje enviado a proveedor: {proveedor.nombre_empresa}")
             messages.success(request, f"Mensaje enviado a {proveedor.nombre_empresa} con éxito.")
-        except Exception as e:
+        except Exception:
             registrar_actividad(request, 'otro', 'proveedores', proveedor.nit, f"Intento de mensaje a {proveedor.nombre_empresa} (Falló envío real)")
             messages.info(request, f"Se ha registrado el mensaje para {proveedor.nombre_empresa} (Simulación de envío).")
 
         return redirect("compras:lista_proveedores")
-        
+
     return render(request, "compras/proveedor_contacto.html", {"proveedor": proveedor})
 
 @admin_required
@@ -153,7 +152,7 @@ def crear_proveedor(request):
         email = request.POST.get("email")
         direccion = request.POST.get("direccion")
         categoria = request.POST.get("categoria")
-        
+
         Proveedor.objects.create(
             nombre_empresa=nombre_empresa,
             nit=nit,
@@ -166,7 +165,7 @@ def crear_proveedor(request):
         registrar_actividad(request, 'crear', 'proveedores', nit, f"Proveedor creado: {nombre_empresa}")
         messages.success(request, "Proveedor registrado con éxito.")
         return redirect("compras:lista_proveedores")
-        
+
     return render(request, "compras/proveedor_form.html", {"action": "Crear"})
 
 @admin_required
@@ -181,9 +180,9 @@ def editar_proveedor(request, id):
         proveedor.direccion = request.POST.get("direccion")
         proveedor.categoria = request.POST.get("categoria")
         proveedor.save()
-        
+
         registrar_actividad(request, 'editar', 'proveedores', proveedor.nit, f"Proveedor editado: {proveedor.nombre_empresa}")
         messages.success(request, "Proveedor actualizado.")
         return redirect("compras:lista_proveedores")
-        
+
     return render(request, "compras/proveedor_form.html", {"proveedor": proveedor, "action": "Editar"})

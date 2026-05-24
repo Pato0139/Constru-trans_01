@@ -1,17 +1,20 @@
-import time
 import os
+import time
+
+from django.contrib.admin.models import LogEntry
+from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
 from django.db import OperationalError, connections
-from apps.usuarios.models import Material, Proveedor, Vehiculo, Usuario
+
 from apps.clientes.models import Cliente
-from django.contrib.auth.models import User, Group
-from apps.inventario.models import MovimientoInventario
-from apps.compras.models import Compra, DetalleCompra
-from apps.ordenes.models import Orden, Entrega
+from apps.compras.models import Compra
 from apps.facturacion.models import Factura
-from apps.pagos.models import Pago
 from apps.historial.models import Historial
-from django.contrib.admin.models import LogEntry
+from apps.inventario.models import MovimientoInventario
+from apps.ordenes.models import Entrega, Orden
+from apps.pagos.models import Pago
+from apps.usuarios.models import Material, Proveedor, Usuario, Vehiculo
+
 
 def conexion_remota_disponible():
     try:
@@ -42,7 +45,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('--- Iniciando Sincronizador (El Celador) ---'))
-        
+
         force = options.get('force', False)
         if force:
             self.stdout.write(self.style.WARNING('MODO FORZADO: Se sincronizarán todos los registros.'))
@@ -53,7 +56,7 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.WARNING('Sin conexión con la nube. Reintentando en 30 segundos...'))
                 else:
                     self.stdout.write(self.style.SUCCESS('Conexión con la nube establecida.'))
-                    
+
                     # 2. Sincronizar modelos en orden de dependencia
                     self.descargar_usuarios() # Traer usuarios nuevos de la nube
                     self.sincronizar_grupos(force=force) # auth_group y auth_user_groups
@@ -69,13 +72,13 @@ class Command(BaseCommand):
                     self.sincronizar_modelo(MovimientoInventario, force=force)
                     self.sincronizar_modelo(Historial, force=force)
                     self.sincronizar_log_admin() # django_admin_log
-                    
+
                     # 3. Corregir secuencias en PostgreSQL (IMPORTANTE para evitar errores de ID duplicado)
                     self.corregir_secuencias_remotas()
-                
+
             except OperationalError:
                 self.stdout.write(self.style.WARNING('Sin conexión con la nube. Reintentando en 30 segundos...'))
-            
+
             if options['once']:
                 self.stdout.write(self.style.SUCCESS('Sincronización única completada.'))
                 break
@@ -94,7 +97,7 @@ class Command(BaseCommand):
                     id=group.id,
                     defaults={'name': group.name}
                 )
-            
+
             # 2. Sincronizar relaciones de usuarios con grupos (auth_user_groups)
             # Como Django no expone auth_user_groups como un modelo directo fácilmente,
             # usamos el manager de la relación through
@@ -106,7 +109,7 @@ class Command(BaseCommand):
                     grupos_ids = list(user.groups.values_list('id', flat=True))
                     # Limpiamos y asignamos en la remota
                     user_remoto.groups.set(Group.objects.using('remota').filter(id__in=grupos_ids))
-            
+
             self.stdout.write(self.style.SUCCESS('  [OK] Grupos y relaciones sincronizados.'))
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'  [ERROR] Falló sincronización de Grupos: {str(e)}'))
@@ -118,7 +121,7 @@ class Command(BaseCommand):
             pendientes = modelo.objects.using('default').all().order_by('id')
         else:
             pendientes = modelo.objects.using('default').filter(sincronizado=False).order_by('id')
-        
+
         if pendientes.exists():
             self.stdout.write(f'Sincronizando {pendientes.count()} registros de {modelo.__name__}...')
             for obj in pendientes:
@@ -133,17 +136,17 @@ class Command(BaseCommand):
                                 data[field.name + '_id'] = getattr(obj, field.name + '_id')
                             else:
                                 data[field.name] = getattr(obj, field.name)
-                    
+
                     # Forzar el ID para mantener consistencia
                     modelo.objects.using('remota').update_or_create(
                         id=obj.id,
                         defaults=data
                     )
-                    
+
                     # 2. Si tiene detalles (Compra/Orden), los sincronizamos también
                     for rel in obj._meta.related_objects:
                         if rel.get_accessor_name() == 'detalles':
-                            detalles = getattr(obj, 'detalles').all().order_by('id')
+                            detalles = obj.detalles.all().order_by('id')
                             for detalle in detalles:
                                 d_data = {}
                                 for d_field in detalle._meta.fields:
@@ -151,12 +154,12 @@ class Command(BaseCommand):
                                         d_data[d_field.name + '_id'] = getattr(detalle, d_field.name + '_id')
                                     else:
                                         d_data[d_field.name] = getattr(detalle, d_field.name)
-                                
+
                                 detalle.__class__.objects.using('remota').update_or_create(
                                     id=detalle.id,
                                     defaults=d_data
                                 )
-                    
+
                     # 3. Marcamos como sincronizado localmente
                     obj.sincronizado = True
                     obj.save(using='default')
@@ -170,9 +173,9 @@ class Command(BaseCommand):
             # Obtenemos el último ID sincronizado en la remota
             ultimo_id_remoto = LogEntry.objects.using('remota').order_by('-id').first()
             ultimo_id = ultimo_id_remoto.id if ultimo_id_remoto else 0
-            
+
             pendientes = LogEntry.objects.using('default').filter(id__gt=ultimo_id).order_by('id')
-            
+
             if pendientes.exists():
                 self.stdout.write(f'Sincronizando {pendientes.count()} logs de Django Admin...')
                 for log in pendientes:
@@ -182,7 +185,7 @@ class Command(BaseCommand):
                             data[field.name + '_id'] = getattr(log, field.name + '_id')
                         else:
                             data[field.name] = getattr(log, field.name)
-                    
+
                     LogEntry.objects.using('remota').update_or_create(
                         id=log.id,
                         defaults=data
@@ -205,23 +208,23 @@ class Command(BaseCommand):
                     u_data = {}
                     for field in user_django._meta.fields:
                         u_data[field.name] = getattr(user_django, field.name)
-                    
+
                     User.objects.using('remota').update_or_create(
                         id=user_django.id,
                         defaults=u_data
                     )
-                    
+
                     # 2. Sincronizar el perfil Usuario
                     p_data = {}
                     for field in perfil._meta.fields:
                         if field.name != 'sincronizado':
                             p_data[field.name] = getattr(perfil, field.name)
-                    
+
                     Usuario.objects.using('remota').update_or_create(
                         id=perfil.id,
                         defaults=p_data
                     )
-                    
+
                     # 3. Sincronizar perfiles específicos si existen
                     if perfil.rol == 'cliente':
                         try:
@@ -229,7 +232,7 @@ class Command(BaseCommand):
                             c_data = {}
                             for field in cliente_perfil._meta.fields:
                                 c_data[field.name] = getattr(cliente_perfil, field.name)
-                            
+
                             Cliente.objects.using('remota').update_or_create(
                                 id=cliente_perfil.id,
                                 defaults=c_data
@@ -237,7 +240,7 @@ class Command(BaseCommand):
                             self.stdout.write(self.style.SUCCESS(f'    [OK] Perfil de Cliente sincronizado para {perfil.user.username}'))
                         except Cliente.DoesNotExist:
                             pass
-                    
+
                     # 4. Marcar como sincronizado local
                     perfil.sincronizado = True
                     perfil.save(using='default')
@@ -249,7 +252,7 @@ class Command(BaseCommand):
         """Descarga datos base (Usuarios, Materiales, Vehículos, Proveedores) desde la nube."""
         try:
             self.stdout.write('Descargando datos base desde la nube...')
-            
+
             # 1. Usuarios
             usuarios_remotos = User.objects.using('remota').all()
             for u_remoto in usuarios_remotos:

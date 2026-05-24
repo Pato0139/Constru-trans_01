@@ -1,8 +1,9 @@
 
 import os
-import django
 import sys
 from decimal import Decimal
+
+import django
 from django.utils import timezone
 
 # Configurar Django
@@ -11,14 +12,17 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
 
 from django.contrib.auth.models import User
-from apps.usuarios.models import Usuario, MaterialConstruccion as Material, Stock, Vehiculo, Proveedor, Conductor
+
 from apps.clientes.models import Cliente
-from apps.ordenes.models import Pedido, DetallePedido, Entrega
 from apps.inventario.models import MovimientoInventario
+from apps.ordenes.models import DetallePedido, Entrega, Pedido
+from apps.usuarios.models import Conductor, Proveedor, Stock, Usuario, Vehiculo
+from apps.usuarios.models import MaterialConstruccion as Material
+
 
 def setup_data():
     print("Iniciando creación de datos de prueba completos...")
-    
+
     # 0. Crear Superusuario Administrador (Edward_Fonseca)
     admin_user, created = User.objects.get_or_create(username='Edward_Fonseca', defaults={'email': 'edwardf5432@gmail.com'})
     if created:
@@ -27,7 +31,7 @@ def setup_data():
         admin_user.is_superuser = True
         admin_user.save()
         print("Superusuario Edward_Fonseca creado.")
-    
+
     admin_profile, created = Usuario.objects.get_or_create(
         user=admin_user,
         defaults={
@@ -63,7 +67,7 @@ def setup_data():
             'categoria': 'Agregados'
         }
     ]
-    
+
     for p_data in proveedores_data:
         prov, created = Proveedor.objects.get_or_create(
             nit=p_data['nit'],
@@ -80,7 +84,7 @@ def setup_data():
         {'nombre': 'Grava 3/4 (m³)', 'tipo': 'Grava', 'precio': 92000, 'descripcion': 'Grava triturada para concreto'},
         {'nombre': 'Ladrillo Estructural', 'tipo': 'Ladrillo', 'precio': 1200, 'descripcion': 'Ladrillo de arcilla cocida'},
     ]
-    
+
     mats = []
     for m_data in materiales_data:
         mat, created = Material.objects.get_or_create(
@@ -88,7 +92,7 @@ def setup_data():
             defaults={'tipo': m_data['tipo'], 'precio_referencia': Decimal(m_data['precio']), 'descripcion': m_data['descripcion'], 'activo': True}
         )
         mats.append(mat)
-        
+
         # Asegurar stock
         stock, s_created = Stock.objects.get_or_create(
             material=mat,
@@ -112,7 +116,7 @@ def setup_data():
         if created:
             u_cond.set_password('davit12345')
             u_cond.save()
-        
+
         p_cond, created = Usuario.objects.get_or_create(
             user=u_cond,
             defaults={
@@ -124,13 +128,13 @@ def setup_data():
                 'estado': 'activo'
             }
         )
-        
+
         # Crear perfil Conductor
         cond_profile, cond_created = Conductor.objects.get_or_create(
             usuario=p_cond,
             defaults={'licencia': f'LIC-{c_data["doc"]}', 'estado': 'activo'}
         )
-        
+
         vehiculo, v_created = Vehiculo.objects.get_or_create(
             placa=c_data['placa'],
             defaults={
@@ -155,7 +159,7 @@ def setup_data():
         if created:
             u_cl.set_password('davit12345')
             u_cl.save()
-        
+
         p_cl, created = Usuario.objects.get_or_create(
             user=u_cl,
             defaults={
@@ -167,7 +171,7 @@ def setup_data():
                 'estado': 'activo'
             }
         )
-        
+
         # El signal post_save ya crea el perfil Cliente, pero lo actualizamos
         cliente_perfil = Cliente.objects.get(usuario=p_cl)
         cliente_perfil.nombre_empresa = cl_data['empresa']
@@ -183,7 +187,7 @@ def setup_data():
                 direccion_destino=f'Obra {cl_data["empresa"]} - Calle {100 + idx}',
                 estado=estado_p
             )
-            
+
             # Agregar materiales al pedido
             total_pedido = 0
             for mat in mats[:3]:
@@ -195,9 +199,9 @@ def setup_data():
                     precio_unitario=mat.precio_referencia
                 )
                 total_pedido += detalle.subtotal
-                
+
             pedido.calcular_total()
-            
+
             # Crear entrega si el pedido no está pendiente
             if estado_p != 'pendiente' and conductores_creados:
                 conductor_idx = idx % len(conductores_creados)
@@ -211,7 +215,7 @@ def setup_data():
                 if estado_p == 'entregado':
                     entrega.fecha_entrega = timezone.now()
                     entrega.save()
-            
+
             print(f"Cliente {cl_data['empresa']} - Pedido #{pedido.codigo_pedido} ({estado_p}) creado.")
 
     # 5. Crear Movimientos de Inventario manuales (Entradas)

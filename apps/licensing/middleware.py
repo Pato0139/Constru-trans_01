@@ -1,7 +1,7 @@
 from django.shortcuts import redirect
 from django.urls import reverse
-from .services import get_current_installation
 
+from .services import get_current_installation
 
 ALLOWED_VIEWS = {
     "license_expired",

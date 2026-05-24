@@ -2,7 +2,8 @@
 from django import forms
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.models import User
-from .models import Usuario, MaterialConstruccion, Proveedor
+
+from .models import MaterialConstruccion, Proveedor, Usuario
 from .utils import limpiar_telefono
 
 
@@ -159,7 +160,7 @@ class CustomSetPasswordForm(SetPasswordForm):
             'placeholder': '••••••••'
         })
         self.fields['new_password1'].label = 'Nueva Contraseña'
-        
+
         self.fields['new_password2'].widget.attrs.update({
             'class': 'form-control',
             'placeholder': '••••••••'

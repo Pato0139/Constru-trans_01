@@ -1,6 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Pedido, DetallePedido
+
+from .models import DetallePedido
 
 
 @receiver(post_save, sender=DetallePedido)

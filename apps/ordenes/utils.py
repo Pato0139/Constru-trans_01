@@ -1,11 +1,12 @@
-from django.db import transaction
-from django.db.models import F
-from apps.usuarios.models import Stock
-from apps.inventario.models import MovimientoInventario
-from apps.historial.utils import registrar_actividad
-import qrcode
 from io import BytesIO
+
+import qrcode
 from django.core.files.base import ContentFile
+from django.db.models import F
+
+from apps.inventario.models import MovimientoInventario
+from apps.usuarios.models import Stock
+
 
 def revertir_stock_pedido(orden, usuario, motivo_prefijo="Cancelación"):
     """
@@ -20,7 +21,7 @@ def revertir_stock_pedido(orden, usuario, motivo_prefijo="Cancelación"):
         )
         stock_obj.cantidad = F('cantidad') + detalle.cantidad
         stock_obj.save()
-        
+
         # Registrar movimiento de re-entrada
         MovimientoInventario.objects.create(
             material=detalle.material,

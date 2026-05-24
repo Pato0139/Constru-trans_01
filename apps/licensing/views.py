@@ -1,7 +1,8 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from .services import get_current_installation, validate_installation
+
+from .services import validate_installation
 
 
 def license_expired(request):

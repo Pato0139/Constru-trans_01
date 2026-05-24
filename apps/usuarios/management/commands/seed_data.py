@@ -1,20 +1,29 @@
 
-from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
-from django.utils import timezone
-from decimal import Decimal
 from datetime import date
-from apps.usuarios.models import Usuario, MaterialConstruccion, Stock, Vehiculo, Proveedor, Conductor
+
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+
 from apps.clientes.models import Cliente
-from apps.ordenes.models import Pedido, DetallePedido, Entrega
 from apps.inventario.models import MovimientoInventario
+from apps.ordenes.models import DetallePedido, Entrega, Pedido
+from apps.usuarios.models import (
+    Conductor,
+    MaterialConstruccion,
+    Proveedor,
+    Stock,
+    Usuario,
+    Vehiculo,
+)
+
 
 class Command(BaseCommand):
     help = 'Llena la base de datos con datos de prueba'
 
     def handle(self, *args, **options):
         self.stdout.write('Iniciando creación de datos de prueba completos...')
-        
+
         # 0. Crear Superusuario Administrador (Edward_Fonseca)
         admin_user, created = User.objects.get_or_create(username='Edward_Fonseca', defaults={'email': 'edwardf5432@gmail.com'})
         if created:
@@ -23,7 +32,7 @@ class Command(BaseCommand):
             admin_user.is_superuser = True
             admin_user.save()
             self.stdout.write(self.style.SUCCESS('Superusuario Edward_Fonseca creado.'))
-        
+
         admin_profile, created = Usuario.objects.get_or_create(
             user=admin_user,
             defaults={
@@ -55,7 +64,7 @@ class Command(BaseCommand):
                 'descripcion': 'Proveedor de arenas y gravas'
             }
         ]
-        
+
         for p_data in proveedores_data:
             prov, created = Proveedor.objects.get_or_create(
                 nit=p_data['nit'],
@@ -72,7 +81,7 @@ class Command(BaseCommand):
             {'nombre': 'Grava 3/4 (m³)', 'unidad_medida': 'm³', 'precio_referencia': 92000, 'descripcion': 'Grava triturada para concreto'},
             {'nombre': 'Ladrillo Estructural', 'unidad_medida': 'Unidad', 'precio_referencia': 1200, 'descripcion': 'Ladrillo de arcilla cocida'},
         ]
-        
+
         mats = []
         for m_data in materiales_data:
             mat, created = MaterialConstruccion.objects.get_or_create(
@@ -80,7 +89,7 @@ class Command(BaseCommand):
                 defaults=m_data
             )
             mats.append(mat)
-            
+
             stock, s_created = Stock.objects.get_or_create(
                 material=mat,
                 defaults={'cantidad_actual': 1000, 'stock_minimo': 100}
@@ -103,7 +112,7 @@ class Command(BaseCommand):
             if created:
                 u_cond.set_password('davit12345')
                 u_cond.save()
-            
+
             p_cond, created = Usuario.objects.get_or_create(
                 user=u_cond,
                 defaults={
@@ -115,7 +124,7 @@ class Command(BaseCommand):
                     'estado': 'activo'
                 }
             )
-            
+
             cond_profile, cond_created = Conductor.objects.get_or_create(
                 usuario=p_cond,
                 defaults={
@@ -125,7 +134,7 @@ class Command(BaseCommand):
                     'estado': 'activo'
                 }
             )
-            
+
             vehiculo, v_created = Vehiculo.objects.get_or_create(
                 placa=c_data['placa'],
                 defaults={
@@ -151,7 +160,7 @@ class Command(BaseCommand):
             if created:
                 u_cl.set_password('davit12345')
                 u_cl.save()
-            
+
             p_cl, created = Usuario.objects.get_or_create(
                 user=u_cl,
                 defaults={
@@ -163,7 +172,7 @@ class Command(BaseCommand):
                     'estado': 'activo'
                 }
             )
-            
+
             cliente_perfil = Cliente.objects.get(usuario=p_cl)
             cliente_perfil.nombre_empresa = cl_data['empresa']
             cliente_perfil.direccion_principal = 'Av Siempre Viva 123'
@@ -177,7 +186,7 @@ class Command(BaseCommand):
                     direccion_destino=f'Obra {cl_data["empresa"]} - Calle {100 + idx}',
                     estado=estado_p
                 )
-                
+
                 total_pedido = 0
                 for mat in mats[:3]:
                     cantidad = 20 + (idx * 10)
@@ -188,9 +197,9 @@ class Command(BaseCommand):
                         precio_unitario=mat.precio_referencia
                     )
                     total_pedido += detalle.subtotal
-                    
+
                 pedido.calcular_total()
-                
+
                 if estado_p != 'pendiente' and conductores_creados:
                     conductor_idx = idx % len(conductores_creados)
                     vehiculo = None
@@ -208,7 +217,7 @@ class Command(BaseCommand):
                         if estado_p == 'entregado':
                             entrega.fecha_entrega = timezone.now()
                             entrega.save()
-                
+
                 self.stdout.write(f'Cliente {cl_data["empresa"]} - Pedido #{pedido.codigo_pedido} ({estado_p}) creado.')
 
         # 5. Crear Movimientos de Inventario

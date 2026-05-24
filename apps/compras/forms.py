@@ -1,7 +1,10 @@
 from django import forms
 from django.forms import inlineformset_factory
+
+from apps.usuarios.models import Proveedor
+
 from .models import Compra, DetalleCompra
-from apps.usuarios.models import Material, Proveedor
+
 
 class CompraForm(forms.ModelForm):
     class Meta:
@@ -27,9 +30,9 @@ class DetalleCompraForm(forms.ModelForm):
         }
 
 DetalleCompraFormSet = inlineformset_factory(
-    Compra, 
-    DetalleCompra, 
+    Compra,
+    DetalleCompra,
     form=DetalleCompraForm,
-    extra=1, 
+    extra=1,
     can_delete=True
 )

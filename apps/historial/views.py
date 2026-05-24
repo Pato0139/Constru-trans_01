@@ -1,21 +1,21 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from .models import Historial
 
 from apps.usuarios.views import admin_required
+
+from .models import Historial
+
 
 @admin_required
 def lista_historial(request):
     registros = Historial.objects.all().order_by('-fecha_hora')
-    
+
     # Filtros
     usuario_q = request.GET.get('usuario')
     accion_q = request.GET.get('accion')
     modulo_q = request.GET.get('modulo')
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
-    
+
     if usuario_q:
         registros = registros.filter(usuario__username__icontains=usuario_q)
     if accion_q:
@@ -26,7 +26,7 @@ def lista_historial(request):
         registros = registros.filter(fecha_hora__date__gte=fecha_inicio)
     if fecha_fin:
         registros = registros.filter(fecha_hora__date__lte=fecha_fin)
-        
+
     context = {
         'registros': registros,
         'acciones': Historial.ACCIONES,
@@ -39,5 +39,5 @@ def lista_historial(request):
             'fecha_fin': fecha_fin
         }
     }
-    
+
     return render(request, "historial/lista.html", context)

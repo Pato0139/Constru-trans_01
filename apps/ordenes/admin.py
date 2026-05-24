@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Pedido, DetallePedido, Entrega
+
+from .models import DetallePedido, Entrega, Pedido
 
 
 class DetallePedidoInline(admin.TabularInline):

@@ -5,8 +5,8 @@ Modo híbrido: SQLite local (default) + Neon PostgreSQL (remota).
 El router EnrutadorInventario decide dónde leer/escribir cada modelo.
 """
 from pathlib import Path
-import environ
 
+import environ
 
 # ============================================================
 # RUTAS Y ENV

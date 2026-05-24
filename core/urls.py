@@ -1,8 +1,9 @@
-from django.contrib import admin
-from django.urls import path, include, reverse_lazy
-from django.shortcuts import redirect
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
+from django.shortcuts import redirect
+from django.urls import include, path
+
 
 def redirect_password_reset_confirm(request, uidb64, token):
     return redirect('usuarios:password_reset_confirm', uidb64=uidb64, token=token)
@@ -12,7 +13,7 @@ urlpatterns = [
 
     # Licensing
     path('licensing/', include('apps.licensing.urls')),
-    
+
     # Apps
     path('usuarios/', include('apps.usuarios.urls')),
     path('clientes/', include('apps.clientes.urls')),

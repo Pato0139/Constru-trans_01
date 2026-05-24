@@ -1,6 +1,7 @@
-from twilio.rest import Client
-from django.conf import settings
 import re
+
+from django.conf import settings
+from twilio.rest import Client
 
 
 def limpiar_telefono(telefono):
@@ -13,16 +14,16 @@ def formatear_e164(telefono, codigo_pais='57'):
     telefono_limpio = limpiar_telefono(telefono)
     if not telefono_limpio:
         return telefono_limpio
-    
+
     if telefono_limpio.startswith('+'):
         return telefono_limpio
-    
+
     if telefono_limpio.startswith(codigo_pais) and len(telefono_limpio) > len(codigo_pais):
         return '+' + telefono_limpio
-    
+
     if len(telefono_limpio) == 10 and telefono_limpio.startswith('3'):
         return '+' + codigo_pais + telefono_limpio
-    
+
     return '+' + codigo_pais + telefono_limpio
 
 

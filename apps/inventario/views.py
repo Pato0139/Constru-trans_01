@@ -1,21 +1,23 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from apps.usuarios.views import admin_required
-from django.db.models import Q
 from django.contrib import messages
-from django.http import JsonResponse
-from apps.usuarios.models import Material, Stock
-from apps.historial.utils import registrar_actividad
 from django.db import transaction
+from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+
+from apps.historial.utils import registrar_actividad
+from apps.usuarios.models import Material, Stock
+from apps.usuarios.views import admin_required
+
 from .models import MovimientoInventario
+
 
 @admin_required
 @require_POST
 def registrar_entrada(request):
     material_id = request.POST.get('material_id')
     cantidad = int(request.POST.get('cantidad', 0))
-    
+
     # VALIDACIÓN: cantidad > 0
     if cantidad <= 0:
         return JsonResponse({'error': 'Cantidad debe ser > 0'}, status=400)
@@ -25,11 +27,11 @@ def registrar_entrada(request):
             # Bloqueamos el material y el stock para evitar concurrencia
             material = Material.objects.select_for_update().get(id=material_id)
             stock, _ = Stock.objects.select_for_update().get_or_create(material=material)
-            
+
             # Sumar al stock
             stock.cantidad += cantidad
             stock.save()
-            
+
             # REGISTRAR EN HISTORIAL
             MovimientoInventario.objects.create(
                 material=material,
@@ -59,7 +61,7 @@ def buscar_materiales(query=None):
     materiales = Material.objects.all().select_related('stock_info')
     if query:
         materiales = materiales.filter(
-            Q(nombre__icontains=query) | 
+            Q(nombre__icontains=query) |
             Q(descripcion__icontains=query)
         )
     return materiales
@@ -68,13 +70,13 @@ def buscar_materiales(query=None):
 def stock_lista(request):
     q = request.GET.get('q')
     stocks = Stock.objects.all().select_related('material')
-    
+
     if q:
         stocks = stocks.filter(
             Q(material__nombre__icontains=q) |
             Q(ubicacion__icontains=q)
         )
-        
+
     return render(request, "inventario/stock.html", {
         "stocks": stocks,
         "query": q
@@ -94,9 +96,9 @@ def editar_stock(request, id):
 @admin_required
 def materiales_lista(request):
     query = request.GET.get('q')
-    
+
     materiales = buscar_materiales(query)
-    
+
     return render(request, "inventario/lista.html", {
         "materiales": materiales,
         "query": query
@@ -119,6 +121,7 @@ def api_materiales(request):
 from apps.usuarios.forms import MaterialForm
 from apps.usuarios.views import admin_required
 
+
 @admin_required
 def crear_material(request):
     if request.method == "POST":
@@ -128,12 +131,12 @@ def crear_material(request):
                 material = form.save()
                 # El Stock se crea vía signals en apps.usuarios.signals
                 registrar_actividad(request, 'crear', 'inventario', material.id, f"Material creado: {material.nombre}")
-                
+
                 success_msg = "Material creado correctamente."
                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     messages.success(request, success_msg)
                     return JsonResponse({"status": "success", "message": success_msg})
-                
+
                 messages.success(request, success_msg)
                 return redirect("inventario:materiales_lista")
             except Exception as e:
@@ -163,12 +166,12 @@ def editar_material(request, id):
 @admin_required
 def eliminar_material(request, id):
     material = get_object_or_404(Material, id=id)
-    
+
     # Validaciones antes de eliminar
     if material.stock > 0:
         messages.error(request, f"No se puede eliminar {material.nombre} porque aún tiene stock disponible ({material.stock}).")
         return redirect("inventario:materiales_lista")
-        
+
     if material.detalles.exists(): # Detalles de orden
         messages.error(request, f"No se puede eliminar {material.nombre} porque está asociado a pedidos existentes.")
         return redirect("inventario:materiales_lista")

@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,7 +24,7 @@ DEBUG = env_bool("DEBUG", False)  # Default FALSE por seguridad
 
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "*")
 CSRF_TRUSTED_ORIGINS = env_list(
-    "CSRF_TRUSTED_ORIGINS", 
+    "CSRF_TRUSTED_ORIGINS",
     "*"
 )
 
@@ -238,16 +239,14 @@ else:
 PASSWORD_RESET_TIMEOUT = int(os.getenv('PASSWORD_RESET_TIMEOUT', 3600))
 SESSION_COOKIE_AGE = int(os.getenv('SESSION_COOKIE_AGE', 1209600))
 
-# ===== ARCHIVOS ESTÁTICOS CON WHITENOISE =====
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # ===== MONITOREO CON SENTRY =====
 if os.getenv('SENTRY_DSN') and not DEBUG:
     try:
         import sentry_sdk
         from sentry_sdk.integrations.django import DjangoIntegration
-        
+
         sentry_sdk.init(
             dsn=os.getenv('SENTRY_DSN'),
             integrations=[DjangoIntegration()],

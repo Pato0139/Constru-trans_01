@@ -1,9 +1,9 @@
 import hashlib
-import json
 import os
 from pathlib import Path
-from django.conf import settings
+
 from django.utils import timezone
+
 from .models import Installation
 
 
@@ -17,7 +17,7 @@ def get_current_installation() -> Installation | None:
 def calculate_build_hash() -> str:
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
     hash_sha256 = hashlib.sha256()
-    
+
     try:
         for file in ['requirements.txt', 'pyproject.toml', 'manage.py', 'core/settings/base.py']:
             file_path = BASE_DIR / file
@@ -32,7 +32,7 @@ def calculate_build_hash() -> str:
 def calculate_manifest_hash() -> str:
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
     hash_sha256 = hashlib.sha256()
-    
+
     try:
         apps_dir = BASE_DIR / 'apps'
         for root, dirs, files in os.walk(apps_dir):
@@ -59,7 +59,7 @@ def create_or_get_installation() -> Installation:
 def validate_installation():
     inst = create_or_get_installation()
     inst.last_validated_at = timezone.now()
-    
+
     if not inst.expires_at:
         inst.status = "pending"
     elif timezone.now() > inst.expires_at:
@@ -68,6 +68,6 @@ def validate_installation():
         inst.status = "tampered"
     else:
         inst.status = "active"
-        
+
     inst.save()
     return inst
