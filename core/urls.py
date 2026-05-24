@@ -10,6 +10,9 @@ def redirect_password_reset_confirm(request, uidb64, token):
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+    # Licensing
+    path('licensing/', include('apps.licensing.urls')),
+    
     # Apps
     path('usuarios/', include('apps.usuarios.urls')),
     path('clientes/', include('apps.clientes.urls')),

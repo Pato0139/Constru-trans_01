@@ -72,6 +72,7 @@ LOCAL_APPS = [
     'apps.inicio',
     'apps.historial',
     'apps.transporte',
+    'apps.licensing',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -93,6 +94,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
     # 'axes.middleware.AxesMiddleware',  # Desactivado temporalmente
+    'apps.licensing.middleware.LicenseEnforcementMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
