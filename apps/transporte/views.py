@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, models
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.timezone import now
 
 from apps.ordenes.models import Entrega
 from apps.usuarios.models import ConductorVehiculo, Usuario, Vehiculo
@@ -12,12 +13,14 @@ def lista_vehiculos(request):
     q = request.GET.get('q')
     estado = request.GET.get('estado')
 
-    vehiculos = Vehiculo.objects.all().select_related('conductor')
+    vehiculos = Vehiculo.objects.all()
 
     if q:
         vehiculos = vehiculos.filter(
             models.Q(placa__icontains=q) |
-            models.Q(tipo_vehiculo__icontains=q)
+            models.Q(tipo_vehiculo__icontains=q) |
+            models.Q(marca__icontains=q) |
+            models.Q(modelo__icontains=q)
         )
 
     if estado:
@@ -91,12 +94,24 @@ def crear_vehiculo(request):
 
 @login_required
 def editar_vehiculo(request, id):
+    from apps.usuarios.models import Conductor
     vehiculo = get_object_or_404(Vehiculo, id=id)
-    # Conductores sin vehículo asignado + el conductor actual del vehículo
-    conductores = Usuario.objects.filter(
-        models.Q(rol='conductor', vehiculo_asignado__isnull=True) |
-        models.Q(id=vehiculo.conductor.id if vehiculo.conductor else None)
+    # Conductores sin vehículo asignado (relación vía ConductorVehiculo)
+    conductores_disponibles = Usuario.objects.filter(
+        rol='conductor'
+    ).exclude(
+        perfil_conductor__asignaciones_vehiculo__fecha_fin__isnull=False
+    ).exclude(
+        id__in=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values('conductor__usuario')
     ).distinct()
+
+    # Obtener conductor actual del vehículo (si existe)
+    conductor_actual = vehiculo.conductor_actual
+    if conductor_actual:
+        # Incluir al conductor actual en la lista
+        conductores = (conductores_disponibles | Usuario.objects.filter(id=conductor_actual.id)).distinct()
+    else:
+        conductores = conductores_disponibles
 
     if request.method == "POST":
         nuevo_estado = request.POST.get("estado")
@@ -111,23 +126,26 @@ def editar_vehiculo(request, id):
                 messages.error(request, "No se puede desactivar el vehículo porque tiene entregas pendientes o en curso.")
             else:
                 vehiculo.placa = request.POST.get("placa")
-                vehiculo.tipo = request.POST.get("tipo")
-                vehiculo.capacidad = request.POST.get("capacidad")
+                vehiculo.tipo_vehiculo = request.POST.get("tipo")
+                vehiculo.capacidad_carga = request.POST.get("capacidad")
                 vehiculo.estado = nuevo_estado
+                vehiculo.save()
 
+                # Manejar la asignación de conductor
                 conductor_id = request.POST.get("conductor")
                 try:
-                    # Si el vehículo ya tiene un conductor, y se está cambiando, hay que verificar
-                    nuevo_conductor = Usuario.objects.get(id=conductor_id) if conductor_id else None
+                    # Primero, finalizar cualquier asignación actual del vehículo
+                    ConductorVehiculo.objects.filter(vehiculo=vehiculo, fecha_fin__isnull=True).update(fecha_fin=now())
 
-                    if nuevo_conductor and nuevo_conductor != vehiculo.conductor:
-                        # Si el nuevo conductor tiene entregas activas en otro vehículo (aunque no debería por OneToOne),
-                        # o si el vehículo actual tiene entregas activas, evitamos el cambio si es problemático.
-                        # Pero el requisito se enfoca en "No desactivar vehículos con entregas activas".
-                        pass
+                    if conductor_id:
+                        # Obtener el perfil de conductor del usuario
+                        conductor_perfil = Conductor.objects.get(usuario_id=conductor_id)
+                        # Crear nueva asignación
+                        ConductorVehiculo.objects.create(
+                            conductor=conductor_perfil,
+                            vehiculo=vehiculo
+                        )
 
-                    vehiculo.conductor = nuevo_conductor
-                    vehiculo.save()
                     messages.success(request, f"Vehículo {vehiculo.placa} actualizado.")
                     return redirect("transporte:lista_vehiculos")
                 except IntegrityError:
