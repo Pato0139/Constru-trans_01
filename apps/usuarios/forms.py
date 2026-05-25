@@ -18,6 +18,26 @@ class UsuarioForm(forms.ModelForm):
             'estado': forms.Select(attrs={'class': 'form-select'}),
         }
 
+    def clean_documento(self):
+        documento = self.cleaned_data.get('documento')
+        documento = limpiar_telefono(documento)
+        if len(documento) != 10:
+            raise forms.ValidationError("El número de documento debe tener exactamente 10 dígitos.")
+        # Check if it's already taken by another user
+        existing = Usuario.objects.filter(documento=documento)
+        if self.instance:
+            existing = existing.exclude(pk=self.instance.pk)
+        if existing.exists():
+            raise forms.ValidationError("Este documento ya está registrado.")
+        return documento
+
+    def clean_telefono(self):
+        telefono = self.cleaned_data.get('telefono')
+        telefono = limpiar_telefono(telefono)
+        if len(telefono) != 10:
+            raise forms.ValidationError("El número de teléfono debe tener exactamente 10 dígitos.")
+        return telefono
+
 
 class LoginForm(forms.Form):
     username = forms.CharField(label="Usuario o Correo", widget=forms.TextInput(attrs={'class': 'input-custom', 'placeholder': 'Usuario o Correo'}))
@@ -58,16 +78,27 @@ class RegistroForm(forms.ModelForm):
             raise forms.ValidationError("Este correo ya está registrado.")
         return correo
 
+    def clean_contrasena(self):
+        contrasena = self.cleaned_data.get('contrasena')
+        if ' ' in contrasena:
+            raise forms.ValidationError("La contraseña no puede contener espacios.")
+        return contrasena
+
     def clean_documento(self):
         documento = self.cleaned_data.get('documento')
         documento = limpiar_telefono(documento)
+        if len(documento) != 10:
+            raise forms.ValidationError("El número de documento debe tener exactamente 10 dígitos.")
         if Usuario.objects.filter(documento=documento).exists():
             raise forms.ValidationError("Este documento ya está registrado.")
         return documento
 
     def clean_telefono(self):
         telefono = self.cleaned_data.get('telefono')
-        return limpiar_telefono(telefono)
+        telefono = limpiar_telefono(telefono)
+        if len(telefono) != 10:
+            raise forms.ValidationError("El número de teléfono debe tener exactamente 10 dígitos.")
+        return telefono
 
     def clean(self):
         cleaned_data = super().clean()
