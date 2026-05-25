@@ -279,14 +279,15 @@ def setup_data():
                     }
                 )
 
-                Pago.objects.get_or_create(
-                    factura=factura,
-                    defaults={
-                        'monto': factura.total,
-                        'codigo_metodo_pago': metodo_pago,
-                        'registrado_por': admin_user
-                    }
-                )
+                if estado_p == 'entregado':
+                    Pago.objects.get_or_create(
+                        factura=factura,
+                        defaults={
+                            'monto': factura.total,
+                            'codigo_metodo_pago': metodo_pago,
+                            'registrado_por': admin_user
+                        }
+                    )
 
                 print(f"Cliente {cl_data['empresa']} - Pedido #{pedido.codigo_pedido} ({estado_p}) - Factura #{factura.numero} creado.")
 
