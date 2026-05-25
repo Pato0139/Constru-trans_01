@@ -1,5 +1,7 @@
 
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from apps.facturacion.models import Factura
 
@@ -24,11 +26,6 @@ class Pago(models.Model):
 
     def __str__(self):
         return f"Pago {self.id_pago} - ${self.monto}"
-
-
-# Signal: actualiza estado de factura
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 
 
 @receiver(post_save, sender=Pago)

@@ -1,13 +1,16 @@
 from functools import wraps
+import logging
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth.views import PasswordResetView
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
 from django.utils.timezone import now
 
 from apps.historial.utils import registrar_actividad
@@ -22,6 +25,9 @@ from .models import (
     Usuario,
 )
 from .utils import limpiar_telefono
+
+
+logger = logging.getLogger(__name__)
 
 
 def admin_required(view_func):
@@ -147,6 +153,7 @@ def registro(request):
         form = RegistroForm()
 
     return render(request, "usuarios/registro.html", {"form": form})
+
 
 
 
@@ -764,15 +771,6 @@ def perfil_conductor(request):
 
 
 # ---------------- PASSWORD RESET ----------------
-import logging
-
-from django.contrib.auth.views import (
-    PasswordResetView,
-)
-from django.urls import reverse_lazy
-
-logger = logging.getLogger(__name__)
-
 class CustomPasswordResetView(PasswordResetView):
     template_name = 'usuarios/recuperar_password.html'
     email_template_name = 'registration/password_reset_email.txt'
@@ -816,6 +814,7 @@ def cerrar_sesion(request):
                 pass # Otras excepciones tampoco detienen el logout
     logout(request)
     return redirect("usuarios:login")
+
 
 # --- NOTIFICACIONES ---
 @login_required

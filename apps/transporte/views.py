@@ -4,7 +4,7 @@ from django.db import IntegrityError, models
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.ordenes.models import Entrega
-from apps.usuarios.models import Usuario, Vehiculo
+from apps.usuarios.models import ConductorVehiculo, Usuario, Vehiculo
 
 
 @login_required
@@ -64,7 +64,6 @@ def crear_vehiculo(request):
         conductor_id = request.POST.get("conductor")
 
         try:
-            conductor = None
             if conductor_id:
                 try:
                     conductor_perfil = Conductor.objects.get(usuario_id=conductor_id)

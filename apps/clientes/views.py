@@ -146,6 +146,7 @@ def crear_pedido(request):
 
         try:
             with transaction.atomic():
+                total_general = 0
                 nuevo_pedido = Pedido.objects.create(
                     usuario=usuario,
                     direccion_origen="Bodega Central",
@@ -232,7 +233,8 @@ def editar_pedido(request, id):
         cantidades = request.POST.getlist('cantidad[]')
         direccion = request.POST.get("direccion")
         fecha_entrega = request.POST.get("fecha_entrega")
-        metodo_pago = request.POST.get("metodo_pago", "efectivo")
+        # Variable no utilizada actualmente (reservada para implementación futura)
+        # metodo_pago = request.POST.get("metodo_pago", "efectivo")
 
         if not materiales_ids or not direccion:
             messages.error(request, "Datos incompletos.")
