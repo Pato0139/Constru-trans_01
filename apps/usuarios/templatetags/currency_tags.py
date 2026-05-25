@@ -5,15 +5,14 @@ register = template.Library()
 @register.filter(name='currency')
 def currency(value):
     try:
-        # Convertimos a float para manejar decimales y dividimos por 100
-        # ya que el usuario indica que 1.000.000 equivale a 10.000 pesos
-        val = float(value) / 100
-        # Formateamos con separador de miles (,) y 2 decimales
-        formatted = "{:,.2f}".format(val)
-        # Cambiamos , por . para miles y . por , para decimales (formato es-CO)
-        # Usamos un placeholder temporal para no perder los puntos
-        res = formatted.replace(',', 'X').replace('.', ',').replace('X', '.')
-        return f"${res}"
+        val = float(value)
+        rounded = int(round(val))
+        s = str(rounded)
+        parts = []
+        while s:
+            parts.append(s[-3:])
+            s = s[:-3]
+        return '.'.join(reversed(parts))
     except (ValueError, TypeError):
         return value
 

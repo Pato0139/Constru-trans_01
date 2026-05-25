@@ -119,10 +119,14 @@
 <script>
 function formatCurrency(value) {
     let val = parseFloat(value);
-    let formatted = val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    // Formato es-CO: . para miles, , para decimales
-    let res = formatted.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
-    return '$' + res;
+    let rounded = Math.round(val);
+    let s = String(rounded);
+    let parts = [];
+    while (s.length > 0) {
+        parts.unshift(s.slice(-3));
+        s = s.slice(0, -3);
+    }
+    return parts.join('.');
 }
 
 function abrirModalPago(id, numero, saldo) {

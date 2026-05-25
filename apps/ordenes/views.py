@@ -371,11 +371,16 @@ def descargar_factura(request, id):
 
     def format_money(val):
         try:
-            v = float(val) / 100
-            formatted = "{:,.2f}".format(v)
-            return f"${formatted.replace(',', 'X').replace('.', ',').replace('X', '.')}"
+            v = float(val)
+            rounded = int(round(v))
+            s = str(rounded)
+            parts = []
+            while s:
+                parts.append(s[-3:])
+                s = s[:-3]
+            return '.'.join(reversed(parts))
         except Exception:
-            return "$0,00"
+            return "0"
 
     # Detalle de Materiales
     data = [['MATERIAL', 'CANTIDAD', 'PRECIO UNIT.', 'SUBTOTAL']]
@@ -405,7 +410,7 @@ def descargar_factura(request, id):
         total_pagado = format_money(factura.total_pagado)
         por_pagar = format_money(factura.saldo_pendiente)
     except Exception:
-        total_pagado = "$0,00"
+        total_pagado = "0"
         por_pagar = total_f
 
     data.append(['', '', 'TOTAL:', total_f])

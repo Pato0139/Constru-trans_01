@@ -78,11 +78,16 @@ def exportar_reporte_pdf(request, tipo):
 
     def format_money(val):
         try:
-            v = float(val) / 100
-            formatted = "{:,.2f}".format(v)
-            return f"${formatted.replace(',', 'X').replace('.', ',').replace('X', '.')}"
+            v = float(val)
+            rounded = int(round(v))
+            s = str(rounded)
+            parts = []
+            while s:
+                parts.append(s[-3:])
+                s = s[:-3]
+            return '.'.join(reversed(parts))
         except Exception:
-            return "$0,00"
+            return "0"
 
     data = []
     if tipo == 'clientes':
