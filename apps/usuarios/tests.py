@@ -3,9 +3,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from apps.ordenes.models import DetallePedido, Pedido
-
-from .models import Material, Usuario, Vehiculo
+from .models import Material, Stock, Usuario, Vehiculo
 
 
 class ConstruTransTestSuite(TestCase):
@@ -49,8 +47,8 @@ class ConstruTransTestSuite(TestCase):
             'apellidos': 'Cliente',
             'correo': 'nuevo@test.com',
             'tipo_documento': 'CC',
-            'documento': '9999',
-            'telefono': '300',
+            'documento': '1234567890',
+            'telefono': '3001234567',
             'contrasena': 'pass123',
             'confirmar_contrasena': 'pass123'
         })

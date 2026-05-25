@@ -49,18 +49,18 @@ def registrar_entrada(request):
 def movimientos_lista(request):
     query = request.GET.get('q')
     tipo = request.GET.get('tipo')
-    
+
     movimientos = MovimientoInventario.objects.all().select_related('material', 'usuario')
-    
+
     if query:
         movimientos = movimientos.filter(
             Q(material__nombre__icontains=query) |
             Q(motivo__icontains=query)
         )
-    
+
     if tipo:
         movimientos = movimientos.filter(tipo=tipo)
-    
+
     materiales = Material.objects.all().order_by('nombre')
     return render(request, "inventario/movimientos.html", {
         "movimientos": movimientos,
@@ -193,7 +193,7 @@ def crear_material(request):
 
 @admin_required
 def editar_material(request, id):
-    material = get_object_or_404(Material, id=id)
+    material = get_object_or_404(Material, pk=id)
     if request.method == "POST":
         form = MaterialForm(request.POST, instance=material)
         if form.is_valid():
@@ -207,7 +207,7 @@ def editar_material(request, id):
 
 @admin_required
 def eliminar_material(request, id):
-    material = get_object_or_404(Material, id=id)
+    material = get_object_or_404(Material, pk=id)
 
     # Validaciones antes de eliminar
     if material.stock > 0:

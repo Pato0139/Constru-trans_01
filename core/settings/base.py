@@ -4,14 +4,19 @@ Configuración base de Django para Constru-Trans.
 Modo híbrido: SQLite local (default) + Neon PostgreSQL (remota).
 El router EnrutadorInventario decide dónde leer/escribir cada modelo.
 """
+import os
 from pathlib import Path
 
+import dj_database_url
 import environ
+from django.core.management.utils import get_random_secret_key
 
 # ============================================================
 # RUTAS Y ENV
 # ============================================================
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+DJANGO_ENV = os.getenv('DJANGO_ENV', 'development').lower()
 
 env = environ.Env(
     DEBUG=(bool, False),
@@ -34,7 +39,11 @@ environ.Env.read_env(BASE_DIR / '.env')
 # ============================================================
 # SEGURIDAD
 # ============================================================
-SECRET_KEY = env('SECRET_KEY')
+if DJANGO_ENV == 'development':
+    SECRET_KEY = env('SECRET_KEY', default=get_random_secret_key())
+else:
+    SECRET_KEY = env('SECRET_KEY')
+
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 CSRF_TRUSTED_ORIGINS = env('CSRF_TRUSTED_ORIGINS')
@@ -125,7 +134,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # ============================================================
 # BASES DE DATOS — Simplificado (una sola BD compartida)
 # ============================================================
-import dj_database_url
 
 DATABASE_URL = env('DATABASE_URL', default='')
 if DATABASE_URL:
@@ -277,6 +285,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # LOGGING
 # ============================================================
 (BASE_DIR / 'logs').mkdir(exist_ok=True)
+(STATIC_ROOT).mkdir(exist_ok=True)
 
 LOGGING = {
     'version': 1,

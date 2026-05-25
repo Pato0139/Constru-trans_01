@@ -20,8 +20,15 @@ class Compra(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Fuera del MER pero útil — NO se toca
-    observaciones = models.TextField(blank=True, null=True)
+    observaciones = models.TextField(blank=True)
     sincronizado = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-fecha_compra']
+        db_table = 'compra'
+
+    def __str__(self):
+        return f"{self.numero_orden} - {self.proveedor.nombre_empresa}"
 
     @property
     def numero_orden(self):
@@ -31,13 +38,6 @@ class Compra(models.Model):
         self.total_compra = sum(d.subtotal for d in self.detalles.all())
         self.save()
         return self.total_compra
-
-    class Meta:
-        ordering = ['-fecha_compra']
-        db_table = 'compra'
-
-    def __str__(self):
-        return f"{self.numero_orden} - {self.proveedor.nombre_empresa}"
 
 
 # =====================================================================
@@ -51,16 +51,16 @@ class DetalleCompra(models.Model):
     cantidad = models.PositiveIntegerField()
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2)
 
-    @property
-    def subtotal(self):
-        return self.cantidad * self.precio_unitario
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.compra.calcular_total()
-
     class Meta:
         db_table = 'detalle_compra'
 
     def __str__(self):
         return f"{self.cantidad} x {self.material.nombre}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.compra.calcular_total()
+
+    @property
+    def subtotal(self):
+        return self.cantidad * self.precio_unitario

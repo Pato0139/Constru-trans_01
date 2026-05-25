@@ -41,6 +41,13 @@ class Pedido(models.Model):
     fecha_entrega_real = models.DateTimeField(null=True, blank=True)
     sincronizado = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ["-fecha_solicitud"]
+        db_table = 'pedido'
+
+    def __str__(self):
+        return f"Pedido {self.codigo_pedido} - {self.estado}"
+
     def calcular_total(self):
         self.total = sum(d.subtotal for d in self.detalles.all())
         self.precio = self.total
@@ -50,13 +57,6 @@ class Pedido(models.Model):
     @property
     def id(self):
         return self.codigo_pedido
-
-    class Meta:
-        ordering = ["-fecha_solicitud"]
-        db_table = 'pedido'
-
-    def __str__(self):
-        return f"Pedido {self.codigo_pedido} - {self.estado}"
 
 
 # =====================================================================
@@ -71,19 +71,19 @@ class DetallePedido(models.Model):
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2,
                                           validators=[MinValueValidator(0)])
 
-    @property
-    def subtotal(self):
-        return self.cantidad * self.precio_unitario
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.pedido.calcular_total()
-
     class Meta:
         db_table = 'detalle_pedido'
 
     def __str__(self):
         return f"{self.cantidad} x {self.material.nombre}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.pedido.calcular_total()
+
+    @property
+    def subtotal(self):
+        return self.cantidad * self.precio_unitario
 
 
 # =====================================================================

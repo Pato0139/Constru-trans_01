@@ -1,28 +1,36 @@
 
 import os
 import sys
-from decimal import Decimal
 from datetime import date, timedelta
-
-import django
-from django.utils import timezone
+from decimal import Decimal
 
 sys.path.append(os.getcwd())
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+
+import django  # noqa: E402
+from django.utils import timezone  # noqa: E402
+
 django.setup()
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User  # noqa: E402
 
-from apps.clientes.models import Cliente
-from apps.inventario.models import MovimientoInventario
-from apps.ordenes.models import DetallePedido, Entrega, Pedido
-from apps.facturacion.models import Factura
-from apps.pagos.models import Pago
-from apps.usuarios.models import (
-    Conductor, Proveedor, Stock, Usuario, Vehiculo,
-    ConductorVehiculo, Catalogo, EPS, MetodoPago
+from apps.clientes.models import Cliente  # noqa: E402
+from apps.facturacion.models import Factura  # noqa: E402
+from apps.inventario.models import MovimientoInventario  # noqa: E402
+from apps.ordenes.models import DetallePedido, Entrega, Pedido  # noqa: E402
+from apps.pagos.models import Pago  # noqa: E402
+from apps.usuarios.models import (  # noqa: E402
+    EPS,
+    Catalogo,
+    Conductor,
+    ConductorVehiculo,
+    MetodoPago,
+    Proveedor,
+    Stock,
+    Usuario,
+    Vehiculo,
 )
-from apps.usuarios.models import MaterialConstruccion as Material
+from apps.usuarios.models import MaterialConstruccion as Material  # noqa: E402
 
 
 def setup_data():

@@ -1,5 +1,5 @@
-from functools import wraps
 import logging
+from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -25,7 +25,6 @@ from .models import (
     Usuario,
 )
 from .utils import limpiar_telefono
-
 
 logger = logging.getLogger(__name__)
 
@@ -347,14 +346,15 @@ def panel(request):
 
     if usuario.rol == "admin":
         from django.core.cache import cache
+
         from core.utils import get_cache_key
-        
+
         # Creamos una clave de caché única para el panel de admin de este usuario
         cache_key = get_cache_key('panel_admin', request.user.id)
-        
+
         # Intentamos obtener los datos del caché primero
         context = cache.get(cache_key)
-        
+
         if not context:
             # Si no está en caché, obtenemos los datos y los guardamos en caché por 5 minutos
             context = {
@@ -368,7 +368,7 @@ def panel(request):
                 "pedidos_recientes": Pedido.objects.all().select_related('usuario').order_by("-fecha_solicitud")[:5]
             }
             cache.set(cache_key, context, 300)  # 300 segundos = 5 minutos
-        
+
         return render(request, "usuarios/panel-admin.html", context)
     elif usuario.rol == "cliente":
         return redirect("clientes:panel_cliente")
@@ -797,7 +797,7 @@ def cerrar_sesion(request):
         # Limpiamos la caché del usuario antes de cerrar sesión
         from core.utils import clear_user_cache
         clear_user_cache(request.user.id)
-        
+
         try:
             registrar_actividad(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
         except Exception as e:

@@ -27,12 +27,17 @@ Sistema integral de gestión para transporte y materiales de construcción.
    - SECRET_KEY
    - DATABASE_URL (Neon) — opcional, solo si quieres sincronizar con la nube
    - EMAIL_HOST_PASSWORD (Gmail App Password)
+   - DJANGO_ENV=development
 
 3. **Ejecutar el setup:**
    - Windows: doble clic en `setup_project.bat`
    - Linux/Mac: `bash setup_project.sh`
 
-La primera vez te pedirá editar `.env` con las credenciales. Pégalas y vuelve a ejecutar el script.
+La primera vez el script crea un archivo `.env` local usando `.env.example` y te pedirá completar las credenciales necesarias.
+Pega las credenciales reales en `.env` y vuelve a ejecutar el script si es necesario.
+
+> Para desarrollo local, `DJANGO_ENV` debe ser `development`.
+> En producción debe usarse `DJANGO_ENV=production` para activar los ajustes de seguridad.
 
 ¡Listo! El servidor arranca en http://127.0.0.1:8000.
 

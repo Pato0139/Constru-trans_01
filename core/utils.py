@@ -1,8 +1,9 @@
 import os
 from functools import lru_cache
+
+from django.core.cache import cache
 from django.db import connections
 from django.db.utils import ConnectionDoesNotExist, OperationalError
-from django.core.cache import cache
 
 
 @lru_cache(maxsize=1)
@@ -29,7 +30,6 @@ def conexion_remota_disponible():
     no quedarse con un resultado obsoleto si la conexión se restablece.
     """
     import time
-    from functools import wraps
 
     # Si la caché está muy vieja, la invalidamos
     last_check = getattr(conexion_remota_disponible, '_last_check', 0)

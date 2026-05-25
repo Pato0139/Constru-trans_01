@@ -52,6 +52,12 @@ class Usuario(models.Model):
     foto_perfil = models.ImageField(upload_to='perfiles/', null=True, blank=True)
     sincronizado = models.BooleanField(default=False)
 
+    class Meta:
+        db_table = 'usuario'
+
+    def __str__(self):
+        return f"{self.nombres} {self.apellidos} ({self.rol})"
+
     @property
     def contraseña(self):
         return self.user.password
@@ -86,12 +92,6 @@ class Usuario(models.Model):
     @property
     def nombre(self):
         return self.nombres
-
-    class Meta:
-        db_table = 'usuario'
-
-    def __str__(self):
-        return f"{self.nombres} {self.apellidos} ({self.rol})"
 
 
 # =====================================================================
@@ -161,6 +161,12 @@ class Vehiculo(models.Model):
     # Fuera del MER pero útil — NO se toca
     sincronizado = models.BooleanField(default=False)
 
+    class Meta:
+        db_table = 'vehiculo'
+
+    def __str__(self):
+        return f"{self.placa} ({self.marca} {self.modelo})"
+
     @property
     def id(self):
         return self.id_vehiculo
@@ -177,12 +183,6 @@ class Vehiculo(models.Model):
     def conductor_actual(self):
         asignacion = self.asignaciones_conductor.select_related("conductor__usuario").order_by("-fecha_asignacion").first()
         return asignacion.conductor.usuario if asignacion else None
-
-    class Meta:
-        db_table = 'vehiculo'
-
-    def __str__(self):
-        return f"{self.placa} ({self.marca} {self.modelo})"
 
 
 # =====================================================================
@@ -236,6 +236,9 @@ class Proveedor(models.Model):
         db_table = 'proveedor'
         verbose_name_plural = "Proveedores"
 
+    def __str__(self):
+        return f"{self.nombre_empresa} ({self.nit})"
+
     @property
     def id(self):
         return self.codigo_proveedor
@@ -251,9 +254,6 @@ class Proveedor(models.Model):
     @property
     def categoria(self):
         return "General"
-
-    def __str__(self):
-        return f"{self.nombre_empresa} ({self.nit})"
 
 
 # =====================================================================
@@ -278,6 +278,9 @@ class MaterialConstruccion(models.Model):
         verbose_name = "Material de Construcción"
         verbose_name_plural = "Materiales de Construcción"
 
+    def __str__(self):
+        return self.nombre
+
     @property
     def id(self):
         return self.cod_material
@@ -301,9 +304,6 @@ class MaterialConstruccion(models.Model):
     def tipo(self):
         return self.catalogo.nombre_empresa if self.catalogo else ""
 
-    def __str__(self):
-        return self.nombre
-
 
 # =====================================================================
 # STOCK  (MER: #id_material(PK)(FK) - cantidad_actual - stock_minimo - fecha_actualizacion)
@@ -319,6 +319,12 @@ class Stock(models.Model):
     ubicacion = models.CharField(max_length=120, blank=True, default="")
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        db_table = 'stock'
+
+    def __str__(self):
+        return f"Stock {self.material.nombre}: {self.cantidad_actual}"
+
     @property
     def id(self):
         return self.material.cod_material
@@ -330,12 +336,6 @@ class Stock(models.Model):
     @property
     def ultima_actualizacion(self):
         return self.fecha_actualizacion
-
-    class Meta:
-        db_table = 'stock'
-
-    def __str__(self):
-        return f"Stock {self.material.nombre}: {self.cantidad_actual}"
 
 
 # =====================================================================
@@ -366,7 +366,7 @@ class Notificacion(models.Model):
     tipo = models.CharField(max_length=10, choices=TIPOS, default='info')
     leida = models.BooleanField(default=False)
     fecha = models.DateTimeField(auto_now_add=True)
-    link = models.CharField(max_length=255, null=True, blank=True)
+    link = models.CharField(max_length=255, blank=True)
 
     class Meta:
         ordering = ['-fecha']

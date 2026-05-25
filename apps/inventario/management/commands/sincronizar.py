@@ -119,7 +119,7 @@ class Command(BaseCommand):
         # Obtener el campo de clave primaria
         pk_field = modelo._meta.pk
         pk_name = pk_field.name
-        
+
         # Ordenamos por PK para asegurar que se sincronicen en el orden en que fueron creados
         if force:
             pendientes = modelo.objects.using('default').all().order_by(pk_name)
@@ -286,7 +286,7 @@ class Command(BaseCommand):
             # 2. Proveedores
             for p in Proveedor.objects.using('remota').all():
                 Proveedor.objects.using('default').update_or_create(
-                    codigo_proveedor=p.codigo_proveedor, 
+                    codigo_proveedor=p.codigo_proveedor,
                     defaults={'nombre_empresa': p.nombre_empresa, 'nit': p.nit, 'telefono': p.telefono, 'correo': getattr(p, 'correo', ''), 'descripcion': getattr(p, 'descripcion', ''), 'sincronizado': True}
                 )
 
@@ -299,7 +299,7 @@ class Command(BaseCommand):
             # 4. Vehículos
             for v in Vehiculo.objects.using('remota').all():
                 Vehiculo.objects.using('default').update_or_create(
-                    id_vehiculo=v.id_vehiculo, 
+                    id_vehiculo=v.id_vehiculo,
                     defaults={'placa': v.placa, 'marca': v.marca, 'modelo': v.modelo, 'capacidad_carga': v.capacidad_carga, 'estado': v.estado, 'sincronizado': True}
                 )
 

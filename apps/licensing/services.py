@@ -15,12 +15,12 @@ def get_current_installation() -> Installation | None:
 
 
 def calculate_build_hash() -> str:
-    BASE_DIR = Path(__file__).resolve().parent.parent.parent
+    base_dir = Path(__file__).resolve().parent.parent.parent
     hash_sha256 = hashlib.sha256()
 
     try:
         for file in ['requirements.txt', 'pyproject.toml', 'manage.py', 'core/settings/base.py']:
-            file_path = BASE_DIR / file
+            file_path = base_dir / file
             if file_path.exists():
                 with open(file_path, 'rb') as f:
                     hash_sha256.update(f.read())
@@ -30,12 +30,12 @@ def calculate_build_hash() -> str:
 
 
 def calculate_manifest_hash() -> str:
-    BASE_DIR = Path(__file__).resolve().parent.parent.parent
+    base_dir = Path(__file__).resolve().parent.parent.parent
     hash_sha256 = hashlib.sha256()
 
     try:
-        apps_dir = BASE_DIR / 'apps'
-        for root, dirs, files in os.walk(apps_dir):
+        apps_dir = base_dir / 'apps'
+        for root, _, files in os.walk(apps_dir):
             for file in files:
                 if file.endswith('.py'):
                     file_path = Path(root) / file

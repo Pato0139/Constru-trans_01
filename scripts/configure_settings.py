@@ -7,15 +7,16 @@ import os
 import re
 import sys
 
+
 def configure_settings():
     base_dir = os.getcwd()
     settings_py = os.path.join(base_dir, 'core', 'settings.py')
-    
+
     with open(settings_py, 'r', encoding='utf-8') as f:
         content = f.read()
-    
+
     modified = False
-    
+
     # Asegurar que DATABASES['remota'] esté presente
     if "DATABASES['remota'] = DATABASES['default'].copy()" not in content:
         # Buscar y reemplazar el patrón existente
@@ -34,7 +35,7 @@ def configure_settings():
             if new_content != content:
                 content = new_content
                 modified = True
-    
+
     # Asegurar que DATABASE_ROUTERS esté configurado
     router_line = "DATABASE_ROUTERS = ['core.routers.EnrutadorInventario']"
     if router_line not in content:
@@ -45,14 +46,14 @@ def configure_settings():
             content
         )
         modified = True
-    
+
     if modified:
         with open(settings_py, 'w', encoding='utf-8') as f:
             f.write(content)
         print('[OK] settings.py configurado para BD remota')
     else:
         print('[OK] settings.py ya estaba configurado')
-    
+
     return 0
 
 if __name__ == '__main__':

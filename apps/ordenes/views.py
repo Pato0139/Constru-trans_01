@@ -12,7 +12,7 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 
 from apps.historial.utils import registrar_actividad
 from apps.inventario.models import MovimientoInventario
-from apps.usuarios.models import Material, Stock, Usuario, MetodoPago
+from apps.usuarios.models import Material, MetodoPago, Stock, Usuario
 from apps.usuarios.views import admin_required
 
 from .models import DetalleOrden, Entrega, Orden
@@ -63,7 +63,7 @@ def agregar_materiales(request, id):
         cantidad = float(request.POST.get("cantidad", 0))
 
         if material_id and cantidad > 0:
-            material = get_object_or_404(Material, id=material_id)
+            material = get_object_or_404(Material, pk=material_id)
             stock_obj = Stock.objects.get(material=material)
 
             if stock_obj.cantidad >= cantidad:

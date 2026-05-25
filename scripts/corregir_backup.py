@@ -8,11 +8,12 @@ sys.path.append(BASE_DIR)
 
 # Configurar Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
-import django
-django.setup()
 
-from django.apps import apps
-from django.db import models
+import django  # noqa: E402
+from django.apps import apps  # noqa: E402
+from django.db import models  # noqa: E402
+
+django.setup()
 
 # Obtener todos los campos válidos por modelo
 campos_validos_por_modelo = {}
@@ -31,7 +32,6 @@ for modelo in apps.get_models():
     campos_obligatorios_por_modelo[key] = obligatorios
     print(f"Modelo {key}: campos={campos}, obligatorios={[f.name for f in obligatorios]}")
 
-import decimal
 
 # Leer el backup original
 with open('backups/db_backup_actualizado.json', 'r', encoding='utf-8') as f:
@@ -45,12 +45,12 @@ for obj in data:
         campos_validos = campos_validos_por_modelo[model_key]
         campos_obligatorios = campos_obligatorios_por_modelo[model_key]
         fields_corregidos = {}
-        
+
         # Primero, copiar los campos que sí existen
         for campo, valor in obj['fields'].items():
             if campo in campos_validos:
                 fields_corregidos[campo] = valor
-        
+
         # Ahora, agregar valores predeterminados para campos obligatorios que falten
         for field in campos_obligatorios:
             if field.name not in fields_corregidos:
@@ -69,7 +69,7 @@ for obj in data:
                     fields_corregidos[field.name] = "2026-01-01"
                 elif isinstance(field, models.DateTimeField):
                     fields_corregidos[field.name] = "2026-01-01T00:00:00Z"
-        
+
         datos_corregidos.append({
             'model': obj['model'],
             'pk': obj['pk'],
@@ -82,5 +82,5 @@ for obj in data:
 with open('backups/db_backup_corregido.json', 'w', encoding='utf-8') as f:
     json.dump(datos_corregidos, f, ensure_ascii=False, indent=2)
 
-print(f"\nBackup corregido guardado como backups/db_backup_corregido.json")
+print("\nBackup corregido guardado como backups/db_backup_corregido.json")
 print(f"Total objetos: {len(datos_corregidos)}")

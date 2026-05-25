@@ -29,12 +29,12 @@ def lista_vehiculos(request):
     page = int(request.GET.get('page', 1))
     per_page = 20
     total = vehiculos.count()
-    
+
     total_pages = (total + per_page - 1) // per_page if total > 0 else 1
     start_page = max(1, page - 2)
     end_page = min(total_pages, page + 2)
     pages_list = list(range(start_page, end_page + 1))
-    
+
     vehiculos = vehiculos[(page - 1) * per_page:page * per_page]
 
     return render(request, "transporte/lista.html", {
@@ -73,7 +73,7 @@ def crear_vehiculo(request):
                     ConductorVehiculo.objects.create(conductor=conductor_perfil)
                 except Conductor.DoesNotExist:
                     pass
-            
+
             Vehiculo.objects.create(
                 placa=placa,
                 tipo_vehiculo=tipo,

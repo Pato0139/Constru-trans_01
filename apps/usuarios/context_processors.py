@@ -20,13 +20,13 @@ def notificaciones_context(request):
                     .values_list('id', flat=True)[:10]
                 )
                 unread_count = len(unread_ids)
-                
+
                 recientes_ids = list(
                     Notificacion.objects.filter(usuario=usuario)
                     .order_by('-fecha')
                     .values_list('id', flat=True)[:5]
                 )
-                
+
                 if recientes_ids:
                     recientes = list(
                         Notificacion.objects.filter(id__in=recientes_ids)

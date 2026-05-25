@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 import os
 
-import django
-from django.conf import settings
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings.development')
+
+import django  # noqa: E402
+from django.conf import settings  # noqa: E402
+
 django.setup()
 
-from django.contrib.auth.models import User
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.encoding import force_bytes
-from django.utils.html import strip_tags
-from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.models import User  # noqa: E402
+from django.contrib.auth.tokens import default_token_generator  # noqa: E402
+from django.core.mail import send_mail  # noqa: E402
+from django.template.loader import render_to_string  # noqa: E402
+from django.utils.encoding import force_bytes  # noqa: E402
+from django.utils.html import strip_tags  # noqa: E402
+from django.utils.http import urlsafe_base64_encode  # noqa: E402
 
 print("=== Probando Password Reset ===")
 

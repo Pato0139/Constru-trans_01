@@ -1,11 +1,12 @@
 
 import os
 
-import django
-from django.conf import settings
-from django.core.mail import send_mail
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+
+import django  # noqa: E402
+from django.conf import settings  # noqa: E402
+from django.core.mail import send_mail  # noqa: E402
+
 django.setup()
 
 print("Configuración de Django cargada:")

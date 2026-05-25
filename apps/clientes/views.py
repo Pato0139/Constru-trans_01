@@ -12,6 +12,7 @@ from core.utils import conexion_remota_disponible
 
 from .models import Cliente
 
+
 @login_required
 def panel_cliente(request):
     try:
@@ -21,8 +22,12 @@ def panel_cliente(request):
         except Exception as e_c:
             if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
                 from django.db import connections
+                query = (
+                    "SELECT setval(pg_get_serial_sequence('cliente', 'id'), "
+                    "(SELECT MAX(id) FROM cliente));"
+                )
                 with connections['remota'].cursor() as cursor:
-                    cursor.execute("SELECT setval(pg_get_serial_sequence('cliente', 'id'), (SELECT MAX(id) FROM cliente));")
+                    cursor.execute(query)
                 cliente, created = Cliente.objects.get_or_create(usuario=usuario)
             else:
                 raise e_c
@@ -41,7 +46,17 @@ def panel_cliente(request):
         "pedidos_activos": pedidos.filter(estado="pendiente").count(),
         "entregas": pedidos.filter(estado="entregado").count(),
         "total_gastado": pedidos.aggregate(total=Sum("total"))["total"] or 0,
-        "ultimos_pedidos": pedidos.order_by("-fecha_solicitud").only('codigo_pedido', 'estado', 'total', 'fecha_solicitud', 'direccion_destino', 'precio')[:5]
+        "ultimos_pedidos": (
+            pedidos.order_by("-fecha_solicitud")
+            .only(
+                'codigo_pedido',
+                'estado',
+                'total',
+                'fecha_solicitud',
+                'direccion_destino',
+                'precio',
+            )[:5]
+        ),
     }
     return render(request, "clientes/lista.html", context)
 
@@ -159,7 +174,7 @@ def crear_pedido(request):
                     if not m_id or not cant:
                         continue
 
-                    material = get_object_or_404(Material, id=m_id)
+                    material = get_object_or_404(Material, pk=m_id)
                     try:
                         stock_obj = Stock.objects.select_for_update().get(material=material)
                     except Stock.DoesNotExist:
@@ -167,14 +182,17 @@ def crear_pedido(request):
 
                     try:
                         cantidad = int(cant)
-                    except (ValueError, TypeError):
-                        raise ValueError(f"Cantidad inválida para {material.nombre}")
+                    except (ValueError, TypeError) as err:
+                        raise ValueError(f"Cantidad inválida para {material.nombre}") from err
 
                     if cantidad <= 0:
                         raise ValueError(f"La cantidad para {material.nombre} debe ser mayor a 0.")
 
                     if stock_obj.cantidad_actual < cantidad:
-                        raise ValueError(f"Stock insuficiente para {material.nombre}. Quedan {stock_obj.cantidad_actual}.")
+                        raise ValueError(
+                            f"Stock insuficiente para {material.nombre}. "
+                            f"Quedan {stock_obj.cantidad_actual}."
+                        )
 
                     precio_unitario = material.precio
                     total_item = precio_unitario * cantidad
@@ -223,7 +241,10 @@ def editar_pedido(request, id):
     es_dueno = request.user.usuario == pedido.usuario
 
     if not (es_admin or es_dueno) or pedido.estado != 'pendiente':
-        messages.error(request, "No tienes permiso para editar este pedido o el pedido ya no se puede modificar.")
+        messages.error(
+            request,
+            "No tienes permiso para editar este pedido o el pedido ya no se puede modificar."
+        )
         if es_admin:
             return redirect("ordenes:lista_pedidos_admin")
         return redirect("clientes:mis_pedidos")
@@ -250,7 +271,10 @@ def editar_pedido(request, id):
                     try:
                         stock_obj = Stock.objects.select_for_update().get(material=detalle.material)
                     except Stock.DoesNotExist:
-                        stock_obj = Stock.objects.create(material=detalle.material, cantidad_actual=0)
+                        stock_obj = Stock.objects.create(
+                            material=detalle.material,
+                            cantidad_actual=0,
+                        )
                     stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
                     stock_obj.save()
 
@@ -258,7 +282,7 @@ def editar_pedido(request, id):
 
                 total_general = 0
                 for m_id, cant in zip(materiales_ids, cantidades, strict=False):
-                    material = get_object_or_404(Material, id=m_id)
+                    material = get_object_or_404(Material, pk=m_id)
                     try:
                         stock_obj = Stock.objects.select_for_update().get(material=material)
                     except Stock.DoesNotExist:
@@ -331,9 +355,22 @@ def cancelar_pedido(request, id):
             pedido.save()
 
             from apps.historial.utils import registrar_actividad
-            registrar_actividad(request, 'cancelar_pedido', 'pedidos', pedido.codigo_pedido, f"Pedido #{pedido.codigo_pedido} cancelado por {'admin' if es_admin else 'cliente'}")
+            comentario = (
+                f"Pedido #{pedido.codigo_pedido} cancelado por "
+                f"{'admin' if es_admin else 'cliente'}"
+            )
+            registrar_actividad(
+                request,
+                'cancelar_pedido',
+                'pedidos',
+                pedido.codigo_pedido,
+                comentario,
+            )
 
-        messages.warning(request, f"Pedido #{pedido.codigo_pedido} ha sido cancelado y el stock ha sido devuelto.")
+        messages.warning(
+            request,
+            f"Pedido #{pedido.codigo_pedido} ha sido cancelado y el stock ha sido devuelto."
+        )
     except Exception as e:
         messages.error(request, f"Error al cancelar el pedido: {e}")
 

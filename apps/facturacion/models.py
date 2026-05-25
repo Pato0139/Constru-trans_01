@@ -23,6 +23,13 @@ class Factura(models.Model):
     # Fuera del MER pero útil — NO se toca
     sincronizado = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['-fecha']
+        db_table = 'factura'
+
+    def __str__(self):
+        return f"Factura {self.numero} - Pedido {self.pedido.codigo_pedido if self.pedido else 'N/A'}"
+
     @property
     def total_pagado(self):
         return sum(p.monto for p in self.pagos.all())
@@ -34,10 +41,3 @@ class Factura(models.Model):
     @property
     def orden(self):
         return self.pedido
-
-    class Meta:
-        ordering = ['-fecha']
-        db_table = 'factura'
-
-    def __str__(self):
-        return f"Factura {self.numero} - Pedido {self.pedido.codigo_pedido if self.pedido else 'N/A'}"
