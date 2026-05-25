@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
-
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -17,7 +15,7 @@ echo -e "  CONSTRU-TRANS - Setup automático (macOS/Linux)"
 echo -e "================================================================"
 echo -e "${NC}"
 
-echo -e "${YELLOW}[1/9] Verificando Python...${NC}"
+echo -e "${YELLOW}[1/8] Verificando Python...${NC}"
 if command -v python3 >/dev/null 2>&1; then
     PYTHON_CMD="python3"
 elif command -v python >/dev/null 2>&1; then
@@ -35,7 +33,7 @@ fi
 echo -e "${GREEN}[OK] Python encontrado: $($PYTHON_CMD --version)${NC}"
 
 echo -e ""
-echo -e "${YELLOW}[2/9] Creando entorno virtual...${NC}"
+echo -e "${YELLOW}[2/8] Creando entorno virtual...${NC}"
 if [ ! -d "venv" ]; then
     $PYTHON_CMD -m venv venv
     echo -e "${GREEN}[OK] Entorno virtual creado${NC}"
@@ -46,52 +44,42 @@ fi
 source venv/bin/activate
 
 echo -e ""
-echo -e "${YELLOW}[3/9] Instalando dependencias...${NC}"
+echo -e "${YELLOW}[3/8] Instalando dependencias...${NC}"
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
 echo -e "${GREEN}[OK] Dependencias instaladas${NC}"
 
 echo -e ""
-echo -e "${YELLOW}[4/10] Obteniendo credenciales de Neon...${NC}"
+echo -e "${YELLOW}[4/8] Obteniendo credenciales de Neon...${NC}"
 NEON_REPO_PATH="Neon"
 if [ -d "$NEON_REPO_PATH" ]; then
     rm -rf "$NEON_REPO_PATH"
 fi
-git clone https://github.com/Pato0139/Neon.git
+
+git clone https://github.com/Pato0139/Neon.git "$NEON_REPO_PATH"
 echo -e "${GREEN}[OK] Repositorio Neon clonado${NC}"
 
 echo -e ""
-echo -e "${YELLOW}[5/10] Configurando archivo .env...${NC}"
+echo -e "${YELLOW}[5/8] Configurando archivo .env...${NC}"
 if [ ! -f ".env" ]; then
-    if [ -f "$NEON_REPO_PATH/.env.example" ]; then
-        cp "$NEON_REPO_PATH/.env.example" .env
-        echo -e "${GREEN}[OK] Archivo .env creado desde Neon${NC}"
+    cp "$NEON_REPO_PATH/.env.example" .env
+    echo -e "${GREEN}[OK] Archivo .env creado desde Neon${NC}"
 
-        SECRET_KEY=$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')
-        sed -i.bak "s|^SECRET_KEY=cambia-esto-por-una-clave-aleatoria-de-50-caracteres|SECRET_KEY=$SECRET_KEY|" .env && rm -f .env.bak
-        echo -e "${GREEN}[OK] SECRET_KEY generado${NC}"
-    else
-        echo -e "${RED}[ERROR] No se encontró .env.example en el repositorio Neon.${NC}"
-        exit 1
-    fi
+    SECRET_KEY=$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')
+    sed -i '' "s|SECRET_KEY=cambia-esto-por-una-clave-aleatoria-de-50-caracteres|SECRET_KEY=$SECRET_KEY|" .env
+    echo -e "${GREEN}[OK] SECRET_KEY generado${NC}"
 else
     echo -e "${GREEN}[OK] Archivo .env ya existe${NC}"
 fi
 
 echo -e ""
-echo -e "${YELLOW}[6/10] Eliminando repositorio Neon...${NC}"
-if [ -d "$NEON_REPO_PATH" ]; then
-    rm -rf "$NEON_REPO_PATH"
-    echo -e "${GREEN}[OK] Repositorio Neon eliminado${NC}"
-fi
-
-if grep -q '^SECRET_KEY=cambia-esto' .env; then
-    echo -e "${YELLOW}[AVISO] La clave SECRET_KEY aún es la de ejemplo. Actualízala en .env.${NC}"
-fi
+echo -e "${YELLOW}[6/8] Eliminando repositorio Neon...${NC}"
+rm -rf "$NEON_REPO_PATH"
+echo -e "${GREEN}[OK] Repositorio Neon eliminado${NC}"
 
 echo -e ""
-echo -e "${YELLOW}[7/10] Aplicando migraciones...${NC}"
+echo -e "${YELLOW}[7/8] Aplicando migraciones...${NC}"
 python manage.py migrate --run-syncdb || {
     echo -e "${YELLOW}[AVISO] Migraciones fallaron. Verificando configuración...${NC}"
     python manage.py check
@@ -99,15 +87,6 @@ python manage.py migrate --run-syncdb || {
 }
 
 echo -e "${GREEN}[OK] Migraciones completadas${NC}"
-
-echo -e ""
-echo -e "${YELLOW}[9/9] Cargando datos de prueba (opcional)...${NC}"
-if [ -f "scripts/seed_data.py" ]; then
-    python scripts/seed_data.py
-    echo -e "${GREEN}[OK] Datos de prueba cargados${NC}"
-else
-    echo -e "${GREEN}[OK] No hay script de datos opcional${NC}"
-fi
 
 echo -e ""
 echo -e "${GREEN}================================================================"
