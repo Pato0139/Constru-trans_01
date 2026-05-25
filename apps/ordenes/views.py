@@ -374,7 +374,7 @@ def descargar_factura(request, id):
             v = float(val) / 100
             formatted = "{:,.2f}".format(v)
             return f"${formatted.replace(',', 'X').replace('.', ',').replace('X', '.')}"
-        except:
+        except Exception:
             return "$0,00"
 
     # Detalle de Materiales
@@ -404,7 +404,7 @@ def descargar_factura(request, id):
         factura = orden.factura
         total_pagado = format_money(factura.total_pagado)
         por_pagar = format_money(factura.saldo_pendiente)
-    except:
+    except Exception:
         total_pagado = "$0,00"
         por_pagar = total_f
 

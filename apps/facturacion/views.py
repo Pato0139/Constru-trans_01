@@ -52,7 +52,7 @@ def registrar_pago(request):
     # VALIDACIÓN: Monto numérico
     try:
         monto = Decimal(monto_str)
-    except:
+    except Exception:
         return JsonResponse({'error': 'Monto inválido'}, status=400)
 
     # VALIDACIÓN: cantidad > 0
@@ -141,5 +141,5 @@ def editar_factura_monto(request, id):
             factura.orden.save()
 
         return JsonResponse({'status': 'ok', 'mensaje': 'Monto de factura actualizado'})
-    except:
+    except Exception:
         return JsonResponse({'error': 'Monto inválido'}, status=400)

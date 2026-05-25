@@ -81,7 +81,7 @@ def exportar_reporte_pdf(request, tipo):
             v = float(val) / 100
             formatted = "{:,.2f}".format(v)
             return f"${formatted.replace(',', 'X').replace('.', ',').replace('X', '.')}"
-        except:
+        except Exception:
             return "$0,00"
 
     data = []
@@ -151,7 +151,7 @@ def exportar_reporte_excel(request, tipo):
     def format_money_raw(val):
         try:
             return float(val) / 100
-        except:
+        except Exception:
             return 0.0
 
     if tipo == 'clientes':
@@ -193,7 +193,7 @@ def exportar_reporte_excel(request, tipo):
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except Exception:
                 pass
         adjusted_width = (max_length + 2)
         ws.column_dimensions[column].width = adjusted_width

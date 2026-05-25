@@ -16,7 +16,7 @@ def license_activate(request):
     if request.method != "POST":
         return JsonResponse({"error": "Method not allowed"}, status=405)
     try:
-        data = json.loads(request.body)
+        json.loads(request.body)
         inst = validate_installation()
         return JsonResponse({"status": inst.status, "expires_at": inst.expires_at.isoformat() if inst.expires_at else None})
     except Exception as e:
