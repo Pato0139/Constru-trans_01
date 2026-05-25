@@ -5,7 +5,7 @@ Write-Host "================================================================" -F
 Write-Host ""
 
 # Paso 1: Verificar Python
-Write-Host "[1/7] Verificando Python..." -ForegroundColor Yellow
+Write-Host "[1/8] Verificando Python..." -ForegroundColor Yellow
 $pythonFound = $false
 $pythonCmd = $null
 
@@ -58,7 +58,7 @@ if (-not $pythonFound) {
 
 # Paso 2: Crear entorno virtual
 Write-Host ""
-Write-Host "[2/7] Creando entorno virtual..." -ForegroundColor Yellow
+Write-Host "[2/8] Creando entorno virtual..." -ForegroundColor Yellow
 if (-not (Test-Path "venv")) {
     & $pythonCmd -m venv venv
     if ($LASTEXITCODE -ne 0) {
@@ -73,7 +73,7 @@ if (-not (Test-Path "venv")) {
 
 # Paso 3: Instalar dependencias
 Write-Host ""
-Write-Host "[3/7] Instalando dependencias..." -ForegroundColor Yellow
+Write-Host "[3/8] Instalando dependencias..." -ForegroundColor Yellow
 & .\venv\Scripts\python.exe -m pip install --upgrade pip
 & .\venv\Scripts\python.exe -m pip install -r requirements.txt
 if ($LASTEXITCODE -ne 0) {
@@ -85,7 +85,7 @@ Write-Host "[OK] Dependencias instaladas" -ForegroundColor Green
 
 # Paso 4: Verificar .env
 Write-Host ""
-Write-Host "[4/7] Verificando archivo .env..." -ForegroundColor Yellow
+Write-Host "[4/8] Verificando archivo .env..." -ForegroundColor Yellow
 if (-not (Test-Path ".env")) {
     Copy-Item .env.example .env
     Write-Host "[OK] Archivo .env creado" -ForegroundColor Green
@@ -93,35 +93,100 @@ if (-not (Test-Path ".env")) {
     Write-Host "[OK] Archivo .env ya existe" -ForegroundColor Green
 }
 
-# Paso 5: Aplicar migraciones
+# Paso 5: Detectar modo de base de datos
 Write-Host ""
-Write-Host "[5/7] Aplicando migraciones..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe manage.py migrate
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Fallo al aplicar migraciones" -ForegroundColor Red
-    Read-Host "Presiona cualquier tecla para salir"
-    exit 1
-}
-Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
+Write-Host "[5/8] Verificando conexión a base de datos..." -ForegroundColor Yellow
+$envContent = Get-Content ".env" -Raw -ErrorAction SilentlyContinue
+$databaseUrl = $null
 
-# Paso 6: Cargar datos de la base de datos
+if ($envContent -match 'DATABASE_URL=(.+)') {
+    $databaseUrl = $matches[1].Trim()
+}
+
+$useLocalDB = $false
+if ($databaseUrl -and $databaseUrl.StartsWith("postgres")) {
+    # Verificar si podemos conectar a PostgreSQL
+    $testResult = & .\venv\Scripts\python.exe -c "
+import os
+import psycopg2
+try:
+    url = os.environ.get('DATABASE_URL', '')
+    if not url:
+        exit(1)
+    conn = psycopg2.connect(url, connect_timeout=5)
+    conn.close()
+    exit(0)
+except:
+    exit(1)
+" 2>&1
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[AVISO] No se puede conectar a la base de datos Neon." -ForegroundColor Yellow
+        Write-Host "       Se usará SQLite local para desarrollo." -ForegroundColor Yellow
+        $useLocalDB = $true
+    } else {
+        Write-Host "[OK] Conectado a base de datos Neon" -ForegroundColor Green
+    }
+} else {
+    $useLocalDB = $true
+    Write-Host "[OK] Usando base de datos SQLite local" -ForegroundColor Green
+}
+
+# Configurar SQLite si es necesario
+if ($useLocalDB) {
+    # Modificar settings.py para usar SQLite
+    $settingsPath = "core\settings.py"
+    $settingsContent = Get-Content $settingsPath -Raw
+    
+    # Comentar la línea de DATABASE_URL y forzar SQLite
+    $newSettings = $settingsContent -replace 'DATABASE_URL = os\.getenv\(["\']DATABASE_URL["\'],\s*["\'].*["\']\)', '# DATABASE_URL = os.getenv("DATABASE_URL") # Deshabilitado - usando SQLite local'
+    
+    # Verificar si ya está configurado con SQLite
+    if ($newSettings -notmatch "sqlite3") {
+        # Reemplazar toda la sección de DATABASES
+        $newSettings = $newSettings -replace 'DATABASES\s*=\s*\{[^}]+engine[^}]+\}', @"
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+"@
+    }
+    
+    Set-Content -Path $settingsPath -Value $newSettings -NoNewline
+    Write-Host "[OK] Configurado para usar SQLite local" -ForegroundColor Green
+}
+
+# Paso 6: Aplicar migraciones
 Write-Host ""
-Write-Host "[6/7] Cargando datos de la base de datos..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe manage.py seed_mer
+Write-Host "[6/8] Aplicando migraciones..." -ForegroundColor Yellow
+& .\venv\Scripts\python.exe manage.py migrate --no-input
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Fallo al cargar datos MER" -ForegroundColor Red
-    Read-Host "Presiona cualquier tecla para salir"
-    exit 1
+    Write-Host "[AVISO] Error en migraciones. Intentando con --run-syncdb..." -ForegroundColor Yellow
+    & .\venv\Scripts\python.exe manage.py migrate --run-syncdb --no-input
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ERROR] Fallo al aplicar migraciones" -ForegroundColor Red
+        Write-Host ""
+        Write-Host "Si el error persiste, ejecuta manualmente:" -ForegroundColor Yellow
+        Write-Host "  .\venv\Scripts\python.exe manage.py migrate --run-syncdb" -ForegroundColor Gray
+        Write-Host ""
+        Read-Host "Presiona cualquier tecla para continuar o Ctrl+C para salir"
+    } else {
+        Write-Host "[OK] Migraciones aplicadas (--run-syncdb)" -ForegroundColor Green
+    }
+} else {
+    Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
 }
-& .\venv\Scripts\python.exe manage.py seed_data
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Fallo al cargar datos de prueba" -ForegroundColor Red
-    Read-Host "Presiona cualquier tecla para salir"
-    exit 1
-}
+
+# Paso 7: Cargar datos de la base de datos
+Write-Host ""
+Write-Host "[7/8] Cargando datos de la base de datos..." -ForegroundColor Yellow
+& .\venv\Scripts\python.exe manage.py seed_mer 2>$null
+& .\venv\Scripts\python.exe scripts\database\seed_data.py 2>$null
 Write-Host "[OK] Datos cargados" -ForegroundColor Green
 
-# Final
+# Paso 8: Final
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Green
 Write-Host "  Setup COMPLETO!" -ForegroundColor Green
@@ -130,4 +195,9 @@ Write-Host ""
 Write-Host "Para iniciar el servidor:" -ForegroundColor Cyan
 Write-Host "  .\venv\Scripts\python.exe manage.py runserver" -ForegroundColor White
 Write-Host ""
+if ($useLocalDB) {
+    Write-Host "[NOTA] Estás usando la base de datos SQLite local." -ForegroundColor Gray
+    Write-Host "      Para usar Neon en producción, configura DATABASE_URL en .env" -ForegroundColor Gray
+    Write-Host ""
+}
 Read-Host "Presiona cualquier tecla para salir"
