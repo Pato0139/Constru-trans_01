@@ -23,17 +23,22 @@ class ConstruTransTestSuite(TestCase):
         self.conductor_user = User.objects.create_user(username='cond@test.com', email='cond@test.com', password='password123')
         self.conductor_perfil = Usuario.objects.create(user=self.conductor_user, rol='conductor', nombres='Conductor', documento='1003')
 
-        # 4. Crear Material y su Stock (via signals)
-        self.material = Material.objects.create(nombre='Arena', precio=50000)
-        self.stock = self.material.stock_info
-        self.stock.cantidad = 100
-        self.stock.save()
+        # 4. Crear Material y su Stock
+        self.material = Material.objects.create(
+            nombre='Arena',
+            unidad_medida='m3',
+            descripcion='Arena gruesa para construcción',
+            precio_referencia=50000
+        )
+        self.stock = Stock.objects.create(material=self.material, cantidad_actual=100)
 
         # 5. Vehículo (asignado al conductor)
         self.vehiculo = Vehiculo.objects.create(
             placa='ABC123',
+            marca='Toyota',
+            modelo='Hiace',
             tipo_vehiculo='Bolqueta',
-            capacidad_carga='10m3',
+            capacidad_carga=10.00,
             estado='disponible'
         )
 
