@@ -66,3 +66,4 @@ backups/*.dump
 # Archivos de prueba
 test_db.py
 list_tables.py
+
