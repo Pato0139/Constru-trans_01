@@ -1,17 +1,18 @@
+
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host "  CONSTRU-TRANS - Setup automatico" -ForegroundColor Cyan
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Paso 1: Verificar Python
-Write-Host "[1/8] Verificando Python..." -ForegroundColor Yellow
+Write-Host "[1/10] Verificando Python..." -ForegroundColor Yellow
 $pythonCmd = $null
 $pythonVersion = $null
 
 # Buscar py.exe
 try {
     $pyCmd = Get-Command py -ErrorAction Stop
-    $pythonVersion = & py --version 2>&1
+    $pythonVersion = & py --version 2&gt;&1
     if ($pythonVersion -match "Python") {
         Write-Host "[OK] Python encontrado (py): $pythonVersion" -ForegroundColor Green
         $pythonCmd = "py"
@@ -21,7 +22,7 @@ try {
 # Si no funciona, buscar python.exe
 if (-not $pythonCmd) {
     try {
-        $pythonVersion = & python --version 2>&1
+        $pythonVersion = & python --version 2&gt;&1
         if ($pythonVersion -match "Python") {
             Write-Host "[OK] Python encontrado: $pythonVersion" -ForegroundColor Green
             $pythonCmd = "python"
@@ -39,7 +40,7 @@ if (-not $pythonCmd) {
 
 # Paso 2: Crear entorno virtual
 Write-Host ""
-Write-Host "[2/8] Creando entorno virtual..." -ForegroundColor Yellow
+Write-Host "[2/10] Creando entorno virtual..." -ForegroundColor Yellow
 if (-not (Test-Path "venv")) {
     & $pythonCmd -m venv venv
     if ($LASTEXITCODE -ne 0) {
@@ -54,9 +55,14 @@ if (-not (Test-Path "venv")) {
 
 # Paso 3: Instalar dependencias
 Write-Host ""
-Write-Host "[3/8] Instalando dependencias..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe -m pip install --upgrade pip | Out-Null
-& .\venv\Scripts\python.exe -m pip install -r requirements.txt 2>&1 | Out-Null
+Write-Host "[3/10] Instalando dependencias..." -ForegroundColor Yellow
+& .\venv\Scripts\python.exe -m pip install --upgrade pip
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERROR] Fallo al actualizar pip" -ForegroundColor Red
+    Read-Host "Presiona cualquier tecla para salir"
+    exit 1
+}
+& .\venv\Scripts\python.exe -m pip install -r requirements.txt
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Fallo al instalar dependencias" -ForegroundColor Red
     Read-Host "Presiona cualquier tecla para salir"
@@ -64,86 +70,63 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "[OK] Dependencias instaladas" -ForegroundColor Green
 
-# Paso 4: Configurar .env
+# Paso 4: Instalar psycopg2-binary para PostgreSQL
 Write-Host ""
-Write-Host "[4/8] Configurando archivo .env..." -ForegroundColor Yellow
+Write-Host "[4/10] Instalando psycopg2-binary para PostgreSQL..." -ForegroundColor Yellow
+& .\venv\Scripts\python.exe -m pip install psycopg2-binary
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERROR] Fallo al instalar psycopg2-binary" -ForegroundColor Red
+    Read-Host "Presiona cualquier tecla para salir"
+    exit 1
+}
+Write-Host "[OK] psycopg2-binary instalado" -ForegroundColor Green
+
+# Paso 5: Clonar repositorio Neon para obtener credenciales
+Write-Host ""
+Write-Host "[5/10] Obteniendo credenciales de Neon..." -ForegroundColor Yellow
+$neonRepoPath = "Neon"
+if (Test-Path $neonRepoPath) {
+    Remove-Item -Recurse -Force $neonRepoPath
+}
+git clone https://github.com/Pato0139/Neon.git
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERROR] Fallo al clonar repositorio Neon" -ForegroundColor Red
+    Read-Host "Presiona cualquier tecla para salir"
+    exit 1
+}
+Write-Host "[OK] Repositorio Neon clonado" -ForegroundColor Green
+
+# Paso 6: Configurar .env con credenciales de Neon
+Write-Host ""
+Write-Host "[6/10] Configurando archivo .env..." -ForegroundColor Yellow
 if (-not (Test-Path ".env")) {
-    Copy-Item .env.example .env -Force
-    Write-Host "[OK] Archivo .env creado desde .env.example" -ForegroundColor Green
+    # Copiar .env.example del repositorio Neon
+    Copy-Item "$neonRepoPath\.env.example" ".env" -Force
+    Write-Host "[OK] Archivo .env creado desde Neon" -ForegroundColor Green
+    
+    # Generar SECRET_KEY aleatorio
+    $secretKey = & .\venv\Scripts\python.exe -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+    (Get-Content .env) -replace 'SECRET_KEY=cambia-esto-por-una-clave-aleatoria-de-50-caracteres', "SECRET_KEY=$secretKey" | Set-Content .env
+    Write-Host "[OK] SECRET_KEY generado" -ForegroundColor Green
 } else {
     Write-Host "[OK] Archivo .env ya existe" -ForegroundColor Green
 }
 
-# Paso 5: Detectar y configurar base de datos
+# Paso 7: Eliminar repositorio Neon
 Write-Host ""
-Write-Host "[5/8] Verificando conexion a base de datos..." -ForegroundColor Yellow
-
-# Leer DATABASE_URL del .env
-$envContent = Get-Content ".env" -Raw -ErrorAction SilentlyContinue
-$databaseUrl = $null
-if ($envContent -match 'DATABASE_URL=(.+)') {
-    $databaseUrl = $matches[1].Trim()
+Write-Host "[7/10] Eliminando repositorio Neon..." -ForegroundColor Yellow
+if (Test-Path $neonRepoPath) {
+    Remove-Item -Recurse -Force $neonRepoPath
+    Write-Host "[OK] Repositorio Neon eliminado" -ForegroundColor Green
 }
 
-# Verificar si podemos conectar a Neon
-$useNeon = $false
-if ($databaseUrl -and $databaseUrl.StartsWith("postgres")) {
-    Write-Host "  Probando conexion a Neon..." -ForegroundColor Gray
-    $testResult = & .\venv\Scripts\python.exe -c "
-import os, sys
-try:
-    import psycopg2
-    url = os.environ.get('DATABASE_URL', '$databaseUrl')
-    conn = psycopg2.connect(url, connect_timeout=5)
-    conn.close()
-    sys.exit(0)
-except:
-    sys.exit(1)
-" 2>&1
-    
-    if ($LASTEXITCODE -eq 0) {
-        $useNeon = $true
-        Write-Host "[OK] Conectado a base de datos Neon" -ForegroundColor Green
-    }
-}
-
-# Si Neon no esta disponible, usar SQLite
-if (-not $useNeon) {
-    Write-Host "[AVISO] Neon no disponible. Usando SQLite local." -ForegroundColor Yellow
-    
-    # Modificar settings.py para usar SQLite
-    $settingsPath = "core\settings.py"
-    $settingsContent = Get-Content $settingsPath -Raw -ErrorAction SilentlyContinue
-    
-    if ($settingsContent) {
-        # Comentar DATABASE_URL y agregar config SQLite
-        $newContent = $settingsContent -replace 'DATABASE_URL\s*=', '# DATABASE_URL ='
-        
-        # Buscar y reemplazar DATABASES
-        $pattern = "DATABASES\s*=\s*\{[^}]+dj_database_url\.parse[^}]+\}"
-        if ($newContent -match $pattern) {
-            $newContent = $newContent -replace $pattern, @"
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-"@
-        }
-        
-        Set-Content -Path $settingsPath -Value $newContent -NoNewline -Force
-        Write-Host "[OK] Settings configurado para SQLite" -ForegroundColor Green
-    }
-}
-
-# Paso 6: Aplicar migraciones
+# Paso 8: Aplicar migraciones
 Write-Host ""
-Write-Host "[6/8] Aplicando migraciones..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe manage.py migrate --run-syncdb 2>&1 | Out-Null
+Write-Host "[8/10] Aplicando migraciones..." -ForegroundColor Yellow
+& .\venv\Scripts\python.exe manage.py migrate --run-syncdb
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[AVISO] Error en migraciones. Verificando..." -ForegroundColor Yellow
-    & .\venv\Scripts\python.exe manage.py check 2>&1 | Out-Null
+    Write-Host "[AVISO] Verificando configuracion..." -ForegroundColor Yellow
+    & .\venv\Scripts\python.exe manage.py check
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[ERROR] Problema con la configuracion" -ForegroundColor Red
     } else {
@@ -153,11 +136,18 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
 }
 
-# Paso 7: (Opcional) Cargar datos de prueba - DESACTIVADO
+# Paso 9: Cargar datos de prueba (opcional)
 Write-Host ""
-Write-Host "[7/8] Datos de prueba desactivados." -ForegroundColor Gray
+Write-Host "[9/10] Cargando datos de prueba (opcional)..." -ForegroundColor Yellow
+$seedScript = "scripts\seed_data.py"
+if (Test-Path $seedScript) {
+    & .\venv\Scripts\python.exe $seedScript
+    Write-Host "[OK] Datos de prueba cargados" -ForegroundColor Green
+} else {
+    Write-Host "[OK] Script de datos no encontrado" -ForegroundColor Gray
+}
 
-# Paso 8: Final
+# Paso 10: Final
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Green
 Write-Host "  Setup COMPLETO!" -ForegroundColor Green
@@ -166,10 +156,7 @@ Write-Host ""
 Write-Host "Para iniciar el servidor:" -ForegroundColor Cyan
 Write-Host "  .\venv\Scripts\python.exe manage.py runserver" -ForegroundColor White
 Write-Host ""
-if (-not $useNeon) {
-    Write-Host "[INFO] Usando base de datos SQLite local" -ForegroundColor Gray
-    Write-Host "       Para usar Neon, configura DATABASE_URL en .env" -ForegroundColor Gray
-    Write-Host ""
-}
+Write-Host "[INFO] Usando base de datos Neon PostgreSQL" -ForegroundColor Gray
+Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
 Read-Host "Presiona cualquier tecla para salir"

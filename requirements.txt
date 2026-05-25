@@ -5,8 +5,8 @@ dj-database-url==2.2.0
 whitenoise==6.7.0
 python-dotenv==1.0.1
 
-# PostgreSQL (solo para producción, opcional)
-# psycopg2-binary>=2.9.10
+# PostgreSQL (para producción y desarrollo)
+psycopg2-binary>=2.9.10
 
 # Seguridad
 django-axes==7.0.0
