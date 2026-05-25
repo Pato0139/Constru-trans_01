@@ -153,16 +153,9 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
 }
 
-# Paso 7: Cargar datos de prueba
+# Paso 7: (Opcional) Cargar datos de prueba - DESACTIVADO
 Write-Host ""
-Write-Host "[7/8] Cargando datos de prueba..." -ForegroundColor Yellow
-$seedScript = "scripts\seed_data.py"
-if (Test-Path $seedScript) {
-    & .\venv\Scripts\python.exe $seedScript 2>&1 | Out-Null
-    Write-Host "[OK] Datos de prueba cargados" -ForegroundColor Green
-} else {
-    Write-Host "[OK] Datos cargados (script no encontrado)" -ForegroundColor Gray
-}
+Write-Host "[7/8] Datos de prueba desactivados." -ForegroundColor Gray
 
 # Paso 8: Final
 Write-Host ""
