@@ -79,3 +79,4 @@ ruff check .                     # Linting
 - Al estar online, el router sincroniza usuarios/sesiones/historial con Neon
 - Las migraciones se versionan en git (NO ejecutar `makemigrations` en cada PC)
 - Antes de hacer push, ejecutar `pytest` y `ruff check .`
+
