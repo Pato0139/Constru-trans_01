@@ -47,11 +47,26 @@ def registrar_entrada(request):
 
 @admin_required
 def movimientos_lista(request):
+    query = request.GET.get('q')
+    tipo = request.GET.get('tipo')
+    
     movimientos = MovimientoInventario.objects.all().select_related('material', 'usuario')
+    
+    if query:
+        movimientos = movimientos.filter(
+            Q(material__nombre__icontains=query) |
+            Q(motivo__icontains=query)
+        )
+    
+    if tipo:
+        movimientos = movimientos.filter(tipo=tipo)
+    
     materiales = Material.objects.all().order_by('nombre')
     return render(request, "inventario/movimientos.html", {
         "movimientos": movimientos,
-        "materiales": materiales
+        "materiales": materiales,
+        "query": query,
+        "tipo_actual": tipo
     })
 
 def buscar_materiales(query=None):
