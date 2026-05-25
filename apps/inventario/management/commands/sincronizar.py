@@ -116,30 +116,34 @@ class Command(BaseCommand):
 
     def sincronizar_modelo(self, modelo, force=False):
         """Busca registros no sincronizados localmente y los sube a la nube en orden."""
-        # Ordenamos por ID para asegurar que se sincronicen en el orden en que fueron creados
+        # Obtener el campo de clave primaria
+        pk_field = modelo._meta.pk
+        pk_name = pk_field.name
+        
+        # Ordenamos por PK para asegurar que se sincronicen en el orden en que fueron creados
         if force:
-            pendientes = modelo.objects.using('default').all().order_by('id')
+            pendientes = modelo.objects.using('default').all().order_by(pk_name)
         else:
-            pendientes = modelo.objects.using('default').filter(sincronizado=False).order_by('id')
+            pendientes = modelo.objects.using('default').filter(sincronizado=False).order_by(pk_name)
 
         if pendientes.exists():
             self.stdout.write(f'Sincronizando {pendientes.count()} registros de {modelo.__name__}...')
             for obj in pendientes:
                 try:
                     # 1. Guardamos el objeto principal en la remota
-                    # Usamos update_or_create para evitar duplicados por ID
+                    # Usamos update_or_create para evitar duplicados por PK
                     data = {}
                     for field in obj._meta.fields:
-                        if field.name != 'sincronizado':
+                        if field.name != 'sincronizado' and not field.primary_key:
                             # Manejar campos ForeignKey para asegurar que el ID se pase correctamente
                             if field.is_relation and field.many_to_one:
                                 data[field.name + '_id'] = getattr(obj, field.name + '_id')
                             else:
                                 data[field.name] = getattr(obj, field.name)
 
-                    # Forzar el ID para mantener consistencia
+                    # Forzar la PK para mantener consistencia
                     modelo.objects.using('remota').update_or_create(
-                        id=obj.id,
+                        **{pk_name: getattr(obj, pk_name)},
                         defaults=data
                     )
 
@@ -231,10 +235,11 @@ class Command(BaseCommand):
                             cliente_perfil = Cliente.objects.using('default').get(usuario=perfil)
                             c_data = {}
                             for field in cliente_perfil._meta.fields:
-                                c_data[field.name] = getattr(cliente_perfil, field.name)
+                                if not field.primary_key:
+                                    c_data[field.name] = getattr(cliente_perfil, field.name)
 
                             Cliente.objects.using('remota').update_or_create(
-                                id=cliente_perfil.id,
+                                usuario=perfil,
                                 defaults=c_data
                             )
                             self.stdout.write(self.style.SUCCESS(f'    [OK] Perfil de Cliente sincronizado para {perfil.user.username}'))
@@ -275,25 +280,27 @@ class Command(BaseCommand):
                 if p_remoto:
                     Usuario.objects.using('default').update_or_create(
                         id=p_remoto.id,
-                        defaults={'user_id': u_remoto.id, 'rol': p_remoto.rol, 'telefono': p_remoto.telefono, 'direccion': p_remoto.direccion, 'sincronizado': True}
+                        defaults={'user_id': u_remoto.id, 'rol': p_remoto.rol, 'telefono': p_remoto.telefono, 'sincronizado': True}
                     )
 
             # 2. Proveedores
             for p in Proveedor.objects.using('remota').all():
                 Proveedor.objects.using('default').update_or_create(
-                    id=p.id, defaults={'nombre': p.nombre, 'nit': p.nit, 'telefono': p.telefono, 'correo': p.correo, 'direccion': p.direccion, 'sincronizado': True}
+                    codigo_proveedor=p.codigo_proveedor, 
+                    defaults={'nombre_empresa': p.nombre_empresa, 'nit': p.nit, 'telefono': p.telefono, 'correo': getattr(p, 'correo', ''), 'descripcion': getattr(p, 'descripcion', ''), 'sincronizado': True}
                 )
 
             # 3. Materiales
             for m in Material.objects.using('remota').all():
                 Material.objects.using('default').update_or_create(
-                    id=m.id, defaults={'nombre': m.nombre, 'descripcion': m.descripcion, 'precio_unitario': m.precio_unitario, 'stock_actual': m.stock_actual, 'stock_minimo': m.stock_minimo, 'unidad_medida': m.unidad_medida, 'sincronizado': True}
+                    id=m.id, defaults={'nombre': m.nombre, 'descripcion': m.descripcion, 'precio': m.precio, 'sincronizado': True}
                 )
 
             # 4. Vehículos
             for v in Vehiculo.objects.using('remota').all():
                 Vehiculo.objects.using('default').update_or_create(
-                    id=v.id, defaults={'placa': v.placa, 'modelo': v.modelo, 'capacidad_carga': v.capacidad_carga, 'estado': v.estado, 'sincronizado': True}
+                    id_vehiculo=v.id_vehiculo, 
+                    defaults={'placa': v.placa, 'marca': v.marca, 'modelo': v.modelo, 'capacidad_carga': v.capacidad_carga, 'estado': v.estado, 'sincronizado': True}
                 )
 
             self.stdout.write(self.style.SUCCESS('  [OK] Usuarios actualizados desde la nube.'))
@@ -308,14 +315,13 @@ class Command(BaseCommand):
                 # Lista de tablas y sus secuencias comunes en Django
                 tablas = [
                     ('auth_user', 'id'),
-                    ('usuario', 'id'),
-                    ('material', 'id'),
-                    ('vehiculo', 'id'),
-                    ('proveedor', 'id'),
-                    ('orden', 'id'),
-                    ('factura', 'id'),
-                    ('historial_actividad', 'id'),
-                    ('perfil_cliente', 'id'),
+                    ('usuario', 'id_usuario'),
+                    ('material_construccion', 'id_material'),
+                    ('vehiculo', 'id_vehiculo'),
+                    ('proveedor', 'codigo_proveedor'),
+                    ('pedido', 'codigo_pedido'),
+                    ('factura', 'id_factura'),
+                    ('historial_actividad', 'id_historial'),
                 ]
                 for tabla, columna in tablas:
                     try:
