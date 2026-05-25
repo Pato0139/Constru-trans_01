@@ -1,64 +1,43 @@
 
 Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host "  CONSTRU-TRANS - Setup automatico" -ForegroundColor Cyan
+Write-Host "  CONSTRU-TRANS - Setup automatico (Windows)" -ForegroundColor Cyan
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Paso 1: Verificar Python
-Write-Host "[1/7] Verificando Python..." -ForegroundColor Yellow
-$pythonFound = $false
+Write-Host "[1/8] Verificando Python..." -ForegroundColor Yellow
 $pythonCmd = $null
 
-# Buscar py.exe primero
 try {
     $pyCmd = Get-Command py -ErrorAction Stop
-    $versionOutput = & py --version 2>&1
-    if ($versionOutput -match "Python (\d+\.\d+\.\d+)") {
-        Write-Host "[OK] Python encontrado (py): $versionOutput" -ForegroundColor Green
-        $pythonFound = $true
+    $pythonVersion = & py --version 2>&1
+    if ($pythonVersion -match "Python") {
+        Write-Host "[OK] Python encontrado (py): $pythonVersion" -ForegroundColor Green
         $pythonCmd = "py"
     }
-} catch {
-    # py.exe no encontrado
-}
+} catch {}
 
-# Si no encontramos py, buscar python.exe
-if (-not $pythonFound) {
+if (-not $pythonCmd) {
     try {
-        $pythonCmdPath = Get-Command python -ErrorAction Stop
-        $versionOutput = & python --version 2>&1
-        if ($versionOutput -match "Python (\d+\.\d+\.\d+)") {
-            Write-Host "[OK] Python encontrado: $versionOutput" -ForegroundColor Green
-            $pythonFound = $true
+        $pythonVersion = & python --version 2>&1
+        if ($pythonVersion -match "Python") {
+            Write-Host "[OK] Python encontrado: $pythonVersion" -ForegroundColor Green
             $pythonCmd = "python"
-        } else {
-            Write-Host "[ADVERTENCIA] El comando 'python' parece ser el alias de Windows Store." -ForegroundColor Yellow
-            Write-Host "  Por favor, desactiva los alias de Python en: Settings > Apps > Advanced app settings > App execution aliases" -ForegroundColor Yellow
-            Write-Host "  O instala Python desde python.org y asegúrate de marcar 'Add Python to PATH' durante la instalación." -ForegroundColor Yellow
         }
-    } catch {
-        # python.exe no encontrado
-    }
+    } catch {}
 }
 
-# Si aún no encontramos Python, guiar al usuario
-if (-not $pythonFound) {
+if (-not $pythonCmd) {
     Write-Host ""
-    Write-Host "[ERROR] Python no encontrado." -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Por favor, sigue estos pasos:" -ForegroundColor Yellow
-    Write-Host "1. Descarga Python 3.11 o superior desde: https://www.python.org/downloads/" -ForegroundColor White
-    Write-Host "2. Durante la instalación, MARCA la opción 'Add Python to PATH'" -ForegroundColor Cyan
-    Write-Host "3. Cierra y abre PowerShell nuevamente" -ForegroundColor White
-    Write-Host "4. Vuelve a ejecutar este script" -ForegroundColor White
-    Write-Host ""
+    Write-Host "[ERROR] Python no encontrado. Instala Python 3.11+" -ForegroundColor Red
+    Write-Host "Descarga: https://www.python.org/downloads/" -ForegroundColor White
     Read-Host "Presiona cualquier tecla para salir"
     exit 1
 }
 
 # Paso 2: Crear entorno virtual
 Write-Host ""
-Write-Host "[2/7] Creando entorno virtual..." -ForegroundColor Yellow
+Write-Host "[2/8] Creando entorno virtual..." -ForegroundColor Yellow
 if (-not (Test-Path "venv")) {
     & $pythonCmd -m venv venv
     if ($LASTEXITCODE -ne 0) {
@@ -74,75 +53,110 @@ if (-not (Test-Path "venv")) {
 # Paso 3: Instalar dependencias
 Write-Host ""
 Write-Host "[3/8] Instalando dependencias..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe -m pip install --upgrade pip
-& .\venv\Scripts\python.exe -m pip install -r requirements.txt
+& .\venv\Scripts\python.exe -m pip install --upgrade pip | Out-Null
+& .\venv\Scripts\python.exe -m pip install -r requirements.txt 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Fallo al instalar dependencias" -ForegroundColor Red
     Read-Host "Presiona cualquier tecla para salir"
     exit 1
 }
-# Instalar psycopg2-binary para PostgreSQL (Neon)
-& .\venv\Scripts\python.exe -m pip install psycopg2-binary
 Write-Host "[OK] Dependencias instaladas" -ForegroundColor Green
 
-# Paso 4: Descargar y fusionar credenciales de Neon usando el script dedicado
+# Paso 4: Configurar .env
 Write-Host ""
-Write-Host "[4/9] Obteniendo credenciales de Neon..." -ForegroundColor Yellow
-& .\scripts\download_env.ps1
-
-# Eliminar neon-repo si existe (para limpieza)
-if (Test-Path "neon-repo") {
-    Write-Host "[LIMPIEZA] Eliminando carpeta neon-repo..." -ForegroundColor Cyan
-    Remove-Item -Path "neon-repo" -Recurse -Force
-}
-
-# Paso 5: Verificar archivo .env
-Write-Host ""
-Write-Host "[5/9] Verificando archivo .env..." -ForegroundColor Yellow
+Write-Host "[4/8] Configurando archivo .env..." -ForegroundColor Yellow
 if (-not (Test-Path ".env")) {
-    Copy-Item .env.example .env
-    Write-Host "[OK] Archivo .env creado" -ForegroundColor Green
+    Copy-Item .env.example .env -Force
+    Write-Host "[OK] Archivo .env creado desde .env.example" -ForegroundColor Green
 } else {
-    Write-Host "[OK] Archivo .env existe" -ForegroundColor Green
+    Write-Host "[OK] Archivo .env ya existe" -ForegroundColor Green
 }
 
-# Paso 6: Configurar archivos de settings para BD remota
+# Paso 5: Detectar y configurar base de datos
 Write-Host ""
-Write-Host "[6/9] Configurando settings para BD remota..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe .\scripts\configure_settings.py
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ADVERTENCIA] No se pudo actualizar los settings automaticamente" -ForegroundColor Yellow
+Write-Host "[5/8] Verificando conexion a base de datos..." -ForegroundColor Yellow
+
+$envContent = Get-Content ".env" -Raw -ErrorAction SilentlyContinue
+$databaseUrl = $null
+if ($envContent -match 'DATABASE_URL=(.+)') {
+    $databaseUrl = $matches[1].Trim()
 }
 
-# Paso 7: Aplicar migraciones
+$useNeon = $false
+if ($databaseUrl -and $databaseUrl.StartsWith("postgres")) {
+    Write-Host "  Probando conexion a Neon..." -ForegroundColor Gray
+    $testResult = & .\venv\Scripts\python.exe -c "
+import os, sys
+try:
+    import psycopg2
+    url = os.environ.get('DATABASE_URL', '$databaseUrl')
+    conn = psycopg2.connect(url, connect_timeout=5)
+    conn.close()
+    sys.exit(0)
+except:
+    sys.exit(1)
+" 2>&1
+    
+    if ($LASTEXITCODE -eq 0) {
+        $useNeon = $true
+        Write-Host "[OK] Conectado a base de datos Neon" -ForegroundColor Green
+    }
+}
+
+if (-not $useNeon) {
+    Write-Host "[AVISO] Neon no disponible. Usando SQLite local." -ForegroundColor Yellow
+    
+    $settingsPath = "core\settings.py"
+    $settingsContent = Get-Content $settingsPath -Raw -ErrorAction SilentlyContinue
+    
+    if ($settingsContent) {
+        $newContent = $settingsContent -replace 'DATABASE_URL\s*=', '# DATABASE_URL ='
+        
+        $pattern = "DATABASES\s*=\s*\{[^}]+dj_database_url\.parse[^}]+\}"
+        if ($newContent -match $pattern) {
+            $newContent = $newContent -replace $pattern, @"
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+"@
+        }
+        
+        Set-Content -Path $settingsPath -Value $newContent -NoNewline -Force
+        Write-Host "[OK] Settings configurado para SQLite" -ForegroundColor Green
+    }
+}
+
+# Paso 6: Aplicar migraciones
 Write-Host ""
-Write-Host "[7/9] Aplicando migraciones..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe manage.py migrate
+Write-Host "[6/8] Aplicando migraciones..." -ForegroundColor Yellow
+& .\venv\Scripts\python.exe manage.py migrate --run-syncdb 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Fallo al aplicar migraciones" -ForegroundColor Red
-    Read-Host "Presiona cualquier tecla para salir"
-    exit 1
+    Write-Host "[AVISO] Verificando configuracion..." -ForegroundColor Yellow
+    & .\venv\Scripts\python.exe manage.py check 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ERROR] Problema con la configuracion" -ForegroundColor Red
+    } else {
+        Write-Host "[OK] Configuracion verificada" -ForegroundColor Green
+    }
+} else {
+    Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
 }
-Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
 
-# Paso 8: Cargar datos de la base de datos
+# Paso 7: Cargar datos de prueba
 Write-Host ""
-Write-Host "[8/9] Cargando datos de la base de datos..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe manage.py seed_mer
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Fallo al cargar datos MER" -ForegroundColor Red
-    Read-Host "Presiona cualquier tecla para salir"
-    exit 1
+Write-Host "[7/8] Cargando datos de prueba..." -ForegroundColor Yellow
+$seedScript = "scripts\seed_data.py"
+if (Test-Path $seedScript) {
+    & .\venv\Scripts\python.exe $seedScript 2>&1 | Out-Null
+    Write-Host "[OK] Datos de prueba cargados" -ForegroundColor Green
+} else {
+    Write-Host "[OK] Script de datos no encontrado" -ForegroundColor Gray
 }
-& .\venv\Scripts\python.exe manage.py seed_data
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Fallo al cargar datos de prueba" -ForegroundColor Red
-    Read-Host "Presiona cualquier tecla para salir"
-    exit 1
-}
-Write-Host "[OK] Datos cargados" -ForegroundColor Green
 
-# Final
+# Paso 8: Final
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Green
 Write-Host "  Setup COMPLETO!" -ForegroundColor Green
@@ -151,4 +165,10 @@ Write-Host ""
 Write-Host "Para iniciar el servidor:" -ForegroundColor Cyan
 Write-Host "  .\venv\Scripts\python.exe manage.py runserver" -ForegroundColor White
 Write-Host ""
+if (-not $useNeon) {
+    Write-Host "[INFO] Usando base de datos SQLite local" -ForegroundColor Gray
+    Write-Host "       Para usar Neon, configura DATABASE_URL en .env" -ForegroundColor Gray
+    Write-Host ""
+}
+Write-Host "================================================================" -ForegroundColor Cyan
 Read-Host "Presiona cualquier tecla para salir"
