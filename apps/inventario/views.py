@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from apps.historial.utils import registrar_actividad
+from apps.usuarios.forms import MaterialForm
 from apps.usuarios.models import Material, Stock
 from apps.usuarios.views import admin_required
 
@@ -146,9 +147,6 @@ def api_materiales(request):
             'tipo': m.tipo
         })
     return JsonResponse(data, safe=False)
-
-from apps.usuarios.forms import MaterialForm
-from apps.usuarios.views import admin_required
 
 
 @admin_required
