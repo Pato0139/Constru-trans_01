@@ -4,15 +4,20 @@ Write-Host "  CONSTRU-TRANS - Setup automatico" -ForegroundColor Cyan
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Cambiar al directorio raíz del proyecto
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path -Parent $scriptDir
+Set-Location $projectRoot
+
 # Paso 1: Verificar Python
-Write-Host "[1/10] Verificando Python..." -ForegroundColor Yellow
+Write-Host "[1/9] Verificando Python..." -ForegroundColor Yellow
 $pythonCmd = $null
 $pythonVersion = $null
 
 # Buscar py.exe
 try {
     $pyCmd = Get-Command py -ErrorAction Stop
-    $pythonVersion = & py --version 2&gt;&1
+    $pythonVersion = & py --version 2>&1
     if ($pythonVersion -match "Python") {
         Write-Host "[OK] Python encontrado (py): $pythonVersion" -ForegroundColor Green
         $pythonCmd = "py"
@@ -22,7 +27,7 @@ try {
 # Si no funciona, buscar python.exe
 if (-not $pythonCmd) {
     try {
-        $pythonVersion = & python --version 2&gt;&1
+        $pythonVersion = & python --version 2>&1
         if ($pythonVersion -match "Python") {
             Write-Host "[OK] Python encontrado: $pythonVersion" -ForegroundColor Green
             $pythonCmd = "python"
@@ -40,7 +45,7 @@ if (-not $pythonCmd) {
 
 # Paso 2: Crear entorno virtual
 Write-Host ""
-Write-Host "[2/10] Creando entorno virtual..." -ForegroundColor Yellow
+Write-Host "[2/9] Creando entorno virtual..." -ForegroundColor Yellow
 if (-not (Test-Path "venv")) {
     & $pythonCmd -m venv venv
     if ($LASTEXITCODE -ne 0) {
@@ -55,7 +60,7 @@ if (-not (Test-Path "venv")) {
 
 # Paso 3: Instalar dependencias
 Write-Host ""
-Write-Host "[3/10] Instalando dependencias..." -ForegroundColor Yellow
+Write-Host "[3/9] Instalando dependencias..." -ForegroundColor Yellow
 & .\venv\Scripts\python.exe -m pip install --upgrade pip
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Fallo al actualizar pip" -ForegroundColor Red
@@ -72,7 +77,7 @@ Write-Host "[OK] Dependencias instaladas" -ForegroundColor Green
 
 # Paso 4: Instalar psycopg2-binary para PostgreSQL
 Write-Host ""
-Write-Host "[4/10] Instalando psycopg2-binary para PostgreSQL..." -ForegroundColor Yellow
+Write-Host "[4/9] Instalando psycopg2-binary para PostgreSQL..." -ForegroundColor Yellow
 & .\venv\Scripts\python.exe -m pip install psycopg2-binary
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Fallo al instalar psycopg2-binary" -ForegroundColor Red
@@ -83,7 +88,7 @@ Write-Host "[OK] psycopg2-binary instalado" -ForegroundColor Green
 
 # Paso 5: Clonar repositorio Neon para obtener credenciales
 Write-Host ""
-Write-Host "[5/10] Obteniendo credenciales de Neon..." -ForegroundColor Yellow
+Write-Host "[5/9] Obteniendo credenciales de Neon..." -ForegroundColor Yellow
 $neonRepoPath = "Neon"
 if (Test-Path $neonRepoPath) {
     Remove-Item -Recurse -Force $neonRepoPath
@@ -98,7 +103,7 @@ Write-Host "[OK] Repositorio Neon clonado" -ForegroundColor Green
 
 # Paso 6: Configurar .env con credenciales de Neon
 Write-Host ""
-Write-Host "[6/10] Configurando archivo .env..." -ForegroundColor Yellow
+Write-Host "[6/9] Configurando archivo .env..." -ForegroundColor Yellow
 if (-not (Test-Path ".env")) {
     # Copiar .env.example del repositorio Neon
     Copy-Item "$neonRepoPath\.env.example" ".env" -Force
@@ -114,15 +119,19 @@ if (-not (Test-Path ".env")) {
 
 # Paso 7: Eliminar repositorio Neon
 Write-Host ""
-Write-Host "[7/10] Eliminando repositorio Neon..." -ForegroundColor Yellow
+Write-Host "[7/9] Eliminando repositorio Neon..." -ForegroundColor Yellow
 if (Test-Path $neonRepoPath) {
-    Remove-Item -Recurse -Force $neonRepoPath
-    Write-Host "[OK] Repositorio Neon eliminado" -ForegroundColor Green
+    try {
+        Remove-Item -Recurse -Force $neonRepoPath -ErrorAction Stop
+        Write-Host "[OK] Repositorio Neon eliminado" -ForegroundColor Green
+    } catch {
+        Write-Host "[AVISO] No se pudo eliminar el repositorio Neon (archivo en uso), pero continuaremos..." -ForegroundColor Yellow
+    }
 }
 
 # Paso 8: Aplicar migraciones
 Write-Host ""
-Write-Host "[8/10] Aplicando migraciones..." -ForegroundColor Yellow
+Write-Host "[8/9] Aplicando migraciones..." -ForegroundColor Yellow
 & .\venv\Scripts\python.exe manage.py migrate --run-syncdb
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[AVISO] Verificando configuracion..." -ForegroundColor Yellow
@@ -136,18 +145,7 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
 }
 
-# Paso 9: Cargar datos de prueba (opcional)
-Write-Host ""
-Write-Host "[9/10] Cargando datos de prueba (opcional)..." -ForegroundColor Yellow
-$seedScript = "scripts\seed_data.py"
-if (Test-Path $seedScript) {
-    & .\venv\Scripts\python.exe $seedScript
-    Write-Host "[OK] Datos de prueba cargados" -ForegroundColor Green
-} else {
-    Write-Host "[OK] Script de datos no encontrado" -ForegroundColor Gray
-}
-
-# Paso 10: Final
+# Paso 9: Final
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Green
 Write-Host "  Setup COMPLETO!" -ForegroundColor Green
