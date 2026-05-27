@@ -21,8 +21,8 @@ class UsuarioForm(forms.ModelForm):
     def clean_documento(self):
         documento = self.cleaned_data.get('documento')
         documento = limpiar_telefono(documento)
-        if len(documento) != 10:
-            raise forms.ValidationError("El número de documento debe tener exactamente 10 dígitos.")
+        if not (7 <= len(documento) <= 15):
+            raise forms.ValidationError("El número de documento debe tener entre 7 y 15 dígitos.")
         # Check if it's already taken by another user
         existing = Usuario.objects.filter(documento=documento)
         if self.instance:
@@ -34,8 +34,8 @@ class UsuarioForm(forms.ModelForm):
     def clean_telefono(self):
         telefono = self.cleaned_data.get('telefono')
         telefono = limpiar_telefono(telefono)
-        if len(telefono) != 10:
-            raise forms.ValidationError("El número de teléfono debe tener exactamente 10 dígitos.")
+        if not (9 <= len(telefono) <= 15):
+            raise forms.ValidationError("El número de teléfono debe tener entre 9 y 15 dígitos.")
         return telefono
 
 
@@ -87,8 +87,8 @@ class RegistroForm(forms.ModelForm):
     def clean_documento(self):
         documento = self.cleaned_data.get('documento')
         documento = limpiar_telefono(documento)
-        if len(documento) != 10:
-            raise forms.ValidationError("El número de documento debe tener exactamente 10 dígitos.")
+        if not (7 <= len(documento) <= 15):
+            raise forms.ValidationError("El número de documento debe tener entre 7 y 15 dígitos.")
         if Usuario.objects.filter(documento=documento).exists():
             raise forms.ValidationError("Este documento ya está registrado.")
         return documento
@@ -96,8 +96,8 @@ class RegistroForm(forms.ModelForm):
     def clean_telefono(self):
         telefono = self.cleaned_data.get('telefono')
         telefono = limpiar_telefono(telefono)
-        if len(telefono) != 10:
-            raise forms.ValidationError("El número de teléfono debe tener exactamente 10 dígitos.")
+        if not (9 <= len(telefono) <= 15):
+            raise forms.ValidationError("El número de teléfono debe tener entre 9 y 15 dígitos.")
         return telefono
 
     def clean(self):
