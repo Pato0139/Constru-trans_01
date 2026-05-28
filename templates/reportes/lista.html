@@ -17,10 +17,6 @@
             <a href="{% url 'historial:lista_historial' %}" class="btn btn-outline-warning rounded-pill px-4 btn-sm d-flex align-items-center gap-2">
                 <i class="bi bi-clock-history"></i> HISTORIAL DE REPORTES
             </a>
-            <div class="btn btn-dark-premium rounded-pill px-3 py-1 d-flex align-items-center gap-2 border-white-10">
-                <i class="bi bi-calendar3 text-accent"></i>
-                <span class="small text-white-50">{{ now|date:"d/m/Y" }}</span>
-            </div>
         </div>
     </div>
 
@@ -154,7 +150,8 @@
                             <tr class="text-muted small fw-bold text-uppercase">
                                 <th class="border-0">Material</th>
                                 <th class="border-0">Tipo</th>
-                                <th class="border-0 text-end">Cantidad</th>
+                                <th class="border-0 text-end">Stock Actual</th>
+                                <th class="border-0 text-end">Stock Mínimo</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -163,10 +160,11 @@
                                 <td class="border-0 text-white small">{{ item.nombre }}</td>
                                 <td class="border-0 text-white-50 small">{{ item.tipo }}</td>
                                 <td class="border-0 text-end fw-bold text-danger">{{ item.stock }}</td>
+                                <td class="border-0 text-end fw-bold text-warning">{{ item.stock_info.stock_minimo }}</td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" class="text-center py-5 text-white-50 small">
+                                <td colspan="4" class="text-center py-5 text-white-50 small">
                                     No hay materiales con stock crítico.
                                 </td>
                             </tr>

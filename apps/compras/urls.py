@@ -15,6 +15,6 @@ urlpatterns = [
     # Proveedores
     path('proveedores/', views.lista_proveedores, name='lista_proveedores'),
     path('proveedores/crear/', views.crear_proveedor, name='crear_proveedor'),
-    path('proveedores/editar/<int:id>/', views.editar_proveedor, name='editar_proveedor'),
-    path('proveedores/contactar/<int:id>/', views.contactar_proveedor, name='contactar_proveedor'),
+    path('proveedores/editar/<int:codigo_proveedor>/', views.editar_proveedor, name='editar_proveedor'),
+    path('proveedores/contactar/<int:codigo_proveedor>/', views.contactar_proveedor, name='contactar_proveedor'),
 ]

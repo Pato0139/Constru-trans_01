@@ -292,19 +292,32 @@ body {
     border: 1px solid rgba(239, 68, 68, 0.3) !important;
 }
 
-/* Scrollbar Sleek */
+/* Scrollbar Sleek - Siempre visible */
 ::-webkit-scrollbar {
-    width: 6px;
+    width: 10px;
+    height: 10px;
 }
 ::-webkit-scrollbar-track {
     background: var(--color-bg);
 }
 ::-webkit-scrollbar-thumb {
-    background: #333;
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
+    border: 2px solid var(--color-bg);
 }
 ::-webkit-scrollbar-thumb:hover {
     background: var(--color-accent);
+}
+
+/* Scrollbar horizontal siempre visible */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    border-radius: 20px;
+    /* Forzar scrollbar siempre visible */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) var(--color-bg);
 }
 
 /* Formularios */
