@@ -268,8 +268,8 @@ class MaterialConstruccion(models.Model):
     unidad_medida = models.CharField(max_length=20)
     descripcion = models.TextField()
     precio_referencia = models.DecimalField(
-        max_digits=10, decimal_places=2,
-        validators=[MinValueValidator(0), MaxValueValidator(100000000)]
+        max_digits=12, decimal_places=2,
+        validators=[MinValueValidator(0), MaxValueValidator(9999999999.99)]
     )
     sincronizado = models.BooleanField(default=False)
 

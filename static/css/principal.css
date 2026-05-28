@@ -274,8 +274,87 @@ h1, h2, h3, h4, h5, h6 {
 .hover-white:hover { color: #fff !important; }
 
 @media (max-width: 991px) {
-    .hero-title-premium { font-size: 3.5rem; }
-    .hero-bg-text { display: none; }
+    .hero-title-premium {
+        font-size: 3.2rem;
+    }
+
+    .hero-subtitle-premium {
+        max-width: 100%;
+        font-size: 1rem;
+    }
+
+    .hero-bg-text {
+        display: none;
+    }
+
+    .navbar-premium {
+        padding: 15px 0;
+    }
+
+    .navbar-premium .container {
+        flex-wrap: wrap;
+    }
+
+    .navbar-toggler {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+    }
+
+    .navbar-collapse {
+        width: 100%;
+        margin-top: 10px;
+        padding: 1rem;
+        border-radius: 24px;
+        background: rgba(0, 0, 0, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .navbar-collapse .nav-link-premium {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 0;
+        font-size: 0.95rem;
+    }
+
+    .navbar-collapse .btn-premium {
+        width: 100%;
+        padding: 14px 16px;
+    }
+
+    .btn-premium {
+        font-size: 0.85rem;
+    }
+
+    .card-glass {
+        padding: 30px;
+    }
+
+    .stats-premium-box {
+        padding: 40px 0;
+    }
+
+    .hero-premium {
+        padding-top: 120px;
+        padding-bottom: 60px;
+    }
+
+    .hero-premium .d-flex.flex-wrap.gap-4 {
+        flex-direction: column;
+    }
+
+    .hero-premium .btn-premium {
+        min-width: 100%;
+    }
+
+    #contacto .card-glass .row {
+        gap: 1.5rem;
+    }
 }
 
 .stat-item-premium {
