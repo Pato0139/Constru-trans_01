@@ -10,12 +10,12 @@ $projectRoot = Split-Path -Parent $scriptDir
 Set-Location $projectRoot
 
 # Paso 1: Verificar Python
-Write-Host "[1/8] Verificando Python..." -ForegroundColor Yellow
+Write-Host "[1/5] Verificando Python..." -ForegroundColor Yellow
 $pythonCmd = $null
 
 try {
     $pyCmd = Get-Command py -ErrorAction Stop
-    $pythonVersion = & py --version 2>&1
+    $pythonVersion = &amp; py --version 2&gt;&amp;1
     if ($pythonVersion -match "Python") {
         Write-Host "[OK] Python encontrado (py): $pythonVersion" -ForegroundColor Green
         $pythonCmd = "py"
@@ -24,7 +24,7 @@ try {
 
 if (-not $pythonCmd) {
     try {
-        $pythonVersion = & python --version 2>&1
+        $pythonVersion = &amp; python --version 2&gt;&amp;1
         if ($pythonVersion -match "Python") {
             Write-Host "[OK] Python encontrado: $pythonVersion" -ForegroundColor Green
             $pythonCmd = "python"
@@ -42,7 +42,7 @@ if (-not $pythonCmd) {
 
 # Paso 2: Crear entorno virtual
 Write-Host ""
-Write-Host "[2/8] Creando entorno virtual..." -ForegroundColor Yellow
+Write-Host "[2/5] Creando entorno virtual..." -ForegroundColor Yellow
 if (-not (Test-Path "venv")) {
     & $pythonCmd -m venv venv
     if ($LASTEXITCODE -ne 0) {
@@ -57,14 +57,14 @@ if (-not (Test-Path "venv")) {
 
 # Paso 3: Instalar dependencias
 Write-Host ""
-Write-Host "[3/8] Instalando dependencias..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe -m pip install --upgrade pip
+Write-Host "[3/5] Instalando dependencias..." -ForegroundColor Yellow
+&amp; .\venv\Scripts\python.exe -m pip install --upgrade pip
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Fallo al actualizar pip" -ForegroundColor Red
     Read-Host "Presiona cualquier tecla para salir"
     exit 1
 }
-& .\venv\Scripts\python.exe -m pip install -r requirements.txt
+&amp; .\venv\Scripts\python.exe -m pip install -r requirements.txt
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Fallo al instalar dependencias" -ForegroundColor Red
     Read-Host "Presiona cualquier tecla para salir"
@@ -74,7 +74,7 @@ Write-Host "[OK] Dependencias instaladas" -ForegroundColor Green
 
 # Paso 4: Configurar .env local
 Write-Host ""
-Write-Host "[4/8] Configurando archivo .env local..." -ForegroundColor Yellow
+Write-Host "[4/5] Configurando archivo .env local..." -ForegroundColor Yellow
 if (-not (Test-Path ".env")) {
     if (Test-Path ".env.example") {
         Copy-Item ".env.example" ".env" -Force
@@ -111,7 +111,7 @@ USE_S3=False
 
 # Paso 5: Aplicar migraciones
 Write-Host ""
-Write-Host "[5/8] Aplicando migraciones..." -ForegroundColor Yellow
+Write-Host "[5/5] Aplicando migraciones..." -ForegroundColor Yellow
 & .\venv\Scripts\python.exe manage.py migrate --run-syncdb
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[AVISO] Verificando configuracion..." -ForegroundColor Yellow
@@ -123,36 +123,6 @@ if ($LASTEXITCODE -ne 0) {
     }
 } else {
     Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
-}
-
-# Paso 6: Crear superusuario si no existe
-Write-Host ""
-Write-Host "[6/8] Creando superusuario si no existe..." -ForegroundColor Yellow
-$resultado = & .\venv\Scripts\python.exe manage.py shell -c "
-from django.contrib.auth import get_user_model
-User = get_user_model()
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
-    print('[OK] Superusuario creado')
-else:
-    print('[OK] Superusuario ya existe')
-" 2>&1
-Write-Host $resultado -ForegroundColor Green
-
-# Paso 7: Recolectar archivos estaticos
-Write-Host ""
-Write-Host "[7/8] Recolectando archivos estaticos..." -ForegroundColor Yellow
-& .\venv\Scripts\python.exe manage.py collectstatic --noinput 2>$null
-Write-Host "[OK] Archivos estaticos recolectados" -ForegroundColor Green
-
-# Paso 8: Cargar datos de prueba (opcional)
-Write-Host ""
-Write-Host "[8/8] Cargando datos de prueba (opcional)..." -ForegroundColor Yellow
-if (Test-Path "scripts\seed_data.py") {
-    & .\venv\Scripts\python.exe scripts/seed_data.py
-    Write-Host "[OK] Datos de prueba cargados" -ForegroundColor Green
-} else {
-    Write-Host "[OK] No hay script de datos opcional" -ForegroundColor Green
 }
 
 # Verificar si usa BD remota

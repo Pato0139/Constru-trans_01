@@ -132,31 +132,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # ============================================================
-# BASES DE DATOS — Simplificado (una sola BD compartida)
+# BASES DE DATOS — Solo base de datos remota (PostgreSQL)
 # ============================================================
 
-DATABASE_URL = env('DATABASE_URL', default='')
-if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-            ssl_require=True,
-        )
-    }
-    # Agregar 'remota' usando la misma URL para sincronización
-    DATABASES['remota'] = DATABASES['default'].copy()
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
-
-# Enrutador de base de datos para sincronización offline-first
-DATABASE_ROUTERS = ['core.routers.EnrutadorInventario']
+DATABASE_URL = env('DATABASE_URL')
+DATABASES = {
+    "default": dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True,
+    )
+}
 
 # ============================================================
 # CACHÉ — Para precargar datos de paneles y optimizar velocidad
