@@ -1,20 +1,21 @@
-<header class="navbar-premium d-flex justify-content-between align-items-center p-4" 
+
+{% load static gravatar %}
+<header class="navbar-premium d-flex justify-content-between align-items-center" 
         style="background: var(--color-bg); border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 900;">
-    {% load static gravatar %}
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-3 flex-grow-1 min-w-0">
         <!-- Sidebar Toggle (Mobile) -->
-        <button class="btn btn-dark-premium d-lg-none rounded-circle p-2" id="sidebarToggle">
+        <button class="btn btn-dark-premium d-lg-none rounded-circle p-2" id="sidebarToggle" aria-label="Toggle menu">
             <i class="bi bi-list text-white fs-4"></i>
         </button>
-        <div>
-            <h2 class="h4 fw-bold m-0 text-white" style="letter-spacing: -0.5px;">
+        <div class="min-w-0">
+            <h2 class="h4 fw-bold m-0 text-white text-truncate" style="letter-spacing: -0.5px;">
                 Panel de Control
             </h2>
-            <p class="text-muted small mb-0 d-none d-sm-block">Bienvenido de nuevo, ¡qué bueno verte!</p>
+            <p class="text-muted small mb-0 d-none d-sm-block text-truncate">Bienvenido de nuevo, ¡qué bueno verte!</p>
         </div>
     </div>
 
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-2 gap-sm-3">
         <!-- Configuraciones -->
         <a href="{% url 'usuarios:configuraciones' %}" class="btn btn-dark-premium rounded-circle p-2" title="Configuraciones">
             <i class="bi bi-gear text-white fs-5 opacity-75"></i>
@@ -22,15 +23,15 @@
         
         <!-- Notificaciones -->
         <div class="dropdown">
-            <button class="btn btn-dark-premium rounded-circle p-2 position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-dark-premium rounded-circle p-2 position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
                 <i class="bi bi-bell text-white fs-5 opacity-75"></i>
                 {% if notif_unread_count > 0 %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger p-1" style="font-size: 0.5rem;">
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger p-1" style="font-size: 0.65rem;">
                     {{ notif_unread_count }}
                 </span>
                 {% endif %}
             </button>
-            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-2" style="width: 350px; max-height: 450px; overflow-y: auto;">
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-2" style="width: 350px; max-width: 90vw; max-height: 450px; overflow-y: auto;">
                 <li class="px-3 py-2 border-bottom border-white-5">
                     <h6 class="mb-0 fw-bold d-flex justify-content-between align-items-center">
                         <span>Notificaciones</span>
@@ -48,9 +49,9 @@
                                     <i class="bi {% if notif.tipo == 'info' %}bi-info-circle{% elif notif.tipo == 'success' %}bi-check-circle{% elif notif.tipo == 'warning' %}bi-exclamation-triangle{% else %}bi-bell{% endif %} fs-5"></i>
                                 </div>
                             </div>
-                            <div class="flex-grow-1">
-                                <p class="small mb-1 fw-bold text-white">{{ notif.titulo }}</p>
-                                <p class="small mb-1 text-muted">{{ notif.mensaje }}</p>
+                            <div class="flex-grow-1 min-w-0">
+                                <p class="small mb-1 fw-bold text-white text-truncate">{{ notif.titulo }}</p>
+                                <p class="small mb-1 text-muted text-truncate">{{ notif.mensaje }}</p>
                                 <span class="small text-muted" style="font-size: 0.7rem;">{{ notif.fecha|date:"d/m/Y H:i" }}</span>
                             </div>
                         </div>
@@ -71,13 +72,13 @@
             </ul>
         </div>
 
-        <!-- Accesibilidad -->
-        <div class="dropdown">
-            <button class="btn btn-dark-premium rounded-pill px-3 py-2 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
+        <!-- Accesibilidad - Hidden on very small screens, shows icon only -->
+        <div class="dropdown d-none d-md-block">
+            <button class="btn btn-dark-premium rounded-pill px-3 py-2 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad">
                 <i class="bi bi-universal-access"></i>
-                <span class="small fw-bold">Accesibilidad</span>
+                <span class="fw-bold">Accesibilidad</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-white-5 p-3" style="width: 280px;">
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-3" style="width: 280px;">
                 <li class="mb-2">
                     <h6 class="dropdown-header text-primary fw-bold px-0 py-1">TEMAS VISUALES</h6>
                 </li>
@@ -136,19 +137,83 @@
             </ul>
         </div>
 
-        <div class="vr opacity-10 mx-2"></div>
+        <!-- Accessibility Icon Only for Small Screens -->
+        <div class="dropdown d-md-none">
+            <button class="btn btn-dark-premium rounded-circle p-2" type="button" data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad">
+                <i class="bi bi-universal-access text-white fs-5 opacity-75"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-3" style="width: 90vw; right: 0.5rem;">
+                <li class="mb-2">
+                    <h6 class="dropdown-header text-primary fw-bold px-0 py-1">TEMAS VISUALES</h6>
+                </li>
+                <li class="mb-1">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="setTheme('dark')">
+                        <i class="bi bi-moon-stars"></i>
+                        <span>Modo Oscuro</span>
+                    </a>
+                </li>
+                <li class="mb-1">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="setTheme('light')">
+                        <i class="bi bi-sun"></i>
+                        <span>Modo Claro</span>
+                    </a>
+                </li>
+                <li class="mb-3">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="setTheme('accessibility')">
+                        <i class="bi bi-contrast"></i>
+                        <span>Alto Contraste</span>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider border-white-10"></li>
+                <li class="mb-2">
+                    <h6 class="dropdown-header text-warning fw-bold px-0 py-1">MODOS PARA DALTONISMO</h6>
+                </li>
+                <li class="mb-1">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="setDaltonism('none')">
+                        <i class="bi bi-eye"></i>
+                        <span>Normal</span>
+                    </a>
+                </li>
+                <li class="mb-1">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="setDaltonism('protanopia')">
+                        <i class="bi bi-circle-fill text-danger"></i>
+                        <span>Protanopia</span>
+                    </a>
+                </li>
+                <li class="mb-1">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="setDaltonism('deuteranopia')">
+                        <i class="bi bi-circle-fill text-success"></i>
+                        <span>Deuteranopia</span>
+                    </a>
+                </li>
+                <li class="mb-1">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="setDaltonism('tritanopia')">
+                        <i class="bi bi-circle-fill text-primary"></i>
+                        <span>Tritanopia</span>
+                    </a>
+                </li>
+                <li class="mb-1">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="setDaltonism('achromatopsia')">
+                        <i class="bi bi-circle-fill text-secondary"></i>
+                        <span>Achromatopsia</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="vr opacity-10 mx-1 mx-sm-2 d-none d-sm-block"></div>
 
         <div class="text-end d-none d-md-block">
-            <p class="small text-white fw-bold mb-0">{{ user.usuario.nombres|default:user.username }}</p>
+            <p class="small text-white fw-bold mb-0 text-truncate">{{ user.usuario.nombres|default:user.username }}</p>
             <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; letter-spacing: 1px;">{{ user.usuario.get_rol_display|upper|default:"ADMIN" }}</span>
         </div>
 
         <div class="avatar-container">
             {% if user.usuario.foto_perfil %}
-                <img src="{{ user.usuario.foto_perfil.url }}" class="rounded-circle" width="45" height="45" alt="Avatar">
+                <img src="{{ user.usuario.foto_perfil.url }}" class="rounded-circle" width="40" height="40" alt="Avatar" style="object-fit: cover;">
             {% else %}
                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" 
-                     style="width: 45px; height: 45px; background-color: {{ user.usuario.color_avatar }};">
+                     style="width: 40px; height: 40px; background-color: {{ user.usuario.color_avatar }}; font-size: 1rem;">
                     {{ user.usuario.iniciales }}
                 </div>
             {% endif %}
@@ -168,6 +233,7 @@
             transform: translateY(-1px);
         }
         .border-white-5 { border-color: rgba(255,255,255,0.05) !important; }
+        .border-white-10 { border-color: rgba(255,255,255,0.1) !important; }
         .avatar-container img {
             border: 2px solid var(--color-primary);
             padding: 2px;
@@ -179,6 +245,14 @@
         }
         .notif-icon-container {
             margin-top: 2px;
+        }
+        .min-w-0 {
+            min-width: 0 !important;
+        }
+        .text-truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     </style>
 </header>
