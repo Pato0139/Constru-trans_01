@@ -5,7 +5,6 @@ from django.db import models
 
 # =====================================================================
 # PEDIDO  (MER: #codigo_pedido *fecha_solicitud *total *estado *id_usuario)
-# Antes: Orden
 # =====================================================================
 class Pedido(models.Model):
     ESTADOS = [
@@ -22,8 +21,8 @@ class Pedido(models.Model):
     codigo_pedido = models.AutoField(primary_key=True)
     usuario = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE,
                                 related_name='pedidos')
-    cliente = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE,
-                                related_name='pedidos_cliente', null=True, blank=True)
+    cliente = models.ForeignKey('clientes.Cliente', on_delete=models.CASCADE,
+                                related_name='pedidos', null=True, blank=True)
     fecha_solicitud = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0,
                                 validators=[MinValueValidator(0)])
@@ -36,7 +35,8 @@ class Pedido(models.Model):
     fecha = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     precio = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
     conductor = models.ForeignKey('usuarios.Usuario', on_delete=models.SET_NULL,
-                                  related_name='pedidos_conductor', null=True, blank=True)
+                                  related_name='pedidos_conductor', null=True, blank=True,
+                                  limit_choices_to={'rol': 'conductor'})
     fecha_toma_entrega = models.DateTimeField(null=True, blank=True)
     fecha_entrega_real = models.DateTimeField(null=True, blank=True)
     sincronizado = models.BooleanField(default=False)
@@ -95,7 +95,8 @@ class Entrega(models.Model):
 
     id_entrega = models.AutoField(primary_key=True)
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='entregas')
-    conductor = models.ForeignKey('usuarios.Conductor', on_delete=models.PROTECT)
+    conductor = models.ForeignKey('usuarios.Usuario', on_delete=models.PROTECT,
+                                  limit_choices_to={'rol': 'conductor'})
     vehiculo = models.ForeignKey('usuarios.Vehiculo', on_delete=models.SET_NULL,
                                  null=True, blank=True)
     fecha_salida = models.DateTimeField(null=True, blank=True)
@@ -114,5 +115,6 @@ class Entrega(models.Model):
         return f"Entrega {self.id_entrega} - Pedido {self.pedido.codigo_pedido}"
 
 
+# Alias para compatibilidad
 Orden = Pedido
 DetalleOrden = DetallePedido
