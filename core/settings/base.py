@@ -132,18 +132,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # ============================================================
-# BASES DE DATOS — Solo base de datos remota (PostgreSQL)
+# BASES DE DATOS — Modo híbrido: SQLite local + Neon remota
 # ============================================================
 
-DATABASE_URL = env('DATABASE_URL')
+DATABASE_URL = env('DATABASE_URL', default='')
+
+# Siempre tenemos SQLite local como default
 DATABASES = {
-    "default": dj_database_url.parse(
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+# Si hay DATABASE_URL, agregamos la BD remota Neon
+if DATABASE_URL:
+    DATABASES["remota"] = dj_database_url.parse(
         DATABASE_URL,
         conn_max_age=600,
         conn_health_checks=True,
         ssl_require=True,
     )
-}
+
+# Configuramos el router para el modo híbrido
+DATABASE_ROUTERS = ['core.routers.EnrutadorInventario']
 
 # ============================================================
 # CACHÉ — Para precargar datos de paneles y optimizar velocidad
