@@ -1,25 +1,26 @@
+
 {% load static %}
 <aside id="sidebar" class="sidebar-custom">
     <div class="d-lg-none p-3 text-end">
-        <button class="btn btn-link text-white p-0" id="sidebarClose">
+        <button class="btn btn-link text-white p-0" id="sidebarClose" aria-label="Cerrar menú">
             <i class="bi bi-x-lg fs-4"></i>
         </button>
     </div>
 
     <div class="brand-section p-4 text-center">
         <div class="logo-container mb-3">
-            <img src="{% static 'img/Logo1.jpeg' %}" width="70" height="70" class="rounded-circle shadow-lg" style="object-fit: cover; border: 2px solid var(--color-primary);">
+            <img src="{% static 'img/Logo1.jpeg' %}" width="60" height="60" class="rounded-circle shadow-lg" style="object-fit: cover; border: 2px solid var(--color-primary);" alt="Logo ConstruTrans">
         </div>
-        <h5 class="fw-bold m-0" style="color: var(--color-text); font-size: 1.2rem; letter-spacing: 1px;">
+        <h5 class="fw-bold m-0" style="color: var(--color-text); font-size: 1.1rem; letter-spacing: 1px;">
             ConstruTrans
         </h5>
         <div class="online-status mt-2 d-flex align-items-center justify-content-center gap-2">
             <span class="status-dot"></span> 
-            <span class="text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">SISTEMA ACTIVO</span>
+            <span class="text-muted fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">SISTEMA ACTIVO</span>
         </div>
     </div>
 
-    <div class="nav-container px-3 flex-grow-1">
+    <div class="nav-container px-3 flex-grow-1 overflow-y-auto" style="padding-bottom: 2rem;">
         <nav class="nav flex-column gap-2">
             {% if user.usuario.rol == 'admin' %}
                 <a href="{% url 'usuarios:panel' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
@@ -28,7 +29,7 @@
                 </a>
 
                 <div class="sidebar-section">
-                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse" aria-expanded="false" aria-controls="ventasCollapse">
                         <span class="d-flex align-items-center gap-3">
                             <i class="bi bi-cart-fill"></i>
                             <span>Ventas y Cobros</span>
@@ -54,7 +55,7 @@
                 </div>
 
                 <div class="sidebar-section">
-                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#inventarioCollapse">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#inventarioCollapse" aria-expanded="false" aria-controls="inventarioCollapse">
                         <span class="d-flex align-items-center gap-3">
                             <i class="bi bi-box-seam-fill"></i>
                             <span>Inventario y Flota</span>
@@ -84,7 +85,7 @@
                 </div>
 
                 <div class="sidebar-section">
-                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#comprasCollapse">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#comprasCollapse" aria-expanded="false" aria-controls="comprasCollapse">
                         <span class="d-flex align-items-center gap-3">
                             <i class="bi bi-bag-fill"></i>
                             <span>Compras</span>
@@ -106,7 +107,7 @@
                 </div>
 
                 <div class="sidebar-section">
-                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#entregasCollapse">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#entregasCollapse" aria-expanded="false" aria-controls="entregasCollapse">
                         <span class="d-flex align-items-center gap-3">
                             <i class="bi bi-truck-flatbed"></i>
                             <span>Entregas</span>
@@ -124,7 +125,7 @@
                 </div>
 
                 <div class="sidebar-section">
-                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adminCollapse">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adminCollapse" aria-expanded="false" aria-controls="adminCollapse">
                         <span class="d-flex align-items-center gap-3">
                             <i class="bi bi-shield-lock-fill"></i>
                             <span>Administración</span>
@@ -192,7 +193,7 @@
         </nav>
 
         <div class="mt-4 pt-4 border-top border-white-5">
-            <p class="text-muted small fw-bold px-3 mb-2" style="font-size: 0.65rem; letter-spacing: 1px;">CONFIGURACIÓN</p>
+            <p class="text-muted small fw-bold px-3 mb-2" style="font-size: 0.6rem; letter-spacing: 1px;">CONFIGURACIÓN</p>
             <nav class="nav flex-column gap-1">
                 {% if user.usuario.rol == 'admin' %}
                     <a href="{% url 'usuarios:perfil_admin' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_admin' %}active{% endif %}">
@@ -215,9 +216,6 @@
     </div>
 
     <style>
-        .sidebar-premium::-webkit-scrollbar { width: 4px; }
-        .sidebar-premium::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 10px; }
-        
         .status-dot {
             width: 8px;
             height: 8px;
@@ -225,28 +223,30 @@
             border-radius: 50%;
             box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
             display: inline-block;
+            flex-shrink: 0;
         }
 
         .nav-link-premium {
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 12px 16px;
+            gap: 12px;
+            padding: 10px 14px;
             color: var(--color-text);
             opacity: 0.75;
             text-decoration: none;
             font-weight: 500;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.25s ease;
             border-radius: 12px;
             position: relative;
+            min-height: 44px;
         }
 
         .nav-link-premium:hover {
             color: var(--color-primary);
             opacity: 1;
             background: var(--item-bg);
-            transform: translateX(4px);
+            transform: translateX(2px);
         }
 
         .nav-link-premium.active {
@@ -261,9 +261,10 @@
         }
 
         .nav-link-premium i {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             width: 24px;
             text-align: center;
+            flex-shrink: 0;
         }
 
         .sidebar-section {
@@ -279,10 +280,10 @@
         }
 
         .nav-submenu .nav-link-premium {
-            padding-left: 44px !important;
-            padding-top: 10px !important;
-            padding-bottom: 10px !important;
-            font-size: 0.85rem;
+            padding-left: 40px !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            font-size: 0.8rem;
             opacity: 0.65;
         }
 
@@ -296,7 +297,7 @@
 
         .collapse-icon {
             transition: transform 0.3s ease;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             opacity: 0.5;
         }
 
@@ -305,16 +306,28 @@
             opacity: 1;
         }
 
-        .border-white-5 { border-color: var(--color-border) !important; }
+        .border-white-5 { 
+            border-color: var(--color-border) !important; 
+        }
 
         button.nav-link-premium {
             border: none;
             background: transparent;
+            width: 100%;
         }
 
         button.nav-link-premium:focus {
             outline: none;
             box-shadow: none;
+        }
+
+        .nav-container::-webkit-scrollbar { 
+            width: 4px; 
+        }
+        
+        .nav-container::-webkit-scrollbar-thumb { 
+            background: var(--color-border); 
+            border-radius: 10px; 
         }
     </style>
 
