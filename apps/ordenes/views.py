@@ -12,7 +12,7 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 
 from apps.historial.utils import registrar_actividad
 from apps.inventario.models import MovimientoInventario
-from apps.usuarios.models import Material, MetodoPago, Stock, Usuario
+from apps.usuarios.models import MaterialConstruccion, MetodoPago, Stock, Usuario
 from apps.usuarios.views import admin_required
 
 from .models import DetalleOrden, Entrega, Orden
@@ -21,14 +21,14 @@ from .utils import liberar_vehiculo_pedido, revertir_stock_pedido
 
 @admin_required
 def calcular_total(request, id):
-    orden = get_object_or_404(Orden, id=id)
+    orden = get_object_or_404(Orden, codigo_pedido=id)
     total = orden.calcular_total()
     return JsonResponse({'total': float(total)})
 
 @admin_required
 def eliminar_detalle(request, id):
-    detalle = get_object_or_404(DetalleOrden, id=id)
-    orden = detalle.orden
+    detalle = get_object_or_404(DetalleOrden, id_detalle_pedido=id)
+    orden = detalle.pedido
 
     with transaction.atomic():
         # Devolver stock
@@ -42,7 +42,7 @@ def eliminar_detalle(request, id):
             tipo='entrada',
             cantidad=detalle.cantidad,
             motivo=f"Eliminación detalle orden #{orden.id}",
-            referencia_id=orden.id,
+            referencia_id=orden.codigo_pedido,
             usuario=request.user
         )
 
@@ -50,12 +50,12 @@ def eliminar_detalle(request, id):
         orden.calcular_total()
 
     messages.success(request, "Material eliminado de la orden.")
-    return redirect("ordenes:agregar_materiales", id=orden.id)
+    return redirect("ordenes:agregar_materiales", id=orden.codigo_pedido)
 
 @admin_required
 def agregar_materiales(request, id):
-    orden = get_object_or_404(Orden, id=id)
-    materiales = Material.objects.filter(stock_info__cantidad_actual__gt=0).select_related('stock_info')
+    orden = get_object_or_404(Orden, codigo_pedido=id)
+    materiales = MaterialConstruccion.objects.all()
     detalles = orden.detalles.all()
 
     if request.method == "POST":
@@ -63,14 +63,14 @@ def agregar_materiales(request, id):
         cantidad = float(request.POST.get("cantidad", 0))
 
         if material_id and cantidad > 0:
-            material = get_object_or_404(Material, pk=material_id)
+            material = get_object_or_404(MaterialConstruccion, pk=material_id)
             stock_obj = Stock.objects.get(material=material)
 
             if stock_obj.cantidad >= cantidad:
                 with transaction.atomic():
                     # Crear o actualizar detalle
                     detalle, created = DetalleOrden.objects.get_or_create(
-                        orden=orden,
+                        pedido=orden,
                         material=material,
                         defaults={'cantidad': cantidad, 'precio_unitario': material.precio}
                     )
@@ -88,7 +88,7 @@ def agregar_materiales(request, id):
                         tipo='salida',
                         cantidad=cantidad,
                         motivo=f"Agregado a orden #{orden.id}",
-                        referencia_id=orden.id,
+                        referencia_id=orden.codigo_pedido,
                         usuario=request.user
                     )
 
@@ -97,7 +97,7 @@ def agregar_materiales(request, id):
             else:
                 messages.error(request, "Stock insuficiente")
 
-        return redirect("ordenes:agregar_materiales", id=orden.id)
+        return redirect("ordenes:agregar_materiales", id=orden.codigo_pedido)
 
     return render(request, "ordenes/agregar_materiales.html", {
         "orden": orden,
@@ -160,7 +160,7 @@ def lista_entregas_admin(request):
 
 @login_required
 def ver_pedido_admin(request, id):
-    orden = get_object_or_404(Orden, id=id)
+    orden = get_object_or_404(Orden, codigo_pedido=id)
     # Si es cliente, solo puede ver sus propios pedidos
     if request.user.usuario.rol == 'cliente' and orden.cliente.usuario != request.user.usuario:
         messages.error(request, "No tienes permiso para ver este pedido.")
@@ -187,8 +187,8 @@ def ver_pedido_admin(request, id):
                                 entrega.vehiculo.estado = 'disponible'
                                 entrega.vehiculo.save()
 
-                            registrar_actividad(request, 'confirmar_entrega', 'pedidos', orden.id, "Conductor confirmó entrega exitosa")
-                            messages.success(request, f"¡Entrega del pedido #{orden.id} confirmada con éxito!")
+                            registrar_actividad(request, 'confirmar_entrega', 'pedidos', orden.codigo_pedido, "Conductor confirmó entrega exitosa")
+                            messages.success(request, f"¡Entrega del pedido #{orden.codigo_pedido} confirmada con éxito!")
                         else:
                             messages.error(request, "No tienes una entrega asignada para este pedido.")
                 return redirect("usuarios:panel")
@@ -205,8 +205,8 @@ def ver_pedido_admin(request, id):
                         orden.estado = Orden.CANCELADO
                         orden.save()
 
-                        registrar_actividad(request, 'cancelar_entrega', 'pedidos', orden.id, "Conductor canceló la entrega")
-                        messages.warning(request, f"Entrega del pedido #{orden.id} cancelada.")
+                        registrar_actividad(request, 'cancelar_entrega', 'pedidos', orden.codigo_pedido, "Conductor canceló la entrega")
+                        messages.warning(request, f"Entrega del pedido #{orden.codigo_pedido} cancelada.")
                 return redirect("usuarios:panel")
 
         elif request.user.usuario.rol == "admin":
@@ -239,9 +239,9 @@ def ver_pedido_admin(request, id):
                             orden.fecha_toma_entrega = timezone.now()
                         orden.save()
 
-                    registrar_actividad(request, 'editar', 'pedidos', orden.id, f"Estado de pedido cambiado por admin a: {nuevo_estado}")
-                    messages.success(request, f"Estado del pedido #{orden.id} actualizado a {nuevo_estado}.")
-                return redirect("ordenes:ver_pedido_admin", id=orden.id)
+                    registrar_actividad(request, 'editar', 'pedidos', orden.codigo_pedido, f"Estado de pedido cambiado por admin a: {nuevo_estado}")
+                    messages.success(request, f"Estado del pedido #{orden.codigo_pedido} actualizado a {nuevo_estado}.")
+                return redirect("ordenes:ver_pedido_admin", id=orden.codigo_pedido)
 
     return render(request, "ordenes/detalle.html", {
         "orden": orden,
@@ -250,7 +250,7 @@ def ver_pedido_admin(request, id):
 
 @admin_required
 def crear_entrega(request, orden_id):
-    orden = get_object_or_404(Orden, id=orden_id)
+    orden = get_object_or_404(Orden, codigo_pedido=orden_id)
     # Mostramos todos los conductores activos
     # Filtrando solo por rol para que el admin vea a todos
     conductores = Usuario.objects.filter(rol="conductor")
@@ -283,7 +283,8 @@ def crear_entrega(request, orden_id):
                     defaults={
                         'conductor': conductor,
                         'vehiculo': vehiculo,
-                        'estado': 'en_ruta'
+                        'estado': 'en_ruta',
+                        'direccion_entrega': orden.direccion_destino
                     }
                 )
 
@@ -291,6 +292,7 @@ def crear_entrega(request, orden_id):
                     entrega.conductor = conductor
                     entrega.vehiculo = vehiculo
                     entrega.estado = 'en_ruta'
+                    entrega.direccion_entrega = orden.direccion_destino
                     entrega.save()
 
                 # Actualizar estado de la orden y el vehículo
@@ -304,8 +306,8 @@ def crear_entrega(request, orden_id):
                 vehiculo.save()
 
                 accion = "reasignado" if not created else "asignado"
-                registrar_actividad(request, 'editar', 'pedidos', orden.id, f"Pedido {accion} a conductor: {conductor.nombres} con vehículo {vehiculo.placa}")
-                messages.success(request, f"Pedido #{orden.id} {accion} con éxito a {conductor.nombres}.")
+                registrar_actividad(request, 'editar', 'pedidos', orden.codigo_pedido, f"Pedido {accion} a conductor: {conductor.nombres} con vehículo {vehiculo.placa}")
+                messages.success(request, f"Pedido #{orden.codigo_pedido} {accion} con éxito a {conductor.nombres}.")
 
                 return redirect("ordenes:lista_pedidos_admin")
         else:
@@ -322,14 +324,14 @@ def crear_entrega(request, orden_id):
 
 @login_required
 def descargar_factura(request, id):
-    orden = get_object_or_404(Orden, id=id)
+    orden = get_object_or_404(Orden, codigo_pedido=id)
 
     # Solo el cliente dueño del pedido o un admin pueden descargarla
     if request.user.usuario.rol != 'admin' and orden.cliente.usuario != request.user.usuario:
         return HttpResponse("No autorizado", status=403)
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="factura_{orden.id}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="factura_{orden.codigo_pedido}.pdf"'
 
     doc = SimpleDocTemplate(response, pagesize=letter, topMargin=30)
     elements = []
@@ -356,7 +358,7 @@ def descargar_factura(request, id):
 
     # Información de Factura y Cliente (Tabla de 2 columnas)
     info_data = [
-        [Paragraph(f"<b>FACTURA:</b> #{orden.id}", styles['Normal']),
+        [Paragraph(f"<b>FACTURA:</b> #{orden.codigo_pedido}", styles['Normal']),
          Paragraph(f"<b>CLIENTE:</b> {orden.cliente.usuario.nombres} {orden.cliente.usuario.apellidos}", styles['Normal'])],
         [Paragraph(f"<b>FECHA:</b> {orden.fecha.strftime('%d/%m/%Y %H:%M')}", styles['Normal']),
          Paragraph(f"<b>DIRECCIÓN:</b> {orden.direccion_destino}", styles['Normal'])]
@@ -464,14 +466,14 @@ def descargar_factura(request, id):
 
     doc.build(elements)
 
-    registrar_actividad(request, 'otro', 'pedidos', orden.id, f"Factura descargada por {request.user.username}")
+    registrar_actividad(request, 'otro', 'pedidos', orden.codigo_pedido, f"Factura descargada por {request.user.username}")
 
     return response
 
 @admin_required
 def eliminar_orden(request, id):
-    orden = get_object_or_404(Orden, id=id)
-    order_id = orden.id
+    orden = get_object_or_404(Orden, codigo_pedido=id)
+    order_id = orden.codigo_pedido
 
     # Si la orden no está entregada ni cancelada, revertimos el stock antes de eliminar
     if orden.estado not in ['entregado', 'cancelado']:
@@ -483,7 +485,7 @@ def eliminar_orden(request, id):
             messages.error(request, f"Error al devolver stock: {e}")
             return redirect("ordenes:lista_pedidos_admin")
 
-    registrar_actividad(request, 'eliminar', 'pedidos', id, f"Pedido #{id} eliminado definitivamente por admin")
+    registrar_actividad(request, 'eliminar', 'pedidos', order_id, f"Pedido #{order_id} eliminado definitivamente por admin")
     orden.delete()
     messages.success(request, f"Pedido #{order_id} eliminado correctamente.")
     return redirect("ordenes:lista_pedidos_admin")
