@@ -109,15 +109,16 @@
                             <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Dirección de destino</label>
                             <div class="input-group">
                                 <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-geo-alt"></i></span>
-                                <input type="text" name="direccion" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" placeholder="Ej: Calle Principal #123, Barrio Norte" value="{{ orden.direccion_destino|default:'' }}" required>
+                                <input type="text" name="direccion" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" placeholder="Ej: Calle Principal #123, Barrio Norte" value="{% if direccion %}{{ direccion }}{% else %}{{ orden.direccion_destino|default:'' }}{% endif %}" required>
                             </div>
                         </div>
                         <div class="col-md-12">
                             <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Fecha y Hora Programada</label>
                             <div class="input-group">
                                 <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-calendar-event"></i></span>
-                                <input type="datetime-local" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;">
+                                <input type="text" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2" inputmode="numeric" placeholder="DD/MM/YYYY HH:MM" value="{% if fecha_entrega %}{{ fecha_entrega }}{% elif orden and orden.fecha_entrega_programada %}{{ orden.fecha_entrega_programada|date:'d/m/Y H:i' }}{% endif %}" style="background: rgba(255,255,255,0.05) !important;">
                             </div>
+                            <div class="form-text text-white-50 small mt-2">Formato: 31/12/2026 15:30</div>
                         </div>
                     </div>
                 </div>

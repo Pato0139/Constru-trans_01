@@ -33,6 +33,7 @@
         justify-content: center;
         background: #333;
         transition: all 0.2s;
+        flex-shrink: 0;
     }
     .recaptcha-checkbox.checked {
         border-color: #F39C12;
@@ -52,6 +53,7 @@
     .recaptcha-right {
         text-align: center;
         opacity: 0.8;
+        flex-shrink: 0;
     }
     .recaptcha-logo {
         width: 30px;
@@ -86,6 +88,7 @@
         margin-bottom: 15px;
         display: block;
         border: 2px solid #444;
+        max-width: 100%;
     }
     .captcha-container input {
         background: rgba(255, 255, 255, 0.05) !important;
@@ -97,11 +100,52 @@
         text-align: center !important;
         font-weight: bold !important;
         letter-spacing: 2px !important;
+        box-sizing: border-box !important;
     }
     /* Dropdown oscuro */
     select.input-custom option {
         background-color: #333333 !important;
         color: white !important;
+    }
+
+    /* Mejoras de responsividad para el formulario */
+    @media (max-width: 576px) {
+        .recaptcha-mock {
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .recaptcha-right {
+            width: 100%;
+            text-align: left;
+        }
+        
+        .row.g-3 {
+            gap: 12px !important;
+        }
+        .row.g-3 > div {
+            margin-bottom: 8px;
+        }
+
+        /* Hacer que los campos de contraseña se adapten en móvil */
+        .position-relative .bi {
+            font-size: 1.2rem !important;
+        }
+
+        .btn.position-absolute {
+            padding-right: 8px !important;
+        }
+    }
+
+    /* Asegurar que el botón ocupe ancho completo */
+    .btn-main {
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    /* Asegurar que los campos de formulario se adapten bien */
+    form {
+        width: 100%;
     }
 </style>
 <div class="animate-up">

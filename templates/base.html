@@ -393,6 +393,20 @@ $(document).on('input', '.numeric-only', function() {
     this.value = this.value.replace(/[^0-9]/g, '');
 });
 
+$(document).on('input', '.decimal-only', function() {
+    let value = this.value.replace(/[^0-9\.,]/g, '');
+    value = value.replace(/,/g, '.');
+    const parts = value.split('.');
+    if (parts.length > 2) {
+        value = parts.shift() + '.' + parts.join('');
+    }
+    if (value.includes('.')) {
+        const [intPart, decPart] = value.split('.');
+        value = intPart + '.' + decPart.slice(0, 2);
+    }
+    this.value = value;
+});
+
 $(document).on('input', '.alphanumeric-only', function() {
     this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
 });
