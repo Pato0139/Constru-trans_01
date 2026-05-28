@@ -1,12 +1,13 @@
-
 {% load static %}
 <aside id="sidebar" class="sidebar-custom">
+    <!-- Botón cerrar en móvil -->
     <div class="d-lg-none p-3 text-end">
         <button class="btn btn-link text-white p-0" id="sidebarClose" aria-label="Cerrar menú">
             <i class="bi bi-x-lg fs-4"></i>
         </button>
     </div>
 
+    <!-- Logo y marca -->
     <div class="brand-section p-4 text-center">
         <div class="logo-container mb-3">
             <img src="{% static 'img/Logo1.jpeg' %}" width="60" height="60" class="rounded-circle shadow-lg" style="object-fit: cover; border: 2px solid var(--color-primary);" alt="Logo ConstruTrans">
@@ -20,14 +21,17 @@
         </div>
     </div>
 
+    <!-- Navegación principal -->
     <div class="nav-container px-3 flex-grow-1 overflow-y-auto" style="padding-bottom: 2rem;">
         <nav class="nav flex-column gap-2">
             {% if user.usuario.rol == 'admin' %}
+                <!-- Dashboard -->
                 <a href="{% url 'usuarios:panel' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel' %}active{% endif %}">
                     <i class="bi bi-grid-1x2-fill"></i>
                     <span>General</span>
                 </a>
 
+                <!-- Ventas y Cobros -->
                 <div class="sidebar-section">
                     <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse" aria-expanded="false" aria-controls="ventasCollapse">
                         <span class="d-flex align-items-center gap-3">
@@ -54,6 +58,7 @@
                     </div>
                 </div>
 
+                <!-- Inventario y Flota -->
                 <div class="sidebar-section">
                     <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#inventarioCollapse" aria-expanded="false" aria-controls="inventarioCollapse">
                         <span class="d-flex align-items-center gap-3">
@@ -84,6 +89,7 @@
                     </div>
                 </div>
 
+                <!-- Compras -->
                 <div class="sidebar-section">
                     <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#comprasCollapse" aria-expanded="false" aria-controls="comprasCollapse">
                         <span class="d-flex align-items-center gap-3">
@@ -106,6 +112,7 @@
                     </div>
                 </div>
 
+                <!-- Entregas -->
                 <div class="sidebar-section">
                     <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#entregasCollapse" aria-expanded="false" aria-controls="entregasCollapse">
                         <span class="d-flex align-items-center gap-3">
@@ -124,6 +131,7 @@
                     </div>
                 </div>
 
+                <!-- Administración -->
                 <div class="sidebar-section">
                     <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adminCollapse" aria-expanded="false" aria-controls="adminCollapse">
                         <span class="d-flex align-items-center gap-3">
@@ -144,13 +152,14 @@
                             </a>
                             <a href="{% url 'historial:lista_historial' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'historial' %}active{% endif %}">
                                 <i class="bi bi-clock-history"></i>
-                                <span>Auditoría (Registros)</span>
+                                <span>Auditoría</span>
                             </a>
                         </div>
                     </div>
                 </div>
 
             {% elif user.usuario.rol == 'cliente' %}
+                <!-- Navegación Cliente -->
                 <a href="{% url 'clientes:panel_cliente' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel_cliente' %}active{% endif %}">
                     <i class="bi bi-grid-1x2-fill"></i>
                     <span>Panel de Control</span>
@@ -177,6 +186,7 @@
                 </a>
 
             {% elif user.usuario.rol == 'conductor' %}
+                <!-- Navegación Conductor -->
                 <a href="{% url 'usuarios:panel_conductor' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'panel_conductor' %}active{% endif %}">
                     <i class="bi bi-grid-1x2-fill"></i>
                     <span>Panel Conductor</span>
@@ -192,21 +202,27 @@
             {% endif %}
         </nav>
 
+        <!-- Navegación Configuración -->
         <div class="mt-4 pt-4 border-top border-white-5">
             <p class="text-muted small fw-bold px-3 mb-2" style="font-size: 0.6rem; letter-spacing: 1px;">CONFIGURACIÓN</p>
             <nav class="nav flex-column gap-1">
-                {% if user.usuario.rol == 'admin' %}
-                    <a href="{% url 'usuarios:perfil_admin' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_admin' %}active{% endif %}">
-                {% elif user.usuario.rol == 'conductor' %}
-                    <a href="{% url 'usuarios:perfil_conductor' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_conductor' %}active{% endif %}">
-                {% elif user.usuario.rol == 'cliente' %}
-                    <a href="{% url 'clientes:perfil_cliente' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_cliente' %}active{% endif %}">
-                {% else %}
-                    <a href="{% url 'usuarios:panel' %}" class="nav-link-premium">
-                {% endif %}
-                    <i class="bi bi-person-circle"></i>
-                    <span>Mi Cuenta</span>
-                </a>
+                <!-- Enlace Mi Cuenta según rol -->
+                {% with ''|center:1 as dummy %}
+                    {% if user.usuario.rol == 'admin' %}
+                        <a href="{% url 'usuarios:perfil_admin' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_admin' %}active{% endif %}">
+                    {% elif user.usuario.rol == 'conductor' %}
+                        <a href="{% url 'usuarios:perfil_conductor' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_conductor' %}active{% endif %}">
+                    {% elif user.usuario.rol == 'cliente' %}
+                        <a href="{% url 'clientes:perfil_cliente' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_cliente' %}active{% endif %}">
+                    {% else %}
+                        <a href="{% url 'usuarios:panel' %}" class="nav-link-premium">
+                    {% endif %}
+                        <i class="bi bi-person-circle"></i>
+                        <span>Mi Cuenta</span>
+                    </a>
+                {% endwith %}
+                
+                <!-- Cerrar Sesión -->
                 <a href="{% url 'usuarios:logout' %}" class="nav-link-premium text-danger confirm-logout">
                     <i class="bi bi-power"></i>
                     <span>Cerrar Sesión</span>
@@ -214,142 +230,27 @@
             </nav>
         </div>
     </div>
-
-    <style>
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-            display: inline-block;
-            flex-shrink: 0;
-        }
-
-        .nav-link-premium {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            color: var(--color-text);
-            opacity: 0.75;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.85rem;
-            transition: all 0.25s ease;
-            border-radius: 12px;
-            position: relative;
-            min-height: 44px;
-        }
-
-        .nav-link-premium:hover {
-            color: var(--color-primary);
-            opacity: 1;
-            background: var(--item-bg);
-            transform: translateX(2px);
-        }
-
-        .nav-link-premium.active {
-            color: #fff !important;
-            opacity: 1;
-            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%) !important;
-            box-shadow: 0 4px 15px var(--glow-primary);
-        }
-
-        .nav-link-premium.active i {
-            color: #fff !important;
-        }
-
-        .nav-link-premium i {
-            font-size: 1.1rem;
-            width: 24px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .sidebar-section {
-            margin-bottom: 4px;
-        }
-
-        .nav-submenu {
-            padding-left: 8px;
-            margin-top: 4px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .nav-submenu .nav-link-premium {
-            padding-left: 40px !important;
-            padding-top: 8px !important;
-            padding-bottom: 8px !important;
-            font-size: 0.8rem;
-            opacity: 0.65;
-        }
-
-        .nav-submenu .nav-link-premium:hover {
-            opacity: 1;
-        }
-
-        .nav-submenu .nav-link-premium.active {
-            opacity: 1;
-        }
-
-        .collapse-icon {
-            transition: transform 0.3s ease;
-            font-size: 0.85rem;
-            opacity: 0.5;
-        }
-
-        .collapse-icon.rotated {
-            transform: rotate(180deg);
-            opacity: 1;
-        }
-
-        .border-white-5 { 
-            border-color: var(--color-border) !important; 
-        }
-
-        button.nav-link-premium {
-            border: none;
-            background: transparent;
-            width: 100%;
-        }
-
-        button.nav-link-premium:focus {
-            outline: none;
-            box-shadow: none;
-        }
-
-        .nav-container::-webkit-scrollbar { 
-            width: 4px; 
-        }
-        
-        .nav-container::-webkit-scrollbar-thumb { 
-            background: var(--color-border); 
-            border-radius: 10px; 
-        }
-    </style>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const collapseToggles = document.querySelectorAll('[data-bs-toggle="collapse"]');
-            
-            collapseToggles.forEach(toggle => {
-                const targetId = toggle.getAttribute('data-bs-target');
-                const target = document.querySelector(targetId);
-                const icon = toggle.querySelector('.collapse-icon');
-                
-                if (target && icon) {
-                    target.addEventListener('show.bs.collapse', function() {
-                        icon.classList.add('rotated');
-                    });
-                    
-                    target.addEventListener('hide.bs.collapse', function() {
-                        icon.classList.remove('rotated');
-                    });
-                }
-            });
-        });
-    </script>
 </aside>
+
+<!-- Script del sidebar -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const collapseToggles = document.querySelectorAll('[data-bs-toggle="collapse"]');
+    
+    collapseToggles.forEach(toggle => {
+        const targetId = toggle.getAttribute('data-bs-target');
+        const target = document.querySelector(targetId);
+        const icon = toggle.querySelector('.collapse-icon');
+        
+        if (target && icon) {
+            target.addEventListener('show.bs.collapse', function() {
+                icon.classList.add('rotated');
+            });
+            
+            target.addEventListener('hide.bs.collapse', function() {
+                icon.classList.remove('rotated');
+            });
+        }
+    });
+});
+</script>
