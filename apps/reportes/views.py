@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 
 import openpyxl
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils.timezone import now
@@ -31,8 +31,8 @@ def reportes_admin(request):
     pct_en_ruta = (en_ruta * 100 / total) if total > 0 else 0
     pct_entregadas = (entregadas * 100 / total) if total > 0 else 0
 
-    # Materiales con stock crítico (< 10)
-    stock_critico = Material.objects.filter(stock_info__cantidad_actual__lt=10).select_related('stock_info')
+    # Materiales con stock crítico (stock actual < stock mínimo)
+    stock_critico = Material.objects.filter(stock_info__cantidad_actual__lt=F('stock_info__stock_minimo')).select_related('stock_info')
 
     context = {
         # Resumen de Órdenes
@@ -100,7 +100,8 @@ def exportar_reporte_pdf(request, tipo):
         for m in Material.objects.all().select_related('stock_info'):
             p = m.precio or 0
             precio_formateado = format_money(p)
-            data.append([m.id, m.nombre, m.tipo or "N/A", precio_formateado, m.stock])
+            tipo_material = m.tipo or "N/A"
+            data.append([m.id, m.nombre, tipo_material, precio_formateado, m.stock])
 
     elif tipo == 'ventas':
         data.append(['ID', 'Cliente', 'Fecha', 'Total', 'Estado'])
@@ -108,16 +109,16 @@ def exportar_reporte_pdf(request, tipo):
             p = o.precio or 0
             precio_formateado = format_money(p)
             fecha_str = o.fecha.strftime('%Y-%m-%d') if o.fecha else 'N/A'
-            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if o.cliente and o.cliente.usuario else 'N/A'
+            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
             data.append([o.id, cliente_nombre, fecha_str, precio_formateado, o.estado])
 
     elif tipo == 'pedidos':
         data.append(['ID', 'Cliente', 'Materiales', 'Total', 'Estado'])
         for o in Orden.objects.all().select_related('cliente__usuario').prefetch_related('detalles__material'):
-            materiales = ", ".join([f"{d.cantidad}x {d.material.nombre}" for d in o.detalles.all()])
+            materiales = ", ".join([f"{d.cantidad} x {d.material.nombre}" for d in o.detalles.all()])
             p = o.precio or 0
             precio_formateado = format_money(p)
-            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if o.cliente and o.cliente.usuario else 'N/A'
+            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
             data.append([o.id, cliente_nombre, materiales[:50] + "..." if len(materiales) > 50 else materiales, precio_formateado, o.estado])
 
     # Estilo de la tabla
@@ -155,7 +156,7 @@ def exportar_reporte_excel(request, tipo):
 
     def format_money_raw(val):
         try:
-            return float(val) / 100
+            return float(val)
         except Exception:
             return 0.0
 
@@ -163,26 +164,29 @@ def exportar_reporte_excel(request, tipo):
         headers = ['ID', 'Nombre', 'Correo', 'Teléfono', 'Estado']
         ws.append(headers)
         for u in Usuario.objects.filter(rol='cliente').select_related('user'):
-            ws.append([u.id, f"{u.nombres} {u.apellidos}", u.user.email, u.telefono, u.estado])
+            ws.append([u.id, f"{u.nombres} {u.apellidos}", u.user.email, u.telefono or "N/A", u.estado])
 
     elif tipo == 'materiales':
         headers = ['ID', 'Nombre', 'Tipo', 'Precio', 'Stock']
         ws.append(headers)
         for m in Material.objects.all().select_related('stock_info'):
-            ws.append([m.id, m.nombre, m.tipo, format_money_raw(m.precio), m.stock])
+            ws.append([m.id, m.nombre, m.tipo or "N/A", format_money_raw(m.precio), m.stock])
 
     elif tipo == 'ventas':
         headers = ['ID', 'Cliente', 'Fecha', 'Total', 'Estado']
         ws.append(headers)
         for o in Orden.objects.all().select_related('cliente__usuario'):
-            ws.append([o.id, f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}", o.fecha.strftime('%Y-%m-%d'), format_money_raw(o.precio), o.estado])
+            fecha_str = o.fecha.strftime('%Y-%m-%d') if o.fecha else 'N/A'
+            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
+            ws.append([o.id, cliente_nombre, fecha_str, format_money_raw(o.precio), o.estado])
 
     elif tipo == 'pedidos':
         headers = ['ID', 'Cliente', 'Materiales', 'Total', 'Estado']
         ws.append(headers)
         for o in Orden.objects.all().select_related('cliente__usuario').prefetch_related('detalles__material'):
-            materiales = ", ".join([f"{d.cantidad}x {d.material.nombre}" for d in o.detalles.all()])
-            ws.append([o.id, f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}", materiales, format_money_raw(o.precio), o.estado])
+            materiales = ", ".join([f"{d.cantidad} x {d.material.nombre}" for d in o.detalles.all()])
+            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
+            ws.append([o.id, cliente_nombre, materiales, format_money_raw(o.precio), o.estado])
 
     # Aplicar estilos a cabecera
     for cell in ws[1]:
@@ -230,7 +234,7 @@ def exportar_reporte_xml(request, tipo):
             item = ET.SubElement(root, "material")
             ET.SubElement(item, "id").text = str(m.id)
             ET.SubElement(item, "nombre").text = m.nombre
-            ET.SubElement(item, "tipo").text = m.tipo
+            ET.SubElement(item, "tipo").text = m.tipo or ""
             ET.SubElement(item, "precio").text = str(m.precio or 0)
             ET.SubElement(item, "stock").text = str(m.stock)
 
@@ -238,8 +242,10 @@ def exportar_reporte_xml(request, tipo):
         for o in Orden.objects.all().select_related('cliente__usuario'):
             item = ET.SubElement(root, "venta")
             ET.SubElement(item, "id").text = str(o.id)
-            ET.SubElement(item, "cliente").text = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
-            ET.SubElement(item, "fecha").text = o.fecha.strftime('%Y-%m-%d')
+            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
+            ET.SubElement(item, "cliente").text = cliente_nombre
+            fecha_str = o.fecha.strftime('%Y-%m-%d') if o.fecha else 'N/A'
+            ET.SubElement(item, "fecha").text = fecha_str
             ET.SubElement(item, "total").text = str(o.precio or 0)
             ET.SubElement(item, "estado").text = o.estado
 
@@ -247,7 +253,8 @@ def exportar_reporte_xml(request, tipo):
         for o in Orden.objects.all().select_related('cliente__usuario').prefetch_related('detalles__material'):
             item = ET.SubElement(root, "pedido")
             ET.SubElement(item, "id").text = str(o.id)
-            ET.SubElement(item, "cliente").text = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
+            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
+            ET.SubElement(item, "cliente").text = cliente_nombre
             ET.SubElement(item, "total").text = str(o.precio or 0)
             ET.SubElement(item, "estado").text = o.estado
             dets = ET.SubElement(item, "detalles")
