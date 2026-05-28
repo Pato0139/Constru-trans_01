@@ -73,19 +73,182 @@
         --glass-border: rgba(0, 0, 0, 0.05);
     }
 
+    [data-theme="light"] .text-white {
+        color: #0f172a !important;
+    }
+
+    [data-theme="light"] .text-muted,
+    [data-theme="light"] .text-white-50 {
+        color: #64748b !important;
+    }
+
+    [data-theme="light"] .table-dark {
+        --bs-table-bg: #ffffff;
+        --bs-table-color: #0f172a;
+    }
+
+    [data-theme="light"] .table-dark th,
+    [data-theme="light"] .table-dark td {
+        color: #0f172a !important;
+    }
+
+    [data-theme="light"] .btn-dark-premium {
+        background-color: #f1f5f9 !important;
+        border-color: #64748b !important;
+        color: #0f172a !important;
+    }
+
+    /* Estilos base para botón dark-premium (modo oscuro por defecto) */
+    .btn-dark-premium {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        color: #ffffff !important;
+        transition: all 0.3s ease;
+    }
+
+    .btn-dark-premium:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: var(--color-primary) !important;
+        transform: translateY(-1px);
+    }
+
+    .btn-dark-premium i,
+    .btn-dark-premium span {
+        color: #ffffff !important;
+    }
+
+    [data-theme="light"] .btn-dark-premium {
+        background-color: #f1f5f9 !important;
+        border-color: #64748b !important;
+        color: #0f172a !important;
+    }
+
+    [data-theme="light"] .btn-dark-premium:hover {
+        background-color: #e2e8f0 !important;
+        border-color: #1e40af !important;
+    }
+
+    [data-theme="light"] .btn-dark-premium i,
+    [data-theme="light"] .btn-dark-premium span {
+        color: #0f172a !important;
+    }
+
     [data-theme="accessibility"] {
         --color-bg: #000000;
         --color-surface: #000000;
         --color-primary: #ffff00;
         --color-accent: #00ffff;
-        --color-text: #ffffff;
-        --color-muted: #ffff00;
+        --color-text: #ffffff !important;
+        --color-muted: #ffff00 !important;
         --color-border: #ffffff;
         --sidebar-bg: #000000;
         --nav-active-bg: #ffff00;
         --card-bg: #000000;
         --item-bg: #000000;
         font-weight: 600;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+
+    html[data-theme="accessibility"] .text-white {
+        color: #ffffff !important;
+    }
+
+    html[data-theme="accessibility"] .text-muted,
+    html[data-theme="accessibility"] .text-white-50 {
+        color: #ffff00 !important;
+    }
+
+    html[data-theme="accessibility"] .btn-outline-info,
+    html[data-theme="accessibility"] .btn-outline-warning {
+        color: #000000 !important;
+        background-color: #ffff00 !important;
+        border-color: #ffff00 !important;
+    }
+
+    html[data-theme="accessibility"] .badge {
+        color: #000000 !important;
+        background-color: #ffff00 !important;
+    }
+
+    html[data-theme="accessibility"] input,
+    html[data-theme="accessibility"] select,
+    html[data-theme="accessibility"] textarea,
+    html[data-theme="accessibility"] .form-control,
+    html[data-theme="accessibility"] .form-select {
+        color: #ffffff !important;
+        background-color: #000000 !important;
+        border-color: #ffff00 !important;
+    }
+
+    html[data-theme="accessibility"] .table-dark {
+        --bs-table-bg: #000000 !important;
+        --bs-table-color: #ffffff !important;
+    }
+
+    html[data-theme="accessibility"] .table-dark th,
+    html[data-theme="accessibility"] .table-dark td {
+        color: #ffffff !important;
+        background-color: #000000 !important;
+    }
+
+    html[data-theme="accessibility"] .btn-dark-premium {
+        background-color: #000000 !important;
+        border-color: #ffff00 !important;
+        color: #ffffff !important;
+    }
+
+    html[data-theme="accessibility"] .btn-dark-premium:hover {
+        background-color: #ffff00 !important;
+        color: #000000 !important;
+    }
+
+    html[data-theme="accessibility"] .btn-dark-premium i,
+    html[data-theme="accessibility"] .btn-dark-premium span {
+        color: #ffffff !important;
+    }
+
+    html[data-theme="accessibility"] .btn-dark-premium:hover i,
+    html[data-theme="accessibility"] .btn-dark-premium:hover span {
+        color: #000000 !important;
+    }
+
+    html[data-theme="accessibility"] .dropdown-menu-dark {
+        background-color: #000000 !important;
+        border-color: #ffff00 !important;
+    }
+
+    html[data-theme="accessibility"] .dropdown-menu-dark .dropdown-item {
+        color: #ffffff !important;
+    }
+
+    html[data-theme="accessibility"] .dropdown-menu-dark .dropdown-item:hover {
+        background-color: #ffff00 !important;
+        color: #000000 !important;
+    }
+
+    /* Override muy específico para modo accesibilidad */
+    html[data-theme="accessibility"] body {
+        color: #ffffff !important;
+        background-color: #000000 !important;
+    }
+
+    html[data-theme="accessibility"] h1,
+    html[data-theme="accessibility"] h2,
+    html[data-theme="accessibility"] h3,
+    html[data-theme="accessibility"] h4,
+    html[data-theme="accessibility"] h5,
+    html[data-theme="accessibility"] h6,
+    html[data-theme="accessibility"] p,
+    html[data-theme="accessibility"] span,
+    html[data-theme="accessibility"] div,
+    html[data-theme="accessibility"] li,
+    html[data-theme="accessibility"] a,
+    html[data-theme="accessibility"] label {
+        color: #ffffff !important;
+    }
+
+    html[data-theme="accessibility"] small {
+        color: #ffff00 !important;
     }
 
     /* --- SVG FILTERS PARA DALTONISMO --- */
@@ -243,6 +406,12 @@
         html.setAttribute('data-theme', theme);
         html.style.filter = '';
         localStorage.setItem('theme', theme);
+        
+        // Forzar recarga de estilos para modo accesibilidad
+        if (theme === 'accessibility') {
+            document.body.style.backgroundColor = '#000000';
+            document.body.style.color = '#ffffff';
+        }
     }
 
     function setDaltonism(mode) {
