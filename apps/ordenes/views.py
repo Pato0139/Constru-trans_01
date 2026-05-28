@@ -31,19 +31,17 @@ def eliminar_detalle(request, id):
     orden = detalle.pedido
 
     with transaction.atomic():
-        # Devolver stock
-        stock_obj = Stock.objects.get(material=detalle.material)
-        stock_obj.cantidad = F('cantidad') + detalle.cantidad
+        stock_obj = Stock.objects.select_for_update().get(material=detalle.material)
+        stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
         stock_obj.save()
 
-        # Registrar movimiento de devolución
         MovimientoInventario.objects.create(
             material=detalle.material,
-            tipo='entrada',
+            tipo_movimiento='entrada',
             cantidad=detalle.cantidad,
-            motivo=f"Eliminación detalle orden #{orden.id}",
-            referencia_id=orden.codigo_pedido,
-            usuario=request.user
+            observacion=f"Eliminación detalle pedido #{orden.codigo_pedido}",
+            pedido=orden,
+            usuario=request.user,
         )
 
         detalle.delete()
@@ -62,33 +60,33 @@ def agregar_materiales(request, id):
         material_id = request.POST.get("material")
         cantidad = float(request.POST.get("cantidad", 0))
 
-        if material_id and cantidad > 0:
+        if material_id and cantidad &gt; 0:
             material = get_object_or_404(MaterialConstruccion, pk=material_id)
             stock_obj = Stock.objects.get(material=material)
 
-            if stock_obj.cantidad >= cantidad:
+            if stock_obj.cantidad_actual &gt;= cantidad:
                 with transaction.atomic():
                     # Crear o actualizar detalle
                     detalle, created = DetalleOrden.objects.get_or_create(
                         pedido=orden,
                         material=material,
-                        defaults={'cantidad': cantidad, 'precio_unitario': material.precio}
+                        defaults={'cantidad': cantidad, 'precio_unitario': material.precio_referencia}
                     )
                     if not created:
                         detalle.cantidad += cantidad
                         detalle.save()
 
                     # Descontar stock
-                    stock_obj.cantidad = F('cantidad') - cantidad
+                    stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
                     stock_obj.save()
 
                     # Registrar movimiento
                     MovimientoInventario.objects.create(
                         material=material,
-                        tipo='salida',
+                        tipo_movimiento='salida',
                         cantidad=cantidad,
-                        motivo=f"Agregado a orden #{orden.id}",
-                        referencia_id=orden.codigo_pedido,
+                        observacion=f"Agregado a pedido #{orden.codigo_pedido}",
+                        pedido=orden,
                         usuario=request.user
                     )
 
@@ -162,7 +160,9 @@ def lista_entregas_admin(request):
 def ver_pedido_admin(request, id):
     orden = get_object_or_404(Orden, codigo_pedido=id)
     # Si es cliente, solo puede ver sus propios pedidos
-    if request.user.usuario.rol == 'cliente' and orden.cliente.usuario != request.user.usuario:
+    if request.user.usuario.rol == 'cliente' and (
+        orden.cliente is None or orden.cliente.usuario_id != request.user.usuario.id
+    ):
         messages.error(request, "No tienes permiso para ver este pedido.")
         return redirect("clientes:mis_pedidos")
 
