@@ -128,6 +128,8 @@ body {
     -webkit-overflow-scrolling: touch;
     margin-bottom: 1rem;
     border-radius: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) var(--color-bg);
 }
 
 .table-responsive::-webkit-scrollbar {
@@ -228,6 +230,17 @@ body {
     .stat-card:hover, .stat-card-ultra:hover {
         transform: translateY(-4px);
     }
+}
+
+.stat-card-ultra::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.05) 0%, transparent 70%);
+    pointer-events: none;
 }
 
 /* --- RESPONSIVE BUTTONS --- */
@@ -652,8 +665,9 @@ a, button, input, select, textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #333;
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
+    border: 2px solid var(--color-bg);
 }
 
 ::-webkit-scrollbar-thumb:hover {
