@@ -1,3 +1,6 @@
+import re
+from datetime import datetime
+
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -11,6 +14,54 @@ from apps.usuarios.models import Stock, Usuario
 from core.utils import conexion_remota_disponible
 
 from .models import Cliente
+
+
+def parse_fecha_entrega(value):
+    if not value:
+        return None
+    value = value.strip()
+
+    # Try ISO formats first.
+    for candidate in [value, value.replace(' ', 'T')]:
+        try:
+            return datetime.fromisoformat(candidate)
+        except ValueError:
+            pass
+
+    # Normalize common variations:
+    # - allow / or - separators
+    # - allow dots between date parts
+    # - allow AM/PM in text or compact form
+    normalized = value.lower()
+    normalized = re.sub(r'[\.]+', '/', normalized)
+    normalized = normalized.replace('-', '/')
+    normalized = normalized.replace(',', ' ')
+    normalized = normalized.replace(' a.m.', ' am').replace(' p.m.', ' pm')
+    normalized = normalized.replace(' a.m', ' am').replace(' p.m', ' pm')
+    normalized = normalized.replace('am', ' am').replace('pm', ' pm')
+    normalized = re.sub(r'\s+', ' ', normalized).strip()
+
+    formats = [
+        '%d/%m/%Y %H:%M',
+        '%d/%m/%Y %I:%M %p',
+        '%d/%m/%Y',
+        '%Y/%m/%d %H:%M',
+        '%Y/%m/%d %I:%M %p',
+        '%Y/%m/%d',
+        '%Y-%m-%d %H:%M',
+        '%Y-%m-%dT%H:%M',
+    ]
+
+    for fmt in formats:
+        try:
+            dt = datetime.strptime(normalized, fmt)
+            if fmt in ('%d/%m/%Y', '%Y/%m/%d'):
+                return dt.replace(hour=0, minute=0)
+            return dt
+        except ValueError:
+            continue
+
+    return None
 
 
 @login_required
@@ -143,20 +194,34 @@ def crear_pedido(request):
         materiales_ids = request.POST.getlist('material_id[]')
         cantidades = request.POST.getlist('cantidad[]')
         direccion = request.POST.get("direccion")
-        fecha_entrega = request.POST.get("fecha_entrega")
+        fecha_entrega_raw = request.POST.get("fecha_entrega")
+        fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
+
+        if fecha_entrega_raw and not fecha_entrega:
+            messages.error(request, "Formato de fecha inválido. Usa DD/MM/YYYY HH:MM, DD-MM-YYYY HH:MM o 2026-12-31 15:30.")
+            return render(request, "clientes/form.html", {
+                "materiales": materiales,
+                "action": "crear",
+                "fecha_entrega": fecha_entrega_raw,
+                "direccion": direccion,
+            })
 
         if not materiales_ids or not direccion:
             messages.error(request, "Por favor, agrega al menos un material y la dirección.")
             return render(request, "clientes/form.html", {
                 "materiales": materiales,
-                "action": "crear"
+                "action": "crear",
+                "fecha_entrega": fecha_entrega_raw,
+                "direccion": direccion,
             })
 
         if len(materiales_ids) != len(cantidades):
             messages.error(request, "Error en los datos del formulario. Intenta nuevamente.")
             return render(request, "clientes/form.html", {
                 "materiales": materiales,
-                "action": "crear"
+                "action": "crear",
+                "fecha_entrega": fecha_entrega_raw,
+                "direccion": direccion,
             })
 
         try:
@@ -253,16 +318,29 @@ def editar_pedido(request, id):
         materiales_ids = request.POST.getlist('material_id[]')
         cantidades = request.POST.getlist('cantidad[]')
         direccion = request.POST.get("direccion")
-        fecha_entrega = request.POST.get("fecha_entrega")
+        fecha_entrega_raw = request.POST.get("fecha_entrega")
+        fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
         # Variable no utilizada actualmente (reservada para implementación futura)
         # metodo_pago = request.POST.get("metodo_pago", "efectivo")
+
+        if fecha_entrega_raw and not fecha_entrega:
+            messages.error(request, "Formato de fecha inválido. Usa DD/MM/YYYY HH:MM, DD-MM-YYYY HH:MM o 2026-12-31 15:30.")
+            return render(request, "clientes/form.html", {
+                "orden": pedido,
+                "materiales": materiales,
+                "action": "editar",
+                "fecha_entrega": fecha_entrega_raw,
+                "direccion": direccion,
+            })
 
         if not materiales_ids or not direccion:
             messages.error(request, "Datos incompletos.")
             return render(request, "clientes/form.html", {
                 "orden": pedido,
                 "materiales": materiales,
-                "action": "editar"
+                "action": "editar",
+                "fecha_entrega": fecha_entrega_raw,
+                "direccion": direccion,
             })
 
         try:

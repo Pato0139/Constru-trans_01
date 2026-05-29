@@ -38,23 +38,47 @@
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Nombre del Material</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-tag"></i></span>
+                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                            <i class="bi bi-tag"></i>
+                        </span>
                         {{ form.nombre }}
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Tipo de Material</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Unidad de Medida</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-layers"></i></span>
+                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                            <i class="bi bi-rulers"></i>
+                        </span>
+                        {{ form.unidad_medida }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Tipo de Material</label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                            <i class="bi bi-layers"></i>
+                        </span>
                         {{ form.tipo }}
                     </div>
+                    <div class="form-text text-white-50 small mb-3">Seleccione un tipo existente o escriba uno nuevo si no lo encuentra.</div>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                            <i class="bi bi-plus-circle"></i>
+                        </span>
+                        {{ form.nuevo_tipo }}
+                    </div>
+                    <div class="form-text text-white-50 small mt-2">Usar solo uno de los campos: elija una opción existente o cree un tipo nuevo.</div>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Descripción</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-text-paragraph"></i></span>
+                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                            <i class="bi bi-text-paragraph"></i>
+                        </span>
                         {{ form.descripcion }}
                     </div>
                 </div>
@@ -62,8 +86,30 @@
                 <div class="mb-5">
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Precio Unitario ($)</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: #1a1a1a; color: var(--color-accent);"><i class="bi bi-currency-dollar"></i></span>
-                        {{ form.precio }}
+                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                            <i class="bi bi-currency-dollar"></i>
+                        </span>
+                        {{ form.precio_referencia }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Stock actual</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                            <i class="bi bi-stack"></i>
+                        </span>
+                        {{ form.stock }}
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Ubicación en bodega</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                            <i class="bi bi-geo-alt"></i>
+                        </span>
+                        {{ form.ubicacion }}
                     </div>
                 </div>
 
@@ -87,17 +133,18 @@
     .bg-accent { background-color: var(--color-accent) !important; }
 
     .form-control, .form-select {
-        background: rgba(255,255,255,0.03) !important;
-        border: 1px solid rgba(255,255,255,0.08) !important;
+        background: var(--item-bg) !important;
+        border: 1px solid var(--color-border) !important;
         padding: 12px 20px !important;
-        color: white !important;
+        color: var(--color-text) !important;
         border-radius: 12px !important;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
     }
-
     .form-control:focus, .form-select:focus {
+        background: var(--item-bg) !important;
+        color: var(--color-text) !important;
         border-color: var(--color-accent) !important;
-        box-shadow: 0 0 15px rgba(243, 156, 18, 0.1) !important;
-        background: rgba(255,255,255,0.05) !important;
+        box-shadow: 0 0 0 0.15rem rgba(245, 158, 11, 0.18) !important;
     }
 
     .btn-gold {
