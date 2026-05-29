@@ -20,7 +20,7 @@ class Compra(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Fuera del MER pero útil — NO se toca
-    observaciones = models.TextField(blank=True)
+    observaciones = models.TextField(blank=True, null=True)
     sincronizado = models.BooleanField(default=False)
 
     class Meta:

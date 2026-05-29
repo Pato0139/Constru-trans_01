@@ -102,8 +102,8 @@ def editar_compra(request, id):
     })
 
 @admin_required
-def contactar_proveedor(request, id):
-    proveedor = get_object_or_404(Proveedor, id=id)
+def contactar_proveedor(request, codigo_proveedor):
+    proveedor = get_object_or_404(Proveedor, codigo_proveedor=codigo_proveedor)
     if request.method == "POST":
         asunto = request.POST.get("asunto")
         mensaje_texto = request.POST.get("mensaje")
@@ -169,8 +169,8 @@ def crear_proveedor(request):
     return render(request, "compras/proveedor_form.html", {"action": "Crear"})
 
 @admin_required
-def editar_proveedor(request, id):
-    proveedor = get_object_or_404(Proveedor, id=id)
+def editar_proveedor(request, codigo_proveedor):
+    proveedor = get_object_or_404(Proveedor, codigo_proveedor=codigo_proveedor)
     if request.method == "POST":
         proveedor.nombre_empresa = request.POST.get("nombre_empresa")
         proveedor.nit = request.POST.get("nit")

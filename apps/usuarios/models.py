@@ -366,7 +366,7 @@ class Notificacion(models.Model):
     tipo = models.CharField(max_length=10, choices=TIPOS, default='info')
     leida = models.BooleanField(default=False)
     fecha = models.DateTimeField(auto_now_add=True)
-    link = models.CharField(max_length=255, blank=True)
+    link = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         ordering = ['-fecha']
