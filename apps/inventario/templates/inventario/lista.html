@@ -57,6 +57,8 @@
                     <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 80px;">ID</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Material</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Tipo</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Unidad</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Stock</th>
                     <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Precio Unitario</th>
                     <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 120px;">Acciones</th>
                 </tr>
@@ -76,6 +78,12 @@
                     <td class="py-3 px-4">
                         <span class="badge bg-dark text-white-50 border border-white-10">{{ m.tipo }}</span>
                     </td>
+                    <td class="py-3 px-4 text-center">
+                        {{ m.unidad_medida|default:'-' }}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        {{ m.stock|default:0 }}
+                    </td>
                     <td class="py-3 px-4 text-center fw-bold text-accent">
                         {{ m.precio|currency }}
                     </td>
@@ -92,7 +100,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center py-5">
+                    <td colspan="7" class="text-center py-5">
                         <div class="py-5">
                             <i class="bi bi-box-seam text-muted mb-3 d-block" style="font-size: 3rem;"></i>
                             <p class="text-muted fw-medium mb-0">No se encontraron materiales en el catálogo.</p>

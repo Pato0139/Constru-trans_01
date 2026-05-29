@@ -1,9 +1,12 @@
 
+import uuid
+
 from django import forms
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.models import User
+from django.utils.text import slugify
 
-from .models import MaterialConstruccion, Proveedor, Usuario
+from .models import Catalogo, MaterialConstruccion, Proveedor, Stock, Usuario
 from .utils import limpiar_telefono
 
 
@@ -111,33 +114,146 @@ class RegistroForm(forms.ModelForm):
 
 
 class MaterialForm(forms.ModelForm):
+    tipo = forms.ModelChoiceField(
+        queryset=Catalogo.objects.all().order_by('nombre_empresa'),
+        required=False,
+        label="Tipo de Material",
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+            'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
+        })
+    )
+    nuevo_tipo = forms.CharField(
+        required=False,
+        label="Crear nuevo tipo",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: Cemento, Acero, Madera',
+            'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
+        })
+    )
+    stock = forms.IntegerField(
+        required=False,
+        min_value=0,
+        label="Stock actual",
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control numeric-only',
+            'placeholder': '0',
+            'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
+        })
+    )
+    ubicacion = forms.CharField(
+        required=False,
+        label="Ubicación en bodega",
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: Almacén 1',
+            'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
+        })
+    )
+
     class Meta:
         model = MaterialConstruccion
-        fields = ['nombre', 'unidad_medida', 'descripcion', 'precio_referencia', 'catalogo']
+        fields = ['nombre', 'unidad_medida', 'descripcion', 'precio_referencia']
         widgets = {
             'nombre': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ej: Cemento Gris',
-                'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
+                'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
             }),
             'unidad_medida': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'kg, m³, unidades, etc.',
-                'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
+                'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
             }),
             'descripcion': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Descripción detallada...',
-                'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
+                'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
             }),
-            'precio_referencia': forms.NumberInput(attrs={
-                'class': 'form-control numeric-only',
-                'step': '0.01',
+            'precio_referencia': forms.TextInput(attrs={
+                'class': 'form-control decimal-only',
+                'inputmode': 'decimal',
                 'placeholder': '0.00',
-                'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
+                'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['tipo'].empty_label = "Seleccione un tipo existente"
+        if self.instance and self.instance.pk and self.instance.catalogo:
+            self.fields['tipo'].initial = self.instance.catalogo
+        if self.instance and self.instance.pk:
+            try:
+                stock = self.instance.stock_info
+                self.fields['stock'].initial = stock.cantidad_actual
+                self.fields['ubicacion'].initial = stock.ubicacion
+            except Stock.DoesNotExist:
+                self.fields['stock'].initial = 0
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo')
+        nuevo_tipo = cleaned_data.get('nuevo_tipo')
+
+        if tipo and nuevo_tipo:
+            raise forms.ValidationError("Elija un tipo existente o cree uno nuevo, no ambos.")
+        if not tipo and not nuevo_tipo:
+            raise forms.ValidationError("Seleccione un tipo existente o cree uno nuevo.")
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        material = super().save(commit=False)
+        tipo = self.cleaned_data.get('tipo')
+        nuevo_tipo = self.cleaned_data.get('nuevo_tipo')
+
+        if nuevo_tipo:
+            nombre = nuevo_tipo.strip()
+            catalogo = Catalogo.objects.filter(nombre_empresa__iexact=nombre).first()
+            if not catalogo:
+                catalogo = Catalogo.objects.create(
+                    codigo_catalogo=self._generate_catalogo_code(nombre),
+                    nombre_empresa=nombre
+                )
+            material.catalogo = catalogo
+        else:
+            material.catalogo = tipo
+
+        if commit:
+            material.save()
+
+        stock_value = self.cleaned_data.get('stock')
+        ubicacion = self.cleaned_data.get('ubicacion', '')
+
+        if stock_value is not None:
+            stock_obj, created = Stock.objects.get_or_create(
+                material=material,
+                defaults={
+                    'cantidad_actual': stock_value,
+                    'ubicacion': ubicacion or '',
+                }
+            )
+            if not created:
+                stock_obj.cantidad_actual = stock_value
+                stock_obj.ubicacion = ubicacion or stock_obj.ubicacion
+                stock_obj.save()
+
+        return material
+
+    def _generate_catalogo_code(self, nombre):
+        base_code = slugify(nombre).upper().replace('-', '_')[:16] or 'CATALOGO'
+        code = base_code
+        counter = 1
+        while Catalogo.objects.filter(codigo_catalogo=code).exists():
+            suffix = f"_{counter}"
+            trimmed = base_code[:20 - len(suffix)]
+            code = f"{trimmed}{suffix}"
+            counter += 1
+        return code
 
 
 class ProveedorForm(forms.ModelForm):
