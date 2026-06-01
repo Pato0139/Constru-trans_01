@@ -308,3 +308,6 @@ LOGGING = {
         },
     },
 }
+
+# Custom User Model
+AUTH_USER_MODEL = 'usuarios.Usuario'

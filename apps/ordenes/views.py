@@ -60,11 +60,11 @@ def agregar_materiales(request, id):
         material_id = request.POST.get("material")
         cantidad = float(request.POST.get("cantidad", 0))
 
-        if material_id and cantidad &gt; 0:
+        if material_id and cantidad > 0:
             material = get_object_or_404(MaterialConstruccion, pk=material_id)
             stock_obj = Stock.objects.get(material=material)
 
-            if stock_obj.cantidad_actual &gt;= cantidad:
+            if stock_obj.cantidad_actual >= cantidad:
                 with transaction.atomic():
                     # Crear o actualizar detalle
                     detalle, created = DetalleOrden.objects.get_or_create(

@@ -48,10 +48,12 @@ class Pedido(models.Model):
     def __str__(self):
         return f"Pedido {self.codigo_pedido} - {self.estado}"
 
-    def calcular_total(self):
-        self.total = sum(d.subtotal for d in self.detalles.all())
+    def calcular_total(self, using=None):
+        if using is None:
+            using = self._state.db
+        self.total = sum(d.subtotal for d in self.detalles.using(using).all())
         self.precio = self.total
-        self.save()
+        self.save(using=using)
         return self.total
 
     @property
@@ -78,8 +80,9 @@ class DetallePedido(models.Model):
         return f"{self.cantidad} x {self.material.nombre}"
 
     def save(self, *args, **kwargs):
+        using = kwargs.get('using', self._state.db)
         super().save(*args, **kwargs)
-        self.pedido.calcular_total()
+        self.pedido.calcular_total(using=using)
 
     @property
     def subtotal(self):

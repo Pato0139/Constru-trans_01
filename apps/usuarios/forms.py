@@ -3,7 +3,8 @@ import uuid
 
 from django import forms
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from django.utils.text import slugify
 
 from .models import Catalogo, MaterialConstruccion, Proveedor, Stock, Usuario
@@ -118,18 +119,10 @@ class MaterialForm(forms.ModelForm):
         queryset=Catalogo.objects.all().order_by('nombre_empresa'),
         required=False,
         label="Tipo de Material",
+        empty_label="-- Seleccione un tipo --",
         widget=forms.Select(attrs={
             'class': 'form-select',
             'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
-        })
-    )
-    nuevo_tipo = forms.CharField(
-        required=False,
-        label="Crear nuevo tipo",
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Ej: Cemento, Acero, Madera',
-            'style': 'background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.1) !important;'
         })
     )
     stock = forms.IntegerField(
@@ -182,7 +175,6 @@ class MaterialForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['tipo'].empty_label = "Seleccione un tipo existente"
         if self.instance and self.instance.pk and self.instance.catalogo:
             self.fields['tipo'].initial = self.instance.catalogo
         if self.instance and self.instance.pk:
@@ -193,35 +185,10 @@ class MaterialForm(forms.ModelForm):
             except Stock.DoesNotExist:
                 self.fields['stock'].initial = 0
 
-
-    def clean(self):
-        cleaned_data = super().clean()
-        tipo = cleaned_data.get('tipo')
-        nuevo_tipo = cleaned_data.get('nuevo_tipo')
-
-        if tipo and nuevo_tipo:
-            raise forms.ValidationError("Elija un tipo existente o cree uno nuevo, no ambos.")
-        if not tipo and not nuevo_tipo:
-            raise forms.ValidationError("Seleccione un tipo existente o cree uno nuevo.")
-
-        return cleaned_data
-
     def save(self, commit=True):
         material = super().save(commit=False)
         tipo = self.cleaned_data.get('tipo')
-        nuevo_tipo = self.cleaned_data.get('nuevo_tipo')
-
-        if nuevo_tipo:
-            nombre = nuevo_tipo.strip()
-            catalogo = Catalogo.objects.filter(nombre_empresa__iexact=nombre).first()
-            if not catalogo:
-                catalogo = Catalogo.objects.create(
-                    codigo_catalogo=self._generate_catalogo_code(nombre),
-                    nombre_empresa=nombre
-                )
-            material.catalogo = catalogo
-        else:
-            material.catalogo = tipo
+        material.catalogo = tipo
 
         if commit:
             material.save()
@@ -243,17 +210,6 @@ class MaterialForm(forms.ModelForm):
                 stock_obj.save()
 
         return material
-
-    def _generate_catalogo_code(self, nombre):
-        base_code = slugify(nombre).upper().replace('-', '_')[:16] or 'CATALOGO'
-        code = base_code
-        counter = 1
-        while Catalogo.objects.filter(codigo_catalogo=code).exists():
-            suffix = f"_{counter}"
-            trimmed = base_code[:20 - len(suffix)]
-            code = f"{trimmed}{suffix}"
-            counter += 1
-        return code
 
 
 class ProveedorForm(forms.ModelForm):
@@ -313,4 +269,36 @@ class CustomSetPasswordForm(SetPasswordForm):
             'placeholder': '••••••••'
         })
         self.fields['new_password2'].label = 'Confirmar Contraseña'
+
+
+class CatalogoForm(forms.ModelForm):
+    class Meta:
+        model = Catalogo
+        fields = ['codigo_catalogo', 'nombre_empresa']
+        labels = {
+            'codigo_catalogo': 'Código Único del Tipo',
+            'nombre_empresa': 'Nombre del Tipo de Material',
+        }
+        widgets = {
+            'codigo_catalogo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: TIPO-CEM',
+                'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
+            }),
+            'nombre_empresa': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Cementos y Hormigón',
+                'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
+            }),
+        }
+
+    def clean_codigo_catalogo(self):
+        codigo = self.cleaned_data.get('codigo_catalogo')
+        if codigo:
+            codigo = codigo.strip().upper()
+            # If creating a new one, verify it doesn't already exist
+            if not self.instance.pk and Catalogo.objects.filter(codigo_catalogo=codigo).exists():
+                raise forms.ValidationError("Ya existe un tipo de material con este código.")
+        return codigo
+
 
