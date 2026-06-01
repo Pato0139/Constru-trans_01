@@ -87,10 +87,11 @@
                     </td>
                     <td class="py-3 px-4 text-center">
                         <div class="d-flex justify-content-center gap-2">
-                            <a href="{% url 'inventario:editar_material' m.id %}" class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3">
+                            <a href="{% url 'inventario:editar_material' m.id %}" class="btn-action" title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="{% url 'inventario:eliminar_material' m.id %}" class="btn btn-sm btn-outline-danger border-white-10 rounded-pill px-3 confirm-delete" data-title="¿Eliminar material?" data-text="¿Estás seguro de que deseas eliminar {{ m.nombre }}?">
+                            <a href="{% url 'inventario:eliminar_material' m.id %}" class="btn-action btn-action--danger confirm-delete" title="Eliminar"
+                               data-title="¿Eliminar material?" data-text="¿Estás seguro de que deseas eliminar {{ m.nombre }}?">
                                 <i class="bi bi-trash"></i>
                             </a>
                         </div>

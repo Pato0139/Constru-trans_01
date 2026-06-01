@@ -104,12 +104,25 @@
                 <!-- DETALLES DE ENTREGA -->
                 <div class="mb-5 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
                     <label class="form-label fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">2. Detalles Logísticos</label>
+                    <p class="text-muted small px-1 mb-3">Despachamos solo a ciudades autorizadas en Boyacá y zona cercana.</p>
                     <div class="row g-4">
                         <div class="col-md-12">
-                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Dirección de destino</label>
+                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Ciudad de destino</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-building"></i></span>
+                                <select name="ciudad" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" required>
+                                    <option value="">Seleccione ciudad...</option>
+                                    {% for c in ciudades_despacho %}
+                                    <option value="{{ c }}" {% if ciudad == c %}selected{% endif %}>{{ c }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Dirección (calle, barrio, referencia)</label>
                             <div class="input-group">
                                 <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-geo-alt"></i></span>
-                                <input type="text" name="direccion" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" placeholder="Ej: Calle Principal #123, Barrio Norte" value="{% if direccion %}{{ direccion }}{% else %}{{ orden.direccion_destino|default:'' }}{% endif %}" required>
+                                <input type="text" name="direccion_detalle" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" placeholder="Ej: Calle 10 #15-20, Barrio Centro" value="{{ direccion_detalle|default:'' }}" required>
                             </div>
                         </div>
                         <div class="col-md-12">
@@ -127,7 +140,7 @@
                     <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">
                         <i class="bi bi-check2-all me-2"></i> {% if action == 'crear' %}Confirmar y Enviar Pedido{% else %}Guardar Cambios{% endif %}
                     </button>
-                    <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light rounded-pill py-2 opacity-75 hover-opacity-100">
+                    <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-secondary-cta rounded-pill py-2">
                         <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
                     </a>
                 </div>
@@ -162,8 +175,8 @@ function agregarMaterial() {
         return;
     }
 
-    const subtotal = precio * cantidad;
-    totalGeneral += subtotal;
+    const subtotal = Math.round(precio * cantidad * 100) / 100;
+    totalGeneral = Math.round((totalGeneral + subtotal) * 100) / 100;
 
     const row = document.createElement('tr');
     row.className = 'material-item';
@@ -194,7 +207,7 @@ function agregarMaterial() {
 
 function eliminarFila(btn, subtotal) {
     btn.closest('tr').remove();
-    totalGeneral -= subtotal;
+    totalGeneral = Math.round((totalGeneral - subtotal) * 100) / 100;
     actualizarTotalDisplay();
 }
 

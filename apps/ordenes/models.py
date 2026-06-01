@@ -60,6 +60,13 @@ class Pedido(models.Model):
     def id(self):
         return self.codigo_pedido
 
+    @property
+    def cliente_usuario(self):
+        """Usuario que realizó el pedido (perfil cliente o usuario directo)."""
+        if self.cliente_id and self.cliente:
+            return self.cliente.usuario
+        return self.usuario
+
 
 # =====================================================================
 # DETALLE_PEDIDO  (MER: #id_detalle_pedido *id_pedido *id_material

@@ -3,7 +3,9 @@ from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
 User = get_user_model()
 from django.contrib.auth.views import PasswordResetView
@@ -12,11 +14,12 @@ from django.db import transaction
 from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 
 from apps.historial.utils import registrar_actividad
 from apps.ordenes.models import Pedido
+from core.db_preference import PREF_AUTO, PREF_LOCAL, PREF_REMOTA, invalidate_connection_cache
 from core.utils import conexion_remota_disponible
 
 from .forms import LoginForm, RegistroForm
@@ -266,7 +269,7 @@ def panel(request):
         from core.utils import get_cache_key
 
         # Creamos una clave de caché única para el panel de admin de este usuario
-        cache_key = get_cache_key('panel_admin', request.user.id)
+        cache_key = get_cache_key('panel_admin_v2', request.user.id)
 
         # Intentamos obtener los datos del caché primero
         context = cache.get(cache_key)
@@ -281,7 +284,9 @@ def panel(request):
                     fecha_solicitud__date=now().date()
                 ).count(),
                 "clientes": Usuario.objects.filter(rol="cliente").count(),
-                "pedidos_recientes": Pedido.objects.all().select_related('usuario').order_by("-fecha_solicitud")[:5]
+                "pedidos_recientes": Pedido.objects.select_related(
+                    'usuario', 'cliente__usuario'
+                ).order_by("-fecha_solicitud")[:5]
             }
             cache.set(cache_key, context, 300)  # 300 segundos = 5 minutos
 
@@ -751,3 +756,49 @@ def configuraciones_usuario(request):
         return redirect("usuarios:configuraciones")
 
     return render(request, "usuarios/configuraciones.html", {"usuario": usuario})
+
+
+@require_POST
+def cambiar_modo_bd(request):
+    """Alterna entre base de datos local (SQLite) y remota (Neon)."""
+    modo = request.POST.get('modo', '').strip().lower()
+    nuevo_modo = None
+    mensaje_ok = None
+
+    if modo not in (PREF_LOCAL, PREF_REMOTA):
+        messages.error(request, 'Modo de base de datos no válido.')
+    elif modo == PREF_REMOTA:
+        if 'remota' not in settings.DATABASES:
+            messages.error(
+                request,
+                'La base remota no está configurada. Define DATABASE_URL en tu archivo .env.',
+            )
+        elif not conexion_remota_disponible():
+            messages.error(
+                request,
+                'No hay conexión con la base remota. Revisa tu internet o las credenciales de Neon.',
+            )
+        else:
+            nuevo_modo = PREF_REMOTA
+            mensaje_ok = (
+                'Modo remoto (Neon) activado. Inicia sesión de nuevo: los usuarios '
+                'de la nube pueden ser distintos a los de tu copia local.'
+            )
+    else:
+        nuevo_modo = PREF_LOCAL
+        mensaje_ok = (
+            'Modo local (SQLite) activado. Inicia sesión de nuevo con un usuario '
+            'registrado en esta copia local.'
+        )
+
+    if nuevo_modo:
+        invalidate_connection_cache()
+        if request.user.is_authenticated:
+            logout(request)
+        request.session['bd_preferida'] = nuevo_modo
+        request.session.modified = True
+        messages.success(request, mensaje_ok)
+        return redirect('usuarios:login')
+
+    destino = request.META.get('HTTP_REFERER') or reverse('usuarios:login')
+    return redirect(destino)

@@ -156,30 +156,14 @@
     [data-daltonism="none"] {
         filter: none;
     }
+
+    [data-font-size="small"] body, [data-font-size="small"] { font-size: 0.875rem !important; }
+    [data-font-size="normal"] body, [data-font-size="normal"] { font-size: 1rem !important; }
+    [data-font-size="large"] body, [data-font-size="large"] { font-size: 1.125rem !important; }
+    [data-font-size="xlarge"] body, [data-font-size="xlarge"] { font-size: 1.25rem !important; }
 </style>
 
-<script>
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    const savedDaltonism = localStorage.getItem('daltonism') || 'none';
-    
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    document.documentElement.setAttribute('data-daltonism', savedDaltonism);
-    document.documentElement.style.filter = '';
-
-    function setTheme(theme) {
-        const html = document.documentElement;
-        html.setAttribute('data-theme', theme);
-        html.style.filter = '';
-        localStorage.setItem('theme', theme);
-    }
-
-    function setDaltonism(mode) {
-        const html = document.documentElement;
-        html.style.filter = '';
-        html.setAttribute('data-daltonism', mode);
-        localStorage.setItem('daltonism', mode);
-    }
-</script>
+<script src="{% static 'js/user-preferences.js' %}?v=1.0"></script>
 
 </head>
 
