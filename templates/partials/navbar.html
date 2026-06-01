@@ -4,7 +4,7 @@
         style="background: var(--color-bg); border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 900;">
     <div class="d-flex align-items-center gap-3 flex-grow-1 min-w-0">
         <!-- Sidebar Toggle (Mobile) -->
-        <button class="btn btn-dark-premium d-lg-none rounded-circle p-2" id="sidebarToggle" aria-label="Toggle menu">
+        <button class="btn btn-dark-premium d-lg-none rounded-circle d-flex align-items-center justify-content-center" id="sidebarToggle" aria-label="Toggle menu" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; p: 0;">
             <i class="bi bi-list text-white fs-4"></i>
         </button>
         <div class="min-w-0">
@@ -17,16 +17,16 @@
 
     <div class="d-flex align-items-center gap-2 gap-sm-3">
         <!-- Configuraciones -->
-        <a href="{% url 'usuarios:configuraciones' %}" class="btn btn-dark-premium rounded-circle p-2" title="Configuraciones">
+        <a href="{% url 'usuarios:configuraciones' %}" class="btn btn-dark-premium rounded-circle d-flex align-items-center justify-content-center" title="Configuraciones" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; p: 0;">
             <i class="bi bi-gear text-white fs-5 opacity-75"></i>
         </a>
         
         <!-- Notificaciones -->
         <div class="dropdown">
-            <button class="btn btn-dark-premium rounded-circle p-2 position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
+            <button class="btn btn-dark-premium rounded-circle position-relative d-flex align-items-center justify-content-center" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; p: 0;">
                 <i class="bi bi-bell text-white fs-5 opacity-75"></i>
                 {% if notif_unread_count > 0 %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger p-1" style="font-size: 0.65rem;">
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger p-0 d-flex align-items-center justify-content-center" style="font-size: 0.65rem; width: 18px; height: 18px; min-width: 18px; min-height: 18px;">
                     {{ notif_unread_count }}
                 </span>
                 {% endif %}
@@ -139,7 +139,7 @@
 
         <!-- Accessibility Icon Only for Small Screens -->
         <div class="dropdown d-md-none">
-            <button class="btn btn-dark-premium rounded-circle p-2" type="button" data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad">
+            <button class="btn btn-dark-premium rounded-circle d-flex align-items-center justify-content-center" type="button" data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; p: 0;">
                 <i class="bi bi-universal-access text-white fs-5 opacity-75"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-3" style="width: 90vw; right: 0.5rem;">

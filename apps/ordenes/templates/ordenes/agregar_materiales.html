@@ -172,7 +172,7 @@
     const stock = document.getElementById('txt-stock');
 
     if (opt && opt.dataset.precio && cant > 0) {
-      const sub = (cant * parseFloat(opt.dataset.precio)) / 100;
+      const sub = (cant * parseFloat(opt.dataset.precio));
       val.textContent = '$' + sub.toLocaleString('es-CO', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -190,7 +190,7 @@
     fetch(URL_TOTAL)
       .then(r => r.json())
       .then(data => {
-        const fmt = v => '$' + (v / 100).toLocaleString('es-CO', {
+        const fmt = v => '$' + v.toLocaleString('es-CO', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         });

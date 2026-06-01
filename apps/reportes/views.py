@@ -92,8 +92,8 @@ def exportar_reporte_pdf(request, tipo):
     data = []
     if tipo == 'clientes':
         data.append(['ID', 'Nombre', 'Correo', 'Teléfono', 'Estado'])
-        for u in Usuario.objects.filter(rol='cliente').select_related('user'):
-            data.append([u.id, f"{u.nombres} {u.apellidos}", u.user.email, u.telefono or "N/A", u.estado])
+        for u in Usuario.objects.filter(rol='cliente'):
+            data.append([u.id, f"{u.nombres} {u.apellidos}", u.email, u.telefono or "N/A", u.estado])
 
     elif tipo == 'materiales':
         data.append(['ID', 'Nombre', 'Tipo', 'Precio', 'Stock'])
@@ -163,8 +163,8 @@ def exportar_reporte_excel(request, tipo):
     if tipo == 'clientes':
         headers = ['ID', 'Nombre', 'Correo', 'Teléfono', 'Estado']
         ws.append(headers)
-        for u in Usuario.objects.filter(rol='cliente').select_related('user'):
-            ws.append([u.id, f"{u.nombres} {u.apellidos}", u.user.email, u.telefono or "N/A", u.estado])
+        for u in Usuario.objects.filter(rol='cliente'):
+            ws.append([u.id, f"{u.nombres} {u.apellidos}", u.email, u.telefono or "N/A", u.estado])
 
     elif tipo == 'materiales':
         headers = ['ID', 'Nombre', 'Tipo', 'Precio', 'Stock']
@@ -221,11 +221,11 @@ def exportar_reporte_xml(request, tipo):
     root.set("fecha_generacion", now().strftime('%Y-%m-%d %H:%M:%S'))
 
     if tipo == 'clientes':
-        for u in Usuario.objects.filter(rol='cliente').select_related('user'):
+        for u in Usuario.objects.filter(rol='cliente'):
             item = ET.SubElement(root, "cliente")
             ET.SubElement(item, "id").text = str(u.id)
             ET.SubElement(item, "nombre").text = f"{u.nombres} {u.apellidos}"
-            ET.SubElement(item, "email").text = u.user.email
+            ET.SubElement(item, "email").text = u.email
             ET.SubElement(item, "telefono").text = u.telefono or ""
             ET.SubElement(item, "estado").text = u.estado
 

@@ -1,5 +1,5 @@
 
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.db import models
 
 from apps.usuarios.models import MaterialConstruccion, Proveedor
@@ -17,7 +17,7 @@ class Compra(models.Model):
     fecha_compra = models.DateTimeField(auto_now_add=True)
     total_compra = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
-    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Fuera del MER pero útil — NO se toca
     observaciones = models.TextField(blank=True, null=True)
@@ -34,9 +34,11 @@ class Compra(models.Model):
     def numero_orden(self):
         return f"OC-{self.fecha_compra.year}-{self.id_compra:04d}"
 
-    def calcular_total(self):
-        self.total_compra = sum(d.subtotal for d in self.detalles.all())
-        self.save()
+    def calcular_total(self, using=None):
+        if using is None:
+            using = self._state.db
+        self.total_compra = sum(d.subtotal for d in self.detalles.using(using).all())
+        self.save(using=using)
         return self.total_compra
 
 
@@ -58,8 +60,9 @@ class DetalleCompra(models.Model):
         return f"{self.cantidad} x {self.material.nombre}"
 
     def save(self, *args, **kwargs):
+        using = kwargs.get('using', self._state.db)
         super().save(*args, **kwargs)
-        self.compra.calcular_total()
+        self.compra.calcular_total(using=using)
 
     @property
     def subtotal(self):

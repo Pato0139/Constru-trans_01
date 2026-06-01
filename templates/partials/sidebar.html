@@ -10,7 +10,7 @@
     <!-- Logo y marca -->
     <div class="brand-section p-4 text-center">
         <div class="logo-container mb-3">
-            <img src="{% static 'img/Logo1.jpeg' %}" width="60" height="60" class="rounded-circle shadow-lg" style="object-fit: cover; border: 2px solid var(--color-primary);" alt="Logo ConstruTrans">
+            <img src="{% static 'img/Logo1.jpeg' %}" class="rounded-circle shadow-lg" style="width: 60px; height: 60px; min-width: 60px; min-height: 60px; max-width: 60px; max-height: 60px; object-fit: cover; border: 2px solid var(--color-primary);" alt="Logo ConstruTrans">
         </div>
         <h5 class="fw-bold m-0" style="color: var(--color-text); font-size: 1.1rem; letter-spacing: 1px;">
             ConstruTrans
@@ -33,14 +33,14 @@
 
                 <!-- Ventas y Cobros -->
                 <div class="sidebar-section">
-                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse" aria-expanded="false" aria-controls="ventasCollapse">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}{% else %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse" aria-expanded="{% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}true{% else %}false{% endif %}" aria-controls="ventasCollapse">
                         <span class="d-flex align-items-center gap-3">
                             <i class="bi bi-cart-fill"></i>
                             <span>Ventas y Cobros</span>
                         </span>
-                        <i class="bi bi-chevron-down collapse-icon transition-transform"></i>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}rotated{% endif %}"></i>
                     </button>
-                    <div class="collapse" id="ventasCollapse">
+                    <div class="collapse {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}show{% endif %}" id="ventasCollapse">
                         <div class="nav-submenu">
                             <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' %}active{% endif %}">
                                 <i class="bi bi-cart3"></i>
@@ -60,18 +60,22 @@
 
                 <!-- Inventario y Flota -->
                 <div class="sidebar-section">
-                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#inventarioCollapse" aria-expanded="false" aria-controls="inventarioCollapse">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'inventario' or request.resolver_match.app_name == 'transporte' %}{% else %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#inventarioCollapse" aria-expanded="{% if request.resolver_match.app_name == 'inventario' or request.resolver_match.app_name == 'transporte' %}true{% else %}false{% endif %}" aria-controls="inventarioCollapse">
                         <span class="d-flex align-items-center gap-3">
                             <i class="bi bi-box-seam-fill"></i>
                             <span>Inventario y Flota</span>
                         </span>
-                        <i class="bi bi-chevron-down collapse-icon transition-transform"></i>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'inventario' or request.resolver_match.app_name == 'transporte' %}rotated{% endif %}"></i>
                     </button>
-                    <div class="collapse" id="inventarioCollapse">
+                    <div class="collapse {% if request.resolver_match.app_name == 'inventario' or request.resolver_match.app_name == 'transporte' %}show{% endif %}" id="inventarioCollapse">
                         <div class="nav-submenu">
-                            <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'materiales_lista' %}active{% endif %}">
+                            <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name in 'materiales_lista,crear_material,editar_material' %}active{% endif %}">
                                 <i class="bi bi-box"></i>
                                 <span>Materiales</span>
+                            </a>
+                            <a href="{% url 'inventario:tipos_material_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name in 'tipos_material_lista,crear_tipo_material,editar_tipo_material' %}active{% endif %}">
+                                <i class="bi bi-tags"></i>
+                                <span>Tipos de Material</span>
                             </a>
                             <a href="{% url 'inventario:stock_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'stock_lista' %}active{% endif %}">
                                 <i class="bi bi-clipboard-data-fill"></i>
@@ -91,14 +95,14 @@
 
                 <!-- Compras -->
                 <div class="sidebar-section">
-                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#comprasCollapse" aria-expanded="false" aria-controls="comprasCollapse">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'compras' %}{% else %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#comprasCollapse" aria-expanded="{% if request.resolver_match.app_name == 'compras' %}true{% else %}false{% endif %}" aria-controls="comprasCollapse">
                         <span class="d-flex align-items-center gap-3">
                             <i class="bi bi-bag-fill"></i>
                             <span>Compras</span>
                         </span>
-                        <i class="bi bi-chevron-down collapse-icon transition-transform"></i>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'compras' %}rotated{% endif %}"></i>
                     </button>
-                    <div class="collapse" id="comprasCollapse">
+                    <div class="collapse {% if request.resolver_match.app_name == 'compras' %}show{% endif %}" id="comprasCollapse">
                         <div class="nav-submenu">
                             <a href="{% url 'compras:lista_proveedores' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'lista_proveedores' %}active{% endif %}">
                                 <i class="bi bi-briefcase-fill"></i>
@@ -114,14 +118,14 @@
 
                 <!-- Entregas -->
                 <div class="sidebar-section">
-                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#entregasCollapse" aria-expanded="false" aria-controls="entregasCollapse">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}{% else %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#entregasCollapse" aria-expanded="{% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}true{% else %}false{% endif %}" aria-controls="entregasCollapse">
                         <span class="d-flex align-items-center gap-3">
                             <i class="bi bi-truck-flatbed"></i>
                             <span>Entregas</span>
                         </span>
-                        <i class="bi bi-chevron-down collapse-icon transition-transform"></i>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}rotated{% endif %}"></i>
                     </button>
-                    <div class="collapse" id="entregasCollapse">
+                    <div class="collapse {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}show{% endif %}" id="entregasCollapse">
                         <div class="nav-submenu">
                             <a href="{% url 'ordenes:lista_entregas_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}active{% endif %}">
                                 <i class="bi bi-truck"></i>
@@ -133,14 +137,14 @@
 
                 <!-- Administración -->
                 <div class="sidebar-section">
-                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#adminCollapse" aria-expanded="false" aria-controls="adminCollapse">
+                    <button class="nav-link-premium w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}{% else %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#adminCollapse" aria-expanded="{% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}true{% else %}false{% endif %}" aria-controls="adminCollapse">
                         <span class="d-flex align-items-center gap-3">
                             <i class="bi bi-shield-lock-fill"></i>
                             <span>Administración</span>
                         </span>
-                        <i class="bi bi-chevron-down collapse-icon transition-transform"></i>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}rotated{% endif %}"></i>
                     </button>
-                    <div class="collapse" id="adminCollapse">
+                    <div class="collapse {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}show{% endif %}" id="adminCollapse">
                         <div class="nav-submenu">
                             <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' %}active{% endif %}">
                                 <i class="bi bi-people-fill"></i>

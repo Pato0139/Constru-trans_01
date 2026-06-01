@@ -1,73 +1,7 @@
+{% extends "base_landing.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Constru-trans | Logística de Élite</title>
-    <link rel="shortcut icon" href="{% static 'img/Logo1.jpeg' %}" type="image/x-icon">
-    
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
-    
-    <!-- AOS & Animate.css -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="{% static 'css/principal.css' %}?v=2.0">
-    <link rel="stylesheet" href="{% static 'css/loader.css' %}">
-</head>
 
-<body>
-
-<div id="loader-container">
-    <img src="{% static 'img/Logo1.jpeg' %}" class="loader-img" alt="Cargando...">
-    <div class="loader">
-        <div class="progress-bar"></div>
-    </div>
-</div>
-
-<header class="navbar-premium fixed-top w-100 z-3">
-    <div class="container d-flex justify-content-between align-items-center">
-        <a class="navbar-brand d-flex align-items-center m-0" href="{% url 'inicio:inicio' %}">
-            <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo" height="50" class="rounded-3 me-3 shadow-lg">
-            <span class="fs-4 fw-bold text-white d-none d-md-inline" style="font-family: 'Montserrat', sans-serif; letter-spacing: -1.5px;">
-                CONSTRU<span style="color: var(--color-primary);">TRANS</span>
-            </span>
-        </a>
-
-        <button class="navbar-toggler d-lg-none ms-auto border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPremiumContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse d-lg-flex align-items-center justify-content-end flex-column flex-lg-row gap-3" id="navbarPremiumContent">
-            <nav class="d-flex flex-column flex-lg-row gap-4 w-100 w-lg-auto">
-                <a href="#inicio" class="nav-link-premium">Inicio</a>
-                <a href="#nosotros" class="nav-link-premium">Nosotros</a>
-                <a href="#servicios" class="nav-link-premium">Servicios</a>
-                <a href="#contacto" class="nav-link-premium">Contacto</a>
-            </nav>
-
-            <div class="d-flex flex-column flex-lg-row gap-3 w-100 w-lg-auto">
-                <a href="{% url 'usuarios:login' %}" class="btn-premium btn-premium-outline justify-content-center w-100 w-lg-auto">
-                    Iniciar Sesión
-                </a>
-                <a href="{% url 'usuarios:registro' %}" class="btn-premium btn-premium-gold justify-content-center w-100 w-lg-auto">
-                    Registrarse
-                </a>
-            </div>
-        </div>
-    </div>
-</header>
-
-<main>
+{% block content %}
     <!-- Hero Section -->
     <section id="inicio" class="hero-premium">
         <div class="hero-bg-text">LOGISTICS</div>
@@ -218,6 +152,18 @@
                             <div class="icon-box-premium m-0" style="width: 50px; height: 50px; font-size: 1.2rem;"><i class="bi bi-envelope"></i></div>
                             <span class="text-white-50">info@constru-trans.com</span>
                         </div>
+
+                        <div class="mt-5">
+                            <a href="https://wa.me/573001234567?text=%C2%A1Hola%21%20Estoy%20interesado%20en%20los%20servicios%20de%20log%C3%ADstica%20y%20transporte%20de%20Constru-trans.%20Me%20gustar%C3%ADa%20obtener%20m%C3%A1s%20informaci%C3%B3n." 
+                               class="btn text-white rounded-pill px-4 py-3 d-inline-flex align-items-center gap-2 shadow-lg border-0" 
+                               style="background-color: #25d366; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(37, 211, 102, 0.2) !important;"
+                               target="_blank" rel="noopener noreferrer"
+                               onmouseover="this.style.backgroundColor='#20ba5a'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 15px 30px rgba(37, 211, 102, 0.4)';"
+                               onmouseout="this.style.backgroundColor='#25d366'; this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 20px rgba(37, 211, 102, 0.2)';">
+                                <i class="bi bi-whatsapp fs-5"></i>
+                                Escríbenos por WhatsApp
+                            </a>
+                        </div>
                     </div>
                     <div class="col-lg-7 p-5 p-lg-10">
                         <form action="#" class="row g-4">
@@ -239,40 +185,4 @@
             </div>
         </div>
     </section>
-</main>
-
-<footer class="py-5" style="background: #050505; border-top: 1px solid var(--color-border);">
-    <div class="container text-center">
-        <div class="mb-4">
-            <img src="{% static 'img/Logo1.jpeg' %}" height="40" class="rounded-1 opacity-75">
-        </div>
-        <div class="d-flex justify-content-center gap-4 mb-4">
-            <a href="#" class="text-muted text-decoration-none hover-white"><i class="bi bi-facebook fs-5"></i></a>
-            <a href="#" class="text-muted text-decoration-none hover-white"><i class="bi bi-instagram fs-5"></i></a>
-            <a href="#" class="text-muted text-decoration-none hover-white"><i class="bi bi-linkedin fs-5"></i></a>
-        </div>
-        <p class="text-muted small">© 2026 CONSTRU-TRANS. LOGÍSTICA DE ÉLITE SIN FRONTERAS.</p>
-    </div>
-</footer>
-
-<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script src="{% static 'js/loader.js' %}"></script>
-<script>
-    AOS.init({
-        duration: 1200,
-        once: true,
-        easing: 'ease-out-cubic'
-    });
-
-    $(window).scroll(function() {
-        if ($(this).scrollTop() > 50) {
-            $('.navbar-premium').addClass('scrolled');
-        } else {
-            $('.navbar-premium').removeClass('scrolled');
-        }
-    });
-</script>
-</body>
-</html>
+{% endblock %}

@@ -140,7 +140,7 @@
 let totalGeneral = {% if action == 'editar' %}{{ orden.precio|default:0 }}{% else %}0{% endif %};
 
 function formatCurrency(value) {
-    let val = parseFloat(value) / 100;
+    let val = parseFloat(value);
     let formatted = val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     // Formato es-CO: . para miles, , para decimales
     let res = formatted.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');

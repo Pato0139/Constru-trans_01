@@ -160,17 +160,28 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Buttons Evolution */
 .btn-premium {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     padding: 18px 40px;
     border-radius: 100px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     font-size: 0.9rem;
+    line-height: 1;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
     z-index: 1;
     border: none;
+    text-decoration: none;
+}
+
+.navbar-premium .btn-premium {
+    padding: 12px 26px;
+    font-size: 0.8rem;
 }
 
 .btn-premium-gold {

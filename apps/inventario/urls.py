@@ -16,5 +16,11 @@ urlpatterns = [
     path("movimientos/", views.movimientos_lista, name="movimientos_lista"),
     path("entrada/", views.registrar_entrada, name="registrar_entrada"),
 
+    # Tipos de Material (Catálogo)
+    path("tipos/", views.tipos_material_lista, name="tipos_material_lista"),
+    path("tipos/crear/", views.crear_tipo_material, name="crear_tipo_material"),
+    path("tipos/editar/<str:codigo>/", views.editar_tipo_material, name="editar_tipo_material"),
+    path("tipos/eliminar/<str:codigo>/", views.eliminar_tipo_material, name="eliminar_tipo_material"),
+
     path("api/materiales/", views.api_materiales, name="api_materiales"),
 ]

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tipos de Material - ConstruTrans{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-0 text-white"><i class="bi bi-tags-fill text-accent me-2"></i>Tipos de Material</h2>
+        <div class="d-flex align-items-center gap-2 mt-1">
+            <p class="text-white-50 small mb-0">Gestión de categorías y catálogos de materiales</p>
+            <span class="badge rounded-pill px-3" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: 1px solid rgba(59, 130, 246, 0.2);">{{ tipos|length }} tipos</span>
+        </div>
+    </div>
+
+    <div class="w-100" style="max-width: 520px;">
+        <div class="d-flex flex-column gap-2" data-aos="fade-left">
+            <form action="{% url 'inventario:tipos_material_lista' %}" method="GET" class="d-flex flex-column gap-2">
+                <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm" style="background: var(--card-bg); border-color: var(--color-border) !important;">
+                    <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                        <i class="bi bi-search text-dark" style="font-size: 0.9rem;"></i>
+                    </div>
+                    <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
+                           placeholder="Buscar tipo o código..." value="{{ query|default:'' }}">
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2" style="border-color: var(--color-border); color: var(--color-text-muted);">
+                        <i class="bi bi-funnel"></i> Buscar
+                    </button>
+
+                    <a href="{% url 'inventario:crear_tipo_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg ms-2" 
+                            style="width: 42px; height: 42px; min-width: 42px; background: var(--color-accent); border: none; color: white;">
+                        <i class="bi bi-plus-lg fs-5"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);" data-aos="fade-up">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02);">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--color-border);">
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 150px;">Código</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Nombre del Tipo de Material</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 180px;">Materiales Asociados</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 150px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tipos %}
+                <tr style="border-bottom: 1px solid var(--color-border);">
+                    <td class="py-3 px-4 text-center fw-bold text-accent">{{ t.codigo_catalogo }}</td>
+                    <td class="py-3 px-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                {{ t.nombre_empresa|first|upper }}
+                            </div>
+                            <span class="fw-medium">{{ t.nombre_empresa }}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="badge rounded-pill px-3 bg-dark text-white-50 border border-white-10">
+                            {{ t.materiales.count }} productos
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{% url 'inventario:editar_tipo_material' t.codigo_catalogo %}" class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'inventario:eliminar_tipo_material' t.codigo_catalogo %}" class="btn btn-sm btn-outline-danger border-white-10 rounded-pill px-3 confirm-delete" data-title="¿Eliminar tipo de material?" data-text="¿Estás seguro de que deseas eliminar {{ t.nombre_empresa }}?">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-5">
+                        <div class="py-5">
+                            <i class="bi bi-tags text-muted mb-3 d-block" style="font-size: 3rem;"></i>
+                            <p class="text-muted fw-medium mb-0">No se encontraron tipos de material.</p>
+                            <small class="text-muted">Crea uno nuevo usando el botón superior.</small>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .text-accent { color: var(--color-accent) !important; }
+    .btn-premium:hover {
+        opacity: 0.9;
+        transform: scale(1.05);
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
