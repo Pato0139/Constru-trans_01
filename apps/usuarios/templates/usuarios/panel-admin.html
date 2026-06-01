@@ -103,22 +103,42 @@
                     <tr style="border-bottom: 1px solid var(--color-border);">
                         <td class="py-3 px-4 fw-bold">#{{ orden.id }}</td>
                         <td class="py-3 px-4">
+                            {% with comprador=orden.cliente_usuario %}
                             <div class="d-flex align-items-center gap-2">
-                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 30px; height: 30px; font-size: 0.7rem;">
-                                    {{ orden.cliente.nombres|first }}{{ orden.cliente.apellidos|first }}
+                                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+                                     style="width: 34px; height: 34px; font-size: 0.75rem; background: var(--color-primary); color: #fff; overflow: hidden;">
+                                    {% if comprador.foto_perfil %}
+                                        <img src="{{ comprador.foto_perfil.url }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% else %}
+                                        {{ comprador.iniciales }}
+                                    {% endif %}
                                 </div>
-                                <span style="color: var(--color-text);">{{ orden.cliente.nombres }} {{ orden.cliente.apellidos }}</span>
+                                <div class="min-w-0">
+                                    <p class="fw-semibold mb-0 text-truncate" style="color: var(--color-text);">
+                                        {{ comprador.nombres }} {{ comprador.apellidos }}
+                                    </p>
+                                    {% if orden.cliente and orden.cliente.nombre_empresa %}
+                                    <p class="text-muted small mb-0 text-truncate">{{ orden.cliente.nombre_empresa }}</p>
+                                    {% else %}
+                                    <p class="text-muted small mb-0 text-truncate">{{ comprador.email }}</p>
+                                    {% endif %}
+                                </div>
                             </div>
+                            {% endwith %}
                         </td>
-                        <td class="py-3 px-4 text-muted">{{ orden.fecha|date:"d/m/Y" }}</td>
-                        <td class="py-3 px-4 fw-bold">{{ orden.precio|currency }}</td>
+                        <td class="py-3 px-4 text-muted">{{ orden.fecha_solicitud|date:"d/m/Y" }}</td>
+                        <td class="py-3 px-4 fw-bold">{{ orden.precio|default:orden.total|currency }}</td>
                         <td class="py-3 px-4">
                             {% if orden.estado == 'pendiente' %}
                                 <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Pendiente</span>
+                            {% elif orden.estado == 'en_ruta' %}
+                                <span class="badge bg-info-subtle text-info rounded-pill px-3">En ruta</span>
                             {% elif orden.estado == 'entregado' %}
                                 <span class="badge bg-success-subtle text-success rounded-pill px-3">Entregado</span>
+                            {% elif orden.estado == 'cancelado' %}
+                                <span class="badge bg-danger-subtle text-danger rounded-pill px-3">Cancelado</span>
                             {% else %}
-                                <span class="badge bg-info-subtle text-info rounded-pill px-3">{{ orden.estado|title }}</span>
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3">{{ orden.get_estado_display }}</span>
                             {% endif %}
                         </td>
                         <td class="py-3 px-4 text-center">

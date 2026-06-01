@@ -1,7 +1,7 @@
 
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import F, Q
+from django.db.models import Count, F, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -254,7 +254,7 @@ def eliminar_material(request, id):
 @admin_required
 def tipos_material_lista(request):
     query = request.GET.get('q')
-    tipos = Catalogo.objects.all()
+    tipos = Catalogo.objects.annotate(num_materiales=Count('materiales'))
 
     if query:
         tipos = tipos.filter(
@@ -262,7 +262,7 @@ def tipos_material_lista(request):
             Q(nombre_empresa__icontains=query)
         )
 
-    tipos = tipos.order_by('nombre_empresa')
+    tipos = tipos.order_by('codigo_catalogo')
 
     return render(request, "inventario/tipos_lista.html", {
         "tipos": tipos,

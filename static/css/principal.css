@@ -1,12 +1,12 @@
 :root {
     --color-primary: #f2a21b;
     --color-secondary: #1d5fa7;
-    --color-accent: #1d5fa7;
+    --color-accent: #f2a21b;
     --color-dark: #000000;
     --color-surface: rgba(26, 26, 26, 0.7);
     --color-border: rgba(255, 255, 255, 0.1);
     --color-text: #ffffff;
-    --color-muted: #cbd5e1;
+    --color-muted: #e2e8f0;
     --color-bg: #000000;
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
@@ -31,6 +31,21 @@
 
 .text-white-50 {
     color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Botones secundarios visibles sobre fondo oscuro (Fase 8) */
+.btn-secondary-cta,
+.btn-outline-light {
+    border: 1px solid rgba(242, 162, 27, 0.55) !important;
+    color: #f8fafc !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.btn-secondary-cta:hover,
+.btn-outline-light:hover {
+    background: rgba(242, 162, 27, 0.15) !important;
+    border-color: var(--color-primary) !important;
+    color: #fff !important;
 }
 
 * {
