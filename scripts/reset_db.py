@@ -7,16 +7,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR))
 
 # --- CONFIGURACIÓN ---
-VENV_DIR = '.venv'
+IGNORE_DIRS = ['.venv', 'venv', 'env', '.git', '.idea', 'node_modules']
 DB_FILE = 'db.sqlite3'
 
-def buscar_archivos_migracion(base_path, ignore_dir):
+def buscar_archivos_migracion(base_path, ignore_dirs):
     """Busca recursivamente archivos de migración que no sean __init__.py"""
     migraciones = []
     for root, dirs, files in os.walk(base_path):
-        # Ignorar la carpeta del entorno virtual
-        if ignore_dir in dirs:
-            dirs.remove(ignore_dir)
+        # Ignorar carpetas no deseadas para no tocar paquetes instalados
+        for d in list(dirs):
+            if d in ignore_dirs:
+                dirs.remove(d)
 
         # Solo buscar dentro de carpetas 'migrations'
         if 'migrations' in root:
@@ -33,10 +34,10 @@ def limpiar_proyecto():
     print("  HERRAMIENTA DE RESETEO: MIGRACIONES Y BASE DE DATOS")
     print("="*60)
     print(f"[*] Trabajando en: {BASE_DIR}")
-    print(f"[*] Ignorando entorno virtual: '{VENV_DIR}'")
+    print(f"[*] Ignorando entornos virtuales y carpetas de control: {IGNORE_DIRS}")
 
     # 1. Identificar archivos
-    archivos_migracion = buscar_archivos_migracion(BASE_DIR, VENV_DIR)
+    archivos_migracion = buscar_archivos_migracion(BASE_DIR, IGNORE_DIRS)
     db_path = BASE_DIR / DB_FILE
     db_existe = db_path.exists()
 
