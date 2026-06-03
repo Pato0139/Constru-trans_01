@@ -28,11 +28,9 @@
                 <div class="d-flex gap-2">
                     <select name="tipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2" style="background: var(--card-bg); color: white; border-color: var(--color-border);" onchange="this.form.submit()">
                         <option value="">Todos los tipos</option>
-                        <option value="Cemento" {% if tipo_actual == 'Cemento' %}selected{% endif %}>Cemento</option>
-                        <option value="Arena" {% if tipo_actual == 'Arena' %}selected{% endif %}>Arena</option>
-                        <option value="Grava" {% if tipo_actual == 'Grava' %}selected{% endif %}>Grava</option>
-                        <option value="Ladrillo" {% if tipo_actual == 'Ladrillo' %}selected{% endif %}>Ladrillo</option>
-                        <option value="Herramientas" {% if tipo_actual == 'Herramientas' %}selected{% endif %}>Herramientas</option>
+                        {% for t in tipos %}
+                            <option value="{{ t.codigo_catalogo }}" {% if tipo_actual == t.codigo_catalogo %}selected{% endif %}>{{ t.nombre_empresa }}</option>
+                        {% endfor %}
                     </select>
                     
                     <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2" style="border-color: var(--color-border); color: var(--color-text-muted);">
@@ -89,10 +87,11 @@
                     </td>
                     <td class="py-3 px-4 text-center">
                         <div class="d-flex justify-content-center gap-2">
-                            <a href="{% url 'inventario:editar_material' m.id %}" class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3">
+                            <a href="{% url 'inventario:editar_material' m.id %}" class="btn-action" title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="{% url 'inventario:eliminar_material' m.id %}" class="btn btn-sm btn-outline-danger border-white-10 rounded-pill px-3 confirm-delete" data-title="¿Eliminar material?" data-text="¿Estás seguro de que deseas eliminar {{ m.nombre }}?">
+                            <a href="{% url 'inventario:eliminar_material' m.id %}" class="btn-action btn-action--danger confirm-delete" title="Eliminar"
+                               data-title="¿Eliminar material?" data-text="¿Estás seguro de que deseas eliminar {{ m.nombre }}?">
                                 <i class="bi bi-trash"></i>
                             </a>
                         </div>

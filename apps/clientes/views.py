@@ -11,9 +11,19 @@ from django.shortcuts import get_object_or_404, redirect, render
 from apps.ordenes.models import DetallePedido, Pedido
 from apps.usuarios.models import MaterialConstruccion as Material
 from apps.usuarios.models import Stock, Usuario
+from core.despacho import (
+    CIUDADES_DESPACHO,
+    ciudad_valida,
+    construir_direccion_destino,
+    separar_direccion_destino,
+)
 from core.utils import conexion_remota_disponible
 
 from .models import Cliente
+
+
+def _contexto_formulario_pedido(**extra):
+    return {"ciudades_despacho": CIUDADES_DESPACHO, **extra}
 
 
 def parse_fecha_entrega(value):
@@ -193,36 +203,51 @@ def crear_pedido(request):
     if request.method == "POST":
         materiales_ids = request.POST.getlist('material_id[]')
         cantidades = request.POST.getlist('cantidad[]')
-        direccion = request.POST.get("direccion")
+        ciudad = request.POST.get("ciudad", "").strip()
+        direccion_detalle = request.POST.get("direccion_detalle", "").strip()
+        direccion = construir_direccion_destino(ciudad, direccion_detalle)
         fecha_entrega_raw = request.POST.get("fecha_entrega")
         fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
 
         if fecha_entrega_raw and not fecha_entrega:
             messages.error(request, "Formato de fecha inválido. Usa DD/MM/YYYY HH:MM, DD-MM-YYYY HH:MM o 2026-12-31 15:30.")
-            return render(request, "clientes/form.html", {
-                "materiales": materiales,
-                "action": "crear",
-                "fecha_entrega": fecha_entrega_raw,
-                "direccion": direccion,
-            })
+            return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                materiales=materiales,
+                action="crear",
+                fecha_entrega=fecha_entrega_raw,
+                ciudad=ciudad,
+                direccion_detalle=direccion_detalle,
+            ))
 
-        if not materiales_ids or not direccion:
-            messages.error(request, "Por favor, agrega al menos un material y la dirección.")
-            return render(request, "clientes/form.html", {
-                "materiales": materiales,
-                "action": "crear",
-                "fecha_entrega": fecha_entrega_raw,
-                "direccion": direccion,
-            })
+        if not materiales_ids or not ciudad or not direccion_detalle:
+            messages.error(request, "Agrega materiales, selecciona la ciudad de destino e indica la dirección.")
+            return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                materiales=materiales,
+                action="crear",
+                fecha_entrega=fecha_entrega_raw,
+                ciudad=ciudad,
+                direccion_detalle=direccion_detalle,
+            ))
+
+        if not ciudad_valida(ciudad):
+            messages.error(request, "La ciudad seleccionada no está dentro de la zona de despacho autorizada.")
+            return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                materiales=materiales,
+                action="crear",
+                fecha_entrega=fecha_entrega_raw,
+                ciudad=ciudad,
+                direccion_detalle=direccion_detalle,
+            ))
 
         if len(materiales_ids) != len(cantidades):
             messages.error(request, "Error en los datos del formulario. Intenta nuevamente.")
-            return render(request, "clientes/form.html", {
-                "materiales": materiales,
-                "action": "crear",
-                "fecha_entrega": fecha_entrega_raw,
-                "direccion": direccion,
-            })
+            return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                materiales=materiales,
+                action="crear",
+                fecha_entrega=fecha_entrega_raw,
+                ciudad=ciudad,
+                direccion_detalle=direccion_detalle,
+            ))
 
         try:
             with transaction.atomic():
@@ -281,21 +306,21 @@ def crear_pedido(request):
 
         except ValueError as e:
             messages.error(request, str(e))
-            return render(request, "clientes/form.html", {
-                "materiales": materiales,
-                "action": "crear"
-            })
+            return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                materiales=materiales,
+                action="crear",
+            ))
         except Exception as e:
             messages.error(request, f"Error interno: {e}")
-            return render(request, "clientes/form.html", {
-                "materiales": materiales,
-                "action": "crear"
-            })
+            return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                materiales=materiales,
+                action="crear",
+            ))
 
-    return render(request, "clientes/form.html", {
-        "materiales": materiales,
-        "action": "crear"
-    })
+    return render(request, "clientes/form.html", _contexto_formulario_pedido(
+        materiales=materiales,
+        action="crear",
+    ))
 
 @login_required
 def editar_pedido(request, id):
@@ -317,31 +342,44 @@ def editar_pedido(request, id):
     if request.method == "POST":
         materiales_ids = request.POST.getlist('material_id[]')
         cantidades = request.POST.getlist('cantidad[]')
-        direccion = request.POST.get("direccion")
+        ciudad = request.POST.get("ciudad", "").strip()
+        direccion_detalle = request.POST.get("direccion_detalle", "").strip()
+        direccion = construir_direccion_destino(ciudad, direccion_detalle)
         fecha_entrega_raw = request.POST.get("fecha_entrega")
         fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
-        # Variable no utilizada actualmente (reservada para implementación futura)
-        # metodo_pago = request.POST.get("metodo_pago", "efectivo")
 
         if fecha_entrega_raw and not fecha_entrega:
             messages.error(request, "Formato de fecha inválido. Usa DD/MM/YYYY HH:MM, DD-MM-YYYY HH:MM o 2026-12-31 15:30.")
-            return render(request, "clientes/form.html", {
-                "orden": pedido,
-                "materiales": materiales,
-                "action": "editar",
-                "fecha_entrega": fecha_entrega_raw,
-                "direccion": direccion,
-            })
+            return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                orden=pedido,
+                materiales=materiales,
+                action="editar",
+                fecha_entrega=fecha_entrega_raw,
+                ciudad=ciudad,
+                direccion_detalle=direccion_detalle,
+            ))
 
-        if not materiales_ids or not direccion:
-            messages.error(request, "Datos incompletos.")
-            return render(request, "clientes/form.html", {
-                "orden": pedido,
-                "materiales": materiales,
-                "action": "editar",
-                "fecha_entrega": fecha_entrega_raw,
-                "direccion": direccion,
-            })
+        if not materiales_ids or not ciudad or not direccion_detalle:
+            messages.error(request, "Datos incompletos: materiales, ciudad y dirección son obligatorios.")
+            return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                orden=pedido,
+                materiales=materiales,
+                action="editar",
+                fecha_entrega=fecha_entrega_raw,
+                ciudad=ciudad,
+                direccion_detalle=direccion_detalle,
+            ))
+
+        if not ciudad_valida(ciudad):
+            messages.error(request, "La ciudad seleccionada no está dentro de la zona de despacho autorizada.")
+            return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                orden=pedido,
+                materiales=materiales,
+                action="editar",
+                fecha_entrega=fecha_entrega_raw,
+                ciudad=ciudad,
+                direccion_detalle=direccion_detalle,
+            ))
 
         try:
             with transaction.atomic():
@@ -394,11 +432,14 @@ def editar_pedido(request, id):
         except Exception as e:
             messages.error(request, f"Error al actualizar el pedido: {e}")
 
-    return render(request, "clientes/form.html", {
-        "orden": pedido,
-        "materiales": materiales,
-        "action": "editar"
-    })
+    ciudad_ini, detalle_ini = separar_direccion_destino(pedido.direccion_destino)
+    return render(request, "clientes/form.html", _contexto_formulario_pedido(
+        orden=pedido,
+        materiales=materiales,
+        action="editar",
+        ciudad=ciudad_ini,
+        direccion_detalle=detalle_ini,
+    ))
 
 @login_required
 def cancelar_pedido(request, id):

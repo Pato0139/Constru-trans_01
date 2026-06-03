@@ -1,5 +1,5 @@
 
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.db import models
 
 from apps.usuarios.models import MaterialConstruccion
@@ -25,7 +25,7 @@ class MovimientoInventario(models.Model):
     observacion = models.TextField(blank=True)
 
     # Fuera del MER pero útil — NO se toca
-    usuario = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
