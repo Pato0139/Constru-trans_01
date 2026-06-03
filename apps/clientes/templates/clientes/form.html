@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load currency_tags %}
+{% load l10n %}
 
 {% block title %}
     {% if action == 'crear' %}Solicitar Pedido{% else %}Editar Pedido{% endif %} - Constru-trans
@@ -43,7 +44,7 @@
                             <select id="select-material" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;">
                                 <option value="" data-precio="0">Seleccione un material...</option>
                                 {% for m in materiales %}
-                                    <option value="{{ m.id }}" data-precio="{{ m.precio_referencia }}">{{ m.nombre }} - {{ m.precio_referencia|currency }}</option>
+                                    <option value="{{ m.id }}" data-precio="{{ m.precio_referencia|unlocalize }}">{{ m.nombre }} - {{ m.precio_referencia|currency }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -82,7 +83,7 @@
                                         </td>
                                         <td class="text-end text-accent fw-800 py-3">{{ detalle.subtotal|currency }}</td>
                                         <td class="text-end pe-0 py-3">
-                                            <button type="button" class="btn btn-link text-danger p-0" onclick="eliminarFila(this, {{ detalle.subtotal }})">
+                                            <button type="button" class="btn btn-link text-danger p-0" onclick="eliminarFila(this, {{ detalle.subtotal|unlocalize }})">
                                                 <i class="bi bi-trash3-fill"></i>
                                             </button>
                                         </td>
@@ -150,7 +151,7 @@
 </div>
 
 <script>
-let totalGeneral = {% if action == 'editar' %}{{ orden.precio|default:0 }}{% else %}0{% endif %};
+let totalGeneral = {% if action == 'editar' %}{{ orden.precio|default:0|unlocalize }}{% else %}0{% endif %};
 
 function formatCurrency(value) {
     let val = parseFloat(value);
