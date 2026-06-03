@@ -8,7 +8,7 @@
             class="bd-mode-switch {% if bd_usando_remota %}is-remote{% else %}is-local{% endif %}"
             aria-label="Cambiar base de datos. Actualmente {{ bd_etiqueta }}"
             title="{% if bd_usando_remota %}Conectado a Neon. Clic para usar base local.{% else %}Usando SQLite local. Clic para usar Neon.{% endif %}"
-            onclick="return confirm('Al cambiar de base de datos cerrarás sesión y deberás volver a iniciar sesión. ¿Continuar?');"
+            onclick="event.preventDefault(); Swal.fire({title: '¿Cambiar de Base de Datos?', text: 'Al hacer esto cerrarás sesión y deberás volver a iniciar sesión. ¿Deseas continuar?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'Sí, continuar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
             {% if bd_siguiente_modo == 'remota' and not bd_remota_disponible %}disabled{% endif %}
         >
             {% if bd_toggle_layout == 'sidebar' or bd_toggle_layout == 'login' %}
