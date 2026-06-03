@@ -49,7 +49,11 @@ class LoginForm(forms.Form):
     username = forms.CharField(label="Usuario o Correo", widget=forms.TextInput(attrs={'class': 'input-custom', 'placeholder': 'Usuario o Correo'}))
     password = forms.CharField(label="Contraseña", widget=forms.PasswordInput(attrs={'class': 'input-custom', 'placeholder': 'Contraseña', 'id': 'password'}))
     remember_me = forms.BooleanField(label="Recuérdame en este dispositivo", required=False, initial=False)
-    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox())
+    captcha = forms.BooleanField(
+        label="No soy un robot",
+        required=True,
+        error_messages={'required': 'Por favor confirme que no es un robot.'}
+    )
 
 
 class RegistroForm(forms.ModelForm):
