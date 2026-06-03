@@ -38,7 +38,8 @@ class Cliente(models.Model):
 def crear_perfil_cliente(sender, instance, created, **kwargs):
     """Auto-crea perfil Cliente si el usuario tiene rol 'cliente'."""
     if created and instance.rol == 'cliente':
-        Cliente.objects.get_or_create(
+        using = kwargs.get('using') or instance._state.db or 'default'
+        Cliente.objects.using(using).get_or_create(
             usuario=instance,
-            defaults={'direccion_principal': 'Por definir'}
+            defaults={'direccion_principal': 'Por definir'},
         )

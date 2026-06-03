@@ -6,7 +6,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="shortcut icon" href="{% static 'img/Logo1.jpeg' %}" type="image/x-icon">
+<link rel="shortcut icon" href="{% static 'img/icon.png' %}" type="image/x-icon">
 
 <title>{% block title %}Panel Cliente{% endblock %}</title>
 
@@ -156,30 +156,14 @@
     [data-daltonism="none"] {
         filter: none;
     }
+
+    [data-font-size="small"] body, [data-font-size="small"] { font-size: 0.875rem !important; }
+    [data-font-size="normal"] body, [data-font-size="normal"] { font-size: 1rem !important; }
+    [data-font-size="large"] body, [data-font-size="large"] { font-size: 1.125rem !important; }
+    [data-font-size="xlarge"] body, [data-font-size="xlarge"] { font-size: 1.25rem !important; }
 </style>
 
-<script>
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    const savedDaltonism = localStorage.getItem('daltonism') || 'none';
-    
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    document.documentElement.setAttribute('data-daltonism', savedDaltonism);
-    document.documentElement.style.filter = '';
-
-    function setTheme(theme) {
-        const html = document.documentElement;
-        html.setAttribute('data-theme', theme);
-        html.style.filter = '';
-        localStorage.setItem('theme', theme);
-    }
-
-    function setDaltonism(mode) {
-        const html = document.documentElement;
-        html.style.filter = '';
-        html.setAttribute('data-daltonism', mode);
-        localStorage.setItem('daltonism', mode);
-    }
-</script>
+<script src="{% static 'js/user-preferences.js' %}?v=1.0"></script>
 
 </head>
 
@@ -197,11 +181,11 @@
 <div class="container-fluid p-0">
 <div class="d-flex">
 
-{% include "sidebar.html" %}
+{% include "partials/sidebar.html" %}
 
 <main class="flex-grow-1 p-3 overflow-auto" style="min-height: 100vh;">
 
-{% include "navbar.html" %}
+{% include "partials/navbar.html" %}
 
 {% block content %}
 {% endblock %}
@@ -231,11 +215,10 @@ $.fn.dataTable.ext.errMode = 'throw';
 $(document).ready(function() {
     $('.table:not(.no-datatable)').DataTable({
         "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json",
             "search": "Buscar:",
             "lengthMenu": "Mostrar _MENU_ registros por página",
             "zeroRecords": "No se encontraron resultados",
-            "info": "Mostrando página _PAGE_ de _PAGES_",
+            "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
             "infoEmpty": "No hay registros disponibles",
             "infoFiltered": "(filtrado de _MAX_ registros totales)",
             "paginate": {

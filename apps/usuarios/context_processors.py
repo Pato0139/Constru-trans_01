@@ -1,6 +1,8 @@
+from django.conf import settings
 from django.core.cache import cache
 
 from apps.usuarios.models import Notificacion
+from core.db_preference import PREF_AUTO, debe_usar_bd_remota
 from core.utils import conexion_remota_disponible
 
 
@@ -51,10 +53,35 @@ def notificaciones_context(request):
 
 
 def modo_context(request):
-    """Agrega modo_local y modo_invitado al contexto de todas las plantillas."""
-    modo_local = not conexion_remota_disponible()
-    modo_invitado = modo_local and (not request.user.is_authenticated or not hasattr(request.user, 'usuario'))
+    """Estado de BD local/remota y preferencia de sesión para la UI."""
+    remota_configurada = 'remota' in settings.DATABASES
+    remota_disponible = remota_configurada and conexion_remota_disponible()
+    usando_remota = debe_usar_bd_remota()
+    preferencia = request.session.get('bd_preferida', PREF_AUTO)
+
+    if usando_remota:
+        bd_etiqueta = 'Remoto (Neon)'
+        bd_icono = 'bi-cloud-check-fill'
+        bd_siguiente = 'local'
+    else:
+        bd_etiqueta = 'Local (SQLite)'
+        bd_icono = 'bi-hdd-network-fill'
+        bd_siguiente = 'remota'
+
+    modo_local = not usando_remota
+    modo_invitado = modo_local and (
+        not request.user.is_authenticated or not hasattr(request.user, 'usuario')
+    )
+
     return {
         'modo_local': modo_local,
         'modo_invitado': modo_invitado,
+        'bd_preferida': preferencia,
+        'bd_usando_remota': usando_remota,
+        'bd_remota_configurada': remota_configurada,
+        'bd_remota_disponible': remota_disponible,
+        'bd_etiqueta': bd_etiqueta,
+        'bd_icono': bd_icono,
+        'bd_siguiente_modo': bd_siguiente,
+        'bd_puede_cambiar_a_remoto': remota_configurada,
     }

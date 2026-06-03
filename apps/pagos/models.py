@@ -1,4 +1,5 @@
 
+from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -18,7 +19,7 @@ class Pago(models.Model):
 
     # Fuera del MER pero útil — NO se toca
     referencia = models.CharField(max_length=100, blank=True)
-    registrado_por = models.ForeignKey('auth.User', null=True, on_delete=models.SET_NULL)
+    registrado_por = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
     sincronizado = models.BooleanField(default=False)
 
     class Meta:

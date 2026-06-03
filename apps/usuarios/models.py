@@ -1,5 +1,5 @@
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 
@@ -14,9 +14,7 @@ numeric_and_space_validator = RegexValidator(
 # USUARIO  (MER: #id_usuario *nombres *apellidos *telefono *documento *contraseña)
 # Un usuario tiene UN solo rol (VARCHAR).
 # =====================================================================
-class Usuario(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="usuario")
-
+class Usuario(AbstractUser):
     TIPOS_DOCUMENTO = [
         ('CC', 'Cédula de Ciudadanía'),
         ('CE', 'Cédula de Extranjería'),
@@ -60,7 +58,15 @@ class Usuario(models.Model):
 
     @property
     def contraseña(self):
-        return self.user.password
+        return self.password
+
+    @property
+    def usuario(self):
+        return self
+
+    @property
+    def user(self):
+        return self
 
     @property
     def iniciales(self):

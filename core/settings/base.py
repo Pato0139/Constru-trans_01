@@ -67,6 +67,7 @@ THIRD_PARTY_APPS = [
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
     'simple_history',
+    'django_recaptcha',
 ]
 
 LOCAL_APPS = [
@@ -95,6 +96,7 @@ MIDDLEWARE = [
     'django.middleware.gzip.GZipMiddleware',
     'django.middleware.http.ConditionalGetMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'core.middleware.DatabasePreferenceMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -308,3 +310,17 @@ LOGGING = {
         },
     },
 }
+
+# Custom User Model
+AUTH_USER_MODEL = 'usuarios.Usuario'
+
+# Solucion permanente al problema de trailing slashes en urls
+APPEND_SLASH = False
+
+# ============================================================
+# RECAPTCHA
+# ============================================================
+# Usando claves de prueba de Google (siempre pasan la validación en local)
+RECAPTCHA_PUBLIC_KEY = env('RECAPTCHA_PUBLIC_KEY', default='6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')
+RECAPTCHA_PRIVATE_KEY = env('RECAPTCHA_PRIVATE_KEY', default='6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe')
+SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']

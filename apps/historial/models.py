@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.db import models
 
 
@@ -12,7 +12,7 @@ class Historial(models.Model):
         ('otro', 'Otro'),
     ]
 
-    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Usuario")
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Usuario")
     accion = models.CharField(max_length=20, choices=ACCIONES, verbose_name="Acción")
     modulo = models.CharField(max_length=50, verbose_name="Módulo/Elemento")
     elemento_id = models.CharField(max_length=50, blank=True, null=True, verbose_name="ID del Elemento")

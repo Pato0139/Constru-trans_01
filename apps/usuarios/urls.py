@@ -36,6 +36,7 @@ urlpatterns = [
 
     # Configuraciones
     path("configuraciones/", views.configuraciones_usuario, name="configuraciones"),
+    path("bd/cambiar/", views.cambiar_modo_bd, name="cambiar_modo_bd"),
 
     # recuperar contraseña
     path(

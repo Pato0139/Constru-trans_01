@@ -10,7 +10,8 @@
             <div class="table-container p-4 rounded-4 shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold m-0" style="color: var(--color-text);">
-                        <i class="bi bi-gear-fill text-accent me-2"></i> Configuraciones Avanzadas
+                        <i class="bi bi-gear-fill text-accent me-2"></i>
+                        <span data-i18n="settings.title">Configuraciones Avanzadas</span>
                     </h5>
                 </div>
 
@@ -18,20 +19,21 @@
                     <div class="col-lg-6">
                         <div class="p-4 rounded-3" style="background: var(--item-bg);">
                             <h6 class="fw-bold mb-3" style="color: var(--color-text);">
-                                <i class="bi bi-fonts me-2"></i> Tamaño de Fuente
+                                <i class="bi bi-fonts me-2"></i>
+                                <span data-i18n="settings.font">Tamaño de Fuente</span>
                             </h6>
                             <div class="d-flex gap-3 flex-wrap">
-                                <button class="btn btn-outline-secondary rounded-pill px-4 font-size-btn" data-size="small">
-                                    Pequeña
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 font-size-btn" data-size="small">
+                                    <span data-i18n="settings.font.small">Pequeña</span>
                                 </button>
-                                <button class="btn btn-outline-secondary rounded-pill px-4 font-size-btn active" data-size="normal">
-                                    Normal
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 font-size-btn" data-size="normal">
+                                    <span data-i18n="settings.font.normal">Normal</span>
                                 </button>
-                                <button class="btn btn-outline-secondary rounded-pill px-4 font-size-btn" data-size="large">
-                                    Grande
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 font-size-btn" data-size="large">
+                                    <span data-i18n="settings.font.large">Grande</span>
                                 </button>
-                                <button class="btn btn-outline-secondary rounded-pill px-4 font-size-btn" data-size="xlarge">
-                                    Extra Grande
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 font-size-btn" data-size="xlarge">
+                                    <span data-i18n="settings.font.xlarge">Extra Grande</span>
                                 </button>
                             </div>
                         </div>
@@ -40,14 +42,15 @@
                     <div class="col-lg-6">
                         <div class="p-4 rounded-3" style="background: var(--item-bg);">
                             <h6 class="fw-bold mb-3" style="color: var(--color-text);">
-                                <i class="bi bi-translate me-2"></i> Idioma
+                                <i class="bi bi-translate me-2"></i>
+                                <span data-i18n="settings.lang">Idioma</span>
                             </h6>
                             <div class="d-flex gap-3 flex-wrap">
-                                <button class="btn btn-outline-secondary rounded-pill px-4 language-btn active" data-lang="es">
-                                    Español
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 language-btn" data-lang="es">
+                                    <span data-i18n="settings.lang.es">Español</span>
                                 </button>
-                                <button class="btn btn-outline-secondary rounded-pill px-4 language-btn" data-lang="en">
-                                    English
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 language-btn" data-lang="en">
+                                    <span data-i18n="settings.lang.en">English</span>
                                 </button>
                             </div>
                         </div>
@@ -56,17 +59,21 @@
                     <div class="col-lg-6">
                         <div class="p-4 rounded-3" style="background: var(--item-bg);">
                             <h6 class="fw-bold mb-3" style="color: var(--color-text);">
-                                <i class="bi bi-palette me-2"></i> Tema Visual
+                                <i class="bi bi-palette me-2"></i>
+                                <span data-i18n="settings.theme">Tema Visual</span>
                             </h6>
                             <div class="d-flex gap-3 flex-wrap">
-                                <button class="btn btn-outline-secondary rounded-pill px-4 theme-btn" data-theme="dark" onclick="setTheme('dark')">
-                                    <i class="bi bi-moon-stars me-2"></i> Oscuro
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 theme-btn" data-theme="dark">
+                                    <i class="bi bi-moon-stars me-2"></i>
+                                    <span data-i18n="settings.theme.dark">Oscuro</span>
                                 </button>
-                                <button class="btn btn-outline-secondary rounded-pill px-4 theme-btn" data-theme="light" onclick="setTheme('light')">
-                                    <i class="bi bi-sun me-2"></i> Claro
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 theme-btn" data-theme="light">
+                                    <i class="bi bi-sun me-2"></i>
+                                    <span data-i18n="settings.theme.light">Claro</span>
                                 </button>
-                                <button class="btn btn-outline-secondary rounded-pill px-4 theme-btn" data-theme="accessibility" onclick="setTheme('accessibility')">
-                                    <i class="bi bi-contrast me-2"></i> Alto Contraste
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 theme-btn" data-theme="accessibility">
+                                    <i class="bi bi-contrast me-2"></i>
+                                    <span data-i18n="settings.theme.a11y">Alto Contraste</span>
                                 </button>
                             </div>
                         </div>
@@ -75,22 +82,23 @@
                     <div class="col-lg-6">
                         <div class="p-4 rounded-3" style="background: var(--item-bg);">
                             <h6 class="fw-bold mb-3" style="color: var(--color-text);">
-                                <i class="bi bi-eye-fill me-2"></i> Filtros para Daltonismo
+                                <i class="bi bi-eye-fill me-2"></i>
+                                <span data-i18n="settings.daltonism">Filtros para Daltonismo</span>
                             </h6>
                             <div class="d-flex gap-3 flex-wrap">
-                                <button class="btn btn-outline-secondary rounded-pill px-4 daltonism-btn active" data-daltonism="none" onclick="setDaltonism('none')">
-                                    Normal
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 daltonism-btn" data-daltonism="none">
+                                    <span data-i18n="settings.daltonism.none">Normal</span>
                                 </button>
-                                <button class="btn btn-outline-secondary rounded-pill px-4 daltonism-btn" data-daltonism="protanopia" onclick="setDaltonism('protanopia')">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 daltonism-btn" data-daltonism="protanopia">
                                     Protanopia
                                 </button>
-                                <button class="btn btn-outline-secondary rounded-pill px-4 daltonism-btn" data-daltonism="deuteranopia" onclick="setDaltonism('deuteranopia')">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 daltonism-btn" data-daltonism="deuteranopia">
                                     Deuteranopia
                                 </button>
-                                <button class="btn btn-outline-secondary rounded-pill px-4 daltonism-btn" data-daltonism="tritanopia" onclick="setDaltonism('tritanopia')">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 daltonism-btn" data-daltonism="tritanopia">
                                     Tritanopia
                                 </button>
-                                <button class="btn btn-outline-secondary rounded-pill px-4 daltonism-btn" data-daltonism="achromatopsia" onclick="setDaltonism('achromatopsia')">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 daltonism-btn" data-daltonism="achromatopsia">
                                     Achromatopsia
                                 </button>
                             </div>
@@ -100,25 +108,27 @@
                     <div class="col-12">
                         <div class="p-4 rounded-3" style="background: var(--item-bg);">
                             <h6 class="fw-bold mb-3" style="color: var(--color-text);">
-                                <i class="bi bi-person-badge me-2"></i> Información de Perfil
+                                <i class="bi bi-person-badge me-2"></i>
+                                <span data-i18n="settings.profile">Información de Perfil</span>
                             </h6>
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <label class="text-muted small fw-bold">Nombre</label>
+                                    <label class="text-muted small fw-bold" data-i18n="settings.profile.name">Nombre</label>
                                     <p class="mb-0" style="color: var(--color-text);">{{ usuario.nombres }} {{ usuario.apellidos }}</p>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="text-muted small fw-bold">Rol</label>
+                                    <label class="text-muted small fw-bold" data-i18n="settings.profile.role">Rol</label>
                                     <p class="mb-0" style="color: var(--color-text);">{{ usuario.get_rol_display }}</p>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="text-muted small fw-bold">Documento</label>
+                                    <label class="text-muted small fw-bold" data-i18n="settings.profile.doc">Documento</label>
                                     <p class="mb-0" style="color: var(--color-text);">{{ usuario.get_tipo_documento_display }} {{ usuario.documento }}</p>
                                 </div>
                             </div>
                             <div class="mt-3">
                                 <a href="{% url 'usuarios:editar_perfil' %}" class="btn btn-premium d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-sm" style="background: var(--color-primary); color: white; border: none;">
-                                    <i class="bi bi-pencil-square"></i> Editar Perfil
+                                    <i class="bi bi-pencil-square"></i>
+                                    <span data-i18n="settings.profile.edit">Editar Perfil</span>
                                 </a>
                             </div>
                         </div>
@@ -143,91 +153,5 @@
         color: white !important;
         border-color: var(--color-primary) !important;
     }
-    [data-font-size="small"] { font-size: 0.875rem !important; }
-    [data-font-size="normal"] { font-size: 1rem !important; }
-    [data-font-size="large"] { font-size: 1.125rem !important; }
-    [data-font-size="xlarge"] { font-size: 1.25rem !important; }
 </style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const savedFontSize = localStorage.getItem('fontSize') || 'normal';
-    const savedLanguage = localStorage.getItem('language') || 'es';
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    const savedDaltonism = localStorage.getItem('daltonism') || 'none';
-
-    document.documentElement.setAttribute('data-font-size', savedFontSize);
-
-    document.querySelectorAll('.font-size-btn').forEach(btn => {
-        if (btn.dataset.size === savedFontSize) {
-            btn.classList.add('active');
-        }
-        btn.addEventListener('click', function() {
-            const size = this.dataset.size;
-            localStorage.setItem('fontSize', size);
-            document.documentElement.setAttribute('data-font-size', size);
-            
-            document.querySelectorAll('.font-size-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            Swal.fire({
-                icon: 'success',
-                title: '¡Listo!',
-                text: 'Tamaño de fuente actualizado',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2000,
-                background: '#1a1a1a',
-                color: '#ffffff'
-            });
-        });
-    });
-
-    document.querySelectorAll('.language-btn').forEach(btn => {
-        if (btn.dataset.lang === savedLanguage) {
-            btn.classList.add('active');
-        }
-        btn.addEventListener('click', function() {
-            const lang = this.dataset.lang;
-            localStorage.setItem('language', lang);
-            
-            document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            Swal.fire({
-                icon: 'info',
-                title: 'Idioma seleccionado',
-                text: 'Esta opción estará disponible próximamente',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2000,
-                background: '#1a1a1a',
-                color: '#ffffff'
-            });
-        });
-    });
-
-    document.querySelectorAll('.theme-btn').forEach(btn => {
-        if (btn.dataset.theme === savedTheme) {
-            btn.classList.add('active');
-        }
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-
-    document.querySelectorAll('.daltonism-btn').forEach(btn => {
-        if (btn.dataset.daltonism === savedDaltonism) {
-            btn.classList.add('active');
-        }
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.daltonism-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-});
-</script>
 {% endblock %}

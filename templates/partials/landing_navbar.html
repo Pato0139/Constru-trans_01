@@ -1,0 +1,33 @@
+{% load static %}
+<header class="navbar-premium fixed-top w-100 z-3">
+    <div class="container d-flex justify-content-between align-items-center">
+        <a class="navbar-brand d-flex align-items-center m-0" href="{% url 'inicio:inicio' %}">
+            <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo" height="50" class="rounded-3 me-3 shadow-lg">
+            <span class="fs-4 fw-bold text-white d-none d-md-inline" style="font-family: 'Montserrat', sans-serif; letter-spacing: -1.5px;">
+                CONSTRU<span style="color: var(--color-primary);">TRANS</span>
+            </span>
+        </a>
+
+        <button class="navbar-toggler d-lg-none ms-auto border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPremiumContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse d-lg-flex align-items-center justify-content-end flex-column flex-lg-row gap-lg-5 gap-3" id="navbarPremiumContent">
+            <nav class="d-flex flex-column flex-lg-row gap-4 w-100 w-lg-auto me-lg-4 ps-4">
+                <a href="#inicio" class="nav-link-premium">Inicio</a>
+                <a href="#nosotros" class="nav-link-premium">Nosotros</a>
+                <a href="#servicios" class="nav-link-premium">Servicios</a>
+                <a href="#contacto" class="nav-link-premium">Contacto</a>
+            </nav>
+
+            <div class="d-flex flex-column flex-lg-row gap-3 w-100 w-lg-auto">
+                <a href="{% url 'usuarios:login' %}" class="btn-premium btn-premium-outline justify-content-center w-100 w-lg-auto">
+                    Iniciar Sesión
+                </a>
+                <a href="{% url 'usuarios:registro' %}" class="btn-premium btn-premium-gold justify-content-center w-100 w-lg-auto">
+                    Registrarse
+                </a>
+            </div>
+        </div>
+    </div>
+</header>

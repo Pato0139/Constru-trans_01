@@ -3,19 +3,25 @@ from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.views.decorators.http import require_POST
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from django.contrib.auth.views import PasswordResetView
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 
 from apps.historial.utils import registrar_actividad
 from apps.ordenes.models import Pedido
+from core.db_preference import PREF_AUTO, PREF_LOCAL, PREF_REMOTA, invalidate_connection_cache
 from core.utils import conexion_remota_disponible
+from core.sync import sync_all_usuarios
 
 from .forms import LoginForm, RegistroForm
 from .models import (
@@ -56,11 +62,11 @@ def buscar_usuarios_generales(query=None):
     Lógica unificada para buscar usuarios por nombre, email o documento.
     Optimizado con select_related para evitar N+1 en plantillas.
     """
-    usuarios = Usuario.objects.all().select_related('user', 'perfil_cliente').order_by('-id')
+    usuarios = Usuario.objects.all().select_related('perfil_cliente').order_by('-id')
     if query:
         usuarios = usuarios.filter(
             Q(nombres__icontains=query) |
-            Q(user__email__icontains=query) |
+            Q(email__icontains=query) |
             Q(documento__icontains=query)
         )
     return usuarios
@@ -70,16 +76,17 @@ def buscar_conductores(query=None):
     Lógica unificada para buscar conductores por múltiples campos.
     Optimizado con select_related para evitar N+1.
     """
-    conductores = Usuario.objects.filter(rol="conductor").select_related('user')
+    conductores = Usuario.objects.filter(rol="conductor")
     if query:
         conductores = conductores.filter(
             Q(nombres__icontains=query) |
             Q(apellidos__icontains=query) |
-            Q(user__email__icontains=query) |
+            Q(email__icontains=query) |
             Q(documento__icontains=query) |
             Q(telefono__icontains=query)
         )
     return conductores
+
 
 
 # ---------------- REGISTRO ----------------
@@ -92,53 +99,40 @@ def registro(request):
                 email = form.cleaned_data.get("correo")
                 password = form.cleaned_data.get("contrasena")
 
-                try:
-                    user = User.objects.create_user(
-                        username=email,
-                        email=email,
-                        password=password
-                    )
-                except Exception as e:
-                    # Si hay error de ID duplicado, es un problema de secuencias en Postgres
-                    if "duplicate key" in str(e).lower() and "auth_user_pkey" in str(e).lower() and conexion_remota_disponible():
-                        # Intentamos una reparación rápida de secuencias y reintentamos una vez
-                        from django.db import connections
-                        with connections['remota'].cursor() as cursor:
-                            cursor.execute("SELECT setval('auth_user_id_seq', (SELECT MAX(id) FROM auth_user));")
+                with transaction.atomic():
+                    try:
+                        user = form.save(commit=False)
+                        user.username = email
+                        user.email = email
+                        user.set_password(password)
+                        user.rol = "cliente"
+                        user.sincronizado = False
+                        user.estado = "activo"
+                        user.save()
+                    except Exception as e:
+                        # Si hay error de ID duplicado, es un problema de secuencias en Postgres
+                        if "duplicate key" in str(e).lower() and conexion_remota_disponible():
+                            from django.db import connections
+                            try:
+                                with connections['remota'].cursor() as cursor:
+                                    cursor.execute("SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));")
+                            except Exception:
+                                pass
 
-                        # Reintento tras reparar secuencia
-                        user = User.objects.create_user(
-                            username=email,
-                            email=email,
-                            password=password
-                        )
-                    else:
-                        raise e
+                            # Reintento tras reparar secuencia
+                            user = form.save(commit=False)
+                            user.username = email
+                            user.email = email
+                            user.set_password(password)
+                            user.rol = "cliente"
+                            user.sincronizado = False
+                            user.estado = "activo"
+                            user.save()
+                        else:
+                            raise e
 
-                # El formulario ModelForm puede guardar el objeto Usuario directamente
-                perfil = form.save(commit=False)
-                perfil.user = user
-                perfil.rol = "cliente"
-                perfil.sincronizado = False
+                    registrar_actividad(request, 'crear', 'usuarios', user.id, f"Nuevo registro: {email}")
 
-                try:
-                    perfil.save()
-                except Exception as e_perfil:
-                    # Si falla el perfil por ID duplicado (usuarios_usuario_pkey)
-                    if "duplicate key" in str(e_perfil).lower() and conexion_remota_disponible():
-                        from django.db import connections
-                        # Intentamos reparar secuencias de forma robusta
-                        try:
-                            with connections['remota'].cursor() as cursor:
-                                # Usamos pg_get_serial_sequence para no depender del nombre exacto de la secuencia
-                                cursor.execute("SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));")
-                        except Exception:
-                            pass
-                        perfil.save()
-                    else:
-                        raise e_perfil
-
-                registrar_actividad(request, 'crear', 'usuarios', user.id, f"Nuevo registro: {email}")
                 messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
                 return redirect("usuarios:login")
 
@@ -160,6 +154,13 @@ def registro(request):
 
 # ---------------- LOGIN ----------------
 def login_usuario(request):
+    # Sincronización offline si hay internet
+    if conexion_remota_disponible():
+        try:
+            sync_all_usuarios()
+        except Exception as e:
+            logger.error(f"Error sincronizando en login: {e}")
+
     # Verificación de conexión a la nube para informar al usuario
     modo_local = not conexion_remota_disponible()
 
@@ -179,127 +180,59 @@ def login_usuario(request):
                     user = None
 
             if user is not None:
-                # IMPORTANTE: Antes de loguear, verificamos si el perfil existe en la BD actual
-                # (Para evitar IntegrityError si la sesión intenta usar un perfil que no existe localmente)
-                perfil = Usuario.objects.filter(user=user).first()
-
-                if not perfil and not user.is_superuser:
-                    # Si no hay perfil, intentamos descargarlo de la nube si hay conexión
-                    if conexion_remota_disponible():
-                        try:
+                # Aseguramos que si es cliente, tenga su perfil de cliente
+                if user.rol == 'cliente':
+                    from apps.clientes.models import Cliente
+                    try:
+                        Cliente.objects.get_or_create(usuario=user)
+                    except Exception as e_c:
+                        if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
                             from django.db import connections
-                            connections['remota'].ensure_connection()
-                            perfil_remoto = Usuario.objects.using('remota').filter(user_id=user.id).first()
-                            if perfil_remoto:
-                                perfil = Usuario.objects.create(
-                                    id=perfil_remoto.id,
-                                    user=user,
-                                    nombres=perfil_remoto.nombres,
-                                    apellidos=perfil_remoto.apellidos,
-                                    rol=perfil_remoto.rol,
-                                    telefono=perfil_remoto.telefono,
-                                    tipo_documento=perfil_remoto.tipo_documento,
-                                    documento=perfil_remoto.documento,
-                                    estado=perfil_remoto.estado,
-                                    sincronizado=True
-                                )
-                        except Exception:
-                            pass
-
-                if not perfil:
-                    perfil = Usuario.objects.filter(user=user).first()
-
-                if not perfil:
-                    # REPARACIÓN DE EMERGENCIA: Si el usuario existe pero no tiene perfil, lo creamos
-                    try:
-                        perfil = Usuario.objects.create(
-                            user=user,
-                            nombres=user.first_name or user.username.split('@')[0],
-                            apellidos=user.last_name or "Usuario",
-                            rol="cliente",
-                            tipo_documento="CC",
-                            documento="00000000",
-                            estado="activo",
-                            sincronizado=False
-                        )
-                        # Aseguramos que si es cliente, tenga su perfil de cliente
-                        if perfil.rol == 'cliente':
-                            from apps.clientes.models import Cliente
                             try:
-                                Cliente.objects.get_or_create(usuario=perfil)
-                            except Exception as e_c:
-                                if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
-                                    from django.db import connections
-                                    with connections['remota'].cursor() as cursor:
-                                        cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
-                                    Cliente.objects.get_or_create(usuario=perfil)
-                                else:
-                                    raise e_c
-                    except Exception:
-                        # Si falla por ID duplicado, usamos la lógica de reparación de secuencias
-                        from django.db import connections
-                        try:
-                            with connections['remota'].cursor() as cursor:
-                                cursor.execute("SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));")
-                        except Exception:
-                            pass
-                        perfil = Usuario.objects.create(
-                            user=user,
-                            nombres=user.first_name or user.username.split('@')[0],
-                            apellidos=user.last_name or "Usuario",
-                            rol="cliente",
-                            tipo_documento="CC",
-                            documento="00000000",
-                            estado="activo",
-                            sincronizado=False
-                        )
-                        if perfil.rol == 'cliente':
-                            from apps.clientes.models import Cliente
-                            try:
-                                Cliente.objects.get_or_create(usuario=perfil)
-                            except Exception as e_c:
-                                if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
-                                    from django.db import connections
-                                    with connections['remota'].cursor() as cursor:
-                                        cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
-                                    Cliente.objects.get_or_create(usuario=perfil)
-                                else:
-                                    raise e_c
+                                with connections['remota'].cursor() as cursor:
+                                    cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
+                            except Exception:
+                                pass
+                            Cliente.objects.get_or_create(usuario=user)
+                        else:
+                            raise e_c
 
-                if perfil:
-                    # Logueamos al usuario después de asegurar el perfil
-                    # Especificamos el backend para evitar problemas con múltiples BD
-                    if not hasattr(user, 'backend'):
-                        user.backend = 'django.contrib.auth.backends.ModelBackend'
+                # Logueamos al usuario después de asegurar el perfil
+                # Especificamos el backend para evitar problemas con múltiples BD
+                if not hasattr(user, 'backend'):
+                    user.backend = 'django.contrib.auth.backends.ModelBackend'
 
-                    login(request, user)
+                login(request, user)
 
-                    # Forzamos el guardado de la sesión antes de redireccionar
-                    request.session.save()
-
-                    # Registramos actividad (Ahora Historial también va a la nube por el router)
-                    try:
-                        registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
-                    except Exception:
-                        pass # Que no se caiga el login si falla el historial
-
-                    messages.success(request, f"¡Bienvenido de nuevo, {perfil.nombres}!")
-
-                    next_url = request.GET.get('next')
-                    if next_url:
-                        return redirect(next_url)
-
-                    if perfil.rol == "admin":
-                        return redirect("usuarios:panel")
-                    elif perfil.rol == "cliente":
-                        return redirect("clientes:panel_cliente")
-                    elif perfil.rol == "conductor":
-                        return redirect("usuarios:panel_conductor")
-                    else:
-                        return redirect("usuarios:panel")
+                remember_me = form.cleaned_data.get("remember_me")
+                if remember_me:
+                    request.session.set_expiry(1209600)  # 2 weeks
                 else:
-                    logout(request)
-                    messages.error(request, "Tu cuenta no tiene un perfil asignado.")
+                    request.session.set_expiry(0)  # Expires on browser close
+
+                # Forzamos el guardado de la sesión antes de redireccionar
+                request.session.save()
+
+                # Registramos actividad (Ahora Historial también va a la nube por el router)
+                try:
+                    registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
+                except Exception:
+                    pass # Que no se caiga el login si falla el historial
+
+                messages.success(request, f"¡Bienvenido de nuevo, {user.nombres}!")
+
+                next_url = request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+
+                if user.rol == "admin":
+                    return redirect("usuarios:panel")
+                elif user.rol == "cliente":
+                    return redirect("clientes:panel_cliente")
+                elif user.rol == "conductor":
+                    return redirect("usuarios:panel_conductor")
+                else:
+                    return redirect("usuarios:panel")
             else:
                 messages.error(request, "Usuario o contraseña incorrectos.")
         else:
@@ -350,7 +283,7 @@ def panel(request):
         from core.utils import get_cache_key
 
         # Creamos una clave de caché única para el panel de admin de este usuario
-        cache_key = get_cache_key('panel_admin', request.user.id)
+        cache_key = get_cache_key('panel_admin_v2', request.user.id)
 
         # Intentamos obtener los datos del caché primero
         context = cache.get(cache_key)
@@ -365,7 +298,9 @@ def panel(request):
                     fecha_solicitud__date=now().date()
                 ).count(),
                 "clientes": Usuario.objects.filter(rol="cliente").count(),
-                "pedidos_recientes": Pedido.objects.all().select_related('usuario').order_by("-fecha_solicitud")[:5]
+                "pedidos_recientes": Pedido.objects.select_related(
+                    'usuario', 'cliente__usuario'
+                ).order_by("-fecha_solicitud")[:5]
             }
             cache.set(cache_key, context, 300)  # 300 segundos = 5 minutos
 
@@ -520,51 +455,10 @@ def crear_usuario(request):
             return render(request, "usuarios/form.html", {"form_data": request.POST, "action": "crear"})
 
         try:
-            try:
-                user = User.objects.create_user(
+            with transaction.atomic():
+                user = User(
                     username=email,
                     email=email,
-                    password=password
-                )
-            except Exception as e:
-                    # Reparación de secuencias si hay duplicado
-                    if "duplicate key" in str(e).lower() and conexion_remota_disponible():
-                        from django.db import connections
-                        try:
-                            with connections['remota'].cursor() as cursor:
-                                cursor.execute("SELECT setval(pg_get_serial_sequence('auth_user', 'id'), (SELECT MAX(id) FROM auth_user));")
-                        except Exception:
-                            pass
-                        user = User.objects.create_user(
-                            username=email,
-                            email=email,
-                            password=password
-                        )
-                    else:
-                        raise e
-
-            perfil = Usuario.objects.create(
-                user=user,
-                nombres=nombres,
-                apellidos=apellidos,
-                telefono=telefono,
-                rol=rol,
-                tipo_documento=tipo_doc,
-                documento=documento,
-                estado='activo',
-                sincronizado=False
-            )
-        except Exception as e_perfil:
-            # Reparación de secuencia para el perfil
-            if "duplicate key" in str(e_perfil).lower() and conexion_remota_disponible():
-                from django.db import connections
-                try:
-                    with connections['remota'].cursor() as cursor:
-                        cursor.execute("SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));")
-                except Exception:
-                    pass
-                perfil = Usuario.objects.create(
-                    user=user,
                     nombres=nombres,
                     apellidos=apellidos,
                     telefono=telefono,
@@ -574,14 +468,38 @@ def crear_usuario(request):
                     estado='activo',
                     sincronizado=False
                 )
+                user.set_password(password)
+                user.save()
+        except Exception as e:
+            if "duplicate key" in str(e).lower() and conexion_remota_disponible():
+                from django.db import connections
+                try:
+                    with connections['remota'].cursor() as cursor:
+                        cursor.execute("SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));")
+                except Exception:
+                    pass
+                user = User(
+                    username=email,
+                    email=email,
+                    nombres=nombres,
+                    apellidos=apellidos,
+                    telefono=telefono,
+                    rol=rol,
+                    tipo_documento=tipo_doc,
+                    documento=documento,
+                    estado='activo',
+                    sincronizado=False
+                )
+                user.set_password(password)
+                user.save()
             else:
-                raise e_perfil
+                raise e
 
         try:
             # Manejo de la imagen de perfil en la creación
             if 'foto_perfil' in request.FILES:
-                perfil.foto_perfil = request.FILES['foto_perfil']
-                perfil.save()
+                user.foto_perfil = request.FILES['foto_perfil']
+                user.save()
 
             registrar_actividad(request, 'crear', 'usuarios', user.id, f"Administrador creó usuario: {email} como {rol}")
 
@@ -852,3 +770,58 @@ def configuraciones_usuario(request):
         return redirect("usuarios:configuraciones")
 
     return render(request, "usuarios/configuraciones.html", {"usuario": usuario})
+
+
+@require_POST
+def cambiar_modo_bd(request):
+    """Alterna entre base de datos local (SQLite) y remota (Neon)."""
+    modo = request.POST.get('modo', '').strip().lower()
+    nuevo_modo = None
+    mensaje_ok = None
+
+    if modo not in (PREF_LOCAL, PREF_REMOTA):
+        messages.error(request, 'Modo de base de datos no válido.')
+    elif modo == PREF_REMOTA:
+        if 'remota' not in settings.DATABASES:
+            messages.error(
+                request,
+                'La base remota no está configurada. Define DATABASE_URL en tu archivo .env.',
+            )
+        elif not conexion_remota_disponible():
+            messages.error(
+                request,
+                'No hay conexión con la base remota. Revisa tu internet o las credenciales de Neon.',
+            )
+        else:
+            nuevo_modo = PREF_REMOTA
+            mensaje_ok = (
+                'Modo remoto (Neon) activado. Inicia sesión de nuevo: los usuarios '
+                'de la nube pueden ser distintos a los de tu copia local.'
+            )
+    else:
+        # Al cambiar a modo local, nos aseguramos de sincronizar los datos
+        if conexion_remota_disponible():
+            try:
+                sync_all_usuarios()
+            except Exception as e:
+                logger.error(f"Error sincronizando al cambiar a local: {e}")
+                
+        nuevo_modo = PREF_LOCAL
+        mensaje_ok = (
+            'Modo local (SQLite) activado. Inicia sesión de nuevo con un usuario '
+            'registrado en esta copia local.'
+        )
+
+    if nuevo_modo:
+        invalidate_connection_cache()
+        if request.user.is_authenticated:
+            logout(request)
+        request.session['bd_preferida'] = nuevo_modo
+        request.session.modified = True
+        messages.success(request, mensaje_ok)
+        response = redirect('usuarios:login')
+        response.set_cookie('bd_preferida', nuevo_modo, max_age=31536000, httponly=True, samesite='Lax')
+        return response
+
+    destino = request.META.get('HTTP_REFERER') or reverse('usuarios:login')
+    return redirect(destino)

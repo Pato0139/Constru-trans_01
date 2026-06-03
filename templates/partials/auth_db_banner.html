@@ -1,0 +1,20 @@
+<div class="auth-db-strip">
+    {% include "partials/bd_mode_toggle.html" with bd_toggle_layout='login' %}
+</div>
+
+{% if modo_local %}
+<div class="auth-alert auth-alert--warn">
+    <i class="bi bi-hdd-network-fill flex-shrink-0"></i>
+    <div>
+        <strong>Modo local.</strong> Los usuarios se validan contra SQLite en este equipo.
+        {% if bd_remota_configurada and not bd_remota_disponible %}
+        No hay conexión a Neon en este momento.
+        {% endif %}
+    </div>
+</div>
+{% elif bd_usando_remota %}
+<div class="auth-alert auth-alert--info">
+    <i class="bi bi-cloud-check-fill flex-shrink-0"></i>
+    <div><strong>Modo remoto.</strong> Inicio de sesión con la base de datos compartida (Neon).</div>
+</div>
+{% endif %}
