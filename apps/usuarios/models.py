@@ -263,15 +263,51 @@ class Proveedor(models.Model):
 
 
 # =====================================================================
-# MATERIAL_CONSTRUCCION  (MER: #cod_material *nombre *unidad_medida ...)
-# Antes: Material
+# UNIDAD_MEDIDA  (MER: #id_unidad *codigo *nombre *abreviatura -descripcion)
+# Nueva tabla de referencia para normalizar unidades
+# =====================================================================
+class UnidadMedida(models.Model):
+    """
+    Tabla de referencia para unidades de medida estandarizadas.
+    Garantiza consistencia en toda la aplicación.
+    """
+    id_unidad = models.AutoField(primary_key=True)
+    codigo = models.CharField(max_length=10, unique=True, db_index=True)
+    nombre = models.CharField(max_length=50, unique=True)
+    abreviatura = models.CharField(max_length=10)
+    descripcion = models.TextField(blank=True)
+    
+    # Para control de datos
+    activa = models.BooleanField(default=True)
+    orden = models.PositiveIntegerField(default=0, help_text="Para ordenar en select")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'unidad_medida'
+        verbose_name = "Unidad de Medida"
+        verbose_name_plural = "Unidades de Medida"
+        ordering = ['orden', 'nombre']
+
+    def __str__(self):
+        return f"{self.nombre} ({self.abreviatura})"
+
+    @property
+    def id(self):
+        return self.id_unidad
+
+
+# =====================================================================
+# MATERIAL_CONSTRUCCION  (MER: #cod_material *nombre *id_unidad ...)
+# Normalizado con UnidadMedida (ForeignKey)
 # =====================================================================
 class MaterialConstruccion(models.Model):
     cod_material = models.AutoField(primary_key=True)
     catalogo = models.ForeignKey(Catalogo, on_delete=models.SET_NULL,
                                  null=True, blank=True, related_name='materiales')
     nombre = models.CharField(max_length=100)
-    unidad_medida = models.CharField(max_length=20)
+    unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.PROTECT,
+                                      related_name='materiales', 
+                                      help_text="Seleccione una unidad de medida estándar")
     descripcion = models.TextField()
     precio_referencia = models.DecimalField(
         max_digits=12, decimal_places=2,
