@@ -54,7 +54,7 @@
                   <option value="{{ m.id }}"
                           data-precio="{{ m.precio }}"
                           data-stock="{{ m.stock_disponible }}"
-                          data-unidad="{{ m.unidad_medida }}">
+                          data-unidad="{{ m.unidad_medida.abreviatura }}">
                     {{ m.nombre }}
                   </option>
                 {% endfor %}

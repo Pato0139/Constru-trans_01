@@ -9,7 +9,7 @@ from django.utils.text import slugify
 from django_recaptcha.fields import ReCaptchaField
 from django_recaptcha.widgets import ReCaptchaV2Checkbox
 
-from .models import Catalogo, MaterialConstruccion, Proveedor, Stock, Usuario
+from .models import Catalogo, MaterialConstruccion, Proveedor, Stock, UnidadMedida, Usuario
 from .utils import limpiar_telefono
 
 
@@ -158,9 +158,8 @@ class MaterialForm(forms.ModelForm):
                 'placeholder': 'Ej: Cemento Gris',
                 'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
             }),
-            'unidad_medida': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'kg, m³, unidades, etc.',
+            'unidad_medida': forms.Select(attrs={
+                'class': 'form-select',
                 'style': 'background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;'
             }),
             'descripcion': forms.Textarea(attrs={
@@ -179,6 +178,13 @@ class MaterialForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Filtrar solo unidades activas en el formulario
+        self.fields['unidad_medida'].queryset = UnidadMedida.objects.filter(
+            activa=True
+        ).order_by('orden', 'nombre')
+        self.fields['unidad_medida'].empty_label = "-- Seleccione una unidad --"
+        
         if self.instance and self.instance.pk and self.instance.catalogo:
             self.fields['tipo'].initial = self.instance.catalogo
         if self.instance and self.instance.pk:
