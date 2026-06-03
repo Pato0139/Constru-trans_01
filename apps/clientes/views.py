@@ -57,7 +57,7 @@ def parse_fecha_entrega(value):
         '%d/%m/%Y',
         '%Y/%m/%d %H:%M',
         '%Y/%m/%d %I:%M %p',
-        '%Y/%m/%d',
+        '%Y/%m/%Y',
         '%Y-%m-%d %H:%M',
         '%Y-%m-%dT%H:%M',
     ]
@@ -121,6 +121,7 @@ def panel_cliente(request):
     }
     return render(request, "clientes/lista.html", context)
 
+
 @login_required
 def mis_pedidos(request):
     try:
@@ -135,6 +136,7 @@ def mis_pedidos(request):
     return render(request, "clientes/mis_pedidos.html", {
         "pedidos": pedidos
     })
+
 
 @login_required
 def perfil_cliente(request):
@@ -156,6 +158,7 @@ def perfil_cliente(request):
 
     return render(request, "clientes/detalle.html", context)
 
+
 @login_required
 def seguimiento_pedidos(request):
     try:
@@ -168,6 +171,7 @@ def seguimiento_pedidos(request):
     return render(request, "clientes/seguimiento.html", {
         "pedidos": pedidos
     })
+
 
 @login_required
 def historial_pedidos(request):
@@ -184,6 +188,7 @@ def historial_pedidos(request):
     return render(request, "clientes/historial.html", {
         "pedidos": pedidos
     })
+
 
 @login_required
 def crear_pedido(request):
@@ -292,13 +297,16 @@ def crear_pedido(request):
                         pedido=nuevo_pedido,
                         material=material,
                         cantidad=cantidad,
-                        precio_unitario=precio_unitario
+                        precio_unitario=precio_unitario,
+                        skip_calcular_total=True
                     )
 
                     stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
                     stock_obj.save()
 
+                # Establecemos tanto total como precio manualmente para asegurarnos
                 nuevo_pedido.total = total_general
+                nuevo_pedido.precio = total_general
                 nuevo_pedido.save()
 
             messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente.")
@@ -321,6 +329,7 @@ def crear_pedido(request):
         materiales=materiales,
         action="crear",
     ))
+
 
 @login_required
 def editar_pedido(request, id):
@@ -412,7 +421,8 @@ def editar_pedido(request, id):
                         pedido=pedido,
                         material=material,
                         cantidad=cantidad,
-                        precio_unitario=material.precio
+                        precio_unitario=material.precio,
+                        skip_calcular_total=True
                     )
 
                     stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
@@ -421,7 +431,9 @@ def editar_pedido(request, id):
 
                 pedido.direccion_destino = direccion
                 pedido.fecha_entrega_programada = fecha_entrega if fecha_entrega else None
+                # Establecemos tanto total como precio manualmente para asegurarnos
                 pedido.total = total_general
+                pedido.precio = total_general
                 pedido.save()
 
             messages.success(request, f"Pedido #{pedido.codigo_pedido} actualizado correctamente.")
@@ -440,6 +452,7 @@ def editar_pedido(request, id):
         ciudad=ciudad_ini,
         direccion_detalle=detalle_ini,
     ))
+
 
 @login_required
 def cancelar_pedido(request, id):

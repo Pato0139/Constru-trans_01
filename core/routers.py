@@ -43,5 +43,5 @@ class EnrutadorInventario:
         return None
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        """Las migraciones se aplican en todas las bases de datos (default y remota)."""
-        return True
+        """Las migraciones solo se aplican en 'default' (SQLite local)."""
+        return db == 'default'
