@@ -6,6 +6,8 @@ from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth import get_user_model
 User = get_user_model()
 from django.utils.text import slugify
+from django_recaptcha.fields import ReCaptchaField
+from django_recaptcha.widgets import ReCaptchaV2Checkbox
 
 from .models import Catalogo, MaterialConstruccion, Proveedor, Stock, Usuario
 from .utils import limpiar_telefono
@@ -46,6 +48,8 @@ class UsuarioForm(forms.ModelForm):
 class LoginForm(forms.Form):
     username = forms.CharField(label="Usuario o Correo", widget=forms.TextInput(attrs={'class': 'input-custom', 'placeholder': 'Usuario o Correo'}))
     password = forms.CharField(label="Contraseña", widget=forms.PasswordInput(attrs={'class': 'input-custom', 'placeholder': 'Contraseña', 'id': 'password'}))
+    remember_me = forms.BooleanField(label="Recuérdame en este dispositivo", required=False, initial=False)
+    captcha = ReCaptchaField(widget=ReCaptchaV2Checkbox())
 
 
 class RegistroForm(forms.ModelForm):
