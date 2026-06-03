@@ -65,8 +65,9 @@ backups/*.dump
 backups/*.json
 
 # Migraciones Django (generadas localmente; no versionar según indicación del instructor)
-**/migrations/
+**/migrations/*
 !**/migrations/__init__.py
+
 
 # Archivos de prueba
 test_db.py
