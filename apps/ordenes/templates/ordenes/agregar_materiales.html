@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load humanize %}
 {% load currency_tags %}
+{% load l10n %}
+
 
 {% block title %}Orden #{{ orden.id }} - Materiales{% endblock %}
 
@@ -52,8 +54,8 @@
                 <option value="">-- Seleccionar --</option>
                 {% for m in materiales %}
                   <option value="{{ m.id }}"
-                          data-precio="{{ m.precio }}"
-                          data-stock="{{ m.stock_disponible }}"
+                          data-precio="{{ m.precio|unlocalize }}"
+                          data-stock="{{ m.stock|unlocalize }}"
                           data-unidad="{{ m.unidad_medida }}">
                     {{ m.nombre }}
                   </option>

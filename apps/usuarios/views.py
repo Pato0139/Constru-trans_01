@@ -21,6 +21,7 @@ from apps.historial.utils import registrar_actividad
 from apps.ordenes.models import Pedido
 from core.db_preference import PREF_AUTO, PREF_LOCAL, PREF_REMOTA, invalidate_connection_cache
 from core.utils import conexion_remota_disponible
+from core.sync import sync_all_usuarios
 
 from .forms import LoginForm, RegistroForm
 from .models import (
@@ -153,6 +154,13 @@ def registro(request):
 
 # ---------------- LOGIN ----------------
 def login_usuario(request):
+    # Sincronización offline si hay internet
+    if conexion_remota_disponible():
+        try:
+            sync_all_usuarios()
+        except Exception as e:
+            logger.error(f"Error sincronizando en login: {e}")
+
     # Verificación de conexión a la nube para informar al usuario
     modo_local = not conexion_remota_disponible()
 
@@ -195,6 +203,12 @@ def login_usuario(request):
                     user.backend = 'django.contrib.auth.backends.ModelBackend'
 
                 login(request, user)
+
+                remember_me = form.cleaned_data.get("remember_me")
+                if remember_me:
+                    request.session.set_expiry(1209600)  # 2 weeks
+                else:
+                    request.session.set_expiry(0)  # Expires on browser close
 
                 # Forzamos el guardado de la sesión antes de redireccionar
                 request.session.save()
@@ -785,6 +799,13 @@ def cambiar_modo_bd(request):
                 'de la nube pueden ser distintos a los de tu copia local.'
             )
     else:
+        # Al cambiar a modo local, nos aseguramos de sincronizar los datos
+        if conexion_remota_disponible():
+            try:
+                sync_all_usuarios()
+            except Exception as e:
+                logger.error(f"Error sincronizando al cambiar a local: {e}")
+                
         nuevo_modo = PREF_LOCAL
         mensaje_ok = (
             'Modo local (SQLite) activado. Inicia sesión de nuevo con un usuario '
@@ -798,7 +819,9 @@ def cambiar_modo_bd(request):
         request.session['bd_preferida'] = nuevo_modo
         request.session.modified = True
         messages.success(request, mensaje_ok)
-        return redirect('usuarios:login')
+        response = redirect('usuarios:login')
+        response.set_cookie('bd_preferida', nuevo_modo, max_age=31536000, httponly=True, samesite='Lax')
+        return response
 
     destino = request.META.get('HTTP_REFERER') or reverse('usuarios:login')
     return redirect(destino)

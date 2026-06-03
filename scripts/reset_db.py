@@ -55,36 +55,27 @@ def limpiar_proyecto():
     else:
         print(f"\n[i] No se encontró la base de datos '{DB_FILE}'.")
 
-    # 3. Confirmación de seguridad
-    print("\n" + "!"*60)
-    print(" ADVERTENCIA: Esta acción eliminará permanentemente los archivos.")
-    print(" " + "!"*58)
+    # 3. No confirmation needed for auto-clean
+    print("\n[*] Iniciando limpieza (auto-confirm)...")
 
-    confirmar = input("\n¿Estás seguro de que deseas continuar? (s/n): ").lower()
+    # Borrar archivos de migración
+    for arch in archivos_migracion:
+        try:
+            arch.unlink()
+            print(f"    [OK] Borrado: {arch}")
+        except Exception as e:
+            print(f"    [ERROR] No se pudo borrar {arch}: {e}")
 
-    if confirmar == 's':
-        print("\n[*] Iniciando limpieza...")
+    # Borrar base de datos
+    if db_existe:
+        try:
+            db_path.unlink()
+            print(f"    [OK] Borrado: {DB_FILE}")
+        except Exception as e:
+            print(f"    [ERROR] No se pudo borrar {DB_FILE}: {e}")
 
-        # Borrar archivos de migración
-        for arch in archivos_migracion:
-            try:
-                arch.unlink()
-                print(f"    [OK] Borrado: {arch}")
-            except Exception as e:
-                print(f"    [ERROR] No se pudo borrar {arch}: {e}")
-
-        # Borrar base de datos
-        if db_existe:
-            try:
-                db_path.unlink()
-                print(f"    [OK] Borrado: {DB_FILE}")
-            except Exception as e:
-                print(f"    [ERROR] No se pudo borrar {DB_FILE}: {e}")
-
-        print("\n✅ ¡Limpieza completada exitosamente!")
-        print("[i] Ahora puedes ejecutar: python manage.py makemigrations y python manage.py migrate")
-    else:
-        print("\n🚫 Operación cancelada. No se realizaron cambios.")
+    print("\n✅ ¡Limpieza completada exitosamente!")
+    print("[i] Ahora puedes ejecutar: python manage.py makemigrations y python manage.py migrate")
 
 if __name__ == "__main__":
     limpiar_proyecto()

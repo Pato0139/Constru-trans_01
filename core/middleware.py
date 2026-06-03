@@ -8,7 +8,9 @@ class DatabasePreferenceMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        pref = request.session.get('bd_preferida', PREF_AUTO)
+        pref = request.COOKIES.get('bd_preferida')
+        if not pref:
+            pref = request.session.get('bd_preferida', PREF_AUTO)
         set_db_preference(pref)
         try:
             return self.get_response(request)
