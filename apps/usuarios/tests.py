@@ -1,36 +1,62 @@
-
-from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from .models import Material, Stock, Usuario, Vehiculo
+from .models import Material, Stock, Usuario, Vehiculo, UnidadMedida
 
 
 class ConstruTransTestSuite(TestCase):
     def setUp(self):
         self.client = Client()
         # 1. Crear Admin
-        self.admin_user = User.objects.create_user(username='admin@test.com', email='admin@test.com', password='password123')
-        self.admin_perfil = Usuario.objects.create(user=self.admin_user, rol='admin', nombres='Admin', documento='1001')
+        self.admin_user = Usuario.objects.create_user(
+            username='admin@test.com',
+            email='admin@test.com',
+            password='password123',
+            rol='admin',
+            nombres='Admin',
+            documento='1001',
+            tipo_documento='CC'
+        )
 
         # 2. Crear Cliente
-        self.cliente_user = User.objects.create_user(username='cliente@test.com', email='cliente@test.com', password='password123')
-        self.cliente_perfil = Usuario.objects.create(user=self.cliente_user, rol='cliente', nombres='Cliente', documento='1002')
+        self.cliente_user = Usuario.objects.create_user(
+            username='cliente@test.com',
+            email='cliente@test.com',
+            password='password123',
+            rol='cliente',
+            nombres='Cliente',
+            documento='1002',
+            tipo_documento='CC'
+        )
 
         # 3. Crear Conductor
-        self.conductor_user = User.objects.create_user(username='cond@test.com', email='cond@test.com', password='password123')
-        self.conductor_perfil = Usuario.objects.create(user=self.conductor_user, rol='conductor', nombres='Conductor', documento='1003')
+        self.conductor_user = Usuario.objects.create_user(
+            username='cond@test.com',
+            email='cond@test.com',
+            password='password123',
+            rol='conductor',
+            nombres='Conductor',
+            documento='1003',
+            tipo_documento='CC'
+        )
 
-        # 4. Crear Material y su Stock
+        # 4. Crear Unidad de Medida
+        self.unidad_m3 = UnidadMedida.objects.create(
+            codigo='M3',
+            nombre='m3',
+            abreviatura='m3'
+        )
+
+        # 5. Crear Material y su Stock
         self.material = Material.objects.create(
             nombre='Arena',
-            unidad_medida='m3',
+            unidad_medida=self.unidad_m3,
             descripcion='Arena gruesa para construcción',
             precio_referencia=50000
         )
         self.stock = Stock.objects.create(material=self.material, cantidad_actual=100)
 
-        # 5. Vehículo (asignado al conductor)
+        # 6. Vehículo (asignado al conductor)
         self.vehiculo = Vehiculo.objects.create(
             placa='ABC123',
             marca='Toyota',
@@ -53,7 +79,7 @@ class ConstruTransTestSuite(TestCase):
             'confirmar_contrasena': 'pass123'
         })
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(User.objects.filter(email='nuevo@test.com').exists())
+        self.assertTrue(Usuario.objects.filter(email='nuevo@test.com').exists())
 
     def test_02_login_y_permisos(self):
         """Prueba de login y restricción de admin_required"""
@@ -78,11 +104,17 @@ class ConstruTransTestSuite(TestCase):
         response = self.client.post(reverse('clientes:crear_pedido'), {
             'material_id[]': [self.material.id],
             'cantidad[]': [cantidad_pedido],
-            'direccion': 'Calle Falsa 123',
+            'ciudad': 'Tunja',
+            'direccion_detalle': 'Calle Falsa 123',
             'fecha_entrega': '2026-05-01 10:00'
         })
 
+        if response.status_code != 302:
+            from django.contrib.messages import get_messages
+            print("DEBUG_TEST_MESSAGES:", [m.message for m in get_messages(response.wsgi_request)])
+
         self.assertEqual(response.status_code, 302)
+
 
         # Verificar stock descontado
         self.material.refresh_from_db()

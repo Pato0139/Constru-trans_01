@@ -5,22 +5,24 @@ import qrcode
 from django.core.files.base import ContentFile
 from django.db.models import F
 
+from core.db_preference import debe_usar_bd_remota
 from apps.inventario.models import MovimientoInventario
 from apps.usuarios.models import Stock
 
 
-def revertir_stock_pedido(orden, usuario, motivo_prefijo="Cancelación"):
+def revertir_stock_pedido(orden, usuario, motivo_prefijo="Cancelación", using=None):
     """
     Revierte el stock de un pedido y registra los movimientos de entrada.
     Debe llamarse dentro de un transaction.atomic().
     """
+    db_alias = using if using else ('remota' if debe_usar_bd_remota() else 'default')
     for detalle in orden.detalles.all():
-        stock_obj, _ = Stock.objects.select_for_update().get_or_create(
+        stock_obj, _ = Stock.objects.select_for_update().using(db_alias).get_or_create(
             material=detalle.material,
             defaults={'cantidad_actual': 0},
         )
         stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
-        stock_obj.save()
+        stock_obj.save(using=db_alias)
 
         MovimientoInventario.objects.create(
             material=detalle.material,

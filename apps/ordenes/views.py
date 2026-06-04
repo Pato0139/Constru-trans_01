@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F, Q
+
+from core.db_preference import debe_usar_bd_remota
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -29,11 +31,13 @@ def calcular_total(request, id):
 def eliminar_detalle(request, id):
     detalle = get_object_or_404(DetalleOrden, id_detalle_pedido=id)
     orden = detalle.pedido
+    db_alias = 'remota' if debe_usar_bd_remota() else 'default'
 
     with transaction.atomic():
-        stock_obj = Stock.objects.select_for_update().get(material=detalle.material)
-        stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
-        stock_obj.save()
+        with transaction.atomic(using=db_alias):
+            stock_obj = Stock.objects.select_for_update().using(db_alias).get(material=detalle.material)
+            stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
+            stock_obj.save(using=db_alias)
 
         MovimientoInventario.objects.create(
             material=detalle.material,
@@ -195,12 +199,14 @@ def ver_pedido_admin(request, id):
 
             elif accion == "cancelar":
                 if orden.estado != Orden.ENTREGADO and orden.estado != Orden.CANCELADO:
+                    db_alias = 'remota' if debe_usar_bd_remota() else 'default'
                     with transaction.atomic():
-                        # Liberar el vehículo
-                        liberar_vehiculo_pedido(orden)
+                        with transaction.atomic(using=db_alias):
+                            # Liberar el vehículo
+                            liberar_vehiculo_pedido(orden)
 
-                        # Revertir stock usando utilidad
-                        revertir_stock_pedido(orden, request.user, "Cancelación (Conductor)")
+                            # Revertir stock usando utilidad
+                            revertir_stock_pedido(orden, request.user, "Cancelación (Conductor)", using=db_alias)
 
                         orden.estado = Orden.CANCELADO
                         orden.save()
@@ -210,29 +216,24 @@ def ver_pedido_admin(request, id):
                 return redirect("usuarios:panel")
 
         elif request.user.usuario.rol == "admin":
+            db_alias = 'remota' if debe_usar_bd_remota() else 'default'
             nuevo_estado = request.POST.get("estado")
             if nuevo_estado:
                 with transaction.atomic():
-                    # Si el admin lo marca como entregado manualmente
                     if nuevo_estado == "entregado" and orden.estado != "entregado":
-                        # Buscamos la entrega asociada para marcarla como entregada
-                        # Esto disparará el signal que descuenta stock y notifica
                         entrega = orden.entregas.first()
                         if entrega:
                             entrega.estado = 'entregado'
                             entrega.save()
                         else:
-                            # Si no hay objeto Entrega (pedido manual), actualizamos directo
                             orden.estado = "entregado"
                             orden.fecha_entrega_real = timezone.now()
                             orden.save()
                     else:
-                        # Si se marca como cancelado, liberar el vehículo y REVERTIR STOCK
                         if nuevo_estado == "cancelado" and orden.estado != "cancelado":
-                            liberar_vehiculo_pedido(orden)
-
-                            # Revertir stock usando utilidad
-                            revertir_stock_pedido(orden, request.user, "Cancelación (Admin)")
+                            with transaction.atomic(using=db_alias):
+                                liberar_vehiculo_pedido(orden)
+                                revertir_stock_pedido(orden, request.user, "Cancelación (Admin)", using=db_alias)
 
                         orden.estado = nuevo_estado
                         if nuevo_estado == "en_ruta" and not orden.fecha_toma_entrega:
@@ -477,10 +478,11 @@ def eliminar_orden(request, id):
 
     # Si la orden no está entregada ni cancelada, revertimos el stock antes de eliminar
     if orden.estado not in ['entregado', 'cancelado']:
+        db_alias = 'remota' if debe_usar_bd_remota() else 'default'
         try:
-            with transaction.atomic():
+            with transaction.atomic(using=db_alias):
                 # Revertir stock y registrar movimiento usando utilidad
-                revertir_stock_pedido(orden, request.user, "Eliminación")
+                revertir_stock_pedido(orden, request.user, "Eliminación", using=db_alias)
         except Exception as e:
             messages.error(request, f"Error al devolver stock: {e}")
             return redirect("ordenes:lista_pedidos_admin")

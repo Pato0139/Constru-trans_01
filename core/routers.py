@@ -43,5 +43,11 @@ class EnrutadorInventario:
         return None
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        """Las migraciones solo se aplican en 'default' (SQLite local)."""
+        """
+        Las migraciones se aplican en 'default' (SQLite local).
+        Las APPS_NUBE también se aplican en 'remota' (Neon) para mantener su esquema sincronizado.
+        """
+        if db == 'remota':
+            return app_label in self.APPS_NUBE
         return db == 'default'
+
