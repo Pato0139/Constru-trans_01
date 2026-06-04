@@ -37,9 +37,13 @@
                     </button>
                     <div class="collapse {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}show{% endif %}" id="ventasCollapse">
                         <div class="nav-submenu">
+                            <a href="{% url 'gestion_pedidos:lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'gestion_pedidos' %}active{% endif %}">
+                                <i class="bi bi-cart-check-fill text-warning"></i>
+                                <span>Gestión Pedidos (Épica 3)</span>
+                            </a>
                             <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' %}active{% endif %}">
                                 <i class="bi bi-cart3"></i>
-                                <span>Pedidos</span>
+                                <span>Pedidos Antiguos</span>
                             </a>
                             <a href="{% url 'facturacion:lista_facturas' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'facturacion' %}active{% endif %}">
                                 <i class="bi bi-receipt"></i>

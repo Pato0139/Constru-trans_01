@@ -10,6 +10,7 @@ from apps.historial.utils import registrar_actividad
 from apps.usuarios.forms import MaterialForm, CatalogoForm
 from apps.usuarios.models import Material, Stock, Catalogo
 from apps.usuarios.views import admin_required
+from core.db_preference import debe_usar_bd_remota
 
 from .models import MovimientoInventario
 
@@ -27,16 +28,17 @@ def registrar_entrada(request):
         return JsonResponse({'error': 'Cantidad debe ser > 0'}, status=400)
 
     try:
-        with transaction.atomic():
-            material = Material.objects.select_for_update().get(pk=material_id)
-            stock, _ = Stock.objects.select_for_update().get_or_create(
+        db_alias = 'remota' if debe_usar_bd_remota() else 'default'
+        with transaction.atomic(using=db_alias):
+            material = Material.objects.select_for_update().using(db_alias).get(pk=material_id)
+            stock, _ = Stock.objects.select_for_update().using(db_alias).get_or_create(
                 material=material,
                 defaults={'cantidad_actual': 0},
             )
 
             stock.cantidad_actual = F('cantidad_actual') + cantidad
-            stock.save()
-            stock.refresh_from_db()
+            stock.save(using=db_alias)
+            stock.refresh_from_db(using=db_alias)
 
             MovimientoInventario.objects.create(
                 material=material,
