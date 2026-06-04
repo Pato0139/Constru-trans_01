@@ -9,14 +9,14 @@ from django.db.models import F, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.ordenes.models import DetallePedido, Pedido
-from apps.usuarios.models import MaterialConstruccion as Material
-from apps.usuarios.models import Stock, Usuario
+from apps.usuarios.models import Catalogo, MaterialConstruccion as Material, Stock, UnidadMedida, Usuario
 from core.despacho import (
     CIUDADES_DESPACHO,
     ciudad_valida,
     construir_direccion_destino,
     separar_direccion_destino,
 )
+from core.db_preference import debe_usar_bd_remota
 from core.utils import conexion_remota_disponible
 
 from .models import Cliente
@@ -24,6 +24,117 @@ from .models import Cliente
 
 def _contexto_formulario_pedido(**extra):
     return {"ciudades_despacho": CIUDADES_DESPACHO, **extra}
+
+
+def _obtener_alias_db():
+    return 'remota' if debe_usar_bd_remota() else 'default'
+
+
+def _obtener_usuario_local(usuario):
+    if usuario._state.db == 'default':
+        return usuario
+
+    usuario_local, _ = Usuario.objects.using('default').update_or_create(
+        username=usuario.username,
+        defaults={
+            'password': usuario.password,
+            'nombres': usuario.nombres,
+            'apellidos': usuario.apellidos,
+            'email': usuario.email,
+            'telefono': usuario.telefono,
+            'documento': usuario.documento,
+            'rol': usuario.rol,
+            'tipo_documento': usuario.tipo_documento,
+            'estado': usuario.estado,
+            'foto_perfil': usuario.foto_perfil,
+            'sincronizado': True,
+            'is_superuser': usuario.is_superuser,
+            'is_staff': usuario.is_staff,
+            'is_active': usuario.is_active,
+            'date_joined': usuario.date_joined,
+            'last_login': usuario.last_login,
+        }
+    )
+    return usuario_local
+
+
+def _obtener_catalogo_local(catalogo):
+    if not catalogo:
+        return None
+    if catalogo._state.db == 'default':
+        return catalogo
+
+    catalogo_local, _ = Catalogo.objects.using('default').update_or_create(
+        pk=catalogo.pk,
+        defaults={
+            'nombre_empresa': catalogo.nombre_empresa,
+        }
+    )
+    return catalogo_local
+
+
+def _obtener_unidad_medida_local(unidad):
+    if unidad._state.db == 'default':
+        return unidad
+
+    unidad_local, _ = UnidadMedida.objects.using('default').update_or_create(
+        id_unidad=unidad.id_unidad,
+        defaults={
+            'codigo': unidad.codigo,
+            'nombre': unidad.nombre,
+            'abreviatura': unidad.abreviatura,
+            'descripcion': unidad.descripcion,
+            'activa': unidad.activa,
+            'orden': unidad.orden,
+        }
+    )
+    return unidad_local
+
+
+def _obtener_material_local(material_id):
+    try:
+        return Material.objects.using('default').get(pk=material_id)
+    except Material.DoesNotExist:
+        remote_material = Material.objects.using('remota').get(pk=material_id)
+        catalogo_local = _obtener_catalogo_local(remote_material.catalogo) if remote_material.catalogo else None
+        unidad_local = _obtener_unidad_medida_local(remote_material.unidad_medida)
+        material_local, _ = Material.objects.using('default').update_or_create(
+            pk=remote_material.pk,
+            defaults={
+                'catalogo': catalogo_local,
+                'nombre': remote_material.nombre,
+                'unidad_medida': unidad_local,
+                'descripcion': remote_material.descripcion,
+                'precio_referencia': remote_material.precio_referencia,
+                'sincronizado': True,
+            }
+        )
+        return material_local
+
+
+def _es_dueno_pedido(pedido, usuario_remoto, usuario_local):
+    if not pedido or pedido.usuario_id is None:
+        return False
+
+    if usuario_local and pedido.usuario_id == usuario_local.id:
+        return True
+    if usuario_remoto and pedido.usuario_id == usuario_remoto.id:
+        return True
+
+    # Fallback seguro por username si la relación local no existe.
+    try:
+        candidato = Usuario.objects.using('default').get(pk=pedido.usuario_id)
+        return candidato.username == usuario_local.username
+    except Usuario.DoesNotExist:
+        pass
+
+    try:
+        candidato = Usuario.objects.using('remota').get(pk=pedido.usuario_id)
+        return candidato.username == usuario_remoto.username
+    except Usuario.DoesNotExist:
+        pass
+
+    return False
 
 
 def parse_fecha_entrega(value):
@@ -77,9 +188,10 @@ def parse_fecha_entrega(value):
 @login_required
 def panel_cliente(request):
     try:
-        usuario = request.user.usuario
+        usuario_remoto = request.user.usuario
+        usuario = _obtener_usuario_local(usuario_remoto)
         try:
-            cliente, created = Cliente.objects.get_or_create(usuario=usuario)
+            cliente, created = Cliente.objects.get_or_create(usuario=usuario_remoto)
         except Exception as e_c:
             if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
                 from django.db import connections
@@ -89,7 +201,7 @@ def panel_cliente(request):
                 )
                 with connections['remota'].cursor() as cursor:
                     cursor.execute(query)
-                cliente, created = Cliente.objects.get_or_create(usuario=usuario)
+                cliente, created = Cliente.objects.get_or_create(usuario=usuario_remoto)
             else:
                 raise e_c
     except (Usuario.DoesNotExist, AttributeError):
@@ -102,7 +214,7 @@ def panel_cliente(request):
         messages.error(request, f"Error al cargar el panel: {str(e)}")
         return redirect("usuarios:login")
 
-    pedidos = Pedido.objects.filter(usuario=usuario)
+    pedidos = Pedido.objects.filter(usuario__in=[usuario, usuario_remoto])
     context = {
         "pedidos_activos": pedidos.filter(estado="pendiente").count(),
         "entregas": pedidos.filter(estado="entregado").count(),
@@ -125,13 +237,14 @@ def panel_cliente(request):
 @login_required
 def mis_pedidos(request):
     try:
-        usuario = request.user.usuario
+        usuario_remoto = request.user.usuario
+        usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
 
     pedidos = Pedido.objects.filter(
-        usuario=usuario
+        usuario__in=[usuario, usuario_remoto]
     ).order_by("-fecha_solicitud")
     return render(request, "clientes/mis_pedidos.html", {
         "pedidos": pedidos
@@ -141,12 +254,13 @@ def mis_pedidos(request):
 @login_required
 def perfil_cliente(request):
     try:
-        usuario = request.user.usuario
+        usuario_remoto = request.user.usuario
+        usuario = _obtener_usuario_local(usuario_remoto)
     except (Usuario.DoesNotExist, AttributeError):
         logout(request)
         return redirect("usuarios:login")
 
-    pedidos = Pedido.objects.filter(usuario=usuario)
+    pedidos = Pedido.objects.filter(usuario__in=[usuario, usuario_remoto])
 
     context = {
         "cliente": usuario,
@@ -162,12 +276,13 @@ def perfil_cliente(request):
 @login_required
 def seguimiento_pedidos(request):
     try:
-        usuario = request.user.usuario
+        usuario_remoto = request.user.usuario
+        usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
 
-    pedidos = Pedido.objects.filter(usuario=usuario).order_by("-fecha_solicitud")
+    pedidos = Pedido.objects.filter(usuario__in=[usuario, usuario_remoto]).order_by("-fecha_solicitud")
     return render(request, "clientes/seguimiento.html", {
         "pedidos": pedidos
     })
@@ -176,13 +291,14 @@ def seguimiento_pedidos(request):
 @login_required
 def historial_pedidos(request):
     try:
-        usuario = request.user.usuario
+        usuario_remoto = request.user.usuario
+        usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
 
     pedidos = Pedido.objects.filter(
-        usuario=usuario,
+        usuario__in=[usuario, usuario_remoto],
         estado="entregado"
     ).order_by("-fecha_solicitud")
     return render(request, "clientes/historial.html", {
@@ -192,13 +308,14 @@ def historial_pedidos(request):
 
 @login_required
 def crear_pedido(request):
-    usuario = request.user.usuario
-    if usuario.rol != 'cliente':
+    usuario_remoto = request.user.usuario
+    usuario_local = _obtener_usuario_local(usuario_remoto)
+    if usuario_remoto.rol != 'cliente':
         messages.error(request, "Solo los clientes pueden solicitar nuevos pedidos.")
         return redirect("usuarios:panel")
 
     try:
-        cliente, created = Cliente.objects.get_or_create(usuario=usuario)
+        cliente, created = Cliente.objects.get_or_create(usuario=usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
@@ -254,60 +371,56 @@ def crear_pedido(request):
                 direccion_detalle=direccion_detalle,
             ))
 
+        db_alias = _obtener_alias_db()
         try:
             with transaction.atomic():
                 total_general = 0
                 nuevo_pedido = Pedido.objects.create(
-                    usuario=usuario,
+                    usuario=usuario_local,
                     direccion_origen="Bodega Central",
                     direccion_destino=direccion,
                     estado="pendiente",
                     fecha_entrega_programada=fecha_entrega if fecha_entrega else None
                 )
 
-                for m_id, cant in zip(materiales_ids, cantidades, strict=False):
-                    if not m_id or not cant:
-                        continue
+                with transaction.atomic(using=db_alias):
+                    for m_id, cant in zip(materiales_ids, cantidades, strict=False):
+                        if not m_id or not cant:
+                            continue
 
-                    material = get_object_or_404(Material, pk=m_id)
-                    try:
-                        stock_obj = Stock.objects.select_for_update().get(material=material)
-                    except Stock.DoesNotExist:
-                        stock_obj = Stock.objects.create(material=material, cantidad_actual=0)
+                        material = _obtener_material_local(m_id)
+                        try:
+                            stock_obj = Stock.objects.select_for_update().using(db_alias).get(material=material)
+                        except Stock.DoesNotExist:
+                            stock_obj = Stock.objects.using(db_alias).create(material=material, cantidad_actual=0)
 
-                    try:
-                        cantidad = int(cant)
-                    except (ValueError, TypeError) as err:
-                        raise ValueError(f"Cantidad inválida para {material.nombre}") from err
+                        try:
+                            cantidad = int(cant)
+                        except (ValueError, TypeError) as err:
+                            raise ValueError(f"Cantidad inválida para {material.nombre}") from err
 
-                    if cantidad <= 0:
-                        raise ValueError(f"La cantidad para {material.nombre} debe ser mayor a 0.")
+                        if cantidad <= 0:
+                            raise ValueError(f"La cantidad para {material.nombre} debe ser mayor a 0.")
 
-                    if stock_obj.cantidad_actual < cantidad:
-                        raise ValueError(
-                            f"Stock insuficiente para {material.nombre}. "
-                            f"Quedan {stock_obj.cantidad_actual}."
+                        if stock_obj.cantidad_actual < cantidad:
+                            raise ValueError(
+                                f"Stock insuficiente para {material.nombre}. "
+                                f"Quedan {stock_obj.cantidad_actual}."
+                            )
+
+                        precio_unitario = material.precio
+                        total_item = precio_unitario * cantidad
+                        total_general += total_item
+
+                        DetallePedido.objects.using('default').create(
+                            pedido=nuevo_pedido,
+                            material=material,
+                            cantidad=cantidad,
+                            precio_unitario=precio_unitario
                         )
 
-                    precio_unitario = material.precio
-                    total_item = precio_unitario * cantidad
-                    total_general += total_item
-
-                    DetallePedido.objects.create(
-                        pedido=nuevo_pedido,
-                        material=material,
-                        cantidad=cantidad,
-                        precio_unitario=precio_unitario,
-                        skip_calcular_total=True
-                    )
-
-                    stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
-                    stock_obj.save()
-
-                # Establecemos tanto total como precio manualmente para asegurarnos
-                nuevo_pedido.total = total_general
-                nuevo_pedido.precio = total_general
-                nuevo_pedido.save()
+                        stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
+                        stock_obj.save(using=db_alias)
 
             messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente.")
             return redirect("clientes:mis_pedidos")
@@ -333,11 +446,13 @@ def crear_pedido(request):
 
 @login_required
 def editar_pedido(request, id):
+    usuario_remoto = request.user.usuario
     pedido = get_object_or_404(Pedido, codigo_pedido=id)
     materiales = Material.objects.all()
 
-    es_admin = request.user.usuario.rol == 'admin'
-    es_dueno = request.user.usuario == pedido.usuario
+    es_admin = usuario_remoto.rol == 'admin'
+    usuario = _obtener_usuario_local(usuario_remoto)
+    es_dueno = _es_dueno_pedido(pedido, usuario_remoto, usuario)
 
     if not (es_admin or es_dueno) or pedido.estado != 'pendiente':
         messages.error(
@@ -390,44 +505,45 @@ def editar_pedido(request, id):
                 direccion_detalle=direccion_detalle,
             ))
 
+        db_alias = _obtener_alias_db()
         try:
             with transaction.atomic():
-                for detalle in pedido.detalles.all():
-                    try:
-                        stock_obj = Stock.objects.select_for_update().get(material=detalle.material)
-                    except Stock.DoesNotExist:
-                        stock_obj = Stock.objects.create(
-                            material=detalle.material,
-                            cantidad_actual=0,
+                with transaction.atomic(using=db_alias):
+                    for detalle in pedido.detalles.all():
+                        try:
+                            stock_obj = Stock.objects.select_for_update().using(db_alias).get(material=detalle.material)
+                        except Stock.DoesNotExist:
+                            stock_obj = Stock.objects.using(db_alias).create(
+                                material=detalle.material,
+                                cantidad_actual=0,
+                            )
+                        stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
+                        stock_obj.save(using=db_alias)
+
+                    pedido.detalles.all().delete()
+
+                    total_general = 0
+                    for m_id, cant in zip(materiales_ids, cantidades, strict=False):
+                        material = _obtener_material_local(m_id)
+                        try:
+                            stock_obj = Stock.objects.select_for_update().using(db_alias).get(material=material)
+                        except Stock.DoesNotExist:
+                            stock_obj = Stock.objects.using(db_alias).create(material=material, cantidad_actual=0)
+                        cantidad = int(cant)
+
+                        if stock_obj.cantidad_actual < cantidad:
+                            raise ValueError(f"Stock insuficiente para {material.nombre}")
+
+                        DetallePedido.objects.using('default').create(
+                            pedido=pedido,
+                            material=material,
+                            cantidad=cantidad,
+                            precio_unitario=material.precio
                         )
-                    stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
-                    stock_obj.save()
 
-                pedido.detalles.all().delete()
-
-                total_general = 0
-                for m_id, cant in zip(materiales_ids, cantidades, strict=False):
-                    material = get_object_or_404(Material, pk=m_id)
-                    try:
-                        stock_obj = Stock.objects.select_for_update().get(material=material)
-                    except Stock.DoesNotExist:
-                        stock_obj = Stock.objects.create(material=material, cantidad_actual=0)
-                    cantidad = int(cant)
-
-                    if stock_obj.cantidad_actual < cantidad:
-                        raise ValueError(f"Stock insuficiente para {material.nombre}")
-
-                    DetallePedido.objects.create(
-                        pedido=pedido,
-                        material=material,
-                        cantidad=cantidad,
-                        precio_unitario=material.precio,
-                        skip_calcular_total=True
-                    )
-
-                    stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
-                    stock_obj.save()
-                    total_general += material.precio * cantidad
+                        stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
+                        stock_obj.save(using=db_alias)
+                        total_general += material.precio * cantidad
 
                 pedido.direccion_destino = direccion
                 pedido.fecha_entrega_programada = fecha_entrega if fecha_entrega else None
@@ -458,8 +574,10 @@ def editar_pedido(request, id):
 def cancelar_pedido(request, id):
     pedido = get_object_or_404(Pedido, codigo_pedido=id)
 
-    es_admin = request.user.usuario.rol == 'admin'
-    es_dueno = request.user.usuario == pedido.usuario
+    usuario_remoto = request.user.usuario
+    es_admin = usuario_remoto.rol == 'admin'
+    usuario = _obtener_usuario_local(usuario_remoto)
+    es_dueno = _es_dueno_pedido(pedido, usuario_remoto, usuario)
 
     if not (es_admin or es_dueno):
         messages.error(request, "No tienes permiso para cancelar este pedido.")
@@ -473,15 +591,16 @@ def cancelar_pedido(request, id):
             return redirect("ordenes:lista_pedidos_admin")
         return redirect("clientes:mis_pedidos")
 
+    db_alias = _obtener_alias_db()
     try:
-        with transaction.atomic():
+        with transaction.atomic(using=db_alias):
             for detalle in pedido.detalles.all():
                 try:
-                    stock_obj = Stock.objects.select_for_update().get(material=detalle.material)
+                    stock_obj = Stock.objects.select_for_update().using(db_alias).get(material=detalle.material)
                 except Stock.DoesNotExist:
-                    stock_obj = Stock.objects.create(material=detalle.material, cantidad_actual=0)
+                    stock_obj = Stock.objects.using(db_alias).create(material=detalle.material, cantidad_actual=0)
                 stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
-                stock_obj.save()
+                stock_obj.save(using=db_alias)
 
             pedido.estado = "cancelado"
             pedido.save()

@@ -66,8 +66,29 @@ class Command(BaseCommand):
         mat = qs.first()
         if mat:
             return mat, False
-        mat = MaterialConstruccion.objects.using(db_alias).create(**m_data)
+
+        # Get or create the UnidadMedida instance dynamically
+        from apps.usuarios.models import UnidadMedida
+        unidad_str = m_data['unidad_medida']
+        abreviaturas = {'Bulto': 'Bto', 'Unidad': 'Und', 'm3': 'm3', 'Kg': 'kg', 'Galón': 'Gl', 'Galn': 'Gl'}
+        abrev = abreviaturas.get(unidad_str, unidad_str[:10])
+        codigo = unidad_str.upper()[:10]
+
+        unidad_obj, _ = UnidadMedida.objects.using(db_alias).get_or_create(
+            codigo=codigo,
+            defaults={
+                'nombre': unidad_str,
+                'abreviatura': abrev,
+                'activa': True
+            }
+        )
+
+        m_data_copy = m_data.copy()
+        m_data_copy['unidad_medida'] = unidad_obj
+
+        mat = MaterialConstruccion.objects.using(db_alias).create(**m_data_copy)
         return mat, True
+
 
     def add_arguments(self, parser):
         parser.add_argument(
