@@ -8,7 +8,7 @@ from apps.facturacion.models import Factura
 
 
 # =====================================================================
-# PAGO  (MER: #id_pago *id_factura *monto *fecha *codigo_metodo_pago)
+# PAGO
 # =====================================================================
 class Pago(models.Model):
     id_pago = models.AutoField(primary_key=True)
@@ -17,7 +17,7 @@ class Pago(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     codigo_metodo_pago = models.ForeignKey('usuarios.MetodoPago', db_column='codigo_metodo_pago', on_delete=models.PROTECT)
 
-    # Fuera del MER pero útil — NO se toca
+    # NO se toca
     referencia = models.CharField(max_length=100, blank=True)
     registrado_por = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
     sincronizado = models.BooleanField(default=False)

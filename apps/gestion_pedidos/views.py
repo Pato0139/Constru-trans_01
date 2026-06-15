@@ -26,7 +26,6 @@ def crear_pedido(request):
             return render(request, 'gestion_pedidos/crear_pedido.html', {'materiales': materiales})
 
         try:
-            # 1. Crear el encabezado del pedido
             pedido = Pedido.objects.create(
                 cliente=request.user,
                 descuento=descuento,
@@ -38,16 +37,13 @@ def crear_pedido(request):
                 material = get_object_or_404(MaterialConstruccion, pk=m_id)
                 stock_obj = Stock.objects.select_for_update().get(material=material)
 
-                # 2. Validar stock
                 if stock_obj.cantidad_actual < cant:
                     # Si falla un material, lanzamos excepción para que el atomic haga rollback
                     raise ValueError(f"Stock insuficiente para {material.nombre}. Disponible: {stock_obj.cantidad_actual}")
 
-                # 3. Reducir stock
                 stock_obj.cantidad_actual -= cant
                 stock_obj.save()
 
-                # 4. Crear detalle
                 DetallePedido.objects.create(
                     pedido=pedido,
                     material=material,
@@ -84,7 +80,7 @@ def detalle_pedido(request, pk):
     """
     pedido = get_object_or_404(Pedido, pk=pk)
     
-    # Seguridad básica: solo el dueño o admin pueden verlo
+    # Seguridad básica
     if request.user.rol != 'admin' and pedido.cliente != request.user:
         messages.error(request, "No tiene permisos para ver este pedido.")
         return redirect('gestion_pedidos:lista')

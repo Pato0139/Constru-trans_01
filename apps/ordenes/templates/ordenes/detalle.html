@@ -28,7 +28,7 @@
             </div>
 
             <div class="row g-4">
-                <!-- Columna Izquierda: Información -->
+                <!-- Información -->
                 <div class="col-md-6">
                     <div class="mb-4">
                         <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px;">Datos del Cliente</h6>
@@ -71,7 +71,7 @@
                     </div>
                 </div>
 
-                <!-- Columna Derecha: Materiales y Pago -->
+                <!-- Materiales y Pago -->
                 <div class="col-md-6">
                     <div class="mb-4">
                         <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px;">Resumen de Materiales</h6>
@@ -214,7 +214,7 @@
                         {% endif %}
                     </div>
 
-                    <!-- Sección para Admin y Cliente (Modificar/Cancelar) -->
+                    <!-- Sección para Modificar/Cancelar -->
                     {% if orden.estado == "pendiente" %}
                         {% if user.usuario.rol == "admin" or user.usuario.rol == "cliente" %}
                         <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
@@ -245,7 +245,7 @@
                     </div>
                     {% endif %}
 
-                    <!-- Sección EXCLUSIVA para el Administrador (Cambio de Estado Manual) -->
+                    <!-- Cambio de Estado Manual -->
                     {% if user.usuario.rol == "admin" %}
                     <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
                         <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px; font-size: 0.7rem;">Control Maestro (Admin)</h6>
@@ -266,7 +266,7 @@
                     </div>
                     {% endif %}
 
-                    <!-- Sección EXCLUSIVA para el Conductor -->
+                    <!-- Sección para el Conductor -->
                     {% if user.usuario.rol == "conductor" and orden.conductor == user.usuario and orden.estado != "entregado" and orden.estado != "cancelado" %}
                     <div class="p-4 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Panel del Conductor</h6>

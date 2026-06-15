@@ -6,8 +6,7 @@ from apps.usuarios.models import MaterialConstruccion, Proveedor
 
 
 # =====================================================================
-# COMPRA  (MER: #id_compra *codigo_proveedor *fecha_compra
-#          *total_compra *estado *id_usuario)
+# COMPRA 
 # =====================================================================
 class Compra(models.Model):
     ESTADOS = [('pendiente', 'Pendiente'), ('recibida', 'Recibida'), ('cancelada', 'Cancelada')]

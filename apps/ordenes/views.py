@@ -148,7 +148,7 @@ def lista_entregas_admin(request):
     cliente_query = request.GET.get('cliente')
     fecha_query = request.GET.get('fecha')
 
-    # Filtramos para mostrar solo pedidos que están en ruta (logística activa)
+    # Filtro para mostrar solo pedidos
     pedidos = buscar_pedidos_admin(cliente_query, fecha_query).filter(
         estado=Orden.EN_RUTA
     )
@@ -163,14 +163,13 @@ def lista_entregas_admin(request):
 @login_required
 def ver_pedido_admin(request, id):
     orden = get_object_or_404(Orden, codigo_pedido=id)
-    # Si es cliente, solo puede ver sus propios pedidos
     if request.user.usuario.rol == 'cliente' and (
         orden.cliente is None or orden.cliente.usuario_id != request.user.usuario.id
     ):
         messages.error(request, "No tienes permiso para ver este pedido.")
         return redirect("clientes:mis_pedidos")
 
-    # Manejo de acciones (Conductor y Admin)
+    # Manejo de acciones
     if request.method == "POST":
         if request.user.usuario.rol == "conductor":
             accion = request.POST.get("accion")
@@ -182,9 +181,6 @@ def ver_pedido_admin(request, id):
                         if entrega:
                             entrega.estado = 'entregado'
                             entrega.save()
-
-                            # El signal actualizar_estado_orden se encargará de actualizar la Orden,
-                            # descontar stock, crear factura y notificar a los admins.
 
                             # Liberar el vehículo
                             if entrega.vehiculo:
@@ -252,8 +248,6 @@ def ver_pedido_admin(request, id):
 @admin_required
 def crear_entrega(request, orden_id):
     orden = get_object_or_404(Orden, codigo_pedido=orden_id)
-    # Mostramos todos los conductores activos
-    # Filtrando solo por rol para que el admin vea a todos
     conductores = Usuario.objects.filter(rol="conductor")
 
     if request.method == "POST":
@@ -270,15 +264,13 @@ def crear_entrega(request, orden_id):
                         "orden": orden,
                         "conductores": conductores,
                     })
-
-                # Si ya existe una entrega para este pedido, liberamos el vehículo anterior si cambió
+                    
                 if orden.conductor and orden.conductor != conductor:
                     vehiculo_anterior = orden.conductor.vehiculo_asignado
                     if vehiculo_anterior:
                         vehiculo_anterior.estado = 'disponible'
                         vehiculo_anterior.save()
 
-                # Crear o actualizar registro de entrega
                 entrega, created = Entrega.objects.get_or_create(
                     pedido=orden,
                     defaults={
@@ -296,7 +288,6 @@ def crear_entrega(request, orden_id):
                     entrega.direccion_entrega = orden.direccion_destino
                     entrega.save()
 
-                # Actualizar estado de la orden y el vehículo
                 orden.estado = "en_ruta"
                 orden.conductor = conductor
                 if not orden.fecha_toma_entrega:
@@ -326,8 +317,6 @@ def crear_entrega(request, orden_id):
 @login_required
 def descargar_factura(request, id):
     orden = get_object_or_404(Orden, codigo_pedido=id)
-
-    # Solo el cliente dueño del pedido o un admin pueden descargarla
     if request.user.usuario.rol != 'admin' and orden.cliente.usuario != request.user.usuario:
         return HttpResponse("No autorizado", status=403)
 
@@ -338,26 +327,22 @@ def descargar_factura(request, id):
     elements = []
     styles = getSampleStyleSheet()
 
-    # Colores Premium
     color_gold = colors.Color(0.95, 0.61, 0.07) # #F39C12
     color_dark = colors.Color(0.07, 0.07, 0.07) # #121212
     color_accent = colors.Color(0.0, 0.34, 0.7) # #0056B3
 
-    # Estilos personalizados
     styles['Title'].fontSize = 22
     styles['Title'].textColor = color_accent
     styles['Title'].alignment = 0 # Left
 
-    # Encabezado con Diseño
     elements.append(Paragraph("CONSTRU-TRANS", styles['Title']))
     elements.append(Paragraph("Suministros y Transporte de Construcción", styles['Italic']))
     elements.append(Spacer(1, 10))
 
-    # Línea decorativa
+
     elements.append(Table([['']], colWidths=[540], rowHeights=[2], style=[('BACKGROUND', (0,0), (-1,-1), color_gold)]))
     elements.append(Spacer(1, 20))
 
-    # Información de Factura y Cliente (Tabla de 2 columnas)
     info_data = [
         [Paragraph(f"<b>FACTURA:</b> #{orden.codigo_pedido}", styles['Normal']),
          Paragraph(f"<b>CLIENTE:</b> {orden.cliente.usuario.nombres} {orden.cliente.usuario.apellidos}", styles['Normal'])],
@@ -407,7 +392,6 @@ def descargar_factura(request, id):
     # Filas de Totales
     total_f = format_money(orden.precio)
 
-    # Obtener información de pagos si existe factura asociada
     try:
         factura = orden.factura
         total_pagado = format_money(factura.total_pagado)
@@ -476,12 +460,11 @@ def eliminar_orden(request, id):
     orden = get_object_or_404(Orden, codigo_pedido=id)
     order_id = orden.codigo_pedido
 
-    # Si la orden no está entregada ni cancelada, revertimos el stock antes de eliminar
     if orden.estado not in ['entregado', 'cancelado']:
         db_alias = 'remota' if debe_usar_bd_remota() else 'default'
         try:
             with transaction.atomic(using=db_alias):
-                # Revertir stock y registrar movimiento usando utilidad
+
                 revertir_stock_pedido(orden, request.user, "Eliminación", using=db_alias)
         except Exception as e:
             messages.error(request, f"Error al devolver stock: {e}")

@@ -5,8 +5,7 @@ from apps.usuarios.models import Usuario
 
 
 # =====================================================================
-# REPORTE  (MER: #numero_reporte *tipo *fecha_generada *estado
-#           *descripcion *id_usuario)
+# REPORTE
 # =====================================================================
 class Reporte(models.Model):
     TIPOS = [

@@ -3,7 +3,7 @@ from django.db import models
 
 
 # =====================================================================
-# FACTURA  (MER: #id_factura(PK) #id_pedido(FK)(PK) *fecha *total *estado)
+# FACTURA 
 # =====================================================================
 class Factura(models.Model):
     ESTADOS = [('pendiente', 'Pendiente'), ('pagada', 'Pagada'), ('anulada', 'Anulada')]
@@ -20,7 +20,7 @@ class Factura(models.Model):
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
     estado = models.CharField(max_length=15, choices=ESTADOS, default='pendiente')
 
-    # Fuera del MER pero útil — NO se toca
+    # NO se toca
     sincronizado = models.BooleanField(default=False)
 
     class Meta:

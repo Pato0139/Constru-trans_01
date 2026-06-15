@@ -33,12 +33,12 @@ env = environ.Env(
     USE_S3=(bool, False),
 )
 
-# Lee .env si existe; en producción las vars vienen del entorno
 environ.Env.read_env(BASE_DIR / '.env')
 
 # ============================================================
 # SEGURIDAD
 # ============================================================
+
 if DJANGO_ENV == 'development':
     SECRET_KEY = env('SECRET_KEY', default=get_random_secret_key())
 else:
@@ -51,6 +51,7 @@ CSRF_TRUSTED_ORIGINS = env('CSRF_TRUSTED_ORIGINS')
 # ============================================================
 # APLICACIONES
 # ============================================================
+
 DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -62,7 +63,6 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    # 'axes',  # Desactivado temporalmente para evitar bloqueos
     'django_otp',
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_static',
@@ -91,6 +91,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # ============================================================
 # MIDDLEWARE
 # ============================================================
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -105,7 +106,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
-    # 'axes.middleware.AxesMiddleware',  # Desactivado temporalmente
     'apps.licensing.middleware.LicenseEnforcementMiddleware',
 ]
 
@@ -114,6 +114,7 @@ ROOT_URLCONF = 'core.urls'
 # ============================================================
 # TEMPLATES
 # ============================================================
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -139,16 +140,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # ============================================================
 
 DATABASE_URL = env('DATABASE_URL', default='')
-
-# Siempre tenemos SQLite local como default
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
-# Si hay DATABASE_URL, agregamos la BD remota Neon
 if DATABASE_URL:
     DATABASES["remota"] = dj_database_url.parse(
         DATABASE_URL,
@@ -157,12 +154,13 @@ if DATABASE_URL:
         ssl_require=True,
     )
 
-# Configuramos el router para el modo híbrido
+# Configuracion de el router para el modo híbrido
 DATABASE_ROUTERS = ['core.routers.EnrutadorInventario']
 
 # ============================================================
 # CACHÉ — Para precargar datos de paneles y optimizar velocidad
 # ============================================================
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -177,6 +175,7 @@ CACHES = {
 # ============================================================
 # AUTH Y CONTRASEÑAS
 # ============================================================
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
@@ -193,13 +192,13 @@ PASSWORD_HASHERS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    # 'axes.backends.AxesStandaloneBackend',  # Desactivado temporalmente
     'django.contrib.auth.backends.ModelBackend',
 ]
 
 # ============================================================
 # SESIONES Y COOKIES
 # ============================================================
+
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = env('SESSION_COOKIE_AGE')
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
@@ -218,6 +217,7 @@ LOGOUT_REDIRECT_URL = '/usuarios/login/'
 # ============================================================
 # DJANGO-AXES (anti fuerza bruta)
 # ============================================================
+
 AXES_FAILURE_LIMIT = env('AXES_FAILURE_LIMIT')
 AXES_COOLOFF_TIME = env('AXES_COOLOFF_TIME')
 AXES_RESET_ON_SUCCESS = True
@@ -225,11 +225,13 @@ AXES_RESET_ON_SUCCESS = True
 # ============================================================
 # RECUPERACIÓN DE CONTRASEÑA
 # ============================================================
+
 PASSWORD_RESET_TIMEOUT = env('PASSWORD_RESET_TIMEOUT')
 
 # ============================================================
 # EMAIL — Gmail SMTP (cuenta constru_trans)
 # ============================================================
+
 EMAIL_BACKEND = env('EMAIL_BACKEND',
                      default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
@@ -246,6 +248,7 @@ EMAIL_TIMEOUT = env('EMAIL_TIMEOUT')
 # ============================================================
 # INTERNACIONALIZACIÓN
 # ============================================================
+
 LANGUAGE_CODE = 'es-co'
 TIME_ZONE = 'America/Bogota'
 USE_I18N = True
@@ -259,6 +262,7 @@ NUMBER_GROUPING = 3
 # ============================================================
 # ARCHIVOS ESTÁTICOS Y MEDIA
 # ============================================================
+
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -270,6 +274,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # ============================================================
 # ALMACENAMIENTO EN LA NUBE (opcional)
 # ============================================================
+
 USE_S3 = env('USE_S3')
 if USE_S3:
     AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
@@ -286,6 +291,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ============================================================
 # LOGGING
 # ============================================================
+
 (BASE_DIR / 'logs').mkdir(exist_ok=True)
 (STATIC_ROOT).mkdir(exist_ok=True)
 
@@ -314,14 +320,12 @@ LOGGING = {
 
 # Custom User Model
 AUTH_USER_MODEL = 'usuarios.Usuario'
-
-# Solucion permanente al problema de trailing slashes en urls
 APPEND_SLASH = False
 
 # ============================================================
 # RECAPTCHA
 # ============================================================
-# Usando claves de prueba de Google (siempre pasan la validación en local)
+
 RECAPTCHA_PUBLIC_KEY = env('RECAPTCHA_PUBLIC_KEY', default='6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')
 RECAPTCHA_PRIVATE_KEY = env('RECAPTCHA_PRIVATE_KEY', default='6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe')
 SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']
