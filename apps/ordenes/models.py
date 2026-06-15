@@ -4,7 +4,7 @@ from django.db import models
 
 
 # =====================================================================
-# PEDIDO  (MER: #codigo_pedido *fecha_solicitud *total *estado *id_usuario)
+# PEDIDO
 # =====================================================================
 class Pedido(models.Model):
     ESTADOS = [
@@ -28,7 +28,7 @@ class Pedido(models.Model):
                                 validators=[MinValueValidator(0)])
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
 
-    # Fuera del MER pero útil — NO se toca
+    # NO se toca
     direccion_origen = models.CharField(max_length=200, default="Bodega Central")
     direccion_destino = models.CharField(max_length=200, default="")
     fecha_entrega_programada = models.DateTimeField(null=True, blank=True)
@@ -69,8 +69,7 @@ class Pedido(models.Model):
 
 
 # =====================================================================
-# DETALLE_PEDIDO  (MER: #id_detalle_pedido *id_pedido *id_material
-#                  -cantidad -precio_unitario -subtotal)
+# DETALLE_PEDIDO 
 # =====================================================================
 class DetallePedido(models.Model):
     id_detalle_pedido = models.AutoField(primary_key=True)
@@ -97,8 +96,7 @@ class DetallePedido(models.Model):
 
 
 # =====================================================================
-# ENTREGA  (MER: #id_entrega *id_pedido *id_conductor *id_vehiculo
-#           *fecha_salida *fecha_entrega *estado *direccion_entrega)
+# ENTREGA
 # =====================================================================
 class Entrega(models.Model):
     ESTADOS = [('pendiente', 'Pendiente'), ('en_ruta', 'En Ruta'), ('entregado', 'Entregado')]
@@ -114,7 +112,7 @@ class Entrega(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
     direccion_entrega = models.CharField(max_length=200)
 
-    # Fuera del MER — NO se toca
+    # NO se toca
     sincronizado = models.BooleanField(default=False)
 
     class Meta:

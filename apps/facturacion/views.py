@@ -18,7 +18,6 @@ def lista_facturas(request):
     estado = request.GET.get('estado')
     q = request.GET.get('q')
 
-    # JOIN con cliente y pedido, prefetch de pagos
     qs = Factura.objects.select_related('cliente', 'pedido').prefetch_related('pagos')
 
     if estado in ['pendiente', 'pagada', 'anulada']:
@@ -49,29 +48,28 @@ def registrar_pago(request):
     monto_str = request.POST.get('monto', '0')
     metodo_codigo = request.POST.get('metodo')
 
-    # VALIDACIÓN: Monto numérico
+    # VALIDACIÓN
     try:
         monto = Decimal(monto_str)
     except Exception:
         return JsonResponse({'error': 'Monto inválido'}, status=400)
 
-    # VALIDACIÓN: cantidad > 0
+    # VALIDACIÓN
     if monto <= 0:
         return JsonResponse({'error': 'El monto debe ser mayor a cero'}, status=400)
 
-    # Obtener el método de pago
+    # Método de pago
     try:
         metodo_pago = MetodoPago.objects.get(codigo_metodo_pago=metodo_codigo)
     except MetodoPago.DoesNotExist:
         return JsonResponse({'error': 'Método de pago inválido'}, status=400)
 
     try:
-        # TRANSACCIÓN ATÓMICA: o todo o nada
+        # TRANSACCIÓN ATÓMICA
         with transaction.atomic():
-            # Bloqueamos la factura para evitar pagos duplicados concurrentes
+           
             factura = Factura.objects.select_for_update().get(id=factura_id)
 
-            # Seguridad: Solo admin o el dueño pueden pagar
             if request.user.usuario.rol != 'admin' and factura.cliente != request.user.usuario:
                 return JsonResponse({'error': 'No autorizado'}, status=403)
 
@@ -80,7 +78,7 @@ def registrar_pago(request):
             if factura.estado == 'pagada':
                 return JsonResponse({'error': 'La factura ya ha sido pagada totalmente'}, status=400)
 
-            # VALIDACIÓN: No exceder saldo
+            # VALIDACIÓN
             if monto > factura.saldo_pendiente:
                 return JsonResponse({'error': f'El monto excede el saldo pendiente (${factura.saldo_pendiente})'}, status=400)
 
@@ -135,7 +133,6 @@ def editar_factura_monto(request, id):
         factura.total = nuevo_monto
         factura.save()
 
-        # También actualizar el precio de la orden para que coincida
         if factura.orden:
             factura.orden.precio = nuevo_monto
             factura.orden.save()

@@ -36,7 +36,7 @@ def crear_compra(request):
             formset.instance = compra
             formset.save()
 
-            # Recalcular total por si acaso
+            # Recalcular total por si es necesario
             compra.calcular_total()
 
             registrar_actividad(request, 'crear', 'compras', compra.id, f"Orden de compra creada: {compra.numero_orden}")
@@ -56,7 +56,7 @@ def crear_compra(request):
 
 @admin_required
 def detalle_compra(request, id):
-    # Optimizado con prefetch_related para evitar N+1 en la tabla de materiales
+    # Optimizacion
     compra = get_object_or_404(Compra.objects.select_related('proveedor').prefetch_related('detalles__material'), id=id)
     return render(request, "compras/detalle.html", {"compra": compra})
 

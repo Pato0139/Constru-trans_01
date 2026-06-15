@@ -18,8 +18,4 @@ def currency(value):
 
 @register.filter(name='split_list')
 def split_list(value):
-    """
-    Convierte una cadena separada por pipe (|) en una lista de listas separadas por coma.
-    Ej: 'a,b,c|d,e,f' -> [['a','b','c'], ['d','e','f']]
-    """
     return [item.split(',') for item in value.split('|')]

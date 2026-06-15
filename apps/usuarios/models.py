@@ -11,8 +11,7 @@ numeric_and_space_validator = RegexValidator(
 
 
 # =====================================================================
-# USUARIO  (MER: #id_usuario *nombres *apellidos *telefono *documento *contraseña)
-# Un usuario tiene UN solo rol (VARCHAR).
+# USUARIO
 # =====================================================================
 class Usuario(AbstractUser):
     TIPOS_DOCUMENTO = [
@@ -35,16 +34,16 @@ class Usuario(AbstractUser):
         ('empleado', 'Empleado'),
     ]
 
-    # Campos del MER - match remote database schema EXACTLY
+
     nombres = models.CharField(max_length=200)
     apellidos = models.CharField(max_length=200)
     telefono = models.CharField(max_length=20, blank=True)
     documento = models.CharField(max_length=20, validators=[numeric_and_space_validator])
 
-    # Rol is a VARCHAR column, not a foreign key!
+
     rol = models.CharField(max_length=50, choices=ROLES)
 
-    # Fuera del MER pero útil — NO se toca
+    #NO se toca
     tipo_documento = models.CharField(max_length=5, choices=TIPOS_DOCUMENTO)
     estado = models.CharField(max_length=15, choices=ESTADO_USUARIO, default='activo')
     foto_perfil = models.ImageField(upload_to='perfiles/', null=True, blank=True)
@@ -101,7 +100,7 @@ class Usuario(AbstractUser):
 
 
 # =====================================================================
-# EPS  (MER: #codigo_EPS *numero_seguro *ciudad *direccion *telefono *correo)
+# EPS 
 # =====================================================================
 class EPS(models.Model):
     codigo_eps = models.CharField(max_length=20, primary_key=True)
@@ -120,8 +119,7 @@ class EPS(models.Model):
 
 
 # =====================================================================
-# CONDUCTOR  (MER: #id_usuario(FK)(PK) *numero_licencia *categoria_licencia ...)
-# Antes: PerfilConductor
+# CONDUCTOR
 # =====================================================================
 class Conductor(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE,
@@ -144,8 +142,7 @@ class Conductor(models.Model):
 
 
 # =====================================================================
-# VEHICULO  (MER: #id_vehiculo *placa *marca *modelo *tipo_vehiculo
-#           *capacidad_carga *estado *fecha_registro)
+# VEHICULO
 # =====================================================================
 class Vehiculo(models.Model):
     id_vehiculo = models.AutoField(primary_key=True)
@@ -164,7 +161,6 @@ class Vehiculo(models.Model):
     ]
     estado = models.CharField(max_length=20, choices=ESTADOS_VEHICULO, default='disponible')
 
-    # Fuera del MER pero útil — NO se toca
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
@@ -192,7 +188,7 @@ class Vehiculo(models.Model):
 
 
 # =====================================================================
-# CONDUCTOR_VEHICULO  (MER: tabla puente N:M)
+# CONDUCTOR_VEHICULO
 # =====================================================================
 class ConductorVehiculo(models.Model):
     conductor = models.ForeignKey(Conductor, on_delete=models.CASCADE,
@@ -212,7 +208,7 @@ class ConductorVehiculo(models.Model):
 
 
 # =====================================================================
-# CATALOGO  (MER: #codigo_catalogo *nombre_empresa)
+# CATALOGO
 # =====================================================================
 class Catalogo(models.Model):
     codigo_catalogo = models.CharField(max_length=20, primary_key=True)
@@ -226,7 +222,7 @@ class Catalogo(models.Model):
 
 
 # =====================================================================
-# PROVEEDOR  (MER: #codigo_proveedor *telefono *correo *descripcion)
+# PROVEEDOR
 # =====================================================================
 class Proveedor(models.Model):
     codigo_proveedor = models.AutoField(primary_key=True)
@@ -235,7 +231,7 @@ class Proveedor(models.Model):
     telefono = models.CharField(max_length=20, validators=[numeric_and_space_validator])
     correo = models.EmailField()
     descripcion = models.TextField(blank=True)
-    # Fuera del MER — NO se toca
+    # NO se toca
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
@@ -263,8 +259,7 @@ class Proveedor(models.Model):
 
 
 # =====================================================================
-# UNIDAD_MEDIDA  (MER: #id_unidad *codigo *nombre *abreviatura -descripcion)
-# Nueva tabla de referencia para normalizar unidades
+# UNIDAD_MEDIDA 
 # =====================================================================
 class UnidadMedida(models.Model):
     """
@@ -277,7 +272,6 @@ class UnidadMedida(models.Model):
     abreviatura = models.CharField(max_length=10)
     descripcion = models.TextField(blank=True)
     
-    # Para control de datos
     activa = models.BooleanField(default=True)
     orden = models.PositiveIntegerField(default=0, help_text="Para ordenar en select")
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -297,8 +291,7 @@ class UnidadMedida(models.Model):
 
 
 # =====================================================================
-# MATERIAL_CONSTRUCCION  (MER: #cod_material *nombre *id_unidad ...)
-# Normalizado con UnidadMedida (ForeignKey)
+# MATERIAL_CONSTRUCCION  
 # =====================================================================
 class MaterialConstruccion(models.Model):
     cod_material = models.AutoField(primary_key=True)
@@ -348,7 +341,7 @@ class MaterialConstruccion(models.Model):
 
 
 # =====================================================================
-# STOCK  (MER: #id_material(PK)(FK) - cantidad_actual - stock_minimo - fecha_actualizacion)
+# STOCK
 # =====================================================================
 class Stock(models.Model):
     material = models.OneToOneField(MaterialConstruccion, on_delete=models.CASCADE,
@@ -381,7 +374,7 @@ class Stock(models.Model):
 
 
 # =====================================================================
-# METODO_PAGO  (MER: #codigo_metodo_pago *metodo)
+# METODO_PAGO
 # =====================================================================
 class MetodoPago(models.Model):
     codigo_metodo_pago = models.CharField(max_length=20, primary_key=True)
@@ -397,7 +390,7 @@ class MetodoPago(models.Model):
 
 
 # =====================================================================
-# NOTIFICACION  (FUERA del MER — NO se toca)
+# NOTIFICACION - No tocar
 # =====================================================================
 class Notificacion(models.Model):
     TIPOS = [('info', 'Información'), ('success', 'Éxito'),

@@ -29,7 +29,7 @@ class UsuarioForm(forms.ModelForm):
         documento = limpiar_telefono(documento)
         if not (7 <= len(documento) <= 15):
             raise forms.ValidationError("El número de documento debe tener entre 7 y 15 dígitos.")
-        # Check if it's already taken by another user
+
         existing = Usuario.objects.filter(documento=documento)
         if self.instance:
             existing = existing.exclude(pk=self.instance.pk)
@@ -183,7 +183,6 @@ class MaterialForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Filtrar solo unidades activas en el formulario
         self.fields['unidad_medida'].queryset = UnidadMedida.objects.filter(
             activa=True
         ).order_by('orden', 'nombre')
@@ -310,7 +309,7 @@ class CatalogoForm(forms.ModelForm):
         codigo = self.cleaned_data.get('codigo_catalogo')
         if codigo:
             codigo = codigo.strip().upper()
-            # If creating a new one, verify it doesn't already exist
+
             if not self.instance.pk and Catalogo.objects.filter(codigo_catalogo=codigo).exists():
                 raise forms.ValidationError("Ya existe un tipo de material con este código.")
         return codigo

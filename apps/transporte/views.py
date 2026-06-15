@@ -50,7 +50,7 @@ def lista_vehiculos(request):
 
 @login_required
 def crear_vehiculo(request):
-    # Conductores sin vehículo asignado (relación vía ConductorVehiculo)
+    # Conductores sin vehículo asignado
     from apps.usuarios.models import Conductor
     conductores_disponibles = Usuario.objects.filter(
         rol='conductor'
@@ -96,7 +96,7 @@ def crear_vehiculo(request):
 def editar_vehiculo(request, id):
     from apps.usuarios.models import Conductor
     vehiculo = get_object_or_404(Vehiculo, id=id)
-    # Conductores sin vehículo asignado (relación vía ConductorVehiculo)
+    # Conductores sin vehículo asignado
     conductores_disponibles = Usuario.objects.filter(
         rol='conductor'
     ).exclude(
@@ -105,10 +105,9 @@ def editar_vehiculo(request, id):
         id__in=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values('conductor__usuario')
     ).distinct()
 
-    # Obtener conductor actual del vehículo (si existe)
+    # Obtener conductor actual del vehículo 
     conductor_actual = vehiculo.conductor_actual
     if conductor_actual:
-        # Incluir al conductor actual en la lista
         conductores = (conductores_disponibles | Usuario.objects.filter(id=conductor_actual.id)).distinct()
     else:
         conductores = conductores_disponibles
@@ -116,11 +115,10 @@ def editar_vehiculo(request, id):
     if request.method == "POST":
         nuevo_estado = request.POST.get("estado")
 
-        # Validación: No desactivar si tiene entregas activas
+        # Validación
         if nuevo_estado in ['mantenimiento', 'fuera_de_servicio'] and vehiculo.estado == 'en_ruta':
             messages.error(request, "No se puede cambiar el estado mientras el vehículo tenga una entrega activa (En Ruta).")
         else:
-            # También verificar en el modelo Entrega por si acaso el estado del vehículo no se sincronizó
             entregas_activas = Entrega.objects.filter(vehiculo=vehiculo, estado__in=['pendiente', 'en_ruta']).exists()
             if nuevo_estado != 'disponible' and entregas_activas:
                 messages.error(request, "No se puede desactivar el vehículo porque tiene entregas pendientes o en curso.")
@@ -131,16 +129,14 @@ def editar_vehiculo(request, id):
                 vehiculo.estado = nuevo_estado
                 vehiculo.save()
 
-                # Manejar la asignación de conductor
                 conductor_id = request.POST.get("conductor")
                 try:
-                    # Primero, finalizar cualquier asignación actual del vehículo
                     ConductorVehiculo.objects.filter(vehiculo=vehiculo, fecha_fin__isnull=True).update(fecha_fin=now())
 
                     if conductor_id:
-                        # Obtener el perfil de conductor del usuario
+
                         conductor_perfil = Conductor.objects.get(usuario_id=conductor_id)
-                        # Crear nueva asignación
+ 
                         ConductorVehiculo.objects.create(
                             conductor=conductor_perfil,
                             vehiculo=vehiculo
@@ -163,7 +159,7 @@ def editar_vehiculo(request, id):
 def eliminar_vehiculo(request, id):
     vehiculo = get_object_or_404(Vehiculo, id=id)
 
-    # Validación HU-33: No eliminar si tiene entregas activas
+    # Validación
     entregas_activas = Entrega.objects.filter(vehiculo=vehiculo, estado__in=['pendiente', 'en_ruta']).exists()
     if entregas_activas:
         messages.error(request, "No se puede eliminar el vehículo porque tiene entregas activas.")
@@ -178,12 +174,12 @@ def eliminar_vehiculo(request, id):
 def desactivar_vehiculo(request, id):
     vehiculo = get_object_or_404(Vehiculo, id=id)
 
-    # Validación HU-33: No desactivar si tiene entregas activas
+    # Validación
     entregas_activas = Entrega.objects.filter(vehiculo=vehiculo, estado__in=['pendiente', 'en_ruta']).exists()
     if entregas_activas:
         messages.error(request, "No se puede desactivar el vehículo porque tiene entregas activas.")
     else:
-        vehiculo.estado = 'mantenimiento' # O el estado que represente "desactivado"
+        vehiculo.estado = 'mantenimiento'
         vehiculo.save()
         messages.success(request, f"Vehículo {vehiculo.placa} marcado como no disponible.")
 

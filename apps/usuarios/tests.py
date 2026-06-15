@@ -7,7 +7,7 @@ from .models import Material, Stock, Usuario, Vehiculo, UnidadMedida
 class ConstruTransTestSuite(TestCase):
     def setUp(self):
         self.client = Client()
-        # 1. Crear Admin
+
         self.admin_user = Usuario.objects.create_user(
             username='admin@test.com',
             email='admin@test.com',
@@ -18,7 +18,7 @@ class ConstruTransTestSuite(TestCase):
             tipo_documento='CC'
         )
 
-        # 2. Crear Cliente
+
         self.cliente_user = Usuario.objects.create_user(
             username='cliente@test.com',
             email='cliente@test.com',
@@ -29,7 +29,7 @@ class ConstruTransTestSuite(TestCase):
             tipo_documento='CC'
         )
 
-        # 3. Crear Conductor
+
         self.conductor_user = Usuario.objects.create_user(
             username='cond@test.com',
             email='cond@test.com',
@@ -40,14 +40,14 @@ class ConstruTransTestSuite(TestCase):
             tipo_documento='CC'
         )
 
-        # 4. Crear Unidad de Medida
+
         self.unidad_m3 = UnidadMedida.objects.create(
             codigo='M3',
             nombre='m3',
             abreviatura='m3'
         )
 
-        # 5. Crear Material y su Stock
+
         self.material = Material.objects.create(
             nombre='Arena',
             unidad_medida=self.unidad_m3,
@@ -56,7 +56,6 @@ class ConstruTransTestSuite(TestCase):
         )
         self.stock = Stock.objects.create(material=self.material, cantidad_actual=100)
 
-        # 6. Vehículo (asignado al conductor)
         self.vehiculo = Vehiculo.objects.create(
             placa='ABC123',
             marca='Toyota',

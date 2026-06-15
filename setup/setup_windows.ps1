@@ -1,7 +1,9 @@
 
-Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host "  CONSTRU-TRANS - Setup automatico (Windows)" -ForegroundColor Cyan
-Write-Host "================================================================" -ForegroundColor Cyan
+Write-Host "================================================================" -ForegroundColor cyan
+Write-Host "  CONSTRU-TRANS - Setup automatico (Windows)" -ForegroundColor blue
+Write-Host "================================================================" -ForegroundColor cyan
+Write-Host "==Derechos_Autor==Edward_Fonseca==_-_==" -ForegroundColor black
+Write-Host "Iniciando..." -ForegroundColor Green
 Write-Host ""
 
 # Cambiar al directorio raíz del proyecto
@@ -10,7 +12,7 @@ $projectRoot = Split-Path -Parent $scriptDir
 Set-Location $projectRoot
 
 # Paso 1: Verificar Python
-Write-Host "[1/5] Verificando Python..." -ForegroundColor Yellow
+Write-Host "[1/5] Verificando Python..." -ForegroundColor blue
 $pythonCmd = $null
 
 try {
@@ -35,14 +37,14 @@ if (-not $pythonCmd) {
 if (-not $pythonCmd) {
     Write-Host ""
     Write-Host "[ERROR] Python no encontrado. Instala Python 3.11+" -ForegroundColor Red
-    Write-Host "Descarga: https://www.python.org/downloads/" -ForegroundColor White
+    Write-Host "Descarga: https://www.python.org/downloads/" -ForegroundColor Yellow
     Read-Host "Presiona cualquier tecla para salir"
     exit 1
 }
 
 # Paso 2: Crear entorno virtual
 Write-Host ""
-Write-Host "[2/5] Creando entorno virtual..." -ForegroundColor Yellow
+Write-Host "[2/5] Creando entorno virtual..." -ForegroundColor blue
 if (-not (Test-Path "venv")) {
     & $pythonCmd -m venv venv
     if ($LASTEXITCODE -ne 0) {
@@ -57,7 +59,7 @@ if (-not (Test-Path "venv")) {
 
 # Paso 3: Instalar dependencias
 Write-Host ""
-Write-Host "[3/5] Instalando dependencias..." -ForegroundColor Yellow
+Write-Host "[3/5] Instalando dependencias..." -ForegroundColor blue
 & .\venv\Scripts\python.exe -m pip install --upgrade pip
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Fallo al actualizar pip" -ForegroundColor Red
@@ -74,11 +76,11 @@ Write-Host "[OK] Dependencias instaladas" -ForegroundColor Green
 
 # Paso 4: Configurar .env local
 Write-Host ""
-Write-Host "[4/5] Configurando archivo .env local..." -ForegroundColor Yellow
+Write-Host "[4/5] Configurando archivo .env local..." -ForegroundColor blue
 Write-Host ""
-Write-Host "================================================================" -ForegroundColor Magenta
-Write-Host "  OBTENIENDO CREDENCIALES AUTOMATICAMENTE" -ForegroundColor Magenta
-Write-Host "================================================================" -ForegroundColor Magenta
+Write-Host "================================================================" -ForegroundColor cyan
+Write-Host "  OBTENIENDO CREDENCIALES AUTOMATICAMENTE" -ForegroundColor blue
+Write-Host "================================================================" -ForegroundColor cyan
 Write-Host ""
 
 $neonRepoUrl = "https://github.com/Pato0139/Neon.git"
@@ -86,14 +88,14 @@ $tempDir = "temp_neon_repo"
 $envCreado = $false
 
 try {
-    Write-Host "[1/3] Clonando repositorio de credenciales..." -ForegroundColor Cyan
+    Write-Host "[1/3] Clonando repositorio de credenciales..." -ForegroundColor blue
     if (Test-Path $tempDir) {
         Remove-Item -Recurse -Force $tempDir
     }
     git clone --depth 1 $neonRepoUrl $tempDir 2>&1 | Out-Null
     Write-Host "[OK] Repositorio clonado" -ForegroundColor Green
 
-    Write-Host "[2/3] Copiando archivo de configuración..." -ForegroundColor Cyan
+    Write-Host "[2/3] Copiando archivo de configuración..." -ForegroundColor blue
     $neonEnvPath = Join-Path $tempDir ".env.example"
     if (Test-Path $neonEnvPath) {
         Copy-Item -Path $neonEnvPath -Destination ".env" -Force
@@ -103,7 +105,7 @@ try {
         Write-Host "[AVISO] No se encontró .env.example en el repo" -ForegroundColor Yellow
     }
 
-    Write-Host "[3/3] Limpiando repositorio temporal..." -ForegroundColor Cyan
+    Write-Host "[3/3] Limpiando repositorio temporal..." -ForegroundColor blue
     Remove-Item -Recurse -Force $tempDir
     Write-Host "[OK] Repositorio temporal eliminado" -ForegroundColor Green
 } catch {
@@ -116,7 +118,7 @@ try {
 # Si no se pudo crear desde el repo, creamos uno básico
 if (-not $envCreado) {
     Write-Host ""
-    Write-Host "[OK] Generando configuración básica..." -ForegroundColor Cyan
+    Write-Host "[OK] Generando configuración básica..." -ForegroundColor blue
     $djangoEnv = "development"
     $secretKey = & .\venv\Scripts\python.exe -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
     
@@ -173,7 +175,7 @@ if ($databaseUrl) {
 
 # Paso 5: Aplicar migraciones
 Write-Host ""
-Write-Host "[5/5] Aplicando migraciones..." -ForegroundColor Yellow
+Write-Host "[5/5] Aplicando migraciones..." -ForegroundColor blue
 & .\venv\Scripts\python.exe manage.py migrate --run-syncdb
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[AVISO] Verificando configuracion..." -ForegroundColor Yellow
@@ -189,13 +191,13 @@ if ($LASTEXITCODE -ne 0) {
 
 # Final
 Write-Host ""
-Write-Host "================================================================" -ForegroundColor Green
-Write-Host "  Setup COMPLETO!" -ForegroundColor Green
-Write-Host "================================================================" -ForegroundColor Green
+Write-Host "================================================================" -ForegroundColor cyan
+Write-Host "  Setup COMPLETO!" -ForegroundColor blue
+Write-Host "================================================================" -ForegroundColor cyan
 Write-Host ""
-Write-Host "Para iniciar el servidor:" -ForegroundColor Cyan
+Write-Host "Para iniciar el servidor:" -ForegroundColor blue
 Write-Host "  .\venv\Scripts\python.exe manage.py runserver" -ForegroundColor White
 Write-Host ""
-Write-Host "================================================================" -ForegroundColor Cyan
+Write-Host "================================================================" -ForegroundColor cyan
 Read-Host "Presiona cualquier tecla para salir"
 

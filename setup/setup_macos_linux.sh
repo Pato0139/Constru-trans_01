@@ -14,11 +14,11 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 echo -e "${CYAN}================================================================"
-echo -e "  CONSTRU-TRANS - Setup automático (macOS/Linux)"
-echo -e "================================================================"
+echo -e "${BLUE}CONSTRU-TRANS - Setup automático (macOS/Linux)"
+echo -e "${CYAN}================================================================" 
 echo -e "${NC}"
 
-echo -e "${YELLOW}[1/5] Verificando Python..."
+echo -e "${BLUE}[1/5] Verificando Python..."
 if command -v python3 >/dev/null 2>&1; then
     PYTHON_CMD="python3"
 elif command -v python >/dev/null 2>&1; then
@@ -36,7 +36,7 @@ fi
 echo -e "${GREEN}[OK] Python encontrado: $($PYTHON_CMD --version)"
 
 echo -e ""
-echo -e "${YELLOW}[2/5] Creando entorno virtual..."
+echo -e "${BLUE}[2/5] Creando entorno virtual..."
 if [ ! -d "venv" ]; then
     $PYTHON_CMD -m venv venv
     echo -e "${GREEN}[OK] Entorno virtual creado"
@@ -47,18 +47,18 @@ fi
 source venv/bin/activate
 
 echo -e ""
-echo -e "${YELLOW}[3/5] Instalando dependencias..."
+echo -e "${BLUE}[3/5] Instalando dependencias..."
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
 echo -e "${GREEN}[OK] Dependencias instaladas"
 
 echo -e ""
-echo -e "${YELLOW}[4/5] Configurando archivo .env local..."
+echo -e "${BLUE}[4/5] Configurando archivo .env local..."
 echo -e ""
-echo -e "${MAGENTA}================================================================"
-echo -e "  OBTENIENDO CREDENCIALES AUTOMATICAMENTE"
-echo -e "================================================================"
+echo -e "${CYAN}================================================================"
+echo -e "${BLUE}OBTENIENDO CREDENCIALES AUTOMATICAMENTE"
+echo -e "${CYAN}================================================================"
 echo -e "${NC}"
 
 NEON_REPO_URL="https://github.com/Pato0139/Neon.git"
@@ -69,14 +69,14 @@ ENV_CREADO=false
 trap 'if [ -d "$TEMP_DIR" ]; then rm -rf "$TEMP_DIR"; fi' EXIT
 
 if command -v git >/dev/null 2>&1; then
-    echo -e "${CYAN}[1/3] Clonando repositorio de credenciales..."
+    echo -e "${BLUE}[1/3] Clonando repositorio de credenciales..."
     if [ -d "$TEMP_DIR" ]; then
         rm -rf "$TEMP_DIR"
     fi
     if git clone --depth 1 "$NEON_REPO_URL" "$TEMP_DIR" 2>/dev/null; then
         echo -e "${GREEN}[OK] Repositorio clonado"
         
-        echo -e "${CYAN}[2/3] Copiando archivo de configuración..."
+        echo -e "${BLUE}[2/3] Copiando archivo de configuración..."
         if [ -f "$TEMP_DIR/.env.example" ]; then
             cp "$TEMP_DIR/.env.example" ".env"
             echo -e "${GREEN}[OK] Archivo .env creado con todas las credenciales!"
@@ -85,7 +85,7 @@ if command -v git >/dev/null 2>&1; then
             echo -e "${YELLOW}[AVISO] No se encontró .env.example en el repo"
         fi
         
-        echo -e "${CYAN}[3/3] Limpiando repositorio temporal..."
+        echo -e "${BLUE}[3/3] Limpiando repositorio temporal..."
         rm -rf "$TEMP_DIR"
         echo -e "${GREEN}[OK] Repositorio temporal eliminado"
     else
@@ -98,7 +98,7 @@ fi
 # Si no se pudo crear desde el repo, creamos uno básico
 if [ "$ENV_CREADO" = false ]; then
     echo -e ""
-    echo -e "${CYAN}[OK] Generando configuración básica..."
+    echo -e "${BLUE}[OK] Generando configuración básica..."
     DJANGO_ENV="development"
     SECRET_KEY="$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')"
     
@@ -150,7 +150,7 @@ else
 fi
 
 echo -e ""
-echo -e "${YELLOW}[5/5] Aplicando migraciones..."
+echo -e "${BLUE}[5/5] Aplicando migraciones..."
 python manage.py migrate --run-syncdb || {
     echo -e "${YELLOW}[AVISO] Migraciones fallaron. Verificando configuración..."
     python manage.py check
@@ -160,14 +160,14 @@ python manage.py migrate --run-syncdb || {
 echo -e "${GREEN}[OK] Migraciones completadas"
 
 echo -e ""
-echo -e "${GREEN}================================================================"
-echo -e "  Setup COMPLETO!"
-echo -e "================================================================"
+echo -e "${CYAN}================================================================"
+echo -e "${BLUE}Setup COMPLETO!"
+echo -e "${CYAN}================================================================"
 echo -e "${NC}"
-echo -e "${CYAN}Para iniciar el servidor:"
-echo -e "  source venv/bin/activate"
-echo -e "  python manage.py runserver"
+echo -e "${BLUE}Para iniciar el servidor:"
+echo -e "${WHITE}source venv/bin/activate"
+echo -e "${WHITE}python manage.py runserver"
 echo -e "${NC}"
 echo -e ""
-echo -e "================================================================"
+echo -e "${CYAN}================================================================"
 

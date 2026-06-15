@@ -310,7 +310,6 @@ def editar_tipo_material(request, codigo):
 def eliminar_tipo_material(request, codigo):
     tipo = get_object_or_404(Catalogo, pk=codigo)
 
-    # Validar integridad referencial (no eliminar si tiene materiales asociados)
     if tipo.materiales.exists():
         messages.error(
             request,

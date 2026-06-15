@@ -100,9 +100,9 @@ class DetallePedido(models.Model):
         y recalculamos el total del pedido.
         """
         if not self.pk:
-            # Capturar el precio al momento de la creación
+            # Capturar el precio cuando se cree
             self.precio_unitario = self.material.precio
         
         super().save(*args, **kwargs)
-        # Recalcular el total del pedido de forma atómica
+        # Recalcular el total en forma atomica
         self.pedido.calcular_total()
