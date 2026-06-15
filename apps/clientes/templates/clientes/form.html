@@ -1,4 +1,6 @@
+
 {% extends "base.html" %}
+{% load static %}
 {% load currency_tags %}
 {% load l10n %}
 
@@ -10,25 +12,29 @@
     {% if action == 'crear' %}Nueva Solicitud de Servicio{% else %}Modificar Solicitud #CT-{{ orden.id }}{% endif %}
 {% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes/form.css' %}?v=1.0">
+{% endblock %}
+
 {% block content %}
 
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <div class="table-container p-4 p-md-5 border-0 shadow-lg" style="background: rgba(255,255,255,0.02); border-radius: 32px;">
+        <div class="table-container p-4 p-md-5 border-0 shadow-lg pedido-form-card">
             <div class="text-center mb-5">
-                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 70px; height: 70px;">
+                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow pedido-icon-circle">
                     <i class="bi {% if action == 'crear' %}bi-cart-plus{% else %}bi-pencil-square{% endif %} text-dark fs-2"></i>
                 </div>
                 <h3 class="fw-900 text-white mb-2">
                     {% if action == 'crear' %}Detalles del Pedido{% else %}Editar Detalles del Pedido{% endif %}
                 </h3>
-                <p class="text-muted small text-uppercase fw-700" style="letter-spacing: 2px;">
+                <p class="text-muted small text-uppercase fw-700 pedido-subtitle">
                     {% if action == 'crear' %}Nueva Solicitud de Suministro{% else %}Modificación de pedido #CT-{{ orden.id }}{% endif %}
                 </p>
             </div>
 
             {% if error %}
-                <div class="alert alert-danger rounded-4 px-4 mb-4 border-0 shadow-sm animate__animated animate__shakeX" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                <div class="alert alert-danger rounded-4 px-4 mb-4 border-0 shadow-sm animate__animated animate__shakeX pedido-alert-error">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ error }}
                 </div>
             {% endif %}
@@ -36,11 +42,11 @@
             <form method="POST" id="form-pedido">
                 {% csrf_token %}
 
-                <div class="mb-5 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
-                    <label class="form-label fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">1. Selección de Materiales</label>
+                <div class="mb-5 p-4 rounded-4 shadow-sm pedido-section">
+                    <label class="form-label fw-800 text-accent text-uppercase small mb-3 pedido-section-label">1. Selección de Materiales</label>
                     <div class="row g-3">
                         <div class="col-md-7">
-                            <select id="select-material" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;">
+                            <select id="select-material" class="form-select rounded-pill border-0 px-4 py-2 pedido-input-bg">
                                 <option value="" data-precio="0">Seleccione un material...</option>
                                 {% for m in materiales %}
                                     <option value="{{ m.id }}" data-precio="{{ m.precio_referencia|unlocalize }}">{{ m.nombre }} - {{ m.precio_referencia|currency }}</option>
@@ -48,10 +54,10 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <input type="number" id="input-cantidad" class="form-control rounded-pill border-0 px-4 py-2" placeholder="Cant." min="1" value="1" style="background: rgba(255,255,255,0.05) !important;">
+                            <input type="number" id="input-cantidad" class="form-control rounded-pill border-0 px-4 py-2 pedido-input-bg" placeholder="Cant." min="1" value="1">
                         </div>
                         <div class="col-md-2">
-                            <button type="button" class="btn btn-gold rounded-pill w-100 py-2 h-100" onclick="agregarMaterial()">
+                            <button type="button" id="btn-agregar-material" class="btn btn-gold rounded-pill w-100 py-2 h-100">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
                         </div>
@@ -76,12 +82,12 @@
                                             <input type="hidden" name="material_id[]" value="{{ detalle.material.id }}">
                                         </td>
                                         <td class="text-center text-white-50 py-3">
-                                            <span class="badge rounded-pill px-3" style="background-color: #FF8C00 !important; color: #000000 !important; font-weight: 800;">{{ detalle.cantidad }}</span>
+                                            <span class="badge rounded-pill px-3 material-badge">{{ detalle.cantidad }}</span>
                                             <input type="hidden" name="cantidad[]" value="{{ detalle.cantidad }}">
                                         </td>
                                         <td class="text-end text-accent fw-800 py-3">{{ detalle.subtotal|currency }}</td>
                                         <td class="text-end pe-0 py-3">
-                                            <button type="button" class="btn btn-link text-danger p-0" onclick="eliminarFila(this, {{ detalle.subtotal|unlocalize }})">
+                                            <button type="button" class="btn btn-link text-danger p-0 btn-eliminar-material" data-subtotal="{{ detalle.subtotal|unlocalize }}">
                                                 <i class="bi bi-trash3-fill"></i>
                                             </button>
                                         </td>
@@ -93,23 +99,23 @@
                     </div>
                 </div>
 
-                <div class="p-4 rounded-4 mb-5 shadow-sm" style="background: rgba(243, 156, 18, 0.08); border: 1px solid rgba(243, 156, 18, 0.15);">
+                <div class="p-4 rounded-4 mb-5 shadow-sm pedido-total-box">
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-800 text-muted small text-uppercase" style="letter-spacing: 1px;">Total Estimado del Pedido:</span>
-                        <h3 class="mb-0 fw-900 text-accent" id="display-total" style="font-size: 2rem; letter-spacing: -1px;">{% if action == 'editar' %}{{ orden.precio|currency }}{% else %}$0,00{% endif %}</h3>
+                        <span class="fw-800 text-muted small text-uppercase pedido-total-label">Total Estimado del Pedido:</span>
+                        <h3 class="mb-0 fw-900 text-accent pedido-total-value" id="display-total" data-total-inicial="{% if action == 'editar' %}{{ orden.precio|default:0|unlocalize }}{% else %}0{% endif %}">{% if action == 'editar' %}{{ orden.precio|currency }}{% else %}$0,00{% endif %}</h3>
                     </div>
                 </div>
 
                 <!-- DETALLES DE ENTREGA -->
-                <div class="mb-5 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
-                    <label class="form-label fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">2. Detalles Logísticos</label>
+                <div class="mb-5 p-4 rounded-4 shadow-sm pedido-section">
+                    <label class="form-label fw-800 text-accent text-uppercase small mb-3 pedido-section-label">2. Detalles Logísticos</label>
                     <p class="text-muted small px-1 mb-3">Despachamos solo a ciudades autorizadas en Boyacá y zona cercana.</p>
                     <div class="row g-4">
                         <div class="col-md-12">
-                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Ciudad de destino</label>
+                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase pedido-input-label">Ciudad de destino</label>
                             <div class="input-group">
-                                <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-building"></i></span>
-                                <select name="ciudad" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" required>
+                                <span class="input-group-text border-0 pedido-input-icon"><i class="bi bi-building"></i></span>
+                                <select name="ciudad" class="form-select rounded-pill border-0 px-4 py-2 pedido-input-bg" required>
                                     <option value="">Seleccione ciudad...</option>
                                     {% for c in ciudades_despacho %}
                                     <option value="{{ c }}" {% if ciudad == c %}selected{% endif %}>{{ c }}</option>
@@ -118,20 +124,20 @@
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Dirección (calle, barrio, referencia)</label>
+                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase pedido-input-label">Dirección (calle, barrio, referencia)</label>
                             <div class="input-group">
-                                <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-geo-alt"></i></span>
-                                <input type="text" name="direccion_detalle" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" placeholder="Ej: Calle 10 #15-20, Barrio Centro" value="{{ direccion_detalle|default:'' }}" required>
+                                <span class="input-group-text border-0 pedido-input-icon"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" name="direccion_detalle" class="form-control rounded-pill border-0 px-4 py-2 pedido-input-bg" placeholder="Ej: Calle 10 #15-20, Barrio Centro" value="{{ direccion_detalle|default:'' }}" required>
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Fecha y Hora Programada</label>
-                            <div class="input-group" style="position:relative;">
-                                <button id="btn-fecha-entrega" type="button" class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);">
+                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase pedido-input-label">Fecha y Hora Programada</label>
+                            <div class="input-group pedido-picker-wrapper">
+                                <button id="btn-fecha-entrega" type="button" class="input-group-text border-0 pedido-input-icon">
                                     <i class="bi bi-calendar-event"></i>
                                 </button>
-                                <input id="fecha_entrega_text" type="text" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2" inputmode="numeric" placeholder="DD/MM/YYYY HH:MM" value="{% if fecha_entrega %}{{ fecha_entrega }}{% elif orden and orden.fecha_entrega_programada %}{{ orden.fecha_entrega_programada|date:'d/m/Y H:i' }}{% endif %}" style="background: rgba(255,255,255,0.05) !important;">
-                                <input id="fecha_entrega_picker" type="datetime-local" style="position:absolute; top:0; left:0; width:0; height:0; opacity:0; border:0; padding:0; margin:0; pointer-events:none; z-index:1000;" aria-hidden="false">
+                                <input id="fecha_entrega_text" type="text" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2 pedido-input-bg" inputmode="numeric" placeholder="DD/MM/YYYY HH:MM" value="{% if fecha_entrega %}{{ fecha_entrega }}{% elif orden and orden.fecha_entrega_programada %}{{ orden.fecha_entrega_programada|date:'d/m/Y H:i' }}{% endif %}">
+                                <input id="fecha_entrega_picker" type="datetime-local" class="pedido-picker-hidden" aria-hidden="false">
                             </div>
                             <div class="form-text text-white-50 small mt-2">Selecciona fecha y hora con el calendario.</div>
                         </div>
@@ -139,7 +145,7 @@
                 </div>
 
                 <div class="d-grid gap-3 mt-4">
-                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase pedido-submit-btn">
                         <i class="bi bi-check2-all me-2"></i> {% if action == 'crear' %}Confirmar y Enviar Pedido{% else %}Guardar Cambios{% endif %}
                     </button>
                     <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-secondary-cta rounded-pill py-2">
@@ -151,242 +157,8 @@
     </div>
 </div>
 
-<script>
-let totalGeneral = {% if action == 'editar' %}{{ orden.precio|default:0|unlocalize }}{% else %}0{% endif %};
+{% endblock %}
 
-function formatCurrency(value) {
-    let val = parseFloat(value);
-    let formatted = val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    let res = formatted.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
-    return '$' + res;
-}
-
-function agregarMaterial() {
-    const select = document.getElementById('select-material');
-    const cantidadInput = document.getElementById('input-cantidad');
-    const lista = document.getElementById('lista-detalles');
-    
-    const materialId = select.value;
-    const materialNombre = select.options[select.selectedIndex].text;
-    const precio = parseFloat(select.options[select.selectedIndex].getAttribute('data-precio'));
-    const cantidad = parseInt(cantidadInput.value);
-
-    if (!materialId || cantidad <= 0) {
-        alert("Seleccione un material y una cantidad válida");
-        return;
-    }
-
-    const subtotal = Math.round(precio * cantidad * 100) / 100;
-    totalGeneral = Math.round((totalGeneral + subtotal) * 100) / 100;
-
-    const row = document.createElement('tr');
-    row.className = 'material-item';
-    row.innerHTML = `
-        <td class="ps-0 py-3">
-            <span class="text-white fw-600">${materialNombre}</span>
-            <input type="hidden" name="material_id[]" value="${materialId}">
-        </td>
-        <td class="text-center text-white-50 py-3">
-            <span class="badge rounded-pill px-3" style="background-color: #FF8C00 !important; color: #000000 !important; font-weight: 800;">${cantidad}</span>
-            <input type="hidden" name="cantidad[]" value="${cantidad}">
-        </td>
-        <td class="text-end text-accent fw-800 py-3">${formatCurrency(subtotal)}</td>
-        <td class="text-end pe-0 py-3">
-            <button type="button" class="btn btn-link text-danger p-0" onclick="eliminarFila(this, ${subtotal})">
-                <i class="bi bi-trash3-fill"></i>
-            </button>
-        </td>
-    `;
-    
-    lista.appendChild(row);
-    actualizarTotalDisplay();
-    
-    select.value = "";
-    cantidadInput.value = 1;
-}
-
-function eliminarFila(btn, subtotal) {
-    btn.closest('tr').remove();
-    totalGeneral = Math.round((totalGeneral - subtotal) * 100) / 100;
-    actualizarTotalDisplay();
-}
-
-function actualizarTotalDisplay() {
-    document.getElementById('display-total').innerText = formatCurrency(totalGeneral);
-}
-
-function calcularTotalEdit() {
-    const select = document.getElementById('select-material-edit');
-    const cantidadInput = document.getElementById('input-cantidad-edit');
-    const display = document.getElementById('display-total');
-    
-    const precio = parseFloat(select.options[select.selectedIndex].getAttribute('data-precio')) || 0;
-    let cantidad = parseInt(cantidadInput.value) || 0;
-    
-    const total = precio * cantidad;
-    display.innerText = formatCurrency(total);
-}
-
-function openFechaEntregaPicker() {
-    const visible = document.getElementById('fecha_entrega_text');
-    const picker = document.getElementById('fecha_entrega_picker');
-    const parsedIso = parseToIso(visible.value.trim());
-    if (parsedIso) {
-        picker.value = parsedIso;
-    }
-    if (picker.showPicker) {
-        picker.showPicker();
-    } else {
-        picker.style.position = 'absolute';
-        picker.style.top = '0';
-        picker.style.left = '0';
-        picker.style.width = '220px';
-        picker.style.height = '40px';
-        picker.style.opacity = '0';
-        picker.style.pointerEvents = 'auto';
-        picker.style.zIndex = '1000';
-        picker.focus();
-        try {
-            picker.click();
-        } catch (error) {
-        }
-        setTimeout(() => {
-            picker.style.width = '0';
-            picker.style.height = '0';
-            picker.style.pointerEvents = 'none';
-        }, 300);
-    }
-}
-
-function parseToIso(value) {
-    if (!value) {
-        return null;
-    }
-
-    const isoPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-    if (isoPattern.test(value)) {
-        return value;
-    }
-
-    const normalized = value.replace(/\.|-/g, '/').replace(/\s+/g, ' ').trim();
-    const parts = normalized.split(' ');
-    const datePart = parts[0] || '';
-    const timePart = parts[1] || '00:00';
-
-    const dateMatch = datePart.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (!dateMatch) {
-        return null;
-    }
-
-    let [_, day, month, year] = dateMatch;
-    day = day.padStart(2, '0');
-    month = month.padStart(2, '0');
-
-    const timeMatch = timePart.match(/^(\d{1,2}):(\d{2})(?:\s*(am|pm))?$/i);
-    if (!timeMatch) {
-        return `${year}-${month}-${day}T00:00`;
-    }
-
-    let [__, hour, minute, ampm] = timeMatch;
-    hour = Number(hour);
-    if (ampm) {
-        ampm = ampm.toLowerCase();
-        if (ampm === 'pm' && hour < 12) hour += 12;
-        if (ampm === 'am' && hour === 12) hour = 0;
-    }
-    hour = String(hour).padStart(2, '0');
-
-    return `${year}-${month}-${day}T${hour}:${minute}`;
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const button = document.getElementById('btn-fecha-entrega');
-    if (button) {
-        button.addEventListener('click', openFechaEntregaPicker);
-    }
-
-    const visible = document.getElementById('fecha_entrega_text');
-    if (visible) {
-        visible.addEventListener('click', openFechaEntregaPicker);
-    }
-
-    const picker = document.getElementById('fecha_entrega_picker');
-    if (!picker) {
-        return;
-    }
-
-    picker.addEventListener('input', function() {
-        const visibleField = document.getElementById('fecha_entrega_text');
-        visibleField.value = formatFechaParaInput(this.value);
-    });
-});
-
-function formatFechaParaInput(value) {
-    if (!value) {
-        return '';
-    }
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
-}
-</script>
-
-<style>
-    .fw-900 { font-weight: 900; }
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
-    .fw-600 { font-weight: 600; }
-    .text-accent { color: var(--color-accent) !important; }
-    .bg-accent { background-color: var(--color-accent) !important; }
-    .border-white-10 { border-color: rgba(255,255,255,0.1) !important; }
-
-    .form-control, .form-select {
-        background: rgba(255,255,255,0.03) !important;
-        border: 1px solid rgba(255,255,255,0.08) !important;
-        padding: 12px 20px !important;
-        color: white !important;
-        border-radius: 12px !important;
-    }
-
-    .form-control:focus, .form-select:focus {
-        border-color: var(--color-accent) !important;
-        box-shadow: 0 0 15px rgba(243, 156, 18, 0.1) !important;
-        background: rgba(255,255,255,0.05) !important;
-    }
-
-    .btn-gold {
-        background: var(--color-accent);
-        color: #000;
-        border: none;
-        transition: all 0.3s ease;
-    }
-
-    .btn-gold:hover {
-        background: #d68910;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(243, 156, 18, 0.3);
-    }
-
-    .hover-opacity-100:hover {
-        opacity: 1 !important;
-    }
-
-    .material-item {
-        transition: all 0.2s ease;
-    }
-    .material-item:hover {
-        background: rgba(255,255,255,0.02);
-    }
-</style>
-
+{% block extra_js %}
+<script src="{% static 'js/clientes/form.js' %}?v=1.0"></script>
 {% endblock %}
