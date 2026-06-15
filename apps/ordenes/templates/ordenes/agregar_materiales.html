@@ -162,7 +162,6 @@
 <script>
   const URL_TOTAL = "{% url 'ordenes:calcular_total' orden.id %}";
 
-  // Preview antes de agregar
   document.getElementById('sel-material').addEventListener('change', calcPreview);
   document.getElementById('inp-cantidad').addEventListener('input', calcPreview);
 
@@ -187,7 +186,6 @@
     }
   }
 
-  // CT-275: actualizar totales via AJAX
   function recargarTotal() {
     fetch(URL_TOTAL)
       .then(r => r.json())
@@ -196,7 +194,6 @@
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         });
-        // Actualizar el total en el tfoot del resumen
         const totalElem = document.getElementById('d-total');
         if (totalElem) {
           totalElem.textContent = fmt(data.total);

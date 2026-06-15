@@ -17,7 +17,7 @@ class CompraForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['proveedor'].queryset = Proveedor.objects.all() # Podríamos filtrar por activos si existiera el campo
+        self.fields['proveedor'].queryset = Proveedor.objects.all() 
 
 class DetalleCompraForm(forms.ModelForm):
     class Meta:

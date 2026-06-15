@@ -29,7 +29,7 @@ class UsuarioAdmin(admin.ModelAdmin):
 
 
 # =====================================================================
-# UNIDAD DE MEDIDA - Tabla de Referencia Normalizada
+# UNIDAD DE MEDIDA 
 # =====================================================================
 @admin.register(UnidadMedida)
 class UnidadMedidaAdmin(admin.ModelAdmin):

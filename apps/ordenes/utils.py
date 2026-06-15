@@ -11,10 +11,7 @@ from apps.usuarios.models import Stock
 
 
 def revertir_stock_pedido(orden, usuario, motivo_prefijo="Cancelación", using=None):
-    """
-    Revierte el stock de un pedido y registra los movimientos de entrada.
-    Debe llamarse dentro de un transaction.atomic().
-    """
+
     db_alias = using if using else ('remota' if debe_usar_bd_remota() else 'default')
     for detalle in orden.detalles.all():
         stock_obj, _ = Stock.objects.select_for_update().using(db_alias).get_or_create(

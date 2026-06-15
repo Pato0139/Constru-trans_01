@@ -1,5 +1,5 @@
 """Settings para producción (Render, Railway, etc.)."""
-from .base import *  # noqa
+from .base import *
 from .base import env
 
 DEBUG = False

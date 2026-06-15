@@ -121,7 +121,6 @@ def _es_dueno_pedido(pedido, usuario_remoto, usuario_local):
     if usuario_remoto and pedido.usuario_id == usuario_remoto.id:
         return True
 
-    # Fallback seguro por username si la relación local no existe.
     try:
         candidato = Usuario.objects.using('default').get(pk=pedido.usuario_id)
         return candidato.username == usuario_local.username
@@ -142,17 +141,12 @@ def parse_fecha_entrega(value):
         return None
     value = value.strip()
 
-    # Try ISO formats first.
     for candidate in [value, value.replace(' ', 'T')]:
         try:
             return datetime.fromisoformat(candidate)
         except ValueError:
             pass
 
-    # Normalize common variations:
-    # - allow / or - separators
-    # - allow dots between date parts
-    # - allow AM/PM in text or compact form
     normalized = value.lower()
     normalized = re.sub(r'[\.]+', '/', normalized)
     normalized = normalized.replace('-', '/')
@@ -547,7 +541,6 @@ def editar_pedido(request, id):
 
                 pedido.direccion_destino = direccion
                 pedido.fecha_entrega_programada = fecha_entrega if fecha_entrega else None
-                # Establecemos tanto total como precio manualmente para asegurarnos
                 pedido.total = total_general
                 pedido.precio = total_general
                 pedido.save()

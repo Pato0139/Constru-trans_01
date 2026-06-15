@@ -4,12 +4,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     if (!loader) return;
 
-    // Bloquear scroll mientras el loader está activo
     body.style.overflow = "hidden";
 
     function hideLoader() {
         if (!loader.classList.contains("fade-out")) {
-            // Forzar que la barra llegue al 100% al ocultar
+
             const progressBar = loader.querySelector(".progress-bar");
             if (progressBar) {
                 progressBar.style.width = "100%";
@@ -18,17 +17,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
             setTimeout(() => {
                 loader.classList.add("fade-out");
-                // Rehabilitar scroll
+
                 body.style.overflow = "";
 
                 setTimeout(() => {
                     loader.style.display = "none";
-                }, 300); // Esperar a que termine la transición de opacidad
-            }, 100); // Pequeña pausa para ver la barra al 100%
+                }, 300); 
+            }, 100); 
         }
     }
 
-    // Ocultar cuando la página esté completamente cargada
     if (document.readyState === "complete") {
         setTimeout(hideLoader, 100);
     } else {
@@ -37,24 +35,21 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Timeout de seguridad por si tarda demasiado en cargar
     setTimeout(hideLoader, 1500);
 
-    // Mostrar loader al enviar formularios (excluyendo los que se manejen por AJAX si los hay)
     const forms = document.querySelectorAll("form");
     forms.forEach((form) => {
         form.addEventListener("submit", function() {
-            // No mostrar si el formulario tiene errores de validación nativos
+
             if (form.checkValidity()) {
-                // Bloquear scroll
+
                 body.style.overflow = "hidden";
 
-                // Reiniciar barra de progreso para la nueva acción
                 const progressBar = loader.querySelector(".progress-bar");
                 if (progressBar) {
                     progressBar.style.transition = "none";
                     progressBar.style.width = "0%";
-                    void progressBar.offsetWidth; // Force reflow
+                    void progressBar.offsetWidth; 
                     progressBar.style.transition = "";
                 }
 

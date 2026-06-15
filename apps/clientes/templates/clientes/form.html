@@ -36,7 +36,6 @@
             <form method="POST" id="form-pedido">
                 {% csrf_token %}
 
-                <!-- SECCIÓN AGREGAR MATERIALES -->
                 <div class="mb-5 p-4 rounded-4 shadow-sm" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
                     <label class="form-label fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">1. Selección de Materiales</label>
                     <div class="row g-3">
@@ -58,7 +57,6 @@
                         </div>
                     </div>
 
-                    <!-- TABLA DE MATERIALES AGREGADOS -->
                     <div class="table-responsive mt-4">
                         <table class="table table-hover align-middle no-datatable" id="tabla-materiales">
                             <thead>
@@ -159,7 +157,6 @@ let totalGeneral = {% if action == 'editar' %}{{ orden.precio|default:0|unlocali
 function formatCurrency(value) {
     let val = parseFloat(value);
     let formatted = val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    // Formato es-CO: . para miles, , para decimales
     let res = formatted.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
     return '$' + res;
 }
@@ -204,7 +201,6 @@ function agregarMaterial() {
     lista.appendChild(row);
     actualizarTotalDisplay();
     
-    // Reset inputs
     select.value = "";
     cantidadInput.value = 1;
 }
@@ -253,7 +249,6 @@ function openFechaEntregaPicker() {
         try {
             picker.click();
         } catch (error) {
-            // Some browsers will refuse programmatic click, but focus may still work.
         }
         setTimeout(() => {
             picker.style.width = '0';

@@ -15,7 +15,7 @@ from apps.ordenes.models import Pedido
 
 print("Testing Pedido creation...")
 
-# First, check if we have a user
+
 try:
     u = User.objects.get(username='constructora_alfa')
     print(f"Found User: {u}")
@@ -25,7 +25,7 @@ try:
     print(f"Found Cliente: {cliente}")
     
     print("\nTrying to create Pedido...")
-    # Try creating without cliente first
+
     pedido = Pedido.objects.create(
         usuario=usuario,
         direccion_destino="Test",

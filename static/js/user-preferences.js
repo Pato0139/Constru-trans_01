@@ -1,7 +1,3 @@
-/**
- * Preferencias de usuario: tema, daltonismo, tamaño de fuente e idioma.
- * Persistencia en localStorage; funciones globales para navbar y configuraciones.
- */
 (function () {
     'use strict';
 
@@ -62,7 +58,6 @@
             'toast.theme': 'Tema visual actualizado',
             'toast.daltonism': 'Filtro de daltonismo aplicado',
             'toast.language': 'Idioma actualizado',
-            // Sidebar translations
             'sidebar.brandSub': 'Panel de gestión',
             'sidebar.label.principal': 'Principal',
             'sidebar.general': 'General',
@@ -145,7 +140,6 @@
             'toast.theme': 'Visual theme updated',
             'toast.daltonism': 'Color blind filter applied',
             'toast.language': 'Language updated',
-            // Sidebar translations
             'sidebar.brandSub': 'Management panel',
             'sidebar.label.principal': 'Main',
             'sidebar.general': 'General',

@@ -26,12 +26,12 @@ def reportes_admin(request):
     en_ruta = ordenes.filter(estado="en_ruta").count()
     entregadas = ordenes.filter(estado="entregado").count()
 
-    # Calcular porcentajes para la UI
+    # Calcular porcentajes
     pct_pendientes = (pendientes * 100 / total) if total > 0 else 0
     pct_en_ruta = (en_ruta * 100 / total) if total > 0 else 0
     pct_entregadas = (entregadas * 100 / total) if total > 0 else 0
 
-    # Materiales con stock crítico (stock actual < stock mínimo)
+    # Materiales con stock crítico
     stock_critico = Material.objects.filter(stock_info__cantidad_actual__lt=F('stock_info__stock_minimo')).select_related('stock_info')
 
     context = {
@@ -69,7 +69,6 @@ def exportar_reporte_pdf(request, tipo):
     elements = []
     styles = getSampleStyleSheet()
 
-    # Título
     titulo = f"Reporte de {tipo.replace('_', ' ').capitalize()}"
     elements.append(Paragraph(titulo, styles['Title']))
     elements.append(Spacer(1, 12))
@@ -188,13 +187,11 @@ def exportar_reporte_excel(request, tipo):
             cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
             ws.append([o.id, cliente_nombre, materiales, format_money_raw(o.precio), o.estado])
 
-    # Aplicar estilos a cabecera
     for cell in ws[1]:
         cell.font = header_font
         cell.fill = header_fill
         cell.alignment = center_aligned
 
-    # Ajustar ancho de columnas
     for col in ws.columns:
         max_length = 0
         column = col[0].column_letter

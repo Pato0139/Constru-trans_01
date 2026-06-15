@@ -5,8 +5,7 @@ from django.dispatch import receiver
 
 
 # =====================================================================
-# CLIENTE  (MER: #id_usuario *direccion_principal *tipo_cliente
-#           nombre_empresa nit contacto_alternativo observaciones)
+# CLIENTE
 # =====================================================================
 class Cliente(models.Model):
     TIPOS_CLIENTE = [
@@ -24,7 +23,7 @@ class Cliente(models.Model):
     contacto_alternativo = models.CharField(max_length=100, default='', blank=True)
     observaciones = models.TextField(default='', blank=True)
 
-    # Fuera del MER pero útil — NO se toca
+    # NO cambien nada aca
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -34,7 +34,6 @@ def construir_direccion_destino(ciudad: str, detalle: str) -> str:
 
 
 def separar_direccion_destino(direccion_completa: str) -> tuple[str, str]:
-    """Intenta recuperar ciudad y detalle desde un destino guardado."""
     if not direccion_completa:
         return "", ""
     texto = direccion_completa.strip()

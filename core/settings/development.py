@@ -10,15 +10,14 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
 ]
 
-# Hot reload
-INSTALLED_APPS += ['django_browser_reload']           # noqa
-MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']  # noqa
+
+INSTALLED_APPS += ['django_browser_reload'] 
+MIDDLEWARE += ['django_browser_reload.middleware.BrowserReloadMiddleware']
 
 # Cookies sin HTTPS en local
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 SECURE_SSL_REDIRECT = False
 
-# Si no hay credenciales SMTP, envía emails a consola (para probar password reset)
 if not env('EMAIL_HOST_USER', default=''):
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

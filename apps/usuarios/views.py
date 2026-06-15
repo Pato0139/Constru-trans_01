@@ -44,7 +44,6 @@ def admin_required(view_func):
                 return view_func(request, *args, **kwargs)
         except Usuario.DoesNotExist:
             if request.user.is_superuser:
-                # Si es superusuario pero no tiene perfil, lo creamos como admin
                 Usuario.objects.create(
                     user=request.user,
                     rol='admin',
@@ -89,13 +88,16 @@ def buscar_conductores(query=None):
 
 
 
-# ---------------- REGISTRO ----------------
+# =====================================================================
+# REGISTRO
+# =====================================================================
+
 def registro(request):
     if request.method == "POST":
         form = RegistroForm(request.POST)
         if form.is_valid():
             try:
-                # El formulario ya validó correos, documentos y contraseñas coincidentes
+
                 email = form.cleaned_data.get("correo")
                 password = form.cleaned_data.get("contrasena")
 
@@ -110,7 +112,7 @@ def registro(request):
                         user.estado = "activo"
                         user.save()
                     except Exception as e:
-                        # Si hay error de ID duplicado, es un problema de secuencias en Postgres
+
                         if "duplicate key" in str(e).lower() and conexion_remota_disponible():
                             from django.db import connections
                             try:
@@ -119,7 +121,6 @@ def registro(request):
                             except Exception:
                                 pass
 
-                            # Reintento tras reparar secuencia
                             user = form.save(commit=False)
                             user.username = email
                             user.email = email
@@ -139,7 +140,7 @@ def registro(request):
             except Exception as e_final:
                 messages.error(request, f"Error al crear el usuario: {str(e_final)}")
         else:
-            # Los errores del formulario se mostrarán en la plantilla
+
             pass
 
     else:
@@ -152,16 +153,18 @@ def registro(request):
 
 
 
-# ---------------- LOGIN ----------------
+# =====================================================================
+# LOGIN
+# =====================================================================
+
 def login_usuario(request):
-    # Sincronización offline si hay internet
+
     if conexion_remota_disponible():
         try:
             sync_all_usuarios()
         except Exception as e:
             logger.error(f"Error sincronizando en login: {e}")
 
-    # Verificación de conexión a la nube para informar al usuario
     modo_local = not conexion_remota_disponible()
 
     if request.method == "POST":
@@ -180,7 +183,7 @@ def login_usuario(request):
                     user = None
 
             if user is not None:
-                # Aseguramos que si es cliente, tenga su perfil de cliente
+
                 if user.rol == 'cliente':
                     from apps.clientes.models import Cliente
                     try:
@@ -197,8 +200,6 @@ def login_usuario(request):
                         else:
                             raise e_c
 
-                # Logueamos al usuario después de asegurar el perfil
-                # Especificamos el backend para evitar problemas con múltiples BD
                 if not hasattr(user, 'backend'):
                     user.backend = 'django.contrib.auth.backends.ModelBackend'
 
@@ -206,18 +207,18 @@ def login_usuario(request):
 
                 remember_me = form.cleaned_data.get("remember_me")
                 if remember_me:
-                    request.session.set_expiry(1209600)  # 2 weeks
+                    request.session.set_expiry(1209600) 
                 else:
-                    request.session.set_expiry(0)  # Expires on browser close
+                    request.session.set_expiry(0)  
 
-                # Forzamos el guardado de la sesión antes de redireccionar
+
                 request.session.save()
 
-                # Registramos actividad (Ahora Historial también va a la nube por el router)
+
                 try:
                     registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
                 except Exception:
-                    pass # Que no se caiga el login si falla el historial
+                    pass 
 
                 messages.success(request, f"¡Bienvenido de nuevo, {user.nombres}!")
 
@@ -236,7 +237,7 @@ def login_usuario(request):
             else:
                 messages.error(request, "Usuario o contraseña incorrectos.")
         else:
-            # Los errores de validación se manejan en el form
+
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
@@ -248,13 +249,16 @@ def login_usuario(request):
     return render(request, "usuarios/login.html", {"form": form, "modo_local": modo_local})
 
 
-# ---------------- PANEL ADMIN ----------------
+# =====================================================================
+# PANEL ADMIND
+# =====================================================================
+
 @login_required
 def panel(request):
     try:
         usuario = request.user.usuario
     except Usuario.DoesNotExist:
-        # REPARACIÓN AUTOMÁTICA: Si el usuario existe pero no tiene perfil
+
         usuario = Usuario.objects.create(
             user=request.user,
             nombres=request.user.username.split('@')[0],
@@ -282,14 +286,12 @@ def panel(request):
 
         from core.utils import get_cache_key
 
-        # Creamos una clave de caché única para el panel de admin de este usuario
         cache_key = get_cache_key('panel_admin_v2', request.user.id)
 
-        # Intentamos obtener los datos del caché primero
         context = cache.get(cache_key)
 
         if not context:
-            # Si no está en caché, obtenemos los datos y los guardamos en caché por 5 minutos
+
             context = {
                 "pedidos_pendientes": Pedido.objects.filter(estado="pendiente").count(),
                 "conductores": Usuario.objects.filter(rol="conductor").count(),
@@ -302,7 +304,7 @@ def panel(request):
                     'usuario', 'cliente__usuario'
                 ).order_by("-fecha_solicitud")[:5]
             }
-            cache.set(cache_key, context, 300)  # 300 segundos = 5 minutos
+            cache.set(cache_key, context, 300)
 
         return render(request, "usuarios/panel-admin.html", context)
     elif usuario.rol == "cliente":
@@ -313,7 +315,10 @@ def panel(request):
     return redirect("usuarios:login")
 
 
-# ---------------- CONDUCTOR ----------------
+# =====================================================================
+# CONDUCTOR
+# =====================================================================
+
 @login_required
 def panel_conductor(request):
     try:
@@ -392,7 +397,6 @@ def editar_perfil(request):
         documento = limpiar_telefono(request.POST.get("documento"))
         email = request.POST.get("email")
 
-        # Manejo de la imagen de perfil
         if 'foto_perfil' in request.FILES:
             usuario.foto_perfil = request.FILES['foto_perfil']
 
@@ -404,7 +408,6 @@ def editar_perfil(request):
         usuario.sincronizado = False
         usuario.save()
 
-        # Actualizar el correo del User de Django
         if email:
             request.user.email = email
             request.user.save()
@@ -421,7 +424,10 @@ def editar_perfil(request):
     return render(request, "usuarios/editar_perfil.html", {"usuario": usuario})
 
 
-# ---------------- GESTIÓN DE USUARIOS ----------------
+# =====================================================================
+# GESTION DE USUARIOS
+# =====================================================================
+
 @login_required
 def crear_usuario(request):
     if request.user.usuario.rol != 'admin':
@@ -496,7 +502,7 @@ def crear_usuario(request):
                 raise e
 
         try:
-            # Manejo de la imagen de perfil en la creación
+
             if 'foto_perfil' in request.FILES:
                 user.foto_perfil = request.FILES['foto_perfil']
                 user.save()
@@ -530,13 +536,12 @@ def lista_usuarios(request):
 
     usuarios_list = buscar_usuarios_generales(query)
 
-    # Separamos por roles para las pestañas específicas
     admins = usuarios_list.filter(rol='admin')
     clientes = usuarios_list.filter(rol='cliente')
     conductores = usuarios_list.filter(rol='conductor')
 
     context = {
-        "usuarios_todos": usuarios_list, # Lista general
+        "usuarios_todos": usuarios_list, 
         "admins": admins,
         "clientes": clientes,
         "conductores": conductores,
@@ -555,7 +560,6 @@ def toggle_estado_usuario(request, id):
 
     usuario_obj = get_object_or_404(Usuario, id=id)
 
-    # PROTECCIÓN: Nadie puede desactivar al administrador global
     if usuario_obj.user.username == 'Edward_Fonseca':
         messages.error(request, "El Administrador Global no puede ser desactivado.")
         return redirect("usuarios:lista_usuarios")
@@ -564,7 +568,6 @@ def toggle_estado_usuario(request, id):
     usuario_obj.estado = nuevo_estado
     usuario_obj.save()
 
-    # También desactivar/activar el usuario de Django
     usuario_obj.user.is_active = (nuevo_estado == 'activo')
     usuario_obj.user.save()
 
@@ -576,15 +579,14 @@ def toggle_estado_usuario(request, id):
 
 @login_required
 def eliminar_usuario(request, id):
-    # OBTENER USUARIO A ELIMINAR
     usuario = get_object_or_404(Usuario, id=id)
 
-    # VALIDACIÓN: Solo admin puede eliminar
+
     if request.user.usuario.rol != 'admin':
         messages.error(request, "No tienes permiso para realizar esta acción.")
         return redirect('usuarios:lista_usuarios')
 
-    # ACCIÓN: Eliminar (O desactivar según lógica de negocio)
+
     usuario.delete()
     messages.success(request, f"Usuario {usuario.nombres} eliminado correctamente.")
     return redirect('usuarios:lista_usuarios')
@@ -598,7 +600,7 @@ def editar_usuario(request, id):
         messages.error(request, "No tienes permisos para editar este perfil.")
         return redirect("usuarios:panel")
 
-    # PROTECCIÓN: Solo el propio Administrador Global puede editar su perfil
+
     if usuario.user.username == 'Edward_Fonseca' and request.user.username != 'Edward_Fonseca':
         messages.error(request, "Solo el Administrador Global puede modificar su propia cuenta.")
         return redirect("usuarios:lista_usuarios")
@@ -622,7 +624,6 @@ def editar_usuario(request, id):
             usuario.apellidos = apellidos
             usuario.telefono = telefono
 
-            # Manejo de la imagen de perfil en la edición de usuario por admin
             if 'foto_perfil' in request.FILES:
                 usuario.foto_perfil = request.FILES['foto_perfil']
 
@@ -687,8 +688,10 @@ def perfil_conductor(request):
         "vehiculo": vehiculo
     })
 
+# =====================================================================
+# RECUPERAR CONTRASEÑA 
+# =====================================================================
 
-# ---------------- PASSWORD RESET ----------------
 class CustomPasswordResetView(PasswordResetView):
     template_name = 'usuarios/recuperar_password.html'
     email_template_name = 'registration/password_reset_email.txt'
@@ -708,18 +711,20 @@ class CustomPasswordResetView(PasswordResetView):
         logger.info(f"[Password Reset] Solicitud para: {email}")
         return super().form_valid(form)
 
+# =====================================================================
+# CERRAR SECCION 
+# =====================================================================
 
-# ---------------- LOGOUT ----------------
 def cerrar_sesion(request):
     if request.user.is_authenticated:
-        # Limpiamos la caché del usuario antes de cerrar sesión
+
         from core.utils import clear_user_cache
         clear_user_cache(request.user.id)
 
         try:
             registrar_actividad(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
         except Exception as e:
-            # Si falla por ID duplicado en el historial, intentamos reparar secuencias
+
             if "duplicate key" in str(e).lower() and "historial" in str(e).lower() and conexion_remota_disponible():
                 try:
                     from django.db import connections
@@ -727,14 +732,16 @@ def cerrar_sesion(request):
                         cursor.execute("SELECT setval('historial_actividad_id_seq', (SELECT MAX(id) FROM historial_actividad));")
                     registrar_actividad(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
                 except Exception:
-                    pass # Si falla de nuevo, que no detenga el logout
+                    pass 
             else:
-                pass # Otras excepciones tampoco detienen el logout
+                pass 
     logout(request)
     return redirect("usuarios:login")
 
+# =====================================================================
+# NOTIFICACIONES 
+# =====================================================================
 
-# --- NOTIFICACIONES ---
 @login_required
 def lista_notificaciones(request):
     try:
@@ -799,7 +806,7 @@ def cambiar_modo_bd(request):
                 'de la nube pueden ser distintos a los de tu copia local.'
             )
     else:
-        # Al cambiar a modo local, nos aseguramos de sincronizar los datos
+
         if conexion_remota_disponible():
             try:
                 sync_all_usuarios()

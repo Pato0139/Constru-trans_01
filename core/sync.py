@@ -8,10 +8,6 @@ logger = logging.getLogger(__name__)
 Usuario = get_user_model()
 
 def sync_usuarios_a_local():
-    """
-    Sincroniza los usuarios de la base de datos remota hacia la local (default).
-    Se usa para poder iniciar sesión offline.
-    """
     if not conexion_remota_disponible():
         logger.warning("No se pudo sincronizar a local: No hay conexión remota.")
         return
@@ -20,7 +16,6 @@ def sync_usuarios_a_local():
         usuarios_remotos = Usuario.objects.using('remota').all()
         
         for usuario in usuarios_remotos:
-            # Sincronizamos a local, basándonos en el username que es único
             Usuario.objects.using('default').update_or_create(
                 username=usuario.username,
                 defaults={
@@ -48,9 +43,6 @@ def sync_usuarios_a_local():
 
 
 def sync_usuarios_a_remoto():
-    """
-    Sincroniza los usuarios locales nuevos (sincronizado=False) a la BD remota.
-    """
     if not conexion_remota_disponible():
         logger.warning("No se pudo sincronizar a remoto: No hay conexión remota.")
         return
@@ -60,7 +52,6 @@ def sync_usuarios_a_remoto():
         
         for usuario in usuarios_no_sincronizados:
             try:
-                # Sincronizamos a remota, basándonos en el username
                 Usuario.objects.using('remota').update_or_create(
                     username=usuario.username,
                     defaults={
@@ -82,7 +73,6 @@ def sync_usuarios_a_remoto():
                         'last_login': usuario.last_login,
                     }
                 )
-                # Actualizamos en local para no volver a sincronizarlo
                 usuario.sincronizado = True
                 usuario.save(using='default')
             except IntegrityError as e:
@@ -95,7 +85,6 @@ def sync_usuarios_a_remoto():
 
 
 def sync_all_usuarios():
-    """Ejecuta la sincronización bidireccional completa."""
     if conexion_remota_disponible():
         sync_usuarios_a_remoto()
         sync_usuarios_a_local()

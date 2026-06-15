@@ -6,8 +6,7 @@ from apps.usuarios.models import MaterialConstruccion
 
 
 # =====================================================================
-# MOVIMIENTO_INVENTARIO  (MER: #id_movimiento *cod_material -tipo_movimiento
-#                        -cantidad -fecha *id_compra *codigo_pedido -observacion)
+# MOVIMIENTO_INVENTARIO 
 # =====================================================================
 class MovimientoInventario(models.Model):
     TIPOS = [('entrada', 'Entrada'), ('salida', 'Salida')]
