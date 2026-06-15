@@ -3,11 +3,11 @@
 <header class="navbar-premium app-navbar d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center gap-3 flex-grow-1 min-w-0">
         <!-- Sidebar Toggle (Mobile) -->
-        <button class="btn btn-dark-premium d-lg-none rounded-circle d-flex align-items-center justify-content-center" id="sidebarToggle" aria-label="Toggle menu" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; p: 0;">
+        <button class="btn btn-dark-premium d-lg-none rounded-circle d-flex align-items-center justify-content-center navbar-icon-btn" id="sidebarToggle" aria-label="Toggle menu">
             <i class="bi bi-list fs-4"></i>
         </button>
         <div class="min-w-0">
-            <h2 class="h4 fw-bold m-0 text-truncate" style="letter-spacing: -0.5px; color: var(--color-text);" data-i18n="nav.panel">
+            <h2 class="h4 fw-bold m-0 text-truncate navbar-title" data-i18n="nav.panel">
                 Panel de Control
             </h2>
             <p class="text-muted small mb-0 d-none d-sm-block text-truncate" data-i18n="nav.welcome">Bienvenido de nuevo, ¡qué bueno verte!</p>
@@ -19,21 +19,21 @@
         {% include "partials/bd_mode_toggle.html" %}
 
         <!-- Configuraciones -->
-        <a href="{% url 'usuarios:configuraciones' %}" class="btn btn-dark-premium rounded-circle d-flex align-items-center justify-content-center" title="Configuraciones" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; p: 0;">
+        <a href="{% url 'usuarios:configuraciones' %}" class="btn btn-dark-premium rounded-circle d-flex align-items-center justify-content-center navbar-icon-btn" title="Configuraciones">
             <i class="bi bi-gear fs-5 opacity-75"></i>
         </a>
         
         <!-- Notificaciones -->
         <div class="dropdown">
-            <button class="btn btn-dark-premium rounded-circle position-relative d-flex align-items-center justify-content-center" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; p: 0;">
+            <button class="btn btn-dark-premium rounded-circle position-relative d-flex align-items-center justify-content-center navbar-icon-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
                 <i class="bi bi-bell fs-5 opacity-75"></i>
                 {% if notif_unread_count > 0 %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger p-0 d-flex align-items-center justify-content-center" style="font-size: 0.65rem; width: 18px; height: 18px; min-width: 18px; min-height: 18px;">
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger p-0 d-flex align-items-center justify-content-center navbar-notif-badge">
                     {{ notif_unread_count }}
                 </span>
                 {% endif %}
             </button>
-            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-2" style="width: 350px; max-width: 90vw; max-height: 450px; overflow-y: auto;">
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-2 navbar-dropdown">
                 <li class="px-3 py-2 border-bottom border-white-5">
                     <h6 class="mb-0 fw-bold d-flex justify-content-between align-items-center">
                         <span data-i18n="nav.notifications">Notificaciones</span>
@@ -47,14 +47,14 @@
                     <a class="dropdown-item rounded-2 p-3 {% if not notif.leida %}notif-unread-highlight{% endif %}" href="{% url 'usuarios:marcar_notificacion_leida' notif.id %}">
                         <div class="d-flex gap-3">
                             <div class="flex-shrink-0 notif-icon-container">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center {% if notif.tipo == 'info' %}bg-info-subtle text-info{% elif notif.tipo == 'success' %}bg-success-subtle text-success{% elif notif.tipo == 'warning' %}bg-warning-subtle text-warning{% else %}bg-primary-subtle text-primary{% endif %}" style="width: 40px; height: 40px;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center {% if notif.tipo == 'info' %}bg-info-subtle text-info{% elif notif.tipo == 'success' %}bg-success-subtle text-success{% elif notif.tipo == 'warning' %}bg-warning-subtle text-warning{% else %}bg-primary-subtle text-primary{% endif %} navbar-icon-btn">
                                     <i class="bi {% if notif.tipo == 'info' %}bi-info-circle{% elif notif.tipo == 'success' %}bi-check-circle{% elif notif.tipo == 'warning' %}bi-exclamation-triangle{% else %}bi-bell{% endif %} fs-5"></i>
                                 </div>
                             </div>
                             <div class="flex-grow-1 min-w-0">
                                 <p class="small mb-1 fw-bold text-white text-truncate">{{ notif.titulo }}</p>
                                 <p class="small mb-1 text-muted text-truncate">{{ notif.mensaje }}</p>
-                                <span class="small text-muted" style="font-size: 0.7rem;">{{ notif.fecha|date:"d/m/Y H:i" }}</span>
+                                <span class="small text-muted navbar-notif-date">{{ notif.fecha|date:"d/m/Y H:i" }}</span>
                             </div>
                         </div>
                     </a>
@@ -80,24 +80,24 @@
                 <i class="bi bi-universal-access"></i>
                 <span class="fw-bold" data-i18n="nav.accessibility">Accesibilidad</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-3" style="width: 280px;">
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-3 navbar-dropdown-small">
                 <li class="mb-2">
                     <h6 class="dropdown-header text-primary fw-bold px-0 py-1" data-i18n="nav.themes">TEMAS VISUALES</h6>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setTheme('dark');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 theme-option" href="#" data-theme-value="dark">
                         <i class="bi bi-moon-stars"></i>
                         <span data-i18n="nav.theme.dark">Modo Oscuro</span>
                     </a>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setTheme('light');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 theme-option" href="#" data-theme-value="light">
                         <i class="bi bi-sun"></i>
                         <span data-i18n="nav.theme.light">Modo Claro</span>
                     </a>
                 </li>
                 <li class="mb-3">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setTheme('accessibility');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 theme-option" href="#" data-theme-value="accessibility">
                         <i class="bi bi-contrast"></i>
                         <span data-i18n="nav.theme.a11y">Alto Contraste</span>
                     </a>
@@ -107,31 +107,31 @@
                     <h6 class="dropdown-header text-warning fw-bold px-0 py-1" data-i18n="nav.daltonism">MODOS PARA DALTONISMO</h6>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setDaltonism('none');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 daltonism-option" href="#" data-daltonism-value="none">
                         <i class="bi bi-eye"></i>
                         <span data-i18n="nav.daltonism.none">Normal</span>
                     </a>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setDaltonism('protanopia');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 daltonism-option" href="#" data-daltonism-value="protanopia">
                         <i class="bi bi-circle-fill text-danger"></i>
                         <span data-i18n="nav.daltonism.protanopia">Protanopia (Rojo)</span>
                     </a>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setDaltonism('deuteranopia');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 daltonism-option" href="#" data-daltonism-value="deuteranopia">
                         <i class="bi bi-circle-fill text-success"></i>
                         <span data-i18n="nav.daltonism.deuteranopia">Deuteranopia (Verde)</span>
                     </a>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setDaltonism('tritanopia');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 daltonism-option" href="#" data-daltonism-value="tritanopia">
                         <i class="bi bi-circle-fill text-primary"></i>
                         <span data-i18n="nav.daltonism.tritanopia">Tritanopia (Azul)</span>
                     </a>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setDaltonism('achromatopsia');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 daltonism-option" href="#" data-daltonism-value="achromatopsia">
                         <i class="bi bi-circle-fill text-secondary"></i>
                         <span data-i18n="nav.daltonism.achromatopsia">Achromatopsia (Gris)</span>
                     </a>
@@ -141,27 +141,27 @@
 
         <!-- Accessibility Icon Only for Small Screens -->
         <div class="dropdown d-md-none">
-            <button class="btn btn-dark-premium rounded-circle d-flex align-items-center justify-content-center" type="button" data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad" style="width: 40px; height: 40px; min-width: 40px; min-height: 40px; p: 0;">
+            <button class="btn btn-dark-premium rounded-circle d-flex align-items-center justify-content-center navbar-icon-btn" type="button" data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad">
                 <i class="bi bi-universal-access fs-5 opacity-75"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-3" style="width: 90vw; right: 0.5rem;">
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-3 navbar-dropdown-xs">
                 <li class="mb-2">
                     <h6 class="dropdown-header text-primary fw-bold px-0 py-1" data-i18n="nav.themes">TEMAS VISUALES</h6>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setTheme('dark');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 theme-option" href="#" data-theme-value="dark">
                         <i class="bi bi-moon-stars"></i>
                         <span data-i18n="nav.theme.dark">Modo Oscuro</span>
                     </a>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setTheme('light');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 theme-option" href="#" data-theme-value="light">
                         <i class="bi bi-sun"></i>
                         <span data-i18n="nav.theme.light">Modo Claro</span>
                     </a>
                 </li>
                 <li class="mb-3">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setTheme('accessibility');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 theme-option" href="#" data-theme-value="accessibility">
                         <i class="bi bi-contrast"></i>
                         <span data-i18n="nav.theme.a11y">Alto Contraste</span>
                     </a>
@@ -171,31 +171,31 @@
                     <h6 class="dropdown-header text-warning fw-bold px-0 py-1" data-i18n="nav.daltonism">MODOS PARA DALTONISMO</h6>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setDaltonism('none');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 daltonism-option" href="#" data-daltonism-value="none">
                         <i class="bi bi-eye"></i>
                         <span data-i18n="nav.daltonism.none">Normal</span>
                     </a>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setDaltonism('protanopia');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 daltonism-option" href="#" data-daltonism-value="protanopia">
                         <i class="bi bi-circle-fill text-danger"></i>
                         <span data-i18n="nav.daltonism.protanopia">Protanopia</span>
                     </a>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setDaltonism('deuteranopia');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 daltonism-option" href="#" data-daltonism-value="deuteranopia">
                         <i class="bi bi-circle-fill text-success"></i>
                         <span data-i18n="nav.daltonism.deuteranopia">Deuteranopia</span>
                     </a>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setDaltonism('tritanopia');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 daltonism-option" href="#" data-daltonism-value="tritanopia">
                         <i class="bi bi-circle-fill text-primary"></i>
                         <span data-i18n="nav.daltonism.tritanopia">Tritanopia</span>
                     </a>
                 </li>
                 <li class="mb-1">
-                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2" href="#" onclick="return setDaltonism('achromatopsia');">
+                    <a class="dropdown-item rounded-2 d-flex align-items-center gap-2 daltonism-option" href="#" data-daltonism-value="achromatopsia">
                         <i class="bi bi-circle-fill text-secondary"></i>
                         <span data-i18n="nav.daltonism.achromatopsia">Achromatopsia</span>
                     </a>
@@ -206,8 +206,8 @@
         <div class="vr opacity-10 mx-1 mx-sm-2 d-none d-sm-block"></div>
 
         <div class="text-end d-none d-md-block">
-            <p class="small fw-bold mb-0 text-truncate" style="color: var(--color-text);">{{ user.usuario.nombres|default:user.username }}</p>
-            <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; letter-spacing: 1px;">{{ user.usuario.get_rol_display|upper|default:"ADMIN" }}</span>
+            <p class="small fw-bold mb-0 text-truncate navbar-username">{{ user.usuario.nombres|default:user.username }}</p>
+            <span class="text-muted navbar-role">{{ user.usuario.get_rol_display|upper|default:"ADMIN" }}</span>
         </div>
 
         <div class="avatar-container">
@@ -221,51 +221,4 @@
             {% endif %}
         </div>
     </div>
-
-    <style>
-        .btn-dark-premium {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: var(--color-text);
-            transition: all 0.3s ease;
-        }
-        .btn-dark-premium i {
-            color: currentColor;
-        }
-        .btn-dark-premium:hover {
-            background: rgba(255, 255, 255, 0.14);
-            border-color: var(--color-primary);
-            transform: translateY(-1px);
-        }
-        [data-theme="light"] .btn-dark-premium {
-            background: rgba(15, 23, 42, 0.08);
-            border-color: rgba(15, 23, 42, 0.18);
-            color: var(--color-text);
-        }
-        [data-theme="light"] .btn-dark-premium:hover {
-            background: rgba(15, 23, 42, 0.16);
-        }
-        .border-white-5 { border-color: rgba(255,255,255,0.05) !important; }
-        .border-white-10 { border-color: rgba(255,255,255,0.1) !important; }
-        .avatar-container img {
-            border: 2px solid var(--color-primary);
-            padding: 2px;
-            background: var(--color-bg);
-        }
-        .notif-unread-highlight {
-            background: rgba(59, 130, 246, 0.1) !important;
-            border-left: 3px solid var(--color-primary);
-        }
-        .notif-icon-container {
-            margin-top: 2px;
-        }
-        .min-w-0 {
-            min-width: 0 !important;
-        }
-        .text-truncate {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-    </style>
 </header>
