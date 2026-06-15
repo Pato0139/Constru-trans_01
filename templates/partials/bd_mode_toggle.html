@@ -1,3 +1,4 @@
+
 {# layout: navbar (default) | sidebar | login #}
 <div class="bd-mode-widget bd-mode-widget--{{ bd_toggle_layout|default:'navbar' }}">
     <form method="post" action="{% url 'usuarios:cambiar_modo_bd' %}" class="bd-mode-form m-0">
@@ -5,10 +6,9 @@
         <input type="hidden" name="modo" value="{{ bd_siguiente_modo }}">
         <button
             type="submit"
-            class="bd-mode-switch {% if bd_usando_remota %}is-remote{% else %}is-local{% endif %}"
+            class="bd-mode-switch {% if bd_usando_remota %}is-remote{% else %}is-local{% endif %} js-confirm-db-switch"
             aria-label="Cambiar base de datos. Actualmente {{ bd_etiqueta }}"
             title="{% if bd_usando_remota %}Conectado a Neon. Clic para usar base local.{% else %}Usando SQLite local. Clic para usar Neon.{% endif %}"
-            onclick="event.preventDefault(); Swal.fire({title: '¿Cambiar de Base de Datos?', text: 'Al hacer esto cerrarás sesión y deberás volver a iniciar sesión. ¿Deseas continuar?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#3085d6', cancelButtonColor: '#d33', confirmButtonText: 'Sí, continuar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
             {% if bd_siguiente_modo == 'remota' and not bd_remota_disponible %}disabled{% endif %}
         >
             {% if bd_toggle_layout == 'sidebar' or bd_toggle_layout == 'login' %}
