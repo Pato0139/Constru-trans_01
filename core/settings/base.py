@@ -39,10 +39,14 @@ environ.Env.read_env(BASE_DIR / '.env')
 # SEGURIDAD
 # ============================================================
 
-if DJANGO_ENV == 'development':
-    SECRET_KEY = env('SECRET_KEY', default=get_random_secret_key())
-else:
-    SECRET_KEY = env('SECRET_KEY')
+def get_secret_key():
+    try:
+        return env('SECRET_KEY')
+    except Exception:
+        import secrets
+        return secrets.token_hex(50)
+
+SECRET_KEY = get_secret_key()
 
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
