@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% load humanize currency_tags %}
+{% load static %}
 
 {% block title %}Facturación - ConstruTrans{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/facturacion/lista.css' %}">
+{% endblock %}
 
 {% block content %}
 
@@ -15,7 +20,7 @@
                 <input type="text" name="q" class="form-control bg-dark border-secondary text-white ps-5" placeholder="Buscador por numero de factura" style="border-radius: var(--radius-lg);" value="{{ q|default:'' }}">
             </form>
             <form action="." method="GET" id="filterForm" class="d-flex gap-2">
-                <select name="estado" class="form-select bg-dark border-secondary text-white w-auto" style="border-radius: var(--radius-lg); min-width: 200px;" onchange="this.form.submit()">
+                <select name="estado" class="form-select bg-dark border-secondary text-white w-auto" style="border-radius: var(--radius-lg); min-width: 200px;">
                     <option value="">Todos los estados</option>
                     <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
                     <option value="pagada" {% if estado == 'pagada' %}selected{% endif %}>Pagada</option>
@@ -64,30 +69,36 @@
                         {% endif %}
                     </td>
                     <td class="p-4 text-center">
-                        <button class="btn btn-sm btn-outline-info rounded-pill px-3" 
+                        <button class="btn btn-sm btn-outline-info rounded-pill px-3 btn-ver-historial" 
                                 type="button"
-                                onclick="verHistorial('{{ f.numero }}', '{{ f.id }}')" title="Ver historial">
+                                data-numero="{{ f.numero }}"
+                                data-id="{{ f.id }}" title="Ver historial">
                             <i class="bi bi-list-check"></i>
                         </button>
                     </td>
                     <td class="p-4 text-center">
                         <div class="d-flex justify-content-center gap-2">
                             {% if f.estado == 'pendiente' %}
-                            <button class="btn btn-premium btn-premium-gold btn-sm px-3" 
+                            <button class="btn btn-premium btn-premium-gold btn-sm px-3 btn-abrir-modal-pago" 
                                     type="button"
-                                    onclick="abrirModalPago('{{ f.id }}', '{{ f.numero }}', '{{ f.saldo_pendiente }}')"
+                                    data-id="{{ f.id }}"
+                                    data-numero="{{ f.numero }}"
+                                    data-saldo="{{ f.saldo_pendiente }}"
                                     title="Pagar">
                                 <i class="bi bi-cash-stack"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3" 
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 btn-abrir-modal-editar" 
                                     type="button"
-                                    onclick="abrirModalEditar('{{ f.id }}', '{{ f.numero }}', '{{ f.total }}')"
+                                    data-id="{{ f.id }}"
+                                    data-numero="{{ f.numero }}"
+                                    data-total="{{ f.total }}"
                                     title="Editar Monto">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" 
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3 btn-anular-factura" 
                                     type="button"
-                                    onclick="anularFactura('{{ f.id }}', '{{ f.numero }}')"
+                                    data-id="{{ f.id }}"
+                                    data-numero="{{ f.numero }}"
                                     title="Anular/Cancelar">
                                 <i class="bi bi-x-circle"></i>
                             </button>
@@ -116,175 +127,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-function formatCurrency(value) {
-    let val = parseFloat(value);
-    let rounded = Math.round(val);
-    let s = String(rounded);
-    let parts = [];
-    while (s.length > 0) {
-        parts.unshift(s.slice(-3));
-        s = s.slice(0, -3);
-    }
-    return parts.join('.');
-}
-
-function abrirModalPago(id, numero, saldo) {
-    document.getElementById('modalFacturaId').value = id;
-    document.getElementById('modalFacturaNum').innerText = numero;
-    
-    document.getElementById('displayMonto').innerText = formatCurrency(saldo);
-    document.getElementById('modalMonto').value = parseFloat(saldo);
-    
-    // Asegurarse de que el modal de Bootstrap esté inicializado correctamente
-    const modalElement = document.getElementById('modalPago');
-    let modal = bootstrap.Modal.getInstance(modalElement);
-    if (!modal) {
-        modal = new bootstrap.Modal(modalElement);
-    }
-    modal.show();
-}
-
-// Interceptar el envío del formulario de pago
-document.getElementById('formPago').addEventListener('submit', function(e) {
-    // Ya no multiplicamos por 100 porque los DecimalField manejan el valor real
-});
-
-function abrirModalEditar(id, numero, total) {
-    document.getElementById('modalEditarId').value = id;
-    document.getElementById('modalEditarNum').innerText = numero;
-    
-    // Mostramos el valor real en pesos
-    document.getElementById('modalEditarMonto').value = parseFloat(total);
-    
-    const form = document.getElementById('formEditar');
-    form.action = "/facturacion/editar-monto/" + id + "/";
-    
-    const modalElement = document.getElementById('modalEditar');
-    let modal = bootstrap.Modal.getInstance(modalElement);
-    if (!modal) {
-        modal = new bootstrap.Modal(modalElement);
-    }
-    modal.show();
-}
-
-function anularFactura(id, numero) {
-    Swal.fire({
-        title: '¿Anular Factura?',
-        text: "Esta acción marcará la factura " + numero + " como anulada.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, anular',
-        cancelButtonText: 'Cancelar',
-        background: '#161a22',
-        color: '#fff'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch("/facturacion/anular/" + id + "/", {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'ok') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Anulada',
-                        text: data.mensaje,
-                        background: '#161a22',
-                        color: '#fff'
-                    }).then(() => location.reload());
-                } else {
-                    Swal.fire('Error', data.error, 'error');
-                }
-            });
-        }
-    });
-}
-
-document.getElementById('formEditar').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    
-    // Ya no multiplicamos por 100
-    
-    fetch(this.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'ok') {
-            Swal.fire({
-                icon: 'success',
-                title: 'Actualizado',
-                text: data.mensaje,
-                background: '#161a22',
-                color: '#fff'
-            }).then(() => location.reload());
-        } else {
-            Swal.fire('Error', data.error, 'error');
-        }
-    });
-});
-
-document.getElementById('formPago').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    
-    fetch(this.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'ok') {
-            Swal.fire({
-                icon: 'success',
-                title: 'Pago Registrado',
-                text: data.mensaje,
-                confirmButtonColor: '#f59e0b',
-                background: '#161a22',
-                color: '#fff'
-            }).then(() => {
-                location.reload();
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: data.error,
-                confirmButtonColor: '#f59e0b',
-                background: '#161a22',
-                color: '#fff'
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error de conexión',
-            text: 'No se pudo registrar el pago',
-            confirmButtonColor: '#f59e0b',
-            background: '#161a22',
-            color: '#fff'
-        });
-    });
-});
-
-function verHistorial(numero, id) {
-    window.location.href = "{% url 'pagos:lista_pagos' %}?q=" + numero;
-}
-</script>
+<script src="{% static 'js/facturacion/lista.js' %}"></script>
 {% endblock %}
