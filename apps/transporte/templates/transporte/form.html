@@ -69,7 +69,7 @@
                     <select name="conductor" class="form-select">
                         <option value="">Sin asignar (Disponible)</option>
                         {% for cond in conductores %}
-                            <option value="{{ cond.usuario.id }}" {% if vehiculo and vehiculo.conductor and vehiculo.conductor.id == cond.usuario.id %}selected{% endif %}>
+                            <option value="{{ cond.usuario.id }}" {% if vehiculo and vehiculo.conductor_actual and vehiculo.conductor_actual.id == cond.usuario.id %}selected{% endif %}>
                                 {{ cond.usuario.nombres }} {{ cond.usuario.apellidos }} ({{ cond.usuario.documento }})
                             </option>
                         {% endfor %}

@@ -2,6 +2,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
+from django.utils.timezone import now
 
 numeric_and_space_validator = RegexValidator(
     regex=r'^[0-9\s]*$',
@@ -95,8 +96,28 @@ class Usuario(AbstractUser):
         return self.rol == 'empleado'
 
     @property
+    def conductor_profile(self):
+        try:
+            return self.perfil_conductor
+        except Conductor.DoesNotExist:
+            return None
+
+    @property
     def nombre(self):
         return self.nombres
+
+    @property
+    def vehiculo_actual(self):
+        if self.rol != 'conductor':
+            return None
+        try:
+            return self.perfil_conductor.vehiculo_actual
+        except Conductor.DoesNotExist:
+            return None
+
+    @property
+    def vehiculo_asignado(self):
+        return self.vehiculo_actual
 
 
 # =====================================================================
@@ -139,6 +160,28 @@ class Conductor(models.Model):
 
     def __str__(self):
         return f"Conductor: {self.usuario.nombres}"
+
+    @property
+    def asignacion_actual(self):
+        if hasattr(self, 'asignaciones_activas'):
+            return self.asignaciones_activas[0] if self.asignaciones_activas else None
+        return self.asignaciones_vehiculo.filter(fecha_fin__isnull=True).select_related('vehiculo').order_by('-fecha_asignacion').first()
+
+    @property
+    def vehiculo_actual(self):
+        asignacion = self.asignacion_actual
+        return asignacion.vehiculo if asignacion else None
+
+    def asignar_vehiculo(self, vehiculo):
+        if vehiculo is None:
+            raise ValueError('El vehículo no puede ser None para la asignación.')
+
+        if self.vehiculo_actual and self.vehiculo_actual.id_vehiculo == vehiculo.id_vehiculo:
+            return self.vehiculo_actual
+
+        self.asignaciones_vehiculo.filter(fecha_fin__isnull=True).update(fecha_fin=now())
+        nueva_asignacion = ConductorVehiculo.objects.create(conductor=self, vehiculo=vehiculo)
+        return nueva_asignacion
 
 
 # =====================================================================
@@ -183,7 +226,7 @@ class Vehiculo(models.Model):
 
     @property
     def conductor_actual(self):
-        asignacion = self.asignaciones_conductor.select_related("conductor__usuario").order_by("-fecha_asignacion").first()
+        asignacion = self.asignaciones_conductor.filter(fecha_fin__isnull=True).select_related("conductor__usuario").order_by("-fecha_asignacion").first()
         return asignacion.conductor.usuario if asignacion else None
 
 
