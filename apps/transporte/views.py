@@ -52,13 +52,9 @@ def lista_vehiculos(request):
 def crear_vehiculo(request):
     # Conductores sin vehículo asignado
     from apps.usuarios.models import Conductor
-    conductores_disponibles = Usuario.objects.filter(
-        rol='conductor'
-    ).exclude(
-        perfil_conductor__asignaciones_vehiculo__fecha_fin__isnull=False
-    ).exclude(
-        id__in=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values('conductor__usuario')
-    ).distinct()
+    conductores_disponibles = Conductor.objects.exclude(
+        usuario_id__in=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values('conductor__usuario_id')
+    ).select_related('usuario').order_by('usuario__nombres', 'usuario__apellidos')
 
     if request.method == "POST":
         placa = request.POST.get("placa")
@@ -67,19 +63,20 @@ def crear_vehiculo(request):
         conductor_id = request.POST.get("conductor")
 
         try:
-            if conductor_id:
-                try:
-                    conductor_perfil = Conductor.objects.get(usuario_id=conductor_id)
-                    ConductorVehiculo.objects.create(conductor=conductor_perfil)
-                except Conductor.DoesNotExist:
-                    pass
-
-            Vehiculo.objects.create(
+            vehiculo = Vehiculo.objects.create(
                 placa=placa,
                 tipo_vehiculo=tipo,
                 capacidad_carga=capacidad,
                 estado="disponible"
             )
+
+            if conductor_id:
+                conductor_perfil = Conductor.objects.filter(usuario_id=conductor_id).first()
+                if conductor_perfil:
+                    ConductorVehiculo.objects.create(conductor=conductor_perfil, vehiculo=vehiculo)
+                else:
+                    messages.warning(request, "El conductor seleccionado no existe o no está disponible.")
+
             messages.success(request, f"Vehículo {placa} registrado correctamente.")
             return redirect("transporte:lista_vehiculos")
         except IntegrityError:
@@ -95,20 +92,16 @@ def crear_vehiculo(request):
 @login_required
 def editar_vehiculo(request, id):
     from apps.usuarios.models import Conductor
-    vehiculo = get_object_or_404(Vehiculo, id=id)
+    vehiculo = get_object_or_404(Vehiculo, pk=id)
     # Conductores sin vehículo asignado
-    conductores_disponibles = Usuario.objects.filter(
-        rol='conductor'
-    ).exclude(
-        perfil_conductor__asignaciones_vehiculo__fecha_fin__isnull=False
-    ).exclude(
-        id__in=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values('conductor__usuario')
-    ).distinct()
+    conductores_disponibles = Conductor.objects.exclude(
+        usuario_id__in=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values('conductor__usuario_id')
+    ).select_related('usuario').order_by('usuario__nombres', 'usuario__apellidos')
 
-    # Obtener conductor actual del vehículo 
-    conductor_actual = vehiculo.conductor_actual
-    if conductor_actual:
-        conductores = (conductores_disponibles | Usuario.objects.filter(id=conductor_actual.id)).distinct()
+    # Obtener conductor actual del vehículo
+    current_assignment = ConductorVehiculo.objects.filter(vehiculo=vehiculo, fecha_fin__isnull=True).select_related('conductor__usuario').first()
+    if current_assignment:
+        conductores = (conductores_disponibles | Conductor.objects.filter(pk=current_assignment.conductor.pk)).distinct()
     else:
         conductores = conductores_disponibles
 
@@ -125,7 +118,7 @@ def editar_vehiculo(request, id):
             else:
                 vehiculo.placa = request.POST.get("placa")
                 vehiculo.tipo_vehiculo = request.POST.get("tipo")
-                vehiculo.capacidad_carga = request.POST.get("capacidad")
+                vehiculo.capacidad_carga = request.POST.get("capacidad").replace(",", ".")
                 vehiculo.estado = nuevo_estado
                 vehiculo.save()
 
@@ -134,13 +127,14 @@ def editar_vehiculo(request, id):
                     ConductorVehiculo.objects.filter(vehiculo=vehiculo, fecha_fin__isnull=True).update(fecha_fin=now())
 
                     if conductor_id:
-
-                        conductor_perfil = Conductor.objects.get(usuario_id=conductor_id)
- 
-                        ConductorVehiculo.objects.create(
-                            conductor=conductor_perfil,
-                            vehiculo=vehiculo
-                        )
+                        conductor_perfil = Conductor.objects.filter(usuario_id=conductor_id).first()
+                        if conductor_perfil:
+                            ConductorVehiculo.objects.create(
+                                conductor=conductor_perfil,
+                                vehiculo=vehiculo
+                            )
+                        else:
+                            messages.warning(request, "El conductor seleccionado no existe o no está disponible.")
 
                     messages.success(request, f"Vehículo {vehiculo.placa} actualizado.")
                     return redirect("transporte:lista_vehiculos")
@@ -157,7 +151,7 @@ def editar_vehiculo(request, id):
 
 @login_required
 def eliminar_vehiculo(request, id):
-    vehiculo = get_object_or_404(Vehiculo, id=id)
+    vehiculo = get_object_or_404(Vehiculo, pk=id)
 
     # Validación
     entregas_activas = Entrega.objects.filter(vehiculo=vehiculo, estado__in=['pendiente', 'en_ruta']).exists()
@@ -172,7 +166,7 @@ def eliminar_vehiculo(request, id):
 
 @login_required
 def desactivar_vehiculo(request, id):
-    vehiculo = get_object_or_404(Vehiculo, id=id)
+    vehiculo = get_object_or_404(Vehiculo, pk=id)
 
     # Validación
     entregas_activas = Entrega.objects.filter(vehiculo=vehiculo, estado__in=['pendiente', 'en_ruta']).exists()
