@@ -1,0 +1,26 @@
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "B", "DJ"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["E402"]
+"apps/ordenes/test_pedido.py" = ["E402"]
+"apps/gestion_pedidos/models.py" = ["DJ012"]
+
+[tool.mypy]
+python_version = "3.13"
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "core.settings"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "core.settings"
+testpaths = ["apps"]
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+norecursedirs = [".venv", "scripts", "htmlcov", "staticfiles"]
+addopts = "--cov=apps --cov-report=html --cov-report=term"
