@@ -23,6 +23,7 @@ urlpatterns = [
     path("perfil/editar/", views.editar_perfil, name="editar_perfil"),
 
     path("conductores/", views.lista_conductores, name="lista_conductores"),
+    path("conductores/asignar-vehiculo/<int:conductor_id>/", views.asignar_vehiculo_conductor, name="asignar_vehiculo_conductor"),
 
     # conductor
     path("panel-conductor/", views.panel_conductor, name="panel_conductor"),

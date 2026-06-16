@@ -26,6 +26,7 @@ urlpatterns = [
     path('reportes/', include('apps.reportes.urls')),
     path('historial/', include('apps.historial.urls')),
     path('transporte/', include('apps.transporte.urls')),
+    path('ia/', include('apps.ia.urls')),
     path('', include('apps.inicio.urls')),
 
     # ===== Redirecciones de recuperación de contraseña a usuarios =====

@@ -4,12 +4,13 @@ import uuid
 from django import forms
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 User = get_user_model()
 from django.utils.text import slugify
 from django_recaptcha.fields import ReCaptchaField
 from django_recaptcha.widgets import ReCaptchaV2Checkbox
 
-from .models import Catalogo, MaterialConstruccion, Proveedor, Stock, UnidadMedida, Usuario
+from .models import Catalogo, MaterialConstruccion, Proveedor, Stock, UnidadMedida, Usuario, Vehiculo, ConductorVehiculo
 from .utils import limpiar_telefono
 
 
@@ -120,6 +121,39 @@ class RegistroForm(forms.ModelForm):
         if password and confirm_password and password != confirm_password:
             self.add_error('confirmar_contrasena', "Las contraseñas no coinciden.")
         return cleaned_data
+
+
+class AsignarVehiculoForm(forms.Form):
+    vehiculo = forms.ModelChoiceField(
+        queryset=Vehiculo.objects.none(),
+        label='Vehículo',
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    def __init__(self, *args, conductor=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if conductor is None:
+            self.fields['vehiculo'].queryset = Vehiculo.objects.none()
+            return
+
+        vehiculo_actual = conductor.vehiculo_actual
+
+        asignados_activos = ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values_list('vehiculo_id', flat=True)
+
+        if vehiculo_actual is not None:
+            disponibles = Vehiculo.objects.filter(
+                Q(id_vehiculo=vehiculo_actual.id_vehiculo) |
+                (Q(estado='disponible') & ~Q(id_vehiculo__in=asignados_activos))
+            ).distinct()
+        else:
+            disponibles = Vehiculo.objects.filter(
+                estado='disponible'
+            ).exclude(
+                id_vehiculo__in=asignados_activos
+            )
+
+        self.fields['vehiculo'].queryset = disponibles.order_by('placa')
 
 
 class MaterialForm(forms.ModelForm):

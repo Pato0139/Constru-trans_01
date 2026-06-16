@@ -29,14 +29,14 @@ def clear_db_preference() -> None:
 def debe_usar_bd_remota() -> bool:
     """
     Decide si el router debe enviar APPS_NUBE a la BD remota.
+    Ahora, por defecto usará el modo remoto si está disponible.
     """
     from core.utils import conexion_remota_disponible
 
     pref = get_db_preference()
     if pref == PREF_LOCAL:
         return False
-    if pref == PREF_REMOTA:
-        return conexion_remota_disponible()
+    # Siempre intentar usar remoto si está disponible
     return conexion_remota_disponible()
 
 
