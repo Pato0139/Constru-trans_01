@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% load humanize currency_tags %}
+{% load static %}
 
 {% block title %}Mis Facturas - Constru-trans{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/facturacion/mis_facturas.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -47,16 +52,19 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-info rounded-pill px-3" 
-                                    onclick="verHistorial('{{ factura.numero }}', '{{ factura.id }}')">
+                            <button class="btn btn-sm btn-outline-info rounded-pill px-3 btn-ver-historial-mis-facturas" 
+                                    data-numero="{{ factura.numero }}"
+                                    data-id="{{ factura.id }}">
                                 <i class="bi bi-list-check me-1"></i> Ver Pagos
                             </button>
                         </td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
                                 {% if factura.estado == 'pendiente' %}
-                                <button class="btn btn-premium btn-premium-gold btn-sm px-3" 
-                                        onclick="abrirModalPago('{{ factura.id }}', '{{ factura.numero }}', '{{ factura.saldo_pendiente }}')">
+                                <button class="btn btn-premium btn-premium-gold btn-sm px-3 btn-abrir-modal-pago-mis-facturas" 
+                                        data-id="{{ factura.id }}"
+                                        data-numero="{{ factura.numero }}"
+                                        data-total="{{ factura.saldo_pendiente }}">
                                     <i class="bi bi-credit-card me-1"></i> Pagar Ahora
                                 </button>
                                 {% endif %}
@@ -160,10 +168,12 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 // Datos de pagos en formato JSON para el historial
-const pagosData = {
+pagosData = {
     {% for factura in facturas %}
     "{{ factura.id }}": [
         {% for pago in factura.pagos.all %}
@@ -177,84 +187,6 @@ const pagosData = {
     ]{% if not forloop.last %},{% endif %}
     {% endfor %}
 };
-
-function formatCurrency(value) {
-    let val = parseFloat(value);
-    let rounded = Math.round(val);
-    let s = String(rounded);
-    let parts = [];
-    while (s.length > 0) {
-        parts.unshift(s.slice(-3));
-        s = s.slice(0, -3);
-    }
-    return parts.join('.');
-}
-
-function verHistorial(numero, id) {
-    document.getElementById('historialFacturaNum').innerText = numero;
-    const lista = document.getElementById('listaPagos');
-    lista.innerHTML = '';
-    
-    const pagos = pagosData[id] || [];
-    
-    if (pagos.length === 0) {
-        lista.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-white-50">Aún no has realizado pagos para esta factura.</td></tr>';
-    } else {
-        pagos.forEach(p => {
-            lista.innerHTML += `
-                <tr>
-                    <td class="ps-4 small text-white-50">${p.fecha}</td>
-                    <td><span class="badge bg-dark border border-white-10 text-white">${p.metodo}</span></td>
-                    <td class="small text-white-50">${p.referencia}</td>
-                    <td class="text-end pe-4 fw-bold text-accent">${p.monto}</td>
-                </tr>
-            `;
-        });
-    }
-    
-    new bootstrap.Modal(document.getElementById('modalHistorial')).show();
-}
-
-function abrirModalPago(id, numero, total) {
-    document.getElementById('modalFacturaId').value = id;
-    document.getElementById('modalFacturaNum').innerText = numero;
-    document.getElementById('modalMonto').value = total;
-    
-    document.getElementById('displayMonto').innerText = formatCurrency(total);
-    
-    new bootstrap.Modal(document.getElementById('modalPago')).show();
-}
-
-document.getElementById('formPago').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    
-    fetch(this.action, {
-        method: 'POST',
-        body: formData,
-        headers: { 
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': '{{ csrf_token }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'ok') {
-            Swal.fire({
-                icon: 'success',
-                title: '¡Pago Exitoso!',
-                text: 'Tu pago ha sido registrado y el administrador ha sido notificado.',
-                background: '#1a1a1a', color: '#fff', confirmButtonColor: '#f39c12'
-            }).then(() => location.reload());
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: data.error,
-                background: '#1a1a1a', color: '#fff'
-            });
-        }
-    });
-});
 </script>
+<script src="{% static 'js/facturacion/mis_facturas.js' %}"></script>
 {% endblock %}
