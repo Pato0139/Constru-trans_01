@@ -3,6 +3,10 @@
 
 {% block title %}Análisis - ConstruTrans{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reportes/lista.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid p-0" data-aos="fade-up">
     <div class="d-flex justify-content-between align-items-center mb-5">
@@ -22,7 +26,7 @@
     <!-- Resumen de Órdenes -->
     <div class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="background: var(--card-bg); border: 1px solid var(--color-border); border-left: 4px solid var(--color-primary);">
+            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="border-left: 4px solid var(--color-primary);">
                 <div class="mb-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 60px; height: 60px; background: rgba(59, 130, 246, 0.1);">
                         <i class="bi bi-box-seam text-primary fs-2"></i>
@@ -33,7 +37,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="background: var(--card-bg); border: 1px solid var(--color-border); border-left: 4px solid #f59e0b;">
+            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="border-left: 4px solid #f59e0b;">
                 <div class="mb-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 60px; height: 60px; background: rgba(245, 158, 11, 0.1);">
                         <i class="bi bi-clock-history text-warning fs-2"></i>
@@ -44,7 +48,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="background: var(--card-bg); border: 1px solid var(--color-border); border-left: 4px solid #0ea5e9;">
+            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="border-left: 4px solid #0ea5e9;">
                 <div class="mb-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 60px; height: 60px; background: rgba(14, 165, 233, 0.1);">
                         <i class="bi bi-truck text-info fs-2"></i>
@@ -55,7 +59,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="background: var(--card-bg); border: 1px solid var(--color-border); border-left: 4px solid var(--color-success);">
+            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="border-left: 4px solid var(--color-success);">
                 <div class="mb-3">
                     <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 60px; height: 60px; background: rgba(16, 185, 129, 0.1);">
                         <i class="bi bi-check-circle text-success fs-2"></i>
@@ -68,7 +72,7 @@
     </div>
 
     <!-- Sección de Descargas -->
-    <div class="table-container p-4 rounded-4 shadow-sm mb-5" style="background: var(--card-bg); border: 1px solid var(--color-border);">
+    <div class="table-container p-4 rounded-4 shadow-sm mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h5 class="mb-0 fw-bold text-white">
                 <i class="bi bi-download me-2 text-accent"></i>Generar Reportes
@@ -80,72 +84,61 @@
                 <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg">
                     <li><h6 class="dropdown-header">Seleccionar Formato</h6></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="cambiarFormato('pdf')"><i class="bi bi-file-earmark-pdf text-danger"></i> PDF</a></li>
-                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="cambiarFormato('excel')"><i class="bi bi-file-earmark-excel text-success"></i> Excel</a></li>
-                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" onclick="cambiarFormato('xml')"><i class="bi bi-file-earmark-code text-info"></i> XML</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-format="pdf"><i class="bi bi-file-earmark-pdf text-danger"></i> PDF</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-format="excel"><i class="bi bi-file-earmark-excel text-success"></i> Excel</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center gap-2" href="#" data-format="xml"><i class="bi bi-file-earmark-code text-info"></i> XML</a></li>
                 </ul>
             </div>
         </div>
         
         <div class="row g-3">
             <div class="col-md-3">
-                <a id="btn-rep-clientes" href="{% url 'reportes:exportar_reporte_pdf' 'clientes' %}" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                <a id="btn-rep-clientes" href="{% url 'reportes:exportar_reporte_pdf' 'clientes' %}" 
+                   data-pdf="{% url 'reportes:exportar_reporte_pdf' 'clientes' %}"
+                   data-excel="{% url 'reportes:exportar_reporte_excel' 'clientes' %}"
+                   data-xml="{% url 'reportes:exportar_reporte_xml' 'clientes' %}"
+                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" 
+                   style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
                     <i class="bi bi-people-fill text-primary"></i> Clientes
                 </a>
             </div>
             <div class="col-md-3">
-                <a id="btn-rep-materiales" href="{% url 'reportes:exportar_reporte_pdf' 'materiales' %}" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                <a id="btn-rep-materiales" href="{% url 'reportes:exportar_reporte_pdf' 'materiales' %}" 
+                   data-pdf="{% url 'reportes:exportar_reporte_pdf' 'materiales' %}"
+                   data-excel="{% url 'reportes:exportar_reporte_excel' 'materiales' %}"
+                   data-xml="{% url 'reportes:exportar_reporte_xml' 'materiales' %}"
+                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" 
+                   style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
                     <i class="bi bi-bricks text-accent"></i> Inventario
                 </a>
             </div>
             <div class="col-md-3">
-                <a id="id-rep-ventas" href="{% url 'reportes:exportar_reporte_pdf' 'ventas' %}" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                <a id="id-rep-ventas" href="{% url 'reportes:exportar_reporte_pdf' 'ventas' %}" 
+                   data-pdf="{% url 'reportes:exportar_reporte_pdf' 'ventas' %}"
+                   data-excel="{% url 'reportes:exportar_reporte_excel' 'ventas' %}"
+                   data-xml="{% url 'reportes:exportar_reporte_xml' 'ventas' %}"
+                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" 
+                   style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
                     <i class="bi bi-cash-stack text-success"></i> Ventas
                 </a>
             </div>
             <div class="col-md-3">
-                <a id="btn-rep-pedidos" href="{% url 'reportes:exportar_reporte_pdf' 'pedidos' %}" class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                <a id="btn-rep-pedidos" href="{% url 'reportes:exportar_reporte_pdf' 'pedidos' %}" 
+                   data-pdf="{% url 'reportes:exportar_reporte_pdf' 'pedidos' %}"
+                   data-excel="{% url 'reportes:exportar_reporte_excel' 'pedidos' %}"
+                   data-xml="{% url 'reportes:exportar_reporte_xml' 'pedidos' %}"
+                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" 
+                   style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
                     <i class="bi bi-list-task text-info"></i> Pedidos
                 </a>
             </div>
         </div>
     </div>
 
-    <script>
-        function cambiarFormato(formato) {
-            const urls = {
-                pdf: {
-                    clientes: "{% url 'reportes:exportar_reporte_pdf' 'clientes' %}",
-                    materiales: "{% url 'reportes:exportar_reporte_pdf' 'materiales' %}",
-                    ventas: "{% url 'reportes:exportar_reporte_pdf' 'ventas' %}",
-                    pedidos: "{% url 'reportes:exportar_reporte_pdf' 'pedidos' %}"
-                },
-                excel: {
-                    clientes: "{% url 'reportes:exportar_reporte_excel' 'clientes' %}",
-                    materiales: "{% url 'reportes:exportar_reporte_excel' 'materiales' %}",
-                    ventas: "{% url 'reportes:exportar_reporte_excel' 'ventas' %}",
-                    pedidos: "{% url 'reportes:exportar_reporte_excel' 'pedidos' %}"
-                },
-                xml: {
-                    clientes: "{% url 'reportes:exportar_reporte_xml' 'clientes' %}",
-                    materiales: "{% url 'reportes:exportar_reporte_xml' 'materiales' %}",
-                    ventas: "{% url 'reportes:exportar_reporte_xml' 'ventas' %}",
-                    pedidos: "{% url 'reportes:exportar_reporte_xml' 'pedidos' %}"
-                }
-            };
-
-            document.getElementById('btn-rep-clientes').href = urls[formato].clientes;
-            document.getElementById('btn-rep-materiales').href = urls[formato].materiales;
-            document.getElementById('id-rep-ventas').href = urls[formato].ventas;
-            document.getElementById('btn-rep-pedidos').href = urls[formato].pedidos;
-
-        }
-    </script>
-
     <!-- Indicadores Detallados -->
     <div class="row g-4">
         <div class="col-lg-8">
-            <div class="table-container p-4 rounded-4 shadow-sm h-100" style="background: var(--card-bg); border: 1px solid var(--color-border);">
+            <div class="table-container p-4 rounded-4 shadow-sm h-100">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="mb-0 fw-bold text-white">Estadísticas de Órdenes</h5>
                     <span class="text-muted small">Sin datos disponibles</span>
@@ -157,7 +150,7 @@
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="table-container p-4 rounded-4 shadow-sm h-100" style="background: var(--card-bg); border: 1px solid var(--color-border);">
+            <div class="table-container p-4 rounded-4 shadow-sm h-100">
                 <h5 class="mb-4 fw-bold text-white">Otros Indicadores</h5>
                 <div class="d-flex flex-column gap-4">
                     <div class="d-flex justify-content-between align-items-center">
@@ -211,15 +204,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-<style>
-    .text-accent { color: var(--color-accent) !important; }
-    .text-success { color: #10b981 !important; }
-    .text-info { color: #0ea5e9 !important; }
-    .btn-premium:hover {
-        background: rgba(255,255,255,0.08) !important;
-        transform: translateY(-2px);
-        transition: all 0.3s ease;
-    }
-</style>
+{% block extra_js %}
+<script src="{% static 'js/reportes/lista.js' %}"></script>
 {% endblock %}
