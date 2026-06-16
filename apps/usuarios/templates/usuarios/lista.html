@@ -1,6 +1,15 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Usuarios - ConstruTrans{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/usuarios/lista.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/usuarios/lista.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 
@@ -9,8 +18,8 @@
     <div class="d-flex gap-3 align-items-center">
         <form method="GET" action="{% url 'usuarios:lista_usuarios' %}" class="position-relative" id="searchForm">
             <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-            <input type="text" name="q" value="{{ query|default:'' }}" class="form-control bg-dark border-secondary text-white ps-5" placeholder="Buscar usuario..." style="width: 250px; border-radius: var(--radius-lg);">
-            <input type="hidden" name="tab" id="activeTabInput" value="{{ active_tab|default:'general' }}">
+            <input type="text" name="q" value="{{ query|default:'' }}" class="form-control bg-dark border-secondary text-white ps-5 usuario-search-input" placeholder="Buscar usuario...">
+            <input type="hidden" name="tab" id="activeTabInput" value="{{ active_tab|default:'general' %}">
         </form>
         <a href="{% url 'usuarios:crear_usuario' %}" class="btn btn-premium px-4 fw-bold" style="border-radius: var(--radius-lg); background: var(--color-primary); color: white; border: none; text-decoration: none; display: flex; align-items: center;">
             <i class="bi bi-plus-lg me-2"></i> Nuevo
@@ -22,46 +31,22 @@
     <ul class="nav nav-pills gap-3" id="userTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link {% if active_tab == 'general' or not active_tab %}active{% endif %} btn-tab px-4 fw-bold" 
-                    id="general-tab" data-bs-toggle="pill" data-bs-target="#general" type="button" role="tab" 
-                    onclick="updateActiveTab('general')">General</button>
+                    id="general-tab" data-bs-toggle="pill" data-bs-target="#general" type="button" role="tab">General</button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link {% if active_tab == 'clientes' %}active{% endif %} btn-tab px-4 fw-bold" 
-                    id="clientes-tab" data-bs-toggle="pill" data-bs-target="#clientes" type="button" role="tab" 
-                    onclick="updateActiveTab('clientes')">Clientes</button>
+                    id="clientes-tab" data-bs-toggle="pill" data-bs-target="#clientes" type="button" role="tab">Clientes</button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link {% if active_tab == 'conductores' %}active{% endif %} btn-tab px-4 fw-bold" 
-                    id="conductores-tab" data-bs-toggle="pill" data-bs-target="#conductores" type="button" role="tab"
-                    onclick="updateActiveTab('conductores')">Conductores</button>
+                    id="conductores-tab" data-bs-toggle="pill" data-bs-target="#conductores" type="button" role="tab">Conductores</button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link {% if active_tab == 'admin' %}active{% endif %} btn-tab px-4 fw-bold" 
-                    id="admin-tab" data-bs-toggle="pill" data-bs-target="#admin" type="button" role="tab"
-                    onclick="updateActiveTab('admin')">Administradores</button>
+                    id="admin-tab" data-bs-toggle="pill" data-bs-target="#admin" type="button" role="tab">Administradores</button>
         </li>
     </ul>
 </div>
-
-<style>
-    .btn-tab {
-        background: var(--card-bg) !important;
-        color: var(--color-muted) !important;
-        border: 1px solid var(--color-border) !important;
-        border-radius: var(--radius-lg) !important;
-        transition: all 0.3s ease;
-    }
-    .btn-tab:hover {
-        border-color: var(--color-primary) !important;
-        color: white !important;
-    }
-    .btn-tab.active {
-        background: var(--color-primary) !important;
-        color: white !important;
-        border-color: var(--color-primary) !important;
-        box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
-    }
-</style>
 
 <div class="tab-content" id="userTabsContent">
     <!-- General -->
@@ -69,7 +54,7 @@
         <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
             <table class="table table-dark mb-0">
                 <thead>
-                    <tr style="border-bottom: 1px solid var(--color-border);">
+                    <tr class="usuario-table-header">
                         <th class="p-4 text-muted small fw-bold">Usuario</th>
                         <th class="p-4 text-muted small fw-bold">Rol</th>
                         <th class="p-4 text-muted small fw-bold">Email</th>
@@ -79,12 +64,12 @@
                 </thead>
                 <tbody>
                     {% for u in usuarios_todos %}
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <tr class="usuario-table-row">
                         <td class="p-4">
                             <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3 bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; overflow: hidden; border: 2px solid var(--color-primary);">
+                                <div class="avatar-sm me-3 bg-secondary rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
                                     {% if u.foto_perfil %}
-                                        <img src="{{ u.foto_perfil.url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <img src="{{ u.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
                                     {% else %}
                                         <span class="fw-bold text-white">{{ u.nombres|first }}{{ u.apellidos|first }}</span>
                                     {% endif %}
@@ -155,7 +140,7 @@
         <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
             <table class="table table-dark mb-0">
                 <thead>
-                    <tr style="border-bottom: 1px solid var(--color-border);">
+                    <tr class="usuario-table-header">
                         <th class="p-4 text-muted small fw-bold">Usuario</th>
                         <th class="p-4 text-muted small fw-bold">Email</th>
                         <th class="p-4 text-muted small fw-bold">Estado</th>
@@ -164,12 +149,12 @@
                 </thead>
                 <tbody>
                     {% for cliente in clientes %}
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <tr class="usuario-table-row">
                         <td class="p-4">
                             <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3 bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; overflow: hidden; border: 2px solid var(--color-primary);">
+                                <div class="avatar-sm me-3 bg-primary rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
                                     {% if cliente.foto_perfil %}
-                                        <img src="{{ cliente.foto_perfil.url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <img src="{{ cliente.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
                                     {% else %}
                                         <span class="fw-bold text-white">{{ cliente.nombres|first }}{{ cliente.apellidos|first }}</span>
                                     {% endif %}
@@ -230,7 +215,7 @@
         <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
             <table class="table table-dark mb-0">
                 <thead>
-                    <tr style="border-bottom: 1px solid var(--color-border);">
+                    <tr class="usuario-table-header">
                         <th class="p-4 text-muted small fw-bold">Usuario</th>
                         <th class="p-4 text-muted small fw-bold">Email</th>
                         <th class="p-4 text-muted small fw-bold">Estado</th>
@@ -239,12 +224,12 @@
                 </thead>
                 <tbody>
                     {% for conductor in conductores %}
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <tr class="usuario-table-row">
                         <td class="p-4">
                             <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3 bg-info rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; overflow: hidden; border: 2px solid var(--color-primary);">
+                                <div class="avatar-sm me-3 bg-info rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
                                     {% if conductor.foto_perfil %}
-                                        <img src="{{ conductor.foto_perfil.url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <img src="{{ conductor.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
                                     {% else %}
                                         <span class="fw-bold text-white">{{ conductor.nombres|first }}{{ conductor.apellidos|first }}</span>
                                     {% endif %}
@@ -300,7 +285,7 @@
         <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
             <table class="table table-dark mb-0">
                 <thead>
-                    <tr style="border-bottom: 1px solid var(--color-border);">
+                    <tr class="usuario-table-header">
                         <th class="p-4 text-muted small fw-bold">Usuario</th>
                         <th class="p-4 text-muted small fw-bold">Email</th>
                         <th class="p-4 text-muted small fw-bold">Estado</th>
@@ -309,12 +294,12 @@
                 </thead>
                 <tbody>
                     {% for admin in admins %}
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <tr class="usuario-table-row">
                         <td class="p-4">
                             <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3 bg-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; overflow: hidden; border: 2px solid var(--color-primary);">
+                                <div class="avatar-sm me-3 bg-warning rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
                                     {% if admin.foto_perfil %}
-                                        <img src="{{ admin.foto_perfil.url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <img src="{{ admin.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
                                     {% else %}
                                         <span class="fw-bold text-white">{{ admin.nombres|first }}{{ admin.apellidos|first }}</span>
                                     {% endif %}
@@ -382,35 +367,5 @@
         </div>
     </div>
 </div>
-
-<script>
-    function updateActiveTab(tabName) {
-        // Actualizar el input oculto del formulario de búsqueda
-        document.getElementById('activeTabInput').value = tabName;
-        
-        // Opcional: Actualizar la URL sin recargar la página para que si el usuario copia el link, mantenga la pestaña
-        const url = new URL(window.location);
-        url.searchParams.set('tab', tabName);
-        window.history.pushState({}, '', url);
-
-        // Recalcular DataTables si es necesario (evita problemas de ancho en tablas ocultas)
-        setTimeout(() => {
-            $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-        }, 100);
-    }
-
-    // Al cargar la página, asegurarse de que la pestaña correcta esté activa si viene por URL
-    document.addEventListener('DOMContentLoaded', function() {
-        const params = new URLSearchParams(window.location.search);
-        const activeTab = params.get('tab');
-        if (activeTab) {
-            const tabEl = document.querySelector(`#${activeTab}-tab`);
-            if (tabEl) {
-                const tab = new bootstrap.Tab(tabEl);
-                tab.show();
-            }
-        }
-    });
-</script>
 
 {% endblock %}
