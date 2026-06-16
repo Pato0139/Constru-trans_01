@@ -11,7 +11,7 @@ User = get_user_model()
 from django.contrib.auth.views import PasswordResetView
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Prefetch
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -23,12 +23,13 @@ from core.db_preference import PREF_AUTO, PREF_LOCAL, PREF_REMOTA, invalidate_co
 from core.utils import conexion_remota_disponible
 from core.sync import sync_all_usuarios
 
-from .forms import LoginForm, RegistroForm
+from .forms import LoginForm, RegistroForm, AsignarVehiculoForm
 from .models import (
+    Conductor,
+    ConductorVehiculo,
     MaterialConstruccion as Material,
-)
-from .models import (
     Usuario,
+    Vehiculo,
 )
 from .utils import limpiar_telefono
 
@@ -476,6 +477,16 @@ def crear_usuario(request):
                 )
                 user.set_password(password)
                 user.save()
+                if rol == 'conductor':
+                    Conductor.objects.get_or_create(
+                        usuario=user,
+                        defaults={
+                            'numero_licencia': f'PEND-{user.id}',
+                            'categoria_licencia': 'N/A',
+                            'fecha_vencimiento_licencia': now().date(),
+                            'estado': 'activo'
+                        }
+                    )
         except Exception as e:
             if "duplicate key" in str(e).lower() and conexion_remota_disponible():
                 from django.db import connections
@@ -498,6 +509,16 @@ def crear_usuario(request):
                 )
                 user.set_password(password)
                 user.save()
+                if rol == 'conductor':
+                    Conductor.objects.get_or_create(
+                        usuario=user,
+                        defaults={
+                            'numero_licencia': f'PEND-{user.id}',
+                            'categoria_licencia': 'N/A',
+                            'fecha_vencimiento_licencia': now().date(),
+                            'estado': 'activo'
+                        }
+                    )
             else:
                 raise e
 
@@ -632,6 +653,16 @@ def editar_usuario(request, id):
 
             usuario.sincronizado = False
             usuario.save()
+            if usuario.rol == 'conductor':
+                Conductor.objects.get_or_create(
+                    usuario=usuario,
+                    defaults={
+                        'numero_licencia': f'PEND-{usuario.id}',
+                        'categoria_licencia': 'N/A',
+                        'fecha_vencimiento_licencia': now().date(),
+                        'estado': 'activo'
+                    }
+                )
             registrar_actividad(request, 'editar', 'usuarios', usuario.user.id, f"Perfil de usuario editado: {usuario.user.username}")
             messages.success(request, "Cambios guardados exitosamente.")
             return redirect("usuarios:lista_usuarios")
@@ -652,9 +683,65 @@ def editar_usuario(request, id):
 
 @login_required
 def lista_conductores(request):
-    conductores = Usuario.objects.filter(rol="conductor")
+    conductores = Usuario.objects.filter(
+        rol="conductor"
+    ).select_related('perfil_conductor').prefetch_related(
+        Prefetch(
+            'perfil_conductor__asignaciones_vehiculo',
+            queryset=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related('vehiculo'),
+            to_attr='asignaciones_activas'
+        )
+    )
     return render(request, "usuarios/conductores_lista.html", {
         "conductores": conductores
+    })
+
+
+@login_required
+@admin_required
+def asignar_vehiculo_conductor(request, conductor_id):
+    usuario = get_object_or_404(Usuario, id=conductor_id, rol='conductor')
+    conductor = usuario.conductor_profile
+    if conductor is None:
+        conductor, _ = Conductor.objects.get_or_create(
+            usuario=usuario,
+            defaults={
+                'numero_licencia': f'PEND-{usuario.id}',
+                'categoria_licencia': 'N/A',
+                'fecha_vencimiento_licencia': now().date(),
+                'estado': 'activo'
+            }
+        )
+        messages.warning(request, "Se creó un perfil provisional para este conductor. Actualiza la licencia más adelante.")
+
+    vehiculo_actual = conductor.vehiculo_actual
+    default_initial = {'vehiculo': vehiculo_actual.id_vehiculo} if vehiculo_actual else None
+
+    if request.method == 'POST':
+        form = AsignarVehiculoForm(request.POST, conductor=conductor)
+        if form.is_valid():
+            vehiculo_seleccionado = form.cleaned_data['vehiculo']
+            try:
+                with transaction.atomic():
+                    if vehiculo_actual and vehiculo_actual.id_vehiculo == vehiculo_seleccionado.id_vehiculo:
+                        messages.info(request, "El conductor ya tiene asignado ese vehículo.")
+                    else:
+                        conductor.asignaciones_vehiculo.filter(fecha_fin__isnull=True).update(fecha_fin=now())
+                        ConductorVehiculo.objects.create(conductor=conductor, vehiculo=vehiculo_seleccionado)
+                        messages.success(request, f"Vehículo {vehiculo_seleccionado.placa} asignado a {usuario.nombres} correctamente.")
+                return redirect('usuarios:lista_conductores')
+            except Exception as e:
+                messages.error(request, f"No fue posible guardar la asignación: {str(e)}")
+    else:
+        form = AsignarVehiculoForm(conductor=conductor, initial=default_initial)
+
+    historial = conductor.asignaciones_vehiculo.select_related('vehiculo').order_by('-fecha_asignacion')
+    return render(request, "usuarios/asignar_vehiculo_conductor.html", {
+        "usuario": usuario,
+        "conductor": conductor,
+        "vehiculo_actual": vehiculo_actual,
+        "form": form,
+        "historial": historial,
     })
 
 
@@ -801,10 +888,7 @@ def cambiar_modo_bd(request):
             )
         else:
             nuevo_modo = PREF_REMOTA
-            mensaje_ok = (
-                'Modo remoto (Neon) activado. Inicia sesión de nuevo: los usuarios '
-                'de la nube pueden ser distintos a los de tu copia local.'
-            )
+            mensaje_ok = 'Remoto'
     else:
 
         if conexion_remota_disponible():
@@ -814,10 +898,7 @@ def cambiar_modo_bd(request):
                 logger.error(f"Error sincronizando al cambiar a local: {e}")
                 
         nuevo_modo = PREF_LOCAL
-        mensaje_ok = (
-            'Modo local (SQLite) activado. Inicia sesión de nuevo con un usuario '
-            'registrado en esta copia local.'
-        )
+        mensaje_ok = 'Local'
 
     if nuevo_modo:
         invalidate_connection_cache()

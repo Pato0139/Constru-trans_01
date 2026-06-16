@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Asignar Vehículo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Asignar vehículo a {{ usuario.nombres }} {{ usuario.apellidos }}</h2>
+        <p class="text-muted mb-0">Selecciona un vehículo existente que no esté en uso para este conductor.</p>
+    </div>
+    <a href="{% url 'usuarios:lista_conductores' %}" class="btn btn-outline-light">Volver a conductores</a>
+</div>
+
+<div class="row gy-4">
+    <div class="col-12 col-xl-5">
+        <div class="card bg-dark border-0 shadow-sm p-4">
+            <h5 class="fw-semibold mb-4">Datos del conductor</h5>
+            <div class="mb-3">
+                <div class="text-muted small mb-1">Nombre</div>
+                <div class="fw-semibold">{{ usuario.nombres }} {{ usuario.apellidos }}</div>
+            </div>
+            <div class="mb-3">
+                <div class="text-muted small mb-1">Número de licencia</div>
+                <div class="fw-semibold">{{ conductor.numero_licencia }}</div>
+            </div>
+            <div class="mb-3">
+                <div class="text-muted small mb-1">Categoría</div>
+                <div class="fw-semibold">{{ conductor.categoria_licencia }}</div>
+            </div>
+            <div class="mb-3">
+                <div class="text-muted small mb-1">Estado</div>
+                <div>
+                    {% if conductor.estado == 'activo' %}
+                        <span class="badge rounded-pill bg-success">Activo</span>
+                    {% else %}
+                        <span class="badge rounded-pill bg-secondary">{{ conductor.estado|capfirst }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="mb-4">
+                <div class="text-muted small mb-1">Vehículo actual</div>
+                {% if vehiculo_actual %}
+                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
+                        <i class="bi bi-truck me-1"></i> {{ vehiculo_actual.placa }} - {{ vehiculo_actual.marca }} {{ vehiculo_actual.modelo }}
+                    </span>
+                {% else %}
+                    <span class="text-muted small fst-italic">Sin vehículo asignado</span>
+                {% endif %}
+            </div>
+
+            <div class="card bg-body-tertiary border-0 p-3">
+                <h6 class="fw-semibold mb-3">Asignar vehículo</h6>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} py-2">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="id_vehiculo">Vehículo disponible</label>
+                        {{ form.vehiculo }}
+                        {% if form.vehiculo.errors %}
+                            <div class="invalid-feedback d-block">{{ form.vehiculo.errors|first }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2">Guardar asignación</button>
+                </form>
+                {% if form.fields.vehiculo.queryset.count == 0 %}
+                    <div class="alert alert-warning mt-3">No hay vehículos disponibles para asignar. Verifica el estado o libera un vehículo existente.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-7">
+        <div class="card bg-dark border-0 shadow-sm p-4">
+            <h5 class="fw-semibold mb-4">Historial de asignaciones</h5>
+            {% if historial %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Vehículo</th>
+                                <th>Asignado</th>
+                                <th>Finalizado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in historial %}
+                            <tr>
+                                <td>{{ item.vehiculo.placa }} · {{ item.vehiculo.marca }} {{ item.vehiculo.modelo }}</td>
+                                <td>{{ item.fecha_asignacion|date:'Y-m-d H:i' }}</td>
+                                <td>
+                                    {% if item.fecha_fin %}
+                                        {{ item.fecha_fin|date:'Y-m-d H:i' }}
+                                    {% else %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-muted">No hay asignaciones previas para este conductor.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,7 +1,9 @@
+from datetime import date, timedelta
+
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from .models import Material, Stock, Usuario, Vehiculo, UnidadMedida
+from .models import Conductor, ConductorVehiculo, Material, Stock, Usuario, Vehiculo, UnidadMedida
 
 
 class ConstruTransTestSuite(TestCase):
@@ -38,6 +40,14 @@ class ConstruTransTestSuite(TestCase):
             nombres='Conductor',
             documento='1003',
             tipo_documento='CC'
+        )
+
+        self.conductor_profile = Conductor.objects.create(
+            usuario=self.conductor_user,
+            numero_licencia='LIC-1003',
+            categoria_licencia='C2',
+            fecha_vencimiento_licencia=date.today() + timedelta(days=365),
+            estado='activo'
         )
 
 
@@ -123,6 +133,49 @@ class ConstruTransTestSuite(TestCase):
         """Prueba de asignación de entrega y cambio de estados"""
         self.assertTrue(True)
 
-    def test_05_exportar_pdf(self):
+    def test_05_asignar_vehiculo_a_conductor(self):
+        """El administrador puede asignar y cambiar vehículos de un conductor."""
+        self.client.login(username='admin@test.com', password='password123')
+
+        vehiculo2 = Vehiculo.objects.create(
+            placa='DEF456',
+            marca='Nissan',
+            modelo='D21',
+            tipo_vehiculo='Camión',
+            capacidad_carga=8.00,
+            estado='disponible'
+        )
+
+        response = self.client.post(
+            reverse('usuarios:asignar_vehiculo_conductor', args=[self.conductor_user.id]),
+            {'vehiculo': self.vehiculo.id}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(ConductorVehiculo.objects.filter(conductor=self.conductor_profile).count(), 1)
+        primera_asignacion = ConductorVehiculo.objects.filter(conductor=self.conductor_profile).first()
+        self.assertIsNone(primera_asignacion.fecha_fin)
+        self.assertEqual(primera_asignacion.vehiculo, self.vehiculo)
+
+        response = self.client.post(
+            reverse('usuarios:asignar_vehiculo_conductor', args=[self.conductor_user.id]),
+            {'vehiculo': vehiculo2.id}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(ConductorVehiculo.objects.filter(conductor=self.conductor_profile).count(), 2)
+
+        asignaciones = ConductorVehiculo.objects.filter(conductor=self.conductor_profile).order_by('-fecha_asignacion')
+        self.assertIsNotNone(asignaciones[1].fecha_fin)
+        self.assertIsNone(asignaciones[0].fecha_fin)
+        self.assertEqual(asignaciones[0].vehiculo, vehiculo2)
+
+    def test_06_lista_conductores_muestra_datos(self):
+        self.client.login(username='admin@test.com', password='password123')
+        response = self.client.get(reverse('usuarios:lista_conductores'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Licencia')
+        self.assertContains(response, 'Categoría')
+        self.assertContains(response, 'Vehículo actual')
+
+    def test_07_exportar_pdf(self):
         """Prueba de generación de reportes (simplificada)"""
         self.assertTrue(True)

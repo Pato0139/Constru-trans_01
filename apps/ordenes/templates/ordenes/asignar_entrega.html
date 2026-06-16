@@ -16,6 +16,7 @@
             </div>
         {% endif %}
 
+        {% if conductores %}
         <form method="POST">
             {% csrf_token %}
 
@@ -24,14 +25,9 @@
                 <select name="conductor" class="form-select rounded-pill" required>
                     <option value="">Seleccione un conductor</option>
                     {% for c in conductores %}
-                    <option value="{{ c.id }}" {% if not c.vehiculo_asignado %}disabled{% endif %}>
-                        {{ c.nombres }} {{ c.apellidos }} 
-                        {% if c.vehiculo_asignado %}
-                            (Vehículo: {{ c.vehiculo_asignado.placa }})
-                        {% else %}
-                            (SIN VEHÍCULO ASIGNADO)
-                        {% endif %}
-                    </option>
+                        <option value="{{ c.id }}">
+                            {{ c.nombres }} {{ c.apellidos }} (Vehículo: {{ c.vehiculo_actual.placa }})
+                        </option>
                     {% endfor %}
                 </select>
                 <div class="form-text small text-muted mt-2">
@@ -48,6 +44,16 @@
                 </a>
             </div>
         </form>
+        {% else %}
+            <div class="alert alert-warning py-3">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> No hay conductores con vehículo asignado disponibles. Primero asigna los vehículos desde el menú de conductores.
+            </div>
+            <div class="text-center mt-4">
+                <a href="{% url 'usuarios:lista_conductores' %}" class="btn btn-outline-light rounded-pill">
+                    Ir a gestión de conductores
+                </a>
+            </div>
+        {% endif %}
     </div>
 </div>
 

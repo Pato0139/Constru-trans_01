@@ -1,0 +1,50 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'css/ia/chat-widget.css' %}">
+
+<div class="chat-widget-container">
+  <button id="chat-widget-toggle" class="chat-widget-toggle">
+    <i class="bi bi-chat-dots"></i>
+  </button>
+
+  <div id="chat-widget-box" class="chat-widget-box">
+    <div class="chat-widget-header">
+      <div class="chat-widget-header-content">
+        <div class="chat-widget-avatar">
+          <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo Constru-Trans" class="chat-widget-logo">
+        </div>
+        <div>
+          <div class="chat-widget-title">Asistente Constru-Trans</div>
+          <div class="chat-widget-subtitle">¡Listo para ayudarte!</div>
+        </div>
+      </div>
+      <button id="chat-widget-close" class="chat-widget-close">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+    
+    <div id="chat-widget-messages" class="chat-widget-messages">
+        <div class="chat-message bot" id="welcome-message">
+            <div class="chat-message-avatar">
+                <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo Constru-Trans" class="chat-message-logo">
+            </div>
+            <div class="chat-message-bubble">
+                {% if user.is_authenticated %}
+                    ¡Hola {{ user.nombres }}! ¿En qué puedo ayudarte hoy?
+                {% else %}
+                    ¡Hola! ¿En qué puedo ayudarte hoy?
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="chat-widget-input-container">
+      <input type="text" id="chat-widget-input" class="chat-widget-input" placeholder="Escribe tu mensaje...">
+      <button id="chat-widget-send" class="chat-widget-send">
+        <i class="bi bi-send"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/ia/chat-widget.js' %}"></script>
