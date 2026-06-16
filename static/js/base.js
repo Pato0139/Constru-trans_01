@@ -198,3 +198,60 @@ $(document).on('click', '.confirm-delete', function(e) {
         }
     });
 });
+
+// Global Delete Confirmation with SweetAlert2 (Links - confirm-delete-link)
+$(document).on('click', '.confirm-delete-link', function(e) {
+    e.preventDefault();
+    const url = $(this).attr('href');
+    const title = $(this).data('title') || '¿Estás seguro?';
+    const text = $(this).data('text') || 'Esta acción no se puede deshacer.';
+    
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, continuar',
+        cancelButtonText: 'Cancelar',
+        background: '#1a1a1a',
+        color: '#ffffff',
+        customClass: {
+            popup: 'rounded-4 border-white-10 shadow-2xl'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+});
+
+// Global Delete Confirmation with SweetAlert2 (Buttons - confirm-delete-btn)
+$(document).on('click', '.confirm-delete-btn', function(e) {
+    e.preventDefault();
+    const btn = $(this);
+    const form = btn.closest('form');
+    const title = btn.data('title') || '¿Estás seguro?';
+    const text = btn.data('text') || 'Esta acción no se puede deshacer.';
+    
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, continuar',
+        cancelButtonText: 'Cancelar',
+        background: '#1a1a1a',
+        color: '#ffffff',
+        customClass: {
+            popup: 'rounded-4 border-white-10 shadow-2xl'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+});
