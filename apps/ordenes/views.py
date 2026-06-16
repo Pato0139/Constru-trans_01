@@ -248,7 +248,10 @@ def ver_pedido_admin(request, id):
 @admin_required
 def crear_entrega(request, orden_id):
     orden = get_object_or_404(Orden, codigo_pedido=orden_id)
-    conductores = Usuario.objects.filter(rol="conductor")
+    conductores = Usuario.objects.filter(
+        rol="conductor",
+        perfil_conductor__asignaciones_vehiculo__fecha_fin__isnull=True
+    ).distinct().select_related('perfil_conductor').order_by('nombres', 'apellidos')
 
     if request.method == "POST":
         conductor_id = request.POST.get("conductor")
@@ -256,7 +259,7 @@ def crear_entrega(request, orden_id):
         if conductor_id:
             with transaction.atomic():
                 conductor = get_object_or_404(Usuario, id=conductor_id)
-                vehiculo = conductor.vehiculo_asignado
+                vehiculo = conductor.vehiculo_actual
 
                 if not vehiculo:
                     messages.error(request, f"El conductor {conductor.nombres} no tiene un vehículo asignado. Por favor, asígnale uno en la gestión de usuarios.")
@@ -266,7 +269,7 @@ def crear_entrega(request, orden_id):
                     })
                     
                 if orden.conductor and orden.conductor != conductor:
-                    vehiculo_anterior = orden.conductor.vehiculo_asignado
+                    vehiculo_anterior = orden.conductor.vehiculo_actual
                     if vehiculo_anterior:
                         vehiculo_anterior.estado = 'disponible'
                         vehiculo_anterior.save()

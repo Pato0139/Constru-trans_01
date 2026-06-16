@@ -133,18 +133,22 @@
 
                 <p class="sidebar-nav-label"><i class="bi bi-shield-check"></i> <span data-i18n="sidebar.label.sistema">Sistema</span></p>
                 <div class="sidebar-section sidebar-section--admin">
-                    <button class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}{% else %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#adminCollapse" aria-expanded="{% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}true{% else %}false{% endif %}" aria-controls="adminCollapse">
+                    <button class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}{% else %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#adminCollapse" aria-expanded="{% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}true{% else %}false{% endif %}" aria-controls="adminCollapse">
                         <span class="d-flex align-items-center gap-2">
                             <span class="nav-icon-wrap nav-icon-wrap--purple"><i class="bi bi-shield-lock-fill"></i></span>
                             <span data-i18n="sidebar.administracion">Administración</span>
                         </span>
-                        <i class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}rotated{% endif %}"></i>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}rotated{% endif %}"></i>
                     </button>
-                    <div class="collapse {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}show{% endif %}" id="adminCollapse">
+                    <div class="collapse {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}show{% endif %}" id="adminCollapse">
                         <div class="nav-submenu">
                             <a href="{% url 'usuarios:lista_usuarios' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_usuarios' %}active{% endif %}">
                                 <i class="bi bi-people-fill"></i>
                                 <span data-i18n="sidebar.gestionUsuarios">Gestión Usuarios</span>
+                            </a>
+                            <a href="{% url 'usuarios:lista_conductores' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name == 'lista_conductores' %}active{% endif %}">
+                                <i class="bi bi-truck"></i>
+                                <span>Gestión Conductores</span>
                             </a>
                             <a href="{% url 'reportes:reportes_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'reportes' %}active{% endif %}">
                                 <i class="bi bi-graph-up-arrow"></i>
