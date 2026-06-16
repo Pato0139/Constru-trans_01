@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 
 from apps.ordenes.models import Entrega
-from apps.usuarios.models import ConductorVehiculo, Usuario, Vehiculo
+from apps.usuarios.models import Conductor, ConductorVehiculo, Usuario, Vehiculo
 
 
 @login_required
@@ -51,10 +51,10 @@ def lista_vehiculos(request):
 @login_required
 def crear_vehiculo(request):
     # Conductores sin vehículo asignado
-    from apps.usuarios.models import Conductor
-    conductores_disponibles = Conductor.objects.exclude(
-        usuario_id__in=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values('conductor__usuario_id')
-    ).select_related('usuario').order_by('usuario__nombres', 'usuario__apellidos')
+    conductor_activos = ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values_list('conductor__usuario_id', flat=True)
+    conductores_disponibles = Usuario.objects.filter(rol='conductor').exclude(
+        id__in=conductor_activos
+    ).order_by('nombres', 'apellidos')
 
     if request.method == "POST":
         placa = request.POST.get("placa")
@@ -71,11 +71,16 @@ def crear_vehiculo(request):
             )
 
             if conductor_id:
-                conductor_perfil = Conductor.objects.filter(usuario_id=conductor_id).first()
-                if conductor_perfil:
-                    ConductorVehiculo.objects.create(conductor=conductor_perfil, vehiculo=vehiculo)
-                else:
-                    messages.warning(request, "El conductor seleccionado no existe o no está disponible.")
+                conductor_perfil, _ = Conductor.objects.get_or_create(
+                    usuario_id=conductor_id,
+                    defaults={
+                        'numero_licencia': f'PEND-{conductor_id}',
+                        'categoria_licencia': 'N/A',
+                        'fecha_vencimiento_licencia': now().date(),
+                        'estado': 'activo'
+                    }
+                )
+                ConductorVehiculo.objects.create(conductor=conductor_perfil, vehiculo=vehiculo)
 
             messages.success(request, f"Vehículo {placa} registrado correctamente.")
             return redirect("transporte:lista_vehiculos")
@@ -95,7 +100,7 @@ def editar_vehiculo(request, id):
     vehiculo = get_object_or_404(Vehiculo, pk=id)
     # Conductores sin vehículo asignado
     conductores_disponibles = Conductor.objects.exclude(
-        usuario_id__in=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values('conductor__usuario_id')
+        usuario_id__in=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values_list('conductor__usuario_id', flat=True)
     ).select_related('usuario').order_by('usuario__nombres', 'usuario__apellidos')
 
     # Obtener conductor actual del vehículo
@@ -127,14 +132,19 @@ def editar_vehiculo(request, id):
                     ConductorVehiculo.objects.filter(vehiculo=vehiculo, fecha_fin__isnull=True).update(fecha_fin=now())
 
                     if conductor_id:
-                        conductor_perfil = Conductor.objects.filter(usuario_id=conductor_id).first()
-                        if conductor_perfil:
-                            ConductorVehiculo.objects.create(
-                                conductor=conductor_perfil,
-                                vehiculo=vehiculo
-                            )
-                        else:
-                            messages.warning(request, "El conductor seleccionado no existe o no está disponible.")
+                        conductor_perfil, _ = Conductor.objects.get_or_create(
+                            usuario_id=conductor_id,
+                            defaults={
+                                'numero_licencia': f'PEND-{conductor_id}',
+                                'categoria_licencia': 'N/A',
+                                'fecha_vencimiento_licencia': now().date(),
+                                'estado': 'activo'
+                            }
+                        )
+                        ConductorVehiculo.objects.create(
+                            conductor=conductor_perfil,
+                            vehiculo=vehiculo
+                        )
 
                     messages.success(request, f"Vehículo {vehiculo.placa} actualizado.")
                     return redirect("transporte:lista_vehiculos")
