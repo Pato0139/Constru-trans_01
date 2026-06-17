@@ -167,31 +167,34 @@ body.auth-body {
 
 .auth-alert {
     display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    padding: 0.75rem 1rem;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
     border: 1px solid transparent;
+    backdrop-filter: blur(10px);
 }
 
 .auth-alert--error {
-    background: rgba(239, 68, 68, 0.12);
-    border-color: rgba(239, 68, 68, 0.35);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
+    border-color: rgba(239, 68, 68, 0.4);
     color: #fecaca;
 }
 
 .auth-alert--warn {
-    background: rgba(245, 158, 11, 0.12);
-    border-color: rgba(245, 158, 11, 0.35);
-    color: #fde68a;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0.1));
+    border-color: rgba(245, 158, 11, 0.45);
+    color: #fbbf24;
 }
 
 .auth-alert--info {
-    background: rgba(59, 130, 246, 0.12);
-    border-color: rgba(59, 130, 246, 0.35);
-    color: #bfdbfe;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(59, 130, 246, 0.1));
+    border-color: rgba(59, 130, 246, 0.45);
+    color: #60a5fa;
 }
 
 .auth-form-block {
