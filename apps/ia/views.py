@@ -11,7 +11,8 @@ def chat_ia(request):
         try:
             data = json.loads(request.body)
             mensaje = data.get("mensaje", "")
-            respuesta = preguntar_ia(mensaje, request.user)
+            historial = data.get("historial", [])
+            respuesta = preguntar_ia(mensaje, request.user, historial)
             return JsonResponse({"respuesta": respuesta, "status": "ok"})
         except Exception as e:
             return JsonResponse({"respuesta": f"Lo siento, ocurrió un error: {str(e)}", "status": "error"})

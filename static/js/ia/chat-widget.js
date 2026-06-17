@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', function() {
   const toggleBtn = document.getElementById('chat-widget-toggle');
   const chatBox = document.getElementById('chat-widget-box');
@@ -6,14 +7,31 @@ document.addEventListener('DOMContentLoaded', function() {
   const input = document.getElementById('chat-widget-input');
   const sendBtn = document.getElementById('chat-widget-send');
 
-  // Abrir / Cerrar chat
+  // Configuración
+  const STORAGE_KEY = 'constru-trans-chat-history';
+  const MAX_MESSAGES = 20;
+  let typingIndicator = null;
+  let chatHistory = [];
+
+  // Cargar historial al iniciar
+  loadChatHistory();
+
+  // Abrir / Cerrar chat y guardar estado
   toggleBtn.addEventListener('click', function() {
     chatBox.classList.toggle('active');
+    localStorage.setItem('constru-trans-chat-open', chatBox.classList.contains('active'));
   });
 
   closeBtn.addEventListener('click', function() {
     chatBox.classList.remove('active');
+    localStorage.setItem('constru-trans-chat-open', 'false');
   });
+
+  // Restaurar estado del chat al cargar
+  const wasOpen = localStorage.getItem('constru-trans-chat-open');
+  if (wasOpen === 'true') {
+    chatBox.classList.add('active');
+  }
 
   // Enviar mensaje con botón
   sendBtn.addEventListener('click', sendMessage);
@@ -25,7 +43,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  let typingIndicator = null;
+  function loadChatHistory() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        chatHistory = JSON.parse(saved);
+        // Renderizar mensajes guardados
+        chatHistory.forEach(msg =&gt; addMessageToDOM(msg.text, msg.sender, false));
+      }
+    } catch (e) {
+      console.error('Error al cargar historial:', e);
+      chatHistory = [];
+    }
+  }
+
+  function saveChatHistory() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
+    } catch (e) {
+      console.error('Error al guardar historial:', e);
+    }
+  }
+
+  function cleanOldMessages() {
+    if (chatHistory.length &gt; MAX_MESSAGES) {
+      // Eliminar los mensajes más antiguos
+      const messagesToRemove = chatHistory.length - MAX_MESSAGES;
+      chatHistory = chatHistory.slice(messagesToRemove);
+      // Volver a renderizar
+      messagesContainer.innerHTML = '';
+      chatHistory.forEach(msg =&gt; addMessageToDOM(msg.text, msg.sender, false));
+      saveChatHistory();
+    }
+  }
 
   function sendMessage() {
     const message = input.value.trim();
@@ -39,26 +89,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mostrar indicador de escribiendo
     showTypingIndicator();
 
-    // Simular respuesta del bot
+    // Enviar a backend con historial
     fetch('/ia/chat/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': getCookie('csrftoken')
       },
-      body: JSON.stringify({ mensaje: message })
+      body: JSON.stringify({ 
+        mensaje: message,
+        historial: chatHistory.slice(-10) // Enviar últimos 10 mensajes para contexto
+      })
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(response =&gt; response.json())
+    .then(data =&gt; {
       removeTypingIndicator();
       addMessage(data.respuesta, 'bot');
     })
-    .catch(error => {
+    .catch(error =&gt; {
       removeTypingIndicator();
       addMessage('Lo siento, no pude responder en este momento.', 'bot');
       console.error('Error:', error);
     })
-    .finally(() => {
+    .finally(() =&gt; {
       sendBtn.disabled = false;
       input.focus();
     });
@@ -69,16 +122,16 @@ document.addEventListener('DOMContentLoaded', function() {
     messageDiv.className = 'chat-message bot';
     messageDiv.id = 'typing-indicator';
     messageDiv.innerHTML = `
-      <div class="chat-message-avatar">
-        <img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo">
-      </div>
-      <div class="chat-message-bubble">
-        <span class="typing-dots">
-          <span class="dot"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
-        </span>
-      </div>
+      &lt;div class="chat-message-avatar"&gt;
+        &lt;img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo"&gt;
+      &lt;/div&gt;
+      &lt;div class="chat-message-bubble"&gt;
+        &lt;span class="typing-dots"&gt;
+          &lt;span class="dot"&gt;&lt;/span&gt;
+          &lt;span class="dot"&gt;&lt;/span&gt;
+          &lt;span class="dot"&gt;&lt;/span&gt;
+        &lt;/span&gt;
+      &lt;/div&gt;
     `;
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -93,31 +146,46 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function addMessage(text, sender) {
+    addMessageToDOM(text, sender, true);
+  }
+
+  function addMessageToDOM(text, sender, save = true) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${sender}`;
     
     if (sender === 'bot') {
       messageDiv.innerHTML = `
-        <div class="chat-message-avatar">
-          <img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo">
-        </div>
-        <div class="chat-message-bubble">${escapeHtml(text)}</div>
+        &lt;div class="chat-message-avatar"&gt;
+          &lt;img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo"&gt;
+        &lt;/div&gt;
+        &lt;div class="chat-message-bubble"&gt;${escapeHtml(text)}&lt;/div&gt;
       `;
     } else {
       messageDiv.innerHTML = `
-        <div class="chat-message-bubble">${escapeHtml(text)}</div>
+        &lt;div class="chat-message-bubble"&gt;${escapeHtml(text)}&lt;/div&gt;
       `;
     }
     
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    // Guardar en historial
+    if (save) {
+      chatHistory.push({
+        text: text,
+        sender: sender,
+        timestamp: new Date().toISOString()
+      });
+      cleanOldMessages();
+      saveChatHistory();
+    }
   }
 
   function getCookie(name) {
     let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
+    if (document.cookie &amp;&amp; document.cookie !== '') {
       const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
+      for (let i = 0; i &lt; cookies.length; i++) {
         const cookie = cookies[i].trim();
         if (cookie.substring(0, name.length + 1) === (name + '=')) {
           cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
@@ -134,3 +202,4 @@ document.addEventListener('DOMContentLoaded', function() {
     return div.innerHTML;
   }
 });
+
