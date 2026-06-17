@@ -888,10 +888,7 @@ def cambiar_modo_bd(request):
             )
         else:
             nuevo_modo = PREF_REMOTA
-            mensaje_ok = (
-                'Modo remoto (Neon) activado. Inicia sesión de nuevo: los usuarios '
-                'de la nube pueden ser distintos a los de tu copia local.'
-            )
+            mensaje_ok = 'Remoto'
     else:
 
         if conexion_remota_disponible():
@@ -901,10 +898,7 @@ def cambiar_modo_bd(request):
                 logger.error(f"Error sincronizando al cambiar a local: {e}")
                 
         nuevo_modo = PREF_LOCAL
-        mensaje_ok = (
-            'Modo local (SQLite) activado. Inicia sesión de nuevo con un usuario '
-            'registrado en esta copia local.'
-        )
+        mensaje_ok = 'Local'
 
     if nuevo_modo:
         invalidate_connection_cache()
