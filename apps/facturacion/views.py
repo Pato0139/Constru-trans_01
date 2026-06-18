@@ -25,21 +25,27 @@ def lista_facturas(request):
     if q:
         qs = qs.filter(numero__icontains=q)
 
-    return render(request, 'facturacion/lista.html', {
+    context = {
         'facturas': qs,
         'estado': estado,
         'metodos_pago': MetodoPago.objects.all()
-    })
+    }
+
+
+    return render(request, 'facturacion/lista.html', context)
 
 @login_required
 def mis_facturas(request):
     cliente = request.user.usuario
     facturas = Factura.objects.filter(cliente=cliente).select_related('pedido').prefetch_related('pagos')
 
-    return render(request, 'facturacion/mis_facturas.html', {
+    context = {
         'facturas': facturas,
         'metodos_pago': MetodoPago.objects.all()
-    })
+    }
+
+
+    return render(request, 'facturacion/mis_facturas.html', context)
 
 @login_required
 @require_POST
