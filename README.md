@@ -1,6 +1,6 @@
 # Constru-Trans
 
-Sistema integral de gestión para transporte y materiales de construcción.
+Sistema integral de gestión para transporte y materiales de construcción para una ferreteria
 
 ## 🏗️ Arquitectura híbrida (offline-first)
 
