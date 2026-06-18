@@ -1,6 +1,7 @@
+
 from django.shortcuts import render
 from django.http import JsonResponse
-from .services import preguntar_ia
+from ..services import preguntar_ia
 from django.views.decorators.csrf import csrf_exempt
 import json
 
@@ -19,3 +20,4 @@ def chat_ia(request):
     
     # Si es GET, renderizar la página (opcional)
     return render(request, "ia/chat.html")
+
