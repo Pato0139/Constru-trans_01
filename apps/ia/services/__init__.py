@@ -159,7 +159,7 @@ def obtener_contexto_datos():
         return {}
 
 def preguntar_ia(mensaje, usuario=None, historial=None):
-    """Función principal para interactuar con la IA"""
+    """Función principal para interactuar con la IA - Prioriza Ollama primero"""
     if historial is None:
         historial = []
     
@@ -171,23 +171,25 @@ def preguntar_ia(mensaje, usuario=None, historial=None):
     if usuario and usuario.is_authenticated:
         nombre_usuario = f"{usuario.nombres} {usuario.apellidos}"
     
-    # PRIMERO: Intentar con las respuestas DIRECTAS y CONFIABLES
-    respuesta_especifica = verificar_pregunta_especifica(mensaje, usuario, historial, datos)
-    if respuesta_especifica:
-        return respuesta_especifica
-    
-    # SI NO ES UNA PREGUNTA ESPECÍFICA: Intentar con Ollama primero
+    # Intentar primero con Ollama para TODO (para que responda como ChatGPT)
     if verificar_conexion_ollama():
         try:
+            # Verificamos si hay que responder matemáticas o alertas directamente primero (fiables y rápidas)
+            respuesta_especifica = verificar_pregunta_especifica(mensaje, usuario, historial, datos)
+            if respuesta_especifica:
+                # Si es matemáticas o alertas de stock, respondemos primero rápido
+                return respuesta_especifica
+            
+            # Todo lo demás con Ollama
             return preguntar_ollama(mensaje, datos, nombre_usuario, historial)
         except Exception as e:
-            pass  # Fallback a la respuesta inteligente
+            pass  # Fallback
     
-    # ÚLTIMO RECURSO: Respuesta inteligente genérica
+    # Último recurso
     return obtener_respuesta_inteligente(mensaje, usuario, historial, datos)
 
 def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
-    """Verifica si la pregunta es específica y devuelve la respuesta"""
+    """Verifica si la pregunta es específica y devuelve la respuesta - para matemáticas y alertas"""
     mensaje_lower = mensaje.lower()
     es_primera_interaccion = len(historial) == 0
     
@@ -199,8 +201,7 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         if usuario and usuario.is_authenticated:
             saludo = f"¡Hola {usuario.nombres}!"
     
-    # 1. OPERACIONES MATEMÁTICAS
-    # Patrones para operaciones matemáticas
+    # 1. OPERACIONES MATEMÁTICAS (100% fiables)
     operaciones = [
         (r'cuá?nto es\s+(\d+)\s*([+\-*/]|más|mas|plus|menos|minus|por|multiplicado por|times|dividido por|entre)\s*(\d+)', 1, 3, 2),
         (r'(\d+)\s*([+\-*/]|más|mas|plus|menos|minus|por|multiplicado por|times|dividido por|entre)\s*(\d+)', 1, 3, 2)
@@ -233,10 +234,8 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
                     operacion = f"{num1} ÷ {num2}"
                 
                 if resultado is not None:
-                    # Si es entero, mostrar sin decimales
                     if resultado.is_integer():
                         resultado = int(resultado)
-                    
                     respuestas_matematicas = [
                         f"El resultado de {operacion} es {resultado}.",
                         f"¡Listo! {operacion} = {resultado}.",
@@ -247,7 +246,7 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
             except:
                 pass
     
-    # 2. ALERTAS DE MATERIALES
+    # 2. ALERTAS DE MATERIALES (100% fiables)
     palabras_clave_alertas = [
         "alerta", "alertas", "poco material", "material bajo", "stock bajo", 
         "qué materiales", "que materiales", "materiales con poco", "materail",
@@ -271,102 +270,52 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
             ]
             return f"{saludo} {random.choice(respuestas_ok)}".strip()
     
-    # 3. PREGUNTAS ESPECÍFICAS SOBRE EL SISTEMA
-    # Vehículos
-    if any(palabra in mensaje_lower for palabra in ["vehículo", "vehículos", "vehiculo", "vehiculos", "coche", "camión", "camion", "auto", "flota"]):
-        if any(palabra in mensaje_lower for palabra in ["sin conductor", "sin asignar", "libres", "disponibles", "disponible"]):
-            respuesta = f"Actualmente hay {datos['vehiculos_sin_conductor']} vehículos sin conductor y {datos['vehiculos_disponibles']} disponibles para usar."
-        elif any(palabra in mensaje_lower for palabra in ["en ruta", "viajando", "en camino", "transitando"]):
-            respuesta = f"Hay {datos['vehiculos_en_ruta']} vehículos en ruta y {datos['vehiculos_count']} en total en la flota."
-        else:
-            respuesta = f"En el sistema hay {datos['vehiculos_count']} vehículos: {datos['vehiculos_disponibles']} disponibles, {datos['vehiculos_en_ruta']} en ruta y {datos['vehiculos_sin_conductor']} sin conductor asignado."
-        return f"{saludo} {respuesta}".strip()
-    
-    # Conductores
-    if any(palabra in mensaje_lower for palabra in ["conductor", "conductores", "chofer", "choferes", "pilotos"]):
-        respuesta = f"Actualmente hay {datos['conductor_count']} conductores registrados en el sistema."
-        return f"{saludo} {respuesta}".strip()
-    
-    # Inventario
-    if any(palabra in mensaje_lower for palabra in ["inventario", "material", "materiales", "stock", "almacén", "almacen", "productos"]):
-        if any(palabra in mensaje_lower for palabra in ["bajo", "poco", "escasez", "faltante", "pocos"]):
-            respuesta = f"Actualmente hay {datos['stock_bajo']} materiales con stock bajo. El total de tipos de materiales es {datos['total_materiales']} y hay {datos['total_stock']} unidades en total en stock."
-        else:
-            respuesta = f"El inventario tiene {datos['total_materiales']} tipos de materiales, con {datos['total_stock']} unidades en total y {datos['stock_bajo']} con stock bajo."
-        return f"{saludo} {respuesta}".strip()
-    
-    # Pedidos
-    if any(palabra in mensaje_lower for palabra in ["pedido", "pedidos", "orden", "órdenes", "ordenes", "solicitudes"]):
-        respuesta = f"Tenemos {datos['pedidos_totales']} pedidos en total: {datos['pedidos_pendientes']} pendientes, {datos['pedidos_aprobados']} aprobados, {datos['pedidos_en_camino']} en camino, {datos['pedidos_entregados']} entregados y {datos['pedidos_cancelados']} cancelados."
-        return f"{saludo} {respuesta}".strip()
-    
-    # Usuarios
-    if any(palabra in mensaje_lower for palabra in ["usuario", "usuarios", "empleado", "empleados", "trabajador", "trabajadores", "personal"]):
-        respuesta = f"Hay {datos['total_usuarios']} usuarios registrados: {datos['admin_count']} administradores, {datos['cliente_count']} clientes, {datos['conductor_count']} conductores y {datos['empleado_count']} empleados."
-        return f"{saludo} {respuesta}".strip()
-    
-    # Ventas / Facturas
-    if any(palabra in mensaje_lower for palabra in ["venta", "ventas", "factura", "facturas", "dinero", "ganancias", "ingresos"]):
-        respuesta = f"Las ventas totales son ${datos['total_ventas']:,.2f}. Tenemos {datos['facturas_totales']} facturas (${datos['total_facturado']:,.2f} facturado) y {datos['pagos_totales']} pagos realizados por un total de ${datos['total_pagado']:,.2f}."
-        return f"{saludo} {respuesta}".strip()
-    
-    # Compras
-    if any(palabra in mensaje_lower for palabra in ["compra", "compras", "proveedor", "proveedores", "suministros"]):
-        respuesta = f"Tenemos {datos['compras_totales']} compras registradas (${datos['total_compras']:,.2f} en total) y {datos['proveedores_count']} proveedores en el sistema."
-        return f"{saludo} {respuesta}".strip()
-    
-    # Si no es ninguna pregunta específica
+    # Si no es matemáticas ni alertas, retorna None para que use Ollama
     return None
 
 def preguntar_ollama(mensaje, contexto, nombre_usuario, historial):
-    """Pregunta a Ollama usando la API directamente"""
-    # Convertir contexto a texto legible
+    """Pregunta a Ollama usando la API directamente - ChatGPT propio"""
     contexto_texto = "\n".join([f"- {k}: {v}" for k, v in contexto.items()])
     
-    # Convertir historial a texto legible
     historial_texto = ""
     if historial:
-        historial_texto = "\n\nHistorial de la conversación (últimos mensajes):\n"
+        historial_texto = "\n\nHISTORIAL DE CONVERSACIÓN (últimos mensajes):\n"
         for msg in historial:
             if msg['sender'] == 'user':
                 historial_texto += f"USUARIO: {msg['text']}\n"
             else:
                 historial_texto += f"ASISTENTE: {msg['text']}\n"
     
-    # Crear el prompt del sistema - MEJORADO MUCHO
-    system_prompt = f"""Eres el ASISTENTE VIRTUAL DE CONSTRU-TRANS, un sistema de gestión para materiales de construcción.
+    system_prompt = f"""Eres el ASISTENTE VIRTUAL OFICIAL DE CONSTRU-TRANS, una empresa de gestión de materiales de construcción y transporte.
+
+Tu misión: Ayudar al usuario en TODO lo que necesite, como ChatGPT pero como asistente propio de la empresa.
 
 Tu personalidad:
-- Amigable, profesional y servicial
-- Siempre respondes en español claro y conciso
-- No pareces nuevo, pareces un asistente que ha estado aquí desde el principio
-- Tienes conocimiento completo del sistema y de cómo funciona
+- Amigable, servicial y profesional
+- Respondes en español claro y conciso
+- Tienes acceso a todos los datos del sistema Constru-Trans
 
-Reglas ABSOLUTAS:
-1. RESPONDE EN ESPAÑOL
-2. SI EL USUARIO TE PREGUNTA POR DATOS DEL SISTEMA (pedidos, inventario, vehículos, conductores, facturas, etc.), usa el contexto proporcionado para responder con precisión
-3. SI EL USUARIO TE PREGUNTA ALGO GENERAL (hora, qué es Constru-Trans, cómo estás, qué puedes hacer, etc.), responde de manera natural y fluida
-4. SI EL USUARIO TE PREGUNTA POR CÁLCULOS, hazlos y responde con el resultado
-5. SI EL USUARIO PREGUNTA POR ALERTAS O STOCK BAJO, usa el contexto
-6. NO INVENTES DATOS, usa el contexto proporcionado
-7. USA el HISTORIAL de la conversación para mantener la coherencia
-8. SI EL USUARIO PREGUNTA ALGO QUE NO SABES pero está relacionado, sugiere preguntas específicas que sí puedes responder
-9. SI EL USUARIO QUIERE CONTACTAR A ALGUIEN, explica que puedes ayudarle con la información del sistema pero que para contactar directamente debe usar las funcionalidades del sistema
-10. SE COHERENTE con lo que ya dijiste anteriormente en la conversación
+REGLAS:
+1. Prioriza responder en español SIEMPRE
+2. Si el usuario pregunta sobre Datos del sistema (pedidos, inventario, vehículos, facturas, conductores, clientes, usuarios):
+   - Usa los datos proporcionados a continuación para responder con precisión
+3. Si el usuario pregunta sobre ALGO GENERAL (cualquier cosa, como matemáticas, cultura, consejos, etc.):
+   - Responde de forma natural y inteligente
+4. Si el usuario quiere calcular algo matemático: hazlo y responde
+5. Si el usuario pide ayuda sobre el sistema: explícale cómo funciona Constru-Trans
+6. Si el usuario no sabe qué preguntar: sugiere preguntas sobre el sistema
+7. Usa el historial para mantener la coherencia
 
-Datos del usuario:
+DATOS DEL USUARIO:
 - Nombre: {nombre_usuario if nombre_usuario else "No registrado"}
 
-Contexto actual del sistema Constru-Trans:
+DATOS ACTUALES DEL SISTEMA CONSTRU-TRANS:
 {contexto_texto}
 {historial_texto}
 
-Recuerda:
-- Eres el asistente de Constru-Trans, ya conoces todo el sistema
-- No pareces nuevo, pareces experimentado
-- Responde de manera fluida y natural"""
+¡Responde de forma natural y útil!
+"""
 
-    # Construir la solicitud a Ollama
     payload = {
         "model": OLLAMA_MODEL,
         "prompt": mensaje,
@@ -380,7 +329,7 @@ Recuerda:
         response = requests.post(
             f"{OLLAMA_URL}/api/generate",
             json=payload,
-            timeout=90
+            timeout=120
         )
         
         if response.status_code == 200:
@@ -403,21 +352,16 @@ def obtener_respuesta_inteligente(mensaje, usuario=None, historial=None, datos=N
     if datos is None:
         datos = obtener_contexto_datos()
     
-    # Verificar si es la primera interacción
     es_primera_interaccion = len(historial) == 0
-    
-    # Convertir mensaje a minúsculas para mejor detección
     mensaje_lower = mensaje.lower()
     es_saludo = any(palabra in mensaje_lower for palabra in ["hola", "buenos días", "buenas tardes", "buenas noches", "qué tal", "cómo estás", "como estas", "buen día", "hey", "holi", "holis"])
     
-    # Construir saludo
     saludo = ""
     if es_primera_interaccion or es_saludo:
         saludo = "¡Hola!"
         if usuario and usuario.is_authenticated:
             saludo = f"¡Hola {usuario.nombres}!"
     
-    # --- SALUDOS Y BIENVENIDAS ---
     if es_saludo:
         respuestas_bienvenida = [
             "Soy tu asistente virtual de Constru-Trans. ¿En qué puedo ayudarte hoy? Puedo darte información sobre inventario, pedidos, vehículos, conductores y más!",
@@ -427,71 +371,22 @@ def obtener_respuesta_inteligente(mensaje, usuario=None, historial=None, datos=N
         ]
         return f"{saludo} {random.choice(respuestas_bienvenida)}".strip()
     
-    # --- AYUDA ---
     if any(palabra in mensaje_lower for palabra in ["ayuda", "ayúdame", "ayudame", "qué puedes hacer", "que puedes hacer", "qué haces", "que haces", "qué sabes", "que sabes", "puedes hacer", "que puedo hacer"]):
         respuesta_ayuda = [
-            "Estoy aquí para ayudarte con todo lo relacionado al sistema Constru-Trans. Puedes preguntarme sobre:\n- Estado de pedidos\n- Inventario y materiales\n- Vehículos y conductores\n- Ventas y facturas\n- Usuarios del sistema\n- Realizar cálculos matemáticos\n- Ver alertas de stock\n\n¿Qué necesitas?",
-            "Puedo ayudarte con lo siguiente:\n- Información sobre pedidos y órdenes\n- Estado del inventario y materiales\n- Vehículos y conductores\n- Facturas, pagos y ventas\n- Cálculos matemáticos\n\n¿Qué te interesa?",
-            "Soy tu asistente completo de Constru-Trans! Puedo darte información de todo el sistema, hacer cálculos, alertarte de stock bajo y mucho más. ¿Qué necesitas?",
+            "Estoy aquí para ayudarte con TODO lo que necesites: desde información del sistema Constru-Trans hasta consejos y cálculos. ¿Qué necesitas?",
+            "Puedo ayudarte con lo siguiente: datos de pedidos, inventario, vehículos, facturas, pagos, cálculos matemáticos y cualquier cosa que necesites!",
+            "Soy tu asistente completo de Constru-Trans! ¡Pregúntame lo que quieras!",
         ]
-        return f"{saludo} {random.choice(respuesta_ayuda)}".strip()
+        return f"{saludo} {random.choice(respuestas_ayuda)}".strip()
     
-    # --- PREGUNTAS SOBRE CONSTRU-TRANS ---
-    if any(palabra in mensaje_lower for palabra in ["qué es", "que es", "qué es constru-trans", "que es constru-trans", "de qué se trata", "de que se trata", "para qué sirve", "para que sirve"]):
-        respuestas_que_es = [
-            "Constru-Trans es un sistema de gestión integral para materiales de construcción. Te ayuda a administrar pedidos, inventario, vehículos, facturas y más.",
-            "Somos un sistema completo de gestión de pedidos y transporte para materiales de construcción. ¡Estoy aquí para ayudarte con todo!",
-            "Constru-Trans es la herramienta perfecta para administrar tu negocio de materiales de construcción: pedidos, inventario, facturación, todo en un solo lugar.",
-        ]
-        return f"{saludo} {random.choice(respuestas_que_es)}".strip()
-    
-    # --- PREGUNTAS SOBRE HORA ---
-    if any(palabra in mensaje_lower for palabra in ["hora", "horas", "qué hora", "que hora", "tiempo", "fecha", "día", "dia"]):
-        ahora = timezone.localtime()
-        hora_actual = ahora.strftime("%H:%M")
-        fecha_actual = ahora.strftime("%d/%m/%Y")
-        dia_semana = ahora.strftime("%A")
-        dias_semana_es = {
-            "Monday": "lunes", "Tuesday": "martes", "Wednesday": "miércoles", 
-            "Thursday": "jueves", "Friday": "viernes", "Saturday": "sábado", "Sunday": "domingo"
-        }
-        dia_semana_es = dias_semana_es.get(dia_semana, dia_semana)
-        
-        respuestas_hora = [
-            f"Hoy es {dia_semana_es} {fecha_actual} y son las {hora_actual}.",
-            f"Son las {hora_actual} del {fecha_actual} ({dia_semana_es}).",
-            f"Ahora mismo son las {hora_actual}. Hoy es {dia_semana_es} {fecha_actual}.",
-        ]
-        return f"{saludo} {random.choice(respuestas_hora)}".strip()
-    
-    # --- PREGUNTAS SOBRE CÓMO ESTÁS ---
-    if any(palabra in mensaje_lower for palabra in ["cómo estás", "como estas", "qué tal estás", "que tal estas", "cómo te va", "como te va", "cómo va", "como va"]):
-        respuestas_estado = [
-            "¡Muy bien, gracias! Listo para ayudarte. ¿Qué necesitas?",
-            "Excelente, siempre listo para ayudarte en Constru-Trans. ¿En qué puedo colaborarte?",
-            "¡Todo genial! ¿Qué necesitas hoy?",
-            "Muy bien, listo para ayudarte con lo que necesites.",
-        ]
-        return f"{saludo} {random.choice(respuestas_estado)}".strip()
-    
-    # --- PREGUNTAS SOBRE CONTACTAR A ALGUIEN ---
-    if any(palabra in mensaje_lower for palabra in ["contactar", "comunicar", "hablar con", "hablar a", "notificar", "enviar mensaje", "mandar mensaje", "llamar a", "contacto con", "persona", "soporte", "tecnico", "técnico", "alguien"]):
-        respuestas_contacto = [
-            "Claro, puedo ayudarte con la información del sistema. Si necesitas contactar directamente con alguien del equipo, te recomiendo usar las funcionalidades de notificación o comunicación que tiene el sistema Constru-Trans. ¿Qué información del sistema necesitas?",
-            "Soy tu asistente del sistema Constru-Trans y puedo darte toda la información que necesites sobre pedidos, inventario, vehículos y más. Para contactar directamente con alguien, usa las opciones del sistema. ¿Qué te gustaría saber?",
-            "Estoy aquí para ayudarte con datos del sistema. Si necesitas contactar a alguien específico, revisa las funcionalidades del sistema. ¿Qué información necesitas ahora?",
-        ]
-        return f"{saludo} {random.choice(respuestas_contacto)}".strip()
-    
-    # --- RESPUESTA POR DEFECTO (MEJORADA Y NATURAL) ---
     respuestas_por_defecto = [
         f"Claro, cuéntame qué necesitas. Actualmente tenemos {datos['pedidos_totales']} pedidos, {datos['total_materiales']} materiales y {datos['vehiculos_count']} vehículos. ¿Qué te interesa?",
         f"Por supuesto. Tenemos {datos['pedidos_pendientes']} pedidos pendientes y {datos['vehiculos_disponibles']} vehículos disponibles. ¿Qué necesitas saber?",
         "Estoy aquí para ayudarte. ¿Podrías ser un poco más específico? Puedo ayudarte con pedidos, inventario, vehículos, facturas, cálculos y más.",
         "Cuéntame, ¿qué necesitas hoy? Puedo darte información de todo el sistema Constru-Trans.",
-        f"¿Qué te gustaría consultar? Hay {datos['total_usuarios']} usuarios, {datos['clientes_registrados']} clientes y {datos['proveedores_count']} proveedores. ¿Necesitas algo en específico?",
-        "¿Qué necesitas? Estoy listo para ayudarte con lo que necesites del sistema.",
+        "¿Qué te gustaría consultar? Pregúntame lo que necesites.",
     ]
     
     return f"{saludo} {random.choice(respuestas_por_defecto)}".strip()
+
 
