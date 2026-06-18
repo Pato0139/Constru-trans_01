@@ -114,7 +114,7 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         "autos disponibles", "camiones disponibles", "vehiculos libres", "vehículos libres"
     ]
     if any(palabra in mensaje_lower for palabra in palabras_clave_vehiculos):
-        return f"{saludo} Actualmente hay {datos.get('vehiculos_disponibles', 0)} vehículos disponibles, {datos.get('vehiculos_en_ruta', 0)} en ruta y {datos.get('vehiculos_sin_conductor', 0)} sin conductor asignado. En total hay {datos.get('vehiculos_count', 0)} vehículos en el sistema.".strip()
+        return f"{saludo} Actualmente hay {datos.get('vehiculos_disponibles', 0)} vehículos disponibles y {datos.get('vehiculos_en_ruta', 0)} en ruta. En total hay {datos.get('vehiculos_count', 0)} vehículos en el sistema.".strip()
 
     # 5. PEDIDOS
     palabras_clave_pedidos = [
