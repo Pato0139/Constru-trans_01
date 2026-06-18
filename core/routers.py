@@ -9,6 +9,7 @@ class EnrutadorInventario:
         'usuarios',
         'historial',
         'clientes',
+        'ia',  # Añadimos la app de IA para que use la misma BD
     ]
 
     def db_for_read(self, model, **hints):
