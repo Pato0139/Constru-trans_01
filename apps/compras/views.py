@@ -21,7 +21,9 @@ def lista_compras(request):
             Q(id__icontains=q) |
             Q(estado__icontains=q)
         )
-    return render(request, "compras/lista.html", {"compras": compras, "query": q})
+    context = {"compras": compras, "query": q}
+
+    return render(request, "compras/lista.html", context)
 
 @admin_required
 def crear_compra(request):
@@ -48,17 +50,22 @@ def crear_compra(request):
         form = CompraForm()
         formset = DetalleCompraFormSet()
 
-    return render(request, "compras/form.html", {
+    context = {
         "form": form,
         "formset": formset,
         "action": "Nueva"
-    })
+    }
+
+
+    return render(request, "compras/form.html", context)
 
 @admin_required
 def detalle_compra(request, id):
     # Optimizacion
     compra = get_object_or_404(Compra.objects.select_related('proveedor').prefetch_related('detalles__material'), id=id)
-    return render(request, "compras/detalle.html", {"compra": compra})
+    context = {"compra": compra}
+
+    return render(request, "compras/detalle.html", context)
 
 @admin_required
 def cambiar_estado_compra(request, id):
@@ -94,12 +101,15 @@ def editar_compra(request, id):
         form = CompraForm(instance=compra)
         formset = DetalleCompraFormSet(instance=compra)
 
-    return render(request, "compras/form.html", {
+    context = {
         "form": form,
         "formset": formset,
         "compra": compra,
         "action": "Editar"
-    })
+    }
+
+
+    return render(request, "compras/form.html", context)
 
 @admin_required
 def contactar_proveedor(request, codigo_proveedor):
@@ -125,7 +135,10 @@ def contactar_proveedor(request, codigo_proveedor):
 
         return redirect("compras:lista_proveedores")
 
-    return render(request, "compras/proveedor_contacto.html", {"proveedor": proveedor})
+    context = {"proveedor": proveedor}
+
+
+    return render(request, "compras/proveedor_contacto.html", context)
 
 @admin_required
 def lista_proveedores(request):
@@ -140,7 +153,9 @@ def lista_proveedores(request):
         )
     else:
         proveedores = Proveedor.objects.all()
-    return render(request, "compras/proveedores_lista.html", {"proveedores": proveedores, "query": q})
+    context = {"proveedores": proveedores, "query": q}
+
+    return render(request, "compras/proveedores_lista.html", context)
 
 @admin_required
 def crear_proveedor(request):
@@ -166,7 +181,10 @@ def crear_proveedor(request):
         messages.success(request, "Proveedor registrado con éxito.")
         return redirect("compras:lista_proveedores")
 
-    return render(request, "compras/proveedor_form.html", {"action": "Crear"})
+    context = {"action": "Crear"}
+
+
+    return render(request, "compras/proveedor_form.html", context)
 
 @admin_required
 def editar_proveedor(request, codigo_proveedor):
@@ -185,4 +203,7 @@ def editar_proveedor(request, codigo_proveedor):
         messages.success(request, "Proveedor actualizado.")
         return redirect("compras:lista_proveedores")
 
-    return render(request, "compras/proveedor_form.html", {"proveedor": proveedor, "action": "Editar"})
+    context = {"proveedor": proveedor, "action": "Editar"}
+
+
+    return render(request, "compras/proveedor_form.html", context)
