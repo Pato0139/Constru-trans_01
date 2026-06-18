@@ -42,7 +42,7 @@ def obtener_contexto_datos():
         try:
             stocks = Stock.objects.all()
             total_stock = sum(s.cantidad_actual for s in stocks)
-            stock_bajo = sum(1 for s in stocks if s.cantidad_actual &lt;= s.stock_minimo)
+            stock_bajo = sum(1 for s in stocks if s.cantidad_actual <= s.stock_minimo)
         except:
             total_stock = 0
             stock_bajo = 0
@@ -202,8 +202,8 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
     # 1. OPERACIONES MATEMÁTICAS
     # Patrones para operaciones matemáticas
     operaciones = [
-        (r'cu[áa]nto es\s+(\d+)\s*([\+\-\*\/]|más|mas|plus|menos|minus|por|multiplicado por|times|dividido por|entre)\s*(\d+)', 1, 3, 2),
-        (r'(\d+)\s*([\+\-\*\/]|más|mas|plus|menos|minus|por|multiplicado por|times|dividido por|entre)\s*(\d+)', 1, 3, 2)
+        (r'cuá?nto es\s+(\d+)\s*([+\-*/]|más|mas|plus|menos|minus|por|multiplicado por|times|dividido por|entre)\s*(\d+)', 1, 3, 2),
+        (r'(\d+)\s*([+\-*/]|más|mas|plus|menos|minus|por|multiplicado por|times|dividido por|entre)\s*(\d+)', 1, 3, 2)
     ]
     
     for patron, g1, g2, op_idx in operaciones:
@@ -255,7 +255,7 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         "hay poco", "falta", "faltan", "aviso", "notificación"
     ]
     if any(palabra in mensaje_lower for palabra in palabras_clave_alertas):
-        if datos['stock_bajo'] &gt; 0:
+        if datos['stock_bajo'] > 0:
             respuestas_alertas = [
                 f"¡Alerta! Hay {datos['stock_bajo']} materiales con stock bajo. ¡Revisa el inventario!",
                 f"Aviso: {datos['stock_bajo']} materiales están por acabarse. ¡No te olvides de reabastecer!",
@@ -326,7 +326,7 @@ def preguntar_ollama(mensaje, contexto, nombre_usuario, historial):
     # Convertir historial a texto legible
     historial_texto = ""
     if historial:
-        historial_texto = "\n\nHISTORIAL DE LA CONVERSACIÓN (últimos mensajes):\n"
+        historial_texto = "\n\nHistorial de la conversación (últimos mensajes):\n"
         for msg in historial:
             if msg['sender'] == 'user':
                 historial_texto += f"USUARIO: {msg['text']}\n"
@@ -336,32 +336,32 @@ def preguntar_ollama(mensaje, contexto, nombre_usuario, historial):
     # Crear el prompt del sistema - MEJORADO MUCHO
     system_prompt = f"""Eres el ASISTENTE VIRTUAL DE CONSTRU-TRANS, un sistema de gestión para materiales de construcción.
 
-TU PERSONALIDAD:
+Tu personalidad:
 - Amigable, profesional y servicial
 - Siempre respondes en español claro y conciso
 - No pareces nuevo, pareces un asistente que ha estado aquí desde el principio
 - Tienes conocimiento completo del sistema y de cómo funciona
 
-REGLAS ABSOLUTAS:
+Reglas ABSOLUTAS:
 1. RESPONDE EN ESPAÑOL
-2. SI EL USUARIO TE PREGUNTA POR DATOS DEL SISTEMA (pedidos, inventario, vehículos, conductores, facturas, etc.), usa el CONTEXTO proporcionado para responder con PRECISIÓN
+2. SI EL USUARIO TE PREGUNTA POR DATOS DEL SISTEMA (pedidos, inventario, vehículos, conductores, facturas, etc.), usa el contexto proporcionado para responder con precisión
 3. SI EL USUARIO TE PREGUNTA ALGO GENERAL (hora, qué es Constru-Trans, cómo estás, qué puedes hacer, etc.), responde de manera natural y fluida
 4. SI EL USUARIO TE PREGUNTA POR CÁLCULOS, hazlos y responde con el resultado
-5. SI EL USUARIO PREGUNTA POR ALERTAS O STOCK BAJO, usa el CONTEXTO
+5. SI EL USUARIO PREGUNTA POR ALERTAS O STOCK BAJO, usa el contexto
 6. NO INVENTES DATOS, usa el contexto proporcionado
-7. USA el HISTORIAL DE LA CONVERSACIÓN para mantener la coherencia
+7. USA el HISTORIAL de la conversación para mantener la coherencia
 8. SI EL USUARIO PREGUNTA ALGO QUE NO SABES pero está relacionado, sugiere preguntas específicas que sí puedes responder
 9. SI EL USUARIO QUIERE CONTACTAR A ALGUIEN, explica que puedes ayudarle con la información del sistema pero que para contactar directamente debe usar las funcionalidades del sistema
 10. SE COHERENTE con lo que ya dijiste anteriormente en la conversación
 
-DATOS DEL USUARIO:
+Datos del usuario:
 - Nombre: {nombre_usuario if nombre_usuario else "No registrado"}
 
-CONTEXTO ACTUAL DEL SISTEMA CONSTRU-TRANS:
+Contexto actual del sistema Constru-Trans:
 {contexto_texto}
 {historial_texto}
 
-RECUERDA:
+Recuerda:
 - Eres el asistente de Constru-Trans, ya conoces todo el sistema
 - No pareces nuevo, pareces experimentado
 - Responde de manera fluida y natural"""
@@ -386,7 +386,7 @@ RECUERDA:
         if response.status_code == 200:
             data = response.json()
             respuesta = data.get("response", "")
-            if respuesta and len(respuesta.strip()) &gt; 0:
+            if respuesta and len(respuesta.strip()) > 0:
                 return respuesta.strip()
             else:
                 return obtener_respuesta_inteligente(mensaje, None, historial, contexto)
