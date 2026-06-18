@@ -1,5 +1,5 @@
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from ..services import preguntar_ia
 from django.views.decorators.csrf import csrf_exempt
@@ -18,6 +18,6 @@ def chat_ia(request):
         except Exception as e:
             return JsonResponse({"respuesta": f"Lo siento, ocurrió un error: {str(e)}", "status": "error"})
     
-    # Si es GET, renderizar la página (opcional)
-    return render(request, "ia/chat.html")
+    # Si es GET, redirigir al dashboard o inicio
+    return redirect("inicio")
 
