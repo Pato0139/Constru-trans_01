@@ -101,11 +101,14 @@ def agregar_materiales(request, id):
 
         return redirect("ordenes:agregar_materiales", id=orden.codigo_pedido)
 
-    return render(request, "ordenes/agregar_materiales.html", {
+    context = {
         "orden": orden,
         "materiales": materiales,
         "detalles": detalles
-    })
+    }
+
+
+    return render(request, "ordenes/agregar_materiales.html", context)
 
 def buscar_pedidos_admin(cliente_query=None, fecha_query=None):
     """
@@ -136,12 +139,15 @@ def lista_pedidos_admin(request):
         estado=Orden.PENDIENTE
     )
 
-    return render(request, "ordenes/lista.html", {
+    context = {
         "pedidos": pedidos,
         "cliente_query": cliente_query,
         "fecha_query": fecha_query,
         "titulo_panel": "Ventas Pendientes"
-    })
+    }
+
+
+    return render(request, "ordenes/lista.html", context)
 
 @admin_required
 def lista_entregas_admin(request):
@@ -153,12 +159,15 @@ def lista_entregas_admin(request):
         estado=Orden.EN_RUTA
     )
 
-    return render(request, "ordenes/lista.html", {
+    context = {
         "pedidos": pedidos,
         "cliente_query": cliente_query,
         "fecha_query": fecha_query,
         "titulo_panel": "Control de Entregas"
-    })
+    }
+
+
+    return render(request, "ordenes/lista.html", context)
 
 @login_required
 def ver_pedido_admin(request, id):
@@ -240,10 +249,13 @@ def ver_pedido_admin(request, id):
                     messages.success(request, f"Estado del pedido #{orden.codigo_pedido} actualizado a {nuevo_estado}.")
                 return redirect("ordenes:ver_pedido_admin", id=orden.codigo_pedido)
 
-    return render(request, "ordenes/detalle.html", {
+    context = {
         "orden": orden,
         "metodos_pago": MetodoPago.objects.all()
-    })
+    }
+
+
+    return render(request, "ordenes/detalle.html", context)
 
 @admin_required
 def crear_entrega(request, orden_id):
@@ -263,10 +275,12 @@ def crear_entrega(request, orden_id):
 
                 if not vehiculo:
                     messages.error(request, f"El conductor {conductor.nombres} no tiene un vehículo asignado. Por favor, asígnale uno en la gestión de usuarios.")
-                    return render(request, "ordenes/asignar_entrega.html", {
+                    context = {
                         "orden": orden,
                         "conductores": conductores,
-                    })
+                    }
+
+                    return render(request, "ordenes/asignar_entrega.html", context)
                     
                 if orden.conductor and orden.conductor != conductor:
                     vehiculo_anterior = orden.conductor.vehiculo_actual
@@ -307,15 +321,20 @@ def crear_entrega(request, orden_id):
                 return redirect("ordenes:lista_pedidos_admin")
         else:
             messages.error(request, "Por favor selecciona un conductor con vehículo asignado.")
-            return render(request, "ordenes/asignar_entrega.html", {
+            context = {
                 "orden": orden,
                 "conductores": conductores,
-            })
+            }
 
-    return render(request, "ordenes/asignar_entrega.html", {
+            return render(request, "ordenes/asignar_entrega.html", context)
+
+    context = {
         "orden": orden,
         "conductores": conductores,
-    })
+    }
+
+
+    return render(request, "ordenes/asignar_entrega.html", context)
 
 @login_required
 def descargar_factura(request, id):
