@@ -125,32 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  function sendFeedback(messageId, feedback) {
-    fetch('/ia/feedback/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
-      },
-      body: JSON.stringify({
-        message_id: messageId,
-        feedback: feedback
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        // Ocultar botones de feedback
-        const feedbackButtons = document.querySelector(`[data-message-id="${messageId}"] .feedback-buttons`);
-        if (feedbackButtons) {
-          feedbackButtons.style.display = 'none';
-        }
-      }
-    })
-    .catch(error => {
-      console.error('Error al enviar feedback:', error);
-    });
-  }
+
 
   function showTypingIndicator() {
     const messageDiv = document.createElement('div');
@@ -198,12 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div class="chat-message-content">
           <div class="chat-message-bubble">${escapeHtml(text)}</div>
-          ${messageId ? `
-            <div class="feedback-buttons">
-              <button class="feedback-btn good" title="Buena respuesta">👍</button>
-              <button class="feedback-btn bad" title="Mala respuesta">👎</button>
-            </div>
-          ` : ''}
         </div>
       `;
     } else {
@@ -214,24 +183,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-    // Agregar event listeners para feedback
-    if (sender === 'bot' && messageId) {
-      const goodBtn = messageDiv.querySelector('.feedback-btn.good');
-      const badBtn = messageDiv.querySelector('.feedback-btn.bad');
-      
-      if (goodBtn) {
-        goodBtn.addEventListener('click', function() {
-          sendFeedback(messageId, 'good');
-        });
-      }
-      
-      if (badBtn) {
-        badBtn.addEventListener('click', function() {
-          sendFeedback(messageId, 'bad');
-        });
-      }
-    }
 
     // Guardar en historial
     if (save) {
