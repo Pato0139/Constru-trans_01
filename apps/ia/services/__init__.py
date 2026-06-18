@@ -1,10 +1,21 @@
 
+
 from django.utils import timezone
 from django.db.models import Sum, Count
 import requests
 import json
 import re
 import random
+import time
+from datetime import datetime
+from ..models import (
+    ConversationHistory, 
+    ConversationMessage, 
+    UserFeedback, 
+    AIPromptTemplate, 
+    AIConfiguration,
+    KnowledgeBase
+)
 
 # Configuración de Ollama
 OLLAMA_URL = "http://localhost:11434"
@@ -13,9 +24,9 @@ OLLAMA_MODEL = "llama3.2"
 def verificar_conexion_ollama():
     """Verifica si Ollama está disponible"""
     try:
-        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
+        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=3)
         return response.status_code == 200
-    except:
+    except Exception as e:
         return False
 
 def obtener_contexto_datos():
@@ -158,10 +169,242 @@ def obtener_contexto_datos():
     except Exception as e:
         return {}
 
-def preguntar_ia(mensaje, usuario=None, historial=None):
-    """Función principal para interactuar con la IA - Prioriza Ollama primero"""
+def get_conversation(usuario, session_id=None):
+    """Obtiene o crea una conversación"""
+    if usuario and usuario.is_authenticated:
+        conversation, created = ConversationHistory.objects.get_or_create(
+            user=usuario,
+            session_id=session_id
+        )
+    else:
+        conversation, created = ConversationHistory.objects.get_or_create(
+            session_id=session_id or "anonymous"
+        )
+    return conversation
+
+def add_message_to_conversation(conversation, role, content, prompt_used=None, model_used=None, response_time=None):
+    """Agrega un mensaje a la conversación"""
+    message = ConversationMessage.objects.create(
+        conversation=conversation,
+        role=role,
+        content=content,
+        prompt_used=prompt_used,
+        model_used=model_used,
+        response_time=response_time
+    )
+    return message
+
+def check_knowledge_base(mensaje):
+    """Verifica la base de conocimiento para respuestas rápidas"""
+    mensaje_lower = mensaje.lower()
+    kb_entries = KnowledgeBase.objects.filter(success_count__gte=1).order_by('-success_count', '-usage_count')
+    
+    for entry in kb_entries:
+        try:
+            if re.search(entry.question_pattern, mensaje_lower, re.IGNORECASE):
+                entry.usage_count += 1
+                entry.save()
+                return entry
+        except:
+            continue
+    return None
+
+def evaluar_expresion_matematica(expr):
+    """Evalúa expresiones matemáticas de forma segura, con soporte para álgebra y cálculos avanzados"""
+    import math
+    from decimal import Decimal, getcontext
+    getcontext().prec = 20
+    
+    expr_original = expr.strip()
+    expr_limpia = expr_original.lower()
+    
+    # Diccionario de funciones matemáticas seguras
+    math_funcs = {
+        'pi': math.pi,
+        'π': math.pi,
+        'e': math.e,
+        'sen': math.sin,
+        'sin': math.sin,
+        'cos': math.cos,
+        'coseno': math.cos,
+        'tan': math.tan,
+        'tangente': math.tan,
+        'asin': math.asin,
+        'acos': math.acos,
+        'atan': math.atan,
+        'log': math.log10,
+        'ln': math.log,
+        'logaritmo': math.log10,
+        'sqrt': math.sqrt,
+        'raiz': math.sqrt,
+        'raíz': math.sqrt,
+        'abs': abs,
+        'factorial': math.factorial,
+        'fact': math.factorial,
+        'pow': pow,
+        'potencia': pow,
+        'exp': math.exp,
+        'round': round,
+    }
+    
+    # Reemplazar palabras por símbolos y normalizar
+    reemplazos = {
+        'más': '+',
+        'mas': '+',
+        'plus': '+',
+        'menos': '-',
+        'minus': '-',
+        'por': '*',
+        'multiplicado por': '*',
+        'times': '*',
+        'dividido por': '/',
+        'entre': '/',
+        'x': '*',
+        '×': '*',
+        '÷': '/',
+        '^': '**',
+        '²': '**2',
+        '³': '**3',
+        '⁴': '**4',
+        '⁵': '**5',
+        '⁶': '**6',
+        '⁷': '**7',
+        '⁸': '**8',
+        '⁹': '**9',
+        '⁰': '**0',
+        ',': '.',
+        'al cuadrado': '**2',
+        'al cubo': '**3',
+        'cuadrado de': '**2',
+        'cubo de': '**3',
+        'raíz cuadrada de': 'sqrt(',
+        'raiz cuadrada de': 'sqrt(',
+        'seno de': 'sen(',
+        'coseno de': 'cos(',
+        'tangente de': 'tan(',
+    }
+    
+    for palabra, reemplazo in reemplazos.items():
+        expr_limpia = expr_limpia.replace(palabra, reemplazo)
+    
+    # Función para manejar "raíz de N
+    # Insertar paréntesis donde sea necesario
+    def manejar_raiz(match):
+        num = match.group(1).strip()
+        return f'sqrt({num})'
+    
+    # Patrones para detectar "raíz de x, raíz cuadrada de x, etc.
+    patterns_raiz = [
+        r'ra[íi]z (?:cuadrada )?de ([\d\.]+)',
+        r'ra[íi]z ([\d\.]+)',
+    ]
+    
+    for p in patterns_raiz:
+        expr_limpia = re.sub(p, manejar_raiz, expr_limpia, flags=re.IGNORECASE)
+    
+    # Ahora intentamos evaluar la expresión de forma segura
+    try:
+        # Primero intentamos una aproximación
+        # Reemplazar espacios que faltantes entre números y paréntesis
+        expr_final = expr_limpia
+        
+        # Manejar casos comunes de álgebra básica (ej: "5x, 3(x+2), etc.
+        # Patrón para "número seguido de x (ej: 5x)
+        def manejar_mult_x(match):
+            num = match.group(1)
+            var = match.group(2)
+            return f'{num}*{var}'
+        
+        expr_final = re.sub(r'(\d+)([a-zA-Z])', manejar_mult_x, expr_final)
+        
+        # Ahora evaluar la expresión matemática
+        # Usar eval con un diccionario de contexto seguro
+        safe_dict = {
+            '__builtins__': None,
+            **math_funcs,
+        }
+        
+        # Intentar evaluar
+        resultado = eval(expr_final, safe_dict, {})
+        
+        # Formatear el resultado
+        if isinstance(resultado, (int, float)):
+            es_entero = False
+            if hasattr(resultado, 'is_integer'):
+                es_entero = resultado.is_integer()
+            if es_entero:
+                resultado_entero = int(resultado)
+                return f"El resultado de {expr_original} es {resultado_entero}."
+            else:
+                # Redondear a 6 decimales max
+                resultado_redondeado = round(resultado, 6)
+                return f"El resultado de {expr_original} es {resultado_redondeado}."
+        else:
+            return f"El resultado de {expr_original} es {resultado}."
+    except:
+        # Si eval falló, intentamos un enfoque más simple
+        # Buscamos operaciones básicas (5+5, 5-5, etc.)
+        operadores = [
+            (r'(\d+\.?\d*)\s*\+\s*(\d+\.?\d*)', '+', lambda a,b: a+b),
+            (r'(\d+\.?\d*)\s*\-\s*(\d+\.?\d*)', '-', lambda a,b: a-b),
+            (r'(\d+\.?\d*)\s*\*\s*(\d+\.?\d*)', '*', lambda a,b: a*b),
+            (r'(\d+\.?\d*)\s*\/\s*(\d+\.?\d*)', '/', lambda a,b: a/b),
+            (r'(\d+\.?\d*)\s*\^\s*(\d+\.?\d*)', '^', lambda a,b: a**b),
+            (r'(\d+\.?\d*)\s*\*\*\s*(\d+\.?\d*)', '**', lambda a,b: a**b),
+        ]
+        
+        for patron, simbolo, func in operadores:
+            match = re.search(patron, expr_limpia)
+            if match:
+                try:
+                    num1 = float(match.group(1))
+                    num2 = float(match.group(2))
+                    if simbolo == '/' and num2 == 0:
+                        return "No se puede dividir entre cero."
+                    res = func(num1, num2)
+                    if res.is_integer():
+                        res = int(res)
+                    return f"El resultado es {res}."
+                except:
+                    pass
+        
+        return None
+
+def update_knowledge_base(mensaje, respuesta, feedback):
+    """Actualiza la base de conocimiento con feedback positivo"""
+    if feedback == 'good':
+        mensaje_lower = mensaje.lower()
+        pattern = re.escape(mensaje_lower)
+        
+        kb_entry, created = KnowledgeBase.objects.get_or_create(
+            question_pattern=pattern,
+            defaults={'best_response': respuesta}
+        )
+        
+        if not created:
+            kb_entry.success_count += 1
+            kb_entry.best_response = respuesta
+        else:
+            kb_entry.success_count = 1
+            kb_entry.usage_count = 1
+        kb_entry.save()
+
+def get_best_prompt_template():
+    """Obtiene la mejor plantilla de prompt basada en éxito"""
+    templates = AIPromptTemplate.objects.filter(is_active=True).order_by('-success_rate', '-usage_count')
+    if templates.exists():
+        return templates.first()
+    return None
+
+def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
+    """Función principal para interactuar con la IA - Mejorada con aprendizaje"""
     if historial is None:
         historial = []
+    
+    start_time = time.time()
+    
+    # Obtener o crear conversación
+    conversation = get_conversation(usuario, session_id)
     
     # Obtener datos del sistema
     datos = obtener_contexto_datos()
@@ -171,25 +414,63 @@ def preguntar_ia(mensaje, usuario=None, historial=None):
     if usuario and usuario.is_authenticated:
         nombre_usuario = f"{usuario.nombres} {usuario.apellidos}"
     
-    # Intentar primero con Ollama para TODO (para que responda como ChatGPT)
+    # 1. Primero verificar la base de conocimiento (rápida y aprendida)
+    kb_entry = check_knowledge_base(mensaje)
+    if kb_entry:
+        response_time = time.time() - start_time
+        add_message_to_conversation(conversation, 'user', mensaje)
+        bot_message = add_message_to_conversation(
+            conversation, 'assistant', kb_entry.best_response,
+            prompt_used="Knowledge Base",
+            model_used="Knowledge Base",
+            response_time=response_time
+        )
+        return kb_entry.best_response, bot_message.id
+    
+    # 2. Verificar preguntas específicas
+    respuesta_especifica = verificar_pregunta_especifica(mensaje, usuario, historial, datos)
+    if respuesta_especifica:
+        response_time = time.time() - start_time
+        add_message_to_conversation(conversation, 'user', mensaje)
+        bot_message = add_message_to_conversation(
+            conversation, 'assistant', respuesta_especifica,
+            prompt_used="Rule-Based",
+            model_used="Rule-Based",
+            response_time=response_time
+        )
+        return respuesta_especifica, bot_message.id
+    
+    # 3. Usar Ollama con la mejor plantilla
     if verificar_conexion_ollama():
         try:
-            # Verificamos si hay que responder matemáticas o alertas directamente primero (fiables y rápidas)
-            respuesta_especifica = verificar_pregunta_especifica(mensaje, usuario, historial, datos)
-            if respuesta_especifica:
-                # Si es matemáticas o alertas de stock, respondemos primero rápido
-                return respuesta_especifica
-            
-            # Todo lo demás con Ollama
-            return preguntar_ollama(mensaje, datos, nombre_usuario, historial)
+            respuesta_ollama, prompt_used = preguntar_ollama(mensaje, datos, nombre_usuario, historial)
+            if respuesta_ollama:
+                response_time = time.time() - start_time
+                add_message_to_conversation(conversation, 'user', mensaje)
+                bot_message = add_message_to_conversation(
+                    conversation, 'assistant', respuesta_ollama,
+                    prompt_used=prompt_used,
+                    model_used=OLLAMA_MODEL,
+                    response_time=response_time
+                )
+                return respuesta_ollama, bot_message.id
         except Exception as e:
-            pass  # Fallback
+            pass
     
-    # Último recurso
-    return obtener_respuesta_inteligente(mensaje, usuario, historial, datos)
+    # 4. Último recurso
+    respuesta_default = obtener_respuesta_inteligente(mensaje, usuario, historial, datos)
+    response_time = time.time() - start_time
+    add_message_to_conversation(conversation, 'user', mensaje)
+    bot_message = add_message_to_conversation(
+        conversation, 'assistant', respuesta_default,
+        prompt_used="Default",
+        model_used="Default",
+        response_time=response_time
+    )
+    return respuesta_default, bot_message.id
 
 def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
-    """Verifica si la pregunta es específica y devuelve la respuesta - para matemáticas y alertas"""
+    """Verifica si la pregunta es específica y devuelve la respuesta"""
     mensaje_lower = mensaje.lower()
     es_primera_interaccion = len(historial) == 0
     
@@ -201,52 +482,50 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         if usuario and usuario.is_authenticated:
             saludo = f"¡Hola {usuario.nombres}!"
     
-    # 1. OPERACIONES MATEMÁTICAS (100% fiables)
-    operaciones = [
-        (r'cuá?nto es\s+(\d+)\s*([+\-*/]|más|mas|plus|menos|minus|por|multiplicado por|times|dividido por|entre)\s*(\d+)', 1, 3, 2),
-        (r'(\d+)\s*([+\-*/]|más|mas|plus|menos|minus|por|multiplicado por|times|dividido por|entre)\s*(\d+)', 1, 3, 2)
-    ]
+    # 1. HORA ACTUAL
+    palabras_clave_hora = ["qué hora es", "que hora es", "qué horas son", "que horas son", "dime la hora", "hora actual", "hora por favor"]
+    if any(palabra in mensaje_lower for palabra in palabras_clave_hora):
+        ahora = datetime.now()
+        hora_str = ahora.strftime("%H:%M")
+        fecha_str = ahora.strftime("%d/%m/%Y")
+        return f"{saludo} La hora actual es {hora_str} y la fecha es {fecha_str}.".strip()
     
-    for patron, g1, g2, op_idx in operaciones:
-        match = re.search(patron, mensaje_lower)
-        if match:
-            try:
-                num1 = float(match.group(g1))
-                num2 = float(match.group(g2))
-                op = match.group(op_idx).lower()
-                
-                resultado = None
-                operacion = ""
-                
-                if op in ['+', 'más', 'mas', 'plus']:
-                    resultado = num1 + num2
-                    operacion = f"{num1} + {num2}"
-                elif op in ['-', 'menos', 'minus']:
-                    resultado = num1 - num2
-                    operacion = f"{num1} - {num2}"
-                elif op in ['*', 'por', 'multiplicado por', 'times']:
-                    resultado = num1 * num2
-                    operacion = f"{num1} × {num2}"
-                elif op in ['/', 'dividido por', 'entre']:
-                    if num2 == 0:
-                        return f"{saludo} No se puede dividir entre cero."
-                    resultado = num1 / num2
-                    operacion = f"{num1} ÷ {num2}"
-                
+    # 2. OPERACIONES MATEMÁTICAS - MEJORADAS Y COMPLETAS
+    # Primero, extraemos cualquier expresión matemática del mensaje
+    try:
+        # Buscar expresiones matemáticas (números, operadores, paréntesis)
+        # Patrón para detectar expresiones matemáticas completas
+        math_patterns = [
+            # Preguntas explícitas de cálculo
+            (r'cuá?nto es\s+(.+)', 1),
+            (r'calcula\s+(.+)', 1),
+            (r'resuelve\s+(.+)', 1),
+            (r'qué es\s+(.+)', 1),
+            (r'cuál es\s+(.+)', 1),
+            (r'(.+)\s*=\s*\?', 1),
+        ]
+        
+        for patron, g_idx in math_patterns:
+            match = re.search(patron, mensaje_lower)
+            if match:
+                expr = match.group(g_idx).strip()
+                resultado = evaluar_expresion_matematica(expr)
                 if resultado is not None:
-                    if resultado.is_integer():
-                        resultado = int(resultado)
-                    respuestas_matematicas = [
-                        f"El resultado de {operacion} es {resultado}.",
-                        f"¡Listo! {operacion} = {resultado}.",
-                        f"El cálculo da {resultado} ({operacion}).",
-                        f"{operacion} es igual a {resultado}.",
-                    ]
-                    return f"{saludo} {random.choice(respuestas_matematicas)}".strip()
-            except:
-                pass
+                    return f"{saludo} {resultado}".strip()
+        
+        # Si no hay pregunta explícita, intentamos evaluar directamente si parece matemática
+        # (contiene números y operadores o palabras matemáticas)
+        tiene_numeros = bool(re.search(r'\d+', mensaje_lower))
+        tiene_operadores = bool(re.search(r'[+\-*/^%]|más|menos|por|dividido|entre|potencia|raíz|raiz|seno|coseno|tangente|logaritmo|log', mensaje_lower))
+        
+        if tiene_numeros and (tiene_operadores or len(re.findall(r'\d+', mensaje_lower)) >= 2):
+            resultado = evaluar_expresion_matematica(mensaje)
+            if resultado is not None:
+                return f"{saludo} {resultado}".strip()
+    except Exception as e:
+        pass
     
-    # 2. ALERTAS DE MATERIALES (100% fiables)
+    # 3. ALERTAS DE MATERIALES
     palabras_clave_alertas = [
         "alerta", "alertas", "poco material", "material bajo", "stock bajo", 
         "qué materiales", "que materiales", "materiales con poco", "materail",
@@ -270,11 +549,36 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
             ]
             return f"{saludo} {random.choice(respuestas_ok)}".strip()
     
-    # Si no es matemáticas ni alertas, retorna None para que use Ollama
+    # 4. VEHICULOS DISPONIBLES
+    palabras_clave_vehiculos = [
+        "vehículos disponibles", "vehiculos disponibles", "qué vehículos están disponibles", "que vehiculos estan disponibles", 
+        "autos disponibles", "camiones disponibles", "vehiculos libres", "vehículos libres"
+    ]
+    if any(palabra in mensaje_lower for palabra in palabras_clave_vehiculos):
+        return f"{saludo} Actualmente hay {datos['vehiculos_disponibles']} vehículos disponibles, {datos['vehiculos_en_ruta']} en ruta y {datos['vehiculos_sin_conductor']} sin conductor asignado. En total hay {datos['vehiculos_count']} vehículos en el sistema.".strip()
+    
+    # 5. PEDIDOS
+    palabras_clave_pedidos = [
+        "pedidos pendientes", "cuántos pedidos hay", "cuantos pedidos hay", "qué pedidos hay", "que pedidos hay", 
+        "estado de pedidos", "pedidos totales"
+    ]
+    if any(palabra in mensaje_lower for palabra in palabras_clave_pedidos):
+        return f"{saludo} Resumen de pedidos: {datos['pedidos_totales']} totales, {datos['pedidos_pendientes']} pendientes, {datos['pedidos_aprobados']} aprobados, {datos['pedidos_en_camino']} en camino, {datos['pedidos_entregados']} entregados y {datos['pedidos_cancelados']} cancelados.".strip()
+    
+    # 6. DATOS GENERALES DEL SISTEMA
+    palabras_clave_sistema = [
+        "dime sobre el sistema", "resumen del sistema", "qué hay en el sistema", "que hay en el sistema", 
+        "cuántos usuarios hay", "cuantos usuarios hay", "cuántos clientes hay", "cuantos clientes hay", 
+        "cuántos proveedores hay", "cuantos proveedores hay"
+    ]
+    if any(palabra in mensaje_lower for palabra in palabras_clave_sistema):
+        return f"{saludo} Resumen del sistema Constru-Trans: {datos['total_usuarios']} usuarios, {datos['clientes_registrados']} clientes, {datos['proveedores_count']} proveedores, {datos['total_materiales']} tipos de materiales, {datos['vehiculos_count']} vehículos y {datos['pedidos_totales']} pedidos.".strip()
+    
+    # Si no es ninguna de las anteriores, retorna None para que use Ollama
     return None
 
 def preguntar_ollama(mensaje, contexto, nombre_usuario, historial):
-    """Pregunta a Ollama usando la API directamente - ChatGPT propio"""
+    """Pregunta a Ollama usando la API directamente - Mejorada con plantillas"""
     contexto_texto = "\n".join([f"- {k}: {v}" for k, v in contexto.items()])
     
     historial_texto = ""
@@ -286,25 +590,40 @@ def preguntar_ollama(mensaje, contexto, nombre_usuario, historial):
             else:
                 historial_texto += f"ASISTENTE: {msg['text']}\n"
     
-    system_prompt = f"""Eres el ASISTENTE VIRTUAL OFICIAL DE CONSTRU-TRANS, una empresa de gestión de materiales de construcción y transporte.
+    # Obtener la mejor plantilla o usar la predeterminada
+    best_template = get_best_prompt_template()
+    template_name = "Default Template"
+    
+    if best_template:
+        system_prompt = best_template.template
+        template_name = best_template.name
+        best_template.usage_count += 1
+        best_template.save()
+    else:
+        system_prompt = f"""Eres el ASISTENTE VIRTUAL OFICIAL DE CONSTRU-TRANS, una empresa de gestión de materiales de construcción y transporte.
 
-Tu misión: Ayudar al usuario en TODO lo que necesite, como ChatGPT pero como asistente propio de la empresa.
+TU ESPECIALIDADES:
+1. CÁLCULOS MATEMÁTICOS y ÁLGEBRA - Resuelve cualquier problema matemático (básico, álgebra, geometría, funciones, derivadas, integrales, trigonometría, etc.)
+2. Datos del sistema Constru-Trans (pedidos, inventario, vehículos, etc.)
+3. Cualquier otra pregunta del usuario (cultura, consejos, etc.)
 
 Tu personalidad:
 - Amigable, servicial y profesional
 - Respondes en español claro y conciso
 - Tienes acceso a todos los datos del sistema Constru-Trans
 
-REGLAS:
+REGLAS MUY IMPORTANTES:
 1. Prioriza responder en español SIEMPRE
-2. Si el usuario pregunta sobre Datos del sistema (pedidos, inventario, vehículos, facturas, conductores, clientes, usuarios):
-   - Usa los datos proporcionados a continuación para responder con precisión
-3. Si el usuario pregunta sobre ALGO GENERAL (cualquier cosa, como matemáticas, cultura, consejos, etc.):
-   - Responde de forma natural y inteligente
-4. Si el usuario quiere calcular algo matemático: hazlo y responde
-5. Si el usuario pide ayuda sobre el sistema: explícale cómo funciona Constru-Trans
-6. Si el usuario no sabe qué preguntar: sugiere preguntas sobre el sistema
-7. Usa el historial para mantener la coherencia
+2. SI EL USUARIO PREGUNTA SOBRE CÁLCULOS, MATEMÁTICAS o ÁLGEBRA:
+   - Resuelve el problema de forma detallada, paso a paso
+   - Da el resultado final de forma clara
+   - Si es una fórmula, explica cómo funciona
+3. Si el usuario pregunta sobre Datos del sistema: Usa los datos proporcionados
+4. Si el usuario pregunta sobre cualquier otra cosa: Responde de forma natural y útil
+5. Usa el historial para mantener la coherencia
+6. NO te quedes callado ni respondas "¿Podrías ser más específico?". ¡Siempre responde algo útil!
+7. Responde a TODO, no te niegues a nada que no sea inapropiado
+8. Sé creativo y útil
 
 DATOS DEL USUARIO:
 - Nombre: {nombre_usuario if nombre_usuario else "No registrado"}
@@ -322,7 +641,7 @@ DATOS ACTUALES DEL SISTEMA CONSTRU-TRANS:
         "system": system_prompt,
         "stream": False,
         "temperature": 0.8,
-        "num_predict": 1500
+        "num_predict": 2000
     }
     
     try:
@@ -336,16 +655,16 @@ DATOS ACTUALES DEL SISTEMA CONSTRU-TRANS:
             data = response.json()
             respuesta = data.get("response", "")
             if respuesta and len(respuesta.strip()) > 0:
-                return respuesta.strip()
+                return respuesta.strip(), template_name
             else:
-                return obtener_respuesta_inteligente(mensaje, None, historial, contexto)
+                return "Claro, cuéntame más sobre lo que necesitas.", template_name
         else:
-            return obtener_respuesta_inteligente(mensaje, None, historial, contexto)
+            return "Claro, cuéntame más sobre lo que necesitas.", template_name
     except Exception as e:
-        return obtener_respuesta_inteligente(mensaje, None, historial, contexto)
+        return "Claro, cuéntame más sobre lo que necesitas.", template_name
 
 def obtener_respuesta_inteligente(mensaje, usuario=None, historial=None, datos=None):
-    """Obtiene una respuesta genérica cuando no es una pregunta específica"""
+    """Obtiene una respuesta genérica cuando Ollama no está disponible"""
     if historial is None:
         historial = []
     
@@ -380,13 +699,60 @@ def obtener_respuesta_inteligente(mensaje, usuario=None, historial=None, datos=N
         return f"{saludo} {random.choice(respuestas_ayuda)}".strip()
     
     respuestas_por_defecto = [
-        f"Claro, cuéntame qué necesitas. Actualmente tenemos {datos['pedidos_totales']} pedidos, {datos['total_materiales']} materiales y {datos['vehiculos_count']} vehículos. ¿Qué te interesa?",
-        f"Por supuesto. Tenemos {datos['pedidos_pendientes']} pedidos pendientes y {datos['vehiculos_disponibles']} vehículos disponibles. ¿Qué necesitas saber?",
-        "Estoy aquí para ayudarte. ¿Podrías ser un poco más específico? Puedo ayudarte con pedidos, inventario, vehículos, facturas, cálculos y más.",
-        "Cuéntame, ¿qué necesitas hoy? Puedo darte información de todo el sistema Constru-Trans.",
-        "¿Qué te gustaría consultar? Pregúntame lo que necesites.",
+        "Estoy aquí para ayudarte. ¿En qué puedo asistirte hoy?",
+        "Claro, cuéntame más sobre lo que necesitas.",
+        "Estoy listo para ayudarte. ¿Qué te gustaría consultar?",
+        "Cuéntame, ¿qué necesitas hoy?",
+        "¿En qué puedo ayudarte?",
     ]
     
     return f"{saludo} {random.choice(respuestas_por_defecto)}".strip()
 
+def save_feedback(message_id, feedback, comment=None, user=None):
+    """Guarda el feedback y actualiza la base de conocimiento"""
+    try:
+        message = ConversationMessage.objects.get(id=message_id)
+        
+        # Crear feedback
+        fb = UserFeedback.objects.create(
+            message=message,
+            user=user,
+            feedback=feedback,
+            comment=comment
+        )
+        
+        # Actualizar la base de conocimiento si es positivo
+        user_message = message.conversation.messages.filter(role='user').order_by('-timestamp').first()
+        if user_message:
+            update_knowledge_base(user_message.content, message.content, feedback)
+        
+        # Actualizar tasa de éxito de plantillas
+        for template in AIPromptTemplate.objects.filter(is_active=True):
+            template.update_success_rate()
+        
+        return True
+    except Exception as e:
+        return False
 
+def auto_optimize_prompts():
+    """Auto-optimiza prompts basado en feedback"""
+    # Obtener plantillas con bajo rendimiento
+    low_performing = AIPromptTemplate.objects.filter(
+        is_active=True,
+        success_rate__lt=50,
+        usage_count__gt=5
+    )
+    
+    for template in low_performing:
+        # Desactivar plantillas de bajo rendimiento
+        template.is_active = False
+        template.save()
+    
+    # Crear nuevas plantillas basadas en feedback positivo
+    good_feedback = UserFeedback.objects.filter(feedback='good').select_related('message')[:20]
+    for fb in good_feedback:
+        if fb.message and fb.message.prompt_used and 'Template' not in fb.message.prompt_used:
+            # Analizar patrones exitosos (simplificado)
+            pass
+    
+    return True
