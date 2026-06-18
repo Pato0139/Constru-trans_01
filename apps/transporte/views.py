@@ -37,7 +37,7 @@ def lista_vehiculos(request):
 
     vehiculos = vehiculos[(page - 1) * per_page:page * per_page]
 
-    return render(request, "transporte/lista.html", {
+    context = {
         "vehiculos": vehiculos,
         "query": q,
         "estado_actual": estado,
@@ -46,7 +46,10 @@ def lista_vehiculos(request):
         "total": total,
         "total_pages": total_pages,
         "pages_list": pages_list,
-    })
+    }
+
+
+    return render(request, "transporte/lista.html", context)
 
 @login_required
 def crear_vehiculo(request):
@@ -89,10 +92,13 @@ def crear_vehiculo(request):
         except Exception as e:
             messages.error(request, f"Error: {str(e)}")
 
-    return render(request, "transporte/form.html", {
+    context = {
         "action": "crear",
         "conductores": conductores_disponibles
-    })
+    }
+
+
+    return render(request, "transporte/form.html", context)
 
 @login_required
 def editar_vehiculo(request, id):
@@ -153,11 +159,14 @@ def editar_vehiculo(request, id):
                 except Exception as e:
                     messages.error(request, f"Error: {str(e)}")
 
-    return render(request, "transporte/form.html", {
+    context = {
         "vehiculo": vehiculo,
         "action": "editar",
         "conductores": conductores
-    })
+    }
+
+
+    return render(request, "transporte/form.html", context)
 
 @login_required
 def eliminar_vehiculo(request, id):

@@ -23,7 +23,9 @@ def crear_pedido(request):
 
         if not materiales_ids:
             messages.error(request, "Debe agregar al menos un material al pedido.")
-            return render(request, 'gestion_pedidos/crear_pedido.html', {'materiales': materiales})
+            context = {'materiales': materiales}
+
+            return render(request, 'gestion_pedidos/crear_pedido.html', context)
 
         try:
             pedido = Pedido.objects.create(
@@ -58,7 +60,10 @@ def crear_pedido(request):
         except Exception as e:
             messages.error(request, f"Error al procesar el pedido: {str(e)}")
 
-    return render(request, 'gestion_pedidos/crear_pedido.html', {'materiales': materiales})
+    context = {'materiales': materiales}
+
+
+    return render(request, 'gestion_pedidos/crear_pedido.html', context)
 
 @login_required
 def listar_pedidos(request):
@@ -71,7 +76,10 @@ def listar_pedidos(request):
     else:
         pedidos = Pedido.objects.filter(cliente=request.user)
     
-    return render(request, 'gestion_pedidos/listar_pedidos.html', {'pedidos': pedidos})
+    context = {'pedidos': pedidos}
+
+    
+    return render(request, 'gestion_pedidos/listar_pedidos.html', context)
 
 @login_required
 def detalle_pedido(request, pk):
@@ -85,7 +93,10 @@ def detalle_pedido(request, pk):
         messages.error(request, "No tiene permisos para ver este pedido.")
         return redirect('gestion_pedidos:lista')
         
-    return render(request, 'gestion_pedidos/detalle_pedido.html', {'pedido': pedido})
+    context = {'pedido': pedido}
+
+        
+    return render(request, 'gestion_pedidos/detalle_pedido.html', context)
 
 @admin_required
 @transaction.atomic

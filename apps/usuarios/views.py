@@ -147,7 +147,10 @@ def registro(request):
     else:
         form = RegistroForm()
 
-    return render(request, "usuarios/registro.html", {"form": form})
+    context = {"form": form}
+
+
+    return render(request, "usuarios/registro.html", context)
 
 
 
@@ -247,7 +250,10 @@ def login_usuario(request):
     else:
         form = LoginForm()
 
-    return render(request, "usuarios/login.html", {"form": form, "modo_local": modo_local})
+    context = {"form": form, "modo_local": modo_local}
+
+
+    return render(request, "usuarios/login.html", context)
 
 
 # =====================================================================
@@ -346,9 +352,11 @@ def pedidos_conductor(request):
     pedidos = Pedido.objects.filter(
         usuario=conductor
     ).exclude(estado="entregado")
-    return render(request, "usuarios/pedidos_conductor.html", {
+    context = {
         "pedidos": pedidos
-    })
+    }
+
+    return render(request, "usuarios/pedidos_conductor.html", context)
 
 
 @login_required
@@ -358,9 +366,11 @@ def mis_entregas(request):
         usuario=conductor,
         estado="entregado"
     ).order_by("-fecha_solicitud")
-    return render(request, "usuarios/mis-entregas.html", {
+    context = {
         "entregas": entregas
-    })
+    }
+
+    return render(request, "usuarios/mis-entregas.html", context)
 
 
 @login_required
@@ -422,7 +432,10 @@ def editar_perfil(request):
         else:
             return redirect("clientes:perfil_cliente")
 
-    return render(request, "usuarios/editar_perfil.html", {"usuario": usuario})
+    context = {"usuario": usuario}
+
+
+    return render(request, "usuarios/editar_perfil.html", context)
 
 
 # =====================================================================
@@ -452,14 +465,18 @@ def crear_usuario(request):
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
-            return render(request, "usuarios/form.html", {"form_data": request.POST, "action": "crear"})
+            context = {"form_data": request.POST, "action": "crear"}
+
+            return render(request, "usuarios/form.html", context)
 
         if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
             error_msg = "Este correo electrónico ya está registrado."
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
-            return render(request, "usuarios/form.html", {"form_data": request.POST, "action": "crear"})
+            context = {"form_data": request.POST, "action": "crear"}
+
+            return render(request, "usuarios/form.html", context)
 
         try:
             with transaction.atomic():
@@ -542,11 +559,13 @@ def crear_usuario(request):
                 return JsonResponse({"status": "error", "message": error_msg}, status=500)
 
             messages.error(request, error_msg)
-            return render(request, "usuarios/form.html", {
+            context = {
                 "error": error_msg,
                 "form_data": request.POST,
                 "action": "crear"
-            })
+            }
+
+            return render(request, "usuarios/form.html", context)
 
     return render(request, "usuarios/form.html", {"action": "crear", "form_data": {}})
 
@@ -634,11 +653,13 @@ def editar_usuario(request, id):
 
         if not all([nombres, apellidos, telefono]):
             messages.error(request, "Los campos nombres, apellidos y teléfono son obligatorios.")
-            return render(request, "usuarios/form.html", {
+            context = {
                 "usuario": usuario,
                 "form_data": request.POST,
                 "action": "editar"
-            })
+            }
+
+            return render(request, "usuarios/form.html", context)
 
         try:
             usuario.nombres = nombres
@@ -668,11 +689,13 @@ def editar_usuario(request, id):
             return redirect("usuarios:lista_usuarios")
         except Exception as e:
             messages.error(request, f"Error al guardar los cambios: {str(e)}")
-            return render(request, "usuarios/form.html", {
+            context = {
                 "usuario": usuario,
                 "form_data": request.POST,
                 "action": "editar"
-            })
+            }
+
+            return render(request, "usuarios/form.html", context)
 
     return render(request, "usuarios/form.html", {
         "usuario": usuario,
@@ -692,9 +715,11 @@ def lista_conductores(request):
             to_attr='asignaciones_activas'
         )
     )
-    return render(request, "usuarios/conductores_lista.html", {
+    context = {
         "conductores": conductores
-    })
+    }
+
+    return render(request, "usuarios/conductores_lista.html", context)
 
 
 @login_required
@@ -736,13 +761,15 @@ def asignar_vehiculo_conductor(request, conductor_id):
         form = AsignarVehiculoForm(conductor=conductor, initial=default_initial)
 
     historial = conductor.asignaciones_vehiculo.select_related('vehiculo').order_by('-fecha_asignacion')
-    return render(request, "usuarios/asignar_vehiculo_conductor.html", {
+    context = {
         "usuario": usuario,
         "conductor": conductor,
         "vehiculo_actual": vehiculo_actual,
         "form": form,
         "historial": historial,
-    })
+    }
+
+    return render(request, "usuarios/asignar_vehiculo_conductor.html", context)
 
 
 @login_required
@@ -769,11 +796,14 @@ def perfil_conductor(request):
     except Exception:
         vehiculo = None
 
-    return render(request, "usuarios/perfil-conductor.html", {
+    context = {
         "conductor": conductor,
         "pedidos": pedidos,
         "vehiculo": vehiculo
-    })
+    }
+
+
+    return render(request, "usuarios/perfil-conductor.html", context)
 
 # =====================================================================
 # RECUPERAR CONTRASEÑA 
@@ -835,7 +865,9 @@ def lista_notificaciones(request):
         notificaciones = request.user.usuario.notificaciones.all().order_by('-fecha')
     except Usuario.DoesNotExist:
         notificaciones = []
-    return render(request, "usuarios/notificaciones.html", {"notificaciones": notificaciones})
+    context = {"notificaciones": notificaciones}
+
+    return render(request, "usuarios/notificaciones.html", context)
 
 @login_required
 def marcar_notificacion_leida(request, id):
@@ -863,7 +895,10 @@ def configuraciones_usuario(request):
         messages.success(request, "Configuraciones actualizadas correctamente.")
         return redirect("usuarios:configuraciones")
 
-    return render(request, "usuarios/configuraciones.html", {"usuario": usuario})
+    context = {"usuario": usuario}
+
+
+    return render(request, "usuarios/configuraciones.html", context)
 
 
 @require_POST
