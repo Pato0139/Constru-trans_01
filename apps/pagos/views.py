@@ -29,10 +29,13 @@ def lista_pagos(request):
     if metodo:
         pagos = pagos.filter(codigo_metodo_pago__codigo_metodo_pago=metodo)
 
-    return render(request, 'pagos/lista.html', {
+    context = {
         'pagos': pagos,
         'q': q,
         'fecha': fecha,
         'metodo': metodo,
         'metodos_pago': MetodoPago.objects.all()
-    })
+    }
+
+
+    return render(request, 'pagos/lista.html', context)
