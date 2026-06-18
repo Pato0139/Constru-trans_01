@@ -36,32 +36,54 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         fecha_str = ahora.strftime("%d/%m/%Y")
         return f"{saludo} La hora actual es {hora_str} y la fecha es {fecha_str}.".strip()
 
-    # 2. OPERACIONES MATEMÁTICAS
+    # 2. OPERACIONES MATEMÁTICAS - SUPER MEJORADA!
     try:
-        math_patterns = [
-            (r'cuá?nto es\s+(.+)', 1),
-            (r'calcula\s+(.+)', 1),
-            (r'resuelve\s+(.+)', 1),
-            (r'qué es\s+(.+)', 1),
-            (r'cuál es\s+(.+)', 1),
-            (r'(.+)\s*=\s*\?', 1),
+        # Lista de frases que indican una pregunta de matemáticas
+        math_indicators = [
+            "cuánto es", "cuanto es", "calcula", "resuelve", "qué es", "cuál es",
+            "dime el resultado de", "resultado de", "calcular", "resolver",
+            "qué es la raíz", "cuánto es la raíz", "calcula la raíz"
         ]
-
-        for patron, g_idx in math_patterns:
-            match = re.search(patron, mensaje_lower)
-            if match:
-                expr = match.group(g_idx).strip()
-                resultado = evaluar_expresion_matematica(expr)
+        
+        # Extraer la parte matemática del mensaje
+        expr_to_test = None
+        
+        # Primero, revisar si hay frases de math_indicators
+        for indicator in math_indicators:
+            if indicator in mensaje_lower:
+                # Tomar todo lo que viene DESPUÉS del indicador
+                idx = mensaje_lower.find(indicator)
+                expr_to_test = mensaje_lower[idx + len(indicator):].strip()
+                if expr_to_test:
+                    break
+        
+        # Si no encontramos, probamos con todo el mensaje
+        if not expr_to_test:
+            expr_to_test = mensaje
+        
+        # Eliminar artículos y palabras de relleno del principio
+        filler_words = ["la", "el", "los", "las", "un", "una", "unos", "unas", "y", "o", "de", "del"]
+        expr_parts = expr_to_test.split()
+        while len(expr_parts) > 0 and expr_parts[0].lower() in filler_words:
+            expr_parts.pop(0)
+        expr_to_test = " ".join(expr_parts)
+            
+        # Intentar evaluar la expresión
+        resultado = evaluar_expresion_matematica(expr_to_test)
+        if resultado is not None:
+            return f"{saludo} {resultado}".strip()
+        
+        # Si no funcionó, intentar extraer sólo números, operadores y funciones matemáticas
+        # Filtramos el mensaje para dejar sólo caracteres matemáticos
+        allowed_chars = re.compile(r'[\d\.\(\)\+\-\*/\^\s]|más|menos|por|entre|ra[íi]z|sqrt|sen|sin|cos|tan|log|ln|exp|pi|e|fact|factorial|abs|round', re.IGNORECASE)
+        extracted_parts = allowed_chars.findall(mensaje_lower)
+        if extracted_parts:
+            extracted_expr = "".join(extracted_parts).strip()
+            if extracted_expr:
+                resultado = evaluar_expresion_matematica(extracted_expr)
                 if resultado is not None:
                     return f"{saludo} {resultado}".strip()
-
-        tiene_numeros = bool(re.search(r'\d+', mensaje_lower))
-        tiene_operadores = bool(re.search(r'[+\-*/^%]|más|menos|por|dividido|entre|potencia|raíz|raiz|seno|coseno|tangente|logaritmo|log', mensaje_lower))
-
-        if tiene_numeros and (tiene_operadores or len(re.findall(r'\d+', mensaje_lower)) >= 2):
-            resultado = evaluar_expresion_matematica(mensaje)
-            if resultado is not None:
-                return f"{saludo} {resultado}".strip()
+    
     except Exception:
         logger.exception("Error en verificar_pregunta_especifica matemáticas")
 
