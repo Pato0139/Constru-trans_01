@@ -9,9 +9,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Configuración
   const STORAGE_KEY = 'constru-trans-chat-history';
+  const SESSION_KEY = 'constru-trans-session-id';
   const MAX_MESSAGES = 20;
   let typingIndicator = null;
   let chatHistory = [];
+  let sessionId = localStorage.getItem(SESSION_KEY) || generateSessionId();
+  localStorage.setItem(SESSION_KEY, sessionId);
 
   // Cargar historial al iniciar
   loadChatHistory();
@@ -43,13 +46,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  function generateSessionId() {
+    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+
   function loadChatHistory() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         chatHistory = JSON.parse(saved);
         // Renderizar mensajes guardados
-        chatHistory.forEach(msg => addMessageToDOM(msg.text, msg.sender, false));
+        chatHistory.forEach(msg => addMessageToDOM(msg.text, msg.sender, false, msg.messageId));
       }
     } catch (e) {
       console.error('Error al cargar historial:', e);
@@ -72,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
       chatHistory = chatHistory.slice(messagesToRemove);
       // Volver a renderizar
       messagesContainer.innerHTML = '';
-      chatHistory.forEach(msg => addMessageToDOM(msg.text, msg.sender, false));
+      chatHistory.forEach(msg => addMessageToDOM(msg.text, msg.sender, false, msg.messageId));
       saveChatHistory();
     }
   }
@@ -98,13 +105,14 @@ document.addEventListener('DOMContentLoaded', function() {
       },
       body: JSON.stringify({ 
         mensaje: message,
-        historial: chatHistory.slice(-10) // Enviar últimos 10 mensajes para contexto
+        historial: chatHistory.slice(-10), // Enviar últimos 10 mensajes para contexto
+        session_id: sessionId
       })
     })
     .then(response => response.json())
     .then(data => {
       removeTypingIndicator();
-      addMessage(data.respuesta, 'bot');
+      addMessage(data.respuesta, 'bot', data.message_id);
     })
     .catch(error => {
       removeTypingIndicator();
@@ -114,6 +122,33 @@ document.addEventListener('DOMContentLoaded', function() {
     .finally(() => {
       sendBtn.disabled = false;
       input.focus();
+    });
+  }
+
+  function sendFeedback(messageId, feedback) {
+    fetch('/ia/feedback/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        message_id: messageId,
+        feedback: feedback
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Ocultar botones de feedback
+        const feedbackButtons = document.querySelector(`[data-message-id="${messageId}"] .feedback-buttons`);
+        if (feedbackButtons) {
+          feedbackButtons.style.display = 'none';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error al enviar feedback:', error);
     });
   }
 
@@ -145,20 +180,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  function addMessage(text, sender) {
-    addMessageToDOM(text, sender, true);
+  function addMessage(text, sender, messageId = null) {
+    addMessageToDOM(text, sender, true, messageId);
   }
 
-  function addMessageToDOM(text, sender, save = true) {
+  function addMessageToDOM(text, sender, save = true, messageId = null) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${sender}`;
+    if (messageId) {
+      messageDiv.dataset.messageId = messageId;
+    }
     
     if (sender === 'bot') {
       messageDiv.innerHTML = `
         <div class="chat-message-avatar">
           <img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo">
         </div>
-        <div class="chat-message-bubble">${escapeHtml(text)}</div>
+        <div class="chat-message-content">
+          <div class="chat-message-bubble">${escapeHtml(text)}</div>
+          ${messageId ? `
+            <div class="feedback-buttons">
+              <button class="feedback-btn good" title="Buena respuesta">👍</button>
+              <button class="feedback-btn bad" title="Mala respuesta">👎</button>
+            </div>
+          ` : ''}
+        </div>
       `;
     } else {
       messageDiv.innerHTML = `
@@ -169,11 +215,30 @@ document.addEventListener('DOMContentLoaded', function() {
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
+    // Agregar event listeners para feedback
+    if (sender === 'bot' && messageId) {
+      const goodBtn = messageDiv.querySelector('.feedback-btn.good');
+      const badBtn = messageDiv.querySelector('.feedback-btn.bad');
+      
+      if (goodBtn) {
+        goodBtn.addEventListener('click', function() {
+          sendFeedback(messageId, 'good');
+        });
+      }
+      
+      if (badBtn) {
+        badBtn.addEventListener('click', function() {
+          sendFeedback(messageId, 'bad');
+        });
+      }
+    }
+
     // Guardar en historial
     if (save) {
       chatHistory.push({
         text: text,
         sender: sender,
+        messageId: messageId,
         timestamp: new Date().toISOString()
       });
       cleanOldMessages();
