@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (saved) {
         chatHistory = JSON.parse(saved);
         // Renderizar mensajes guardados
-        chatHistory.forEach(msg =&gt; addMessageToDOM(msg.text, msg.sender, false));
+        chatHistory.forEach(msg => addMessageToDOM(msg.text, msg.sender, false));
       }
     } catch (e) {
       console.error('Error al cargar historial:', e);
@@ -66,13 +66,13 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function cleanOldMessages() {
-    if (chatHistory.length &gt; MAX_MESSAGES) {
+    if (chatHistory.length > MAX_MESSAGES) {
       // Eliminar los mensajes más antiguos
       const messagesToRemove = chatHistory.length - MAX_MESSAGES;
       chatHistory = chatHistory.slice(messagesToRemove);
       // Volver a renderizar
       messagesContainer.innerHTML = '';
-      chatHistory.forEach(msg =&gt; addMessageToDOM(msg.text, msg.sender, false));
+      chatHistory.forEach(msg => addMessageToDOM(msg.text, msg.sender, false));
       saveChatHistory();
     }
   }
@@ -101,17 +101,17 @@ document.addEventListener('DOMContentLoaded', function() {
         historial: chatHistory.slice(-10) // Enviar últimos 10 mensajes para contexto
       })
     })
-    .then(response =&gt; response.json())
-    .then(data =&gt; {
+    .then(response => response.json())
+    .then(data => {
       removeTypingIndicator();
       addMessage(data.respuesta, 'bot');
     })
-    .catch(error =&gt; {
+    .catch(error => {
       removeTypingIndicator();
       addMessage('Lo siento, no pude responder en este momento.', 'bot');
       console.error('Error:', error);
     })
-    .finally(() =&gt; {
+    .finally(() => {
       sendBtn.disabled = false;
       input.focus();
     });
@@ -122,16 +122,16 @@ document.addEventListener('DOMContentLoaded', function() {
     messageDiv.className = 'chat-message bot';
     messageDiv.id = 'typing-indicator';
     messageDiv.innerHTML = `
-      &lt;div class="chat-message-avatar"&gt;
-        &lt;img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo"&gt;
-      &lt;/div&gt;
-      &lt;div class="chat-message-bubble"&gt;
-        &lt;span class="typing-dots"&gt;
-          &lt;span class="dot"&gt;&lt;/span&gt;
-          &lt;span class="dot"&gt;&lt;/span&gt;
-          &lt;span class="dot"&gt;&lt;/span&gt;
-        &lt;/span&gt;
-      &lt;/div&gt;
+      <div class="chat-message-avatar">
+        <img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo">
+      </div>
+      <div class="chat-message-bubble">
+        <span class="typing-dots">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </span>
+      </div>
     `;
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -155,14 +155,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (sender === 'bot') {
       messageDiv.innerHTML = `
-        &lt;div class="chat-message-avatar"&gt;
-          &lt;img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo"&gt;
-        &lt;/div&gt;
-        &lt;div class="chat-message-bubble"&gt;${escapeHtml(text)}&lt;/div&gt;
+        <div class="chat-message-avatar">
+          <img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo">
+        </div>
+        <div class="chat-message-bubble">${escapeHtml(text)}</div>
       `;
     } else {
       messageDiv.innerHTML = `
-        &lt;div class="chat-message-bubble"&gt;${escapeHtml(text)}&lt;/div&gt;
+        <div class="chat-message-bubble">${escapeHtml(text)}</div>
       `;
     }
     
@@ -183,9 +183,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function getCookie(name) {
     let cookieValue = null;
-    if (document.cookie &amp;&amp; document.cookie !== '') {
+    if (document.cookie && document.cookie !== '') {
       const cookies = document.cookie.split(';');
-      for (let i = 0; i &lt; cookies.length; i++) {
+      for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i].trim();
         if (cookie.substring(0, name.length + 1) === (name + '=')) {
           cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
