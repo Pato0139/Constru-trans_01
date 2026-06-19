@@ -39,7 +39,7 @@
                         <div class="nav-submenu">
                             <a href="{% url 'gestion_pedidos:lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'gestion_pedidos' %}active{% endif %}">
                                 <i class="bi bi-cart-check-fill text-warning"></i>
-                                <span data-i18n="sidebar.gestionPedidos">Gestión Pedidos (Épica 3)</span>
+                                <span data-i18n="sidebar.gestionPedidos">Gestión Pedidos</span>
                             </a>
                             <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' %}active{% endif %}">
                                 <i class="bi bi-cart3"></i>
