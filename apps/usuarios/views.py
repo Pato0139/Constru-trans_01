@@ -567,7 +567,9 @@ def crear_usuario(request):
 
             return render(request, "usuarios/form.html", context)
 
-    return render(request, "usuarios/form.html", {"action": "crear", "form_data": {}})
+    context = {"action": "crear", "form_data": {}}
+
+    return render(request, "usuarios/form.html", context)
 
 @login_required
 def lista_usuarios(request):
@@ -697,11 +699,13 @@ def editar_usuario(request, id):
 
             return render(request, "usuarios/form.html", context)
 
-    return render(request, "usuarios/form.html", {
+    context = {
         "usuario": usuario,
         "form_data": {},
         "action": "editar"
-    })
+    }
+
+    return render(request, "usuarios/form.html", context)
 
 
 @login_required
