@@ -1,10 +1,11 @@
-# MER - DIAGRAMA DE ENTIDAD RELACIÓN (MER) - CONSTRUTRANS
-
-Este archivo contiene el diagrama de Entidad-Relación (MER) del proyecto ConstruTrans en formato Mermaid.
-Puedes copiar y pegar este código directamente en cualquier visor de Mermaid (como https://mermaid.live/) para visualizarlo de forma interactiva.
 
 ```mermaid
 erDiagram
+    %% ==============================
+    %% ENTIDADES PRINCIPALES
+    %% ==============================
+
+    %% Usuarios y Perfiles
     Usuario {
         int id PK
         string username
@@ -47,6 +48,7 @@ erDiagram
         int eps_id FK
     }
 
+    %% Vehículos y Asignaciones
     Vehiculo {
         int id PK
         string placa
@@ -63,6 +65,7 @@ erDiagram
         int vehiculo_id FK
     }
 
+    %% Inventario y Materiales
     Proveedor {
         int id PK
         string nit
@@ -88,6 +91,7 @@ erDiagram
         string ubicacion
     }
 
+    %% Ventas y Pedidos
     MetodoPago {
         int id PK
         string codigo_metodo_pago
@@ -127,6 +131,7 @@ erDiagram
         string estado
     }
 
+    %% Facturación y Pagos
     Factura {
         int id_factura PK
         int pedido_id FK
@@ -149,6 +154,7 @@ erDiagram
         int registrado_por_id FK
     }
 
+    %% Compras
     Compra {
         int id_compra PK
         int proveedor_id FK
@@ -166,6 +172,7 @@ erDiagram
         decimal precio_unitario
     }
 
+    %% Movimientos y Auditoría
     MovimientoInventario {
         int id PK
         int material_id FK
@@ -194,6 +201,7 @@ erDiagram
         string ip
     }
 
+    %% Reportes
     Reporte {
         int id PK
         string titulo
@@ -207,7 +215,11 @@ erDiagram
         datetime fecha_exportacion
     }
 
+    %% ==============================
     %% RELACIONES
+    %% ==============================
+
+    %% Relaciones de Usuario
     Usuario ||--o| Cliente : "perfil_cliente"
     Usuario ||--o| Conductor : "perfil_conductor"
     Usuario ||--o{ Notificacion : "notificaciones"
@@ -217,30 +229,38 @@ erDiagram
     Usuario ||--o{ Pago : "pagos_registrados"
     Usuario ||--o{ Historial : "auditoria"
 
+    %% Relaciones de EPS y Conductor
     EPS ||--o{ Conductor : "conductores"
 
+    %% Relaciones de Vehículos
     Conductor ||--o{ ConductorVehiculo : "vehiculos_asignados"
     Vehiculo ||--o{ ConductorVehiculo : "conductores_asignados"
 
+    %% Relaciones de Proveedores y Compras
     Proveedor ||--o{ Compra : "ventas"
-
     Compra ||--|{ DetalleCompra : "detalles"
     MaterialConstruccion ||--o{ DetalleCompra : "compras"
 
+    %% Relaciones de Inventario
     MaterialConstruccion ||--o| Stock : "stock_info"
     MaterialConstruccion ||--o{ DetallePedido : "detalles_pedidos"
     MaterialConstruccion ||--o{ MovimientoInventario : "movimientos"
 
+    %% Relaciones de Pedidos
     Pedido ||--|{ DetallePedido : "detalles"
     Pedido ||--o| Factura : "factura"
     Pedido ||--o| Entrega : "entrega"
     Pedido ||--o{ Pago : "pagos"
 
+    %% Relaciones de Facturación y Pagos
     Factura ||--o{ Pago : "pagos"
     MetodoPago ||--o{ Pago : "pagos"
 
+    %% Relaciones de Entregas
     Conductor ||--o{ Entrega : "entregas"
     Vehiculo ||--o{ Entrega : "entregas"
 
+    %% Relaciones de Reportes
     Reporte ||--o{ HistorialReporte : "exportaciones"
 ```
+

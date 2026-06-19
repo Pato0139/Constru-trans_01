@@ -240,9 +240,11 @@ def mis_pedidos(request):
     pedidos = Pedido.objects.filter(
         usuario__in=[usuario, usuario_remoto]
     ).order_by("-fecha_solicitud")
-    return render(request, "clientes/mis_pedidos.html", {
+    context = {
         "pedidos": pedidos
-    })
+    }
+
+    return render(request, "clientes/mis_pedidos.html", context)
 
 
 @login_required
@@ -277,9 +279,11 @@ def seguimiento_pedidos(request):
         return redirect("usuarios:panel")
 
     pedidos = Pedido.objects.filter(usuario__in=[usuario, usuario_remoto]).order_by("-fecha_solicitud")
-    return render(request, "clientes/seguimiento.html", {
+    context = {
         "pedidos": pedidos
-    })
+    }
+
+    return render(request, "clientes/seguimiento.html", context)
 
 
 @login_required
@@ -295,9 +299,11 @@ def historial_pedidos(request):
         usuario__in=[usuario, usuario_remoto],
         estado="entregado"
     ).order_by("-fecha_solicitud")
-    return render(request, "clientes/historial.html", {
+    context = {
         "pedidos": pedidos
-    })
+    }
+
+    return render(request, "clientes/historial.html", context)
 
 
 @login_required
