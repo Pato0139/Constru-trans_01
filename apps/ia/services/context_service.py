@@ -61,7 +61,6 @@ def obtener_contexto_datos(force_refresh=False):
             "vehiculos_count": Vehiculo.objects.count(),
             "vehiculos_disponibles": Vehiculo.objects.filter(estado="disponible").count(),
             "vehiculos_en_ruta": Vehiculo.objects.filter(estado="en_ruta").count(),
-            "vehiculos_sin_conductor": Vehiculo.objects.filter(conductor__isnull=True).count(),
 
             "clientes_registrados": Cliente.objects.count(),
             "generated_at": datetime.now().isoformat(),
