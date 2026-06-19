@@ -34,7 +34,7 @@ def materiales_lista(request):
     total = materiales.count()
     materiales = materiales[(page - 1) * per_page:page * per_page]
 
-    return render(request, "inventario/lista.html", {
+    context = {
         "materiales": materiales,
         "query": query,
         "tipo_actual": tipo,
@@ -42,7 +42,10 @@ def materiales_lista(request):
         "page": page,
         "per_page": per_page,
         "total": total,
-    })
+    }
+
+
+    return render(request, "inventario/lista.html", context)
 
 
 @admin_required
@@ -71,7 +74,9 @@ def crear_material(request):
                 messages.error(request, error_msg)
     else:
         form = MaterialForm()
-    return render(request, "inventario/form.html", {"form": form, "action": "crear"})
+    context = {"form": form, "action": "crear"}
+
+    return render(request, "inventario/form.html", context)
 
 
 @admin_required
@@ -87,7 +92,9 @@ def editar_material(request, id):
             return redirect("inventario:materiales_lista")
     else:
         form = MaterialForm(instance=material)
-    return render(request, "inventario/form.html", {"form": form, "action": "editar"})
+    context = {"form": form, "action": "editar"}
+
+    return render(request, "inventario/form.html", context)
 
 
 @admin_required
@@ -130,13 +137,16 @@ def stock_lista(request):
     total = stocks.count()
     stocks = stocks[(page - 1) * per_page:page * per_page]
 
-    return render(request, "inventario/stock.html", {
+    context = {
         "stocks": stocks,
         "query": q,
         "page": page,
         "per_page": per_page,
         "total": total,
-    })
+    }
+
+
+    return render(request, "inventario/stock.html", context)
 
 
 @admin_required
@@ -153,7 +163,9 @@ def editar_stock(request, id):
         stock.save()
         messages.success(request, f"Stock de {stock.material.nombre} actualizado.")
         return redirect("inventario:stock_lista")
-    return render(request, "inventario/form_stock.html", {"stock": stock})
+    context = {"stock": stock}
+
+    return render(request, "inventario/form_stock.html", context)
 
 
 def buscar_materiales(query=None):
