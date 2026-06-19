@@ -24,10 +24,13 @@ def tipos_material_lista(request):
 
     tipos = tipos.order_by('codigo_catalogo')
 
-    return render(request, "inventario/tipos_lista.html", {
+    context = {
         "tipos": tipos,
         "query": query,
-    })
+    }
+
+
+    return render(request, "inventario/tipos_lista.html", context)
 
 
 @admin_required
@@ -45,7 +48,9 @@ def crear_tipo_material(request):
                 messages.error(request, f"Error al crear tipo de material: {e}")
     else:
         form = CatalogoForm()
-    return render(request, "inventario/form_tipo.html", {"form": form, "action": "crear"})
+    context = {"form": form, "action": "crear"}
+
+    return render(request, "inventario/form_tipo.html", context)
 
 
 @admin_required
@@ -61,7 +66,9 @@ def editar_tipo_material(request, codigo):
             return redirect("inventario:tipos_material_lista")
     else:
         form = CatalogoForm(instance=tipo)
-    return render(request, "inventario/form_tipo.html", {"form": form, "action": "editar", "tipo": tipo})
+    context = {"form": form, "action": "editar", "tipo": tipo}
+
+    return render(request, "inventario/form_tipo.html", context)
 
 
 @admin_required
