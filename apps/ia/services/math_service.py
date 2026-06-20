@@ -4,6 +4,7 @@ import math
 import operator
 import re
 import logging
+from .formatting_service import format_number_es
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +156,7 @@ def evaluar_expresion_matematica(expr: str):
             else:
                 resultado = round(resultado, 6)
 
-        return f"El resultado de {expr_original} es {resultado}."
+        return f"El resultado de {expr_original} es {format_number_es(resultado)}."
     except ZeroDivisionError:
         return "No se puede dividir entre cero."
     except Exception:
