@@ -12,6 +12,7 @@ from .math_service import evaluar_expresion_matematica
 from .semantic_memory_service import buscar_memoria, guardar_interaccion
 from .llm_service import preguntar_llm
 from .time_service import responder_hora
+from .formatting_service import format_number_es
 from apps.ia.models import UserFeedback, AIPromptTemplate, ConversationMessage
 
 logger = logging.getLogger(__name__)
@@ -38,15 +39,29 @@ def expandir_mensaje_contextual(mensaje: str, historial: list) -> str:
     return mensaje
 
 
+def normalizar_texto(texto: str) -> str:
+    """Elimina acentos, puntuación y pasa a minúsculas"""
+    texto = texto.lower()
+    # Eliminar acentos
+    replacements = {
+        "á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u",
+        "à": "a", "è": "e", "ì": "i", "ò": "o", "ù": "u",
+        "ä": "a", "ë": "e", "ï": "i", "ö": "o", "ü": "u"
+    }
+    for a, b in replacements.items():
+        texto = texto.replace(a, b)
+    return texto
+
+
 def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
     """Verifica si la pregunta es específica y devuelve la respuesta"""
     mensaje_lower = mensaje.lower()
+    mensaje_normalizado = normalizar_texto(mensaje)
     es_primera_interaccion = len(historial) == 0
-    mensaje_sin_puntuacion = re.sub(r'[^\w\s]', '', mensaje_lower).strip()
 
     # Construir saludo
     saludo = ""
-    es_saludo = any(palabra in mensaje_lower for palabra in ["hola", "buenos días", "buenas tardes", "buenas noches", "qué tal", "cómo estás", "como estas", "buen día", "hey", "holi", "holis"])
+    es_saludo = any(palabra in mensaje_normalizado for palabra in ["hola", "buenos dias", "buenas tardes", "buenas noches", "que tal", "como estas", "buen dia", "hey", "holi", "holis"])
     if es_primera_interaccion or es_saludo:
         saludo = "¡Hola!"
         if usuario and usuario.is_authenticated:
@@ -65,32 +80,116 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
     except Exception:
         logger.exception("Error en verificar_pregunta_especifica matemáticas")
 
-    # 2. ALERTAS DE MATERIALES
-    if ("alerta" in mensaje_lower and "material" in mensaje_lower) or "stock bajo" in mensaje_lower or "qué materiales" in mensaje_lower:
-        if datos.get('stock_bajo', 0) > 0:
-            respuestas_alertas = [
-                f"¡Alerta! Hay {datos['stock_bajo']} materiales con stock bajo. ¡Revisa el inventario!",
-                f"Aviso: {datos['stock_bajo']} materiales están por acabarse. ¡No te olvides de reabastecer!",
-            ]
-            return f"{saludo} {random.choice(respuestas_alertas)}"
-        else:
-            respuestas_ok = [
-                "Todo bien en el inventario! No hay materiales con stock bajo.",
-                "Excelente, el inventario está en perfectas condiciones, sin alertas.",
-            ]
-            return f"{saludo} {random.choice(respuestas_ok)}"
+    # 2. DATOS DEL SISTEMA (CON FLEXIBILIDAD Y TIPOS)
+    # --- USUARIOS ---
+    if any(k in mensaje_normalizado for k in ["usuario", "usuarios"]):
+        if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos", "que hay", "hay cuantos"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('total_usuarios', 0))} usuarios registrados en total."
+        elif any(k in mensaje_normalizado for k in ["activos", "activo"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('usuarios_activos', 0))} usuarios activos."
+        elif any(k in mensaje_normalizado for k in ["admin", "administrador", "administradores"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('admin_count', 0))} administradores."
+        elif any(k in mensaje_normalizado for k in ["cliente", "clientes"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('cliente_count', 0))} usuarios con rol de cliente."
+        elif any(k in mensaje_normalizado for k in ["conductor", "conductores"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('conductor_count', 0))} conductores."
+        elif any(k in mensaje_normalizado for k in ["empleado", "empleados"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('empleado_count', 0))} empleados."
 
-    # 3. VEHICULOS
-    if "vehículos" in mensaje_lower or "vehiculos" in mensaje_lower or "autos" in mensaje_lower or "camiones" in mensaje_lower:
-        return f"{saludo} Actualmente hay {datos.get('vehiculos_disponibles', 0)} vehículos disponibles y {datos.get('vehiculos_en_ruta', 0)} en ruta. En total hay {datos.get('vehiculos_count', 0)} vehículos en el sistema."
+    # --- CLIENTES ---
+    if any(k in mensaje_normalizado for k in ["cliente", "clientes"]):
+        if any(k in mensaje_normalizado for k in ["registrado", "registrados", "total", "hay", "cuantos", "cuántos"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('clientes_registrados', 0))} clientes registrados en el sistema."
 
-    # 4. PEDIDOS
-    if "pedidos" in mensaje_lower or "pedido" in mensaje_lower:
-        return f"{saludo} Resumen de pedidos: {datos.get('pedidos_totales', 0)} totales, {datos.get('pedidos_pendientes', 0)} pendientes, {datos.get('pedidos_aprobados', 0)} aprobados, {datos.get('pedidos_en_camino', 0)} en camino, {datos.get('pedidos_entregados', 0)} entregados y {datos.get('pedidos_cancelados', 0)} cancelados."
+    # --- PROVEEDORES ---
+    if any(k in mensaje_normalizado for k in ["proveedor", "proveedores", "provdores", "providores"]):
+        if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos", "que hay", "hay cuantos", "activos"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('proveedores_count', 0))} proveedores registrados."
 
-    # 5. DATOS GENERALES DEL SISTEMA
-    if "resumen" in mensaje_lower or "sistema" in mensaje_lower or "qué hay" in mensaje_lower or "cuántos" in mensaje_lower:
-        return f"{saludo} Resumen del sistema Constru-Trans: {datos.get('total_usuarios', 0)} usuarios, {datos.get('clientes_registrados', 0)} clientes, {datos.get('proveedores_count', 0)} proveedores, {datos.get('total_materiales', 0)} tipos de materiales, {datos.get('vehiculos_count', 0)} vehículos y {datos.get('pedidos_totales', 0)} pedidos."
+    # --- MATERIALES / STOCK ---
+    if any(k in mensaje_normalizado for k in ["material", "materiales", "stock"]):
+        if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos", "que hay"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('total_materiales', 0))} tipos de materiales en el sistema."
+        elif any(k in mensaje_normalizado for k in ["poco", "bajo", "alerta", "alertas", "acabando", "terminando", "sin stock"]):
+            if datos.get('stock_bajo', 0) > 0:
+                respuestas_alertas = [
+                    f"¡Alerta! Hay {format_number_es(datos['stock_bajo'])} materiales con stock bajo. ¡Revisa el inventario!",
+                    f"Aviso: {format_number_es(datos['stock_bajo'])} materiales están por acabarse. ¡No te olvides de reabastecer!",
+                ]
+                return f"{saludo} {random.choice(respuestas_alertas)}"
+            else:
+                respuestas_ok = [
+                    "Todo bien en el inventario! No hay materiales con stock bajo.",
+                    "Excelente, el inventario está en perfectas condiciones, sin alertas.",
+                ]
+                return f"{saludo} {random.choice(respuestas_ok)}"
+        elif any(k in mensaje_normalizado for k in ["total stock", "total de stock"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('total_stock', 0))} unidades en stock en total."
+
+    # --- VEHÍCULOS ---
+    if any(k in mensaje_normalizado for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "camion", "camiones"]):
+        if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos registrados en total."
+        elif any(k in mensaje_normalizado for k in ["disponible", "disponibles", "libre", "libres"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('vehiculos_disponibles', 0))} vehículos disponibles y {format_number_es(datos.get('vehiculos_en_ruta', 0))} en ruta. En total hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos en el sistema."
+        elif any(k in mensaje_normalizado for k in ["en ruta", "ruta", "ocupados"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('vehiculos_en_ruta', 0))} vehículos en ruta y {format_number_es(datos.get('vehiculos_disponibles', 0))} disponibles."
+
+    # --- PEDIDOS ---
+    if any(k in mensaje_normalizado for k in ["pedido", "pedidos"]):
+        if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos"]):
+            return f"{saludo} Resumen de pedidos: {format_number_es(datos.get('pedidos_totales', 0))} totales, {format_number_es(datos.get('pedidos_pendientes', 0))} pendientes, {format_number_es(datos.get('pedidos_aprobados', 0))} aprobados, {format_number_es(datos.get('pedidos_en_camino', 0))} en camino, {format_number_es(datos.get('pedidos_entregados', 0))} entregados y {format_number_es(datos.get('pedidos_cancelados', 0))} cancelados. El total de ventas es de {format_number_es(datos.get('total_ventas', 0))}."
+        elif any(k in mensaje_normalizado for k in ["pendiente", "pendientes"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('pedidos_pendientes', 0))} pedidos pendientes."
+        elif any(k in mensaje_normalizado for k in ["aprobado", "aprobados"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('pedidos_aprobados', 0))} pedidos aprobados."
+        elif any(k in mensaje_normalizado for k in ["en camino", "camino"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('pedidos_en_camino', 0))} pedidos en camino."
+        elif any(k in mensaje_normalizado for k in ["entregado", "entregados"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('pedidos_entregados', 0))} pedidos entregados."
+        elif any(k in mensaje_normalizado for k in ["cancelado", "cancelados"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('pedidos_cancelados', 0))} pedidos cancelados."
+        elif any(k in mensaje_normalizado for k in ["ventas", "total vendido", "ventas totales"]):
+            return f"{saludo} El total de ventas es de {format_number_es(datos.get('total_ventas', 0))}."
+
+    # --- COMPRAS ---
+    if any(k in mensaje_normalizado for k in ["compra", "compras"]):
+        if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos"]):
+            return f"{saludo} Resumen de compras: {format_number_es(datos.get('compras_totales', 0))} totales, {format_number_es(datos.get('compras_pendientes', 0))} pendientes y {format_number_es(datos.get('compras_recibidas', 0))} recibidas. El total de compras es de {format_number_es(datos.get('total_compras', 0))}."
+        elif any(k in mensaje_normalizado for k in ["pendiente", "pendientes"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('compras_pendientes', 0))} compras pendientes."
+        elif any(k in mensaje_normalizado for k in ["recibida", "recibidas"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('compras_recibidas', 0))} compras recibidas."
+        elif any(k in mensaje_normalizado for k in ["total compras", "total de compras"]):
+            return f"{saludo} El total de compras es de {format_number_es(datos.get('total_compras', 0))}."
+
+    # --- FACTURAS ---
+    if any(k in mensaje_normalizado for k in ["factura", "facturas"]):
+        if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos"]):
+            return f"{saludo} Resumen de facturas: {format_number_es(datos.get('facturas_totales', 0))} totales, {format_number_es(datos.get('facturas_pendientes', 0))} pendientes y {format_number_es(datos.get('facturas_pagadas', 0))} pagadas. El total facturado es de {format_number_es(datos.get('total_facturado', 0))}."
+        elif any(k in mensaje_normalizado for k in ["pendiente", "pendientes"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('facturas_pendientes', 0))} facturas pendientes."
+        elif any(k in mensaje_normalizado for k in ["pagada", "pagadas"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('facturas_pagadas', 0))} facturas pagadas."
+        elif any(k in mensaje_normalizado for k in ["total facturado", "facturado total"]):
+            return f"{saludo} El total facturado es de {format_number_es(datos.get('total_facturado', 0))}."
+
+    # --- PAGOS ---
+    if any(k in mensaje_normalizado for k in ["pago", "pagos"]):
+        if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos"]):
+            return f"{saludo} Actualmente hay {format_number_es(datos.get('pagos_totales', 0))} pagos registrados, con un total pagado de {format_number_es(datos.get('total_pagado', 0))}."
+        elif any(k in mensaje_normalizado for k in ["total pagado", "pagado total"]):
+            return f"{saludo} El total pagado es de {format_number_es(datos.get('total_pagado', 0))}."
+
+    # --- RESUMEN GENERAL ---
+    if any(k in mensaje_normalizado for k in ["resumen", "sistema", "que hay", "qué hay", "que tiene", "qué tiene"]):
+        return f"""{saludo} Resumen del sistema Constru-Trans:
+- Usuarios: {format_number_es(datos.get('total_usuarios', 0))} totales, {format_number_es(datos.get('usuarios_activos', 0))} activos
+- Clientes: {format_number_es(datos.get('clientes_registrados', 0))} registrados
+- Proveedores: {format_number_es(datos.get('proveedores_count', 0))}
+- Materiales: {format_number_es(datos.get('total_materiales', 0))} tipos
+- Vehículos: {format_number_es(datos.get('vehiculos_count', 0))} total
+- Pedidos: {format_number_es(datos.get('pedidos_totales', 0))} totales"""
 
     return None
 
@@ -114,20 +213,30 @@ def obtener_respuesta_inteligente(mensaje, usuario=None, historial=None, datos=N
 
     if es_saludo:
         respuestas_bienvenida = [
-            "Soy tu asistente virtual de Constru-Trans. ¿En qué puedo ayudarte hoy? Puedo darte información sobre inventario, pedidos, vehículos y más!",
+            "Soy tu asistente virtual de Constru-Trans. ¿En qué puedo ayudarte hoy? Puedo darte información sobre inventario, pedidos, vehículos, facturas, compras y más!",
             "¡Qué gusto tenerte aquí! Soy tu asistente de Constru-Trans. ¿Qué necesitas?",
         ]
         return f"{saludo} {random.choice(respuestas_bienvenida)}".strip()
 
-    if any(palabra in mensaje_lower for palabra in ["ayuda", "ayúdame", "ayudame", "qué puedes hacer", "que puedes hacer", "qué haces", "que haces", "qué sabes", "que sabes", "puedes hacer", "que puedo hacer"]):
+    if any(palabra in mensaje_lower for palabra in ["ayuda", "ayúdame", "ayudame", "que puedes hacer", "qué puedes hacer", "que haces", "qué haces", "que sabes", "qué sabes", "puedes hacer", "que puedo hacer"]):
         respuesta_ayuda = [
-            "Estoy aquí para ayudarte con:\n- Hora y fecha actual\n- Cálculos matemáticos\n- Información de inventario (usa 'alerta de stock' o 'stock bajo')\n- Estado de vehículos (usa 'vehículos disponibles')\n- Resumen de pedidos (usa 'pedidos pendientes')\n- Resumen del sistema (usa 'resumen del sistema')",
+            """Estoy aquí para ayudarte con:
+- Hora y fecha actual (también en otros países)
+- Cálculos matemáticos
+- Información del sistema:
+  • Usuarios, clientes y proveedores
+  • Materiales y stock
+  • Vehículos
+  • Pedidos
+  • Compras
+  • Facturas y pagos
+- Preguntas generales o conversacionales""",
         ]
         return f"{saludo} {random.choice(respuesta_ayuda)}".strip()
 
     respuestas_por_defecto = [
-        "No he podido resolver esa consulta con el motor principal en este momento. Si quieres, reformula la pregunta o lo intento con una respuesta general.",
-        "Estoy aquí para ayudarte. Prueba preguntarme sobre la hora, el inventario o los pedidos pendientes.",
+        "No he podido resolver esa consulta con el motor principal en este momento. Si quieres, reformula la pregunta o prueba preguntarme algo específico del sistema como '¿cuántos pedidos hay?'",
+        "Estoy aquí para ayudarte. Prueba preguntarme sobre la hora, el inventario, los pedidos, los proveedores o los vehículos!",
     ]
 
     return f"{saludo} {random.choice(respuestas_por_defecto)}".strip()
