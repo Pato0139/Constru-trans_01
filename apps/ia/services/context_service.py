@@ -22,6 +22,7 @@ def obtener_contexto_datos(force_refresh=False):
         from apps.compras.models import Compra
         from apps.facturacion.models import Factura
         from apps.pagos.models import Pago
+        from django.db.models import Count
 
         # Obtener vehículos asociados a cada conductor (todos los registros, estructurados)
         asignaciones_activas = ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related("conductor__usuario", "vehiculo")
@@ -35,6 +36,21 @@ def obtener_contexto_datos(force_refresh=False):
                 "modelo": asignacion.vehiculo.modelo,
                 "placa": asignacion.vehiculo.placa
             })
+
+        # Obtener cliente con más pedidos
+        top_cliente = None
+        try:
+            # Aggregate pedidos por cliente
+            clientes_pedidos = PedidoGestion.objects.values('cliente').annotate(num_pedidos=Count('id')).order_by('-num_pedidos')
+            if clientes_pedidos and clientes_pedidos[0]['cliente']:
+                cliente_obj = Cliente.objects.select_related('usuario').filter(id=clientes_pedidos[0]['cliente']).first()
+                if cliente_obj:
+                    top_cliente = {
+                        "nombre": f"{cliente_obj.usuario.nombres} {cliente_obj.usuario.apellidos}",
+                        "num_pedidos": clientes_pedidos[0]['num_pedidos']
+                    }
+        except Exception:
+            logger.exception("Error obteniendo cliente con más pedidos")
 
         data = {
             "total_usuarios": Usuario.objects.count(),
@@ -78,6 +94,7 @@ def obtener_contexto_datos(force_refresh=False):
             "vehiculos_por_conductor_lista": vehiculos_por_conductor_lista,
 
             "clientes_registrados": Cliente.objects.count(),
+            "top_cliente": top_cliente,
             "generated_at": datetime.now().isoformat(),
         }
 
