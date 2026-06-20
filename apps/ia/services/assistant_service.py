@@ -146,7 +146,7 @@ Sí es para clientes, administradores y conductores: cada uno tiene su propio pa
     return None
 
 
-def procesar_parte_pregunta(parte, datos, secciones_vistas=None):
+def procesar_parte_pregunta(parte, datos, secciones_vistas=None, usuario=None, rol_usuario=None):
     """Procesa una parte individual de la pregunta y devuelve la respuesta"""
     if secciones_vistas is None:
         secciones_vistas = set()
@@ -182,184 +182,220 @@ def procesar_parte_pregunta(parte, datos, secciones_vistas=None):
     except Exception:
         logger.exception("Error en procesar_parte_pregunta matemáticas")
 
-    # --- USUARIOS ---
-    if has_keywords(check_strings, ["usuario", "usuarios", "admin", "administrador", "administradores", "adminds", "conductor", "conductores", "cliente", "clientes", "empleado", "empleados"]) and "ESTADO DE USUARIOS" not in secciones_vistas:
-        lineas = ["ESTADO DE USUARIOS"]
-        
-        hay_vehiculos = has_keywords(check_strings, ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "asociado", "asignado", "cada conductor"])
-        if not hay_vehiculos or has_keywords(check_strings, ["usuario", "usuarios", "total", "hay", "cuantos", "cautnos", "qué hay", "hay cuantos", "hay cautnos", "activos", "activo", "admin", "administrador", "administradores", "cliente", "clientes", "empleado", "empleados"]):
-            if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "qué hay", "hay cuantos", "hay cautnos"]):
-                lineas.append(f"- Usuarios totales: {format_number_es(datos.get('total_usuarios', 0))}")
-                lineas.append(f"- Usuarios activos: {format_number_es(datos.get('usuarios_activos', 0))}")
-            if has_keywords(check_strings, ["admin", "administrador", "administradores"]):
-                lineas.append(f"- Administradores: {format_number_es(datos.get('admin_count', 0))}")
-            if has_keywords(check_strings, ["cliente", "clientes"]) and not has_keywords(check_strings, ["cliente registrado", "clientes registrados"]):
-                lineas.append(f"- Clientes: {format_number_es(datos.get('cliente_count', 0))}")
-            if has_keywords(check_strings, ["empleado", "empleados"]):
-                lineas.append(f"- Empleados: {format_number_es(datos.get('empleado_count', 0))}")
-            # Solo agregamos conductores si NO hay nada de vehículos en la misma parte de pregunta
-            if has_keywords(check_strings, ["conductor", "conductores"]) and not hay_vehiculos:
-                lineas.append(f"- Conductores: {format_number_es(datos.get('conductor_count', 0))}")
-        
-        if len(lineas) > 1:
-            secciones_vistas.add("ESTADO DE USUARIOS")
-            respuestas.append("\n".join(lineas))
+    # --- SECCIONES ADMINISTRATIVAS: solo admin (y empleado, si aplica) ---
+    es_admin = rol_usuario in ("admin", "administrador", "empleado") or rol_usuario is None
+    
+    if es_admin:
+        # --- USUARIOS ---
+        if has_keywords(check_strings, ["usuario", "usuarios", "admin", "administrador", "administradores", "adminds", "conductor", "conductores", "cliente", "clientes", "empleado", "empleados"]) and "ESTADO DE USUARIOS" not in secciones_vistas:
+            lineas = ["ESTADO DE USUARIOS"]
+            
+            hay_vehiculos = has_keywords(check_strings, ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "asociado", "asignado", "cada conductor"])
+            if not hay_vehiculos or has_keywords(check_strings, ["usuario", "usuarios", "total", "hay", "cuantos", "cautnos", "qué hay", "hay cuantos", "hay cautnos", "activos", "activo", "admin", "administrador", "administradores", "cliente", "clientes", "empleado", "empleados"]):
+                if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "qué hay", "hay cuantos", "hay cautnos"]):
+                    lineas.append(f"- Usuarios totales: {format_number_es(datos.get('total_usuarios', 0))}")
+                    lineas.append(f"- Usuarios activos: {format_number_es(datos.get('usuarios_activos', 0))}")
+                if has_keywords(check_strings, ["admin", "administrador", "administradores"]):
+                    lineas.append(f"- Administradores: {format_number_es(datos.get('admin_count', 0))}")
+                if has_keywords(check_strings, ["cliente", "clientes"]) and not has_keywords(check_strings, ["cliente registrado", "clientes registrados"]):
+                    lineas.append(f"- Clientes: {format_number_es(datos.get('cliente_count', 0))}")
+                if has_keywords(check_strings, ["empleado", "empleados"]):
+                    lineas.append(f"- Empleados: {format_number_es(datos.get('empleado_count', 0))}")
+                # Solo agregamos conductores si NO hay nada de vehículos en la misma parte de pregunta
+                if has_keywords(check_strings, ["conductor", "conductores"]) and not hay_vehiculos:
+                    lineas.append(f"- Conductores: {format_number_es(datos.get('conductor_count', 0))}")
+            
+            if len(lineas) > 1:
+                secciones_vistas.add("ESTADO DE USUARIOS")
+                respuestas.append("\n".join(lineas))
 
-    # --- CLIENTES ---
-    if has_keywords(check_strings, ["cliente", "clientes"]) and "CLIENTES" not in secciones_vistas:
-        if has_keywords(check_strings, ["registrado", "registrados", "total", "hay", "cuantos", "cautnos", "cuántos"]):
-            lineas = ["CLIENTES"]
-            lineas.append(f"- Clientes registrados: {format_number_es(datos.get('clientes_registrados', 0))}")
-            secciones_vistas.add("CLIENTES")
+        # --- CLIENTES ---
+        if has_keywords(check_strings, ["cliente", "clientes"]) and "CLIENTES" not in secciones_vistas:
+            if has_keywords(check_strings, ["registrado", "registrados", "total", "hay", "cuantos", "cautnos", "cuántos"]):
+                lineas = ["CLIENTES"]
+                lineas.append(f"- Clientes registrados: {format_number_es(datos.get('clientes_registrados', 0))}")
+                secciones_vistas.add("CLIENTES")
+                respuestas.append("\n".join(lineas))
+        
+        # --- TOP CLIENTE ---
+        if has_keywords(check_strings, ["cliente", "clientes", "más pedidos", "mas pedidos", "que mas pedidos", "que más pedidos", "top cliente", "cliente top"]) and "TOP CLIENTE" not in secciones_vistas:
+            top_cliente = datos.get('top_cliente')
+            if top_cliente:
+                lineas = ["CLIENTE CON MÁS PEDIDOS"]
+                lineas.append(f"- {top_cliente['nombre']} con {format_number_es(top_cliente['num_pedidos'])} pedidos")
+                secciones_vistas.add("TOP CLIENTE")
+                respuestas.append("\n".join(lineas))
+            else:
+                respuestas.append("Aún no hay pedidos registrados para los clientes.")
+
+        # --- PROVEEDORES ---
+        if has_keywords(check_strings, ["proveedor", "proveedores", "provdores", "providores", "provedor", "provedores"]) and "PROVEEDORES" not in secciones_vistas:
+            if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay", "hay cuantos", "hay cautnos", "activos"]):
+                lineas = ["PROVEEDORES"]
+                lineas.append(f"- Proveedores registrados: {format_number_es(datos.get('proveedores_count', 0))}")
+                secciones_vistas.add("PROVEEDORES")
+                respuestas.append("\n".join(lineas))
+
+        # --- MATERIALES / STOCK ---
+        if has_keywords(check_strings, ["material", "materiales", "stock"]) and "ESTADO DEL INVENTARIO" not in secciones_vistas:
+            lineas = ["ESTADO DEL INVENTARIO"]
+            
+            if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay"]):
+                lineas.append(f"- Tipos de materiales: {format_number_es(datos.get('total_materiales', 0))}")
+            if has_keywords(check_strings, ["total stock", "total de stock"]):
+                lineas.append(f"- Unidades totales en stock: {format_number_es(datos.get('total_stock', 0))}")
+            
+            if has_keywords(check_strings, ["poco", "bajo", "alerta", "alertas", "acabando", "terminando", "sin stock"]):
+                if datos.get('stock_bajo', 0) > 0:
+                    lineas.append(f"- ⚠️ Materiales con stock bajo: {format_number_es(datos.get('stock_bajo', 0))}")
+                else:
+                    lineas.append(f"- ✅ No hay materiales con stock bajo")
+            
+            if len(lineas) > 1:
+                secciones_vistas.add("ESTADO DEL INVENTARIO")
+                respuestas.append("\n".join(lineas))
+
+        # --- VEHÍCULOS ---
+        if has_keywords(check_strings, ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "conductor", "conductores", "asociado", "asignado"]) and "ESTADO DE VEHÍCULOS" not in secciones_vistas:
+            lineas = ["ESTADO DE VEHÍCULOS"]
+            
+            incluir_resumen = has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos", "vehiculo", "vehiculos", "vehículo", "vehículos", "conductor", "conductores"])
+            incluir_asignacion = has_keywords(check_strings, ["asociado", "asignado", "cada conductor"])
+            
+            if incluir_resumen or incluir_asignacion:
+                if incluir_resumen and has_keywords(check_strings, ["vehiculo", "vehiculos", "vehículo", "vehículos", "total", "hay", "cuantos", "cautnos", "cuántos"]):
+                    lineas.append(f"- Vehículos totales: {format_number_es(datos.get('vehiculos_count', 0))}")
+                    if has_keywords(check_strings, ["disponible", "disponibles", "libre", "libres"]):
+                        lineas.append(f"- Vehículos disponibles: {format_number_es(datos.get('vehiculos_disponibles', 0))}")
+                    if has_keywords(check_strings, ["en ruta", "ruta", "ocupados"]):
+                        lineas.append(f"- Vehículos en ruta: {format_number_es(datos.get('vehiculos_en_ruta', 0))}")
+                if has_keywords(check_strings, ["conductor", "conductores", "total", "hay", "cuantos", "cautnos", "cuántos"]):
+                    lineas.append(f"- Conductores totales: {format_number_es(datos.get('conductor_count', 0))}")
+                if incluir_asignacion:
+                    total_asignados = datos.get('total_conductores_con_vehiculo', 0)
+                    lineas.append(f"- Conductores con vehículo asignado: {format_number_es(total_asignados)}")
+                    
+                    if total_asignados > 0:
+                        lineas.append(f"\nCONDUCTORES ASIGNADOS")
+                        lista = datos.get('vehiculos_por_conductor_lista', [])
+                        for idx, item in enumerate(lista, 1):
+                            lineas.append(f"{item['nombre']} (Vehículo: {item['marca']} {item['modelo']} | Placa: {item['placa']})")
+                    
+                    total_conductores = datos.get('conductor_count', 0)
+                    if total_conductores > total_asignados:
+                        lineas.append(f"\nOBSERVACIONES")
+                        lineas.append(f"- Existen {format_number_es(total_conductores - total_asignados)} conductores sin vehículo asignado")
+            
+            if len(lineas) > 1:
+                secciones_vistas.add("ESTADO DE VEHÍCULOS")
+                respuestas.append("\n".join(lineas))
+
+        # --- PEDIDOS ---
+        if has_keywords(check_strings, ["pedido", "pedidos"]) and "ESTADO DE PEDIDOS" not in secciones_vistas:
+            lineas = ["ESTADO DE PEDIDOS"]
+            
+            if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
+                lineas.append(f"- Pedidos totales: {format_number_es(datos.get('pedidos_totales', 0))}")
+            if has_keywords(check_strings, ["pendiente", "pendientes"]):
+                lineas.append(f"- Pendientes: {format_number_es(datos.get('pedidos_pendientes', 0))}")
+            if has_keywords(check_strings, ["aprobado", "aprobados"]):
+                lineas.append(f"- Aprobados: {format_number_es(datos.get('pedidos_aprobados', 0))}")
+            if has_keywords(check_strings, ["en camino", "camino"]):
+                lineas.append(f"- En camino: {format_number_es(datos.get('pedidos_en_camino', 0))}")
+            if has_keywords(check_strings, ["entregado", "entregados"]):
+                lineas.append(f"- Entregados: {format_number_es(datos.get('pedidos_entregados', 0))}")
+            if has_keywords(check_strings, ["cancelado", "cancelados"]):
+                lineas.append(f"- Cancelados: {format_number_es(datos.get('pedidos_cancelados', 0))}")
+            
+            if has_keywords(check_strings, ["ventas", "total vendido", "ventas totales"]):
+                lineas.append(f"\nVENTAS")
+                lineas.append(f"- Total de ventas: {format_number_es(datos.get('total_ventas', 0))}")
+            
+            if len(lineas) > 1:
+                secciones_vistas.add("ESTADO DE PEDIDOS")
+                respuestas.append("\n".join(lineas))
+
+        # --- COMPRAS ---
+        if has_keywords(check_strings, ["compra", "compras"]) and "ESTADO DE COMPRAS" not in secciones_vistas:
+            lineas = ["ESTADO DE COMPRAS"]
+            
+            if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
+                lineas.append(f"- Compras totales: {format_number_es(datos.get('compras_totales', 0))}")
+            if has_keywords(check_strings, ["pendiente", "pendientes"]):
+                lineas.append(f"- Pendientes: {format_number_es(datos.get('compras_pendientes', 0))}")
+            if has_keywords(check_strings, ["recibida", "recibidas"]):
+                lineas.append(f"- Recibidas: {format_number_es(datos.get('compras_recibidas', 0))}")
+            
+            if has_keywords(check_strings, ["total compras", "total de compras"]):
+                lineas.append(f"\nMONTOS")
+                lineas.append(f"- Total de compras: {format_number_es(datos.get('total_compras', 0))}")
+            
+            if len(lineas) > 1:
+                secciones_vistas.add("ESTADO DE COMPRAS")
+                respuestas.append("\n".join(lineas))
+
+        # --- FACTURAS ---
+        if has_keywords(check_strings, ["factura", "facturas"]) and "ESTADO DE FACTURAS" not in secciones_vistas:
+            lineas = ["ESTADO DE FACTURAS"]
+            
+            if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
+                lineas.append(f"- Facturas totales: {format_number_es(datos.get('facturas_totales', 0))}")
+            if has_keywords(check_strings, ["pendiente", "pendientes"]):
+                lineas.append(f"- Pendientes: {format_number_es(datos.get('facturas_pendientes', 0))}")
+            if has_keywords(check_strings, ["pagada", "pagadas"]):
+                lineas.append(f"- Pagadas: {format_number_es(datos.get('facturas_pagadas', 0))}")
+            
+            if has_keywords(check_strings, ["total facturado", "facturado total"]):
+                lineas.append(f"\nMONTOS")
+                lineas.append(f"- Total facturado: {format_number_es(datos.get('total_facturado', 0))}")
+            
+            if len(lineas) > 1:
+                secciones_vistas.add("ESTADO DE FACTURAS")
+                respuestas.append("\n".join(lineas))
+
+        # --- PAGOS ---
+        if has_keywords(check_strings, ["pago", "pagos"]) and "ESTADO DE PAGOS" not in secciones_vistas:
+            lineas = ["ESTADO DE PAGOS"]
+            
+            if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
+                lineas.append(f"- Pagos registrados: {format_number_es(datos.get('pagos_totales', 0))}")
+            if has_keywords(check_strings, ["total pagado", "pagado total"]):
+                lineas.append(f"- Total pagado: {format_number_es(datos.get('total_pagado', 0))}")
+            
+            if len(lineas) > 1:
+                secciones_vistas.add("ESTADO DE PAGOS")
+                respuestas.append("\n".join(lineas))
+    
+    # --- VISTA DE CONDUCTOR: solo sus propios datos ---
+    if rol_usuario == "conductor" and has_keywords(check_strings, ["entrega", "entregas", "mis entregas", "vehiculo", "vehículo", "mi vehiculo", "mi vehículo"]) and "MI PANEL CONDUCTOR" not in secciones_vistas:
+        lineas = ["MI PANEL"]
+        if has_keywords(check_strings, ["pendiente", "pendientes"]):
+            lineas.append(f"- Entregas pendientes: {format_number_es(datos.get('mis_entregas_pendientes', 0))}")
+        if has_keywords(check_strings, ["completada", "completadas", "realizada", "realizadas", "historial"]):
+            lineas.append(f"- Entregas completadas: {format_number_es(datos.get('mis_entregas_completadas', 0))}")
+        if has_keywords(check_strings, ["vehiculo", "vehículo", "mi vehiculo", "mi vehículo"]):
+            lineas.append(f"- Vehículo asignado: {datos.get('mi_vehiculo', 'Sin vehículo asignado')}")
+        if len(lineas) > 1:
+            secciones_vistas.add("MI PANEL CONDUCTOR")
             respuestas.append("\n".join(lineas))
     
-    # --- TOP CLIENTE ---
-    if has_keywords(check_strings, ["cliente", "clientes", "más pedidos", "mas pedidos", "que mas pedidos", "que más pedidos", "top cliente", "cliente top"]) and "TOP CLIENTE" not in secciones_vistas:
-        top_cliente = datos.get('top_cliente')
-        if top_cliente:
-            lineas = ["CLIENTE CON MÁS PEDIDOS"]
-            lineas.append(f"- {top_cliente['nombre']} con {format_number_es(top_cliente['num_pedidos'])} pedidos")
-            secciones_vistas.add("TOP CLIENTE")
-            respuestas.append("\n".join(lineas))
-        else:
-            respuestas.append("Aún no hay pedidos registrados para los clientes.")
-
-    # --- PROVEEDORES ---
-    if has_keywords(check_strings, ["proveedor", "proveedores", "provdores", "providores", "provedor", "provedores"]) and "PROVEEDORES" not in secciones_vistas:
-        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay", "hay cuantos", "hay cautnos", "activos"]):
-            lineas = ["PROVEEDORES"]
-            lineas.append(f"- Proveedores registrados: {format_number_es(datos.get('proveedores_count', 0))}")
-            secciones_vistas.add("PROVEEDORES")
-            respuestas.append("\n".join(lineas))
-
-    # --- MATERIALES / STOCK ---
-    if has_keywords(check_strings, ["material", "materiales", "stock"]) and "ESTADO DEL INVENTARIO" not in secciones_vistas:
-        lineas = ["ESTADO DEL INVENTARIO"]
-        
-        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay"]):
-            lineas.append(f"- Tipos de materiales: {format_number_es(datos.get('total_materiales', 0))}")
-        if has_keywords(check_strings, ["total stock", "total de stock"]):
-            lineas.append(f"- Unidades totales en stock: {format_number_es(datos.get('total_stock', 0))}")
-        
-        if has_keywords(check_strings, ["poco", "bajo", "alerta", "alertas", "acabando", "terminando", "sin stock"]):
-            if datos.get('stock_bajo', 0) > 0:
-                lineas.append(f"- ⚠️ Materiales con stock bajo: {format_number_es(datos.get('stock_bajo', 0))}")
-            else:
-                lineas.append(f"- ✅ No hay materiales con stock bajo")
-        
+    # --- VISTA DE CLIENTE: solo sus propios pedidos/facturas ---
+    if rol_usuario == "cliente" and has_keywords(check_strings, ["pedido", "pedidos", "mis pedidos", "factura", "facturas", "mis facturas"]) and "MI PANEL CLIENTE" not in secciones_vistas:
+        lineas = ["MI PANEL"]
+        if has_keywords(check_strings, ["pedido", "pedidos"]):
+            if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
+                lineas.append(f"- Mis pedidos totales: {format_number_es(datos.get('mis_pedidos_totales', 0))}")
+            if has_keywords(check_strings, ["pendiente", "pendientes"]):
+                lineas.append(f"- Mis pedidos pendientes: {format_number_es(datos.get('mis_pedidos_pendientes', 0))}")
+            if has_keywords(check_strings, ["entregado", "entregados"]):
+                lineas.append(f"- Mis pedidos entregados: {format_number_es(datos.get('mis_pedidos_entregados', 0))}")
+        if has_keywords(check_strings, ["factura", "facturas"]):
+            if has_keywords(check_strings, ["pendiente", "pendientes"]):
+                lineas.append(f"- Mis facturas pendientes: {format_number_es(datos.get('mis_facturas_pendientes', 0))}")
+            if has_keywords(check_strings, ["pagada", "pagadas"]):
+                lineas.append(f"- Mis facturas pagadas: {format_number_es(datos.get('mis_facturas_pagadas', 0))}")
         if len(lineas) > 1:
-            secciones_vistas.add("ESTADO DEL INVENTARIO")
-            respuestas.append("\n".join(lineas))
-
-    # --- VEHÍCULOS ---
-    if has_keywords(check_strings, ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "conductor", "conductores", "asociado", "asignado"]) and "ESTADO DE VEHÍCULOS" not in secciones_vistas:
-        lineas = ["ESTADO DE VEHÍCULOS"]
-        
-        incluir_resumen = has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos", "vehiculo", "vehiculos", "vehículo", "vehículos", "conductor", "conductores"])
-        incluir_asignacion = has_keywords(check_strings, ["asociado", "asignado", "cada conductor"])
-        
-        if incluir_resumen or incluir_asignacion:
-            if incluir_resumen and has_keywords(check_strings, ["vehiculo", "vehiculos", "vehículo", "vehículos", "total", "hay", "cuantos", "cautnos", "cuántos"]):
-                lineas.append(f"- Vehículos totales: {format_number_es(datos.get('vehiculos_count', 0))}")
-                if has_keywords(check_strings, ["disponible", "disponibles", "libre", "libres"]):
-                    lineas.append(f"- Vehículos disponibles: {format_number_es(datos.get('vehiculos_disponibles', 0))}")
-                if has_keywords(check_strings, ["en ruta", "ruta", "ocupados"]):
-                    lineas.append(f"- Vehículos en ruta: {format_number_es(datos.get('vehiculos_en_ruta', 0))}")
-            if has_keywords(check_strings, ["conductor", "conductores", "total", "hay", "cuantos", "cautnos", "cuántos"]):
-                lineas.append(f"- Conductores totales: {format_number_es(datos.get('conductor_count', 0))}")
-            if incluir_asignacion:
-                total_asignados = datos.get('total_conductores_con_vehiculo', 0)
-                lineas.append(f"- Conductores con vehículo asignado: {format_number_es(total_asignados)}")
-                
-                if total_asignados > 0:
-                    lineas.append(f"\nCONDUCTORES ASIGNADOS")
-                    lista = datos.get('vehiculos_por_conductor_lista', [])
-                    for idx, item in enumerate(lista, 1):
-                        lineas.append(f"{item['nombre']} (Vehículo: {item['marca']} {item['modelo']} | Placa: {item['placa']})")
-                
-                total_conductores = datos.get('conductor_count', 0)
-                if total_conductores > total_asignados:
-                    lineas.append(f"\nOBSERVACIONES")
-                    lineas.append(f"- Existen {format_number_es(total_conductores - total_asignados)} conductores sin vehículo asignado")
-        
-        if len(lineas) > 1:
-            secciones_vistas.add("ESTADO DE VEHÍCULOS")
-            respuestas.append("\n".join(lineas))
-
-    # --- PEDIDOS ---
-    if has_keywords(check_strings, ["pedido", "pedidos"]) and "ESTADO DE PEDIDOS" not in secciones_vistas:
-        lineas = ["ESTADO DE PEDIDOS"]
-        
-        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
-            lineas.append(f"- Pedidos totales: {format_number_es(datos.get('pedidos_totales', 0))}")
-        if has_keywords(check_strings, ["pendiente", "pendientes"]):
-            lineas.append(f"- Pendientes: {format_number_es(datos.get('pedidos_pendientes', 0))}")
-        if has_keywords(check_strings, ["aprobado", "aprobados"]):
-            lineas.append(f"- Aprobados: {format_number_es(datos.get('pedidos_aprobados', 0))}")
-        if has_keywords(check_strings, ["en camino", "camino"]):
-            lineas.append(f"- En camino: {format_number_es(datos.get('pedidos_en_camino', 0))}")
-        if has_keywords(check_strings, ["entregado", "entregados"]):
-            lineas.append(f"- Entregados: {format_number_es(datos.get('pedidos_entregados', 0))}")
-        if has_keywords(check_strings, ["cancelado", "cancelados"]):
-            lineas.append(f"- Cancelados: {format_number_es(datos.get('pedidos_cancelados', 0))}")
-        
-        if has_keywords(check_strings, ["ventas", "total vendido", "ventas totales"]):
-            lineas.append(f"\nVENTAS")
-            lineas.append(f"- Total de ventas: {format_number_es(datos.get('total_ventas', 0))}")
-        
-        if len(lineas) > 1:
-            secciones_vistas.add("ESTADO DE PEDIDOS")
-            respuestas.append("\n".join(lineas))
-
-    # --- COMPRAS ---
-    if has_keywords(check_strings, ["compra", "compras"]) and "ESTADO DE COMPRAS" not in secciones_vistas:
-        lineas = ["ESTADO DE COMPRAS"]
-        
-        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
-            lineas.append(f"- Compras totales: {format_number_es(datos.get('compras_totales', 0))}")
-        if has_keywords(check_strings, ["pendiente", "pendientes"]):
-            lineas.append(f"- Pendientes: {format_number_es(datos.get('compras_pendientes', 0))}")
-        if has_keywords(check_strings, ["recibida", "recibidas"]):
-            lineas.append(f"- Recibidas: {format_number_es(datos.get('compras_recibidas', 0))}")
-        
-        if has_keywords(check_strings, ["total compras", "total de compras"]):
-            lineas.append(f"\nMONTOS")
-            lineas.append(f"- Total de compras: {format_number_es(datos.get('total_compras', 0))}")
-        
-        if len(lineas) > 1:
-            secciones_vistas.add("ESTADO DE COMPRAS")
-            respuestas.append("\n".join(lineas))
-
-    # --- FACTURAS ---
-    if has_keywords(check_strings, ["factura", "facturas"]) and "ESTADO DE FACTURAS" not in secciones_vistas:
-        lineas = ["ESTADO DE FACTURAS"]
-        
-        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
-            lineas.append(f"- Facturas totales: {format_number_es(datos.get('facturas_totales', 0))}")
-        if has_keywords(check_strings, ["pendiente", "pendientes"]):
-            lineas.append(f"- Pendientes: {format_number_es(datos.get('facturas_pendientes', 0))}")
-        if has_keywords(check_strings, ["pagada", "pagadas"]):
-            lineas.append(f"- Pagadas: {format_number_es(datos.get('facturas_pagadas', 0))}")
-        
-        if has_keywords(check_strings, ["total facturado", "facturado total"]):
-            lineas.append(f"\nMONTOS")
-            lineas.append(f"- Total facturado: {format_number_es(datos.get('total_facturado', 0))}")
-        
-        if len(lineas) > 1:
-            secciones_vistas.add("ESTADO DE FACTURAS")
-            respuestas.append("\n".join(lineas))
-
-    # --- PAGOS ---
-    if has_keywords(check_strings, ["pago", "pagos"]) and "ESTADO DE PAGOS" not in secciones_vistas:
-        lineas = ["ESTADO DE PAGOS"]
-        
-        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
-            lineas.append(f"- Pagos registrados: {format_number_es(datos.get('pagos_totales', 0))}")
-        if has_keywords(check_strings, ["total pagado", "pagado total"]):
-            lineas.append(f"- Total pagado: {format_number_es(datos.get('total_pagado', 0))}")
-        
-        if len(lineas) > 1:
-            secciones_vistas.add("ESTADO DE PAGOS")
+            secciones_vistas.add("MI PANEL CLIENTE")
             respuestas.append("\n".join(lineas))
 
     return respuestas
@@ -372,6 +408,9 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
     es_primera_interaccion = len(historial) == 0
     respuestas = []
     secciones_vistas = set()
+    
+    # Obtener rol del usuario
+    rol_usuario = getattr(usuario, "rol", None) if usuario and usuario.is_authenticated else None
 
     # Construir saludo
     saludo = ""
@@ -398,18 +437,29 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
 
     # 3. Procesar cada parte
     for parte in partes:
-        parte_respuestas = procesar_parte_pregunta(parte, datos, secciones_vistas)
+        parte_respuestas = procesar_parte_pregunta(parte, datos, secciones_vistas, usuario=usuario, rol_usuario=rol_usuario)
         respuestas.extend(parte_respuestas)
 
     # 4. Si no se procesaron partes, intentar con la pregunta ORIGINAL (no normalizada, para que procesar_parte_pregunta use both)
     if not respuestas:
-        respuestas.extend(procesar_parte_pregunta(mensaje, datos, secciones_vistas))
+        respuestas.extend(procesar_parte_pregunta(mensaje, datos, secciones_vistas, usuario=usuario, rol_usuario=rol_usuario))
 
     # 5. Resumen general si aún no hay respuestas
     if not respuestas and any(k in mensaje_normalizado for k in ["resumen", "sistema", "que hay", "qué hay", "que tiene", "qué tiene"]):
         if "RESUMEN DEL SISTEMA" not in secciones_vistas:
             secciones_vistas.add("RESUMEN DEL SISTEMA")
-            respuestas.append(f"""RESUMEN DEL SISTEMA
+            if rol_usuario == "conductor":
+                respuestas.append(f"""RESUMEN DE TU PANEL
+- Entregas pendientes: {format_number_es(datos.get('mis_entregas_pendientes', 0))}
+- Entregas completadas: {format_number_es(datos.get('mis_entregas_completadas', 0))}
+- Vehículo asignado: {datos.get('mi_vehiculo', 'Sin vehículo asignado')}""")
+            elif rol_usuario == "cliente":
+                respuestas.append(f"""RESUMEN DE TU CUENTA
+- Mis pedidos totales: {format_number_es(datos.get('mis_pedidos_totales', 0))}
+- Pedidos pendientes: {format_number_es(datos.get('mis_pedidos_pendientes', 0))}
+- Facturas pendientes: {format_number_es(datos.get('mis_facturas_pendientes', 0))}""")
+            else:
+                respuestas.append(f"""RESUMEN DEL SISTEMA
 - Usuarios: {format_number_es(datos.get('total_usuarios', 0))} totales, {format_number_es(datos.get('usuarios_activos', 0))} activos
 - Clientes: {format_number_es(datos.get('clientes_registrados', 0))} registrados
 - Proveedores: {format_number_es(datos.get('proveedores_count', 0))}
@@ -437,7 +487,7 @@ def obtener_respuesta_inteligente(mensaje, usuario=None, historial=None, datos=N
         historial = []
 
     if datos is None:
-        datos = obtener_contexto_datos()
+        datos = obtener_contexto_datos(usuario=usuario)
 
     es_primera_interaccion = len(historial) == 0
     mensaje_lower = mensaje.lower()
@@ -495,7 +545,7 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
     # Expandir mensaje contextual
     mensaje = expandir_mensaje_contextual(mensaje, historial_db)
 
-    datos = obtener_contexto_datos()
+    datos = obtener_contexto_datos(usuario=usuario)
     nombre_usuario = ""
     rol_usuario = None
     user_id = None
