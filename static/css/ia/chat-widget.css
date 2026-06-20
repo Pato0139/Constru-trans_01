@@ -154,6 +154,7 @@
   border-radius: 16px;
   font-size: 14px;
   line-height: 1.5;
+  white-space: pre-line;
 }
 
 .chat-message.user .chat-message-bubble {

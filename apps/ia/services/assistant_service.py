@@ -83,163 +83,163 @@ def procesar_parte_pregunta(parte, datos):
 
     # --- USUARIOS ---
     if any(k in parte_normalizada for k in ["usuario", "usuarios"]):
-        lineas = ["ESTADO DE USUARIOS<br><br>"]
+        lineas = ["ESTADO DE USUARIOS"]
         
         hay_vehiculos = any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "asociado", "asignado", "cada conductor"])
         if not hay_vehiculos or any(k in parte_normalizada for k in ["usuario", "usuarios", "total", "hay", "cuantos", "cautnos", "qué hay", "hay cuantos", "hay cautnos", "activos", "activo", "admin", "administrador", "administradores", "cliente", "clientes", "empleado", "empleados"]):
             if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "qué hay", "hay cuantos", "hay cautnos"]):
-                lineas.append(f"- Usuarios totales: {format_number_es(datos.get('total_usuarios', 0))}<br>")
-                lineas.append(f"- Usuarios activos: {format_number_es(datos.get('usuarios_activos', 0))}<br>")
+                lineas.append(f"- Usuarios totales: {format_number_es(datos.get('total_usuarios', 0))}")
+                lineas.append(f"- Usuarios activos: {format_number_es(datos.get('usuarios_activos', 0))}")
             if any(k in parte_normalizada for k in ["admin", "administrador", "administradores"]):
-                lineas.append(f"- Administradores: {format_number_es(datos.get('admin_count', 0))}<br>")
+                lineas.append(f"- Administradores: {format_number_es(datos.get('admin_count', 0))}")
             if any(k in parte_normalizada for k in ["cliente", "clientes"]) and not any(k in parte_normalizada for k in ["cliente registrado", "clientes registrados"]):
-                lineas.append(f"- Clientes: {format_number_es(datos.get('cliente_count', 0))}<br>")
+                lineas.append(f"- Clientes: {format_number_es(datos.get('cliente_count', 0))}")
             if any(k in parte_normalizada for k in ["empleado", "empleados"]):
-                lineas.append(f"- Empleados: {format_number_es(datos.get('empleado_count', 0))}<br>")
+                lineas.append(f"- Empleados: {format_number_es(datos.get('empleado_count', 0))}")
             # Solo agregamos conductores si NO hay nada de vehículos en la misma parte de pregunta
             if any(k in parte_normalizada for k in ["conductor", "conductores"]) and not hay_vehiculos:
-                lineas.append(f"- Conductores: {format_number_es(datos.get('conductor_count', 0))}<br>")
+                lineas.append(f"- Conductores: {format_number_es(datos.get('conductor_count', 0))}")
         
         if len(lineas) > 1:
-            respuestas.append("".join(lineas))
+            respuestas.append("\n".join(lineas))
 
     # --- CLIENTES ---
     if any(k in parte_normalizada for k in ["cliente", "clientes"]):
         if any(k in parte_normalizada for k in ["registrado", "registrados", "total", "hay", "cuantos", "cautnos", "cuántos"]):
-            lineas = ["CLIENTES<br><br>"]
-            lineas.append(f"- Clientes registrados: {format_number_es(datos.get('clientes_registrados', 0))}<br>")
-            respuestas.append("".join(lineas))
+            lineas = ["CLIENTES"]
+            lineas.append(f"- Clientes registrados: {format_number_es(datos.get('clientes_registrados', 0))}")
+            respuestas.append("\n".join(lineas))
 
     # --- PROVEEDORES ---
     if any(k in parte_normalizada for k in ["proveedor", "proveedores", "provdores", "providores"]):
         if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay", "hay cuantos", "hay cautnos", "activos"]):
-            lineas = ["PROVEEDORES<br><br>"]
-            lineas.append(f"- Proveedores registrados: {format_number_es(datos.get('proveedores_count', 0))}<br>")
-            respuestas.append("".join(lineas))
+            lineas = ["PROVEEDORES"]
+            lineas.append(f"- Proveedores registrados: {format_number_es(datos.get('proveedores_count', 0))}")
+            respuestas.append("\n".join(lineas))
 
     # --- MATERIALES / STOCK ---
     if any(k in parte_normalizada for k in ["material", "materiales", "stock"]):
-        lineas = ["ESTADO DEL INVENTARIO<br><br>"]
+        lineas = ["ESTADO DEL INVENTARIO"]
         
         if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay"]):
-            lineas.append(f"- Tipos de materiales: {format_number_es(datos.get('total_materiales', 0))}<br>")
+            lineas.append(f"- Tipos de materiales: {format_number_es(datos.get('total_materiales', 0))}")
         if any(k in parte_normalizada for k in ["total stock", "total de stock"]):
-            lineas.append(f"- Unidades totales en stock: {format_number_es(datos.get('total_stock', 0))}<br>")
+            lineas.append(f"- Unidades totales en stock: {format_number_es(datos.get('total_stock', 0))}")
         
         if any(k in parte_normalizada for k in ["poco", "bajo", "alerta", "alertas", "acabando", "terminando", "sin stock"]):
             if datos.get('stock_bajo', 0) > 0:
-                lineas.append(f"- ⚠️ Materiales con stock bajo: {format_number_es(datos.get('stock_bajo', 0))}<br>")
+                lineas.append(f"- ⚠️ Materiales con stock bajo: {format_number_es(datos.get('stock_bajo', 0))}")
             else:
-                lineas.append(f"- ✅ No hay materiales con stock bajo<br>")
+                lineas.append(f"- ✅ No hay materiales con stock bajo")
         
         if len(lineas) > 1:
-            respuestas.append("".join(lineas))
+            respuestas.append("\n".join(lineas))
 
     # --- VEHÍCULOS ---
     if any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "conductor", "conductores", "asociado", "asignado"]):
-        lineas = ["ESTADO DE VEHÍCULOS<br><br>"]
+        lineas = ["ESTADO DE VEHÍCULOS"]
         
         incluir_resumen = any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos", "vehiculo", "vehiculos", "vehículo", "vehículos", "conductor", "conductores"])
         incluir_asignacion = any(k in parte_normalizada for k in ["asociado", "asignado", "cada conductor"])
         
         if incluir_resumen or incluir_asignacion:
             if incluir_resumen and any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "total", "hay", "cuantos", "cautnos", "cuántos"]):
-                lineas.append(f"- Vehículos totales: {format_number_es(datos.get('vehiculos_count', 0))}<br>")
+                lineas.append(f"- Vehículos totales: {format_number_es(datos.get('vehiculos_count', 0))}")
                 if any(k in parte_normalizada for k in ["disponible", "disponibles", "libre", "libres"]):
-                    lineas.append(f"- Vehículos disponibles: {format_number_es(datos.get('vehiculos_disponibles', 0))}<br>")
+                    lineas.append(f"- Vehículos disponibles: {format_number_es(datos.get('vehiculos_disponibles', 0))}")
                 if any(k in parte_normalizada for k in ["en ruta", "ruta", "ocupados"]):
-                    lineas.append(f"- Vehículos en ruta: {format_number_es(datos.get('vehiculos_en_ruta', 0))}<br>")
+                    lineas.append(f"- Vehículos en ruta: {format_number_es(datos.get('vehiculos_en_ruta', 0))}")
             if any(k in parte_normalizada for k in ["conductor", "conductores", "total", "hay", "cuantos", "cautnos", "cuántos"]):
-                lineas.append(f"- Conductores totales: {format_number_es(datos.get('conductor_count', 0))}<br>")
+                lineas.append(f"- Conductores totales: {format_number_es(datos.get('conductor_count', 0))}")
             if incluir_asignacion:
                 total_asignados = datos.get('total_conductores_con_vehiculo', 0)
-                lineas.append(f"- Conductores con vehículo asignado: {format_number_es(total_asignados)}<br>")
+                lineas.append(f"- Conductores con vehículo asignado: {format_number_es(total_asignados)}")
                 
                 if total_asignados > 0:
-                    lineas.append(f"<br>CONDUCTORES ASIGNADOS<br><br>")
+                    lineas.append(f"\nCONDUCTORES ASIGNADOS")
                     lista = datos.get('vehiculos_por_conductor_lista', [])
                     for idx, item in enumerate(lista, 1):
-                        lineas.append(f"{item['nombre']} (Vehículo: {item['marca']} {item['modelo']} | Placa: {item['placa']})<br>")
+                        lineas.append(f"{item['nombre']} (Vehículo: {item['marca']} {item['modelo']} | Placa: {item['placa']})")
                 
                 total_conductores = datos.get('conductor_count', 0)
                 if total_conductores > total_asignados:
-                    lineas.append(f"<br>OBSERVACIONES<br><br>")
-                    lineas.append(f"- Existen {format_number_es(total_conductores - total_asignados)} conductores sin vehículo asignado<br>")
+                    lineas.append(f"\nOBSERVACIONES")
+                    lineas.append(f"- Existen {format_number_es(total_conductores - total_asignados)} conductores sin vehículo asignado")
         
         if len(lineas) > 1:
-            respuestas.append("".join(lineas))
+            respuestas.append("\n".join(lineas))
 
     # --- PEDIDOS ---
     if any(k in parte_normalizada for k in ["pedido", "pedidos"]):
-        lineas = ["ESTADO DE PEDIDOS<br><br>"]
+        lineas = ["ESTADO DE PEDIDOS"]
         
         if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
-            lineas.append(f"- Pedidos totales: {format_number_es(datos.get('pedidos_totales', 0))}<br>")
+            lineas.append(f"- Pedidos totales: {format_number_es(datos.get('pedidos_totales', 0))}")
         if any(k in parte_normalizada for k in ["pendiente", "pendientes"]):
-            lineas.append(f"- Pendientes: {format_number_es(datos.get('pedidos_pendientes', 0))}<br>")
+            lineas.append(f"- Pendientes: {format_number_es(datos.get('pedidos_pendientes', 0))}")
         if any(k in parte_normalizada for k in ["aprobado", "aprobados"]):
-            lineas.append(f"- Aprobados: {format_number_es(datos.get('pedidos_aprobados', 0))}<br>")
+            lineas.append(f"- Aprobados: {format_number_es(datos.get('pedidos_aprobados', 0))}")
         if any(k in parte_normalizada for k in ["en camino", "camino"]):
-            lineas.append(f"- En camino: {format_number_es(datos.get('pedidos_en_camino', 0))}<br>")
+            lineas.append(f"- En camino: {format_number_es(datos.get('pedidos_en_camino', 0))}")
         if any(k in parte_normalizada for k in ["entregado", "entregados"]):
-            lineas.append(f"- Entregados: {format_number_es(datos.get('pedidos_entregados', 0))}<br>")
+            lineas.append(f"- Entregados: {format_number_es(datos.get('pedidos_entregados', 0))}")
         if any(k in parte_normalizada for k in ["cancelado", "cancelados"]):
-            lineas.append(f"- Cancelados: {format_number_es(datos.get('pedidos_cancelados', 0))}<br>")
+            lineas.append(f"- Cancelados: {format_number_es(datos.get('pedidos_cancelados', 0))}")
         
         if any(k in parte_normalizada for k in ["ventas", "total vendido", "ventas totales"]):
-            lineas.append(f"<br>VENTAS<br><br>")
-            lineas.append(f"- Total de ventas: {format_number_es(datos.get('total_ventas', 0))}<br>")
+            lineas.append(f"\nVENTAS")
+            lineas.append(f"- Total de ventas: {format_number_es(datos.get('total_ventas', 0))}")
         
         if len(lineas) > 1:
-            respuestas.append("".join(lineas))
+            respuestas.append("\n".join(lineas))
 
     # --- COMPRAS ---
     if any(k in parte_normalizada for k in ["compra", "compras"]):
-        lineas = ["ESTADO DE COMPRAS<br><br>"]
+        lineas = ["ESTADO DE COMPRAS"]
         
         if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
-            lineas.append(f"- Compras totales: {format_number_es(datos.get('compras_totales', 0))}<br>")
+            lineas.append(f"- Compras totales: {format_number_es(datos.get('compras_totales', 0))}")
         if any(k in parte_normalizada for k in ["pendiente", "pendientes"]):
-            lineas.append(f"- Pendientes: {format_number_es(datos.get('compras_pendientes', 0))}<br>")
+            lineas.append(f"- Pendientes: {format_number_es(datos.get('compras_pendientes', 0))}")
         if any(k in parte_normalizada for k in ["recibida", "recibidas"]):
-            lineas.append(f"- Recibidas: {format_number_es(datos.get('compras_recibidas', 0))}<br>")
+            lineas.append(f"- Recibidas: {format_number_es(datos.get('compras_recibidas', 0))}")
         
         if any(k in parte_normalizada for k in ["total compras", "total de compras"]):
-            lineas.append(f"<br>MONTOS<br><br>")
-            lineas.append(f"- Total de compras: {format_number_es(datos.get('total_compras', 0))}<br>")
+            lineas.append(f"\nMONTOS")
+            lineas.append(f"- Total de compras: {format_number_es(datos.get('total_compras', 0))}")
         
         if len(lineas) > 1:
-            respuestas.append("".join(lineas))
+            respuestas.append("\n".join(lineas))
 
     # --- FACTURAS ---
     if any(k in parte_normalizada for k in ["factura", "facturas"]):
-        lineas = ["ESTADO DE FACTURAS<br><br>"]
+        lineas = ["ESTADO DE FACTURAS"]
         
         if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
-            lineas.append(f"- Facturas totales: {format_number_es(datos.get('facturas_totales', 0))}<br>")
+            lineas.append(f"- Facturas totales: {format_number_es(datos.get('facturas_totales', 0))}")
         if any(k in parte_normalizada for k in ["pendiente", "pendientes"]):
-            lineas.append(f"- Pendientes: {format_number_es(datos.get('facturas_pendientes', 0))}<br>")
+            lineas.append(f"- Pendientes: {format_number_es(datos.get('facturas_pendientes', 0))}")
         if any(k in parte_normalizada for k in ["pagada", "pagadas"]):
-            lineas.append(f"- Pagadas: {format_number_es(datos.get('facturas_pagadas', 0))}<br>")
+            lineas.append(f"- Pagadas: {format_number_es(datos.get('facturas_pagadas', 0))}")
         
         if any(k in parte_normalizada for k in ["total facturado", "facturado total"]):
-            lineas.append(f"<br>MONTOS<br><br>")
-            lineas.append(f"- Total facturado: {format_number_es(datos.get('total_facturado', 0))}<br>")
+            lineas.append(f"\nMONTOS")
+            lineas.append(f"- Total facturado: {format_number_es(datos.get('total_facturado', 0))}")
         
         if len(lineas) > 1:
-            respuestas.append("".join(lineas))
+            respuestas.append("\n".join(lineas))
 
     # --- PAGOS ---
     if any(k in parte_normalizada for k in ["pago", "pagos"]):
-        lineas = ["ESTADO DE PAGOS<br><br>"]
+        lineas = ["ESTADO DE PAGOS"]
         
         if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
-            lineas.append(f"- Pagos registrados: {format_number_es(datos.get('pagos_totales', 0))}<br>")
+            lineas.append(f"- Pagos registrados: {format_number_es(datos.get('pagos_totales', 0))}")
         if any(k in parte_normalizada for k in ["total pagado", "pagado total"]):
-            lineas.append(f"- Total pagado: {format_number_es(datos.get('total_pagado', 0))}<br>")
+            lineas.append(f"- Total pagado: {format_number_es(datos.get('total_pagado', 0))}")
         
         if len(lineas) > 1:
-            respuestas.append("".join(lineas))
+            respuestas.append("\n".join(lineas))
 
     return respuestas
 
@@ -287,13 +287,13 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
 
     # 5. Resumen general si aún no hay respuestas
     if not respuestas and any(k in mensaje_normalizado for k in ["resumen", "sistema", "que hay", "qué hay", "que tiene", "qué tiene"]):
-        respuestas.append(f"""RESUMEN DEL SISTEMA<br><br>
-- Usuarios: {format_number_es(datos.get('total_usuarios', 0))} totales, {format_number_es(datos.get('usuarios_activos', 0))} activos<br>
-- Clientes: {format_number_es(datos.get('clientes_registrados', 0))} registrados<br>
-- Proveedores: {format_number_es(datos.get('proveedores_count', 0))}<br>
-- Materiales: {format_number_es(datos.get('total_materiales', 0))} tipos<br>
-- Vehículos: {format_number_es(datos.get('vehiculos_count', 0))} total<br>
-- Pedidos: {format_number_es(datos.get('pedidos_totales', 0))} totales<br>""")
+        respuestas.append(f"""RESUMEN DEL SISTEMA
+- Usuarios: {format_number_es(datos.get('total_usuarios', 0))} totales, {format_number_es(datos.get('usuarios_activos', 0))} activos
+- Clientes: {format_number_es(datos.get('clientes_registrados', 0))} registrados
+- Proveedores: {format_number_es(datos.get('proveedores_count', 0))}
+- Materiales: {format_number_es(datos.get('total_materiales', 0))} tipos
+- Vehículos: {format_number_es(datos.get('vehiculos_count', 0))} total
+- Pedidos: {format_number_es(datos.get('pedidos_totales', 0))} totales""")
 
     if respuestas:
         # Eliminar duplicados (mantener orden)
@@ -304,8 +304,8 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
                 visto.add(r)
                 respuestas_unicas.append(r)
         if saludo:
-            return f"{saludo}<br><br>" + "<br><br>".join(respuestas_unicas)
-        return "<br><br>".join(respuestas_unicas)
+            return f"{saludo}\n\n" + "\n\n".join(respuestas_unicas)
+        return "\n\n".join(respuestas_unicas)
 
     return None
 
@@ -335,16 +335,17 @@ def obtener_respuesta_inteligente(mensaje, usuario=None, historial=None, datos=N
         return f"{saludo} {random.choice(respuestas_bienvenida)}".strip()
 
     if any(palabra in mensaje_lower for palabra in ["ayuda", "ayúdame", "ayudame", "que puedes hacer", "qué puedes hacer", "que haces", "qué haces", "que sabes", "qué sabes", "puedes hacer", "que puedo hacer"]):
-        respuesta_ayuda = """AYUDA<br><br>
-¿QUÉ PUEDO HACER?<br><br>
-- Hora y fecha: Preguntar la hora actual, incluyendo en otros países y zonas horarias<br>
-- Cálculos matemáticos: Realizar operaciones aritméticas básicas<br>
-- Información del sistema:<br>
-  - Usuarios, clientes y proveedores<br>
-  - Materiales y estado del inventario<br>
-  - Vehículos y asignaciones a conductores<br>
-  - Pedidos, compras, facturas y pagos<br>
+        respuesta_ayuda = """AYUDA
 
+¿QUÉ PUEDO HACER?
+
+- Hora y fecha: Preguntar la hora actual, incluyendo en otros países y zonas horarias
+- Cálculos matemáticos: Realizar operaciones aritméticas básicas
+- Información del sistema:
+  - Usuarios, clientes y proveedores
+  - Materiales y estado del inventario
+  - Vehículos y asignaciones a conductores
+  - Pedidos, compras, facturas y pagos
 
 Puedes preguntar sobre cualquier aspecto del sistema o hacer preguntas generales!"""
         return f"{saludo}\n\n{respuesta_ayuda}".strip()
