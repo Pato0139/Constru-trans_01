@@ -49,11 +49,11 @@ def responder_hora(texto: str) -> str | None:
     partes = []
 
     if "estados unidos" in t or "usa" in t or "eeuu" in t:
-        partes.append("En Estados Unidos hay varias zonas horarias:<br>")
+        partes.append("En Estados Unidos hay varias zonas horarias:")
         for label, tz in US_ZONES.items():
             now = datetime.now(ZoneInfo(tz))
             partes.append(
-                f"- {label}: {now.strftime('%H:%M')} ({periodo(now.hour)}), {now.strftime('%d/%m/%Y')}<br>"
+                f"- {label}: {now.strftime('%H:%M')} ({periodo(now.hour)}), {now.strftime('%d/%m/%Y')}"
             )
 
     encontrados = []
@@ -70,10 +70,10 @@ def responder_hora(texto: str) -> str | None:
             vistos.add(tz)
 
     for nombre, tz in encontrados_unicos:
-        partes.append(hora_lugar(nombre, tz) + "<br>")
+        partes.append(hora_lugar(nombre, tz))
 
     if partes:
-        return "".join(partes)
+        return "\n".join(partes)
 
     return None
 
