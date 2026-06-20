@@ -110,9 +110,15 @@ def procesar_parte_pregunta(parte, datos):
         # Primero revisamos si es una pregunta sobre ASIGNACIÓN (esta tiene prioridad para evitar duplicados)
         es_pregunta_asignacion = any(k in parte_normalizada for k in ["asociado", "asignado", "cada conductor"])
         if es_pregunta_asignacion:
-            vehiculos = datos.get('vehiculos_por_conductor', [])
-            if vehiculos:
-                respuestas.append("Vehículos asignados a cada conductor:\n" + "\n".join(vehiculos))
+            total = datos.get('total_conductores_con_vehiculo', 0)
+            lista = datos.get('vehiculos_por_conductor_lista', [])
+            if total > 0:
+                texto = f"Hay {format_number_es(total)} conductores con vehículo asignado."
+                if lista:
+                    texto += "\nEjemplos:\n" + "\n".join(lista)
+                    if total > 5:
+                        texto += f"\n... y {format_number_es(total - 5)} más."
+                respuestas.append(texto)
             else:
                 respuestas.append("Actualmente no hay vehículos asignados a conductores.")
         else:
