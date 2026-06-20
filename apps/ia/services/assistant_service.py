@@ -72,6 +72,80 @@ def has_keywords(check_strings, keywords):
                 return True
     return False
 
+def obtener_respuesta_fija(parte, check_strings):
+    """Devuelve respuestas fijas para preguntas sobre la plataforma"""
+    # 1) Preguntas sobre la empresa/web
+    if has_keywords(check_strings, ["que es", "qué es", "que es constru trans", "qué es constru trans", "que es constru", "qué es constru"]):
+        return "Constru-Trans es una plataforma integral de gestión para empresas de construcción y transporte. Te ayuda a administrar inventario, pedidos, compras, facturación, vehículos, conductores y más."
+    
+    if has_keywords(check_strings, ["para que sirve", "para qué sirve", "que puedo hacer", "qué puedo hacer", "modulos", "módulos", "que tiene", "qué tiene"]):
+        return """¿Qué puedes hacer en Constru-Trans?
+- 📦 Gestión de inventario y materiales
+- 🛒 Gestión de pedidos de clientes
+- 🛒 Gestión de compras a proveedores
+- 🧾 Facturación y pagos
+- 🚛 Gestión de flota de vehículos
+- 🧑✈ Gestión de conductores y usuarios
+- 📊 Reportes y estadísticas
+- 📝 Historial de actividades
+
+Sí es para clientes, administradores y conductores: cada uno tiene su propio panel adaptado."""
+    
+    if has_keywords(check_strings, ["como funciona", "cómo funciona"]):
+        return "Constru-Trans funciona como sistema de gestión empresarial. Los clientes crean pedidos, los administradores procesan y supervisan, y los conductores hacen las entregas. Todo integrado para optimizar la logística y el flujo de trabajo."
+    
+    if has_keywords(check_strings, ["para clientes", "para admin", "para administrador", "para conductores", "tambien sirve", "también sirve"]):
+        return "¡Sí! Constru-Trans está diseñado para todos: clientes (hacen pedidos y siguen sus entregas), administradores (supervisan todo), conductores (gestionan entregas y vehículos)."
+    
+    # 2) Preguntas de navegación y clientes
+    if has_keywords(check_strings, ["como creo un pedido", "cómo creo un pedido", "solicitar materiales", "crear pedido", "hacer un pedido"]):
+        return "Para crear un pedido: 1) Ve al menú > Pedidos > Crear pedido; 2) Selecciona los materiales; 3) Confirma el pedido y envía!"
+    
+    if has_keywords(check_strings, ["como veo mis pedidos", "ver mis pedidos", "ver historial de pedidos", "mis pedidos"]):
+        return "Para ver tus pedidos: Menú > Mis pedidos o Pedidos > Historial."
+    
+    if has_keywords(check_strings, ["seguimiento entrega", "seguimiento de entrega", "como sigo una entrega", "cómo sigo una entrega"]):
+        return "Para hacer seguimiento de tu pedido: Mis pedidos > Selecciona el pedido > Ver seguimiento de entrega!"
+    
+    if has_keywords(check_strings, ["cancelar pedido", "como cancelo un pedido", "cómo cancelo un pedido"]):
+        return "Para cancelar un pedido: Mis pedidos > Selecciona el pedido > Cancelar (solo si el pedido esté en estado pendiente)."
+    
+    if has_keywords(check_strings, ["descargar factura", "descargar facturas", "descargar una factura", "ver facturas", "mis facturas"]):
+        return "Para ver y descargar tus facturas: Facturas > Mis facturas > Selecciona la factura y descarga!"
+    
+    if has_keywords(check_strings, ["realizar un pago", "realizar pago", "como hago un pago", "cómo hago un pago"]):
+        return "Para hacer un pago: Mis facturas > Selecciona la factura pendiente > Realizar pago!"
+    
+    if has_keywords(check_strings, ["contacto soporte", "contactar soporte", "soporte", "ayuda"]):
+        return "Para contactar a soporte: Página de Ayuda > Formulario o botón de Soporte en la barra de navegación!"
+    
+    if has_keywords(check_strings, ["donde esta boton", "dónde está el boton", "boton para pedido", "botón para pedido"]):
+        return "El botón para crear un pedido está en la página principal o en el menú Pedidos!"
+    
+    if has_keywords(check_strings, ["diferencia entre pedidos", "compras", "facturacion", "facturación", "que diferencia", "qué diferencia"]):
+        return "Diferencia entre módulos:\n- Pedidos: Solicitudes de clientes\n- Compras: Pedidos a proveedores\n- Facturación: Facturas y cobros"
+    
+    if has_keywords(check_strings, ["que guarda", "qué guarda", "informacion guarda", "información guarda", "que registra", "qué registra"]):
+        return "El sistema registra: usuarios, clientes, proveedores, materiales y stock, pedidos, compras, facturas, pagos, vehículos, conductores y todo el historial de actividades."
+    
+    if has_keywords(check_strings, ["sin internet", "offline first", "offline-first", "que significa offline", "qué significa offline"]):
+        return "Constru-Trans es offline-first: funciona sin internet. Las operaciones locales, y cuando reestableces la conexión, se sincroniza!"
+    
+    # 3) Reportes
+    if has_keywords(check_strings, ["reportes", "que reportes", "qué reportes", "exportar", "pdf", "excel", "xml"]):
+        return "¡Sí! Puedes generar reportes de clientes, inventario, ventas y pedidos, y exportarlos a PDF, Excel y XML! Ve al menú Reportes."
+    
+    # 4) Historial y auditoría
+    if has_keywords(check_strings, ["historial de actividades", "auditoria", "auditoría", "que acciones registra", "qué acciones registra", "inicios de sesion", "inicios de sesión", "cierre de sesion", "cierre de sesión"]):
+        return "El sistema registra todas las acciones importantes! Ve a Menú > Historial para revisar todas las actividades, incluyendo inicios y cierres de sesión, y puedes filtrar por fecha!"
+    
+    # 5) Preguntas de conductores
+    if has_keywords(check_strings, ["panel del conductor", "panel conductor", "historial de entregas", "historial entregas", "donde veo", "dónde veo"]):
+        return "Para conductores: Menú principal es tu panel! Historial de entregas está en el menú del conductor."
+    
+    return None
+
+
 def procesar_parte_pregunta(parte, datos, secciones_vistas=None):
     """Procesa una parte individual de la pregunta y devuelve la respuesta"""
     if secciones_vistas is None:
@@ -82,6 +156,11 @@ def procesar_parte_pregunta(parte, datos, secciones_vistas=None):
     # Also create a combined check list that includes both normalized and original lower
     check_strings = [parte_normalizada, parte_lower]
     respuestas = []
+    
+    # 0. VERIFICAR PRIMERO RESPUESTAS FIJAS
+    respuesta_fija = obtener_respuesta_fija(parte, check_strings)
+    if respuesta_fija:
+        return [respuesta_fija]
 
     # --- 0. OPERACIONES MATEMÁTICAS PRIMERO (para esta parte) ---
     try:
