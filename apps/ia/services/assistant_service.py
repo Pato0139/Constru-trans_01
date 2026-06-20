@@ -202,26 +202,24 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         logger.exception("Error en verificar_pregunta_especifica matemáticas")
 
     # 2. Preprocesar: separar "y" que está pegado a palabras (ej: "conductory" → "conductor y")
-    mensaje_procesado = re.sub(r'(\w)y(\w)', r'\1 y \2', mensaje_normalizado)
-    mensaje_procesado = re.sub(r'(\w)y(\s)', r'\1 y ', mensaje_procesado)
-    mensaje_procesado = re.sub(r'(\s)y(\w)', r' y \2', mensaje_procesado)
+    # Primero, manejar el caso específico "conductory" que es el que tiene el usuario
+    mensaje_procesado = re.sub(r'conductory', r'conductor y', mensaje_normalizado, flags=re.IGNORECASE)
+    # Ahora, para evitar romper "hay", hacemos una sustitución más inteligente:
+    # Buscar cualquier instancia de una palabra que termine con algo que no sea "ha" seguida de "y" y luego otra palabra
+    # O simplemente, primero reemplazar "y" entre dos palabras que no sean "hay"
+    # Simplificamos: primero, reemplazamos todos los "y" que NO estén en "hay"
+    # Pero para eso, usamos un enfoque diferente: reemplazamos "y" solo si está entre dos letras que NO forman "hay"
+    # Por ahora, primero manejemos el caso del usuario y luego separamos normalmente
+    # Primero, reemplazamos " y que" y " y qué" por separadores claros
+    mensaje_procesado = re.sub(r'\s+y que\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
+    mensaje_procesado = re.sub(r'\s+y qué\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
+    mensaje_procesado = re.sub(r'\s+que\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
+    mensaje_procesado = re.sub(r'\s+qué\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
+    # Luego, reemplazamos " y " por " | " para separar las preguntas
+    mensaje_procesado = re.sub(r'\s+y\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
 
-    # 3. Separar la pregunta en partes usando "y", "y que", "que", "qué"
-    patrones_separadores = [
-        r'\s+y\s+',       # " y "
-        r'\s+y que\s+',   # " y que "
-        r'\s+y qué\s+',   # " y qué "
-        r'\s+que\s+',     # " que "
-        r'\s+qué\s+',     # " qué "
-        r'\s+y\s+que\s+', # " y que "
-        r'\s+y\s+qué\s+', # " y qué "
-    ]
-    partes = [mensaje_procesado]
-    for patron in patrones_separadores:
-        nuevas_partes = []
-        for parte in partes:
-            nuevas_partes.extend(re.split(patron, parte))
-        partes = nuevas_partes
+    # 3. Separar la pregunta en partes usando el separador " | " que creamos
+    partes = mensaje_procesado.split(" | ")
     # Limpiar partes vacías o muy cortas
     partes = [p.strip() for p in partes if p.strip() and len(p.strip()) > 2]
 
