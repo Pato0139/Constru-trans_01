@@ -113,6 +113,14 @@ def procesar_parte_pregunta(parte, datos):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_disponibles', 0))} vehículos disponibles y {format_number_es(datos.get('vehiculos_en_ruta', 0))} en ruta. En total hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos en el sistema.")
         if any(k in parte_normalizada for k in ["en ruta", "ruta", "ocupados"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_en_ruta', 0))} vehículos en ruta y {format_number_es(datos.get('vehiculos_disponibles', 0))} disponibles.")
+        
+        # Pregunta sobre vehículos asociados a conductores
+        if any(k in parte_normalizada for k in ["asociado", "asignado", "conductor", "cada conductor", "carros", "vehiculos"]):
+            vehiculos = datos.get('vehiculos_por_conductor', [])
+            if vehiculos:
+                respuestas.append("Vehículos asignados a cada conductor:\n" + "\n".join(vehiculos))
+            else:
+                respuestas.append("Actualmente no hay vehículos asignados a conductores.")
 
     # --- PEDIDOS ---
     if any(k in parte_normalizada for k in ["pedido", "pedidos"]):
