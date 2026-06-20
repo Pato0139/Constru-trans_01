@@ -23,6 +23,14 @@ def obtener_contexto_datos(force_refresh=False):
         from apps.facturacion.models import Factura
         from apps.pagos.models import Pago
 
+        # Obtener vehículos asociados a cada conductor
+        from apps.usuarios.models import ConductorVehiculo
+        vehiculos_por_conductor = []
+        for asignacion in ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related("conductor__usuario", "vehiculo"):
+            nombre_conductor = f"{asignacion.conductor.usuario.nombres} {asignacion.conductor.usuario.apellidos}"
+            vehiculo_info = f"{asignacion.vehiculo.marca} {asignacion.vehiculo.modelo} (Placa: {asignacion.vehiculo.placa})"
+            vehiculos_por_conductor.append(f"- {nombre_conductor}: {vehiculo_info}")
+
         data = {
             "total_usuarios": Usuario.objects.count(),
             "usuarios_activos": Usuario.objects.filter(estado="activo").count(),
@@ -61,6 +69,7 @@ def obtener_contexto_datos(force_refresh=False):
             "vehiculos_count": Vehiculo.objects.count(),
             "vehiculos_disponibles": Vehiculo.objects.filter(estado="disponible").count(),
             "vehiculos_en_ruta": Vehiculo.objects.filter(estado="en_ruta").count(),
+            "vehiculos_por_conductor": vehiculos_por_conductor,
 
             "clientes_registrados": Cliente.objects.count(),
             "generated_at": datetime.now().isoformat(),
