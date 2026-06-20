@@ -276,8 +276,8 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
                 visto.add(r)
                 respuestas_unicas.append(r)
         if saludo:
-            return f"{saludo}\n" + "\n".join(respuestas_unicas)
-        return "\n".join(respuestas_unicas)
+            return f"{saludo}\n\n" + "\n\n".join(respuestas_unicas)
+        return "\n\n".join(respuestas_unicas)
 
     return None
 
