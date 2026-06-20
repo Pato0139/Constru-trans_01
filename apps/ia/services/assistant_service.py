@@ -58,7 +58,28 @@ def normalizar_texto(texto):
 def procesar_parte_pregunta(parte, datos):
     """Procesa una parte individual de la pregunta y devuelve la respuesta"""
     parte_normalizada = normalizar_texto(parte)
+    parte_lower = parte.lower()
     respuestas = []
+
+    # --- 0. OPERACIONES MATEMÁTICAS PRIMERO (para esta parte) ---
+    try:
+        tiene_numeros = bool(re.search(r'\d', parte))
+        tiene_palabras_matematicas = any(p in parte_normalizada for p in ["cuanto es", "cuánto es", "calcular", "calcula", "resultado de", "sumar", "restar", "multiplicar", "dividir"])
+        
+        if tiene_numeros or tiene_palabras_matematicas:
+            allowed_chars = re.compile(r'[\d\.\(\)\+\-\*/\^\s]|más|menos|por|entre|ra[íi]z|sqrt|sen|sin|cos|tan|log|ln|exp|pi|e|fact|factorial|abs|round', re.IGNORECASE)
+            extracted_parts = allowed_chars.findall(parte_lower)
+            if extracted_parts:
+                extracted_expr = "".join(extracted_parts).strip()
+                tiene_digito = bool(re.search(r'\d', extracted_expr))
+                tiene_operacion = bool(re.search(r'[\+\-\*/\^]|más|menos|por|entre|ra[íi]z|sqrt|sen|sin|cos|tan|log|ln|exp|pi|fact|factorial|abs|round', extracted_expr, re.IGNORECASE))
+                if tiene_digito or tiene_operacion:
+                    if extracted_expr and len(extracted_expr) >= 3:
+                        resultado = evaluar_expresion_matematica(extracted_expr)
+                        if resultado is not None:
+                            respuestas.append(f"{resultado}")
+    except Exception:
+        logger.exception("Error en procesar_parte_pregunta matemáticas")
 
     # --- USUARIOS ---
     if any(k in parte_normalizada for k in ["usuario", "usuarios"]):
@@ -194,38 +215,12 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         if usuario and usuario.is_authenticated:
             saludo = f"¡Hola {usuario.nombres}!"
 
-    # 1. OPERACIONES MATEMÁTICAS (solo si hay dígitos o operadores matemáticos claros)
-    try:
-        # Primero revisamos si la pregunta tiene números o palabras matemáticas claras
-        tiene_numeros = bool(re.search(r'\d', mensaje))
-        tiene_palabras_matematicas = any(p in mensaje_normalizado for p in ["cuanto es", "cuánto es", "calcular", "calcula", "resultado de", "cuanto es", "sumar", "restar", "multiplicar", "dividir"])
-        
-        if tiene_numeros or tiene_palabras_matematicas:
-            allowed_chars = re.compile(r'[\d\.\(\)\+\-\*/\^\s]|más|menos|por|entre|ra[íi]z|sqrt|sen|sin|cos|tan|log|ln|exp|pi|e|fact|factorial|abs|round', re.IGNORECASE)
-            extracted_parts = allowed_chars.findall(mensaje_lower)
-            if extracted_parts:
-                extracted_expr = "".join(extracted_parts).strip()
-                # Ahora, verificamos que la expresión tenga al menos un número o una operación clara
-                tiene_digito = bool(re.search(r'\d', extracted_expr))
-                tiene_operacion = bool(re.search(r'[\+\-\*/\^]|más|menos|por|entre|ra[íi]z|sqrt|sen|sin|cos|tan|log|ln|exp|pi|fact|factorial|abs|round', extracted_expr, re.IGNORECASE))
-                if tiene_digito or tiene_operacion:
-                    if extracted_expr and len(extracted_expr) >= 3:
-                        resultado = evaluar_expresion_matematica(extracted_expr)
-                        if resultado is not None:
-                            respuestas.append(f"{resultado}")
-    except Exception:
-        logger.exception("Error en verificar_pregunta_especifica matemáticas")
 
-    # 2. Preprocesar: separar "y" que está pegado a palabras (ej: "conductory" → "conductor y")
-    # Primero, manejar el caso específico "conductory" que es el que tiene el usuario
+
+    # 1. Preprocesar: separar "y" que está pegado a palabras (ej: "conductory" → "conductor y")
+    # Primero, manejar el caso específico "conductory"
     mensaje_procesado = re.sub(r'conductory', r'conductor y', mensaje_normalizado, flags=re.IGNORECASE)
-    # Ahora, para evitar romper "hay", hacemos una sustitución más inteligente:
-    # Buscar cualquier instancia de una palabra que termine con algo que no sea "ha" seguida de "y" y luego otra palabra
-    # O simplemente, primero reemplazar "y" entre dos palabras que no sean "hay"
-    # Simplificamos: primero, reemplazamos todos los "y" que NO estén en "hay"
-    # Pero para eso, usamos un enfoque diferente: reemplazamos "y" solo si está entre dos letras que NO forman "hay"
-    # Por ahora, primero manejemos el caso del usuario y luego separamos normalmente
-    # Primero, reemplazamos " y que" y " y qué" por separadores claros
+    # Ahora, reemplazamos separadores claros
     mensaje_procesado = re.sub(r'\s+y que\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
     mensaje_procesado = re.sub(r'\s+y qué\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
     mensaje_procesado = re.sub(r'\s+que\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
