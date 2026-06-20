@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Notificaciones - Constru-trans{% endblock %}
+
+{% block header_title %}Mis Notificaciones{% endblock %}
+
+{% block content %}
+<div class="table-container p-4" data-aos="fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+        <h5 class="fw-800 m-0 text-color">Centro de Notificaciones</h5>
+    </div>
+
+    <div class="list-group list-group-flush bg-transparent">
+        {% for notif in notificaciones %}
+        <div class="list-group-item bg-transparent border-white-10 py-3 px-3 {% if not notif.leida %}notif-unread{% endif %}">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="d-flex gap-3">
+                    <div class="notif-icon rounded-circle p-2 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-bell {% if notif.leida %}text-muted{% else %}text-accent{% endif %} fs-5"></i>
+                    </div>
+                    <div>
+                        <p class="mb-1 text-color {% if not notif.leida %}fw-700{% endif %}">{{ notif.mensaje }}</p>
+                        <span class="small text-muted">{{ notif.fecha|date:"d M, Y H:i" }}</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if notif.link %}
+                    <a href="{% url 'usuarios:marcar_notificacion_leida' notif.id %}" class="btn btn-sm btn-outline-accent rounded-pill px-3">
+                        Ver Detalles
+                    </a>
+                    {% elif not notif.leida %}
+                    <a href="{% url 'usuarios:marcar_notificacion_leida' notif.id %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                        Marcar como leída
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-bell-slash fs-1 opacity-25 mb-3 d-block"></i>
+            <p>No tienes notificaciones en este momento.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .notif-unread {
+        background: rgba(var(--color-accent-rgb), 0.05) !important;
+        border-left: 3px solid var(--color-accent) !important;
+    }
+    .notif-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .border-white-10 {
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    .text-accent {
+        color: var(--color-accent) !important;
+    }
+    .btn-outline-accent {
+        color: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+    .btn-outline-accent:hover {
+        background: var(--color-accent);
+        color: #000;
+    }
+</style>
+{% endblock %}

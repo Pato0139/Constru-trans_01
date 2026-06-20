@@ -9,7 +9,8 @@ from .context_service import obtener_contexto_datos
 from .conversation_service import get_conversation, add_message_to_conversation
 from .kb_service import check_knowledge_base, update_knowledge_base
 from .math_service import evaluar_expresion_matematica
-from .ollama_service import preguntar_ollama, verificar_conexion_ollama
+from .semantic_memory_service import buscar_memoria, guardar_interaccion
+from .llm_service import preguntar_llm, verificar_conexion_llm
 from apps.ia.models import UserFeedback, AIPromptTemplate, ConversationMessage
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,7 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
     """Verifica si la pregunta es específica y devuelve la respuesta"""
     mensaje_lower = mensaje.lower()
     es_primera_interaccion = len(historial) == 0
+    mensaje_sin_puntuacion = re.sub(r'[^\w\s]', '', mensaje_lower).strip()
 
     # Construir saludo
     saludo = ""
@@ -28,110 +30,69 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         if usuario and usuario.is_authenticated:
             saludo = f"¡Hola {usuario.nombres}!"
 
-    # 1. HORA ACTUAL
-    palabras_clave_hora = ["qué hora es", "que hora es", "qué horas son", "que horas son", "dime la hora", "hora actual", "hora por favor"]
-    if any(palabra in mensaje_lower for palabra in palabras_clave_hora):
+    # 1. HORA (y preguntas relacionadas)
+    if "hora" in mensaje_lower and ("es" in mensaje_lower or "son" in mensaje_lower or "actual" in mensaje_lower):
         ahora = datetime.now()
         hora_str = ahora.strftime("%H:%M")
         fecha_str = ahora.strftime("%d/%m/%Y")
-        return f"{saludo} La hora actual es {hora_str} y la fecha es {fecha_str}.".strip()
+        
+        # Preguntas sobre horarios en otros países
+        if "argentina" in mensaje_lower:
+            hora_arg = ahora.hour - 3  # Ejemplo de diferencia horaria
+            if hora_arg < 0:
+                hora_arg += 24
+            return f"{saludo} En Argentina (UTC-3) son aproximadamente las {hora_arg:02d}:{ahora.minute:02d} y la fecha es {fecha_str}."
+        elif "estados unidos" in mensaje_lower or "eeuu" in mensaje_lower or "usa" in mensaje_lower:
+            hora_ny = ahora.hour - 6  # Ejemplo para Nueva York
+            if hora_ny < 0:
+                hora_ny += 24
+            es_noche = hora_ny >= 20 or hora_ny < 6
+            return f"{saludo} En Nueva York son aproximadamente las {hora_ny:02d}:{ahora.minute:02d}. {'Es de noche.' if es_noche else 'Es de día.'}"
+        elif "es de noche" in mensaje_lower or "es de día" in mensaje_lower or "día o noche" in mensaje_lower:
+            es_noche = ahora.hour >= 20 or ahora.hour < 6
+            return f"{saludo} La hora actual es {hora_str} y la fecha es {fecha_str}. {'Es de noche.' if es_noche else 'Es de día.'}"
+        else:
+            return f"{saludo} La hora actual es {hora_str} y la fecha es {fecha_str}."
 
-    # 2. OPERACIONES MATEMÁTICAS - SUPER MEJORADA!
+    # 2. OPERACIONES MATEMÁTICAS
     try:
-        # Lista de frases que indican una pregunta de matemáticas
-        math_indicators = [
-            "cuánto es", "cuanto es", "calcula", "resuelve", "qué es", "cuál es",
-            "dime el resultado de", "resultado de", "calcular", "resolver",
-            "qué es la raíz", "cuánto es la raíz", "calcula la raíz"
-        ]
-        
-        # Extraer la parte matemática del mensaje
-        expr_to_test = None
-        
-        # Primero, revisar si hay frases de math_indicators
-        for indicator in math_indicators:
-            if indicator in mensaje_lower:
-                # Tomar todo lo que viene DESPUÉS del indicador
-                idx = mensaje_lower.find(indicator)
-                expr_to_test = mensaje_lower[idx + len(indicator):].strip()
-                if expr_to_test:
-                    break
-        
-        # Si no encontramos, probamos con todo el mensaje
-        if not expr_to_test:
-            expr_to_test = mensaje
-        
-        # Eliminar artículos y palabras de relleno del principio
-        filler_words = ["la", "el", "los", "las", "un", "una", "unos", "unas", "y", "o", "de", "del"]
-        expr_parts = expr_to_test.split()
-        while len(expr_parts) > 0 and expr_parts[0].lower() in filler_words:
-            expr_parts.pop(0)
-        expr_to_test = " ".join(expr_parts)
-            
-        # Intentar evaluar la expresión
-        resultado = evaluar_expresion_matematica(expr_to_test)
-        if resultado is not None:
-            return f"{saludo} {resultado}".strip()
-        
-        # Si no funcionó, intentar extraer sólo números, operadores y funciones matemáticas
-        # Filtramos el mensaje para dejar sólo caracteres matemáticos
         allowed_chars = re.compile(r'[\d\.\(\)\+\-\*/\^\s]|más|menos|por|entre|ra[íi]z|sqrt|sen|sin|cos|tan|log|ln|exp|pi|e|fact|factorial|abs|round', re.IGNORECASE)
         extracted_parts = allowed_chars.findall(mensaje_lower)
         if extracted_parts:
             extracted_expr = "".join(extracted_parts).strip()
-            if extracted_expr:
+            if extracted_expr and len(extracted_expr) >= 3:
                 resultado = evaluar_expresion_matematica(extracted_expr)
                 if resultado is not None:
-                    return f"{saludo} {resultado}".strip()
-    
+                    return f"{saludo} {resultado}."
     except Exception:
         logger.exception("Error en verificar_pregunta_especifica matemáticas")
 
     # 3. ALERTAS DE MATERIALES
-    palabras_clave_alertas = [
-        "alerta", "alertas", "poco material", "material bajo", "stock bajo",
-        "qué materiales", "que materiales", "materiales con poco",
-        "acabarse", "terminándose", "terminando", "sin stock", "sin materiales",
-        "hay poco", "falta", "faltan", "aviso", "notificación"
-    ]
-    if any(palabra in mensaje_lower for palabra in palabras_clave_alertas):
+    if ("alerta" in mensaje_lower and "material" in mensaje_lower) or "stock bajo" in mensaje_lower or "qué materiales" in mensaje_lower:
         if datos.get('stock_bajo', 0) > 0:
             respuestas_alertas = [
                 f"¡Alerta! Hay {datos['stock_bajo']} materiales con stock bajo. ¡Revisa el inventario!",
                 f"Aviso: {datos['stock_bajo']} materiales están por acabarse. ¡No te olvides de reabastecer!",
             ]
-            return f"{saludo} {random.choice(respuestas_alertas)}".strip()
+            return f"{saludo} {random.choice(respuestas_alertas)}."
         else:
             respuestas_ok = [
                 "Todo bien en el inventario! No hay materiales con stock bajo.",
                 "Excelente, el inventario está en perfectas condiciones, sin alertas.",
             ]
-            return f"{saludo} {random.choice(respuestas_ok)}".strip()
+            return f"{saludo} {random.choice(respuestas_ok)}."
 
-    # 4. VEHICULOS DISPONIBLES
-    palabras_clave_vehiculos = [
-        "vehículos disponibles", "vehiculos disponibles", "qué vehículos están disponibles", "que vehiculos estan disponibles",
-        "autos disponibles", "camiones disponibles", "vehiculos libres", "vehículos libres"
-    ]
-    if any(palabra in mensaje_lower for palabra in palabras_clave_vehiculos):
-        return f"{saludo} Actualmente hay {datos.get('vehiculos_disponibles', 0)} vehículos disponibles y {datos.get('vehiculos_en_ruta', 0)} en ruta. En total hay {datos.get('vehiculos_count', 0)} vehículos en el sistema.".strip()
+    # 4. VEHICULOS
+    if "vehículos" in mensaje_lower or "vehiculos" in mensaje_lower or "autos" in mensaje_lower or "camiones" in mensaje_lower:
+        return f"{saludo} Actualmente hay {datos.get('vehiculos_disponibles', 0)} vehículos disponibles y {datos.get('vehiculos_en_ruta', 0)} en ruta. En total hay {datos.get('vehiculos_count', 0)} vehículos en el sistema."
 
     # 5. PEDIDOS
-    palabras_clave_pedidos = [
-        "pedidos pendientes", "cuántos pedidos hay", "cuantos pedidos hay", "qué pedidos hay", "que pedidos hay",
-        "estado de pedidos", "pedidos totales"
-    ]
-    if any(palabra in mensaje_lower for palabra in palabras_clave_pedidos):
-        return f"{saludo} Resumen de pedidos: {datos.get('pedidos_totales', 0)} totales, {datos.get('pedidos_pendientes', 0)} pendientes, {datos.get('pedidos_aprobados', 0)} aprobados, {datos.get('pedidos_en_camino', 0)} en camino, {datos.get('pedidos_entregados', 0)} entregados y {datos.get('pedidos_cancelados', 0)} cancelados.".strip()
+    if "pedidos" in mensaje_lower or "pedido" in mensaje_lower:
+        return f"{saludo} Resumen de pedidos: {datos.get('pedidos_totales', 0)} totales, {datos.get('pedidos_pendientes', 0)} pendientes, {datos.get('pedidos_aprobados', 0)} aprobados, {datos.get('pedidos_en_camino', 0)} en camino, {datos.get('pedidos_entregados', 0)} entregados y {datos.get('pedidos_cancelados', 0)} cancelados."
 
     # 6. DATOS GENERALES DEL SISTEMA
-    palabras_clave_sistema = [
-        "dime sobre el sistema", "resumen del sistema", "qué hay en el sistema", "que hay en el sistema",
-        "cuántos usuarios hay", "cuantos usuarios hay", "cuántos clientes hay", "cuantos clientes hay",
-        "cuántos proveedores hay", "cuantos proveedores hay"
-    ]
-    if any(palabra in mensaje_lower for palabra in palabras_clave_sistema):
-        return f"{saludo} Resumen del sistema Constru-Trans: {datos.get('total_usuarios', 0)} usuarios, {datos.get('clientes_registrados', 0)} clientes, {datos.get('proveedores_count', 0)} proveedores, {datos.get('total_materiales', 0)} tipos de materiales, {datos.get('vehiculos_count', 0)} vehículos y {datos.get('pedidos_totales', 0)} pedidos.".strip()
+    if "resumen" in mensaje_lower or "sistema" in mensaje_lower or "qué hay" in mensaje_lower or "cuántos" in mensaje_lower:
+        return f"{saludo} Resumen del sistema Constru-Trans: {datos.get('total_usuarios', 0)} usuarios, {datos.get('clientes_registrados', 0)} clientes, {datos.get('proveedores_count', 0)} proveedores, {datos.get('total_materiales', 0)} tipos de materiales, {datos.get('vehiculos_count', 0)} vehículos y {datos.get('pedidos_totales', 0)} pedidos."
 
     return None
 
@@ -162,13 +123,20 @@ def obtener_respuesta_inteligente(mensaje, usuario=None, historial=None, datos=N
 
     if any(palabra in mensaje_lower for palabra in ["ayuda", "ayúdame", "ayudame", "qué puedes hacer", "que puedes hacer", "qué haces", "que haces", "qué sabes", "que sabes", "puedes hacer", "que puedo hacer"]):
         respuesta_ayuda = [
-            "Estoy aquí para ayudarte con TODO lo que necesites: desde información del sistema Constru-Trans hasta cálculos matemáticos.",
+            "Estoy aquí para ayudarte con:\n- Hora y fecha actual\n- Cálculos matemáticos\n- Información de inventario (usa 'alerta de stock' o 'stock bajo')\n- Estado de vehículos (usa 'vehículos disponibles')\n- Resumen de pedidos (usa 'pedidos pendientes')\n- Resumen del sistema (usa 'resumen del sistema')",
         ]
         return f"{saludo} {random.choice(respuesta_ayuda)}".strip()
 
+    # Respuestas inteligentes sin LLM
+    if any(p in mensaje_lower for p in ["cómo", "cómo se", "cómo puedo", "como", "como se", "como puedo"]):
+        return f"{saludo} Si necesitas ayuda con el sistema, te recomiendo consultar la documentación o preguntarme sobre alguna función específica (como 'pedidos pendientes' o 'vehículos disponibles')."
+
+    if any(p in mensaje_lower for p in ["qué es", "que es", "qué son", "que son"]):
+        return f"{saludo} Soy tu asistente de Constru-Trans. Puedo ayudarte con información del sistema, inventario, pedidos y más. Prueba preguntarme '¿Qué hora es?' o 'Resumen del sistema'."
+
     respuestas_por_defecto = [
-        "Estoy aquí para ayudarte. ¿En qué puedo asistirte hoy?",
-        "Claro, cuéntame más sobre lo que necesitas.",
+        "Estoy aquí para ayudarte. Prueba preguntarme sobre la hora, el inventario o los pedidos pendientes.",
+        "Claro, cuéntame más o prueba preguntarme algo específico como '¿Qué hora es?' o 'Resumen del sistema'.",
     ]
 
     return f"{saludo} {random.choice(respuestas_por_defecto)}".strip()
@@ -183,8 +151,12 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
 
     datos = obtener_contexto_datos()
     nombre_usuario = ""
+    rol_usuario = None
+    user_id = None
     if usuario and usuario.is_authenticated:
         nombre_usuario = f"{usuario.nombres} {usuario.apellidos}".strip()
+        rol_usuario = getattr(usuario, "rol", None)
+        user_id = str(usuario.id)
 
     try:
         kb_entry = check_knowledge_base(mensaje)
@@ -212,18 +184,31 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
             )
             return respuesta_especifica, bot_message.id if bot_message else None
 
-        if verificar_conexion_ollama():
-            respuesta_ollama = preguntar_ollama(mensaje, datos, nombre_usuario, historial)
-            if respuesta_ollama:
+        # Buscar memoria semántica
+        memorias = buscar_memoria(mensaje, n_results=3)
+        memoria_txt = "\n".join(memorias) if memorias else "Sin memoria relevante."
+        mensaje_enriquecido = f"Memoria relevante:\n{memoria_txt}\n\nPregunta del usuario:\n{mensaje}"
+
+        if verificar_conexion_llm():
+            respuesta_llm = preguntar_llm(mensaje_enriquecido, datos, nombre_usuario, historial)
+            if respuesta_llm:
                 bot_message = add_message_to_conversation(
                     conversation,
                     "assistant",
-                    respuesta_ollama,
-                    prompt_used="Ollama Chat",
-                    model_used="llama3.2",
+                    respuesta_llm,
+                    prompt_used="OpenAI-Compatible Chat",
+                    model_used="generic-local-llm",
                     response_time=time.time() - start_time,
                 )
-                return respuesta_ollama, bot_message.id if bot_message else None
+
+                # Guardar interacción en memoria semántica
+                guardar_interaccion(
+                    doc_id=f"conv-{conversation.id}-{int(time.time())}",
+                    texto=f"Usuario: {mensaje}\nAsistente: {respuesta_llm}",
+                    metadata={"conversation_id": conversation.id}
+                )
+
+                return respuesta_llm, bot_message.id if bot_message else None
 
         respuesta_default = obtener_respuesta_inteligente(mensaje, usuario, historial, datos)
         bot_message = add_message_to_conversation(

@@ -1,0 +1,113 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="{% static 'img/icon.png' %}" type="image/x-icon">
+
+<title>{% block title %}Panel Cliente{% endblock %}</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- AOS Animations -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+
+<!-- Custom CSS -->
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/loader.css' %}">
+<link rel="stylesheet" href="{% static 'css/clientes/base.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=1.0">
+
+<script src="{% static 'js/user-preferences.js' %}?v=1.0"></script>
+
+{% block extra_css %}{% endblock %}
+</head>
+
+<body class="bg-light">
+
+    <!-- Loader -->
+    <div id="loader-container">
+        <img src="{% static 'img/Logo1.jpeg' %}" class="loader-img" alt="Cargando...">
+        <div class="loader">
+            <div class="progress-bar"></div>
+        </div>
+        <p>Cargando Panel Cliente...</p>
+    </div>
+
+<div class="container-fluid p-0">
+<div class="d-flex">
+
+{% include "partials/sidebar.html" %}
+
+<main class="flex-grow-1 p-3 overflow-auto main-content">
+
+{% include "partials/navbar.html" %}
+
+{% if messages %}
+<div id="django-messages-data" class="d-none">
+    {% for message in messages %}
+    <div
+        class="django-message-item"
+        data-tags="{{ message.tags|default:"info"|escapejs }}"
+        data-text="{{ message|escapejs }}">
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% block content %}
+{% endblock %}
+
+</main>
+
+</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/loader.js' %}"></script>
+<script src="{% static 'js/clientes/base.js' %}?v=1.0"></script>
+<script src="{% static 'js/partials/navbar.js' %}?v=1.0"></script>
+<script src="{% static 'js/partials/bd-mode-toggle.js' %}?v=1.0"></script>
+
+<svg style="display:none">
+  <defs>
+    <filter id="protanopia-filter">
+      <feColorMatrix type="matrix" values="0.567, 0.433, 0, 0, 0 0.558, 0.442, 0, 0, 0 0, 0.242, 0.758, 0, 0 0, 0, 0, 1, 0"/>
+    </filter>
+    <filter id="deuteranopia-filter">
+      <feColorMatrix type="matrix" values="0.625, 0.375, 0, 0, 0 0.7, 0.3, 0, 0, 0 0, 0.3, 0.7, 0, 0 0, 0, 0, 1, 0"/>
+    </filter>
+    <filter id="tritanopia-filter">
+      <feColorMatrix type="matrix" values="0.95, 0.05, 0, 0, 0 0, 0.433, 0.567, 0, 0 0, 0.475, 0.525, 0, 0 0, 0, 0, 1, 0"/>
+    </filter>
+  </defs>
+</svg>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>
