@@ -10,10 +10,32 @@ from .conversation_service import get_conversation, add_message_to_conversation
 from .kb_service import check_knowledge_base, update_knowledge_base
 from .math_service import evaluar_expresion_matematica
 from .semantic_memory_service import buscar_memoria, guardar_interaccion
-from .llm_service import preguntar_llm, verificar_conexion_llm
+from .llm_service import preguntar_llm
+from .time_service import responder_hora
 from apps.ia.models import UserFeedback, AIPromptTemplate, ConversationMessage
 
 logger = logging.getLogger(__name__)
+
+
+def expandir_mensaje_contextual(mensaje: str, historial: list) -> str:
+    m = (mensaje or "").strip().lower()
+
+    if not historial:
+        return mensaje
+
+    if m.startswith("y en "):
+        ultimos_usuario = [
+            h.get("content") or h.get("text") or ""
+            for h in reversed(historial)
+            if (h.get("role") == "user" or h.get("sender") == "user")
+        ]
+        ultimo = ultimos_usuario[0].lower() if ultimos_usuario else ""
+
+        if any(k in ultimo for k in ["hora", "horas", "día", "dia", "noche", "qué hora", "que hora"]):
+            lugar = mensaje.strip()[4:].strip()
+            return f"¿Qué hora es en {lugar} y si es de día o de noche?"
+
+    return mensaje
 
 
 def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
@@ -30,31 +52,7 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         if usuario and usuario.is_authenticated:
             saludo = f"¡Hola {usuario.nombres}!"
 
-    # 1. HORA (y preguntas relacionadas)
-    if "hora" in mensaje_lower and ("es" in mensaje_lower or "son" in mensaje_lower or "actual" in mensaje_lower):
-        ahora = datetime.now()
-        hora_str = ahora.strftime("%H:%M")
-        fecha_str = ahora.strftime("%d/%m/%Y")
-        
-        # Preguntas sobre horarios en otros países
-        if "argentina" in mensaje_lower:
-            hora_arg = ahora.hour - 3  # Ejemplo de diferencia horaria
-            if hora_arg < 0:
-                hora_arg += 24
-            return f"{saludo} En Argentina (UTC-3) son aproximadamente las {hora_arg:02d}:{ahora.minute:02d} y la fecha es {fecha_str}."
-        elif "estados unidos" in mensaje_lower or "eeuu" in mensaje_lower or "usa" in mensaje_lower:
-            hora_ny = ahora.hour - 6  # Ejemplo para Nueva York
-            if hora_ny < 0:
-                hora_ny += 24
-            es_noche = hora_ny >= 20 or hora_ny < 6
-            return f"{saludo} En Nueva York son aproximadamente las {hora_ny:02d}:{ahora.minute:02d}. {'Es de noche.' if es_noche else 'Es de día.'}"
-        elif "es de noche" in mensaje_lower or "es de día" in mensaje_lower or "día o noche" in mensaje_lower:
-            es_noche = ahora.hour >= 20 or ahora.hour < 6
-            return f"{saludo} La hora actual es {hora_str} y la fecha es {fecha_str}. {'Es de noche.' if es_noche else 'Es de día.'}"
-        else:
-            return f"{saludo} La hora actual es {hora_str} y la fecha es {fecha_str}."
-
-    # 2. OPERACIONES MATEMÁTICAS
+    # 1. OPERACIONES MATEMÁTICAS
     try:
         allowed_chars = re.compile(r'[\d\.\(\)\+\-\*/\^\s]|más|menos|por|entre|ra[íi]z|sqrt|sen|sin|cos|tan|log|ln|exp|pi|e|fact|factorial|abs|round', re.IGNORECASE)
         extracted_parts = allowed_chars.findall(mensaje_lower)
@@ -63,34 +61,34 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
             if extracted_expr and len(extracted_expr) >= 3:
                 resultado = evaluar_expresion_matematica(extracted_expr)
                 if resultado is not None:
-                    return f"{saludo} {resultado}."
+                    return f"{saludo} {resultado}"
     except Exception:
         logger.exception("Error en verificar_pregunta_especifica matemáticas")
 
-    # 3. ALERTAS DE MATERIALES
+    # 2. ALERTAS DE MATERIALES
     if ("alerta" in mensaje_lower and "material" in mensaje_lower) or "stock bajo" in mensaje_lower or "qué materiales" in mensaje_lower:
         if datos.get('stock_bajo', 0) > 0:
             respuestas_alertas = [
                 f"¡Alerta! Hay {datos['stock_bajo']} materiales con stock bajo. ¡Revisa el inventario!",
                 f"Aviso: {datos['stock_bajo']} materiales están por acabarse. ¡No te olvides de reabastecer!",
             ]
-            return f"{saludo} {random.choice(respuestas_alertas)}."
+            return f"{saludo} {random.choice(respuestas_alertas)}"
         else:
             respuestas_ok = [
                 "Todo bien en el inventario! No hay materiales con stock bajo.",
                 "Excelente, el inventario está en perfectas condiciones, sin alertas.",
             ]
-            return f"{saludo} {random.choice(respuestas_ok)}."
+            return f"{saludo} {random.choice(respuestas_ok)}"
 
-    # 4. VEHICULOS
+    # 3. VEHICULOS
     if "vehículos" in mensaje_lower or "vehiculos" in mensaje_lower or "autos" in mensaje_lower or "camiones" in mensaje_lower:
         return f"{saludo} Actualmente hay {datos.get('vehiculos_disponibles', 0)} vehículos disponibles y {datos.get('vehiculos_en_ruta', 0)} en ruta. En total hay {datos.get('vehiculos_count', 0)} vehículos en el sistema."
 
-    # 5. PEDIDOS
+    # 4. PEDIDOS
     if "pedidos" in mensaje_lower or "pedido" in mensaje_lower:
         return f"{saludo} Resumen de pedidos: {datos.get('pedidos_totales', 0)} totales, {datos.get('pedidos_pendientes', 0)} pendientes, {datos.get('pedidos_aprobados', 0)} aprobados, {datos.get('pedidos_en_camino', 0)} en camino, {datos.get('pedidos_entregados', 0)} entregados y {datos.get('pedidos_cancelados', 0)} cancelados."
 
-    # 6. DATOS GENERALES DEL SISTEMA
+    # 5. DATOS GENERALES DEL SISTEMA
     if "resumen" in mensaje_lower or "sistema" in mensaje_lower or "qué hay" in mensaje_lower or "cuántos" in mensaje_lower:
         return f"{saludo} Resumen del sistema Constru-Trans: {datos.get('total_usuarios', 0)} usuarios, {datos.get('clientes_registrados', 0)} clientes, {datos.get('proveedores_count', 0)} proveedores, {datos.get('total_materiales', 0)} tipos de materiales, {datos.get('vehiculos_count', 0)} vehículos y {datos.get('pedidos_totales', 0)} pedidos."
 
@@ -127,27 +125,28 @@ def obtener_respuesta_inteligente(mensaje, usuario=None, historial=None, datos=N
         ]
         return f"{saludo} {random.choice(respuesta_ayuda)}".strip()
 
-    # Respuestas inteligentes sin LLM
-    if any(p in mensaje_lower for p in ["cómo", "cómo se", "cómo puedo", "como", "como se", "como puedo"]):
-        return f"{saludo} Si necesitas ayuda con el sistema, te recomiendo consultar la documentación o preguntarme sobre alguna función específica (como 'pedidos pendientes' o 'vehículos disponibles')."
-
-    if any(p in mensaje_lower for p in ["qué es", "que es", "qué son", "que son"]):
-        return f"{saludo} Soy tu asistente de Constru-Trans. Puedo ayudarte con información del sistema, inventario, pedidos y más. Prueba preguntarme '¿Qué hora es?' o 'Resumen del sistema'."
-
     respuestas_por_defecto = [
+        "No he podido resolver esa consulta con el motor principal en este momento. Si quieres, reformula la pregunta o lo intento con una respuesta general.",
         "Estoy aquí para ayudarte. Prueba preguntarme sobre la hora, el inventario o los pedidos pendientes.",
-        "Claro, cuéntame más o prueba preguntarme algo específico como '¿Qué hora es?' o 'Resumen del sistema'.",
     ]
 
     return f"{saludo} {random.choice(respuestas_por_defecto)}".strip()
 
 
 def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
-    historial = historial or []
     start_time = time.time()
 
     conversation = get_conversation(usuario, session_id)
     add_message_to_conversation(conversation, "user", mensaje)
+
+    # Obtener historial real de la BD
+    historial_db = [
+        {"role": m.role, "content": m.content}
+        for m in conversation.messages.order_by("timestamp")[:20]
+    ]
+
+    # Expandir mensaje contextual
+    mensaje = expandir_mensaje_contextual(mensaje, historial_db)
 
     datos = obtener_contexto_datos()
     nombre_usuario = ""
@@ -172,6 +171,19 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
             )
             return respuesta, bot_message.id if bot_message else None
 
+        # Primero probar time_service
+        respuesta_hora = responder_hora(mensaje)
+        if respuesta_hora:
+            bot_message = add_message_to_conversation(
+                conversation,
+                "assistant",
+                respuesta_hora,
+                prompt_used="Time-Service",
+                model_used="Rule-Based",
+                response_time=time.time() - start_time,
+            )
+            return respuesta_hora, bot_message.id if bot_message else None
+
         respuesta_especifica = verificar_pregunta_especifica(mensaje, usuario, historial, datos)
         if respuesta_especifica:
             bot_message = add_message_to_conversation(
@@ -189,27 +201,28 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
         memoria_txt = "\n".join(memorias) if memorias else "Sin memoria relevante."
         mensaje_enriquecido = f"Memoria relevante:\n{memoria_txt}\n\nPregunta del usuario:\n{mensaje}"
 
-        if verificar_conexion_llm():
-            respuesta_llm = preguntar_llm(mensaje_enriquecido, datos, nombre_usuario, historial)
-            if respuesta_llm:
-                bot_message = add_message_to_conversation(
-                    conversation,
-                    "assistant",
-                    respuesta_llm,
-                    prompt_used="OpenAI-Compatible Chat",
-                    model_used="generic-local-llm",
-                    response_time=time.time() - start_time,
-                )
+        # Intentar LLM directamente
+        respuesta_llm = preguntar_llm(mensaje_enriquecido, datos, nombre_usuario, historial_db)
+        if respuesta_llm:
+            bot_message = add_message_to_conversation(
+                conversation,
+                "assistant",
+                respuesta_llm,
+                prompt_used="OpenAI-Compatible Chat",
+                model_used="generic-local-llm",
+                response_time=time.time() - start_time,
+            )
 
-                # Guardar interacción en memoria semántica
-                guardar_interaccion(
-                    doc_id=f"conv-{conversation.id}-{int(time.time())}",
-                    texto=f"Usuario: {mensaje}\nAsistente: {respuesta_llm}",
-                    metadata={"conversation_id": conversation.id}
-                )
+            # Guardar interacción en memoria semántica
+            guardar_interaccion(
+                doc_id=f"conv-{conversation.id}-{int(time.time())}",
+                texto=f"Usuario: {mensaje}\nAsistente: {respuesta_llm}",
+                metadata={"conversation_id": conversation.id}
+            )
 
-                return respuesta_llm, bot_message.id if bot_message else None
+            return respuesta_llm, bot_message.id if bot_message else None
 
+        # Fallback
         respuesta_default = obtener_respuesta_inteligente(mensaje, usuario, historial, datos)
         bot_message = add_message_to_conversation(
             conversation,
