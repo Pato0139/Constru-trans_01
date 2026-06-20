@@ -194,16 +194,25 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         if usuario and usuario.is_authenticated:
             saludo = f"¡Hola {usuario.nombres}!"
 
-    # 1. OPERACIONES MATEMÁTICAS
+    # 1. OPERACIONES MATEMÁTICAS (solo si hay dígitos o operadores matemáticos claros)
     try:
-        allowed_chars = re.compile(r'[\d\.\(\)\+\-\*/\^\s]|más|menos|por|entre|ra[íi]z|sqrt|sen|sin|cos|tan|log|ln|exp|pi|e|fact|factorial|abs|round', re.IGNORECASE)
-        extracted_parts = allowed_chars.findall(mensaje_lower)
-        if extracted_parts:
-            extracted_expr = "".join(extracted_parts).strip()
-            if extracted_expr and len(extracted_expr) >= 3:
-                resultado = evaluar_expresion_matematica(extracted_expr)
-                if resultado is not None:
-                    respuestas.append(f"{resultado}")
+        # Primero revisamos si la pregunta tiene números o palabras matemáticas claras
+        tiene_numeros = bool(re.search(r'\d', mensaje))
+        tiene_palabras_matematicas = any(p in mensaje_normalizado for p in ["cuanto es", "cuánto es", "calcular", "calcula", "resultado de", "cuanto es", "sumar", "restar", "multiplicar", "dividir"])
+        
+        if tiene_numeros or tiene_palabras_matematicas:
+            allowed_chars = re.compile(r'[\d\.\(\)\+\-\*/\^\s]|más|menos|por|entre|ra[íi]z|sqrt|sen|sin|cos|tan|log|ln|exp|pi|e|fact|factorial|abs|round', re.IGNORECASE)
+            extracted_parts = allowed_chars.findall(mensaje_lower)
+            if extracted_parts:
+                extracted_expr = "".join(extracted_parts).strip()
+                # Ahora, verificamos que la expresión tenga al menos un número o una operación clara
+                tiene_digito = bool(re.search(r'\d', extracted_expr))
+                tiene_operacion = bool(re.search(r'[\+\-\*/\^]|más|menos|por|entre|ra[íi]z|sqrt|sen|sin|cos|tan|log|ln|exp|pi|fact|factorial|abs|round', extracted_expr, re.IGNORECASE))
+                if tiene_digito or tiene_operacion:
+                    if extracted_expr and len(extracted_expr) >= 3:
+                        resultado = evaluar_expresion_matematica(extracted_expr)
+                        if resultado is not None:
+                            respuestas.append(f"{resultado}")
     except Exception:
         logger.exception("Error en verificar_pregunta_especifica matemáticas")
 
