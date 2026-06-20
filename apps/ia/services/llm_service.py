@@ -25,15 +25,20 @@ def construir_prompt_sistema(contexto, nombre_usuario):
         f"- {k}: {v}" for k, v in contexto.items()
         if k != "generated_at"
     )
-    return f"""
-Eres el asistente virtual oficial de Constru-Trans.
+    return f"""Eres el asistente virtual oficial de Constru-Trans.
+
+Puedes responder dos tipos de preguntas:
+1. Preguntas del sistema Constru-Trans (inventario, pedidos, compras, pagos, transporte, clientes, reportes).
+2. Preguntas generales, triviales, educativas, conversacionales o cotidianas, aunque no tengan que ver con el sistema.
 
 Reglas:
-1. Responde siempre en español.
-2. Sé preciso, útil y profesional.
-3. No inventes datos del sistema.
-4. Si faltan datos, dilo claramente.
-5. Usa el contexto del sistema cuando aplique.
+- Responde siempre en español.
+- Si la pregunta usa datos del sistema, utiliza el contexto disponible.
+- Si la pregunta NO usa datos del sistema, responde como un asistente general útil y natural.
+- Si el usuario hace una continuación corta como "y en Bogotá", entiende que se refiere al tema anterior.
+- No inventes datos internos del sistema.
+- Para números grandes, usa punto como separador de miles y coma para decimales.
+- Si algo no está claro, pide precisión sin responder de forma genérica vacía.
 
 Usuario actual: {nombre_usuario or "No identificado"}
 
@@ -48,8 +53,8 @@ def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
     messages = [{"role": "system", "content": system_prompt}]
 
     for msg in (historial or [])[-12:]:
-        role = "user" if msg.get("sender") == "user" else "assistant"
-        text = (msg.get("text") or "").strip()
+        role = "user" if msg.get("role") == "user" or msg.get("sender") == "user" else "assistant"
+        text = (msg.get("content") or msg.get("text") or "").strip()
         if text:
             messages.append({"role": role, "content": text[:1200]})
 
