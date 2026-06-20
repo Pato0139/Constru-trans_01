@@ -54,10 +54,11 @@ def normalizar_texto(texto: str) -> str:
 
 
 def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
-    """Verifica si la pregunta es específica y devuelve la respuesta"""
+    """Verifica si la pregunta es específica y devuelve la respuesta (incluye múltiples partes)"""
     mensaje_lower = mensaje.lower()
     mensaje_normalizado = normalizar_texto(mensaje)
     es_primera_interaccion = len(historial) == 0
+    respuestas = []
 
     # Construir saludo
     saludo = ""
@@ -76,7 +77,7 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
             if extracted_expr and len(extracted_expr) >= 3:
                 resultado = evaluar_expresion_matematica(extracted_expr)
                 if resultado is not None:
-                    return f"{saludo} {resultado}"
+                    respuestas.append(f"{resultado}")
     except Exception:
         logger.exception("Error en verificar_pregunta_especifica matemáticas")
 
@@ -84,112 +85,117 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
     # --- USUARIOS ---
     if any(k in mensaje_normalizado for k in ["usuario", "usuarios"]):
         if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos", "que hay", "hay cuantos"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('total_usuarios', 0))} usuarios registrados en total."
-        elif any(k in mensaje_normalizado for k in ["activos", "activo"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('usuarios_activos', 0))} usuarios activos."
-        elif any(k in mensaje_normalizado for k in ["admin", "administrador", "administradores"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('admin_count', 0))} administradores."
-        elif any(k in mensaje_normalizado for k in ["cliente", "clientes"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('cliente_count', 0))} usuarios con rol de cliente."
-        elif any(k in mensaje_normalizado for k in ["conductor", "conductores"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('conductor_count', 0))} conductores."
-        elif any(k in mensaje_normalizado for k in ["empleado", "empleados"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('empleado_count', 0))} empleados."
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('total_usuarios', 0))} usuarios registrados en total.")
+        if any(k in mensaje_normalizado for k in ["activos", "activo"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('usuarios_activos', 0))} usuarios activos.")
+        if any(k in mensaje_normalizado for k in ["admin", "administrador", "administradores"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('admin_count', 0))} administradores.")
+        if any(k in mensaje_normalizado for k in ["cliente", "clientes"]) and not any(k in mensaje_normalizado for k in ["cliente registrado", "clientes registrados"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('cliente_count', 0))} usuarios con rol de cliente.")
+        if any(k in mensaje_normalizado for k in ["conductor", "conductores"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('conductor_count', 0))} conductores.")
+        if any(k in mensaje_normalizado for k in ["empleado", "empleados"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('empleado_count', 0))} empleados.")
 
     # --- CLIENTES ---
     if any(k in mensaje_normalizado for k in ["cliente", "clientes"]):
         if any(k in mensaje_normalizado for k in ["registrado", "registrados", "total", "hay", "cuantos", "cuántos"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('clientes_registrados', 0))} clientes registrados en el sistema."
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('clientes_registrados', 0))} clientes registrados en el sistema.")
 
     # --- PROVEEDORES ---
     if any(k in mensaje_normalizado for k in ["proveedor", "proveedores", "provdores", "providores"]):
         if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos", "que hay", "hay cuantos", "activos"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('proveedores_count', 0))} proveedores registrados."
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('proveedores_count', 0))} proveedores registrados.")
 
     # --- MATERIALES / STOCK ---
     if any(k in mensaje_normalizado for k in ["material", "materiales", "stock"]):
         if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos", "que hay"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('total_materiales', 0))} tipos de materiales en el sistema."
-        elif any(k in mensaje_normalizado for k in ["poco", "bajo", "alerta", "alertas", "acabando", "terminando", "sin stock"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('total_materiales', 0))} tipos de materiales en el sistema.")
+        if any(k in mensaje_normalizado for k in ["poco", "bajo", "alerta", "alertas", "acabando", "terminando", "sin stock"]):
             if datos.get('stock_bajo', 0) > 0:
                 respuestas_alertas = [
                     f"¡Alerta! Hay {format_number_es(datos['stock_bajo'])} materiales con stock bajo. ¡Revisa el inventario!",
                     f"Aviso: {format_number_es(datos['stock_bajo'])} materiales están por acabarse. ¡No te olvides de reabastecer!",
                 ]
-                return f"{saludo} {random.choice(respuestas_alertas)}"
+                respuestas.append(random.choice(respuestas_alertas))
             else:
                 respuestas_ok = [
                     "Todo bien en el inventario! No hay materiales con stock bajo.",
                     "Excelente, el inventario está en perfectas condiciones, sin alertas.",
                 ]
-                return f"{saludo} {random.choice(respuestas_ok)}"
-        elif any(k in mensaje_normalizado for k in ["total stock", "total de stock"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('total_stock', 0))} unidades en stock en total."
+                respuestas.append(random.choice(respuestas_ok))
+        if any(k in mensaje_normalizado for k in ["total stock", "total de stock"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('total_stock', 0))} unidades en stock en total.")
 
     # --- VEHÍCULOS ---
-    if any(k in mensaje_normalizado for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "camion", "camiones"]):
+    if any(k in mensaje_normalizado for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones"]):
         if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos registrados en total."
-        elif any(k in mensaje_normalizado for k in ["disponible", "disponibles", "libre", "libres"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('vehiculos_disponibles', 0))} vehículos disponibles y {format_number_es(datos.get('vehiculos_en_ruta', 0))} en ruta. En total hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos en el sistema."
-        elif any(k in mensaje_normalizado for k in ["en ruta", "ruta", "ocupados"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('vehiculos_en_ruta', 0))} vehículos en ruta y {format_number_es(datos.get('vehiculos_disponibles', 0))} disponibles."
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos registrados en total.")
+        if any(k in mensaje_normalizado for k in ["disponible", "disponibles", "libre", "libres"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_disponibles', 0))} vehículos disponibles y {format_number_es(datos.get('vehiculos_en_ruta', 0))} en ruta. En total hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos en el sistema.")
+        if any(k in mensaje_normalizado for k in ["en ruta", "ruta", "ocupados"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_en_ruta', 0))} vehículos en ruta y {format_number_es(datos.get('vehiculos_disponibles', 0))} disponibles.")
 
     # --- PEDIDOS ---
     if any(k in mensaje_normalizado for k in ["pedido", "pedidos"]):
         if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos"]):
-            return f"{saludo} Resumen de pedidos: {format_number_es(datos.get('pedidos_totales', 0))} totales, {format_number_es(datos.get('pedidos_pendientes', 0))} pendientes, {format_number_es(datos.get('pedidos_aprobados', 0))} aprobados, {format_number_es(datos.get('pedidos_en_camino', 0))} en camino, {format_number_es(datos.get('pedidos_entregados', 0))} entregados y {format_number_es(datos.get('pedidos_cancelados', 0))} cancelados. El total de ventas es de {format_number_es(datos.get('total_ventas', 0))}."
-        elif any(k in mensaje_normalizado for k in ["pendiente", "pendientes"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('pedidos_pendientes', 0))} pedidos pendientes."
-        elif any(k in mensaje_normalizado for k in ["aprobado", "aprobados"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('pedidos_aprobados', 0))} pedidos aprobados."
-        elif any(k in mensaje_normalizado for k in ["en camino", "camino"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('pedidos_en_camino', 0))} pedidos en camino."
-        elif any(k in mensaje_normalizado for k in ["entregado", "entregados"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('pedidos_entregados', 0))} pedidos entregados."
-        elif any(k in mensaje_normalizado for k in ["cancelado", "cancelados"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('pedidos_cancelados', 0))} pedidos cancelados."
-        elif any(k in mensaje_normalizado for k in ["ventas", "total vendido", "ventas totales"]):
-            return f"{saludo} El total de ventas es de {format_number_es(datos.get('total_ventas', 0))}."
+            respuestas.append(f"Resumen de pedidos: {format_number_es(datos.get('pedidos_totales', 0))} totales, {format_number_es(datos.get('pedidos_pendientes', 0))} pendientes, {format_number_es(datos.get('pedidos_aprobados', 0))} aprobados, {format_number_es(datos.get('pedidos_en_camino', 0))} en camino, {format_number_es(datos.get('pedidos_entregados', 0))} entregados y {format_number_es(datos.get('pedidos_cancelados', 0))} cancelados. El total de ventas es de {format_number_es(datos.get('total_ventas', 0))}.")
+        if any(k in mensaje_normalizado for k in ["pendiente", "pendientes"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('pedidos_pendientes', 0))} pedidos pendientes.")
+        if any(k in mensaje_normalizado for k in ["aprobado", "aprobados"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('pedidos_aprobados', 0))} pedidos aprobados.")
+        if any(k in mensaje_normalizado for k in ["en camino", "camino"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('pedidos_en_camino', 0))} pedidos en camino.")
+        if any(k in mensaje_normalizado for k in ["entregado", "entregados"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('pedidos_entregados', 0))} pedidos entregados.")
+        if any(k in mensaje_normalizado for k in ["cancelado", "cancelados"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('pedidos_cancelados', 0))} pedidos cancelados.")
+        if any(k in mensaje_normalizado for k in ["ventas", "total vendido", "ventas totales"]):
+            respuestas.append(f"El total de ventas es de {format_number_es(datos.get('total_ventas', 0))}.")
 
     # --- COMPRAS ---
     if any(k in mensaje_normalizado for k in ["compra", "compras"]):
         if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos"]):
-            return f"{saludo} Resumen de compras: {format_number_es(datos.get('compras_totales', 0))} totales, {format_number_es(datos.get('compras_pendientes', 0))} pendientes y {format_number_es(datos.get('compras_recibidas', 0))} recibidas. El total de compras es de {format_number_es(datos.get('total_compras', 0))}."
-        elif any(k in mensaje_normalizado for k in ["pendiente", "pendientes"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('compras_pendientes', 0))} compras pendientes."
-        elif any(k in mensaje_normalizado for k in ["recibida", "recibidas"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('compras_recibidas', 0))} compras recibidas."
-        elif any(k in mensaje_normalizado for k in ["total compras", "total de compras"]):
-            return f"{saludo} El total de compras es de {format_number_es(datos.get('total_compras', 0))}."
+            respuestas.append(f"Resumen de compras: {format_number_es(datos.get('compras_totales', 0))} totales, {format_number_es(datos.get('compras_pendientes', 0))} pendientes y {format_number_es(datos.get('compras_recibidas', 0))} recibidas. El total de compras es de {format_number_es(datos.get('total_compras', 0))}.")
+        if any(k in mensaje_normalizado for k in ["pendiente", "pendientes"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('compras_pendientes', 0))} compras pendientes.")
+        if any(k in mensaje_normalizado for k in ["recibida", "recibidas"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('compras_recibidas', 0))} compras recibidas.")
+        if any(k in mensaje_normalizado for k in ["total compras", "total de compras"]):
+            respuestas.append(f"El total de compras es de {format_number_es(datos.get('total_compras', 0))}.")
 
     # --- FACTURAS ---
     if any(k in mensaje_normalizado for k in ["factura", "facturas"]):
         if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos"]):
-            return f"{saludo} Resumen de facturas: {format_number_es(datos.get('facturas_totales', 0))} totales, {format_number_es(datos.get('facturas_pendientes', 0))} pendientes y {format_number_es(datos.get('facturas_pagadas', 0))} pagadas. El total facturado es de {format_number_es(datos.get('total_facturado', 0))}."
-        elif any(k in mensaje_normalizado for k in ["pendiente", "pendientes"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('facturas_pendientes', 0))} facturas pendientes."
-        elif any(k in mensaje_normalizado for k in ["pagada", "pagadas"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('facturas_pagadas', 0))} facturas pagadas."
-        elif any(k in mensaje_normalizado for k in ["total facturado", "facturado total"]):
-            return f"{saludo} El total facturado es de {format_number_es(datos.get('total_facturado', 0))}."
+            respuestas.append(f"Resumen de facturas: {format_number_es(datos.get('facturas_totales', 0))} totales, {format_number_es(datos.get('facturas_pendientes', 0))} pendientes y {format_number_es(datos.get('facturas_pagadas', 0))} pagadas. El total facturado es de {format_number_es(datos.get('total_facturado', 0))}.")
+        if any(k in mensaje_normalizado for k in ["pendiente", "pendientes"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('facturas_pendientes', 0))} facturas pendientes.")
+        if any(k in mensaje_normalizado for k in ["pagada", "pagadas"]):
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('facturas_pagadas', 0))} facturas pagadas.")
+        if any(k in mensaje_normalizado for k in ["total facturado", "facturado total"]):
+            respuestas.append(f"El total facturado es de {format_number_es(datos.get('total_facturado', 0))}.")
 
     # --- PAGOS ---
     if any(k in mensaje_normalizado for k in ["pago", "pagos"]):
         if any(k in mensaje_normalizado for k in ["total", "hay", "cuantos", "cuántos"]):
-            return f"{saludo} Actualmente hay {format_number_es(datos.get('pagos_totales', 0))} pagos registrados, con un total pagado de {format_number_es(datos.get('total_pagado', 0))}."
-        elif any(k in mensaje_normalizado for k in ["total pagado", "pagado total"]):
-            return f"{saludo} El total pagado es de {format_number_es(datos.get('total_pagado', 0))}."
+            respuestas.append(f"Actualmente hay {format_number_es(datos.get('pagos_totales', 0))} pagos registrados, con un total pagado de {format_number_es(datos.get('total_pagado', 0))}.")
+        if any(k in mensaje_normalizado for k in ["total pagado", "pagado total"]):
+            respuestas.append(f"El total pagado es de {format_number_es(datos.get('total_pagado', 0))}.")
 
     # --- RESUMEN GENERAL ---
     if any(k in mensaje_normalizado for k in ["resumen", "sistema", "que hay", "qué hay", "que tiene", "qué tiene"]):
-        return f"""{saludo} Resumen del sistema Constru-Trans:
+        respuestas.append(f"""Resumen del sistema Constru-Trans:
 - Usuarios: {format_number_es(datos.get('total_usuarios', 0))} totales, {format_number_es(datos.get('usuarios_activos', 0))} activos
 - Clientes: {format_number_es(datos.get('clientes_registrados', 0))} registrados
 - Proveedores: {format_number_es(datos.get('proveedores_count', 0))}
 - Materiales: {format_number_es(datos.get('total_materiales', 0))} tipos
 - Vehículos: {format_number_es(datos.get('vehiculos_count', 0))} total
-- Pedidos: {format_number_es(datos.get('pedidos_totales', 0))} totales"""
+- Pedidos: {format_number_es(datos.get('pedidos_totales', 0))} totales""")
+
+    if respuestas:
+        if saludo:
+            return f"{saludo}\n" + "\n".join(respuestas)
+        return "\n".join(respuestas)
 
     return None
 
