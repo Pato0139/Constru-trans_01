@@ -9,8 +9,8 @@ CONTEXT_CACHE_KEY = "ia_contexto_datos_v2"
 CONTEXT_CACHE_TTL = 60
 
 
-def obtener_contexto_datos(force_refresh=False):
-    if not force_refresh:
+def obtener_contexto_datos(force_refresh=False, usuario=None):
+    if not force_refresh and not usuario:
         cached = cache.get(CONTEXT_CACHE_KEY)
         if cached:
             return cached
@@ -24,6 +24,7 @@ def obtener_contexto_datos(force_refresh=False):
         from apps.pagos.models import Pago
         from django.db.models import Count
 
+        # --- DATOS GLOBALES (siempre los obtenemos para admin o anónimo) ---
         # Obtener vehículos asociados a cada conductor (todos los registros, estructurados)
         asignaciones_activas = ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related("conductor__usuario", "vehiculo")
         total_conductores_con_vehiculo = asignaciones_activas.count()
@@ -98,7 +99,50 @@ def obtener_contexto_datos(force_refresh=False):
             "generated_at": datetime.now().isoformat(),
         }
 
-        cache.set(CONTEXT_CACHE_KEY, data, CONTEXT_CACHE_TTL)
+        # --- DATOS PERSONALIZADOS POR USUARIO ---
+        if usuario and usuario.is_authenticated:
+            rol_usuario = getattr(usuario, "rol", None)
+            
+            # DATOS PARA CLIENTES
+            if rol_usuario == "cliente":
+                try:
+                    cliente_obj = Cliente.objects.filter(usuario=usuario).first()
+                    if cliente_obj:
+                        pedidos_cliente = PedidoGestion.objects.filter(cliente=cliente_obj)
+                        data["mis_pedidos_totales"] = pedidos_cliente.count()
+                        data["mis_pedidos_pendientes"] = pedidos_cliente.filter(estado="pendiente").count()
+                        data["mis_pedidos_entregados"] = pedidos_cliente.filter(estado="entregado").count()
+                        
+                        facturas_cliente = Factura.objects.filter(cliente=cliente_obj)
+                        data["mis_facturas_pendientes"] = facturas_cliente.filter(estado="pendiente").count()
+                        data["mis_facturas_pagadas"] = facturas_cliente.filter(estado="pagada").count()
+                except Exception:
+                    logger.exception("Error obteniendo datos personalizados para cliente")
+            
+            # DATOS PARA CONDUCTORES
+            elif rol_usuario == "conductor":
+                try:
+                    from apps.usuarios.models import Conductor
+                    conductor_obj = Conductor.objects.filter(usuario=usuario).first()
+                    if conductor_obj:
+                        # Obtener sus entregas (asumiendo que hay una relación, usamos pedidos asignados a él por ahora)
+                        pedidos_conductor = PedidoGestion.objects.filter(conductor=conductor_obj)
+                        data["mis_entregas_pendientes"] = pedidos_conductor.filter(estado__in=["pendiente", "aprobado", "en_camino"]).count()
+                        data["mis_entregas_completadas"] = pedidos_conductor.filter(estado="entregado").count()
+                        
+                        # Obtener su vehículo asignado
+                        asignacion = ConductorVehiculo.objects.filter(conductor=conductor_obj, fecha_fin__isnull=True).select_related("vehiculo").first()
+                        if asignacion:
+                            data["mi_vehiculo"] = f"{asignacion.vehiculo.marca} {asignacion.vehiculo.modelo} (Placa: {asignacion.vehiculo.placa})"
+                        else:
+                            data["mi_vehiculo"] = "Sin vehículo asignado"
+                except Exception:
+                    logger.exception("Error obteniendo datos personalizados para conductor")
+        
+        # Cachear solo datos globales
+        if not usuario:
+            cache.set(CONTEXT_CACHE_KEY, data, CONTEXT_CACHE_TTL)
+            
         return data
 
     except Exception:
