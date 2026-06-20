@@ -39,9 +39,11 @@ def expandir_mensaje_contextual(mensaje: str, historial: list) -> str:
     return mensaje
 
 
-def normalizar_texto(texto: str) -> str:
+def normalizar_texto(texto):
     """Elimina acentos, puntuación y pasa a minúsculas"""
     texto = texto.lower()
+    # Eliminar puntuación
+    texto = re.sub(r'[^\w\s]', '', texto)
     # Eliminar acentos
     replacements = {
         "á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u",
@@ -60,7 +62,7 @@ def procesar_parte_pregunta(parte, datos):
 
     # --- USUARIOS ---
     if any(k in parte_normalizada for k in ["usuario", "usuarios"]):
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "qué hay", "hay cuantos"]):
+        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "qué hay", "hay cuantos", "hay cautnos"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('total_usuarios', 0))} usuarios registrados en total.")
         if any(k in parte_normalizada for k in ["activos", "activo"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('usuarios_activos', 0))} usuarios activos.")
@@ -75,17 +77,17 @@ def procesar_parte_pregunta(parte, datos):
 
     # --- CLIENTES ---
     if any(k in parte_normalizada for k in ["cliente", "clientes"]):
-        if any(k in parte_normalizada for k in ["registrado", "registrados", "total", "hay", "cuantos", "cuántos"]):
+        if any(k in parte_normalizada for k in ["registrado", "registrados", "total", "hay", "cuantos", "cautnos", "cuántos"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('clientes_registrados', 0))} clientes registrados en el sistema.")
 
     # --- PROVEEDORES ---
     if any(k in parte_normalizada for k in ["proveedor", "proveedores", "provdores", "providores"]):
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cuántos", "que hay", "hay cuantos", "activos"]):
+        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay", "hay cuantos", "hay cautnos", "activos"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('proveedores_count', 0))} proveedores registrados.")
 
     # --- MATERIALES / STOCK ---
     if any(k in parte_normalizada for k in ["material", "materiales", "stock"]):
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cuántos", "que hay"]):
+        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('total_materiales', 0))} tipos de materiales en el sistema.")
         if any(k in parte_normalizada for k in ["poco", "bajo", "alerta", "alertas", "acabando", "terminando", "sin stock"]):
             if datos.get('stock_bajo', 0) > 0:
@@ -105,7 +107,7 @@ def procesar_parte_pregunta(parte, datos):
 
     # --- VEHÍCULOS ---
     if any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones"]):
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cuántos"]):
+        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos registrados en total.")
         if any(k in parte_normalizada for k in ["disponible", "disponibles", "libre", "libres"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_disponibles', 0))} vehículos disponibles y {format_number_es(datos.get('vehiculos_en_ruta', 0))} en ruta. En total hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos en el sistema.")
@@ -114,7 +116,7 @@ def procesar_parte_pregunta(parte, datos):
 
     # --- PEDIDOS ---
     if any(k in parte_normalizada for k in ["pedido", "pedidos"]):
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cuántos"]):
+        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
             respuestas.append(f"Resumen de pedidos: {format_number_es(datos.get('pedidos_totales', 0))} totales, {format_number_es(datos.get('pedidos_pendientes', 0))} pendientes, {format_number_es(datos.get('pedidos_aprobados', 0))} aprobados, {format_number_es(datos.get('pedidos_en_camino', 0))} en camino, {format_number_es(datos.get('pedidos_entregados', 0))} entregados y {format_number_es(datos.get('pedidos_cancelados', 0))} cancelados. El total de ventas es de {format_number_es(datos.get('total_ventas', 0))}.")
         if any(k in parte_normalizada for k in ["pendiente", "pendientes"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('pedidos_pendientes', 0))} pedidos pendientes.")
@@ -131,7 +133,7 @@ def procesar_parte_pregunta(parte, datos):
 
     # --- COMPRAS ---
     if any(k in parte_normalizada for k in ["compra", "compras"]):
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cuántos"]):
+        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
             respuestas.append(f"Resumen de compras: {format_number_es(datos.get('compras_totales', 0))} totales, {format_number_es(datos.get('compras_pendientes', 0))} pendientes y {format_number_es(datos.get('compras_recibidas', 0))} recibidas. El total de compras es de {format_number_es(datos.get('total_compras', 0))}.")
         if any(k in parte_normalizada for k in ["pendiente", "pendientes"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('compras_pendientes', 0))} compras pendientes.")
@@ -142,7 +144,7 @@ def procesar_parte_pregunta(parte, datos):
 
     # --- FACTURAS ---
     if any(k in parte_normalizada for k in ["factura", "facturas"]):
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cuántos"]):
+        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
             respuestas.append(f"Resumen de facturas: {format_number_es(datos.get('facturas_totales', 0))} totales, {format_number_es(datos.get('facturas_pendientes', 0))} pendientes y {format_number_es(datos.get('facturas_pagadas', 0))} pagadas. El total facturado es de {format_number_es(datos.get('total_facturado', 0))}.")
         if any(k in parte_normalizada for k in ["pendiente", "pendientes"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('facturas_pendientes', 0))} facturas pendientes.")
@@ -153,7 +155,7 @@ def procesar_parte_pregunta(parte, datos):
 
     # --- PAGOS ---
     if any(k in parte_normalizada for k in ["pago", "pagos"]):
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cuántos"]):
+        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
             respuestas.append(f"Actualmente hay {format_number_es(datos.get('pagos_totales', 0))} pagos registrados, con un total pagado de {format_number_es(datos.get('total_pagado', 0))}.")
         if any(k in parte_normalizada for k in ["total pagado", "pagado total"]):
             respuestas.append(f"El total pagado es de {format_number_es(datos.get('total_pagado', 0))}.")
@@ -189,7 +191,12 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
     except Exception:
         logger.exception("Error en verificar_pregunta_especifica matemáticas")
 
-    # 2. Separar la pregunta en partes usando "y", "y que", "que", "qué"
+    # 2. Preprocesar: separar "y" que está pegado a palabras (ej: "conductory" → "conductor y")
+    mensaje_procesado = re.sub(r'(\w)y(\w)', r'\1 y \2', mensaje_normalizado)
+    mensaje_procesado = re.sub(r'(\w)y(\s)', r'\1 y ', mensaje_procesado)
+    mensaje_procesado = re.sub(r'(\s)y(\w)', r' y \2', mensaje_procesado)
+
+    # 3. Separar la pregunta en partes usando "y", "y que", "que", "qué"
     patrones_separadores = [
         r'\s+y\s+',       # " y "
         r'\s+y que\s+',   # " y que "
@@ -199,7 +206,7 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         r'\s+y\s+que\s+', # " y que "
         r'\s+y\s+qué\s+', # " y qué "
     ]
-    partes = [mensaje_normalizado]
+    partes = [mensaje_procesado]
     for patron in patrones_separadores:
         nuevas_partes = []
         for parte in partes:
