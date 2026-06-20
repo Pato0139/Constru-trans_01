@@ -24,14 +24,14 @@ def obtener_contexto_datos(force_refresh=False):
         from apps.pagos.models import Pago
 
         # Obtener vehículos asociados a cada conductor (info resumida)
-        from apps.usuarios.models import ConductorVehiculo
-        asignaciones_activas = ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related("conductor__usuario", "vehiculo")
-        total_conductores_con_vehiculo = asignaciones_activas.count()
-        vehiculos_por_conductor_lista = []
-        for i, asignacion in enumerate(asignaciones_activas[:5], 1): # Solo los primeros 5
-            nombre_conductor = f"{asignacion.conductor.usuario.nombres} {asignacion.conductor.usuario.apellidos}"
-            vehiculo_info = f"{asignacion.vehiculo.marca} {asignacion.vehiculo.modelo} ({asignacion.vehiculo.placa})"
-            vehiculos_por_conductor_lista.append(f"- {nombre_conductor}: {vehiculo_info}")
+    from apps.usuarios.models import ConductorVehiculo
+    asignaciones_activas = ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related("conductor__usuario", "vehiculo")
+    total_conductores_con_vehiculo = asignaciones_activas.count()
+    vehiculos_por_conductor_lista = []
+    for i, asignacion in enumerate(asignaciones_activas[:5], 1): # Solo los primeros 5
+        nombre_conductor = f"{asignacion.conductor.usuario.nombres} {asignacion.conductor.usuario.apellidos}"
+        vehiculo_info = f"{asignacion.vehiculo.marca} {asignacion.vehiculo.modelo} (Placa: {asignacion.vehiculo.placa})"
+        vehiculos_por_conductor_lista.append(f"{nombre_conductor}: {vehiculo_info}")
 
         data = {
             "total_usuarios": Usuario.objects.count(),
