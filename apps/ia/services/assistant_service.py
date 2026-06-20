@@ -92,7 +92,9 @@ def procesar_parte_pregunta(parte, datos):
             lineas_usuarios.append(f"• Administradores: {format_number_es(datos.get('admin_count', 0))}")
         if any(k in parte_normalizada for k in ["cliente", "clientes"]) and not any(k in parte_normalizada for k in ["cliente registrado", "clientes registrados"]):
             lineas_usuarios.append(f"• Clientes: {format_number_es(datos.get('cliente_count', 0))}")
-        if any(k in parte_normalizada for k in ["conductor", "conductores"]):
+        # Solo agregamos conductores si NO hay nada de vehículos en la misma parte de pregunta
+        hay_vehiculos = any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "asociado", "asignado", "cada conductor"])
+        if any(k in parte_normalizada for k in ["conductor", "conductores"]) and not hay_vehiculos:
             lineas_usuarios.append(f"• Conductores: {format_number_es(datos.get('conductor_count', 0))}")
         if any(k in parte_normalizada for k in ["empleado", "empleados"]):
             lineas_usuarios.append(f"• Empleados: {format_number_es(datos.get('empleado_count', 0))}")
@@ -125,35 +127,42 @@ def procesar_parte_pregunta(parte, datos):
             respuestas.append("📦 Estado del inventario:\n" + "\n".join(lineas_stock))
 
     # --- VEHÍCULOS ---
-    if any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones"]):
-        # Primero revisamos si es una pregunta sobre ASIGNACIÓN (esta tiene prioridad para evitar duplicados)
-        es_pregunta_asignacion = any(k in parte_normalizada for k in ["asociado", "asignado", "cada conductor"])
-        if es_pregunta_asignacion:
-            total = datos.get('total_conductores_con_vehiculo', 0)
-            lista = datos.get('vehiculos_por_conductor_lista', [])
-            if total > 0:
-                lineas = [f"📋 Hay {format_number_es(total)} conductores con vehículo asignado:"]
-                if lista:
-                    lineas.append("Ejemplos:")
-                    for item in lista:
-                        lineas.append(f"  • {item}")
-                    if total > 5:
-                        lineas.append(f"  ... y {format_number_es(total - 5)} más.")
-                texto = "\n".join(lineas)
-                respuestas.append(texto)
-            else:
-                respuestas.append("Actualmente no hay vehículos asignados a conductores.")
+    if any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "conductor", "conductores"]):
+        # Verificamos si la pregunta incluye tanto total como asignaciones
+        incluye_total_vehiculos = any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "total", "hay", "cuantos", "cautnos", "cuántos"])
+        incluye_asignacion = any(k in parte_normalizada for k in ["asociado", "asignado", "cada conductor"])
+        incluye_conductores = any(k in parte_normalizada for k in ["conductor", "conductores"])
+        
+        lineas = ["🚗 Estado de vehículos:"]
+        
+        if incluye_total_vehiculos or incluye_asignacion or incluye_conductores:
+            if incluye_total_vehiculos and any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones"]):
+                lineas.append(f"  • Vehículos totales: {format_number_es(datos.get('vehiculos_count', 0))}")
+                if any(k in parte_normalizada for k in ["disponible", "disponibles", "libre", "libres"]):
+                    lineas.append(f"  • Disponibles: {format_number_es(datos.get('vehiculos_disponibles', 0))}")
+                if any(k in parte_normalizada for k in ["en ruta", "ruta", "ocupados"]):
+                    lineas.append(f"  • En ruta: {format_number_es(datos.get('vehiculos_en_ruta', 0))}")
+            if incluye_conductores:
+                lineas.append(f"  • Conductores totales: {format_number_es(datos.get('conductor_count', 0))}")
+            if incluye_asignacion:
+                total = datos.get('total_conductores_con_vehiculo', 0)
+                lista = datos.get('vehiculos_por_conductor_lista', [])
+                if total > 0:
+                    lineas.append(f"  • Hay {format_number_es(total)} conductores con vehículo asignado:")
+                    if lista:
+                        for item in lista:
+                            lineas.append(f"    • {item}")
+                else:
+                    lineas.append("  • Actualmente no hay vehículos asignados a conductores.")
         else:
-            # Si NO es de asignación, entonces revisamos las otras opciones
-            lineas_vehiculos = []
-            if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
-                lineas_vehiculos.append(f"• Vehículos totales: {format_number_es(datos.get('vehiculos_count', 0))}")
+            # Si NO es de total ni asignación, entonces revisamos las otras opciones
             if any(k in parte_normalizada for k in ["disponible", "disponibles", "libre", "libres"]):
-                lineas_vehiculos.append(f"• Disponibles: {format_number_es(datos.get('vehiculos_disponibles', 0))}")
+                lineas.append(f"  • Disponibles: {format_number_es(datos.get('vehiculos_disponibles', 0))}")
             if any(k in parte_normalizada for k in ["en ruta", "ruta", "ocupados"]):
-                lineas_vehiculos.append(f"• En ruta: {format_number_es(datos.get('vehiculos_en_ruta', 0))}")
-            if lineas_vehiculos:
-                respuestas.append("🚗 Estado de vehículos:\n" + "\n".join(lineas_vehiculos))
+                lineas.append(f"  • En ruta: {format_number_es(datos.get('vehiculos_en_ruta', 0))}")
+                
+        if len(lineas) > 1:
+            respuestas.append("\n".join(lineas))
 
     # --- PEDIDOS ---
     if any(k in parte_normalizada for k in ["pedido", "pedidos"]):
