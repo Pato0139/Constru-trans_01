@@ -107,20 +107,22 @@ def procesar_parte_pregunta(parte, datos):
 
     # --- VEHÍCULOS ---
     if any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones"]):
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
-            respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos registrados en total.")
-        if any(k in parte_normalizada for k in ["disponible", "disponibles", "libre", "libres"]):
-            respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_disponibles', 0))} vehículos disponibles y {format_number_es(datos.get('vehiculos_en_ruta', 0))} en ruta. En total hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos en el sistema.")
-        if any(k in parte_normalizada for k in ["en ruta", "ruta", "ocupados"]):
-            respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_en_ruta', 0))} vehículos en ruta y {format_number_es(datos.get('vehiculos_disponibles', 0))} disponibles.")
-        
-        # Pregunta sobre vehículos asociados a conductores
-        if any(k in parte_normalizada for k in ["asociado", "asignado", "conductor", "cada conductor", "carros", "vehiculos"]):
+        # Primero revisamos si es una pregunta sobre ASIGNACIÓN (esta tiene prioridad para evitar duplicados)
+        es_pregunta_asignacion = any(k in parte_normalizada for k in ["asociado", "asignado", "cada conductor"])
+        if es_pregunta_asignacion:
             vehiculos = datos.get('vehiculos_por_conductor', [])
             if vehiculos:
                 respuestas.append("Vehículos asignados a cada conductor:\n" + "\n".join(vehiculos))
             else:
                 respuestas.append("Actualmente no hay vehículos asignados a conductores.")
+        else:
+            # Si NO es de asignación, entonces revisamos las otras opciones
+            if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
+                respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos registrados en total.")
+            if any(k in parte_normalizada for k in ["disponible", "disponibles", "libre", "libres"]):
+                respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_disponibles', 0))} vehículos disponibles y {format_number_es(datos.get('vehiculos_en_ruta', 0))} en ruta. En total hay {format_number_es(datos.get('vehiculos_count', 0))} vehículos en el sistema.")
+            if any(k in parte_normalizada for k in ["en ruta", "ruta", "ocupados"]):
+                respuestas.append(f"Actualmente hay {format_number_es(datos.get('vehiculos_en_ruta', 0))} vehículos en ruta y {format_number_es(datos.get('vehiculos_disponibles', 0))} disponibles.")
 
     # --- PEDIDOS ---
     if any(k in parte_normalizada for k in ["pedido", "pedidos"]):
