@@ -55,16 +55,38 @@ def normalizar_texto(texto):
     return texto
 
 
-def procesar_parte_pregunta(parte, datos):
+def has_keywords(check_strings, keywords):
+    """Check if any keyword exists in any of the check_strings, with normalization"""
+    # Normalize all keywords first
+    normalized_keywords = []
+    for k in keywords:
+        normalized_keywords.append(k)
+        normalized_keywords.append(normalizar_texto(k))
+    normalized_keywords = list(set(normalized_keywords))  # Remove duplicates
+    
+    # Check both original and normalized check strings
+    for s in check_strings:
+        normalized_s = normalizar_texto(s)
+        for k in normalized_keywords:
+            if k in s or k in normalized_s:
+                return True
+    return False
+
+def procesar_parte_pregunta(parte, datos, secciones_vistas=None):
     """Procesa una parte individual de la pregunta y devuelve la respuesta"""
+    if secciones_vistas is None:
+        secciones_vistas = set()
+        
     parte_normalizada = normalizar_texto(parte)
     parte_lower = parte.lower()
+    # Also create a combined check list that includes both normalized and original lower
+    check_strings = [parte_normalizada, parte_lower]
     respuestas = []
 
     # --- 0. OPERACIONES MATEMÁTICAS PRIMERO (para esta parte) ---
     try:
         tiene_numeros = bool(re.search(r'\d', parte))
-        tiene_palabras_matematicas = any(p in parte_normalizada for p in ["cuanto es", "cuánto es", "calcular", "calcula", "resultado de", "sumar", "restar", "multiplicar", "dividir"])
+        tiene_palabras_matematicas = has_keywords(check_strings, ["cuanto es", "cuánto es", "calcular", "calcula", "resultado de", "sumar", "restar", "multiplicar", "dividir"])
         
         if tiene_numeros or tiene_palabras_matematicas:
             allowed_chars = re.compile(r'[\d\.\(\)\+\-\*/\^\s]|más|menos|por|entre|ra[íi]z|sqrt|sen|sin|cos|tan|log|ln|exp|pi|e|fact|factorial|abs|round', re.IGNORECASE)
@@ -82,74 +104,89 @@ def procesar_parte_pregunta(parte, datos):
         logger.exception("Error en procesar_parte_pregunta matemáticas")
 
     # --- USUARIOS ---
-    if any(k in parte_normalizada for k in ["usuario", "usuarios"]):
+    if has_keywords(check_strings, ["usuario", "usuarios", "admin", "administrador", "administradores", "adminds", "conductor", "conductores", "cliente", "clientes", "empleado", "empleados"]) and "ESTADO DE USUARIOS" not in secciones_vistas:
         lineas = ["ESTADO DE USUARIOS"]
         
-        hay_vehiculos = any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "asociado", "asignado", "cada conductor"])
-        if not hay_vehiculos or any(k in parte_normalizada for k in ["usuario", "usuarios", "total", "hay", "cuantos", "cautnos", "qué hay", "hay cuantos", "hay cautnos", "activos", "activo", "admin", "administrador", "administradores", "cliente", "clientes", "empleado", "empleados"]):
-            if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "qué hay", "hay cuantos", "hay cautnos"]):
+        hay_vehiculos = has_keywords(check_strings, ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "asociado", "asignado", "cada conductor"])
+        if not hay_vehiculos or has_keywords(check_strings, ["usuario", "usuarios", "total", "hay", "cuantos", "cautnos", "qué hay", "hay cuantos", "hay cautnos", "activos", "activo", "admin", "administrador", "administradores", "cliente", "clientes", "empleado", "empleados"]):
+            if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "qué hay", "hay cuantos", "hay cautnos"]):
                 lineas.append(f"- Usuarios totales: {format_number_es(datos.get('total_usuarios', 0))}")
                 lineas.append(f"- Usuarios activos: {format_number_es(datos.get('usuarios_activos', 0))}")
-            if any(k in parte_normalizada for k in ["admin", "administrador", "administradores"]):
+            if has_keywords(check_strings, ["admin", "administrador", "administradores"]):
                 lineas.append(f"- Administradores: {format_number_es(datos.get('admin_count', 0))}")
-            if any(k in parte_normalizada for k in ["cliente", "clientes"]) and not any(k in parte_normalizada for k in ["cliente registrado", "clientes registrados"]):
+            if has_keywords(check_strings, ["cliente", "clientes"]) and not has_keywords(check_strings, ["cliente registrado", "clientes registrados"]):
                 lineas.append(f"- Clientes: {format_number_es(datos.get('cliente_count', 0))}")
-            if any(k in parte_normalizada for k in ["empleado", "empleados"]):
+            if has_keywords(check_strings, ["empleado", "empleados"]):
                 lineas.append(f"- Empleados: {format_number_es(datos.get('empleado_count', 0))}")
             # Solo agregamos conductores si NO hay nada de vehículos en la misma parte de pregunta
-            if any(k in parte_normalizada for k in ["conductor", "conductores"]) and not hay_vehiculos:
+            if has_keywords(check_strings, ["conductor", "conductores"]) and not hay_vehiculos:
                 lineas.append(f"- Conductores: {format_number_es(datos.get('conductor_count', 0))}")
         
         if len(lineas) > 1:
+            secciones_vistas.add("ESTADO DE USUARIOS")
             respuestas.append("\n".join(lineas))
 
     # --- CLIENTES ---
-    if any(k in parte_normalizada for k in ["cliente", "clientes"]):
-        if any(k in parte_normalizada for k in ["registrado", "registrados", "total", "hay", "cuantos", "cautnos", "cuántos"]):
+    if has_keywords(check_strings, ["cliente", "clientes"]) and "CLIENTES" not in secciones_vistas:
+        if has_keywords(check_strings, ["registrado", "registrados", "total", "hay", "cuantos", "cautnos", "cuántos"]):
             lineas = ["CLIENTES"]
             lineas.append(f"- Clientes registrados: {format_number_es(datos.get('clientes_registrados', 0))}")
+            secciones_vistas.add("CLIENTES")
             respuestas.append("\n".join(lineas))
+    
+    # --- TOP CLIENTE ---
+    if has_keywords(check_strings, ["cliente", "clientes", "más pedidos", "mas pedidos", "que mas pedidos", "que más pedidos", "top cliente", "cliente top"]) and "TOP CLIENTE" not in secciones_vistas:
+        top_cliente = datos.get('top_cliente')
+        if top_cliente:
+            lineas = ["CLIENTE CON MÁS PEDIDOS"]
+            lineas.append(f"- {top_cliente['nombre']} con {format_number_es(top_cliente['num_pedidos'])} pedidos")
+            secciones_vistas.add("TOP CLIENTE")
+            respuestas.append("\n".join(lineas))
+        else:
+            respuestas.append("Aún no hay pedidos registrados para los clientes.")
 
     # --- PROVEEDORES ---
-    if any(k in parte_normalizada for k in ["proveedor", "proveedores", "provdores", "providores"]):
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay", "hay cuantos", "hay cautnos", "activos"]):
+    if has_keywords(check_strings, ["proveedor", "proveedores", "provdores", "providores", "provedor", "provedores"]) and "PROVEEDORES" not in secciones_vistas:
+        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay", "hay cuantos", "hay cautnos", "activos"]):
             lineas = ["PROVEEDORES"]
             lineas.append(f"- Proveedores registrados: {format_number_es(datos.get('proveedores_count', 0))}")
+            secciones_vistas.add("PROVEEDORES")
             respuestas.append("\n".join(lineas))
 
     # --- MATERIALES / STOCK ---
-    if any(k in parte_normalizada for k in ["material", "materiales", "stock"]):
+    if has_keywords(check_strings, ["material", "materiales", "stock"]) and "ESTADO DEL INVENTARIO" not in secciones_vistas:
         lineas = ["ESTADO DEL INVENTARIO"]
         
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay"]):
+        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos", "que hay"]):
             lineas.append(f"- Tipos de materiales: {format_number_es(datos.get('total_materiales', 0))}")
-        if any(k in parte_normalizada for k in ["total stock", "total de stock"]):
+        if has_keywords(check_strings, ["total stock", "total de stock"]):
             lineas.append(f"- Unidades totales en stock: {format_number_es(datos.get('total_stock', 0))}")
         
-        if any(k in parte_normalizada for k in ["poco", "bajo", "alerta", "alertas", "acabando", "terminando", "sin stock"]):
+        if has_keywords(check_strings, ["poco", "bajo", "alerta", "alertas", "acabando", "terminando", "sin stock"]):
             if datos.get('stock_bajo', 0) > 0:
                 lineas.append(f"- ⚠️ Materiales con stock bajo: {format_number_es(datos.get('stock_bajo', 0))}")
             else:
                 lineas.append(f"- ✅ No hay materiales con stock bajo")
         
         if len(lineas) > 1:
+            secciones_vistas.add("ESTADO DEL INVENTARIO")
             respuestas.append("\n".join(lineas))
 
     # --- VEHÍCULOS ---
-    if any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "conductor", "conductores", "asociado", "asignado"]):
+    if has_keywords(check_strings, ["vehiculo", "vehiculos", "vehículo", "vehículos", "auto", "autos", "carro", "carros", "camion", "camiones", "conductor", "conductores", "asociado", "asignado"]) and "ESTADO DE VEHÍCULOS" not in secciones_vistas:
         lineas = ["ESTADO DE VEHÍCULOS"]
         
-        incluir_resumen = any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos", "vehiculo", "vehiculos", "vehículo", "vehículos", "conductor", "conductores"])
-        incluir_asignacion = any(k in parte_normalizada for k in ["asociado", "asignado", "cada conductor"])
+        incluir_resumen = has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos", "vehiculo", "vehiculos", "vehículo", "vehículos", "conductor", "conductores"])
+        incluir_asignacion = has_keywords(check_strings, ["asociado", "asignado", "cada conductor"])
         
         if incluir_resumen or incluir_asignacion:
-            if incluir_resumen and any(k in parte_normalizada for k in ["vehiculo", "vehiculos", "vehículo", "vehículos", "total", "hay", "cuantos", "cautnos", "cuántos"]):
+            if incluir_resumen and has_keywords(check_strings, ["vehiculo", "vehiculos", "vehículo", "vehículos", "total", "hay", "cuantos", "cautnos", "cuántos"]):
                 lineas.append(f"- Vehículos totales: {format_number_es(datos.get('vehiculos_count', 0))}")
-                if any(k in parte_normalizada for k in ["disponible", "disponibles", "libre", "libres"]):
+                if has_keywords(check_strings, ["disponible", "disponibles", "libre", "libres"]):
                     lineas.append(f"- Vehículos disponibles: {format_number_es(datos.get('vehiculos_disponibles', 0))}")
-                if any(k in parte_normalizada for k in ["en ruta", "ruta", "ocupados"]):
+                if has_keywords(check_strings, ["en ruta", "ruta", "ocupados"]):
                     lineas.append(f"- Vehículos en ruta: {format_number_es(datos.get('vehiculos_en_ruta', 0))}")
-            if any(k in parte_normalizada for k in ["conductor", "conductores", "total", "hay", "cuantos", "cautnos", "cuántos"]):
+            if has_keywords(check_strings, ["conductor", "conductores", "total", "hay", "cuantos", "cautnos", "cuántos"]):
                 lineas.append(f"- Conductores totales: {format_number_es(datos.get('conductor_count', 0))}")
             if incluir_asignacion:
                 total_asignados = datos.get('total_conductores_con_vehiculo', 0)
@@ -167,78 +204,83 @@ def procesar_parte_pregunta(parte, datos):
                     lineas.append(f"- Existen {format_number_es(total_conductores - total_asignados)} conductores sin vehículo asignado")
         
         if len(lineas) > 1:
+            secciones_vistas.add("ESTADO DE VEHÍCULOS")
             respuestas.append("\n".join(lineas))
 
     # --- PEDIDOS ---
-    if any(k in parte_normalizada for k in ["pedido", "pedidos"]):
+    if has_keywords(check_strings, ["pedido", "pedidos"]) and "ESTADO DE PEDIDOS" not in secciones_vistas:
         lineas = ["ESTADO DE PEDIDOS"]
         
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
+        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
             lineas.append(f"- Pedidos totales: {format_number_es(datos.get('pedidos_totales', 0))}")
-        if any(k in parte_normalizada for k in ["pendiente", "pendientes"]):
+        if has_keywords(check_strings, ["pendiente", "pendientes"]):
             lineas.append(f"- Pendientes: {format_number_es(datos.get('pedidos_pendientes', 0))}")
-        if any(k in parte_normalizada for k in ["aprobado", "aprobados"]):
+        if has_keywords(check_strings, ["aprobado", "aprobados"]):
             lineas.append(f"- Aprobados: {format_number_es(datos.get('pedidos_aprobados', 0))}")
-        if any(k in parte_normalizada for k in ["en camino", "camino"]):
+        if has_keywords(check_strings, ["en camino", "camino"]):
             lineas.append(f"- En camino: {format_number_es(datos.get('pedidos_en_camino', 0))}")
-        if any(k in parte_normalizada for k in ["entregado", "entregados"]):
+        if has_keywords(check_strings, ["entregado", "entregados"]):
             lineas.append(f"- Entregados: {format_number_es(datos.get('pedidos_entregados', 0))}")
-        if any(k in parte_normalizada for k in ["cancelado", "cancelados"]):
+        if has_keywords(check_strings, ["cancelado", "cancelados"]):
             lineas.append(f"- Cancelados: {format_number_es(datos.get('pedidos_cancelados', 0))}")
         
-        if any(k in parte_normalizada for k in ["ventas", "total vendido", "ventas totales"]):
+        if has_keywords(check_strings, ["ventas", "total vendido", "ventas totales"]):
             lineas.append(f"\nVENTAS")
             lineas.append(f"- Total de ventas: {format_number_es(datos.get('total_ventas', 0))}")
         
         if len(lineas) > 1:
+            secciones_vistas.add("ESTADO DE PEDIDOS")
             respuestas.append("\n".join(lineas))
 
     # --- COMPRAS ---
-    if any(k in parte_normalizada for k in ["compra", "compras"]):
+    if has_keywords(check_strings, ["compra", "compras"]) and "ESTADO DE COMPRAS" not in secciones_vistas:
         lineas = ["ESTADO DE COMPRAS"]
         
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
+        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
             lineas.append(f"- Compras totales: {format_number_es(datos.get('compras_totales', 0))}")
-        if any(k in parte_normalizada for k in ["pendiente", "pendientes"]):
+        if has_keywords(check_strings, ["pendiente", "pendientes"]):
             lineas.append(f"- Pendientes: {format_number_es(datos.get('compras_pendientes', 0))}")
-        if any(k in parte_normalizada for k in ["recibida", "recibidas"]):
+        if has_keywords(check_strings, ["recibida", "recibidas"]):
             lineas.append(f"- Recibidas: {format_number_es(datos.get('compras_recibidas', 0))}")
         
-        if any(k in parte_normalizada for k in ["total compras", "total de compras"]):
+        if has_keywords(check_strings, ["total compras", "total de compras"]):
             lineas.append(f"\nMONTOS")
             lineas.append(f"- Total de compras: {format_number_es(datos.get('total_compras', 0))}")
         
         if len(lineas) > 1:
+            secciones_vistas.add("ESTADO DE COMPRAS")
             respuestas.append("\n".join(lineas))
 
     # --- FACTURAS ---
-    if any(k in parte_normalizada for k in ["factura", "facturas"]):
+    if has_keywords(check_strings, ["factura", "facturas"]) and "ESTADO DE FACTURAS" not in secciones_vistas:
         lineas = ["ESTADO DE FACTURAS"]
         
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
+        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
             lineas.append(f"- Facturas totales: {format_number_es(datos.get('facturas_totales', 0))}")
-        if any(k in parte_normalizada for k in ["pendiente", "pendientes"]):
+        if has_keywords(check_strings, ["pendiente", "pendientes"]):
             lineas.append(f"- Pendientes: {format_number_es(datos.get('facturas_pendientes', 0))}")
-        if any(k in parte_normalizada for k in ["pagada", "pagadas"]):
+        if has_keywords(check_strings, ["pagada", "pagadas"]):
             lineas.append(f"- Pagadas: {format_number_es(datos.get('facturas_pagadas', 0))}")
         
-        if any(k in parte_normalizada for k in ["total facturado", "facturado total"]):
+        if has_keywords(check_strings, ["total facturado", "facturado total"]):
             lineas.append(f"\nMONTOS")
             lineas.append(f"- Total facturado: {format_number_es(datos.get('total_facturado', 0))}")
         
         if len(lineas) > 1:
+            secciones_vistas.add("ESTADO DE FACTURAS")
             respuestas.append("\n".join(lineas))
 
     # --- PAGOS ---
-    if any(k in parte_normalizada for k in ["pago", "pagos"]):
+    if has_keywords(check_strings, ["pago", "pagos"]) and "ESTADO DE PAGOS" not in secciones_vistas:
         lineas = ["ESTADO DE PAGOS"]
         
-        if any(k in parte_normalizada for k in ["total", "hay", "cuantos", "cautnos", "cuántos"]):
+        if has_keywords(check_strings, ["total", "hay", "cuantos", "cautnos", "cuántos"]):
             lineas.append(f"- Pagos registrados: {format_number_es(datos.get('pagos_totales', 0))}")
-        if any(k in parte_normalizada for k in ["total pagado", "pagado total"]):
+        if has_keywords(check_strings, ["total pagado", "pagado total"]):
             lineas.append(f"- Total pagado: {format_number_es(datos.get('total_pagado', 0))}")
         
         if len(lineas) > 1:
+            secciones_vistas.add("ESTADO DE PAGOS")
             respuestas.append("\n".join(lineas))
 
     return respuestas
@@ -250,6 +292,7 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
     mensaje_normalizado = normalizar_texto(mensaje)
     es_primera_interaccion = len(historial) == 0
     respuestas = []
+    secciones_vistas = set()
 
     # Construir saludo
     saludo = ""
@@ -259,16 +302,13 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
         if usuario and usuario.is_authenticated:
             saludo = f"¡Hola {usuario.nombres}!"
 
-
-
     # 1. Preprocesar: separar "y" que está pegado a palabras (ej: "conductory" → "conductor y")
     # Primero, manejar el caso específico "conductory"
-    mensaje_procesado = re.sub(r'conductory', r'conductor y', mensaje_normalizado, flags=re.IGNORECASE)
+    mensaje_procesado = re.sub(r'conductory', r'conductor y', mensaje_lower, flags=re.IGNORECASE)
     # Ahora, reemplazamos separadores claros
     mensaje_procesado = re.sub(r'\s+y que\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
     mensaje_procesado = re.sub(r'\s+y qué\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
-    mensaje_procesado = re.sub(r'\s+que\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
-    mensaje_procesado = re.sub(r'\s+qué\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
+    # NO reemplazamos solo "que" o "qué" para evitar romper preguntas como "cuantos proveedores hay"
     # Luego, reemplazamos " y " por " | " para separar las preguntas
     mensaje_procesado = re.sub(r'\s+y\s+', ' | ', mensaje_procesado, flags=re.IGNORECASE)
 
@@ -279,15 +319,18 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
 
     # 3. Procesar cada parte
     for parte in partes:
-        respuestas.extend(procesar_parte_pregunta(parte, datos))
+        parte_respuestas = procesar_parte_pregunta(parte, datos, secciones_vistas)
+        respuestas.extend(parte_respuestas)
 
-    # 4. Si no se procesaron partes, intentar con la pregunta entera
+    # 4. Si no se procesaron partes, intentar con la pregunta ORIGINAL (no normalizada, para que procesar_parte_pregunta use both)
     if not respuestas:
-        respuestas.extend(procesar_parte_pregunta(mensaje_normalizado, datos))
+        respuestas.extend(procesar_parte_pregunta(mensaje, datos, secciones_vistas))
 
     # 5. Resumen general si aún no hay respuestas
     if not respuestas and any(k in mensaje_normalizado for k in ["resumen", "sistema", "que hay", "qué hay", "que tiene", "qué tiene"]):
-        respuestas.append(f"""RESUMEN DEL SISTEMA
+        if "RESUMEN DEL SISTEMA" not in secciones_vistas:
+            secciones_vistas.add("RESUMEN DEL SISTEMA")
+            respuestas.append(f"""RESUMEN DEL SISTEMA
 - Usuarios: {format_number_es(datos.get('total_usuarios', 0))} totales, {format_number_es(datos.get('usuarios_activos', 0))} activos
 - Clientes: {format_number_es(datos.get('clientes_registrados', 0))} registrados
 - Proveedores: {format_number_es(datos.get('proveedores_count', 0))}

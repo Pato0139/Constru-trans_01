@@ -52,16 +52,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function loadChatHistory() {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        chatHistory = JSON.parse(saved);
-        // Renderizar mensajes guardados
-        chatHistory.forEach(msg => addMessageToDOM(msg.text, msg.sender, false, msg.messageId));
+      // Clear ALL chat-related localStorage items to fix old issues!
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('constru-trans-chat')) {
+          keysToRemove.push(key);
+        }
       }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      chatHistory = [];
     } catch (e) {
       console.error('Error al cargar historial:', e);
       chatHistory = [];
     }
+  }
+
+  // Clean text to remove stray trailing dashes from lines, but keep line structure
+  function cleanText(text) {
+    return text.split('\n').map(line => {
+      // Remove trailing dashes but keep the line
+      let cleanedLine = line.replace(/\s*-$/, '');
+      // Also remove any leading/trailing whitespace that's not needed
+      cleanedLine = cleanedLine.trimEnd();
+      return cleanedLine;
+    }).join('\n');
   }
 
   function saveChatHistory() {
@@ -166,18 +181,22 @@ document.addEventListener('DOMContentLoaded', function() {
       messageDiv.dataset.messageId = messageId;
     }
     
+    // Clean text and escape HTML
+    const cleanedText = cleanText(text);
+    const safeText = escapeHtml(cleanedText);
+    
     if (sender === 'bot') {
       messageDiv.innerHTML = `
         <div class="chat-message-avatar">
           <img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo">
         </div>
         <div class="chat-message-content">
-          <div class="chat-message-bubble">${escapeHtml(text)}</div>
+          <div class="chat-message-bubble">${safeText}</div>
         </div>
       `;
     } else {
       messageDiv.innerHTML = `
-        <div class="chat-message-bubble">${escapeHtml(text)}</div>
+        <div class="chat-message-bubble">${safeText}</div>
       `;
     }
     
@@ -187,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Guardar en historial
     if (save) {
       chatHistory.push({
-        text: text,
+        text: cleanedText,
         sender: sender,
         messageId: messageId,
         timestamp: new Date().toISOString()

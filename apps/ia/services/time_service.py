@@ -48,29 +48,38 @@ def responder_hora(texto: str) -> str | None:
 
     partes = []
 
-    if "estados unidos" in t or "usa" in t or "eeuu" in t:
-        partes.append("En Estados Unidos hay varias zonas horarias:")
-        for label, tz in US_ZONES.items():
-            now = datetime.now(ZoneInfo(tz))
-            partes.append(
-                f"- {label}: {now.strftime('%H:%M')} ({periodo(now.hour)}), {now.strftime('%d/%m/%Y')}"
-            )
+    # Check for basic time questions (no location)
+    basic_time_keywords = ["hora", "fecha", "qué hora", "que hora", "qué fecha", "que fecha", "qué dia", "que dia", "qué día", "que día"]
+    has_basic_time = any(keyword in t for keyword in basic_time_keywords)
+    
+    # Only activate time service if there are actual time keywords!
+    if has_basic_time:
+        now = datetime.now()
+        partes.append(f"Son las {now.strftime('%H:%M')}, es {periodo(now.hour)} y la fecha es {now.strftime('%d/%m/%Y')}.")
 
-    encontrados = []
-    for alias, tz_name in ALIASES.items():
-        if alias in t:
-            encontrados.append((alias.title(), tz_name))
+        if "estados unidos" in t or "usa" in t or "eeuu" in t:
+            partes.append("En Estados Unidos hay varias zonas horarias:")
+            for label, tz in US_ZONES.items():
+                now = datetime.now(ZoneInfo(tz))
+                partes.append(
+                    f"- {label}: {now.strftime('%H:%M')} ({periodo(now.hour)}), {now.strftime('%d/%m/%Y')}"
+                )
 
-    # quita duplicados por timezone
-    vistos = set()
-    encontrados_unicos = []
-    for nombre, tz in encontrados:
-        if tz not in vistos:
-            encontrados_unicos.append((nombre, tz))
-            vistos.add(tz)
+        encontrados = []
+        for alias, tz_name in ALIASES.items():
+            if alias in t:
+                encontrados.append((alias.title(), tz_name))
 
-    for nombre, tz in encontrados_unicos:
-        partes.append(hora_lugar(nombre, tz))
+        # quita duplicados por timezone
+        vistos = set()
+        encontrados_unicos = []
+        for nombre, tz in encontrados:
+            if tz not in vistos:
+                encontrados_unicos.append((nombre, tz))
+                vistos.add(tz)
+
+        for nombre, tz in encontrados_unicos:
+            partes.append(hora_lugar(nombre, tz))
 
     if partes:
         return "\n".join(partes)
