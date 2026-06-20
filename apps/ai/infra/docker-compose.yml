@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: constru_trans_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: constru_trans
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - constru_trans_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: constru_trans_redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - constru_trans_network
+
+  # ChromaDB Vector Database
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: constru_trans_chroma
+    volumes:
+      - chroma_data:/chroma/chroma
+    ports:
+      - "8000:8000"
+    networks:
+      - constru_trans_network
+
+  # AI Service (FastAPI)
+  ai_service:
+    build:
+      context: ../service
+      dockerfile: Dockerfile
+    container_name: constru_trans_ai_service
+    volumes:
+      - ../service:/app
+      - ../../data/uploads:/data/uploads
+    ports:
+      - "8001:8001"
+    environment:
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - CHROMA_HOST=chroma
+    depends_on:
+      - postgres
+      - redis
+      - chroma
+    networks:
+      - constru_trans_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  chroma_data:
+
+networks:
+  constru_trans_network:
+    driver: bridge
