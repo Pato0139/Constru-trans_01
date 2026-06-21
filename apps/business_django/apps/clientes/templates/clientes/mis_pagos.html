@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load currency_tags %}
+
+{% block title %}Mis Pagos - Constru-trans{% endblock %}
+
+{% block header_title %}Mis Pagos{% endblock %}
+
+{% block content %}
+
+<div class="table-container p-4">
+    <!-- Facturas Pendientes -->
+    <div class="mb-5">
+        <h5 class="fw-800 m-0 text-white mb-3"><i class="bi bi-exclamation-circle text-warning me-2"></i> Facturas Pendientes (para pagar)</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Número de Factura</th>
+                        <th>Fecha</th>
+                        <th>Monto Total</th>
+                        <th>Saldo Pendiente</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for factura in facturas %}
+                    {% if factura.estado == "pendiente" %}
+                    <tr>
+                        <td class="fw-700 text-accent">{{ factura.numero }}</td>
+                        <td class="text-muted small">{{ factura.fecha|date:"d M, Y" }}</td>
+                        <td class="price-tag">{{ factura.total|currency }}</td>
+                        <td class="price-tag text-warning">{{ factura.saldo_pendiente|currency }}</td>
+                        <td>
+                            <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'pagos:procesar_pago' factura.id_factura %}" class="btn btn-gold btn-sm d-inline-flex align-items-center gap-2" title="Pagar">
+                                <i class="bi bi-credit-card"></i> Pagar
+                            </a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">No tienes facturas pendientes de pago.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Historial de Pagos -->
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2 flex-wrap gap-3">
+        <h5 class="fw-800 m-0 text-white"><i class="bi bi-clock-history me-2"></i> Historial de Pagos</h5>
+        <div class="d-flex gap-2">
+            <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2">
+                <i class="bi bi-journal-text"></i> Mis Pedidos
+            </a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>ID Pago</th>
+                    <th>Factura</th>
+                    <th>Fecha</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos %}
+                <tr>
+                    <td class="fw-700 text-accent">#P-{{ pago.id_pago }}</td>
+                    <td class="text-white">{{ pago.factura.numero|default:"N/A" }}</td>
+                    <td class="text-muted small">{{ pago.fecha|date:"d M, Y" }}</td>
+                    <td class="price-tag">{{ pago.monto|currency }}</td>
+                    <td class="fw-600 text-white">{{ pago.codigo_metodo_pago.metodo }}</td>
+                    <td>
+                        {% if pago.estado == "completado" %}
+                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Completado</span>
+                        {% elif pago.estado == "pendiente" %}
+                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                        {% elif pago.estado == "fallido" %}
+                        <span class="badge-tipo" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">Fallido</span>
+                        {% else %}
+                        <span class="badge-tipo" style="background: rgba(107, 114, 128, 0.1); color: #6b7280; border-color: rgba(107, 114, 128, 0.2);">{{ pago.estado|title }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'pagos:detalle_pago' pago.id_pago %}" class="btn-action" title="Ver Detalle">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">Aún no has realizado ningún pago.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .text-accent { color: var(--color-accent) !important; }
+    .badge-tipo {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: 1px solid;
+    }
+</style>
+
+{% endblock %}
