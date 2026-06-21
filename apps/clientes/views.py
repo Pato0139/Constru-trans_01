@@ -69,6 +69,24 @@ def _obtener_cliente_local(usuario_local):
     return cliente_local
 
 
+def pedidos_visibles_para_cliente(usuario_local, usuario_remoto):
+    ids = [u.id for u in [usuario_local, usuario_remoto] if u]
+    usernames = [u.username for u in [usuario_local, usuario_remoto] if u and u.username]
+
+    return (
+        Pedido.objects.filter(
+            Q(usuario_id__in=ids)
+            | Q(cliente__usuario_id__in=ids)
+            | Q(usuario__username__in=usernames)
+            | Q(cliente__usuario__username__in=usernames)
+        )
+        .select_related("cliente__usuario", "conductor")
+        .prefetch_related("detalles", "entregas")
+        .distinct()
+        .order_by("-fecha_solicitud")
+    )
+
+
 def _obtener_catalogo_local(catalogo):
     if not catalogo:
         return None
@@ -222,7 +240,7 @@ def panel_cliente(request):
         messages.error(request, f"Error al cargar el panel: {str(e)}")
         return redirect("usuarios:login")
 
-    pedidos = Pedido.objects.filter(usuario__in=[usuario, usuario_remoto])
+    pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto)
     pagos = Pago.objects.filter(factura__cliente__in=[usuario, usuario_remoto])
     context = {
         "pedidos_activos": pedidos.filter(estado="pendiente").count(),
@@ -230,7 +248,7 @@ def panel_cliente(request):
         "total_gastado": pedidos.aggregate(total=Sum("total"))["total"] or 0,
         "total_pagos": pagos.count(),
         "ultimos_pedidos": (
-            pedidos.order_by("-fecha_solicitud").only(
+            pedidos.only(
                 "codigo_pedido",
                 "estado",
                 "total",
@@ -252,12 +270,7 @@ def mis_pedidos(request):
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
 
-    pedidos = (
-        Pedido.objects.filter(usuario__in=[usuario, usuario_remoto])
-        .select_related("factura")
-        .prefetch_related("factura__pagos")
-        .order_by("-fecha_solicitud")
-    )
+    pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto).select_related("factura").prefetch_related("factura__pagos")
     metodos_pago = MetodoPago.objects.all()
     context = {"pedidos": pedidos, "metodos_pago": metodos_pago}
 
@@ -273,7 +286,7 @@ def perfil_cliente(request):
         logout(request)
         return redirect("usuarios:login")
 
-    pedidos = Pedido.objects.filter(usuario__in=[usuario, usuario_remoto])
+    pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto)
 
     context = {
         "cliente": usuario,
@@ -295,9 +308,7 @@ def seguimiento_pedidos(request):
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
 
-    pedidos = Pedido.objects.filter(usuario__in=[usuario, usuario_remoto]).order_by(
-        "-fecha_solicitud"
-    )
+    pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto)
     context = {"pedidos": pedidos}
 
     return render(request, "clientes/seguimiento.html", context)
@@ -312,9 +323,7 @@ def historial_pedidos(request):
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
 
-    pedidos = Pedido.objects.filter(
-        usuario__in=[usuario, usuario_remoto], estado="entregado"
-    ).order_by("-fecha_solicitud")
+    pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto).filter(estado="entregado")
     context = {"pedidos": pedidos}
 
     return render(request, "clientes/historial.html", context)
