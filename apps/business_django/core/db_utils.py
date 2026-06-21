@@ -1,7 +1,7 @@
 from django.db import OperationalError
 
 
-def save_offline_first(instance, remote_db='remota', local_db='default'):
+def save_offline_first(instance, remote_db="remota", local_db="default"):
     """
     Intenta guardar una instancia en la base de datos remota.
     Si falla por problemas de conexión, la guarda localmente marcándola como no sincronizada.

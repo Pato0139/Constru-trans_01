@@ -198,9 +198,7 @@ class Vehiculo(models.Model):
 
     ESTADOS_VEHICULO = [
         ('disponible', 'Disponible'),
-        ('en_ruta', 'En Ruta'),
-        ('mantenimiento', 'Mantenimiento'),
-        ('desactivado', 'Desactivado'),
+        ('asignado', 'Asignado'),
     ]
     estado = models.CharField(max_length=20, choices=ESTADOS_VEHICULO, default='disponible')
 
