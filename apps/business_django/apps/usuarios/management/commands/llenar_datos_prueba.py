@@ -1,24 +1,23 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from decimal import Decimal
 
-from apps.usuarios.models import Usuario, Catalogo, MaterialConstruccion, UnidadMedida
-from apps.gestion_pedidos.models import Pedido, DetallePedido
+from apps.gestion_pedidos.models import DetallePedido, Pedido
+from apps.usuarios.models import Catalogo, MaterialConstruccion, UnidadMedida, Usuario
 
 
 class Command(BaseCommand):
     help = "Llena datos de prueba: teléfonos, tipos de materiales y pedidos"
-    DB_ALIAS = 'default'
+    DB_ALIAS = "default"
 
     def handle(self, *args, **kwargs):
-        self.stdout.write("="*40)
+        self.stdout.write("=" * 40)
         self.stdout.write("  LLENANDO DATOS DE PRUEBA")
-        self.stdout.write("="*40)
-        
+        self.stdout.write("=" * 40)
+
         self.llenar_telefonos_clientes()
         self.llenar_tipos_materiales()
         self.crear_pedidos_y_ventas()
-        
+
         self.stdout.write("\nDATOS DE PRUEBA LLENADOS CORRECTAMENTE!")
 
     def llenar_telefonos_clientes(self):
@@ -28,7 +27,7 @@ class Command(BaseCommand):
         self.stdout.write("  Usuarios disponibles en la BD:")
         for u in Usuario.objects.using(self.DB_ALIAS).all()[:20]:
             self.stdout.write(f"    - {u.id}: {u.nombres} {u.apellidos}")
-        
+
         datos = [
             ("Cliente Nombres 2 Apellidos 2", "3001234567"),
             ("Cliente Nombres 3 Apellidos 3", "3012345678"),
@@ -51,7 +50,7 @@ class Command(BaseCommand):
                     usuarios = Usuario.objects.using(self.DB_ALIAS).filter(
                         nombres__icontains=" ".join(nombre_completo.split()[:2])
                     )
-                
+
                 if usuarios:
                     usuario = usuarios.first()
                     usuario.telefono = telefono
@@ -59,14 +58,22 @@ class Command(BaseCommand):
                     self.stdout.write(f"[OK] {usuario.nombres} {usuario.apellidos} : {telefono}")
                 else:
                     pass  # Skip
-            except Exception as e:
+            except Exception:
                 pass
 
         # Also, let's just fill some random clientes!
         self.stdout.write("\n  Llenando telefonos a clientes aleatorios:")
-        clientes = Usuario.objects.using(self.DB_ALIAS).filter(rol='cliente')
-        telefonos = ["3001234567", "3012345678", "3023456789", "3034567890",
-                      "3045678901", "3056789012", "3107890123", "3118901234"]
+        clientes = Usuario.objects.using(self.DB_ALIAS).filter(rol="cliente")
+        telefonos = [
+            "3001234567",
+            "3012345678",
+            "3023456789",
+            "3034567890",
+            "3045678901",
+            "3056789012",
+            "3107890123",
+            "3118901234",
+        ]
         for i, c in enumerate(clientes[:8]):
             c.telefono = telefonos[i % len(telefonos)]
             c.save(using=self.DB_ALIAS)
@@ -75,7 +82,7 @@ class Command(BaseCommand):
     def llenar_tipos_materiales(self):
         """Llenar tipos (Catalogo) y materiales de prueba"""
         self.stdout.write("\n--- Llenando tipos y materiales de prueba ---")
-        
+
         # Asegurar que los catalogos existan
         tipos = [
             ("CEM", "Cementos y Hormigon"),
@@ -83,19 +90,17 @@ class Command(BaseCommand):
             ("GEN", "Materiales Generales"),
             ("ARE", "Arenas y Grava"),
         ]
-        
+
         for codigo, nombre in tipos:
             Catalogo.objects.using(self.DB_ALIAS).get_or_create(
-                codigo_catalogo=codigo,
-                defaults={'nombre_empresa': nombre}
+                codigo_catalogo=codigo, defaults={"nombre_empresa": nombre}
             )
             self.stdout.write(f"[OK] Catalogo: {nombre}")
 
         # Get unidad de medida!
         try:
             unidad, _ = UnidadMedida.objects.using(self.DB_ALIAS).get_or_create(
-                codigo='UN',
-                defaults={'nombre': 'Unidad', 'abreviatura': 'un'}
+                codigo="UN", defaults={"nombre": "Unidad", "abreviatura": "un"}
             )
         except:
             # If UnidadMedida doesn't exist, we might need to skip, but let's try to get any!
@@ -115,19 +120,23 @@ class Command(BaseCommand):
 
         for nombre_material, nombre_tipo, precio, unidad in materiales_datos:
             try:
-                catalogo = Catalogo.objects.using(self.DB_ALIAS).filter(nombre_empresa=nombre_tipo).first()
+                catalogo = (
+                    Catalogo.objects.using(self.DB_ALIAS).filter(nombre_empresa=nombre_tipo).first()
+                )
                 # Get or create material!
                 material, created = MaterialConstruccion.objects.using(self.DB_ALIAS).get_or_create(
                     nombre=nombre_material,
                     defaults={
-                        'catalogo': catalogo,
-                        'unidad_medida': unidad,
-                        'descripcion': f"{nombre_material} de prueba",
-                        'precio_referencia': precio
-                    }
+                        "catalogo": catalogo,
+                        "unidad_medida": unidad,
+                        "descripcion": f"{nombre_material} de prueba",
+                        "precio_referencia": precio,
+                    },
                 )
                 if created:
-                    self.stdout.write(f"[OK] Creado material: {material.nombre} : {catalogo.nombre_empresa}")
+                    self.stdout.write(
+                        f"[OK] Creado material: {material.nombre} : {catalogo.nombre_empresa}"
+                    )
                 else:
                     # Update catalogo if missing
                     if not material.catalogo and catalogo:
@@ -149,38 +158,38 @@ class Command(BaseCommand):
     def crear_pedidos_y_ventas(self):
         """Crear pedidos y datos de ventas de ejemplo"""
         self.stdout.write("\n--- Creando pedidos y ventas ---")
-        
+
         # Get actual clientes and materials from DB!
-        clientes = list(Usuario.objects.using(self.DB_ALIAS).filter(rol='cliente')[:5])
+        clientes = list(Usuario.objects.using(self.DB_ALIAS).filter(rol="cliente")[:5])
         materiales = list(MaterialConstruccion.objects.using(self.DB_ALIAS).all()[:5])
-        
+
         self.stdout.write(f"  Clientes encontrados: {len(clientes)}")
         self.stdout.write(f"  Materiales encontrados: {len(materiales)}")
         for m in materiales:
             self.stdout.write(f"    - {m.nombre}")
-        
+
         if not clientes or not materiales:
             self.stdout.write("[AVISO] No hay suficientes clientes o materiales para crear pedidos")
             return
 
         # Create sample pedidos
-        estados = ['pendiente', 'aprobado', 'entregado', 'cancelado']
-        
+        estados = ["pendiente", "aprobado", "entregado", "cancelado"]
+
         for i in range(7):
             try:
                 cliente = clientes[i % len(clientes)]
                 material = materiales[i % len(materiales)]
                 estado = estados[i % len(estados)]
-                
+
                 # Parsear fecha
                 fecha = timezone.make_aware(
                     timezone.datetime(2026, 6, 17) - timezone.timedelta(days=i)
                 )
-                
+
                 # Calcular total
                 cantidad = (i % 5) + 1
                 total = cantidad * material.precio_referencia
-                
+
                 # Crear pedido
                 pedido = Pedido.objects.using(self.DB_ALIAS).create(
                     cliente=cliente,
@@ -189,7 +198,7 @@ class Command(BaseCommand):
                     total=total,
                     descuento=0,
                 )
-                
+
                 # Crear detalle
                 DetallePedido.objects.using(self.DB_ALIAS).create(
                     pedido=pedido,
@@ -197,7 +206,9 @@ class Command(BaseCommand):
                     cantidad=cantidad,
                     precio_unitario=material.precio_referencia,
                 )
-                
-                self.stdout.write(f"[OK] Pedido #{pedido.id} : Cliente {cliente.id}, Estado: {estado}, Total: ${total}")
+
+                self.stdout.write(
+                    f"[OK] Pedido #{pedido.id} : Cliente {cliente.id}, Estado: {estado}, Total: ${total}"
+                )
             except Exception as e:
                 self.stdout.write(f"[ERROR] Error creando pedido: {e}")

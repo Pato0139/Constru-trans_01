@@ -4,28 +4,52 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Factura',
+            name="Factura",
             fields=[
-                ('id_factura', models.AutoField(primary_key=True, serialize=False)),
-                ('numero', models.CharField(blank=True, max_length=50, null=True, unique=True)),
-                ('fecha', models.DateTimeField(auto_now_add=True)),
-                ('subtotal', models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=12, null=True)),
-                ('iva', models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=12, null=True)),
-                ('total', models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=12, null=True)),
-                ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('pagada', 'Pagada'), ('anulada', 'Anulada')], default='pendiente', max_length=15)),
-                ('sincronizado', models.BooleanField(default=False)),
+                ("id_factura", models.AutoField(primary_key=True, serialize=False)),
+                ("numero", models.CharField(blank=True, max_length=50, null=True, unique=True)),
+                ("fecha", models.DateTimeField(auto_now_add=True)),
+                (
+                    "subtotal",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, default=0, max_digits=12, null=True
+                    ),
+                ),
+                (
+                    "iva",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, default=0, max_digits=12, null=True
+                    ),
+                ),
+                (
+                    "total",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, default=0, max_digits=12, null=True
+                    ),
+                ),
+                (
+                    "estado",
+                    models.CharField(
+                        choices=[
+                            ("pendiente", "Pendiente"),
+                            ("pagada", "Pagada"),
+                            ("anulada", "Anulada"),
+                        ],
+                        default="pendiente",
+                        max_length=15,
+                    ),
+                ),
+                ("sincronizado", models.BooleanField(default=False)),
             ],
             options={
-                'db_table': 'factura',
-                'ordering': ['-fecha'],
+                "db_table": "factura",
+                "ordering": ["-fecha"],
             },
         ),
     ]

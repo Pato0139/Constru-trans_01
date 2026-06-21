@@ -1,17 +1,21 @@
 import os
 import logging
-from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
-LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
-LLM_API_KEY = os.getenv("LLM_API_KEY", "local-key")
-LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2:latest")
-
-client = OpenAI(base_url=LLM_BASE_URL, api_key=LLM_API_KEY)
+try:
+    from openai import OpenAI
+    LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
+    LLM_API_KEY = os.getenv("LLM_API_KEY", "local-key")
+    LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2:latest")
+    client = OpenAI(base_url=LLM_BASE_URL, api_key=LLM_API_KEY)
+except ImportError:
+    client = None
 
 
 def verificar_conexion_llm():
+    if client is None:
+        return False
     try:
         client.models.list()
         return True
@@ -48,6 +52,10 @@ Datos actuales del sistema:
 
 
 def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
+    if client is None:
+        logger.error("Cliente LLM no está disponible (openai no instalado)")
+        return None
+        
     system_prompt = construir_prompt_sistema(contexto, nombre_usuario)
 
     messages = [{"role": "system", "content": system_prompt}]

@@ -11,13 +11,14 @@ def registrar_actividad(request, accion, modulo, elemento_id=None, descripcion="
         modulo=modulo,
         elemento_id=str(elemento_id) if elemento_id else None,
         descripcion=descripcion,
-        ip_address=ip_address
+        ip_address=ip_address,
     )
 
+
 def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
+        ip = x_forwarded_for.split(",")[0]
     else:
-        ip = request.META.get('REMOTE_ADDR')
+        ip = request.META.get("REMOTE_ADDR")
     return ip

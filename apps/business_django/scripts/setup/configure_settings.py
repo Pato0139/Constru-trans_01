@@ -3,6 +3,7 @@
 Script para configurar settings.py para base de datos remota (Neon).
 Se usa desde setup_windows.ps1 para evitar problemas de sintaxis en PowerShell.
 """
+
 import os
 import re
 import sys
@@ -10,9 +11,9 @@ import sys
 
 def configure_settings():
     base_dir = os.getcwd()
-    settings_py = os.path.join(base_dir, 'core', 'settings.py')
+    settings_py = os.path.join(base_dir, "core", "settings.py")
 
-    with open(settings_py, 'r', encoding='utf-8') as f:
+    with open(settings_py, "r", encoding="utf-8") as f:
         content = f.read()
 
     modified = False
@@ -40,21 +41,18 @@ def configure_settings():
     router_line = "DATABASE_ROUTERS = ['core.routers.EnrutadorInventario']"
     if router_line not in content:
         # Descomentar o reemplazar la línea
-        content = re.sub(
-            r'(# Desactivar router.*\n)?DATABASE_ROUTERS = \[\]',
-            router_line,
-            content
-        )
+        content = re.sub(r"(# Desactivar router.*\n)?DATABASE_ROUTERS = \[\]", router_line, content)
         modified = True
 
     if modified:
-        with open(settings_py, 'w', encoding='utf-8') as f:
+        with open(settings_py, "w", encoding="utf-8") as f:
             f.write(content)
-        print('[OK] settings.py configurado para BD remota')
+        print("[OK] settings.py configurado para BD remota")
     else:
-        print('[OK] settings.py ya estaba configurado')
+        print("[OK] settings.py ya estaba configurado")
 
     return 0
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(configure_settings())

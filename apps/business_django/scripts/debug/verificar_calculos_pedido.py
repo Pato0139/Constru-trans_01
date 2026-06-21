@@ -3,6 +3,7 @@
 Fase 6 — Verificación de cálculos de pedido (sin base de datos).
 Ejecutar: python scripts/verificar_calculos_pedido.py
 """
+
 from decimal import Decimal
 
 

@@ -1,17 +1,17 @@
 import logging
 from functools import wraps
 
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
 from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from django.contrib.auth import get_user_model
+
 User = get_user_model()
 from django.contrib.auth.views import PasswordResetView
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Q, Sum, Prefetch
+from django.db.models import Prefetch, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -19,17 +19,18 @@ from django.utils.timezone import now
 
 from apps.historial.utils import registrar_actividad
 from apps.ordenes.models import Pedido
-from core.db_preference import PREF_AUTO, PREF_LOCAL, PREF_REMOTA, invalidate_connection_cache
-from core.utils import conexion_remota_disponible
+from core.db_preference import PREF_LOCAL, PREF_REMOTA, invalidate_connection_cache
 from core.sync import sync_all_usuarios
+from core.utils import conexion_remota_disponible
 
-from .forms import LoginForm, RegistroForm, AsignarVehiculoForm
+from .forms import AsignarVehiculoForm, LoginForm, RegistroForm
 from .models import (
     Conductor,
     ConductorVehiculo,
-    MaterialConstruccion as Material,
     Usuario,
-    Vehiculo,
+)
+from .models import (
+    MaterialConstruccion as Material,
 )
 from .utils import limpiar_telefono
 
@@ -41,35 +42,36 @@ def admin_required(view_func):
     @login_required
     def _wrapped_view(request, *args, **kwargs):
         try:
-            if request.user.usuario.rol == 'admin':
+            if request.user.usuario.rol == "admin":
                 return view_func(request, *args, **kwargs)
         except Usuario.DoesNotExist:
             if request.user.is_superuser:
                 Usuario.objects.create(
                     user=request.user,
-                    rol='admin',
+                    rol="admin",
                     nombres=request.user.first_name or "Admin",
                     apellidos=request.user.last_name or "Principal",
-                    tipo_documento='CC',
-                    documento='12345678'
+                    tipo_documento="CC",
+                    documento="12345678",
                 )
                 return view_func(request, *args, **kwargs)
         raise PermissionDenied
+
     return _wrapped_view
+
 
 def buscar_usuarios_generales(query=None):
     """
     Lógica unificada para buscar usuarios por nombre, email o documento.
     Optimizado con select_related para evitar N+1 en plantillas.
     """
-    usuarios = Usuario.objects.all().select_related('perfil_cliente').order_by('-id')
+    usuarios = Usuario.objects.all().select_related("perfil_cliente").order_by("-id")
     if query:
         usuarios = usuarios.filter(
-            Q(nombres__icontains=query) |
-            Q(email__icontains=query) |
-            Q(documento__icontains=query)
+            Q(nombres__icontains=query) | Q(email__icontains=query) | Q(documento__icontains=query)
         )
     return usuarios
+
 
 def buscar_conductores(query=None):
     """
@@ -79,26 +81,25 @@ def buscar_conductores(query=None):
     conductores = Usuario.objects.filter(rol="conductor")
     if query:
         conductores = conductores.filter(
-            Q(nombres__icontains=query) |
-            Q(apellidos__icontains=query) |
-            Q(email__icontains=query) |
-            Q(documento__icontains=query) |
-            Q(telefono__icontains=query)
+            Q(nombres__icontains=query)
+            | Q(apellidos__icontains=query)
+            | Q(email__icontains=query)
+            | Q(documento__icontains=query)
+            | Q(telefono__icontains=query)
         )
     return conductores
-
 
 
 # =====================================================================
 # REGISTRO
 # =====================================================================
 
+
 def registro(request):
     if request.method == "POST":
         form = RegistroForm(request.POST)
         if form.is_valid():
             try:
-
                 email = form.cleaned_data.get("correo")
                 password = form.cleaned_data.get("contrasena")
 
@@ -113,12 +114,14 @@ def registro(request):
                         user.estado = "activo"
                         user.save()
                     except Exception as e:
-
                         if "duplicate key" in str(e).lower() and conexion_remota_disponible():
                             from django.db import connections
+
                             try:
-                                with connections['remota'].cursor() as cursor:
-                                    cursor.execute("SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));")
+                                with connections["remota"].cursor() as cursor:
+                                    cursor.execute(
+                                        "SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));"
+                                    )
                             except Exception:
                                 pass
 
@@ -133,7 +136,9 @@ def registro(request):
                         else:
                             raise e
 
-                    registrar_actividad(request, 'crear', 'usuarios', user.id, f"Nuevo registro: {email}")
+                    registrar_actividad(
+                        request, "crear", "usuarios", user.id, f"Nuevo registro: {email}"
+                    )
 
                 messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
                 return redirect("usuarios:login")
@@ -141,7 +146,6 @@ def registro(request):
             except Exception as e_final:
                 messages.error(request, f"Error al crear el usuario: {str(e_final)}")
         else:
-
             pass
 
     else:
@@ -149,20 +153,15 @@ def registro(request):
 
     context = {"form": form}
 
-
     return render(request, "usuarios/registro.html", context)
-
-
-
-
 
 
 # =====================================================================
 # LOGIN
 # =====================================================================
 
-def login_usuario(request):
 
+def login_usuario(request):
     if conexion_remota_disponible():
         try:
             sync_all_usuarios()
@@ -187,46 +186,49 @@ def login_usuario(request):
                     user = None
 
             if user is not None:
-
-                if user.rol == 'cliente':
+                if user.rol == "cliente":
                     from apps.clientes.models import Cliente
+
                     try:
                         Cliente.objects.get_or_create(usuario=user)
                     except Exception as e_c:
                         if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
                             from django.db import connections
+
                             try:
-                                with connections['remota'].cursor() as cursor:
-                                    cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
+                                with connections["remota"].cursor() as cursor:
+                                    cursor.execute(
+                                        "SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));"
+                                    )
                             except Exception:
                                 pass
                             Cliente.objects.get_or_create(usuario=user)
                         else:
                             raise e_c
 
-                if not hasattr(user, 'backend'):
-                    user.backend = 'django.contrib.auth.backends.ModelBackend'
+                if not hasattr(user, "backend"):
+                    user.backend = "django.contrib.auth.backends.ModelBackend"
 
                 login(request, user)
 
                 remember_me = form.cleaned_data.get("remember_me")
                 if remember_me:
-                    request.session.set_expiry(1209600) 
+                    request.session.set_expiry(1209600)
                 else:
-                    request.session.set_expiry(0)  
-
+                    request.session.set_expiry(0)
 
                 request.session.save()
 
-
                 try:
-                    registrar_actividad(request, 'login', 'usuarios', user.id, f"Inicio de sesión: {user.username}")
+                    registrar_actividad(
+                        request, "login", "usuarios", user.id, f"Inicio de sesión: {user.username}"
+                    )
                 except Exception:
-                    pass 
+                    pass
 
                 messages.success(request, f"¡Bienvenido de nuevo, {user.nombres}!")
 
-                next_url = request.GET.get('next')
+                next_url = request.GET.get("next")
                 if next_url:
                     return redirect(next_url)
 
@@ -241,7 +243,6 @@ def login_usuario(request):
             else:
                 messages.error(request, "Usuario o contraseña incorrectos.")
         else:
-
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
@@ -252,7 +253,6 @@ def login_usuario(request):
 
     context = {"form": form, "modo_local": modo_local}
 
-
     return render(request, "usuarios/login.html", context)
 
 
@@ -260,30 +260,34 @@ def login_usuario(request):
 # PANEL ADMIND
 # =====================================================================
 
+
 @login_required
 def panel(request):
     try:
         usuario = request.user.usuario
     except Usuario.DoesNotExist:
-
         usuario = Usuario.objects.create(
             user=request.user,
-            nombres=request.user.username.split('@')[0],
-            apellidos='Admin' if request.user.is_staff else 'Usuario',
-            rol='admin' if request.user.is_staff else 'cliente',
-            tipo_documento='CC',
-            documento='00000000',
-            estado='activo'
+            nombres=request.user.username.split("@")[0],
+            apellidos="Admin" if request.user.is_staff else "Usuario",
+            rol="admin" if request.user.is_staff else "cliente",
+            tipo_documento="CC",
+            documento="00000000",
+            estado="activo",
         )
-        if usuario.rol == 'cliente':
+        if usuario.rol == "cliente":
             from apps.clientes.models import Cliente
+
             try:
                 Cliente.objects.get_or_create(usuario=usuario)
             except Exception as e_c:
                 if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
                     from django.db import connections
-                    with connections['remota'].cursor() as cursor:
-                        cursor.execute("SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));")
+
+                    with connections["remota"].cursor() as cursor:
+                        cursor.execute(
+                            "SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));"
+                        )
                     Cliente.objects.get_or_create(usuario=usuario)
                 else:
                     raise e_c
@@ -293,23 +297,21 @@ def panel(request):
 
         from core.utils import get_cache_key
 
-        cache_key = get_cache_key('panel_admin_v2', request.user.id)
+        cache_key = get_cache_key("panel_admin_v2", request.user.id)
 
         context = cache.get(cache_key)
 
         if not context:
-
             context = {
                 "pedidos_pendientes": Pedido.objects.filter(estado="pendiente").count(),
                 "conductores": Usuario.objects.filter(rol="conductor").count(),
                 "entregas_hoy": Pedido.objects.filter(
-                    estado="entregado",
-                    fecha_solicitud__date=now().date()
+                    estado="entregado", fecha_solicitud__date=now().date()
                 ).count(),
                 "clientes": Usuario.objects.filter(rol="cliente").count(),
                 "pedidos_recientes": Pedido.objects.select_related(
-                    'usuario', 'cliente__usuario'
-                ).order_by("-fecha_solicitud")[:5]
+                    "usuario", "cliente__usuario"
+                ).order_by("-fecha_solicitud")[:5],
             }
             cache.set(cache_key, context, 300)
 
@@ -326,6 +328,7 @@ def panel(request):
 # CONDUCTOR
 # =====================================================================
 
+
 @login_required
 def panel_conductor(request):
     try:
@@ -334,14 +337,18 @@ def panel_conductor(request):
         logout(request)
         return redirect("usuarios:login")
 
-    pedidos_asignados = Pedido.objects.filter(usuario=conductor).select_related('usuario').exclude(estado="entregado")
+    pedidos_asignados = (
+        Pedido.objects.filter(usuario=conductor)
+        .select_related("usuario")
+        .exclude(estado="entregado")
+    )
     entregas_completadas = Pedido.objects.filter(usuario=conductor, estado="entregado")
 
     context = {
         "pedidos": pedidos_asignados,
         "entregas_totales": entregas_completadas.count(),
         "pedidos_pendientes": pedidos_asignados.count(),
-        "ultima_entrega": entregas_completadas.order_by("-fecha").first()
+        "ultima_entrega": entregas_completadas.order_by("-fecha").first(),
     }
     return render(request, "usuarios/panel-conductor.html", context)
 
@@ -349,12 +356,8 @@ def panel_conductor(request):
 @login_required
 def pedidos_conductor(request):
     conductor = request.user.usuario
-    pedidos = Pedido.objects.filter(
-        usuario=conductor
-    ).exclude(estado="entregado")
-    context = {
-        "pedidos": pedidos
-    }
+    pedidos = Pedido.objects.filter(usuario=conductor).exclude(estado="entregado")
+    context = {"pedidos": pedidos}
 
     return render(request, "usuarios/pedidos_conductor.html", context)
 
@@ -362,13 +365,10 @@ def pedidos_conductor(request):
 @login_required
 def mis_entregas(request):
     conductor = request.user.usuario
-    entregas = Pedido.objects.filter(
-        usuario=conductor,
-        estado="entregado"
-    ).order_by("-fecha_solicitud")
-    context = {
-        "entregas": entregas
-    }
+    entregas = Pedido.objects.filter(usuario=conductor, estado="entregado").order_by(
+        "-fecha_solicitud"
+    )
+    context = {"entregas": entregas}
 
     return render(request, "usuarios/mis-entregas.html", context)
 
@@ -387,7 +387,7 @@ def perfil_admin(request):
         "materiales_count": Material.objects.count(),
         "ordenes_count": Pedido.objects.count(),
         "total_ventas": Pedido.objects.aggregate(total=Sum("total"))["total"] or 0,
-        "entregados_count": Pedido.objects.filter(estado="entregado").count()
+        "entregados_count": Pedido.objects.filter(estado="entregado").count(),
     }
     return render(request, "usuarios/detalle.html", context)
 
@@ -400,6 +400,9 @@ def editar_perfil(request):
         logout(request)
         return redirect("usuarios:login")
 
+    es_global_admin = usuario.username == "Edward_Fonseca"
+    puede_cambiar_foto = True
+
     if request.method == "POST":
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
@@ -408,8 +411,8 @@ def editar_perfil(request):
         documento = limpiar_telefono(request.POST.get("documento"))
         email = request.POST.get("email")
 
-        if 'foto_perfil' in request.FILES:
-            usuario.foto_perfil = request.FILES['foto_perfil']
+        if "foto_perfil" in request.FILES:
+            usuario.foto_perfil = request.FILES["foto_perfil"]
 
         usuario.nombres = nombres
         usuario.apellidos = apellidos
@@ -425,15 +428,18 @@ def editar_perfil(request):
 
         messages.success(request, "Perfil actualizado correctamente.")
 
-        if usuario.rol == 'admin':
+        if usuario.rol == "admin":
             return redirect("usuarios:perfil_admin")
-        elif usuario.rol == 'conductor':
+        elif usuario.rol == "conductor":
             return redirect("usuarios:perfil_conductor")
         else:
             return redirect("clientes:perfil_cliente")
 
-    context = {"usuario": usuario}
-
+    context = {
+        "usuario": usuario,
+        "puede_cambiar_foto": puede_cambiar_foto,
+        "es_global_admin": es_global_admin,
+    }
 
     return render(request, "usuarios/editar_perfil.html", context)
 
@@ -442,10 +448,11 @@ def editar_perfil(request):
 # GESTION DE USUARIOS
 # =====================================================================
 
+
 @login_required
 def crear_usuario(request):
-    if request.user.usuario.rol != 'admin':
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    if request.user.usuario.rol != "admin":
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
             return JsonResponse({"status": "error", "message": "No tienes permisos."}, status=403)
         messages.error(request, "No tienes permisos para realizar esta acción.")
         return redirect("usuarios:panel")
@@ -462,16 +469,19 @@ def crear_usuario(request):
 
         if not all([nombres, apellidos, email, password, telefono, rol, tipo_doc, documento]):
             error_msg = "Todos los campos son obligatorios."
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
             context = {"form_data": request.POST, "action": "crear"}
 
             return render(request, "usuarios/form.html", context)
 
-        if User.objects.filter(email=email).exists() or User.objects.filter(username=email).exists():
+        if (
+            User.objects.filter(email=email).exists()
+            or User.objects.filter(username=email).exists()
+        ):
             error_msg = "Este correo electrónico ya está registrado."
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
             context = {"form_data": request.POST, "action": "crear"}
@@ -489,27 +499,30 @@ def crear_usuario(request):
                     rol=rol,
                     tipo_documento=tipo_doc,
                     documento=documento,
-                    estado='activo',
-                    sincronizado=False
+                    estado="activo",
+                    sincronizado=False,
                 )
                 user.set_password(password)
                 user.save()
-                if rol == 'conductor':
+                if rol == "conductor":
                     Conductor.objects.get_or_create(
                         usuario=user,
                         defaults={
-                            'numero_licencia': f'PEND-{user.id}',
-                            'categoria_licencia': 'N/A',
-                            'fecha_vencimiento_licencia': now().date(),
-                            'estado': 'activo'
-                        }
+                            "numero_licencia": f"PEND-{user.id}",
+                            "categoria_licencia": "N/A",
+                            "fecha_vencimiento_licencia": now().date(),
+                            "estado": "activo",
+                        },
                     )
         except Exception as e:
             if "duplicate key" in str(e).lower() and conexion_remota_disponible():
                 from django.db import connections
+
                 try:
-                    with connections['remota'].cursor() as cursor:
-                        cursor.execute("SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));")
+                    with connections["remota"].cursor() as cursor:
+                        cursor.execute(
+                            "SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));"
+                        )
                 except Exception:
                     pass
                 user = User(
@@ -521,74 +534,81 @@ def crear_usuario(request):
                     rol=rol,
                     tipo_documento=tipo_doc,
                     documento=documento,
-                    estado='activo',
-                    sincronizado=False
+                    estado="activo",
+                    sincronizado=False,
                 )
                 user.set_password(password)
                 user.save()
-                if rol == 'conductor':
+                if rol == "conductor":
                     Conductor.objects.get_or_create(
                         usuario=user,
                         defaults={
-                            'numero_licencia': f'PEND-{user.id}',
-                            'categoria_licencia': 'N/A',
-                            'fecha_vencimiento_licencia': now().date(),
-                            'estado': 'activo'
-                        }
+                            "numero_licencia": f"PEND-{user.id}",
+                            "categoria_licencia": "N/A",
+                            "fecha_vencimiento_licencia": now().date(),
+                            "estado": "activo",
+                        },
                     )
             else:
                 raise e
 
         try:
-
-            if 'foto_perfil' in request.FILES:
-                user.foto_perfil = request.FILES['foto_perfil']
+            if "foto_perfil" in request.FILES:
+                user.foto_perfil = request.FILES["foto_perfil"]
                 user.save()
 
-            registrar_actividad(request, 'crear', 'usuarios', user.id, f"Administrador creó usuario: {email} como {rol}")
+            registrar_actividad(
+                request,
+                "crear",
+                "usuarios",
+                user.id,
+                f"Administrador creó usuario: {email} como {rol}",
+            )
 
             success_msg = f"Usuario {nombres} creado correctamente."
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "success", "message": success_msg})
 
             messages.success(request, success_msg)
             return redirect("usuarios:lista_usuarios")
         except Exception as e:
             error_msg = f"Error al crear usuario: {str(e)}"
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=500)
 
             messages.error(request, error_msg)
-            context = {
-                "error": error_msg,
-                "form_data": request.POST,
-                "action": "crear"
-            }
+            context = {"error": error_msg, "form_data": request.POST, "action": "crear"}
 
             return render(request, "usuarios/form.html", context)
 
-    context = {"action": "crear", "form_data": {}}
+    context = {
+        "action": "crear",
+        "form_data": {},
+        "puede_cambiar_foto": True,
+        "es_usuario_global_admin": False,
+    }
 
     return render(request, "usuarios/form.html", context)
 
+
 @login_required
 def lista_usuarios(request):
-    query = request.GET.get('q')
-    active_tab = request.GET.get('tab', 'general')
+    query = request.GET.get("q")
+    active_tab = request.GET.get("tab", "general")
 
     usuarios_list = buscar_usuarios_generales(query)
 
-    admins = usuarios_list.filter(rol='admin')
-    clientes = usuarios_list.filter(rol='cliente')
-    conductores = usuarios_list.filter(rol='conductor')
+    admins = usuarios_list.filter(rol="admin")
+    clientes = usuarios_list.filter(rol="cliente")
+    conductores = usuarios_list.filter(rol="conductor")
 
     context = {
-        "usuarios_todos": usuarios_list, 
+        "usuarios_todos": usuarios_list,
         "admins": admins,
         "clientes": clientes,
         "conductores": conductores,
         "query": query,
-        "active_tab": active_tab
+        "active_tab": active_tab,
     }
 
     return render(request, "usuarios/lista.html", context)
@@ -596,25 +616,27 @@ def lista_usuarios(request):
 
 @login_required
 def toggle_estado_usuario(request, id):
-    if request.user.usuario.rol != 'admin':
+    if request.user.usuario.rol != "admin":
         messages.error(request, "No tienes permisos para realizar esta acción.")
         return redirect("usuarios:panel")
 
     usuario_obj = get_object_or_404(Usuario, id=id)
 
-    if usuario_obj.user.username == 'Edward_Fonseca':
+    if usuario_obj.user.username == "Edward_Fonseca":
         messages.error(request, "El Administrador Global no puede ser desactivado.")
         return redirect("usuarios:lista_usuarios")
 
-    nuevo_estado = 'inactivo' if usuario_obj.estado == 'activo' else 'activo'
+    nuevo_estado = "inactivo" if usuario_obj.estado == "activo" else "activo"
     usuario_obj.estado = nuevo_estado
     usuario_obj.save()
 
-    usuario_obj.user.is_active = (nuevo_estado == 'activo')
+    usuario_obj.user.is_active = nuevo_estado == "activo"
     usuario_obj.user.save()
 
-    accion = 'desactivado' if nuevo_estado == 'inactivo' else 'activado'
-    registrar_actividad(request, 'editar', 'usuarios', id, f"Usuario {accion}: {usuario_obj.user.username}")
+    accion = "desactivado" if nuevo_estado == "inactivo" else "activado"
+    registrar_actividad(
+        request, "editar", "usuarios", id, f"Usuario {accion}: {usuario_obj.user.username}"
+    )
     messages.success(request, f"Usuario {usuario_obj.user.username} {accion} correctamente.")
     return redirect("usuarios:lista_usuarios")
 
@@ -623,29 +645,58 @@ def toggle_estado_usuario(request, id):
 def eliminar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
 
-
-    if request.user.usuario.rol != 'admin':
+    if request.user.usuario.rol != "admin":
         messages.error(request, "No tienes permiso para realizar esta acción.")
-        return redirect('usuarios:lista_usuarios')
+        return redirect("usuarios:lista_usuarios")
 
+    if usuario.user.username == "Edward_Fonseca":
+        messages.error(request, "El Administrador Global no puede ser eliminado.")
+        return redirect("usuarios:lista_usuarios")
 
-    usuario.delete()
-    messages.success(request, f"Usuario {usuario.nombres} eliminado correctamente.")
-    return redirect('usuarios:lista_usuarios')
+    try:
+        with transaction.atomic():
+            usuario.delete()
+        messages.success(request, f"Usuario {usuario.nombres} eliminado correctamente.")
+    except Exception as e:
+        messages.error(request, f"Error al eliminar el usuario: {str(e)}")
+    return redirect("usuarios:lista_usuarios")
 
 
 @login_required
 def editar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
+    current_user = request.user.usuario
+    es_current_user_global_admin = current_user.username == "Edward_Fonseca"
+    es_usuario_global_admin = usuario.username == "Edward_Fonseca"
 
-    if request.user.usuario.rol != 'admin' and request.user.usuario != usuario:
+    # Verificar permisos básicos
+    if current_user.rol != "admin" and current_user != usuario:
         messages.error(request, "No tienes permisos para editar este perfil.")
         return redirect("usuarios:panel")
 
-
-    if usuario.user.username == 'Edward_Fonseca' and request.user.username != 'Edward_Fonseca':
+    # Proteger al Administrador Global de ser editado por otros
+    if es_usuario_global_admin and not es_current_user_global_admin:
         messages.error(request, "Solo el Administrador Global puede modificar su propia cuenta.")
         return redirect("usuarios:lista_usuarios")
+
+    # Determinar si se puede cambiar la foto de perfil:
+    # - SI: soy el Admin Global y estoy editando a alguien más
+    # - NO: soy un admin normal y estoy editando al Admin Global
+    # - SI: soy un usuario normal editando su propia foto (pero no la de otros)
+    puede_cambiar_foto = False
+    if es_current_user_global_admin:
+        # El Admin Global puede cambiar la foto de CUALQUIER usuario
+        puede_cambiar_foto = True
+    elif not es_usuario_global_admin and current_user == usuario:
+        # Usuarios normales pueden cambiar su propia foto
+        puede_cambiar_foto = True
+    # Casos en los que NO se puede cambiar la foto:
+    # - Admin normal intentando cambiar la foto del Admin Global
+    # - Cualquier usuario intentando cambiar la foto de otro usuario que NO es él mismo
+    messages.debug(
+        request,
+        f"DEBUG: current_user.username={repr(current_user.username)}, es_current_user_global_admin={es_current_user_global_admin}, es_usuario_global_admin={es_usuario_global_admin}, puede_cambiar_foto={puede_cambiar_foto}",
+    )
 
     if request.method == "POST":
         nombres = request.POST.get("nombres")
@@ -658,9 +709,10 @@ def editar_usuario(request, id):
             context = {
                 "usuario": usuario,
                 "form_data": request.POST,
-                "action": "editar"
+                "action": "editar",
+                "puede_cambiar_foto": puede_cambiar_foto,
+                "es_usuario_global_admin": es_usuario_global_admin,
             }
-
             return render(request, "usuarios/form.html", context)
 
         try:
@@ -668,25 +720,36 @@ def editar_usuario(request, id):
             usuario.apellidos = apellidos
             usuario.telefono = telefono
 
-            if 'foto_perfil' in request.FILES:
-                usuario.foto_perfil = request.FILES['foto_perfil']
+            # Solo cambiar la foto de perfil si tenemos permiso
+            if "foto_perfil" in request.FILES and puede_cambiar_foto:
+                usuario.foto_perfil = request.FILES["foto_perfil"]
+            elif "foto_perfil" in request.FILES and not puede_cambiar_foto:
+                messages.warning(
+                    request, "No tienes permiso para cambiar la foto de perfil de este usuario."
+                )
 
-            if request.user.usuario.rol == "admin" and rol:
+            if current_user.rol == "admin" and rol:
                 usuario.rol = rol
 
             usuario.sincronizado = False
             usuario.save()
-            if usuario.rol == 'conductor':
+            if usuario.rol == "conductor":
                 Conductor.objects.get_or_create(
                     usuario=usuario,
                     defaults={
-                        'numero_licencia': f'PEND-{usuario.id}',
-                        'categoria_licencia': 'N/A',
-                        'fecha_vencimiento_licencia': now().date(),
-                        'estado': 'activo'
-                    }
+                        "numero_licencia": f"PEND-{usuario.id}",
+                        "categoria_licencia": "N/A",
+                        "fecha_vencimiento_licencia": now().date(),
+                        "estado": "activo",
+                    },
                 )
-            registrar_actividad(request, 'editar', 'usuarios', usuario.user.id, f"Perfil de usuario editado: {usuario.user.username}")
+            registrar_actividad(
+                request,
+                "editar",
+                "usuarios",
+                usuario.user.id,
+                f"Perfil de usuario editado: {usuario.user.username}",
+            )
             messages.success(request, "Cambios guardados exitosamente.")
             return redirect("usuarios:lista_usuarios")
         except Exception as e:
@@ -694,15 +757,18 @@ def editar_usuario(request, id):
             context = {
                 "usuario": usuario,
                 "form_data": request.POST,
-                "action": "editar"
+                "action": "editar",
+                "puede_cambiar_foto": puede_cambiar_foto,
+                "es_usuario_global_admin": es_usuario_global_admin,
             }
-
             return render(request, "usuarios/form.html", context)
 
     context = {
         "usuario": usuario,
         "form_data": {},
-        "action": "editar"
+        "action": "editar",
+        "puede_cambiar_foto": puede_cambiar_foto,
+        "es_usuario_global_admin": es_usuario_global_admin,
     }
 
     return render(request, "usuarios/form.html", context)
@@ -710,18 +776,20 @@ def editar_usuario(request, id):
 
 @login_required
 def lista_conductores(request):
-    conductores = Usuario.objects.filter(
-        rol="conductor"
-    ).select_related('perfil_conductor').prefetch_related(
-        Prefetch(
-            'perfil_conductor__asignaciones_vehiculo',
-            queryset=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related('vehiculo'),
-            to_attr='asignaciones_activas'
+    conductores = (
+        Usuario.objects.filter(rol="conductor")
+        .select_related("perfil_conductor")
+        .prefetch_related(
+            Prefetch(
+                "perfil_conductor__asignaciones_vehiculo",
+                queryset=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related(
+                    "vehiculo"
+                ),
+                to_attr="asignaciones_activas",
+            )
         )
     )
-    context = {
-        "conductores": conductores
-    }
+    context = {"conductores": conductores}
 
     return render(request, "usuarios/conductores_lista.html", context)
 
@@ -729,42 +797,57 @@ def lista_conductores(request):
 @login_required
 @admin_required
 def asignar_vehiculo_conductor(request, conductor_id):
-    usuario = get_object_or_404(Usuario, id=conductor_id, rol='conductor')
+    usuario = get_object_or_404(Usuario, id=conductor_id, rol="conductor")
     conductor = usuario.conductor_profile
     if conductor is None:
         conductor, _ = Conductor.objects.get_or_create(
             usuario=usuario,
             defaults={
-                'numero_licencia': f'PEND-{usuario.id}',
-                'categoria_licencia': 'N/A',
-                'fecha_vencimiento_licencia': now().date(),
-                'estado': 'activo'
-            }
+                "numero_licencia": f"PEND-{usuario.id}",
+                "categoria_licencia": "N/A",
+                "fecha_vencimiento_licencia": now().date(),
+                "estado": "activo",
+            },
         )
-        messages.warning(request, "Se creó un perfil provisional para este conductor. Actualiza la licencia más adelante.")
+        messages.warning(
+            request,
+            "Se creó un perfil provisional para este conductor. Actualiza la licencia más adelante.",
+        )
 
     vehiculo_actual = conductor.vehiculo_actual
-    default_initial = {'vehiculo': vehiculo_actual.id_vehiculo} if vehiculo_actual else None
+    default_initial = {"vehiculo": vehiculo_actual.id_vehiculo} if vehiculo_actual else None
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = AsignarVehiculoForm(request.POST, conductor=conductor)
         if form.is_valid():
-            vehiculo_seleccionado = form.cleaned_data['vehiculo']
+            vehiculo_seleccionado = form.cleaned_data["vehiculo"]
             try:
                 with transaction.atomic():
-                    if vehiculo_actual and vehiculo_actual.id_vehiculo == vehiculo_seleccionado.id_vehiculo:
+                    if (
+                        vehiculo_actual
+                        and vehiculo_actual.id_vehiculo == vehiculo_seleccionado.id_vehiculo
+                    ):
                         messages.info(request, "El conductor ya tiene asignado ese vehículo.")
                     else:
-                        conductor.asignaciones_vehiculo.filter(fecha_fin__isnull=True).update(fecha_fin=now())
-                        ConductorVehiculo.objects.create(conductor=conductor, vehiculo=vehiculo_seleccionado)
-                        messages.success(request, f"Vehículo {vehiculo_seleccionado.placa} asignado a {usuario.nombres} correctamente.")
-                return redirect('usuarios:lista_conductores')
+                        conductor.asignaciones_vehiculo.filter(fecha_fin__isnull=True).update(
+                            fecha_fin=now()
+                        )
+                        ConductorVehiculo.objects.create(
+                            conductor=conductor, vehiculo=vehiculo_seleccionado
+                        )
+                        messages.success(
+                            request,
+                            f"Vehículo {vehiculo_seleccionado.placa} asignado a {usuario.nombres} correctamente.",
+                        )
+                return redirect("usuarios:lista_conductores")
             except Exception as e:
                 messages.error(request, f"No fue posible guardar la asignación: {str(e)}")
     else:
         form = AsignarVehiculoForm(conductor=conductor, initial=default_initial)
 
-    historial = conductor.asignaciones_vehiculo.select_related('vehiculo').order_by('-fecha_asignacion')
+    historial = conductor.asignaciones_vehiculo.select_related("vehiculo").order_by(
+        "-fecha_asignacion"
+    )
     context = {
         "usuario": usuario,
         "conductor": conductor,
@@ -778,9 +861,9 @@ def asignar_vehiculo_conductor(request, conductor_id):
 
 @login_required
 def perfil_conductor(request):
-    conductor_id = request.GET.get('id')
+    conductor_id = request.GET.get("id")
 
-    if conductor_id and request.user.usuario.rol == 'admin':
+    if conductor_id and request.user.usuario.rol == "admin":
         conductor = get_object_or_404(Usuario, id=conductor_id)
     else:
         try:
@@ -792,33 +875,34 @@ def perfil_conductor(request):
     pedidos = Pedido.objects.filter(usuario=conductor)
 
     from apps.ordenes.models import Entrega
+
     try:
         from apps.usuarios.models import Conductor as ConductorPerfil
+
         conductor_perfil = ConductorPerfil.objects.get(usuario=conductor)
-        ultima_entrega = Entrega.objects.filter(conductor=conductor_perfil).order_by('-fecha_salida').first()
+        ultima_entrega = (
+            Entrega.objects.filter(conductor=conductor_perfil).order_by("-fecha_salida").first()
+        )
         vehiculo = ultima_entrega.vehiculo if ultima_entrega else None
     except Exception:
         vehiculo = None
 
-    context = {
-        "conductor": conductor,
-        "pedidos": pedidos,
-        "vehiculo": vehiculo
-    }
-
+    context = {"conductor": conductor, "pedidos": pedidos, "vehiculo": vehiculo}
 
     return render(request, "usuarios/perfil-conductor.html", context)
 
+
 # =====================================================================
-# RECUPERAR CONTRASEÑA 
+# RECUPERAR CONTRASEÑA
 # =====================================================================
 
+
 class CustomPasswordResetView(PasswordResetView):
-    template_name = 'usuarios/recuperar_password.html'
-    email_template_name = 'registration/password_reset_email.txt'
-    html_email_template_name = 'registration/password_reset_email.html'
-    subject_template_name = 'registration/password_reset_subject.txt'
-    success_url = reverse_lazy('usuarios:password_reset_done')
+    template_name = "usuarios/recuperar_password.html"
+    email_template_name = "registration/password_reset_email.txt"
+    html_email_template_name = "registration/password_reset_email.html"
+    subject_template_name = "registration/password_reset_subject.txt"
+    success_url = reverse_lazy("usuarios:password_reset_done")
     from_email = None
 
     def get_users(self, email):
@@ -828,50 +912,73 @@ class CustomPasswordResetView(PasswordResetView):
         return users
 
     def form_valid(self, form):
-        email = form.cleaned_data['email']
+        email = form.cleaned_data["email"]
         logger.info(f"[Password Reset] Solicitud para: {email}")
         return super().form_valid(form)
 
+
 # =====================================================================
-# CERRAR SECCION 
+# CERRAR SECCION
 # =====================================================================
+
 
 def cerrar_sesion(request):
     if request.user.is_authenticated:
-
         from core.utils import clear_user_cache
+
         clear_user_cache(request.user.id)
 
         try:
-            registrar_actividad(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
+            registrar_actividad(
+                request,
+                "logout",
+                "usuarios",
+                request.user.id,
+                f"Cierre de sesión del usuario: {request.user.username}",
+            )
         except Exception as e:
-
-            if "duplicate key" in str(e).lower() and "historial" in str(e).lower() and conexion_remota_disponible():
+            if (
+                "duplicate key" in str(e).lower()
+                and "historial" in str(e).lower()
+                and conexion_remota_disponible()
+            ):
                 try:
                     from django.db import connections
-                    with connections['remota'].cursor() as cursor:
-                        cursor.execute("SELECT setval('historial_actividad_id_seq', (SELECT MAX(id) FROM historial_actividad));")
-                    registrar_actividad(request, 'logout', 'usuarios', request.user.id, f"Cierre de sesión del usuario: {request.user.username}")
+
+                    with connections["remota"].cursor() as cursor:
+                        cursor.execute(
+                            "SELECT setval('historial_actividad_id_seq', (SELECT MAX(id) FROM historial_actividad));"
+                        )
+                    registrar_actividad(
+                        request,
+                        "logout",
+                        "usuarios",
+                        request.user.id,
+                        f"Cierre de sesión del usuario: {request.user.username}",
+                    )
                 except Exception:
-                    pass 
+                    pass
             else:
-                pass 
+                pass
     logout(request)
     return redirect("usuarios:login")
 
+
 # =====================================================================
-# NOTIFICACIONES 
+# NOTIFICACIONES
 # =====================================================================
+
 
 @login_required
 def lista_notificaciones(request):
     try:
-        notificaciones = request.user.usuario.notificaciones.all().order_by('-fecha')
+        notificaciones = request.user.usuario.notificaciones.all().order_by("-fecha")
     except Usuario.DoesNotExist:
         notificaciones = []
     context = {"notificaciones": notificaciones}
 
     return render(request, "usuarios/notificaciones.html", context)
+
 
 @login_required
 def marcar_notificacion_leida(request, id):
@@ -901,54 +1008,54 @@ def configuraciones_usuario(request):
 
     context = {"usuario": usuario}
 
-
     return render(request, "usuarios/configuraciones.html", context)
 
 
 @require_POST
 def cambiar_modo_bd(request):
     """Alterna entre base de datos local (SQLite) y remota (Neon)."""
-    modo = request.POST.get('modo', '').strip().lower()
+    modo = request.POST.get("modo", "").strip().lower()
     nuevo_modo = None
     mensaje_ok = None
 
     if modo not in (PREF_LOCAL, PREF_REMOTA):
-        messages.error(request, 'Modo de base de datos no válido.')
+        messages.error(request, "Modo de base de datos no válido.")
     elif modo == PREF_REMOTA:
-        if 'remota' not in settings.DATABASES:
+        if "remota" not in settings.DATABASES:
             messages.error(
                 request,
-                'La base remota no está configurada. Define DATABASE_URL en tu archivo .env.',
+                "La base remota no está configurada. Define DATABASE_URL en tu archivo .env.",
             )
         elif not conexion_remota_disponible():
             messages.error(
                 request,
-                'No hay conexión con la base remota. Revisa tu internet o las credenciales de Neon.',
+                "No hay conexión con la base remota. Revisa tu internet o las credenciales de Neon.",
             )
         else:
             nuevo_modo = PREF_REMOTA
-            mensaje_ok = 'Remoto'
+            mensaje_ok = "Remoto"
     else:
-
         if conexion_remota_disponible():
             try:
                 sync_all_usuarios()
             except Exception as e:
                 logger.error(f"Error sincronizando al cambiar a local: {e}")
-                
+
         nuevo_modo = PREF_LOCAL
-        mensaje_ok = 'Local'
+        mensaje_ok = "Local"
 
     if nuevo_modo:
         invalidate_connection_cache()
         if request.user.is_authenticated:
             logout(request)
-        request.session['bd_preferida'] = nuevo_modo
+        request.session["bd_preferida"] = nuevo_modo
         request.session.modified = True
         messages.success(request, mensaje_ok)
-        response = redirect('usuarios:login')
-        response.set_cookie('bd_preferida', nuevo_modo, max_age=31536000, httponly=True, samesite='Lax')
+        response = redirect("usuarios:login")
+        response.set_cookie(
+            "bd_preferida", nuevo_modo, max_age=31536000, httponly=True, samesite="Lax"
+        )
         return response
 
-    destino = request.META.get('HTTP_REFERER') or reverse('usuarios:login')
+    destino = request.META.get("HTTP_REFERER") or reverse("usuarios:login")
     return redirect(destino)

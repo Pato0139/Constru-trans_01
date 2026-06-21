@@ -13,8 +13,12 @@
             <p class="text-white-50 small mb-0">Consulta de todos los pagos registrados</p>
         </div>
         
-        <div class="d-flex gap-2">
-            <form action="." method="GET" class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
+            <form action="." method="GET" class="d-flex gap-2 flex-wrap">
+                <div class="position-relative">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" name="q" class="form-control bg-dark border-white-10 text-white ps-5 rounded-pill" placeholder="Buscar..." value="{{ q }}">
+                </div>
                 <div class="position-relative">
                     <i class="bi bi-calendar3 position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                     <input type="date" name="fecha" class="form-control bg-dark border-white-10 text-white ps-5 rounded-pill" value="{{ fecha }}">
@@ -23,6 +27,12 @@
                     <option value="">Todos los métodos</option>
                     {% for mp in metodos_pago %}
                     <option value="{{ mp.codigo_metodo_pago }}" {% if metodo == mp.codigo_metodo_pago %}selected{% endif %}>{{ mp.metodo }}</option>
+                    {% endfor %}
+                </select>
+                <select name="estado" class="form-select bg-dark border-white-10 text-white rounded-pill w-auto" onchange="this.form.submit()">
+                    <option value="">Todos los estados</option>
+                    {% for valor, nombre in estados_pago %}
+                    <option value="{{ valor }}" {% if estado == valor %}selected{% endif %}>{{ nombre }}</option>
                     {% endfor %}
                 </select>
             </form>
@@ -47,7 +57,7 @@
                 </thead>
                 <tbody>
                     {% for pago in pagos %}
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer;" onclick="window.location.href='{% url 'pagos:detalle_pago' pago.id_pago %}'">
                         <td class="ps-4 text-white-50 small">#{{ pago.id }}</td>
                         <td class="text-white-50 small">{{ pago.fecha|date:"d/m/Y H:i" }}</td>
                         <td>
@@ -64,9 +74,15 @@
                             </span>
                         </td>
                         <td class="text-center">
-                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3">
-                                Completado
-                            </span>
+                            {% if pago.estado == 'completado' %}
+                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3">Completado</span>
+                            {% elif pago.estado == 'pendiente' %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle px-3">Pendiente</span>
+                            {% elif pago.estado == 'fallido' %}
+                            <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3">Fallido</span>
+                            {% elif pago.estado == 'reembolsado' %}
+                            <span class="badge rounded-pill bg-info-subtle text-info border border-info-subtle px-3">Reembolsado</span>
+                            {% endif %}
                         </td>
                         <td class="pe-4 text-white-50 small">{{ pago.referencia|default:"-" }}</td>
                     </tr>

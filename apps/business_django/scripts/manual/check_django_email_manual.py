@@ -1,4 +1,3 @@
-
 import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
@@ -14,7 +13,9 @@ print(f"EMAIL_BACKEND: {settings.EMAIL_BACKEND}")
 print(f"EMAIL_HOST: {settings.EMAIL_HOST}")
 print(f"EMAIL_PORT: {settings.EMAIL_PORT}")
 print(f"EMAIL_HOST_USER: {settings.EMAIL_HOST_USER}")
-print(f"Longitud de EMAIL_HOST_PASSWORD: {len(settings.EMAIL_HOST_PASSWORD) if settings.EMAIL_HOST_PASSWORD else 0}")
+print(
+    f"Longitud de EMAIL_HOST_PASSWORD: {len(settings.EMAIL_HOST_PASSWORD) if settings.EMAIL_HOST_PASSWORD else 0}"
+)
 print()
 
 try:
@@ -30,5 +31,5 @@ try:
 except Exception as e:
     print(f"ERROR: {type(e).__name__}: {e}")
     import traceback
-    traceback.print_exc()
 
+    traceback.print_exc()

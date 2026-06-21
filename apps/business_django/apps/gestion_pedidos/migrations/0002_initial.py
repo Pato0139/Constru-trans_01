@@ -6,29 +6,42 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('gestion_pedidos', '0001_initial'),
-        ('usuarios', '0001_initial'),
+        ("gestion_pedidos", "0001_initial"),
+        ("usuarios", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='detallepedido',
-            name='material',
-            field=models.ForeignKey(help_text='Material solicitado.', on_delete=django.db.models.deletion.PROTECT, related_name='detalles_pedidos_gestion', to='usuarios.materialconstruccion'),
+            model_name="detallepedido",
+            name="material",
+            field=models.ForeignKey(
+                help_text="Material solicitado.",
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="detalles_pedidos_gestion",
+                to="usuarios.materialconstruccion",
+            ),
         ),
         migrations.AddField(
-            model_name='pedido',
-            name='cliente',
-            field=models.ForeignKey(help_text='Cliente que crea el pedido.', on_delete=django.db.models.deletion.PROTECT, related_name='pedidos_gestion', to=settings.AUTH_USER_MODEL),
+            model_name="pedido",
+            name="cliente",
+            field=models.ForeignKey(
+                help_text="Cliente que crea el pedido.",
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="pedidos_gestion",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='detallepedido',
-            name='pedido',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='detalles', to='gestion_pedidos.pedido'),
+            model_name="detallepedido",
+            name="pedido",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="detalles",
+                to="gestion_pedidos.pedido",
+            ),
         ),
     ]

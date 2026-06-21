@@ -1,4 +1,3 @@
-
 from django.conf import settings
 from django.db import models
 
@@ -6,21 +5,32 @@ from apps.usuarios.models import MaterialConstruccion
 
 
 # =====================================================================
-# MOVIMIENTO_INVENTARIO 
+# MOVIMIENTO_INVENTARIO
 # =====================================================================
 class MovimientoInventario(models.Model):
-    TIPOS = [('entrada', 'Entrada'), ('salida', 'Salida')]
+    TIPOS = [("entrada", "Entrada"), ("salida", "Salida")]
 
     id_movimiento = models.AutoField(primary_key=True)
-    material = models.ForeignKey(MaterialConstruccion, on_delete=models.PROTECT,
-                                 related_name='movimientos')
+    material = models.ForeignKey(
+        MaterialConstruccion, on_delete=models.PROTECT, related_name="movimientos"
+    )
     tipo_movimiento = models.CharField(max_length=10, choices=TIPOS)
     cantidad = models.PositiveIntegerField()
     fecha = models.DateTimeField(auto_now_add=True)
-    compra = models.ForeignKey('compras.Compra', on_delete=models.SET_NULL,
-                               null=True, blank=True, related_name='movimientos')
-    pedido = models.ForeignKey('ordenes.Pedido', on_delete=models.SET_NULL,
-                               null=True, blank=True, related_name='movimientos')
+    compra = models.ForeignKey(
+        "compras.Compra",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="movimientos",
+    )
+    pedido = models.ForeignKey(
+        "ordenes.Pedido",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="movimientos",
+    )
     observacion = models.TextField(blank=True)
 
     # Fuera del MER pero útil — NO se toca
@@ -28,8 +38,8 @@ class MovimientoInventario(models.Model):
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ['-fecha']
-        db_table = 'movimiento_inventario'
+        ordering = ["-fecha"]
+        db_table = "movimiento_inventario"
 
     def __str__(self):
         return f"{self.tipo_movimiento.upper()}: {self.cantidad} de {self.material.nombre}"

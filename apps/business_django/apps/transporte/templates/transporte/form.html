@@ -34,15 +34,18 @@
 
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Tipo de Vehículo</label>
-                    <select name="tipo" class="form-select" required>
+                    <select name="tipo" class="form-select" required {% if action == 'editar' %}disabled{% endif %}>
                         <option value="">Seleccione tipo...</option>
-                        <option value="Bolqueta" {% if vehiculo.tipo == 'Bolqueta' %}selected{% endif %}>Bolqueta</option>
-                        <option value="Camión Sencillo" {% if vehiculo.tipo == 'Camión Sencillo' %}selected{% endif %}>Camión Sencillo</option>
-                        <option value="Doble Troque" {% if vehiculo.tipo == 'Doble Troque' %}selected{% endif %}>Doble Troque</option>
-                        <option value="Minitransporte" {% if vehiculo.tipo == 'Minitransporte' %}selected{% endif %}>Minitransporte</option>
-                        <option value="Turbo" {% if vehiculo.tipo == 'Turbo' %}selected{% endif %}>Turbo</option>
-                        <option value="Maquinaria Amarilla" {% if vehiculo.tipo == 'Maquinaria Amarilla' %}selected{% endif %}>Maquinaria Amarilla</option>
+                        <option value="Bolqueta" {% if vehiculo and vehiculo.tipo == 'Bolqueta' %}selected{% endif %}>Bolqueta</option>
+                        <option value="Camión Sencillo" {% if vehiculo and vehiculo.tipo == 'Camión Sencillo' %}selected{% endif %}>Camión Sencillo</option>
+                        <option value="Doble Troque" {% if vehiculo and vehiculo.tipo == 'Doble Troque' %}selected{% endif %}>Doble Troque</option>
+                        <option value="Minitransporte" {% if vehiculo and vehiculo.tipo == 'Minitransporte' %}selected{% endif %}>Minitransporte</option>
+                        <option value="Turbo" {% if vehiculo and vehiculo.tipo == 'Turbo' %}selected{% endif %}>Turbo</option>
+                        <option value="Maquinaria Amarilla" {% if vehiculo and vehiculo.tipo == 'Maquinaria Amarilla' %}selected{% endif %}>Maquinaria Amarilla</option>
                     </select>
+                    {% if action == 'editar' %}
+                        <input type="hidden" name="tipo" value="{{ vehiculo.tipo }}">
+                    {% endif %}
                 </div>
 
                 <div class="mb-4">
@@ -58,15 +61,14 @@
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Estado Operativo</label>
                     <select name="estado" class="form-select" required>
                         <option value="disponible" {% if vehiculo.estado == 'disponible' %}selected{% endif %}>Disponible</option>
-                        <option value="en_ruta" {% if vehiculo.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
-                        <option value="mantenimiento" {% if vehiculo.estado == 'mantenimiento' %}selected{% endif %}>En Mantenimiento</option>
+                        <option value="asignado" {% if vehiculo.estado == 'asignado' %}selected{% endif %}>Asignado</option>
                     </select>
                 </div>
                 {% endif %}
 
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Conductor Asignado</label>
-                    <select name="conductor" class="form-select">
+                    <select name="conductor" class="form-select" size="5">
                         <option value="">Sin asignar (Disponible)</option>
                         {% for cond in conductores %}
                             <option value="{{ cond.usuario.id }}" {% if vehiculo and vehiculo.conductor_actual and vehiculo.conductor_actual.id == cond.usuario.id %}selected{% endif %}>
@@ -75,7 +77,7 @@
                         {% endfor %}
                     </select>
                     <div class="form-text text-white-50 small mt-1">
-                        <i class="bi bi-info-circle me-1"></i> Solo conductores sin vehículo asignado aparecen en esta lista.
+                        <i class="bi bi-info-circle me-1"></i> Selecciona un conductor (si elige uno ya asignado a otro vehículo, se reasignará automáticamente).
                     </div>
                 </div>
 
