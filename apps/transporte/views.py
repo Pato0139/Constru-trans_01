@@ -1,14 +1,14 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, models
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 
 from apps.ordenes.models import Entrega
 from apps.usuarios.models import Conductor, ConductorVehiculo, Usuario, Vehiculo
+from apps.usuarios.views import admin_required
 
 
-@login_required
+@admin_required
 def lista_vehiculos(request):
     q = request.GET.get("q")
     estado = request.GET.get("estado")
@@ -51,7 +51,7 @@ def lista_vehiculos(request):
     return render(request, "transporte/lista.html", context)
 
 
-@login_required
+@admin_required
 def crear_vehiculo(request):
     # Conductores sin vehículo asignado
     conductor_activos = ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values_list(
@@ -100,7 +100,7 @@ def crear_vehiculo(request):
     return render(request, "transporte/form.html", context)
 
 
-@login_required
+@admin_required
 def editar_vehiculo(request, id):
     from apps.usuarios.models import Conductor
 
@@ -188,7 +188,7 @@ def editar_vehiculo(request, id):
     return render(request, "transporte/form.html", context)
 
 
-@login_required
+@admin_required
 def eliminar_vehiculo(request, id):
     vehiculo = get_object_or_404(Vehiculo, pk=id)
 
@@ -206,7 +206,7 @@ def eliminar_vehiculo(request, id):
     return redirect("transporte:lista_vehiculos")
 
 
-@login_required
+@admin_required
 def desactivar_vehiculo(request, id):
     vehiculo = get_object_or_404(Vehiculo, pk=id)
 
