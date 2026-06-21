@@ -5,8 +5,8 @@ from django.utils import timezone
 from apps.usuarios.models import MaterialConstruccion, Usuario
 
 
-class Pedido(models.Model):
-    """Encabezado del pedido."""
+class SolicitudPedido(models.Model):
+    """Encabezado del pedido de gestión."""
 
     ESTADO_CHOICES = [
         ("pendiente", "Pendiente"),
@@ -46,12 +46,12 @@ class Pedido(models.Model):
 
     class Meta:
         db_table = "gestion_pedido"
-        verbose_name = "Pedido"
-        verbose_name_plural = "Pedidos"
+        verbose_name = "Solicitud de Pedido"
+        verbose_name_plural = "Solicitudes de Pedido"
         ordering = ["-fecha_creacion"]
 
     def __str__(self):
-        return f"Pedido #{self.id} – {self.cliente}"
+        return f"Solicitud #{self.id} – {self.cliente}"
 
     def calcular_total(self):
         """Recalcula y guarda el total del pedido."""
@@ -61,10 +61,10 @@ class Pedido(models.Model):
         return self.total
 
 
-class DetallePedido(models.Model):
-    """Detalle de línea de un pedido."""
+class DetalleSolicitudPedido(models.Model):
+    """Detalle de línea de un pedido de gestión."""
 
-    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="detalles")
+    pedido = models.ForeignKey(SolicitudPedido, on_delete=models.CASCADE, related_name="detalles")
     material = models.ForeignKey(
         MaterialConstruccion,
         on_delete=models.PROTECT,
@@ -83,8 +83,8 @@ class DetallePedido(models.Model):
 
     class Meta:
         db_table = "gestion_detalle_pedido"
-        verbose_name = "Detalle de Pedido"
-        verbose_name_plural = "Detalles de Pedido"
+        verbose_name = "Detalle de Solicitud de Pedido"
+        verbose_name_plural = "Detalles de Solicitud de Pedido"
 
     @property
     def subtotal(self):
