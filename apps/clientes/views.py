@@ -61,6 +61,14 @@ def _obtener_usuario_local(usuario):
     return usuario_local
 
 
+def _obtener_cliente_local(usuario_local):
+    cliente_local, _ = Cliente.objects.get_or_create(
+        usuario=usuario_local,
+        defaults={"direccion_principal": "Por definir"},
+    )
+    return cliente_local
+
+
 def _obtener_catalogo_local(catalogo):
     if not catalogo:
         return None
@@ -320,12 +328,7 @@ def crear_pedido(request):
         messages.error(request, "Solo los clientes pueden solicitar nuevos pedidos.")
         return redirect("usuarios:panel")
 
-    try:
-        cliente, created = Cliente.objects.get_or_create(usuario=usuario_remoto)
-    except AttributeError:
-        messages.error(request, "No tienes un perfil de cliente asociado.")
-        return redirect("usuarios:panel")
-
+    cliente_local = _obtener_cliente_local(usuario_local)
     materiales = Material.objects.all()
 
     if request.method == "POST":
@@ -406,6 +409,7 @@ def crear_pedido(request):
                 total_general = 0
                 nuevo_pedido = Pedido.objects.create(
                     usuario=usuario_local,
+                    cliente=cliente_local,
                     direccion_origen="Bodega Central",
                     direccion_destino=direccion,
                     estado="pendiente",
