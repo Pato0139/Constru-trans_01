@@ -9,7 +9,14 @@ from django.db.models import F, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.ordenes.models import DetallePedido, Pedido
-from apps.usuarios.models import Catalogo, MaterialConstruccion as Material, Stock, UnidadMedida, Usuario
+from apps.usuarios.models import (
+    Catalogo,
+    MaterialConstruccion as Material,
+    Stock,
+    UnidadMedida,
+    Usuario,
+    MetodoPago,
+)
 from core.despacho import (
     CIUDADES_DESPACHO,
     ciudad_valida,
@@ -20,10 +27,13 @@ from core.db_preference import debe_usar_bd_remota
 from core.utils import conexion_remota_disponible
 
 from .models import Cliente
+from apps.pagos.models import Pago
+from apps.facturacion.models import Factura
 
 
 def _contexto_formulario_pedido(**extra):
-    return {"ciudades_despacho": CIUDADES_DESPACHO, **extra}
+    metodos_pago = MetodoPago.objects.all()
+    return {"ciudades_despacho": CIUDADES_DESPACHO, "metodos_pago": metodos_pago, **extra}
 
 
 def _obtener_alias_db():
@@ -209,10 +219,12 @@ def panel_cliente(request):
         return redirect("usuarios:login")
 
     pedidos = Pedido.objects.filter(usuario__in=[usuario, usuario_remoto])
+    pagos = Pago.objects.filter(factura__cliente__in=[usuario, usuario_remoto])
     context = {
         "pedidos_activos": pedidos.filter(estado="pendiente").count(),
         "entregas": pedidos.filter(estado="entregado").count(),
         "total_gastado": pedidos.aggregate(total=Sum("total"))["total"] or 0,
+        "total_pagos": pagos.count(),
         "ultimos_pedidos": (
             pedidos.order_by("-fecha_solicitud")
             .only(
@@ -323,120 +335,153 @@ def crear_pedido(request):
     materiales = Material.objects.all()
 
     if request.method == "POST":
-        materiales_ids = request.POST.getlist('material_id[]')
-        cantidades = request.POST.getlist('cantidad[]')
-        ciudad = request.POST.get("ciudad", "").strip()
-        direccion_detalle = request.POST.get("direccion_detalle", "").strip()
-        direccion = construir_direccion_destino(ciudad, direccion_detalle)
-        fecha_entrega_raw = request.POST.get("fecha_entrega")
-        fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
+            materiales_ids = request.POST.getlist('material_id[]')
+            cantidades = request.POST.getlist('cantidad[]')
+            ciudad = request.POST.get("ciudad", "").strip()
+            direccion_detalle = request.POST.get("direccion_detalle", "").strip()
+            direccion = construir_direccion_destino(ciudad, direccion_detalle)
+            fecha_entrega_raw = request.POST.get("fecha_entrega")
+            fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
+            metodo_pago_codigo = request.POST.get("metodo_pago")
 
-        if fecha_entrega_raw and not fecha_entrega:
-            messages.error(request, "Formato de fecha inválido. Usa DD/MM/YYYY HH:MM, DD-MM-YYYY HH:MM o 2026-12-31 15:30.")
-            return render(request, "clientes/form.html", _contexto_formulario_pedido(
-                materiales=materiales,
-                action="crear",
-                fecha_entrega=fecha_entrega_raw,
-                ciudad=ciudad,
-                direccion_detalle=direccion_detalle,
-            ))
+            if fecha_entrega_raw and not fecha_entrega:
+                messages.error(request, "Formato de fecha inválido. Usa DD/MM/YYYY HH:MM, DD-MM-YYYY HH:MM o 2026-12-31 15:30.")
+                return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                    materiales=materiales,
+                    action="crear",
+                    fecha_entrega=fecha_entrega_raw,
+                    ciudad=ciudad,
+                    direccion_detalle=direccion_detalle,
+                ))
 
-        if not materiales_ids or not ciudad or not direccion_detalle:
-            messages.error(request, "Agrega materiales, selecciona la ciudad de destino e indica la dirección.")
-            return render(request, "clientes/form.html", _contexto_formulario_pedido(
-                materiales=materiales,
-                action="crear",
-                fecha_entrega=fecha_entrega_raw,
-                ciudad=ciudad,
-                direccion_detalle=direccion_detalle,
-            ))
+            if not materiales_ids or not ciudad or not direccion_detalle or not metodo_pago_codigo:
+                messages.error(request, "Agrega materiales, selecciona la ciudad de destino, indica la dirección y selecciona un método de pago.")
+                return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                    materiales=materiales,
+                    action="crear",
+                    fecha_entrega=fecha_entrega_raw,
+                    ciudad=ciudad,
+                    direccion_detalle=direccion_detalle,
+                ))
 
-        if not ciudad_valida(ciudad):
-            messages.error(request, "La ciudad seleccionada no está dentro de la zona de despacho autorizada.")
-            return render(request, "clientes/form.html", _contexto_formulario_pedido(
-                materiales=materiales,
-                action="crear",
-                fecha_entrega=fecha_entrega_raw,
-                ciudad=ciudad,
-                direccion_detalle=direccion_detalle,
-            ))
+            if not ciudad_valida(ciudad):
+                messages.error(request, "La ciudad seleccionada no está dentro de la zona de despacho autorizada.")
+                return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                    materiales=materiales,
+                    action="crear",
+                    fecha_entrega=fecha_entrega_raw,
+                    ciudad=ciudad,
+                    direccion_detalle=direccion_detalle,
+                ))
 
-        if len(materiales_ids) != len(cantidades):
-            messages.error(request, "Error en los datos del formulario. Intenta nuevamente.")
-            return render(request, "clientes/form.html", _contexto_formulario_pedido(
-                materiales=materiales,
-                action="crear",
-                fecha_entrega=fecha_entrega_raw,
-                ciudad=ciudad,
-                direccion_detalle=direccion_detalle,
-            ))
+            if len(materiales_ids) != len(cantidades):
+                messages.error(request, "Error en los datos del formulario. Intenta nuevamente.")
+                return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                    materiales=materiales,
+                    action="crear",
+                    fecha_entrega=fecha_entrega_raw,
+                    ciudad=ciudad,
+                    direccion_detalle=direccion_detalle,
+                ))
 
-        db_alias = _obtener_alias_db()
-        try:
-            with transaction.atomic():
-                total_general = 0
-                nuevo_pedido = Pedido.objects.create(
-                    usuario=usuario_local,
-                    direccion_origen="Bodega Central",
-                    direccion_destino=direccion,
-                    estado="pendiente",
-                    fecha_entrega_programada=fecha_entrega if fecha_entrega else None
-                )
+            db_alias = _obtener_alias_db()
+            try:
+                metodo_pago = MetodoPago.objects.get(codigo_metodo_pago=metodo_pago_codigo)
+                with transaction.atomic():
+                    total_general = 0
+                    nuevo_pedido = Pedido.objects.create(
+                        usuario=usuario_local,
+                        direccion_origen="Bodega Central",
+                        direccion_destino=direccion,
+                        estado="pendiente",
+                        fecha_entrega_programada=fecha_entrega if fecha_entrega else None
+                    )
 
-                with transaction.atomic(using=db_alias):
-                    for m_id, cant in zip(materiales_ids, cantidades, strict=False):
-                        if not m_id or not cant:
-                            continue
+                    with transaction.atomic(using=db_alias):
+                        for m_id, cant in zip(materiales_ids, cantidades, strict=False):
+                            if not m_id or not cant:
+                                continue
 
-                        material = _obtener_material_local(m_id)
-                        try:
-                            stock_obj = Stock.objects.select_for_update().using(db_alias).get(material=material)
-                        except Stock.DoesNotExist:
-                            stock_obj = Stock.objects.using(db_alias).create(material=material, cantidad_actual=0)
+                            material = _obtener_material_local(m_id)
+                            try:
+                                stock_obj = Stock.objects.select_for_update().using(db_alias).get(material=material)
+                            except Stock.DoesNotExist:
+                                stock_obj = Stock.objects.using(db_alias).create(material=material, cantidad_actual=0)
 
-                        try:
-                            cantidad = int(cant)
-                        except (ValueError, TypeError) as err:
-                            raise ValueError(f"Cantidad inválida para {material.nombre}") from err
+                            try:
+                                cantidad = int(cant)
+                            except (ValueError, TypeError) as err:
+                                raise ValueError(f"Cantidad inválida para {material.nombre}") from err
 
-                        if cantidad <= 0:
-                            raise ValueError(f"La cantidad para {material.nombre} debe ser mayor a 0.")
+                            if cantidad <= 0:
+                                raise ValueError(f"La cantidad para {material.nombre} debe ser mayor a 0.")
 
-                        if stock_obj.cantidad_actual < cantidad:
-                            raise ValueError(
-                                f"Stock insuficiente para {material.nombre}. "
-                                f"Quedan {stock_obj.cantidad_actual}."
+                            if stock_obj.cantidad_actual < cantidad:
+                                raise ValueError(
+                                    f"Stock insuficiente para {material.nombre}. "
+                                    f"Quedan {stock_obj.cantidad_actual}."
+                                )
+
+                            precio_unitario = material.precio
+                            total_item = precio_unitario * cantidad
+                            total_general += total_item
+
+                            DetallePedido.objects.using('default').create(
+                                pedido=nuevo_pedido,
+                                material=material,
+                                cantidad=cantidad,
+                                precio_unitario=precio_unitario
                             )
 
-                        precio_unitario = material.precio
-                        total_item = precio_unitario * cantidad
-                        total_general += total_item
+                            stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
+                            stock_obj.save(using=db_alias)
 
-                        DetallePedido.objects.using('default').create(
-                            pedido=nuevo_pedido,
-                            material=material,
-                            cantidad=cantidad,
-                            precio_unitario=precio_unitario
-                        )
+                    # Update pedido total
+                    nuevo_pedido.calcular_total()
 
-                        stock_obj.cantidad_actual = F('cantidad_actual') - cantidad
-                        stock_obj.save(using=db_alias)
+                    # Create Factura
+                    numero_factura = f"CT-{nuevo_pedido.codigo_pedido:06d}"
+                    factura = Factura.objects.create(
+                        pedido=nuevo_pedido,
+                        cliente=usuario_local,
+                        numero=numero_factura,
+                        subtotal=total_general,
+                        iva=0,  # TODO: Calculate IVA if needed
+                        total=total_general,
+                        estado='pendiente'
+                    )
 
-            messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente.")
-            return redirect("clientes:mis_pedidos")
+                    # Create Pago
+                    estado_pago = 'pendiente'
+                    Pago.objects.create(
+                        factura=factura,
+                        monto=total_general,
+                        codigo_metodo_pago=metodo_pago,
+                        estado=estado_pago,
+                        registrado_por=request.user
+                    )
 
-        except ValueError as e:
-            messages.error(request, str(e))
-            return render(request, "clientes/form.html", _contexto_formulario_pedido(
-                materiales=materiales,
-                action="crear",
-            ))
-        except Exception as e:
-            messages.error(request, f"Error interno: {e}")
-            return render(request, "clientes/form.html", _contexto_formulario_pedido(
-                materiales=materiales,
-                action="crear",
-            ))
+                messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente.")
+                return redirect("clientes:mis_pagos")
+
+            except MetodoPago.DoesNotExist:
+                messages.error(request, "Método de pago inválido.")
+                return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                    materiales=materiales,
+                    action="crear",
+                ))
+            except ValueError as e:
+                messages.error(request, str(e))
+                return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                    materiales=materiales,
+                    action="crear",
+                ))
+            except Exception as e:
+                messages.error(request, f"Error interno: {e}")
+                return render(request, "clientes/form.html", _contexto_formulario_pedido(
+                    materiales=materiales,
+                    action="crear",
+                ))
 
     return render(request, "clientes/form.html", _contexto_formulario_pedido(
         materiales=materiales,
@@ -627,3 +672,22 @@ def cancelar_pedido(request, id):
     if es_admin:
         return redirect("ordenes:lista_pedidos_admin")
     return redirect("clientes:mis_pedidos")
+
+
+@login_required
+def mis_pagos(request):
+    try:
+        usuario_remoto = request.user.usuario
+        usuario = _obtener_usuario_local(usuario_remoto)
+    except AttributeError:
+        messages.error(request, "No tienes un perfil de cliente asociado.")
+        return redirect("usuarios:panel")
+
+    facturas = Factura.objects.filter(cliente__in=[usuario, usuario_remoto]).order_by("-fecha")
+    pagos = Pago.objects.filter(factura__cliente__in=[usuario, usuario_remoto]).order_by("-fecha")
+    context = {
+        "facturas": facturas,
+        "pagos": pagos
+    }
+
+    return render(request, "clientes/mis_pagos.html", context)
