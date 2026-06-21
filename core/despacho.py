@@ -41,7 +41,7 @@ def separar_direccion_destino(direccion_completa: str) -> tuple[str, str]:
         prefijos = (f"{ciudad} — ", f"{ciudad} - ", f"{ciudad}, ")
         for prefijo in prefijos:
             if texto.startswith(prefijo):
-                return ciudad, texto[len(prefijo):].strip()
+                return ciudad, texto[len(prefijo) :].strip()
         if texto == ciudad:
             return ciudad, ""
     return "", texto

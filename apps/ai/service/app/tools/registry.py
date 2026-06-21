@@ -1,4 +1,5 @@
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from app.core.logging import logger
 from app.tools.base import BaseTool
 
@@ -27,8 +28,7 @@ class ToolRegistry:
     def list_tools(self) -> List[Dict[str, str]]:
         """List all registered tools with descriptions"""
         return [
-            {"name": name, "description": tool.description}
-            for name, tool in self.tools.items()
+            {"name": name, "description": tool.description} for name, tool in self.tools.items()
         ]
 
     def run_tool(self, name: str, **kwargs) -> Dict[str, Any]:

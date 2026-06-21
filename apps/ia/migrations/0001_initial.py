@@ -6,113 +6,216 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('usuarios', '0001_initial'),
+        ("usuarios", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ConversationHistory',
+            name="ConversationHistory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('session_id', models.CharField(blank=True, max_length=255, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('context_metadata', models.JSONField(blank=True, default=dict)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='ia_conversations', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("session_id", models.CharField(blank=True, max_length=255, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("context_metadata", models.JSONField(blank=True, default=dict)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="ia_conversations",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Historial de Conversación',
-                'verbose_name_plural': 'Historiales de Conversación',
-                'ordering': ['-created_at'],
+                "verbose_name": "Historial de Conversación",
+                "verbose_name_plural": "Historiales de Conversación",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='ConversationMessage',
+            name="ConversationMessage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('role', models.CharField(choices=[('user', 'Usuario'), ('assistant', 'Asistente')], max_length=20)),
-                ('content', models.TextField()),
-                ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('prompt_used', models.TextField(blank=True, null=True, verbose_name='Prompt usado')),
-                ('model_used', models.CharField(blank=True, max_length=100, null=True, verbose_name='Modelo usado')),
-                ('response_time', models.FloatField(blank=True, null=True, verbose_name='Tiempo de respuesta')),
-                ('conversation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='messages', to='ia.conversationhistory')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[("user", "Usuario"), ("assistant", "Asistente")], max_length=20
+                    ),
+                ),
+                ("content", models.TextField()),
+                ("timestamp", models.DateTimeField(auto_now_add=True)),
+                (
+                    "prompt_used",
+                    models.TextField(blank=True, null=True, verbose_name="Prompt usado"),
+                ),
+                (
+                    "model_used",
+                    models.CharField(
+                        blank=True, max_length=100, null=True, verbose_name="Modelo usado"
+                    ),
+                ),
+                (
+                    "response_time",
+                    models.FloatField(blank=True, null=True, verbose_name="Tiempo de respuesta"),
+                ),
+                (
+                    "conversation",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="messages",
+                        to="ia.conversationhistory",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Mensaje de Conversación',
-                'verbose_name_plural': 'Mensajes de Conversación',
-                'ordering': ['timestamp'],
+                "verbose_name": "Mensaje de Conversación",
+                "verbose_name_plural": "Mensajes de Conversación",
+                "ordering": ["timestamp"],
             },
         ),
         migrations.CreateModel(
-            name='AIPromptTemplate',
+            name="AIPromptTemplate",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('template', models.TextField(help_text='Plantilla de prompt. Usa {{variable}} para variables')),
-                ('is_active', models.BooleanField(default=True)),
-                ('usage_count', models.IntegerField(default=0, help_text='Número de veces que se ha usado esta plantilla')),
-                ('success_rate', models.FloatField(default=0.0, help_text='Porcentaje de feedback positivo')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "template",
+                    models.TextField(
+                        help_text="Plantilla de prompt. Usa {{variable}} para variables"
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "usage_count",
+                    models.IntegerField(
+                        default=0, help_text="Número de veces que se ha usado esta plantilla"
+                    ),
+                ),
+                (
+                    "success_rate",
+                    models.FloatField(default=0.0, help_text="Porcentaje de feedback positivo"),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Plantilla de Prompt IA',
-                'verbose_name_plural': 'Plantillas de Prompt IA',
-                'ordering': ['-success_rate', '-created_at'],
+                "verbose_name": "Plantilla de Prompt IA",
+                "verbose_name_plural": "Plantillas de Prompt IA",
+                "ordering": ["-success_rate", "-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='AIConfiguration',
+            name="AIConfiguration",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('key', models.CharField(max_length=255, unique=True)),
-                ('value', models.TextField()),
-                ('description', models.TextField(blank=True, null=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("key", models.CharField(max_length=255, unique=True)),
+                ("value", models.TextField()),
+                ("description", models.TextField(blank=True, null=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Configuración IA',
-                'verbose_name_plural': 'Configuraciones IA',
+                "verbose_name": "Configuración IA",
+                "verbose_name_plural": "Configuraciones IA",
             },
         ),
         migrations.CreateModel(
-            name='KnowledgeBase',
+            name="KnowledgeBase",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('question_pattern', models.TextField(help_text='Patrón de pregunta (puede usar expresiones regulares)')),
-                ('best_response', models.TextField(help_text='Mejor respuesta encontrada')),
-                ('category', models.CharField(blank=True, max_length=100, null=True)),
-                ('usage_count', models.IntegerField(default=0)),
-                ('success_count', models.IntegerField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "question_pattern",
+                    models.TextField(
+                        help_text="Patrón de pregunta (puede usar expresiones regulares)"
+                    ),
+                ),
+                ("best_response", models.TextField(help_text="Mejor respuesta encontrada")),
+                ("category", models.CharField(blank=True, max_length=100, null=True)),
+                ("usage_count", models.IntegerField(default=0)),
+                ("success_count", models.IntegerField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Base de Conocimiento',
-                'verbose_name_plural': 'Base de Conocimiento',
-                'ordering': ['-usage_count', '-success_count'],
+                "verbose_name": "Base de Conocimiento",
+                "verbose_name_plural": "Base de Conocimiento",
+                "ordering": ["-usage_count", "-success_count"],
             },
         ),
         migrations.CreateModel(
-            name='UserFeedback',
+            name="UserFeedback",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('feedback', models.CharField(choices=[('good', 'Buena'), ('bad', 'Mala'), ('neutral', 'Neutral')], max_length=20)),
-                ('comment', models.TextField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('message', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='feedback', to='ia.conversationmessage')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='ia_feedback', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "feedback",
+                    models.CharField(
+                        choices=[("good", "Buena"), ("bad", "Mala"), ("neutral", "Neutral")],
+                        max_length=20,
+                    ),
+                ),
+                ("comment", models.TextField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "message",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="feedback",
+                        to="ia.conversationmessage",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="ia_feedback",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Feedback del Usuario',
-                'verbose_name_plural': 'Feedbacks del Usuario',
-                'ordering': ['-created_at'],
+                "verbose_name": "Feedback del Usuario",
+                "verbose_name_plural": "Feedbacks del Usuario",
+                "ordering": ["-created_at"],
             },
         ),
     ]

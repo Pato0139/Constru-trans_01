@@ -6,30 +6,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('facturacion', '0002_initial'),
-        ('pagos', '0001_initial'),
-        ('usuarios', '0001_initial'),
+        ("facturacion", "0002_initial"),
+        ("pagos", "0001_initial"),
+        ("usuarios", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='pago',
-            name='codigo_metodo_pago',
-            field=models.ForeignKey(db_column='codigo_metodo_pago', on_delete=django.db.models.deletion.PROTECT, to='usuarios.metodopago'),
+            model_name="pago",
+            name="codigo_metodo_pago",
+            field=models.ForeignKey(
+                db_column="codigo_metodo_pago",
+                on_delete=django.db.models.deletion.PROTECT,
+                to="usuarios.metodopago",
+            ),
         ),
         migrations.AddField(
-            model_name='pago',
-            name='factura',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pagos', to='facturacion.factura'),
+            model_name="pago",
+            name="factura",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="pagos",
+                to="facturacion.factura",
+            ),
         ),
         migrations.AddField(
-            model_name='pago',
-            name='registrado_por',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="pago",
+            name="registrado_por",
+            field=models.ForeignKey(
+                null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class HistoryMessage(BaseModel):
@@ -14,7 +15,9 @@ class ChatRequest(BaseModel):
     user_id: Optional[str] = Field(None, description="User ID")
     user_name: Optional[str] = Field(None, description="User name")
     user_role: Optional[str] = Field(None, description="User role")
-    business_context: Dict[str, Any] = Field(default_factory=dict, description="Business context data")
+    business_context: Dict[str, Any] = Field(
+        default_factory=dict, description="Business context data"
+    )
     history: List[HistoryMessage] = Field(default_factory=list, description="Conversation history")
     use_rag: bool = Field(default=True, description="Whether to use RAG")
 

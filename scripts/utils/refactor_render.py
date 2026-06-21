@@ -18,8 +18,6 @@ Modos:
 import os
 import re
 import sys
-import ast
-import textwrap
 
 # ──────────────────────────────────────────────
 # Configuración
@@ -30,24 +28,31 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 
 # Carpetas que NO se deben escanear
 EXCLUDED_DIRS = {
-    '.git', '__pycache__', '.venv', 'venv', 'env',
-    'node_modules', 'migrations', 'static', 'media',
-    '.gemini', 'staticfiles',
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "env",
+    "node_modules",
+    "migrations",
+    "static",
+    "media",
+    ".gemini",
+    "staticfiles",
 }
 
 # Patrón: return render(request, '...', { ...
 #   Detecta dict literal directamente en el tercer argumento del render
-RENDER_DICT_PATTERN = re.compile(
-    r'return\s+render\s*\(\s*\w+\s*,\s*[\'"][^\'"]+[\'"]\s*,\s*\{'
-)
+RENDER_DICT_PATTERN = re.compile(r'return\s+render\s*\(\s*\w+\s*,\s*[\'"][^\'"]+[\'"]\s*,\s*\{')
 
 # Separador visual
-SEP = '-' * 50
+SEP = "-" * 50
 
 
 # ──────────────────────────────────────────────
 # Funciones principales
 # ──────────────────────────────────────────────
+
 
 def encontrar_views(base_dir: str) -> list[str]:
     """Recorre recursivamente el proyecto y retorna rutas de archivos views.py o *_views.py."""
@@ -56,7 +61,7 @@ def encontrar_views(base_dir: str) -> list[str]:
         # Excluir carpetas no deseadas (modificar dirs in-place para que os.walk las omita)
         dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
         for fichero in ficheros:
-            if fichero == 'views.py' or fichero.endswith('_views.py'):
+            if fichero == "views.py" or fichero.endswith("_views.py"):
                 archivos.append(os.path.join(raiz, fichero))
     return sorted(archivos)
 
@@ -68,19 +73,19 @@ def auditar_archivo(ruta: str) -> list[int]:
     """
     lineas_problema = []
     try:
-        with open(ruta, encoding='utf-8') as f:
+        with open(ruta, encoding="utf-8") as f:
             for num, linea in enumerate(f, start=1):
                 if RENDER_DICT_PATTERN.search(linea):
                     lineas_problema.append(num)
     except (OSError, UnicodeDecodeError) as e:
-        print(f'  [ERROR] No se pudo leer {ruta}: {e}')
+        print(f"  [ERROR] No se pudo leer {ruta}: {e}")
     return lineas_problema
 
 
 def ruta_relativa(ruta: str) -> str:
     """Retorna la ruta relativa al BASE_DIR con prefijo .\\"""
     rel = os.path.relpath(ruta, BASE_DIR)
-    return f'.\\{rel}'
+    return f".\\{rel}"
 
 
 def contar_renders(ruta: str) -> tuple[int, int]:
@@ -90,9 +95,9 @@ def contar_renders(ruta: str) -> tuple[int, int]:
     """
     total = 0
     con_dict = 0
-    patron_total = re.compile(r'return\s+render\s*\(')
+    patron_total = re.compile(r"return\s+render\s*\(")
     try:
-        with open(ruta, encoding='utf-8') as f:
+        with open(ruta, encoding="utf-8") as f:
             for linea in f:
                 if patron_total.search(linea):
                     total += 1
@@ -107,6 +112,7 @@ def contar_renders(ruta: str) -> tuple[int, int]:
 # Modo --fix (corrección automática)
 # ──────────────────────────────────────────────
 
+
 def corregir_archivo(ruta: str, lineas_problema: list[int]) -> int:
     """
     Corrige automáticamente las líneas detectadas reemplazando el dict literal
@@ -114,16 +120,16 @@ def corregir_archivo(ruta: str, lineas_problema: list[int]) -> int:
     Retorna la cantidad de correcciones realizadas.
     """
     try:
-        with open(ruta, encoding='utf-8') as f:
+        with open(ruta, encoding="utf-8") as f:
             contenido = f.read()
     except (OSError, UnicodeDecodeError) as e:
-        print(f'  [ERROR] No se pudo leer {ruta}: {e}')
+        print(f"  [ERROR] No se pudo leer {ruta}: {e}")
         return 0
 
     # Patrón completo para capturar render con dict multilínea
     patron = re.compile(
         r'(\s*)(return\s+render\s*\(\s*(\w+)\s*,\s*([\'"][^\'"]+[\'"])\s*,\s*)(\{[^}]*\})\s*(\))',
-        re.DOTALL
+        re.DOTALL,
     )
 
     correcciones = 0
@@ -136,18 +142,18 @@ def corregir_archivo(ruta: str, lineas_problema: list[int]) -> int:
         dict_literal = m.group(5)
         correcciones += 1
         return (
-            f'{indentacion}context = {dict_literal}\n'
-            f'{indentacion}return render({request_var}, {template}, context)'
+            f"{indentacion}context = {dict_literal}\n"
+            f"{indentacion}return render({request_var}, {template}, context)"
         )
 
     nuevo_contenido = patron.sub(reemplazar, contenido)
 
     if correcciones > 0:
         try:
-            with open(ruta, 'w', encoding='utf-8') as f:
+            with open(ruta, "w", encoding="utf-8") as f:
                 f.write(nuevo_contenido)
         except OSError as e:
-            print(f'  [ERROR] No se pudo escribir {ruta}: {e}')
+            print(f"  [ERROR] No se pudo escribir {ruta}: {e}")
             return 0
 
     return correcciones
@@ -157,8 +163,9 @@ def corregir_archivo(ruta: str, lineas_problema: list[int]) -> int:
 # Ejecución principal
 # ──────────────────────────────────────────────
 
+
 def main():
-    modo_fix = '--fix' in sys.argv
+    modo_fix = "--fix" in sys.argv
 
     print(SEP)
 
@@ -166,8 +173,8 @@ def main():
 
     total_archivos = len(archivos)
     total_renders = 0
-    renders_dict = 0        # con dict literal (ALERTA)
-    renders_variable = 0    # con variable context (OK)
+    renders_dict = 0  # con dict literal (ALERTA)
+    renders_variable = 0  # con variable context (OK)
     archivos_alerta = 0
     correcciones_totales = 0
 
@@ -178,45 +185,45 @@ def main():
 
         total_renders += t_renders
         renders_dict += t_dict
-        renders_variable += (t_renders - t_dict)
+        renders_variable += t_renders - t_dict
 
         if lineas:
             archivos_alerta += 1
-            print(f'[ALERTA] {rel}: Tiene {len(lineas)} render(s) en las líneas {lineas}.')
+            print(f"[ALERTA] {rel}: Tiene {len(lineas)} render(s) en las líneas {lineas}.")
             if modo_fix:
                 n = corregir_archivo(ruta, lineas)
                 correcciones_totales += n
                 if n:
-                    print(f'         [OK] {n} correcci\u00f3n(es) aplicadas autom\u00e1ticamente.')
+                    print(f"         [OK] {n} correcci\u00f3n(es) aplicadas autom\u00e1ticamente.")
         else:
-            print(f'[OK]     {rel}: {t_renders} render(s) correctos.')
+            print(f"[OK]     {rel}: {t_renders} render(s) correctos.")
 
     print(SEP)
     print()
 
-    modo_label = '(CORREGIDO)' if modo_fix else '(SOLO LECTURA)'
-    print(f'REPORTE FINAL {modo_label}:')
-    print(f'  Archivos Python escaneados  : {total_archivos}')
+    modo_label = "(CORREGIDO)" if modo_fix else "(SOLO LECTURA)"
+    print(f"REPORTE FINAL {modo_label}:")
+    print(f"  Archivos Python escaneados  : {total_archivos}")
     print(f"  Total de 'return render'    : {total_renders}")
-    print(f'  Renders usando diccionario  : {renders_dict}')
-    print(f'  Renders correctos (variable): {renders_variable}')
+    print(f"  Renders usando diccionario  : {renders_dict}")
+    print(f"  Renders correctos (variable): {renders_variable}")
 
     if modo_fix and correcciones_totales:
-        print(f'  Correcciones aplicadas      : {correcciones_totales}')
+        print(f"  Correcciones aplicadas      : {correcciones_totales}")
 
     print()
 
     if archivos_alerta == 0:
-        print('[LISTO] Todo en orden. No hay renders con dict literal.')
+        print("[LISTO] Todo en orden. No hay renders con dict literal.")
     else:
         if modo_fix:
-            print(f'[CORREGIDO] Se corrigieron {archivos_alerta} archivo(s) automaticamente.')
+            print(f"[CORREGIDO] Se corrigieron {archivos_alerta} archivo(s) automaticamente.")
         else:
             print(
-                f'[ATENCION] Se encontraron {archivos_alerta} archivo(s) con renders a corregir.\n'
-                f'   Ejecuta  python .\\refactor_render.py --fix  para corregirlos automaticamente.'
+                f"[ATENCION] Se encontraron {archivos_alerta} archivo(s) con renders a corregir.\n"
+                f"   Ejecuta  python .\\refactor_render.py --fix  para corregirlos automaticamente."
             )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

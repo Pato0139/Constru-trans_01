@@ -26,4 +26,3 @@ def format_number_es(value, decimals=None):
     entero_str, frac_str = f"{num:.{decimals}f}".split(".")
     entero_str = f"{int(entero_str):,}".replace(",", ".")
     return f"{sign}{entero_str},{frac_str}"
-

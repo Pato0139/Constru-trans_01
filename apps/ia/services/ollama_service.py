@@ -1,4 +1,5 @@
 import logging
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -38,9 +39,7 @@ def verificar_conexion_ollama():
 
 
 def construir_prompt_sistema(contexto, nombre_usuario):
-    contexto_texto = "\n".join(
-        f"- {k}: {v}" for k, v in contexto.items() if k != "generated_at"
-    )
+    contexto_texto = "\n".join(f"- {k}: {v}" for k, v in contexto.items() if k != "generated_at")
 
     return f"""
 Eres el asistente virtual oficial de Constru-Trans.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings.development')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings.development")
 
 import django  # noqa: E402
 from django.conf import settings  # noqa: E402
@@ -21,10 +21,14 @@ print("=== Probando Password Reset ===")
 # Verificar usuarios
 print(f"\nUsuarios en la BD: {User.objects.count()}")
 for user in User.objects.all():
-    print(f"  - ID: {user.id}, Email: {user.email}, Username: {user.username}, Active: {user.is_active}")
+    print(
+        f"  - ID: {user.id}, Email: {user.email}, Username: {user.username}, Active: {user.is_active}"
+    )
 
 # Elegir un email para probar
-test_email = input("\nIngresa un email para probar el password reset (o deja vacío para usar el primero): ").strip()
+test_email = input(
+    "\nIngresa un email para probar el password reset (o deja vacío para usar el primero): "
+).strip()
 
 if not test_email:
     first_user = User.objects.first()
@@ -51,18 +55,18 @@ print(f"Token: {token}")
 
 # Preparar email
 context = {
-    'user': user,
-    'uid': uidb64,
-    'token': token,
-    'protocol': 'http',
-    'domain': 'localhost:8000',
+    "user": user,
+    "uid": uidb64,
+    "token": token,
+    "protocol": "http",
+    "domain": "localhost:8000",
 }
 
 # Renderizar templates (usar los del proyecto)
 try:
-    html_message = render_to_string('registration/password_reset_email.html', context)
+    html_message = render_to_string("registration/password_reset_email.html", context)
     plain_message = strip_tags(html_message)
-    subject = render_to_string('registration/password_reset_subject.txt', context).strip()
+    subject = render_to_string("registration/password_reset_subject.txt", context).strip()
 except Exception as e:
     print(f"\n❌ Error al renderizar templates: {e}")
     print("Usando email simple...")
@@ -87,5 +91,6 @@ try:
 except Exception as e:
     print(f"\n❌ Error al enviar email: {type(e).__name__}: {e}")
     import traceback
+
     print("\nDetalles del error:")
     traceback.print_exc()

@@ -1,19 +1,19 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
+import uuid
+from typing import Optional
+
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import Optional
-import uuid
 
 from app.core.config import settings
 from app.core.logging import logger
-from app.db.postgres import get_db, init_db
 from app.db.models import Conversation, Message
-from app.schemas.chat import ChatRequest, ChatResponse
+from app.db.postgres import get_db, init_db
 from app.llm.factory import get_llm_provider
-from app.memory.short_term import short_term_memory
 from app.memory.embeddings import embedding_service
 from app.memory.retriever import semantic_retriever
-
+from app.memory.short_term import short_term_memory
+from app.schemas.chat import ChatRequest, ChatResponse
 
 # Initialize services
 llm = get_llm_provider()
@@ -47,11 +47,7 @@ def create_app() -> FastAPI:
 
     # Chat endpoint
     @app.post(f"{settings.API_V1_STR}/chat", response_model=ChatResponse)
-    async def chat(
-        payload: ChatRequest,
-        request: Request,
-        db: Session = Depends(get_db)
-    ):
+    async def chat(payload: ChatRequest, request: Request, db: Session = Depends(get_db)):
         # Validate internal token
         internal_token = request.headers.get("X-Internal-Token")
         if internal_token != settings.AI_INTERNAL_TOKEN:
@@ -65,7 +61,9 @@ def create_app() -> FastAPI:
         if payload.session_id:
             try:
                 conversation_id = int(payload.session_id)
-                conversation = db.query(Conversation).filter(Conversation.id == conversation_id).first()
+                conversation = (
+                    db.query(Conversation).filter(Conversation.id == conversation_id).first()
+                )
             except (ValueError, TypeError):
                 pass  # If invalid session_id, create new
 
@@ -77,11 +75,7 @@ def create_app() -> FastAPI:
             session_id = str(conversation.id)
 
         # Add user message to DB
-        user_msg = Message(
-            conversation_id=conversation.id,
-            role="user",
-            content=payload.message
-        )
+        user_msg = Message(conversation_id=conversation.id, role="user", content=payload.message)
         db.add(user_msg)
         db.commit()
 
@@ -115,18 +109,13 @@ Contexto actual del negocio:
         if payload.use_rag:
             query_embedding = embedding_service.embed_text(payload.message)
             retrieved_memories = semantic_retriever.search(
-                collection_name="conversation_memory",
-                query_embedding=query_embedding,
-                n_results=3
+                collection_name="conversation_memory", query_embedding=query_embedding, n_results=3
             )
             if retrieved_memories:
-                memory_context = "\n".join([
-                    f"- {mem['document']}" for mem in retrieved_memories
-                ])
-                llm_messages.append({
-                    "role": "system",
-                    "content": f"Memoria relevante:\n{memory_context}"
-                })
+                memory_context = "\n".join([f"- {mem['document']}" for mem in retrieved_memories])
+                llm_messages.append(
+                    {"role": "system", "content": f"Memoria relevante:\n{memory_context}"}
+                )
 
         # Add conversation history
         for h in payload.history[-10:]:
@@ -144,9 +133,7 @@ Contexto actual del negocio:
 
         # Add assistant message to DB
         assistant_msg = Message(
-            conversation_id=conversation.id,
-            role="assistant",
-            content=response_text
+            conversation_id=conversation.id, role="assistant", content=response_text
         )
         db.add(assistant_msg)
         db.commit()
@@ -158,21 +145,16 @@ Contexto actual del negocio:
         # Store conversation in semantic memory
         conv_text = f"Usuario: {payload.message}\nAsistente: {response_text}"
         conv_embedding = embedding_service.embed_text(conv_text)
-        
+
         # Get current history count for unique ID
-        history_count = db.query(Message).filter(
-            Message.conversation_id == conversation.id
-        ).count()
-        
+        history_count = db.query(Message).filter(Message.conversation_id == conversation.id).count()
+
         semantic_retriever.add(
             collection_name="conversation_memory",
             ids=[f"conv-{conversation.id}-{history_count}"],
             documents=[conv_text],
             embeddings=[conv_embedding],
-            metadatas=[{
-                "conversation_id": conversation.id,
-                "user_id": payload.user_id
-            }]
+            metadatas=[{"conversation_id": conversation.id, "user_id": payload.user_id}],
         )
 
         # Update conversation
@@ -184,7 +166,7 @@ Contexto actual del negocio:
             session_id=session_id,
             model_used=getattr(llm, "name", settings.LLM_PROVIDER),
             tool_calls=[],
-            status="ok"
+            status="ok",
         )
 
     return app

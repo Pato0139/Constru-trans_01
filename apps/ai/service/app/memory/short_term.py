@@ -1,7 +1,8 @@
-import redis
 import json
-from typing import List, Dict, Optional
 from datetime import timedelta
+from typing import Dict, List, Optional
+
+import redis
 
 from app.core.config import settings
 from app.core.logging import logger
@@ -15,7 +16,7 @@ class ShortTermMemory:
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
             db=settings.REDIS_DB,
-            decode_responses=True
+            decode_responses=True,
         )
         self.ttl = timedelta(hours=24)  # 24 hour TTL
         logger.info("ShortTermMemory initialized with Redis")

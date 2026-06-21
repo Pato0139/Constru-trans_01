@@ -6,30 +6,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('inventario', '0001_initial'),
-        ('ordenes', '0001_initial'),
-        ('usuarios', '0001_initial'),
+        ("inventario", "0001_initial"),
+        ("ordenes", "0001_initial"),
+        ("usuarios", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='movimientoinventario',
-            name='material',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='movimientos', to='usuarios.materialconstruccion'),
+            model_name="movimientoinventario",
+            name="material",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="movimientos",
+                to="usuarios.materialconstruccion",
+            ),
         ),
         migrations.AddField(
-            model_name='movimientoinventario',
-            name='pedido',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='movimientos', to='ordenes.pedido'),
+            model_name="movimientoinventario",
+            name="pedido",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="movimientos",
+                to="ordenes.pedido",
+            ),
         ),
         migrations.AddField(
-            model_name='movimientoinventario',
-            name='usuario',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="movimientoinventario",
+            name="usuario",
+            field=models.ForeignKey(
+                null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

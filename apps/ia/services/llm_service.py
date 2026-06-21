@@ -1,10 +1,11 @@
-import os
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 try:
     from openai import OpenAI
+
     LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
     LLM_API_KEY = os.getenv("LLM_API_KEY", "local-key")
     LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2:latest")
@@ -25,10 +26,7 @@ def verificar_conexion_llm():
 
 
 def construir_prompt_sistema(contexto, nombre_usuario):
-    contexto_texto = "\n".join(
-        f"- {k}: {v}" for k, v in contexto.items()
-        if k != "generated_at"
-    )
+    contexto_texto = "\n".join(f"- {k}: {v}" for k, v in contexto.items() if k != "generated_at")
     return f"""Eres el asistente virtual oficial de Constru-Trans.
 
 Puedes responder dos tipos de preguntas:
@@ -55,7 +53,7 @@ def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
     if client is None:
         logger.error("Cliente LLM no está disponible (openai no instalado)")
         return None
-        
+
     system_prompt = construir_prompt_sistema(contexto, nombre_usuario)
 
     messages = [{"role": "system", "content": system_prompt}]
@@ -70,9 +68,7 @@ def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
 
     try:
         response = client.chat.completions.create(
-            model=LLM_MODEL,
-            messages=messages,
-            temperature=0.3
+            model=LLM_MODEL, messages=messages, temperature=0.3
         )
         return (response.choices[0].message.content or "").strip() or None
     except Exception:

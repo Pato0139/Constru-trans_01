@@ -8,12 +8,7 @@ embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 def guardar_interaccion(doc_id: str, texto: str, metadata: dict):
     emb = embedder.encode([texto])[0].tolist()
-    collection.add(
-        ids=[doc_id],
-        documents=[texto],
-        embeddings=[emb],
-        metadatas=[metadata]
-    )
+    collection.add(ids=[doc_id], documents=[texto], embeddings=[emb], metadatas=[metadata])
 
 
 def buscar_memoria(query: str, n_results: int = 3):

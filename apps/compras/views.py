@@ -13,17 +13,18 @@ from .models import Compra, Proveedor
 
 @admin_required
 def lista_compras(request):
-    q = request.GET.get('q', '')
-    compras = Compra.objects.select_related('proveedor', 'usuario').prefetch_related('detalles').all()
+    q = request.GET.get("q", "")
+    compras = (
+        Compra.objects.select_related("proveedor", "usuario").prefetch_related("detalles").all()
+    )
     if q:
         compras = compras.filter(
-            Q(proveedor__nombre__icontains=q) |
-            Q(id__icontains=q) |
-            Q(estado__icontains=q)
+            Q(proveedor__nombre__icontains=q) | Q(id__icontains=q) | Q(estado__icontains=q)
         )
     context = {"compras": compras, "query": q}
 
     return render(request, "compras/lista.html", context)
+
 
 @admin_required
 def crear_compra(request):
@@ -41,7 +42,13 @@ def crear_compra(request):
             # Recalcular total por si es necesario
             compra.calcular_total()
 
-            registrar_actividad(request, 'crear', 'compras', compra.id, f"Orden de compra creada: {compra.numero_orden}")
+            registrar_actividad(
+                request,
+                "crear",
+                "compras",
+                compra.id,
+                f"Orden de compra creada: {compra.numero_orden}",
+            )
             messages.success(request, f"Orden de compra {compra.numero_orden} creada con éxito.")
             return redirect("compras:detalle_compra", id=compra.id)
         else:
@@ -50,22 +57,21 @@ def crear_compra(request):
         form = CompraForm()
         formset = DetalleCompraFormSet()
 
-    context = {
-        "form": form,
-        "formset": formset,
-        "action": "Nueva"
-    }
-
+    context = {"form": form, "formset": formset, "action": "Nueva"}
 
     return render(request, "compras/form.html", context)
+
 
 @admin_required
 def detalle_compra(request, id):
     # Optimizacion
-    compra = get_object_or_404(Compra.objects.select_related('proveedor').prefetch_related('detalles__material'), id=id)
+    compra = get_object_or_404(
+        Compra.objects.select_related("proveedor").prefetch_related("detalles__material"), id=id
+    )
     context = {"compra": compra}
 
     return render(request, "compras/detalle.html", context)
+
 
 @admin_required
 def cambiar_estado_compra(request, id):
@@ -75,15 +81,22 @@ def cambiar_estado_compra(request, id):
         if nuevo_estado in dict(Compra.ESTADOS):
             compra.estado = nuevo_estado
             compra.save()
-            registrar_actividad(request, 'editar', 'compras', compra.id, f"Estado de compra {compra.numero_orden} cambiado a {nuevo_estado}")
+            registrar_actividad(
+                request,
+                "editar",
+                "compras",
+                compra.id,
+                f"Estado de compra {compra.numero_orden} cambiado a {nuevo_estado}",
+            )
             messages.success(request, f"Estado actualizado a {nuevo_estado}.")
         return redirect("compras:detalle_compra", id=compra.id)
     return redirect("compras:lista_compras")
 
+
 @admin_required
 def editar_compra(request, id):
     compra = get_object_or_404(Compra, id=id)
-    if compra.estado != 'pendiente':
+    if compra.estado != "pendiente":
         messages.error(request, "Solo se pueden editar órdenes en estado pendiente.")
         return redirect("compras:detalle_compra", id=compra.id)
 
@@ -101,15 +114,10 @@ def editar_compra(request, id):
         form = CompraForm(instance=compra)
         formset = DetalleCompraFormSet(instance=compra)
 
-    context = {
-        "form": form,
-        "formset": formset,
-        "compra": compra,
-        "action": "Editar"
-    }
-
+    context = {"form": form, "formset": formset, "compra": compra, "action": "Editar"}
 
     return render(request, "compras/form.html", context)
+
 
 @admin_required
 def contactar_proveedor(request, codigo_proveedor):
@@ -127,35 +135,51 @@ def contactar_proveedor(request, codigo_proveedor):
                 [proveedor.email],
                 fail_silently=False,
             )
-            registrar_actividad(request, 'otro', 'proveedores', proveedor.nit, f"Mensaje enviado a proveedor: {proveedor.nombre_empresa}")
+            registrar_actividad(
+                request,
+                "otro",
+                "proveedores",
+                proveedor.nit,
+                f"Mensaje enviado a proveedor: {proveedor.nombre_empresa}",
+            )
             messages.success(request, f"Mensaje enviado a {proveedor.nombre_empresa} con éxito.")
         except Exception:
-            registrar_actividad(request, 'otro', 'proveedores', proveedor.nit, f"Intento de mensaje a {proveedor.nombre_empresa} (Falló envío real)")
-            messages.info(request, f"Se ha registrado el mensaje para {proveedor.nombre_empresa} (Simulación de envío).")
+            registrar_actividad(
+                request,
+                "otro",
+                "proveedores",
+                proveedor.nit,
+                f"Intento de mensaje a {proveedor.nombre_empresa} (Falló envío real)",
+            )
+            messages.info(
+                request,
+                f"Se ha registrado el mensaje para {proveedor.nombre_empresa} (Simulación de envío).",
+            )
 
         return redirect("compras:lista_proveedores")
 
     context = {"proveedor": proveedor}
 
-
     return render(request, "compras/proveedor_contacto.html", context)
+
 
 @admin_required
 def lista_proveedores(request):
-    q = request.GET.get('q', '')
+    q = request.GET.get("q", "")
     if q:
         proveedores = Proveedor.objects.filter(
-            Q(nombre_empresa__icontains=q) |
-            Q(nit__icontains=q) |
-            Q(contacto_nombre__icontains=q) |
-            Q(telefono__icontains=q) |
-            Q(email__icontains=q)
+            Q(nombre_empresa__icontains=q)
+            | Q(nit__icontains=q)
+            | Q(contacto_nombre__icontains=q)
+            | Q(telefono__icontains=q)
+            | Q(email__icontains=q)
         )
     else:
         proveedores = Proveedor.objects.all()
     context = {"proveedores": proveedores, "query": q}
 
     return render(request, "compras/proveedores_lista.html", context)
+
 
 @admin_required
 def crear_proveedor(request):
@@ -175,16 +199,18 @@ def crear_proveedor(request):
             telefono=telefono,
             email=email,
             direccion=direccion,
-            categoria=categoria
+            categoria=categoria,
         )
-        registrar_actividad(request, 'crear', 'proveedores', nit, f"Proveedor creado: {nombre_empresa}")
+        registrar_actividad(
+            request, "crear", "proveedores", nit, f"Proveedor creado: {nombre_empresa}"
+        )
         messages.success(request, "Proveedor registrado con éxito.")
         return redirect("compras:lista_proveedores")
 
     context = {"action": "Crear"}
 
-
     return render(request, "compras/proveedor_form.html", context)
+
 
 @admin_required
 def editar_proveedor(request, codigo_proveedor):
@@ -199,11 +225,16 @@ def editar_proveedor(request, codigo_proveedor):
         proveedor.categoria = request.POST.get("categoria")
         proveedor.save()
 
-        registrar_actividad(request, 'editar', 'proveedores', proveedor.nit, f"Proveedor editado: {proveedor.nombre_empresa}")
+        registrar_actividad(
+            request,
+            "editar",
+            "proveedores",
+            proveedor.nit,
+            f"Proveedor editado: {proveedor.nombre_empresa}",
+        )
         messages.success(request, "Proveedor actualizado.")
         return redirect("compras:lista_proveedores")
 
     context = {"proveedor": proveedor, "action": "Editar"}
-
 
     return render(request, "compras/proveedor_form.html", context)

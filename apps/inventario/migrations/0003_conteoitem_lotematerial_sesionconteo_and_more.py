@@ -6,96 +6,137 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compras', '0002_initial'),
-        ('inventario', '0002_initial'),
-        ('ordenes', '0002_initial'),
-        ('usuarios', '0001_initial'),
+        ("compras", "0002_initial"),
+        ("inventario", "0002_initial"),
+        ("ordenes", "0002_initial"),
+        ("usuarios", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ConteoItem',
+            name="ConteoItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('cantidad_sistema', models.PositiveIntegerField()),
-                ('cantidad_fisica', models.PositiveIntegerField()),
-                ('diferencia', models.IntegerField(editable=False)),
-                ('observaciones', models.TextField(blank=True)),
-                ('fecha_conteo', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("cantidad_sistema", models.PositiveIntegerField()),
+                ("cantidad_fisica", models.PositiveIntegerField()),
+                ("diferencia", models.IntegerField(editable=False)),
+                ("observaciones", models.TextField(blank=True)),
+                ("fecha_conteo", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Item de Conteo',
-                'verbose_name_plural': 'Items de Conteo',
-                'db_table': 'conteo_item',
+                "verbose_name": "Item de Conteo",
+                "verbose_name_plural": "Items de Conteo",
+                "db_table": "conteo_item",
             },
         ),
         migrations.CreateModel(
-            name='LoteMaterial',
+            name="LoteMaterial",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('codigo_lote', models.CharField(db_index=True, max_length=50, unique=True)),
-                ('cantidad', models.PositiveIntegerField()),
-                ('fecha_entrada', models.DateTimeField(auto_now_add=True)),
-                ('fecha_vencimiento', models.DateField(blank=True, db_index=True, null=True)),
-                ('activo', models.BooleanField(default=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("codigo_lote", models.CharField(db_index=True, max_length=50, unique=True)),
+                ("cantidad", models.PositiveIntegerField()),
+                ("fecha_entrada", models.DateTimeField(auto_now_add=True)),
+                ("fecha_vencimiento", models.DateField(blank=True, db_index=True, null=True)),
+                ("activo", models.BooleanField(default=True)),
             ],
             options={
-                'verbose_name': 'Lote de Material',
-                'verbose_name_plural': 'Lotes de Material',
-                'db_table': 'lote_material',
-                'ordering': ['-fecha_entrada'],
+                "verbose_name": "Lote de Material",
+                "verbose_name_plural": "Lotes de Material",
+                "db_table": "lote_material",
+                "ordering": ["-fecha_entrada"],
             },
         ),
         migrations.CreateModel(
-            name='SesionConteo',
+            name="SesionConteo",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('codigo', models.CharField(db_index=True, max_length=50, unique=True)),
-                ('fecha_inicio', models.DateTimeField(auto_now_add=True)),
-                ('fecha_fin', models.DateTimeField(blank=True, null=True)),
-                ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('en_progreso', 'En Progreso'), ('completado', 'Completado'), ('cancelado', 'Cancelado')], default='pendiente', max_length=20)),
-                ('observaciones', models.TextField(blank=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("codigo", models.CharField(db_index=True, max_length=50, unique=True)),
+                ("fecha_inicio", models.DateTimeField(auto_now_add=True)),
+                ("fecha_fin", models.DateTimeField(blank=True, null=True)),
+                (
+                    "estado",
+                    models.CharField(
+                        choices=[
+                            ("pendiente", "Pendiente"),
+                            ("en_progreso", "En Progreso"),
+                            ("completado", "Completado"),
+                            ("cancelado", "Cancelado"),
+                        ],
+                        default="pendiente",
+                        max_length=20,
+                    ),
+                ),
+                ("observaciones", models.TextField(blank=True)),
             ],
             options={
-                'verbose_name': 'Sesión de Conteo',
-                'verbose_name_plural': 'Sesiones de Conteo',
-                'db_table': 'sesion_conteo',
-                'ordering': ['-fecha_inicio'],
+                "verbose_name": "Sesión de Conteo",
+                "verbose_name_plural": "Sesiones de Conteo",
+                "db_table": "sesion_conteo",
+                "ordering": ["-fecha_inicio"],
             },
         ),
         migrations.AddIndex(
-            model_name='movimientoinventario',
-            index=models.Index(fields=['material', 'fecha'], name='movimiento__materia_f9ed93_idx'),
+            model_name="movimientoinventario",
+            index=models.Index(fields=["material", "fecha"], name="movimiento__materia_f9ed93_idx"),
         ),
         migrations.AddIndex(
-            model_name='movimientoinventario',
-            index=models.Index(fields=['tipo_movimiento'], name='movimiento__tipo_mo_67f941_idx'),
+            model_name="movimientoinventario",
+            index=models.Index(fields=["tipo_movimiento"], name="movimiento__tipo_mo_67f941_idx"),
         ),
         migrations.AddField(
-            model_name='conteoitem',
-            name='material',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='usuarios.materialconstruccion'),
+            model_name="conteoitem",
+            name="material",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="usuarios.materialconstruccion"
+            ),
         ),
         migrations.AddField(
-            model_name='lotematerial',
-            name='material',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lotes', to='usuarios.materialconstruccion'),
+            model_name="lotematerial",
+            name="material",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="lotes",
+                to="usuarios.materialconstruccion",
+            ),
         ),
         migrations.AddField(
-            model_name='sesionconteo',
-            name='usuario_responsable',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='conteos', to=settings.AUTH_USER_MODEL),
+            model_name="sesionconteo",
+            name="usuario_responsable",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="conteos",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='conteoitem',
-            name='sesion',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='inventario.sesionconteo'),
+            model_name="conteoitem",
+            name="sesion",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="items",
+                to="inventario.sesionconteo",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='conteoitem',
-            unique_together={('sesion', 'material')},
+            name="conteoitem",
+            unique_together={("sesion", "material")},
         ),
     ]

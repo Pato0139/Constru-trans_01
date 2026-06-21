@@ -1,6 +1,7 @@
-from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from datetime import datetime
+
+from sqlalchemy import JSON, DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
@@ -13,13 +14,13 @@ class Conversation(Base):
     user_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     title: Mapped[str | None] = mapped_column(String(256), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
     metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     messages: Mapped[list["Message"]] = relationship(
-        back_populates="conversation",
-        cascade="all, delete-orphan",
-        order_by="Message.created_at"
+        back_populates="conversation", cascade="all, delete-orphan", order_by="Message.created_at"
     )
 
 
@@ -48,7 +49,9 @@ class UserFact(Base):
 class ToolCall(Base):
     __tablename__ = "tool_calls"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    message_id: Mapped[int | None] = mapped_column(ForeignKey("messages.id"), nullable=True, index=True)
+    message_id: Mapped[int | None] = mapped_column(
+        ForeignKey("messages.id"), nullable=True, index=True
+    )
     tool_name: Mapped[str] = mapped_column(String(64))
     tool_args: Mapped[dict] = mapped_column(JSON)
     tool_result: Mapped[dict | None] = mapped_column(JSON, nullable=True)

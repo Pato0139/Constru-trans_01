@@ -1,5 +1,4 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -26,11 +25,11 @@ class Settings(BaseSettings):
 
     # LLM Settings
     LLM_PROVIDER: str = "ollama"  # ollama, openai, llamacpp, vllm
-    
+
     # Ollama
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "llama3.2:latest"
-    
+
     # OpenAI-compatible
     OPENAI_COMPAT_BASE_URL: str = "http://localhost:8000/v1"
     OPENAI_COMPAT_API_KEY: str = "local-key"

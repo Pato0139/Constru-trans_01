@@ -1,29 +1,31 @@
-
 from io import BytesIO
 
 import qrcode
 from django.core.files.base import ContentFile
 from django.db.models import F
 
-from core.db_preference import debe_usar_bd_remota
 from apps.inventario.models import MovimientoInventario
 from apps.usuarios.models import Stock
+from core.db_preference import debe_usar_bd_remota
 
 
 def revertir_stock_pedido(orden, usuario, motivo_prefijo="Cancelación", using=None):
-
-    db_alias = using if using else ('remota' if debe_usar_bd_remota() else 'default')
+    db_alias = using if using else ("remota" if debe_usar_bd_remota() else "default")
     for detalle in orden.detalles.all():
-        stock_obj, _ = Stock.objects.select_for_update().using(db_alias).get_or_create(
-            material=detalle.material,
-            defaults={'cantidad_actual': 0},
+        stock_obj, _ = (
+            Stock.objects.select_for_update()
+            .using(db_alias)
+            .get_or_create(
+                material=detalle.material,
+                defaults={"cantidad_actual": 0},
+            )
         )
-        stock_obj.cantidad_actual = F('cantidad_actual') + detalle.cantidad
+        stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
         stock_obj.save(using=db_alias)
 
         MovimientoInventario.objects.create(
             material=detalle.material,
-            tipo_movimiento='entrada',
+            tipo_movimiento="entrada",
             cantidad=detalle.cantidad,
             observacion=f"{motivo_prefijo} pedido #{orden.codigo_pedido}",
             pedido=orden,
@@ -35,7 +37,7 @@ def liberar_vehiculo_pedido(orden):
     entrega = orden.entregas.first()
     if entrega and entrega.vehiculo:
         vehiculo = entrega.vehiculo
-        vehiculo.estado = 'disponible'
+        vehiculo.estado = "disponible"
         vehiculo.save()
         return vehiculo
     return None
@@ -47,5 +49,5 @@ def generar_qr_orden(orden):
     qr.make(fit=True)
     img = qr.make_image(fill_color="#1e40af", back_color="white")
     buffer = BytesIO()
-    img.save(buffer, format='PNG')
-    return ContentFile(buffer.getvalue(), name=f'qr_orden_{orden.codigo_pedido}.png')
+    img.save(buffer, format="PNG")
+    return ContentFile(buffer.getvalue(), name=f"qr_orden_{orden.codigo_pedido}.png")

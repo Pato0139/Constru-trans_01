@@ -6,40 +6,97 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='DetallePedido',
+            name="DetallePedido",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('cantidad', models.PositiveIntegerField(help_text='Cantidad solicitada.', validators=[django.core.validators.MinValueValidator(1)])),
-                ('precio_unitario', models.DecimalField(decimal_places=2, help_text='Precio unitario al momento del pedido.', max_digits=10, validators=[django.core.validators.MinValueValidator(0)])),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "cantidad",
+                    models.PositiveIntegerField(
+                        help_text="Cantidad solicitada.",
+                        validators=[django.core.validators.MinValueValidator(1)],
+                    ),
+                ),
+                (
+                    "precio_unitario",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Precio unitario al momento del pedido.",
+                        max_digits=10,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Detalle de Pedido',
-                'verbose_name_plural': 'Detalles de Pedido',
-                'db_table': 'gestion_detalle_pedido',
+                "verbose_name": "Detalle de Pedido",
+                "verbose_name_plural": "Detalles de Pedido",
+                "db_table": "gestion_detalle_pedido",
             },
         ),
         migrations.CreateModel(
-            name='Pedido',
+            name="Pedido",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('fecha_creacion', models.DateTimeField(default=django.utils.timezone.now, editable=False)),
-                ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('aprobado', 'Aprobado'), ('cancelado', 'Cancelado'), ('en_camino', 'En camino'), ('entregado', 'Entregado')], default='pendiente', help_text='Estado del ciclo de vida del pedido.', max_length=12)),
-                ('descuento', models.DecimalField(decimal_places=2, default=0, help_text='Descuento global aplicado al total bruto.', max_digits=10, validators=[django.core.validators.MinValueValidator(0)])),
-                ('total', models.DecimalField(decimal_places=2, default=0, editable=False, help_text='Total neto después de aplicar descuento.', max_digits=12)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "fecha_creacion",
+                    models.DateTimeField(default=django.utils.timezone.now, editable=False),
+                ),
+                (
+                    "estado",
+                    models.CharField(
+                        choices=[
+                            ("pendiente", "Pendiente"),
+                            ("aprobado", "Aprobado"),
+                            ("cancelado", "Cancelado"),
+                            ("en_camino", "En camino"),
+                            ("entregado", "Entregado"),
+                        ],
+                        default="pendiente",
+                        help_text="Estado del ciclo de vida del pedido.",
+                        max_length=12,
+                    ),
+                ),
+                (
+                    "descuento",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        help_text="Descuento global aplicado al total bruto.",
+                        max_digits=10,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                    ),
+                ),
+                (
+                    "total",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        editable=False,
+                        help_text="Total neto después de aplicar descuento.",
+                        max_digits=12,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Pedido',
-                'verbose_name_plural': 'Pedidos',
-                'db_table': 'gestion_pedido',
-                'ordering': ['-fecha_creacion'],
+                "verbose_name": "Pedido",
+                "verbose_name_plural": "Pedidos",
+                "db_table": "gestion_pedido",
+                "ordering": ["-fecha_creacion"],
             },
         ),
     ]

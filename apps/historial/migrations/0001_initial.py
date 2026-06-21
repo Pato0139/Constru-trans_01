@@ -4,30 +4,60 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Historial',
+            name="Historial",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('accion', models.CharField(choices=[('crear', 'Crear'), ('editar', 'Editar'), ('eliminar', 'Eliminar'), ('login', 'Inicio de sesión'), ('logout', 'Cierre de sesión'), ('otro', 'Otro')], max_length=20, verbose_name='Acción')),
-                ('modulo', models.CharField(max_length=50, verbose_name='Módulo/Elemento')),
-                ('elemento_id', models.CharField(blank=True, max_length=50, null=True, verbose_name='ID del Elemento')),
-                ('descripcion', models.TextField(verbose_name='Descripción detallada')),
-                ('fecha_hora', models.DateTimeField(auto_now_add=True, verbose_name='Fecha y Hora')),
-                ('ip_address', models.GenericIPAddressField(blank=True, null=True, verbose_name='Dirección IP')),
-                ('sincronizado', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "accion",
+                    models.CharField(
+                        choices=[
+                            ("crear", "Crear"),
+                            ("editar", "Editar"),
+                            ("eliminar", "Eliminar"),
+                            ("login", "Inicio de sesión"),
+                            ("logout", "Cierre de sesión"),
+                            ("otro", "Otro"),
+                        ],
+                        max_length=20,
+                        verbose_name="Acción",
+                    ),
+                ),
+                ("modulo", models.CharField(max_length=50, verbose_name="Módulo/Elemento")),
+                (
+                    "elemento_id",
+                    models.CharField(
+                        blank=True, max_length=50, null=True, verbose_name="ID del Elemento"
+                    ),
+                ),
+                ("descripcion", models.TextField(verbose_name="Descripción detallada")),
+                (
+                    "fecha_hora",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Fecha y Hora"),
+                ),
+                (
+                    "ip_address",
+                    models.GenericIPAddressField(
+                        blank=True, null=True, verbose_name="Dirección IP"
+                    ),
+                ),
+                ("sincronizado", models.BooleanField(default=False)),
             ],
             options={
-                'verbose_name': 'Historial de Actividad',
-                'verbose_name_plural': 'Historial de Actividades',
-                'db_table': 'historial_actividad',
-                'ordering': ['-fecha_hora'],
+                "verbose_name": "Historial de Actividad",
+                "verbose_name_plural": "Historial de Actividades",
+                "db_table": "historial_actividad",
+                "ordering": ["-fecha_hora"],
             },
         ),
     ]

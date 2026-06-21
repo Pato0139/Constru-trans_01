@@ -1,8 +1,9 @@
-from openai import OpenAI
-from typing import List, Dict, Any, Optional
+from typing import Dict, List, Optional
 
-from app.llm.base import BaseLLMProvider
+from openai import OpenAI
+
 from app.core.logging import logger
+from app.llm.base import BaseLLMProvider
 
 
 class OpenAICompatibleProvider(BaseLLMProvider):
@@ -18,14 +19,11 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         messages: List[Dict[str, str]],
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         try:
             response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens
+                model=self.model, messages=messages, temperature=temperature, max_tokens=max_tokens
             )
             return response.choices[0].message.content or ""
         except Exception as e:
@@ -37,14 +35,11 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         messages: List[Dict[str, str]],
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         try:
             response = await self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens
+                model=self.model, messages=messages, temperature=temperature, max_tokens=max_tokens
             )
             return response.choices[0].message.content or ""
         except Exception as e:

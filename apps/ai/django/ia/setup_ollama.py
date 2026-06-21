@@ -1,11 +1,11 @@
-
 """
 Setup y verificación de Ollama para Constru-Trans
 """
+
 import subprocess
-import sys
-import time
+
 import requests
+
 
 def verificar_ollama():
     """Verifica si Ollama está instalado y ejecutándose"""
@@ -23,6 +23,7 @@ def verificar_ollama():
         print(f"❌ Error al verificar Ollama: {str(e)}")
         return False
 
+
 def verificar_modelo(modelo="llama3.2"):
     """Verifica si el modelo está descargado"""
     try:
@@ -39,6 +40,7 @@ def verificar_modelo(modelo="llama3.2"):
     except:
         return False
 
+
 def descargar_modelo(modelo="llama3.2"):
     """Descarga el modelo Ollama"""
     print(f"📥 Descargando modelo {modelo}... (esto puede tardar unos minutos)")
@@ -47,7 +49,7 @@ def descargar_modelo(modelo="llama3.2"):
             ["ollama", "pull", modelo],
             capture_output=True,
             text=True,
-            timeout=600  # 10 minutos máximo
+            timeout=600,  # 10 minutos máximo
         )
         if result.returncode == 0:
             print(f"✅ Modelo {modelo} descargado exitosamente!")
@@ -62,11 +64,12 @@ def descargar_modelo(modelo="llama3.2"):
         print(f"❌ Error al descargar: {str(e)}")
         return False
 
+
 def main():
     print("=" * 60)
     print("   CONFIGURACIÓN DE OLLAMA PARA CONSTRU-TRANS")
     print("=" * 60)
-    
+
     # Paso 1: Verificar Ollama
     print("\n📋 Paso 1: Verificando Ollama...")
     if not verificar_ollama():
@@ -75,14 +78,14 @@ def main():
         print("2. Abre la aplicación Ollama (debe estar corriendo en segundo plano)")
         print("3. Vuelve a ejecutar este script")
         return
-    
+
     # Paso 2: Verificar modelo
     print("\n📋 Paso 2: Verificando modelo...")
     if not verificar_modelo():
         if not descargar_modelo():
             print("\n❌ No se pudo configurar Ollama. Por favor, verifica la instalación.")
             return
-    
+
     # Paso 3: Prueba simple
     print("\n📋 Paso 3: Probando la conexión...")
     try:
@@ -91,9 +94,9 @@ def main():
             json={
                 "model": "llama3.2",
                 "prompt": "Hola, responde solo con 'Funciona!'",
-                "stream": False
+                "stream": False,
             },
-            timeout=30
+            timeout=30,
         )
         if response.status_code == 200:
             print("✅ ¡Prueba exitosa! Ollama está respondiendo perfectamente.")
@@ -103,6 +106,6 @@ def main():
     except Exception as e:
         print(f"❌ Error en la prueba: {str(e)}")
 
+
 if __name__ == "__main__":
     main()
-

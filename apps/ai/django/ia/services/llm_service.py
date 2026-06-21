@@ -1,5 +1,6 @@
-import os
 import logging
+import os
+
 from openai import OpenAI
 
 logger = logging.getLogger(__name__)
@@ -21,10 +22,7 @@ def verificar_conexion_llm():
 
 
 def construir_prompt_sistema(contexto, nombre_usuario):
-    contexto_texto = "\n".join(
-        f"- {k}: {v}" for k, v in contexto.items()
-        if k != "generated_at"
-    )
+    contexto_texto = "\n".join(f"- {k}: {v}" for k, v in contexto.items() if k != "generated_at")
     return f"""
 Eres el asistente virtual oficial de Constru-Trans.
 
@@ -57,9 +55,7 @@ def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
 
     try:
         response = client.chat.completions.create(
-            model=LLM_MODEL,
-            messages=messages,
-            temperature=0.3
+            model=LLM_MODEL, messages=messages, temperature=0.3
         )
         return (response.choices[0].message.content or "").strip() or None
     except Exception:

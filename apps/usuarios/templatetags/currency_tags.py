@@ -2,7 +2,8 @@ from django import template
 
 register = template.Library()
 
-@register.filter(name='currency')
+
+@register.filter(name="currency")
 def currency(value):
     try:
         val = float(value)
@@ -12,10 +13,11 @@ def currency(value):
         while s:
             parts.append(s[-3:])
             s = s[:-3]
-        return '.'.join(reversed(parts))
+        return ".".join(reversed(parts))
     except (ValueError, TypeError):
         return value
 
-@register.filter(name='split_list')
+
+@register.filter(name="split_list")
 def split_list(value):
-    return [item.split(',') for item in value.split('|')]
+    return [item.split(",") for item in value.split("|")]

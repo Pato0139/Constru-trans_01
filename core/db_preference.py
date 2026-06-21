@@ -2,11 +2,12 @@
 Preferencia de base de datos (local / remota) por sesión de usuario.
 El middleware establece el valor en thread-local para que el router lo use.
 """
+
 import threading
 
-PREF_LOCAL = 'local'
-PREF_REMOTA = 'remota'
-PREF_AUTO = 'auto'
+PREF_LOCAL = "local"
+PREF_REMOTA = "remota"
+PREF_AUTO = "auto"
 
 VALID_PREFS = frozenset({PREF_LOCAL, PREF_REMOTA, PREF_AUTO})
 
@@ -18,11 +19,11 @@ def set_db_preference(preference: str) -> None:
 
 
 def get_db_preference() -> str:
-    return getattr(_local, 'preference', PREF_AUTO)
+    return getattr(_local, "preference", PREF_AUTO)
 
 
 def clear_db_preference() -> None:
-    if hasattr(_local, 'preference'):
+    if hasattr(_local, "preference"):
         del _local.preference
 
 
@@ -44,5 +45,5 @@ def invalidate_connection_cache() -> None:
     from core.utils import conexion_remota_disponible, conexion_remota_disponible_cached
 
     conexion_remota_disponible_cached.cache_clear()
-    if hasattr(conexion_remota_disponible, '_last_check'):
+    if hasattr(conexion_remota_disponible, "_last_check"):
         del conexion_remota_disponible._last_check
