@@ -28,18 +28,22 @@
 
                 <p class="sidebar-nav-label"><i class="bi bi-briefcase"></i> <span data-i18n="sidebar.label.operaciones">Operaciones</span></p>
                 <div class="sidebar-section sidebar-section--ventas">
-                    <button class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'gestion_pedidos' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}{% else %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse" aria-expanded="{% if request.resolver_match.app_name == 'gestion_pedidos' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}true{% else %}false{% endif %}" aria-controls="ventasCollapse">
+                    <button class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}{% else %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse" aria-expanded="{% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}true{% else %}false{% endif %}" aria-controls="ventasCollapse">
                         <span class="d-flex align-items-center gap-2">
                             <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-cart-fill"></i></span>
                             <span data-i18n="sidebar.ventasCobros">Ventas y Cobros</span>
                         </span>
-                        <i class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'gestion_pedidos' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}rotated{% endif %}"></i>
+                        <i class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}rotated{% endif %}"></i>
                     </button>
-                    <div class="collapse {% if request.resolver_match.app_name == 'gestion_pedidos' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}show{% endif %}" id="ventasCollapse">
+                    <div class="collapse {% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'facturacion' or request.resolver_match.app_name == 'pagos' %}show{% endif %}" id="ventasCollapse">
                         <div class="nav-submenu">
-                            <a href="{% url 'gestion_pedidos:lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'gestion_pedidos' %}active{% endif %}">
+                            <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' %}active{% endif %}">
                                 <i class="bi bi-cart-check-fill text-warning"></i>
-                                <span data-i18n="sidebar.gestionPedidos">Gestión Pedidos</span>
+                                <span data-i18n="sidebar.gestionPedidos">Gestión de Pedidos</span>
+                            </a>
+                            <a href="{% url 'ordenes:lista_entregas_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}active{% endif %}">
+                                <i class="bi bi-truck-flatbed"></i>
+                                <span data-i18n="sidebar.entregasList">Control de Entregas</span>
                             </a>
                             <a href="{% url 'facturacion:lista_facturas' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'facturacion' %}active{% endif %}">
                                 <i class="bi bi-receipt"></i>
