@@ -6,14 +6,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from apps.usuarios.models import MaterialConstruccion, Stock
 from apps.usuarios.views import admin_required
 
-from .models import DetallePedido, Pedido
+from .models import DetalleSolicitudPedido, SolicitudPedido
 
 
 @login_required
 @transaction.atomic
 def crear_pedido(request):
     """
-    Vista para crear un pedido.
+    Vista para crear un pedido de gestión.
     Recibe una lista de materiales y cantidades vía POST.
     Valida el stock antes de proceder.
     """
@@ -31,7 +31,7 @@ def crear_pedido(request):
             return render(request, "gestion_pedidos/crear_pedido.html", context)
 
         try:
-            pedido = Pedido.objects.create(
+            pedido = SolicitudPedido.objects.create(
                 cliente=request.user, descuento=descuento, estado="pendiente"
             )
 
@@ -49,15 +49,15 @@ def crear_pedido(request):
                 stock_obj.cantidad_actual -= cant
                 stock_obj.save()
 
-                DetallePedido.objects.create(pedido=pedido, material=material, cantidad=cant)
+                DetalleSolicitudPedido.objects.create(pedido=pedido, material=material, cantidad=cant)
 
-            messages.success(request, f"Pedido #{pedido.id} creado exitosamente.")
+            messages.success(request, f"Solicitud #{pedido.id} creada exitosamente.")
             return redirect("gestion_pedidos:lista")
 
         except ValueError as e:
             messages.error(request, str(e))
         except Exception as e:
-            messages.error(request, f"Error al procesar el pedido: {str(e)}")
+            messages.error(request, f"Error al procesar la solicitud: {str(e)}")
 
     context = {"materiales": materiales}
 
@@ -67,13 +67,13 @@ def crear_pedido(request):
 @login_required
 def listar_pedidos(request):
     """
-    Lista de pedidos filtrada por rol.
+    Lista de pedidos de gestión filtrada por rol.
     Admin ve todos, Cliente ve los suyos.
     """
     if request.user.rol == "admin":
-        pedidos = Pedido.objects.all()
+        pedidos = SolicitudPedido.objects.all()
     else:
-        pedidos = Pedido.objects.filter(cliente=request.user)
+        pedidos = SolicitudPedido.objects.filter(cliente=request.user)
 
     context = {"pedidos": pedidos}
 
@@ -83,13 +83,13 @@ def listar_pedidos(request):
 @login_required
 def detalle_pedido(request, pk):
     """
-    Detalle de un pedido específico.
+    Detalle de un pedido de gestión específico.
     """
-    pedido = get_object_or_404(Pedido, pk=pk)
+    pedido = get_object_or_404(SolicitudPedido, pk=pk)
 
     # Seguridad básica
     if request.user.rol != "admin" and pedido.cliente != request.user:
-        messages.error(request, "No tiene permisos para ver este pedido.")
+        messages.error(request, "No tiene permisos para ver esta solicitud.")
         return redirect("gestion_pedidos:lista")
 
     context = {"pedido": pedido}
@@ -101,15 +101,15 @@ def detalle_pedido(request, pk):
 @transaction.atomic
 def aprobar_pedido(request, pk):
     """
-    Cambia el estado del pedido a aprobado. Solo Administradores.
+    Cambia el estado del pedido de gestión a aprobado. Solo Administradores.
     """
-    pedido = get_object_or_404(Pedido, pk=pk)
+    pedido = get_object_or_404(SolicitudPedido, pk=pk)
     if pedido.estado == "pendiente":
         pedido.estado = "aprobado"
         pedido.save()
-        messages.success(request, f"Pedido #{pedido.id} aprobado.")
+        messages.success(request, f"Solicitud #{pedido.id} aprobada.")
     else:
-        messages.warning(request, "Solo se pueden aprobar pedidos en estado pendiente.")
+        messages.warning(request, "Solo se pueden aprobar solicitudes en estado pendiente.")
 
     return redirect("gestion_pedidos:detalle", pk=pk)
 
@@ -118,9 +118,9 @@ def aprobar_pedido(request, pk):
 @transaction.atomic
 def cancelar_pedido(request, pk):
     """
-    Cancela un pedido y devuelve el stock. Solo Administradores.
+    Cancela un pedido de gestión y devuelve el stock. Solo Administradores.
     """
-    pedido = get_object_or_404(Pedido, pk=pk)
+    pedido = get_object_or_404(SolicitudPedido, pk=pk)
     if pedido.estado not in ["cancelado", "entregado"]:
         # Devolver stock
         for detalle in pedido.detalles.all():
@@ -130,8 +130,8 @@ def cancelar_pedido(request, pk):
 
         pedido.estado = "cancelado"
         pedido.save()
-        messages.success(request, f"Pedido #{pedido.id} cancelado y stock devuelto.")
+        messages.success(request, f"Solicitud #{pedido.id} cancelada y stock devuelto.")
     else:
-        messages.warning(request, "Este pedido no puede ser cancelado.")
+        messages.warning(request, "Esta solicitud no puede ser cancelada.")
 
     return redirect("gestion_pedidos:detalle", pk=pk)
