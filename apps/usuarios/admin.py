@@ -24,7 +24,7 @@ class UsuarioAdmin(admin.ModelAdmin):
     search_fields = ('nombres', 'apellidos', 'documento')
 
     def get_email(self, obj):
-        return obj.user.email
+        return obj.email
     get_email.short_description = 'Correo'
 
 

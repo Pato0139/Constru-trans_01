@@ -197,10 +197,12 @@ class Vehiculo(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     ESTADOS_VEHICULO = [
-        ('disponible', 'Disponible'),
-        ('asignado', 'Asignado'),
+        ("disponible", "Disponible"),
+        ("en_ruta", "En Ruta"),
+        ("mantenimiento", "Mantenimiento"),
+        ("fuera_de_servicio", "Fuera de Servicio"),
     ]
-    estado = models.CharField(max_length=20, choices=ESTADOS_VEHICULO, default='disponible')
+    estado = models.CharField(max_length=20, choices=ESTADOS_VEHICULO, default="disponible")
 
     sincronizado = models.BooleanField(default=False)
 

@@ -18,7 +18,7 @@ class EntregaInline(admin.TabularInline):
 class PedidoAdmin(admin.ModelAdmin):
     list_display = ('codigo_pedido', 'usuario', 'fecha_solicitud', 'total', 'estado')
     list_filter = ('estado', 'fecha_solicitud')
-    search_fields = ('codigo_pedido', 'usuario__nombre')
+    search_fields = ('codigo_pedido', 'usuario__nombres', 'usuario__apellidos', 'usuario__documento')
     readonly_fields = ('total', 'fecha_solicitud')
     inlines = [DetallePedidoInline, EntregaInline]
 
@@ -34,4 +34,4 @@ class DetallePedidoAdmin(admin.ModelAdmin):
 class EntregaAdmin(admin.ModelAdmin):
     list_display = ('id_entrega', 'pedido', 'conductor', 'vehiculo', 'estado', 'fecha_salida')
     list_filter = ('estado', 'fecha_salida')
-    search_fields = ('pedido__codigo_pedido', 'conductor__usuario__nombre')
+    search_fields = ('pedido__codigo_pedido', 'conductor__usuario__nombres', 'conductor__usuario__apellidos', 'vehiculo__placa')
