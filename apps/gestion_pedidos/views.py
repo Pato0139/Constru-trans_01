@@ -49,7 +49,9 @@ def crear_pedido(request):
                 stock_obj.cantidad_actual -= cant
                 stock_obj.save()
 
-                DetalleSolicitudPedido.objects.create(pedido=pedido, material=material, cantidad=cant)
+                DetalleSolicitudPedido.objects.create(
+                    pedido=pedido, material=material, cantidad=cant
+                )
 
             messages.success(request, f"Solicitud #{pedido.id} creada exitosamente.")
             return redirect("gestion_pedidos:lista")
