@@ -344,11 +344,11 @@ def panel_conductor(request):
         return redirect("usuarios:login")
 
     pedidos_asignados = (
-        Pedido.objects.filter(usuario=conductor)
-        .select_related("usuario")
+        Pedido.objects.filter(conductor=conductor)
+        .select_related("usuario", "cliente__usuario")
         .exclude(estado="entregado")
     )
-    entregas_completadas = Pedido.objects.filter(usuario=conductor, estado="entregado")
+    entregas_completadas = Pedido.objects.filter(conductor=conductor, estado="entregado")
 
     context = {
         "pedidos": pedidos_asignados,
@@ -362,7 +362,7 @@ def panel_conductor(request):
 @login_required
 def pedidos_conductor(request):
     conductor = request.user.usuario
-    pedidos = Pedido.objects.filter(usuario=conductor).exclude(estado="entregado")
+    pedidos = Pedido.objects.filter(conductor=conductor).exclude(estado="entregado").select_related("usuario", "cliente__usuario")
     context = {"pedidos": pedidos}
 
     return render(request, "usuarios/pedidos_conductor.html", context)
@@ -371,7 +371,7 @@ def pedidos_conductor(request):
 @login_required
 def mis_entregas(request):
     conductor = request.user.usuario
-    entregas = Pedido.objects.filter(usuario=conductor, estado="entregado").order_by(
+    entregas = Pedido.objects.filter(conductor=conductor, estado="entregado").select_related("usuario", "cliente__usuario").order_by(
         "-fecha_solicitud"
     )
     context = {"entregas": entregas}
@@ -715,7 +715,7 @@ def editar_usuario(request, id):
     return render(request, "usuarios/form.html", context)
 
 
-@login_required
+@admin_required
 def lista_conductores(request):
     conductores = (
         Usuario.objects.filter(rol="conductor")
@@ -735,7 +735,6 @@ def lista_conductores(request):
     return render(request, "usuarios/conductores_lista.html", context)
 
 
-@login_required
 @admin_required
 def asignar_vehiculo_conductor(request, conductor_id):
     usuario = get_object_or_404(Usuario, id=conductor_id, rol="conductor")
@@ -813,7 +812,7 @@ def perfil_conductor(request):
             logout(request)
             return redirect("usuarios:login")
 
-    pedidos = Pedido.objects.filter(usuario=conductor)
+    pedidos = Pedido.objects.filter(conductor=conductor).select_related("usuario", "cliente__usuario")
 
     from apps.ordenes.models import Entrega
 
@@ -822,7 +821,7 @@ def perfil_conductor(request):
 
         conductor_perfil = ConductorPerfil.objects.get(usuario=conductor)
         ultima_entrega = (
-            Entrega.objects.filter(conductor=conductor_perfil).order_by("-fecha_salida").first()
+            Entrega.objects.filter(conductor=conductor).select_related("vehiculo", "pedido").order_by("-fecha_salida").first()
         )
         vehiculo = ultima_entrega.vehiculo if ultima_entrega else None
     except Exception:
