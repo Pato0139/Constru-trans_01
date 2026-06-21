@@ -127,5 +127,8 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+const csrfToken = '{{ csrf_token }}';
+</script>
 <script src="{% static 'js/facturacion/lista.js' %}"></script>
 {% endblock %}
