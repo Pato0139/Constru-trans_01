@@ -16,7 +16,7 @@ class Installation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'licensing_installation'
+        db_table = "licensing_installation"
 
     def __str__(self):
         return f"Installation {self.instance_id} ({self.status})"

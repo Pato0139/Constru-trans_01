@@ -1,4 +1,3 @@
-
 from django.shortcuts import redirect
 from django.urls import NoReverseMatch, reverse
 
@@ -13,7 +12,11 @@ ALLOWED_VIEW_NAMES = {
 }
 
 ALLOWED_PATH_PREFIXES = (
-    "/static/", "/media/", "/admin/", "/__reload__/", "/licensing/",
+    "/static/",
+    "/media/",
+    "/admin/",
+    "/__reload__/",
+    "/licensing/",
 )
 
 

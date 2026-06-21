@@ -4,23 +4,20 @@ import sys
 
 
 def print_separator(title):
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print(f"  {title}")
-    print("="*80)
+    print("=" * 80)
+
 
 def run_command(command):
     try:
         result = subprocess.run(
-            command,
-            shell=True,
-            capture_output=True,
-            text=True,
-            encoding='utf-8',
-            errors='ignore'
+            command, shell=True, capture_output=True, text=True, encoding="utf-8", errors="ignore"
         )
         return result.returncode == 0, result.stdout, result.stderr
     except Exception as e:
         return False, "", str(e)
+
 
 def main():
     print_separator("TESTEO COMPLETO DEL PROYECTO CONSTRU-TRANS")
@@ -86,27 +83,28 @@ def main():
     try:
         import django
         from django.conf import settings
+
         # Add project root to sys.path
         sys.path.insert(0, os.getcwd())
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
         django.setup()
         apps_esperadas = [
-            'django.contrib.admin',
-            'django.contrib.auth',
-            'django.contrib.contenttypes',
-            'django.contrib.sessions',
-            'django.contrib.messages',
-            'django.contrib.staticfiles',
-            'apps.usuarios',
-            'apps.clientes',
-            'apps.ordenes',
-            'apps.compras',
-            'apps.inventario',
-            'apps.facturacion',
-            'apps.pagos',
-            'apps.reportes',
-            'apps.historial',
-            'django_extensions',
+            "django.contrib.admin",
+            "django.contrib.auth",
+            "django.contrib.contenttypes",
+            "django.contrib.sessions",
+            "django.contrib.messages",
+            "django.contrib.staticfiles",
+            "apps.usuarios",
+            "apps.clientes",
+            "apps.ordenes",
+            "apps.compras",
+            "apps.inventario",
+            "apps.facturacion",
+            "apps.pagos",
+            "apps.reportes",
+            "apps.historial",
+            "django_extensions",
         ]
         apps_faltantes = [app for app in apps_esperadas if app not in settings.INSTALLED_APPS]
         tests.append(("Todas las apps en INSTALLED_APPS", len(apps_faltantes) == 0))
@@ -146,7 +144,8 @@ def main():
     else:
         print(f"\nAVISO: Hay {total - pasaron} tests que fallaron. Revisa los mensajes arriba.")
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
+
 
 if __name__ == "__main__":
     main()

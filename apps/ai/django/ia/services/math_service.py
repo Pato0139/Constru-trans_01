@@ -1,9 +1,8 @@
-
 import ast
+import logging
 import math
 import operator
 import re
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -126,12 +125,17 @@ def normalizar_expresion(expr: str) -> str:
     # Ahora que tenemos "sqrt 4" → transformar a sqrt(4)
     for func_name in _ALLOWED_FUNCS.keys():
         # Patrón para "func X" → func(X) - USAMOS \b para límites de palabra!
-        expr = re.sub(rf"\b{func_name}\s+([\d\.\(\)\+\-\*\/]+)", rf"{func_name}(\1)", expr, flags=re.IGNORECASE)
-    
+        expr = re.sub(
+            rf"\b{func_name}\s+([\d\.\(\)\+\-\*\/]+)",
+            rf"{func_name}(\1)",
+            expr,
+            flags=re.IGNORECASE,
+        )
+
     # Paso 3: Manejar números seguidos de paréntesis y viceversa
     expr = re.sub(r"(\d)(\()", r"\1*\2", expr)
     expr = re.sub(r"(\))(\d)", r"\1*\2", expr)
-    
+
     # Paso 4: Eliminar espacios extra para que el AST lo parse bien
     expr = re.sub(r"\s+", "", expr)
     return expr
@@ -145,7 +149,7 @@ def evaluar_expresion_matematica(expr: str):
     try:
         expr_final = normalizar_expresion(expr_original)
         logger.info(f"Evaluando: {expr_final}")
-        
+
         parsed = ast.parse(expr_final, mode="eval")
         resultado = SafeMathEvaluator().visit(parsed)
 
@@ -159,6 +163,5 @@ def evaluar_expresion_matematica(expr: str):
     except ZeroDivisionError:
         return "No se puede dividir entre cero."
     except Exception:
-        logger.exception(f"Error evaluando expresión matemática")
+        logger.exception("Error evaluando expresión matemática")
         return None
-

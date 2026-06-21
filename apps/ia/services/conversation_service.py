@@ -1,5 +1,7 @@
 import logging
+
 from django.utils import timezone
+
 from apps.ia.models import ConversationHistory, ConversationMessage
 
 logger = logging.getLogger(__name__)
@@ -12,13 +14,11 @@ def get_conversation(usuario=None, session_id=None):
                 user=usuario,
                 defaults={
                     "session_id": session_id or "",
-                }
+                },
             )
         elif session_id:
             conv, created = ConversationHistory.objects.get_or_create(
-                session_id=session_id,
-                user=None,
-                defaults={}
+                session_id=session_id, user=None, defaults={}
             )
         else:
             conv = ConversationHistory.objects.create(user=None, session_id="")
@@ -36,7 +36,7 @@ def add_message_to_conversation(
     content: str,
     prompt_used: str = None,
     model_used: str = None,
-    response_time: float = None
+    response_time: float = None,
 ):
     try:
         return ConversationMessage.objects.create(
@@ -46,7 +46,7 @@ def add_message_to_conversation(
             prompt_used=prompt_used,
             model_used=model_used,
             response_time=response_time,
-            timestamp=timezone.now()
+            timestamp=timezone.now(),
         )
     except Exception:
         logger.exception("Error guardando mensaje en conversación")

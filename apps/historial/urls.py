@@ -2,8 +2,8 @@ from django.urls import path
 
 from . import views
 
-app_name = 'historial'
+app_name = "historial"
 
 urlpatterns = [
-    path('lista/', views.lista_historial, name='lista_historial'),
+    path("lista/", views.lista_historial, name="lista_historial"),
 ]

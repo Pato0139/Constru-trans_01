@@ -4,38 +4,65 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='HistorialReporte',
+            name="HistorialReporte",
             fields=[
-                ('codigo_historia', models.CharField(max_length=20, primary_key=True, serialize=False)),
-                ('fecha_reporte', models.DateTimeField(auto_now_add=True)),
-                ('descripcion', models.TextField()),
+                (
+                    "codigo_historia",
+                    models.CharField(max_length=20, primary_key=True, serialize=False),
+                ),
+                ("fecha_reporte", models.DateTimeField(auto_now_add=True)),
+                ("descripcion", models.TextField()),
             ],
             options={
-                'db_table': 'historial_reporte',
-                'ordering': ['-fecha_reporte'],
+                "db_table": "historial_reporte",
+                "ordering": ["-fecha_reporte"],
             },
         ),
         migrations.CreateModel(
-            name='Reporte',
+            name="Reporte",
             fields=[
-                ('numero_reporte', models.CharField(max_length=20, primary_key=True, serialize=False)),
-                ('tipo', models.CharField(choices=[('inventario', 'Inventario'), ('ventas', 'Ventas'), ('compras', 'Compras'), ('entregas', 'Entregas'), ('financiero', 'Financiero')], max_length=20)),
-                ('fecha_generada', models.DateTimeField(auto_now_add=True)),
-                ('estado', models.CharField(choices=[('generado', 'Generado'), ('archivado', 'Archivado'), ('eliminado', 'Eliminado')], default='generado', max_length=15)),
-                ('descripcion', models.TextField(blank=True)),
-                ('archivo_pdf', models.FileField(blank=True, null=True, upload_to='reportes/')),
+                (
+                    "numero_reporte",
+                    models.CharField(max_length=20, primary_key=True, serialize=False),
+                ),
+                (
+                    "tipo",
+                    models.CharField(
+                        choices=[
+                            ("inventario", "Inventario"),
+                            ("ventas", "Ventas"),
+                            ("compras", "Compras"),
+                            ("entregas", "Entregas"),
+                            ("financiero", "Financiero"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("fecha_generada", models.DateTimeField(auto_now_add=True)),
+                (
+                    "estado",
+                    models.CharField(
+                        choices=[
+                            ("generado", "Generado"),
+                            ("archivado", "Archivado"),
+                            ("eliminado", "Eliminado"),
+                        ],
+                        default="generado",
+                        max_length=15,
+                    ),
+                ),
+                ("descripcion", models.TextField(blank=True)),
+                ("archivo_pdf", models.FileField(blank=True, null=True, upload_to="reportes/")),
             ],
             options={
-                'db_table': 'reporte',
-                'ordering': ['-fecha_generada'],
+                "db_table": "reporte",
+                "ordering": ["-fecha_generada"],
             },
         ),
     ]

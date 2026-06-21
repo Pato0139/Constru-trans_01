@@ -1,9 +1,10 @@
-import httpx
-from typing import List, Dict, Any, Optional
+from typing import Dict, List, Optional
 
-from app.llm.base import BaseLLMProvider
+import httpx
+
 from app.core.config import settings
 from app.core.logging import logger
+from app.llm.base import BaseLLMProvider
 
 
 class OllamaProvider(BaseLLMProvider):
@@ -19,7 +20,7 @@ class OllamaProvider(BaseLLMProvider):
         messages: List[Dict[str, str]],
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         payload = {
             "model": self.model,
@@ -27,18 +28,14 @@ class OllamaProvider(BaseLLMProvider):
             "stream": False,
             "options": {
                 "temperature": temperature,
-            }
+            },
         }
 
         if max_tokens:
             payload["options"]["num_predict"] = max_tokens
 
         try:
-            response = httpx.post(
-                f"{self.base_url}/api/chat",
-                json=payload,
-                timeout=120.0
-            )
+            response = httpx.post(f"{self.base_url}/api/chat", json=payload, timeout=120.0)
             response.raise_for_status()
             result = response.json()
             return result["message"]["content"]
@@ -51,7 +48,7 @@ class OllamaProvider(BaseLLMProvider):
         messages: List[Dict[str, str]],
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         payload = {
             "model": self.model,
@@ -59,7 +56,7 @@ class OllamaProvider(BaseLLMProvider):
             "stream": False,
             "options": {
                 "temperature": temperature,
-            }
+            },
         }
 
         if max_tokens:
@@ -67,10 +64,7 @@ class OllamaProvider(BaseLLMProvider):
 
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
-                response = await client.post(
-                    f"{self.base_url}/api/chat",
-                    json=payload
-                )
+                response = await client.post(f"{self.base_url}/api/chat", json=payload)
                 response.raise_for_status()
                 result = response.json()
                 return result["message"]["content"]

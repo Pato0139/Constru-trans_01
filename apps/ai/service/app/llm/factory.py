@@ -10,12 +10,12 @@ def get_llm_provider():
     """
     if settings.LLM_PROVIDER == "ollama":
         return OllamaProvider()
-    
+
     if settings.LLM_PROVIDER == "openai":
         return OpenAICompatibleProvider(
             base_url=settings.OPENAI_COMPAT_BASE_URL,
             api_key=settings.OPENAI_COMPAT_API_KEY,
             model=settings.OPENAI_COMPAT_MODEL,
         )
-    
+
     raise ValueError(f"Proveedor no soportado: {settings.LLM_PROVIDER}")

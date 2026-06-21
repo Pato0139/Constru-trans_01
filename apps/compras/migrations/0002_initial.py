@@ -6,34 +6,46 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('compras', '0001_initial'),
-        ('usuarios', '0001_initial'),
+        ("compras", "0001_initial"),
+        ("usuarios", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='compra',
-            name='proveedor',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='usuarios.proveedor'),
+            model_name="compra",
+            name="proveedor",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT, to="usuarios.proveedor"
+            ),
         ),
         migrations.AddField(
-            model_name='compra',
-            name='usuario',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="compra",
+            name="usuario",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='detallecompra',
-            name='compra',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='detalles', to='compras.compra'),
+            model_name="detallecompra",
+            name="compra",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="detalles",
+                to="compras.compra",
+            ),
         ),
         migrations.AddField(
-            model_name='detallecompra',
-            name='material',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='usuarios.materialconstruccion'),
+            model_name="detallecompra",
+            name="material",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT, to="usuarios.materialconstruccion"
+            ),
         ),
     ]
