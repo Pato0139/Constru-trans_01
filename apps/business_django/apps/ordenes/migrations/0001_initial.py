@@ -5,58 +5,102 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='DetallePedido',
+            name="DetallePedido",
             fields=[
-                ('id_detalle_pedido', models.AutoField(primary_key=True, serialize=False)),
-                ('cantidad', models.IntegerField(validators=[django.core.validators.MinValueValidator(1)])),
-                ('precio_unitario', models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(0)])),
+                ("id_detalle_pedido", models.AutoField(primary_key=True, serialize=False)),
+                (
+                    "cantidad",
+                    models.IntegerField(validators=[django.core.validators.MinValueValidator(1)]),
+                ),
+                (
+                    "precio_unitario",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=10,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                    ),
+                ),
             ],
             options={
-                'db_table': 'detalle_pedido',
+                "db_table": "detalle_pedido",
             },
         ),
         migrations.CreateModel(
-            name='Entrega',
+            name="Entrega",
             fields=[
-                ('id_entrega', models.AutoField(primary_key=True, serialize=False)),
-                ('fecha_salida', models.DateTimeField(blank=True, null=True)),
-                ('fecha_entrega', models.DateTimeField(blank=True, null=True)),
-                ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('en_ruta', 'En Ruta'), ('entregado', 'Entregado')], default='pendiente', max_length=20)),
-                ('direccion_entrega', models.CharField(max_length=200)),
-                ('sincronizado', models.BooleanField(default=False)),
+                ("id_entrega", models.AutoField(primary_key=True, serialize=False)),
+                ("fecha_salida", models.DateTimeField(blank=True, null=True)),
+                ("fecha_entrega", models.DateTimeField(blank=True, null=True)),
+                (
+                    "estado",
+                    models.CharField(
+                        choices=[
+                            ("pendiente", "Pendiente"),
+                            ("en_ruta", "En Ruta"),
+                            ("entregado", "Entregado"),
+                        ],
+                        default="pendiente",
+                        max_length=20,
+                    ),
+                ),
+                ("direccion_entrega", models.CharField(max_length=200)),
+                ("sincronizado", models.BooleanField(default=False)),
             ],
             options={
-                'db_table': 'entrega',
-                'ordering': ['-fecha_salida'],
+                "db_table": "entrega",
+                "ordering": ["-fecha_salida"],
             },
         ),
         migrations.CreateModel(
-            name='Pedido',
+            name="Pedido",
             fields=[
-                ('codigo_pedido', models.AutoField(primary_key=True, serialize=False)),
-                ('fecha_solicitud', models.DateTimeField(auto_now_add=True)),
-                ('total', models.DecimalField(decimal_places=2, default=0, max_digits=12, validators=[django.core.validators.MinValueValidator(0)])),
-                ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('en_ruta', 'En Ruta'), ('entregado', 'Entregado'), ('cancelado', 'Cancelado')], default='pendiente', max_length=20)),
-                ('direccion_origen', models.CharField(default='Bodega Central', max_length=200)),
-                ('direccion_destino', models.CharField(default='', max_length=200)),
-                ('fecha_entrega_programada', models.DateTimeField(blank=True, null=True)),
-                ('fecha', models.DateTimeField(auto_now_add=True, null=True)),
-                ('precio', models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=12, null=True)),
-                ('fecha_toma_entrega', models.DateTimeField(blank=True, null=True)),
-                ('fecha_entrega_real', models.DateTimeField(blank=True, null=True)),
-                ('sincronizado', models.BooleanField(default=False)),
+                ("codigo_pedido", models.AutoField(primary_key=True, serialize=False)),
+                ("fecha_solicitud", models.DateTimeField(auto_now_add=True)),
+                (
+                    "total",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        max_digits=12,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                    ),
+                ),
+                (
+                    "estado",
+                    models.CharField(
+                        choices=[
+                            ("pendiente", "Pendiente"),
+                            ("en_ruta", "En Ruta"),
+                            ("entregado", "Entregado"),
+                            ("cancelado", "Cancelado"),
+                        ],
+                        default="pendiente",
+                        max_length=20,
+                    ),
+                ),
+                ("direccion_origen", models.CharField(default="Bodega Central", max_length=200)),
+                ("direccion_destino", models.CharField(default="", max_length=200)),
+                ("fecha_entrega_programada", models.DateTimeField(blank=True, null=True)),
+                ("fecha", models.DateTimeField(auto_now_add=True, null=True)),
+                (
+                    "precio",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, default=0, max_digits=12, null=True
+                    ),
+                ),
+                ("fecha_toma_entrega", models.DateTimeField(blank=True, null=True)),
+                ("fecha_entrega_real", models.DateTimeField(blank=True, null=True)),
+                ("sincronizado", models.BooleanField(default=False)),
             ],
             options={
-                'db_table': 'pedido',
-                'ordering': ['-fecha_solicitud'],
+                "db_table": "pedido",
+                "ordering": ["-fecha_solicitud"],
             },
         ),
     ]

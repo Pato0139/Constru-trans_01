@@ -6,23 +6,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('reportes', '0001_initial'),
+        ("reportes", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='reporte',
-            name='usuario',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="reporte",
+            name="usuario",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='historialreporte',
-            name='reporte',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='historial', to='reportes.reporte'),
+            model_name="historialreporte",
+            name="reporte",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="historial",
+                to="reportes.reporte",
+            ),
         ),
     ]

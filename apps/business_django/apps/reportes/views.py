@@ -32,7 +32,9 @@ def reportes_admin(request):
     pct_entregadas = (entregadas * 100 / total) if total > 0 else 0
 
     # Materiales con stock crítico
-    stock_critico = Material.objects.filter(stock_info__cantidad_actual__lt=F('stock_info__stock_minimo')).select_related('stock_info')
+    stock_critico = Material.objects.filter(
+        stock_info__cantidad_actual__lt=F("stock_info__stock_minimo")
+    ).select_related("stock_info")
 
     context = {
         # Resumen de Órdenes
@@ -43,36 +45,37 @@ def reportes_admin(request):
         "pct_pendientes": pct_pendientes,
         "pct_en_ruta": pct_en_ruta,
         "pct_entregadas": pct_entregadas,
-
         # Resumen de Usuarios
         "total_clientes": Usuario.objects.filter(rol="cliente").count(),
         "total_conductores": Usuario.objects.filter(rol="conductor").count(),
-
         # Resumen de Inventario y Vehículos
         "total_materiales": Material.objects.count(),
         "total_vehiculos": Vehiculo.objects.count(),
-
         # Financiero
         "total_ingresos": ordenes.aggregate(total=Sum("precio"))["total"] or 0,
-
         # Stock Crítico
         "stock_critico": stock_critico,
     }
     return render(request, "reportes/lista.html", context)
 
+
 @admin_required
 def exportar_reporte_pdf(request, tipo):
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.pdf"'
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.pdf"'
+    )
 
     doc = SimpleDocTemplate(response, pagesize=letter)
     elements = []
     styles = getSampleStyleSheet()
 
     titulo = f"Reporte de {tipo.replace('_', ' ').capitalize()}"
-    elements.append(Paragraph(titulo, styles['Title']))
+    elements.append(Paragraph(titulo, styles["Title"]))
     elements.append(Spacer(1, 12))
-    elements.append(Paragraph(f"Fecha de generación: {now().strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+    elements.append(
+        Paragraph(f"Fecha de generación: {now().strftime('%Y-%m-%d %H:%M')}", styles["Normal"])
+    )
     elements.append(Spacer(1, 24))
 
     def format_money(val):
@@ -84,63 +87,92 @@ def exportar_reporte_pdf(request, tipo):
             while s:
                 parts.append(s[-3:])
                 s = s[:-3]
-            return '.'.join(reversed(parts))
+            return ".".join(reversed(parts))
         except Exception:
             return "0"
 
     data = []
-    if tipo == 'clientes':
-        data.append(['ID', 'Nombre', 'Correo', 'Teléfono', 'Estado'])
-        for u in Usuario.objects.filter(rol='cliente'):
-            data.append([u.id, f"{u.nombres} {u.apellidos}", u.email, u.telefono or "N/A", u.estado])
+    if tipo == "clientes":
+        data.append(["ID", "Nombre", "Correo", "Teléfono", "Estado"])
+        for u in Usuario.objects.filter(rol="cliente"):
+            data.append(
+                [u.id, f"{u.nombres} {u.apellidos}", u.email, u.telefono or "N/A", u.estado]
+            )
 
-    elif tipo == 'materiales':
-        data.append(['ID', 'Nombre', 'Tipo', 'Precio', 'Stock'])
-        for m in Material.objects.all().select_related('stock_info'):
+    elif tipo == "materiales":
+        data.append(["ID", "Nombre", "Tipo", "Precio", "Stock"])
+        for m in Material.objects.all().select_related("stock_info"):
             p = m.precio or 0
             precio_formateado = format_money(p)
             tipo_material = m.tipo or "N/A"
             data.append([m.id, m.nombre, tipo_material, precio_formateado, m.stock])
 
-    elif tipo == 'ventas':
-        data.append(['ID', 'Cliente', 'Fecha', 'Total', 'Estado'])
-        for o in Orden.objects.all().select_related('cliente__usuario'):
+    elif tipo == "ventas":
+        data.append(["ID", "Cliente", "Fecha", "Total", "Estado"])
+        for o in Orden.objects.all().select_related("cliente__usuario"):
             p = o.precio or 0
             precio_formateado = format_money(p)
-            fecha_str = o.fecha.strftime('%Y-%m-%d') if o.fecha else 'N/A'
-            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
+            fecha_str = o.fecha.strftime("%Y-%m-%d") if o.fecha else "N/A"
+            cliente_nombre = (
+                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
+                if (o.cliente and o.cliente.usuario)
+                else "N/A"
+            )
             data.append([o.id, cliente_nombre, fecha_str, precio_formateado, o.estado])
 
-    elif tipo == 'pedidos':
-        data.append(['ID', 'Cliente', 'Materiales', 'Total', 'Estado'])
-        for o in Orden.objects.all().select_related('cliente__usuario').prefetch_related('detalles__material'):
-            materiales = ", ".join([f"{d.cantidad} x {d.material.nombre}" for d in o.detalles.all()])
+    elif tipo == "pedidos":
+        data.append(["ID", "Cliente", "Materiales", "Total", "Estado"])
+        for o in (
+            Orden.objects.all()
+            .select_related("cliente__usuario")
+            .prefetch_related("detalles__material")
+        ):
+            materiales = ", ".join(
+                [f"{d.cantidad} x {d.material.nombre}" for d in o.detalles.all()]
+            )
             p = o.precio or 0
             precio_formateado = format_money(p)
-            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
-            data.append([o.id, cliente_nombre, materiales[:50] + "..." if len(materiales) > 50 else materiales, precio_formateado, o.estado])
+            cliente_nombre = (
+                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
+                if (o.cliente and o.cliente.usuario)
+                else "N/A"
+            )
+            data.append(
+                [
+                    o.id,
+                    cliente_nombre,
+                    materiales[:50] + "..." if len(materiales) > 50 else materiales,
+                    precio_formateado,
+                    o.estado,
+                ]
+            )
 
     # Estilo de la tabla
     if data:
         t = Table(data)
-        t.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
-        ]))
+        t.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ]
+            )
+        )
         elements.append(t)
     else:
-        elements.append(Paragraph("No hay datos disponibles para este reporte.", styles['Normal']))
+        elements.append(Paragraph("No hay datos disponibles para este reporte.", styles["Normal"]))
 
     doc.build(elements)
 
-    registrar_actividad(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a PDF")
+    registrar_actividad(request, "otro", "reportes", None, f"Reporte de {tipo} exportado a PDF")
 
     return response
+
 
 @admin_required
 def exportar_reporte_excel(request, tipo):
@@ -159,32 +191,46 @@ def exportar_reporte_excel(request, tipo):
         except Exception:
             return 0.0
 
-    if tipo == 'clientes':
-        headers = ['ID', 'Nombre', 'Correo', 'Teléfono', 'Estado']
+    if tipo == "clientes":
+        headers = ["ID", "Nombre", "Correo", "Teléfono", "Estado"]
         ws.append(headers)
-        for u in Usuario.objects.filter(rol='cliente'):
+        for u in Usuario.objects.filter(rol="cliente"):
             ws.append([u.id, f"{u.nombres} {u.apellidos}", u.email, u.telefono or "N/A", u.estado])
 
-    elif tipo == 'materiales':
-        headers = ['ID', 'Nombre', 'Tipo', 'Precio', 'Stock']
+    elif tipo == "materiales":
+        headers = ["ID", "Nombre", "Tipo", "Precio", "Stock"]
         ws.append(headers)
-        for m in Material.objects.all().select_related('stock_info'):
+        for m in Material.objects.all().select_related("stock_info"):
             ws.append([m.id, m.nombre, m.tipo or "N/A", format_money_raw(m.precio), m.stock])
 
-    elif tipo == 'ventas':
-        headers = ['ID', 'Cliente', 'Fecha', 'Total', 'Estado']
+    elif tipo == "ventas":
+        headers = ["ID", "Cliente", "Fecha", "Total", "Estado"]
         ws.append(headers)
-        for o in Orden.objects.all().select_related('cliente__usuario'):
-            fecha_str = o.fecha.strftime('%Y-%m-%d') if o.fecha else 'N/A'
-            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
+        for o in Orden.objects.all().select_related("cliente__usuario"):
+            fecha_str = o.fecha.strftime("%Y-%m-%d") if o.fecha else "N/A"
+            cliente_nombre = (
+                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
+                if (o.cliente and o.cliente.usuario)
+                else "N/A"
+            )
             ws.append([o.id, cliente_nombre, fecha_str, format_money_raw(o.precio), o.estado])
 
-    elif tipo == 'pedidos':
-        headers = ['ID', 'Cliente', 'Materiales', 'Total', 'Estado']
+    elif tipo == "pedidos":
+        headers = ["ID", "Cliente", "Materiales", "Total", "Estado"]
         ws.append(headers)
-        for o in Orden.objects.all().select_related('cliente__usuario').prefetch_related('detalles__material'):
-            materiales = ", ".join([f"{d.cantidad} x {d.material.nombre}" for d in o.detalles.all()])
-            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
+        for o in (
+            Orden.objects.all()
+            .select_related("cliente__usuario")
+            .prefetch_related("detalles__material")
+        ):
+            materiales = ", ".join(
+                [f"{d.cantidad} x {d.material.nombre}" for d in o.detalles.all()]
+            )
+            cliente_nombre = (
+                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
+                if (o.cliente and o.cliente.usuario)
+                else "N/A"
+            )
             ws.append([o.id, cliente_nombre, materiales, format_money_raw(o.precio), o.estado])
 
     for cell in ws[1]:
@@ -201,24 +247,29 @@ def exportar_reporte_excel(request, tipo):
                     max_length = len(str(cell.value))
             except Exception:
                 pass
-        adjusted_width = (max_length + 2)
+        adjusted_width = max_length + 2
         ws.column_dimensions[column].width = adjusted_width
 
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.xlsx"'
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = (
+        f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.xlsx"'
+    )
     wb.save(response)
 
-    registrar_actividad(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a Excel")
+    registrar_actividad(request, "otro", "reportes", None, f"Reporte de {tipo} exportado a Excel")
     return response
+
 
 @admin_required
 def exportar_reporte_xml(request, tipo):
     root = ET.Element("reporte")
     root.set("tipo", tipo)
-    root.set("fecha_generacion", now().strftime('%Y-%m-%d %H:%M:%S'))
+    root.set("fecha_generacion", now().strftime("%Y-%m-%d %H:%M:%S"))
 
-    if tipo == 'clientes':
-        for u in Usuario.objects.filter(rol='cliente'):
+    if tipo == "clientes":
+        for u in Usuario.objects.filter(rol="cliente"):
             item = ET.SubElement(root, "cliente")
             ET.SubElement(item, "id").text = str(u.id)
             ET.SubElement(item, "nombre").text = f"{u.nombres} {u.apellidos}"
@@ -226,8 +277,8 @@ def exportar_reporte_xml(request, tipo):
             ET.SubElement(item, "telefono").text = u.telefono or ""
             ET.SubElement(item, "estado").text = u.estado
 
-    elif tipo == 'materiales':
-        for m in Material.objects.all().select_related('stock_info'):
+    elif tipo == "materiales":
+        for m in Material.objects.all().select_related("stock_info"):
             item = ET.SubElement(root, "material")
             ET.SubElement(item, "id").text = str(m.id)
             ET.SubElement(item, "nombre").text = m.nombre
@@ -235,22 +286,34 @@ def exportar_reporte_xml(request, tipo):
             ET.SubElement(item, "precio").text = str(m.precio or 0)
             ET.SubElement(item, "stock").text = str(m.stock)
 
-    elif tipo == 'ventas':
-        for o in Orden.objects.all().select_related('cliente__usuario'):
+    elif tipo == "ventas":
+        for o in Orden.objects.all().select_related("cliente__usuario"):
             item = ET.SubElement(root, "venta")
             ET.SubElement(item, "id").text = str(o.id)
-            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
+            cliente_nombre = (
+                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
+                if (o.cliente and o.cliente.usuario)
+                else "N/A"
+            )
             ET.SubElement(item, "cliente").text = cliente_nombre
-            fecha_str = o.fecha.strftime('%Y-%m-%d') if o.fecha else 'N/A'
+            fecha_str = o.fecha.strftime("%Y-%m-%d") if o.fecha else "N/A"
             ET.SubElement(item, "fecha").text = fecha_str
             ET.SubElement(item, "total").text = str(o.precio or 0)
             ET.SubElement(item, "estado").text = o.estado
 
-    elif tipo == 'pedidos':
-        for o in Orden.objects.all().select_related('cliente__usuario').prefetch_related('detalles__material'):
+    elif tipo == "pedidos":
+        for o in (
+            Orden.objects.all()
+            .select_related("cliente__usuario")
+            .prefetch_related("detalles__material")
+        ):
             item = ET.SubElement(root, "pedido")
             ET.SubElement(item, "id").text = str(o.id)
-            cliente_nombre = f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}" if (o.cliente and o.cliente.usuario) else 'N/A'
+            cliente_nombre = (
+                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
+                if (o.cliente and o.cliente.usuario)
+                else "N/A"
+            )
             ET.SubElement(item, "cliente").text = cliente_nombre
             ET.SubElement(item, "total").text = str(o.precio or 0)
             ET.SubElement(item, "estado").text = o.estado
@@ -262,10 +325,13 @@ def exportar_reporte_xml(request, tipo):
 
     # Convertir a string indentado
     from xml.dom import minidom
+
     xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="   ")
 
-    response = HttpResponse(xmlstr, content_type='application/xml')
-    response['Content-Disposition'] = f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.xml"'
+    response = HttpResponse(xmlstr, content_type="application/xml")
+    response["Content-Disposition"] = (
+        f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.xml"'
+    )
 
-    registrar_actividad(request, 'otro', 'reportes', None, f"Reporte de {tipo} exportado a XML")
+    registrar_actividad(request, "otro", "reportes", None, f"Reporte de {tipo} exportado a XML")
     return response

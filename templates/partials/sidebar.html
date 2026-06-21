@@ -189,6 +189,10 @@
                     <span class="nav-icon-wrap nav-icon-wrap--purple"><i class="bi bi-receipt"></i></span>
                     <span data-i18n="sidebar.misFacturas">Mis Facturas</span>
                 </a>
+                <a href="{% url 'clientes:mis_pagos' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'mis_pagos' %}active{% endif %}">
+                    <span class="nav-icon-wrap nav-icon-wrap--pink"><i class="bi bi-cash-coin"></i></span>
+                    <span data-i18n="sidebar.misPagos">Mis Pagos</span>
+                </a>
 
             {% elif user.usuario.rol == 'conductor' %}
                 <p class="sidebar-nav-label"><i class="bi bi-truck"></i> <span data-i18n="sidebar.label.conductor">Conductor</span></p>

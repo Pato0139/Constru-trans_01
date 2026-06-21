@@ -28,10 +28,18 @@
                                     </div>
                                 {% endif %}
                                 <div class="mt-3">
-                                    <label for="foto_perfil" class="btn btn-sm btn-outline-accent rounded-pill px-3">
-                                        <i class="bi bi-camera-fill me-2"></i> Cambiar Foto
-                                    </label>
-                                    <input type="file" id="foto_perfil" name="foto_perfil" class="d-none" accept="image/*">
+                                    {% if puede_cambiar_foto %}
+                                        <label for="foto_perfil" class="btn btn-sm btn-outline-accent rounded-pill px-3">
+                                            <i class="bi bi-camera-fill me-2"></i> Cambiar Foto
+                                        </label>
+                                        <input type="file" id="foto_perfil" name="foto_perfil" class="d-none" accept="image/*">
+                                    {% else %}
+                                        <div class="d-inline-block">
+                                            <span class="btn btn-sm btn-outline-secondary rounded-pill px-3 disabled" style="cursor: not-allowed; opacity: 0.6;">
+                                                <i class="bi bi-lock-fill me-2"></i> No se puede cambiar
+                                            </span>
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
