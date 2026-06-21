@@ -66,12 +66,19 @@ def crear_vehiculo(request):
     if request.method == "POST":
         placa = request.POST.get("placa")
         tipo = request.POST.get("tipo")
+        marca = request.POST.get("marca", "").strip()
+        modelo = request.POST.get("modelo", "").strip()
         capacidad = request.POST.get("capacidad")
         conductor_id = request.POST.get("conductor")
 
         try:
             vehiculo = Vehiculo.objects.create(
-                placa=placa, tipo_vehiculo=tipo, capacidad_carga=capacidad, estado="disponible"
+                placa=placa,
+                marca=marca,
+                modelo=modelo,
+                tipo_vehiculo=tipo,
+                capacidad_carga=capacidad,
+                estado="disponible"
             )
 
             if conductor_id:
@@ -150,6 +157,8 @@ def editar_vehiculo(request, id):
             else:
                 vehiculo.placa = request.POST.get("placa")
                 vehiculo.tipo_vehiculo = request.POST.get("tipo")
+                vehiculo.marca = request.POST.get("marca", "").strip()
+                vehiculo.modelo = request.POST.get("modelo", "").strip()
                 vehiculo.capacidad_carga = request.POST.get("capacidad").replace(",", ".")
                 vehiculo.estado = nuevo_estado
                 vehiculo.save()

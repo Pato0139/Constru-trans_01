@@ -46,6 +46,22 @@
                 </div>
 
                 <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Marca del Vehículo</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-award"></i></span>
+                        <input type="text" name="marca" class="form-control" placeholder="Ej: Toyota" value="{{ vehiculo.marca|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Modelo del Vehículo</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-tag"></i></span>
+                        <input type="text" name="modelo" class="form-control" placeholder="Ej: Hilux" value="{{ vehiculo.modelo|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="mb-4">
                     <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Capacidad de Carga (Ton)</label>
                     <div class="input-group">
                         <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-speedometer2"></i></span>
