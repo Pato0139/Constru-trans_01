@@ -1,4 +1,3 @@
-
 from django.contrib import admin
 
 from .models import (
@@ -19,34 +18,30 @@ from .models import (
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ('nombres', 'apellidos', 'get_email', 'documento', 'rol', 'estado')
-    list_filter = ('rol', 'estado', 'tipo_documento')
-    search_fields = ('nombres', 'apellidos', 'documento')
+    list_display = ("nombres", "apellidos", "get_email", "documento", "rol", "estado")
+    list_filter = ("rol", "estado", "tipo_documento")
+    search_fields = ("nombres", "apellidos", "documento")
 
     def get_email(self, obj):
-        return obj.user.email
-    get_email.short_description = 'Correo'
+        return obj.email
+
+    get_email.short_description = "Correo"
 
 
 # =====================================================================
-# UNIDAD DE MEDIDA 
+# UNIDAD DE MEDIDA
 # =====================================================================
 @admin.register(UnidadMedida)
 class UnidadMedidaAdmin(admin.ModelAdmin):
-    list_display = ('codigo', 'nombre', 'abreviatura', 'activa', 'orden')
-    list_filter = ('activa',)
-    search_fields = ('codigo', 'nombre', 'abreviatura')
-    ordering = ('orden', 'nombre')
-    readonly_fields = ('fecha_creacion',)
-    
+    list_display = ("codigo", "nombre", "abreviatura", "activa", "orden")
+    list_filter = ("activa",)
+    search_fields = ("codigo", "nombre", "abreviatura")
+    ordering = ("orden", "nombre")
+    readonly_fields = ("fecha_creacion",)
+
     fieldsets = (
-        ('Información Básica', {
-            'fields': ('codigo', 'nombre', 'abreviatura', 'descripcion')
-        }),
-        ('Control', {
-            'fields': ('activa', 'orden', 'fecha_creacion'),
-            'classes': ('collapse',)
-        }),
+        ("Información Básica", {"fields": ("codigo", "nombre", "abreviatura", "descripcion")}),
+        ("Control", {"fields": ("activa", "orden", "fecha_creacion"), "classes": ("collapse",)}),
     )
 
 
