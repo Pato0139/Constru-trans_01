@@ -144,6 +144,20 @@
                     </div>
                 </div>
 
+                <!-- MÉTODO DE PAGO -->
+                <div class="mb-5 p-4 rounded-4 shadow-sm pedido-section">
+                    <label class="form-label fw-800 text-accent text-uppercase small mb-3 pedido-section-label">3. Método de Pago</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 pedido-input-icon"><i class="bi bi-credit-card"></i></span>
+                        <select name="metodo_pago" class="form-select rounded-pill border-0 px-4 py-2 pedido-input-bg" required>
+                            <option value="">Seleccione método de pago...</option>
+                            {% for mp in metodos_pago %}
+                            <option value="{{ mp.codigo_metodo_pago }}">{{ mp.metodo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
                 <div class="d-grid gap-3 mt-4">
                     <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase pedido-submit-btn">
                         <i class="bi bi-check2-all me-2"></i> {% if action == 'crear' %}Confirmar y Enviar Pedido{% else %}Guardar Cambios{% endif %}
