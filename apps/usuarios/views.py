@@ -228,8 +228,14 @@ def login_usuario(request):
 
                 messages.success(request, f"¡Bienvenido de nuevo, {user.nombres}!")
 
+                from django.utils.http import url_has_allowed_host_and_scheme
+
                 next_url = request.GET.get("next")
-                if next_url:
+                if next_url and url_has_allowed_host_and_scheme(
+                    url=next_url,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure(),
+                ):
                     return redirect(next_url)
 
                 if user.rol == "admin":
@@ -917,12 +923,18 @@ def lista_notificaciones(request):
 
 @login_required
 def marcar_notificacion_leida(request, id):
+    from django.utils.http import url_has_allowed_host_and_scheme
+
     try:
         notificacion = get_object_or_404(request.user.usuario.notificaciones, id=id)
         notificacion.leida = True
-        notificacion.save()
+        notificacion.save(update_fields=["leida"])
 
-        if notificacion.link:
+        if notificacion.link and url_has_allowed_host_and_scheme(
+            url=notificacion.link,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
             return redirect(notificacion.link)
     except Usuario.DoesNotExist:
         pass
