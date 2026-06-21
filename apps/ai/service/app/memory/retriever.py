@@ -1,5 +1,6 @@
+from typing import Dict, List, Optional
+
 import chromadb
-from typing import List, Dict, Optional
 
 from app.core.config import settings
 from app.core.logging import logger
@@ -10,10 +11,7 @@ class SemanticRetriever:
     """Semantic retrieval using ChromaDB"""
 
     def __init__(self):
-        self.client = chromadb.HttpClient(
-            host=settings.CHROMA_HOST,
-            port=settings.CHROMA_PORT
-        )
+        self.client = chromadb.HttpClient(host=settings.CHROMA_HOST, port=settings.CHROMA_PORT)
         self.collections = {}
         # Initialize default collections
         self._init_collections()
@@ -21,10 +19,16 @@ class SemanticRetriever:
 
     def _init_collections(self):
         """Initialize default collections"""
-        self.collections["conversation_memory"] = self.client.get_or_create_collection("conversation_memory")
+        self.collections["conversation_memory"] = self.client.get_or_create_collection(
+            "conversation_memory"
+        )
         self.collections["user_facts"] = self.client.get_or_create_collection("user_facts")
-        self.collections["company_knowledge"] = self.client.get_or_create_collection("company_knowledge")
-        self.collections["document_chunks"] = self.client.get_or_create_collection("document_chunks")
+        self.collections["company_knowledge"] = self.client.get_or_create_collection(
+            "company_knowledge"
+        )
+        self.collections["document_chunks"] = self.client.get_or_create_collection(
+            "document_chunks"
+        )
 
     def add(
         self,
@@ -32,7 +36,7 @@ class SemanticRetriever:
         ids: List[str],
         documents: List[str],
         metadatas: Optional[List[Dict]] = None,
-        embeddings: Optional[List[List[float]]] = None
+        embeddings: Optional[List[List[float]]] = None,
     ):
         """Add documents to a collection"""
         collection = self.collections.get(collection_name)
@@ -48,7 +52,7 @@ class SemanticRetriever:
             ids=ids,
             documents=documents,
             metadatas=metadatas if metadatas else [{} for _ in documents],
-            embeddings=embeddings
+            embeddings=embeddings,
         )
         logger.info(f"Added {len(documents)} items to {collection_name}")
 
@@ -57,7 +61,7 @@ class SemanticRetriever:
         collection_name: str,
         query_text: Optional[str] = None,
         query_embedding: Optional[List[float]] = None,
-        n_results: int = 5
+        n_results: int = 5,
     ) -> List[Dict]:
         """Search a collection"""
         collection = self.collections.get(collection_name)
@@ -71,20 +75,19 @@ class SemanticRetriever:
         if query_embedding is None:
             query_embedding = embedding_service.embed_text(query_text)
 
-        results = collection.query(
-            query_embeddings=[query_embedding],
-            n_results=n_results
-        )
+        results = collection.query(query_embeddings=[query_embedding], n_results=n_results)
 
         # Format results
         formatted_results = []
         for i in range(len(results["ids"][0])):
-            formatted_results.append({
-                "id": results["ids"][0][i],
-                "document": results["documents"][0][i],
-                "metadata": results["metadatas"][0][i] if results["metadatas"] else {},
-                "distance": results["distances"][0][i] if results["distances"] else 0.0
-            })
+            formatted_results.append(
+                {
+                    "id": results["ids"][0][i],
+                    "document": results["documents"][0][i],
+                    "metadata": results["metadatas"][0][i] if results["metadatas"] else {},
+                    "distance": results["distances"][0][i] if results["distances"] else 0.0,
+                }
+            )
 
         return formatted_results
 

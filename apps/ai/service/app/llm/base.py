@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional
+from typing import Dict, List, Optional
 
 
 class BaseLLMProvider(ABC):
@@ -13,7 +13,7 @@ class BaseLLMProvider(ABC):
         messages: List[Dict[str, str]],
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """Generate a chat response"""
         pass
@@ -24,7 +24,7 @@ class BaseLLMProvider(ABC):
         messages: List[Dict[str, str]],
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """Generate a chat response asynchronously"""
         pass

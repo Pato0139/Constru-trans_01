@@ -7,9 +7,7 @@ def setup_logging():
     log_dir = Path("../../logs")
     log_dir.mkdir(exist_ok=True)
 
-    log_format = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+    log_format = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     file_handler = logging.FileHandler(log_dir / "ai_service.log")
     file_handler.setFormatter(log_format)

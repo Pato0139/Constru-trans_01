@@ -1,13 +1,10 @@
-
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.utils.timezone import now
 
 numeric_and_space_validator = RegexValidator(
-    regex=r'^[0-9\s]*$',
-    message='Solo se admiten números y espacios.',
-    code='invalid_numeric_space'
+    regex=r"^[0-9\s]*$", message="Solo se admiten números y espacios.", code="invalid_numeric_space"
 )
 
 
@@ -16,42 +13,40 @@ numeric_and_space_validator = RegexValidator(
 # =====================================================================
 class Usuario(AbstractUser):
     TIPOS_DOCUMENTO = [
-        ('CC', 'Cédula de Ciudadanía'),
-        ('CE', 'Cédula de Extranjería'),
-        ('PA', 'Pasaporte'),
-        ('PEP', 'Permiso Especial de Permanencia'),
-        ('PPT', 'Permiso por Protección Temporal'),
-        ('NIT', 'Número de Identificación Tributaria'),
+        ("CC", "Cédula de Ciudadanía"),
+        ("CE", "Cédula de Extranjería"),
+        ("PA", "Pasaporte"),
+        ("PEP", "Permiso Especial de Permanencia"),
+        ("PPT", "Permiso por Protección Temporal"),
+        ("NIT", "Número de Identificación Tributaria"),
     ]
     ESTADO_USUARIO = [
-        ('activo', 'Activo'),
-        ('inactivo', 'Inactivo'),
-        ('suspendido', 'Suspendido'),
+        ("activo", "Activo"),
+        ("inactivo", "Inactivo"),
+        ("suspendido", "Suspendido"),
     ]
     ROLES = [
-        ('admin', 'Admin'),
-        ('cliente', 'Cliente'),
-        ('conductor', 'Conductor'),
-        ('empleado', 'Empleado'),
+        ("admin", "Admin"),
+        ("cliente", "Cliente"),
+        ("conductor", "Conductor"),
+        ("empleado", "Empleado"),
     ]
-
 
     nombres = models.CharField(max_length=200)
     apellidos = models.CharField(max_length=200)
     telefono = models.CharField(max_length=20, blank=True)
     documento = models.CharField(max_length=20, validators=[numeric_and_space_validator])
 
-
     rol = models.CharField(max_length=50, choices=ROLES)
 
-    #NO se toca
+    # NO se toca
     tipo_documento = models.CharField(max_length=5, choices=TIPOS_DOCUMENTO)
-    estado = models.CharField(max_length=15, choices=ESTADO_USUARIO, default='activo')
-    foto_perfil = models.ImageField(upload_to='perfiles/', null=True, blank=True)
+    estado = models.CharField(max_length=15, choices=ESTADO_USUARIO, default="activo")
+    foto_perfil = models.ImageField(upload_to="perfiles/", null=True, blank=True)
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'usuario'
+        db_table = "usuario"
 
     def __str__(self):
         return f"{self.nombres} {self.apellidos} ({self.rol})"
@@ -75,25 +70,35 @@ class Usuario(AbstractUser):
 
     @property
     def color_avatar(self):
-        colores = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6",
-                   "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1"]
+        colores = [
+            "#3B82F6",
+            "#EF4444",
+            "#10B981",
+            "#F59E0B",
+            "#8B5CF6",
+            "#EC4899",
+            "#06B6D4",
+            "#84CC16",
+            "#F97316",
+            "#6366F1",
+        ]
         return colores[self.id % len(colores)] if self.id else colores[0]
 
     @property
     def es_admin(self):
-        return self.rol == 'admin'
+        return self.rol == "admin"
 
     @property
     def es_conductor(self):
-        return self.rol == 'conductor'
+        return self.rol == "conductor"
 
     @property
     def es_cliente(self):
-        return self.rol == 'cliente'
+        return self.rol == "cliente"
 
     @property
     def es_empleado(self):
-        return self.rol == 'empleado'
+        return self.rol == "empleado"
 
     @property
     def conductor_profile(self):
@@ -108,7 +113,7 @@ class Usuario(AbstractUser):
 
     @property
     def vehiculo_actual(self):
-        if self.rol != 'conductor':
+        if self.rol != "conductor":
             return None
         try:
             return self.perfil_conductor.vehiculo_actual
@@ -121,7 +126,7 @@ class Usuario(AbstractUser):
 
 
 # =====================================================================
-# EPS 
+# EPS
 # =====================================================================
 class EPS(models.Model):
     codigo_eps = models.CharField(max_length=20, primary_key=True)
@@ -132,7 +137,7 @@ class EPS(models.Model):
     correo = models.EmailField()
 
     class Meta:
-        db_table = 'eps'
+        db_table = "eps"
         verbose_name_plural = "EPS"
 
     def __str__(self):
@@ -143,29 +148,35 @@ class EPS(models.Model):
 # CONDUCTOR
 # =====================================================================
 class Conductor(models.Model):
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE,
-                                   primary_key=True, related_name='perfil_conductor')
+    usuario = models.OneToOneField(
+        Usuario, on_delete=models.CASCADE, primary_key=True, related_name="perfil_conductor"
+    )
     numero_licencia = models.CharField(max_length=50, unique=True)
     categoria_licencia = models.CharField(max_length=10)
     fecha_vencimiento_licencia = models.DateField()
     telefono_empresarial = models.CharField(max_length=20, blank=True)
 
-    ESTADO_CONDUCTOR = [('activo', 'Activo'), ('inactivo', 'Inactivo')]
-    estado = models.CharField(max_length=15, choices=ESTADO_CONDUCTOR, default='activo')
+    ESTADO_CONDUCTOR = [("activo", "Activo"), ("inactivo", "Inactivo")]
+    estado = models.CharField(max_length=15, choices=ESTADO_CONDUCTOR, default="activo")
     fecha_ingreso = models.DateField(null=True, blank=True)
     eps = models.ForeignKey(EPS, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
-        db_table = 'conductor'
+        db_table = "conductor"
 
     def __str__(self):
         return f"Conductor: {self.usuario.nombres}"
 
     @property
     def asignacion_actual(self):
-        if hasattr(self, 'asignaciones_activas'):
+        if hasattr(self, "asignaciones_activas"):
             return self.asignaciones_activas[0] if self.asignaciones_activas else None
-        return self.asignaciones_vehiculo.filter(fecha_fin__isnull=True).select_related('vehiculo').order_by('-fecha_asignacion').first()
+        return (
+            self.asignaciones_vehiculo.filter(fecha_fin__isnull=True)
+            .select_related("vehiculo")
+            .order_by("-fecha_asignacion")
+            .first()
+        )
 
     @property
     def vehiculo_actual(self):
@@ -174,7 +185,7 @@ class Conductor(models.Model):
 
     def asignar_vehiculo(self, vehiculo):
         if vehiculo is None:
-            raise ValueError('El vehículo no puede ser None para la asignación.')
+            raise ValueError("El vehículo no puede ser None para la asignación.")
 
         if self.vehiculo_actual and self.vehiculo_actual.id_vehiculo == vehiculo.id_vehiculo:
             return self.vehiculo_actual
@@ -207,7 +218,7 @@ class Vehiculo(models.Model):
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'vehiculo'
+        db_table = "vehiculo"
 
     def __str__(self):
         return f"{self.placa} ({self.marca} {self.modelo})"
@@ -226,7 +237,12 @@ class Vehiculo(models.Model):
 
     @property
     def conductor_actual(self):
-        asignacion = self.asignaciones_conductor.filter(fecha_fin__isnull=True).select_related("conductor__usuario").order_by("-fecha_asignacion").first()
+        asignacion = (
+            self.asignaciones_conductor.filter(fecha_fin__isnull=True)
+            .select_related("conductor__usuario")
+            .order_by("-fecha_asignacion")
+            .first()
+        )
         return asignacion.conductor.usuario if asignacion else None
 
 
@@ -234,17 +250,19 @@ class Vehiculo(models.Model):
 # CONDUCTOR_VEHICULO
 # =====================================================================
 class ConductorVehiculo(models.Model):
-    conductor = models.ForeignKey(Conductor, on_delete=models.CASCADE,
-                                  related_name='asignaciones_vehiculo')
-    vehiculo = models.ForeignKey(Vehiculo, on_delete=models.CASCADE,
-                                 related_name='asignaciones_conductor')
+    conductor = models.ForeignKey(
+        Conductor, on_delete=models.CASCADE, related_name="asignaciones_vehiculo"
+    )
+    vehiculo = models.ForeignKey(
+        Vehiculo, on_delete=models.CASCADE, related_name="asignaciones_conductor"
+    )
     fecha_asignacion = models.DateTimeField(auto_now_add=True)
     fecha_fin = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'conductor_vehiculo'
-        unique_together = ('conductor', 'vehiculo', 'fecha_asignacion')
-        ordering = ['-fecha_asignacion']
+        db_table = "conductor_vehiculo"
+        unique_together = ("conductor", "vehiculo", "fecha_asignacion")
+        ordering = ["-fecha_asignacion"]
 
     def __str__(self):
         return f"{self.conductor} - {self.vehiculo.placa}"
@@ -258,7 +276,7 @@ class Catalogo(models.Model):
     nombre_empresa = models.CharField(max_length=150)
 
     class Meta:
-        db_table = 'catalogo'
+        db_table = "catalogo"
 
     def __str__(self):
         return self.nombre_empresa
@@ -278,7 +296,7 @@ class Proveedor(models.Model):
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'proveedor'
+        db_table = "proveedor"
         verbose_name_plural = "Proveedores"
 
     def __str__(self):
@@ -302,28 +320,29 @@ class Proveedor(models.Model):
 
 
 # =====================================================================
-# UNIDAD_MEDIDA 
+# UNIDAD_MEDIDA
 # =====================================================================
 class UnidadMedida(models.Model):
     """
     Tabla de referencia para unidades de medida estandarizadas.
     Garantiza consistencia en toda la aplicación.
     """
+
     id_unidad = models.AutoField(primary_key=True)
     codigo = models.CharField(max_length=10, unique=True, db_index=True)
     nombre = models.CharField(max_length=50, unique=True)
     abreviatura = models.CharField(max_length=10)
     descripcion = models.TextField(blank=True)
-    
+
     activa = models.BooleanField(default=True)
     orden = models.PositiveIntegerField(default=0, help_text="Para ordenar en select")
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'unidad_medida'
+        db_table = "unidad_medida"
         verbose_name = "Unidad de Medida"
         verbose_name_plural = "Unidades de Medida"
-        ordering = ['orden', 'nombre']
+        ordering = ["orden", "nombre"]
 
     def __str__(self):
         return f"{self.nombre} ({self.abreviatura})"
@@ -334,25 +353,30 @@ class UnidadMedida(models.Model):
 
 
 # =====================================================================
-# MATERIAL_CONSTRUCCION  
+# MATERIAL_CONSTRUCCION
 # =====================================================================
 class MaterialConstruccion(models.Model):
     cod_material = models.AutoField(primary_key=True)
-    catalogo = models.ForeignKey(Catalogo, on_delete=models.SET_NULL,
-                                 null=True, blank=True, related_name='materiales')
+    catalogo = models.ForeignKey(
+        Catalogo, on_delete=models.SET_NULL, null=True, blank=True, related_name="materiales"
+    )
     nombre = models.CharField(max_length=100)
-    unidad_medida = models.ForeignKey(UnidadMedida, on_delete=models.PROTECT,
-                                      related_name='materiales', 
-                                      help_text="Seleccione una unidad de medida estándar")
+    unidad_medida = models.ForeignKey(
+        UnidadMedida,
+        on_delete=models.PROTECT,
+        related_name="materiales",
+        help_text="Seleccione una unidad de medida estándar",
+    )
     descripcion = models.TextField()
     precio_referencia = models.DecimalField(
-        max_digits=12, decimal_places=2,
-        validators=[MinValueValidator(0), MaxValueValidator(9999999999.99)]
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0), MaxValueValidator(9999999999.99)],
     )
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'material_construccion'
+        db_table = "material_construccion"
         verbose_name = "Material de Construcción"
         verbose_name_plural = "Materiales de Construcción"
 
@@ -387,18 +411,18 @@ class MaterialConstruccion(models.Model):
 # STOCK
 # =====================================================================
 class Stock(models.Model):
-    material = models.OneToOneField(MaterialConstruccion, on_delete=models.CASCADE,
-                                    primary_key=True, related_name='stock_info')
+    material = models.OneToOneField(
+        MaterialConstruccion, on_delete=models.CASCADE, primary_key=True, related_name="stock_info"
+    )
     cantidad_actual = models.IntegerField(
-        default=0,
-        validators=[MinValueValidator(0), MaxValueValidator(100000)]
+        default=0, validators=[MinValueValidator(0), MaxValueValidator(100000)]
     )
     stock_minimo = models.IntegerField(default=10, validators=[MinValueValidator(0)])
     ubicacion = models.CharField(max_length=120, blank=True, default="")
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'stock'
+        db_table = "stock"
 
     def __str__(self):
         return f"Stock {self.material.nombre}: {self.cantidad_actual}"
@@ -424,7 +448,7 @@ class MetodoPago(models.Model):
     metodo = models.CharField(max_length=50, unique=True)
 
     class Meta:
-        db_table = 'metodo_pago'
+        db_table = "metodo_pago"
         verbose_name = "Método de Pago"
         verbose_name_plural = "Métodos de Pago"
 
@@ -436,19 +460,23 @@ class MetodoPago(models.Model):
 # NOTIFICACION - No tocar
 # =====================================================================
 class Notificacion(models.Model):
-    TIPOS = [('info', 'Información'), ('success', 'Éxito'),
-             ('warning', 'Advertencia'), ('danger', 'Error')]
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='notificaciones')
+    TIPOS = [
+        ("info", "Información"),
+        ("success", "Éxito"),
+        ("warning", "Advertencia"),
+        ("danger", "Error"),
+    ]
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="notificaciones")
     titulo = models.CharField(max_length=100, default="Nueva notificación")
     mensaje = models.TextField()
-    tipo = models.CharField(max_length=10, choices=TIPOS, default='info')
+    tipo = models.CharField(max_length=10, choices=TIPOS, default="info")
     leida = models.BooleanField(default=False)
     fecha = models.DateTimeField(auto_now_add=True)
     link = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
-        ordering = ['-fecha']
-        db_table = 'notificacion'
+        ordering = ["-fecha"]
+        db_table = "notificacion"
 
     def __str__(self):
         return f"Notif {self.usuario}: {self.mensaje[:20]}..."

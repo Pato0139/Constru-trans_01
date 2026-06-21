@@ -4,15 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('usuarios', '0001_initial'),
+        ("usuarios", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='vehiculo',
-            name='estado',
-            field=models.CharField(choices=[('disponible', 'Disponible'), ('en_ruta', 'En Ruta'), ('mantenimiento', 'Mantenimiento'), ('fuera_de_servicio', 'Fuera de Servicio')], default='disponible', max_length=20),
+            model_name="vehiculo",
+            name="estado",
+            field=models.CharField(
+                choices=[
+                    ("disponible", "Disponible"),
+                    ("en_ruta", "En Ruta"),
+                    ("mantenimiento", "Mantenimiento"),
+                    ("fuera_de_servicio", "Fuera de Servicio"),
+                ],
+                default="disponible",
+                max_length=20,
+            ),
         ),
     ]

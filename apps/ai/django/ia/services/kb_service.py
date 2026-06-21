@@ -1,5 +1,6 @@
 import logging
 import re
+
 from apps.ia.models import KnowledgeBase
 
 logger = logging.getLogger(__name__)
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 def check_knowledge_base(mensaje: str):
     try:
         mensaje_norm = mensaje.strip().lower()
-        
+
         for entry in KnowledgeBase.objects.all():
             pattern = entry.question_pattern.strip().lower()
             if re.search(pattern, mensaje_norm):
@@ -32,7 +33,7 @@ def update_knowledge_base(user_message, bot_response, feedback_type: str):
                     KnowledgeBase.objects.create(
                         question_pattern=question,
                         best_response=bot_response.strip(),
-                        category="general"
+                        category="general",
                     )
     except Exception:
         logger.exception("Error actualizando knowledge base")

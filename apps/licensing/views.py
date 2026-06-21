@@ -18,6 +18,11 @@ def license_activate(request):
     try:
         json.loads(request.body)
         inst = validate_installation()
-        return JsonResponse({"status": inst.status, "expires_at": inst.expires_at.isoformat() if inst.expires_at else None})
+        return JsonResponse(
+            {
+                "status": inst.status,
+                "expires_at": inst.expires_at.isoformat() if inst.expires_at else None,
+            }
+        )
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)

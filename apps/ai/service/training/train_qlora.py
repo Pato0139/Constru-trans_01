@@ -1,14 +1,15 @@
+import os
+
+import torch
+from datasets import load_dataset
+from peft import LoraConfig, get_peft_model
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     BitsAndBytesConfig,
+    Trainer,
     TrainingArguments,
-    Trainer
 )
-from peft import LoraConfig, get_peft_model
-from datasets import load_dataset
-import torch
-import os
 
 
 def main():
@@ -25,7 +26,7 @@ def main():
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.float16,
-        bnb_4bit_use_double_quant=True
+        bnb_4bit_use_double_quant=True,
     )
 
     # Load tokenizer
@@ -37,9 +38,7 @@ def main():
     # Load model with quantization
     print(f"Loading quantized model from {model_name}...")
     model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        quantization_config=bnb_config,
-        device_map="auto"
+        model_name, quantization_config=bnb_config, device_map="auto"
     )
 
     # Configure LoRA
@@ -49,7 +48,7 @@ def main():
         target_modules=["q_proj", "v_proj"],
         lora_dropout=0.05,
         bias="none",
-        task_type="CAUSAL_LM"
+        task_type="CAUSAL_LM",
     )
 
     model = get_peft_model(model, lora_config)
@@ -61,12 +60,7 @@ def main():
 
     def tokenize_function(example):
         text = example["prompt"] + "\n" + example["response"]
-        tokenized = tokenizer(
-            text,
-            truncation=True,
-            max_length=1024,
-            padding="max_length"
-        )
+        tokenized = tokenizer(text, truncation=True, max_length=1024, padding="max_length")
         tokenized["labels"] = tokenized["input_ids"].copy()
         return tokenized
 
@@ -82,15 +76,11 @@ def main():
         logging_steps=10,
         save_steps=100,
         fp16=True,
-        save_total_limit=3
+        save_total_limit=3,
     )
 
     # Trainer
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=tokenized_datasets
-    )
+    trainer = Trainer(model=model, args=training_args, train_dataset=tokenized_datasets)
 
     # Train
     print("Starting QLoRA training...")

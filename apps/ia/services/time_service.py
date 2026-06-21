@@ -1,7 +1,6 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-
 ALIASES = {
     "argentina": "America/Argentina/Buenos_Aires",
     "buenos aires": "America/Argentina/Buenos_Aires",
@@ -49,13 +48,26 @@ def responder_hora(texto: str) -> str | None:
     partes = []
 
     # Check for basic time questions (no location)
-    basic_time_keywords = ["hora", "fecha", "qué hora", "que hora", "qué fecha", "que fecha", "qué dia", "que dia", "qué día", "que día"]
+    basic_time_keywords = [
+        "hora",
+        "fecha",
+        "qué hora",
+        "que hora",
+        "qué fecha",
+        "que fecha",
+        "qué dia",
+        "que dia",
+        "qué día",
+        "que día",
+    ]
     has_basic_time = any(keyword in t for keyword in basic_time_keywords)
-    
+
     # Only activate time service if there are actual time keywords!
     if has_basic_time:
         now = datetime.now()
-        partes.append(f"Son las {now.strftime('%H:%M')}, es {periodo(now.hour)} y la fecha es {now.strftime('%d/%m/%Y')}.")
+        partes.append(
+            f"Son las {now.strftime('%H:%M')}, es {periodo(now.hour)} y la fecha es {now.strftime('%d/%m/%Y')}."
+        )
 
         if "estados unidos" in t or "usa" in t or "eeuu" in t:
             partes.append("En Estados Unidos hay varias zonas horarias:")
@@ -85,4 +97,3 @@ def responder_hora(texto: str) -> str | None:
         return "\n".join(partes)
 
     return None
-

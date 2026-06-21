@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings.development')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings.development")
 
 import django  # noqa: E402
 from django.conf import settings  # noqa: E402
@@ -20,8 +20,8 @@ print()
 
 try:
     result = send_mail(
-        'Prueba de email Constru-Trans',
-        '¡Funciona! Si recibes este email, la configuración es correcta.',
+        "Prueba de email Constru-Trans",
+        "¡Funciona! Si recibes este email, la configuración es correcta.",
         settings.DEFAULT_FROM_EMAIL,
         [settings.EMAIL_HOST_USER],
         fail_silently=False,
@@ -30,5 +30,6 @@ try:
 except Exception as e:
     print(f"❌ Error al enviar email: {type(e).__name__}: {e}")
     import traceback
+
     print("\nDetalles del error:")
     traceback.print_exc()

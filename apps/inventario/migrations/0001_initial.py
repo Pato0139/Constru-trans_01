@@ -5,29 +5,42 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('compras', '0001_initial'),
-        ('usuarios', '0001_initial'),
+        ("compras", "0001_initial"),
+        ("usuarios", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='MovimientoInventario',
+            name="MovimientoInventario",
             fields=[
-                ('id_movimiento', models.AutoField(primary_key=True, serialize=False)),
-                ('tipo_movimiento', models.CharField(choices=[('entrada', 'Entrada'), ('salida', 'Salida')], max_length=10)),
-                ('cantidad', models.PositiveIntegerField()),
-                ('fecha', models.DateTimeField(auto_now_add=True)),
-                ('observacion', models.TextField(blank=True)),
-                ('sincronizado', models.BooleanField(default=False)),
-                ('compra', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='movimientos', to='compras.compra')),
+                ("id_movimiento", models.AutoField(primary_key=True, serialize=False)),
+                (
+                    "tipo_movimiento",
+                    models.CharField(
+                        choices=[("entrada", "Entrada"), ("salida", "Salida")], max_length=10
+                    ),
+                ),
+                ("cantidad", models.PositiveIntegerField()),
+                ("fecha", models.DateTimeField(auto_now_add=True)),
+                ("observacion", models.TextField(blank=True)),
+                ("sincronizado", models.BooleanField(default=False)),
+                (
+                    "compra",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="movimientos",
+                        to="compras.compra",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'movimiento_inventario',
-                'ordering': ['-fecha'],
+                "db_table": "movimiento_inventario",
+                "ordering": ["-fecha"],
             },
         ),
     ]
