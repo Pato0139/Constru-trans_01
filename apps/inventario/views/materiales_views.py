@@ -4,11 +4,12 @@ Vistas de Materiales (CRUD) y Stock.
 
 from django.contrib import messages
 from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.historial.utils import registrar_actividad
 from apps.usuarios.forms import MaterialForm
-from apps.usuarios.models import Material, Stock
+from apps.usuarios.models import Catalogo, Material, Stock
 from apps.usuarios.views import admin_required
 
 
@@ -175,7 +176,4 @@ def buscar_materiales(query=None):
     return Material.objects.filter(nombre__icontains=query)[:20]
 
 
-# Importar Catalogo aquí para evitar circular import
-from django.http import JsonResponse
 
-from apps.usuarios.models import Catalogo

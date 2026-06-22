@@ -39,3 +39,18 @@ class SesionConteoAdmin(admin.ModelAdmin):
     search_fields = ("codigo", "observaciones")
     readonly_fields = ("fecha_inicio",)
     inlines = [ConteoItemInline]
+
+
+@admin.register(ConteoItem)
+class ConteoItemAdmin(admin.ModelAdmin):
+    list_display = (
+        "sesion",
+        "material",
+        "cantidad_sistema",
+        "cantidad_fisica",
+        "diferencia",
+        "fecha_conteo",
+    )
+    list_filter = ("sesion", "material", "fecha_conteo")
+    search_fields = ("sesion__codigo", "material__nombre")
+    readonly_fields = ("diferencia", "fecha_conteo")
