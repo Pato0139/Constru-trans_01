@@ -9,7 +9,7 @@ class ConversationHistory(models.Model):
     user = models.ForeignKey(
         Usuario, on_delete=models.CASCADE, null=True, blank=True, related_name="ia_conversations"
     )
-    session_id = models.CharField(max_length=255, blank=True, null=True)
+    session_id = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     context_metadata = models.JSONField(
@@ -79,7 +79,7 @@ class UserFeedback(models.Model):
         Usuario, on_delete=models.CASCADE, null=True, blank=True, related_name="ia_feedback"
     )
     feedback = models.CharField(max_length=20, choices=FEEDBACK_CHOICES)
-    comment = models.TextField(blank=True, null=True)
+    comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -136,7 +136,7 @@ class AIConfiguration(models.Model):
 
     key = models.CharField(max_length=255, unique=True)
     value = models.TextField()
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -172,7 +172,7 @@ class KnowledgeBase(models.Model):
         help_text="Patrón de pregunta (puede usar expresiones regulares)"
     )
     best_response = models.TextField(help_text="Mejor respuesta encontrada")
-    category = models.CharField(max_length=100, blank=True, null=True)
+    category = models.CharField(max_length=100, blank=True)
     usage_count = models.IntegerField(default=0)
     success_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
