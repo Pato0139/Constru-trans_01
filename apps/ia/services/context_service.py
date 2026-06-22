@@ -34,7 +34,7 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
             from apps.clientes.models import Cliente
             from apps.compras.models import Compra
             from apps.facturacion.models import Factura
-            from apps.gestion_pedidos.models import Pedido as PedidoGestion
+            from apps.ordenes.models import Pedido as PedidoGestion
             from apps.pagos.models import Pago
             from apps.usuarios.models import (
                 ConductorVehiculo,
@@ -102,8 +102,8 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
                     ).count(),
                     "pedidos_totales": PedidoGestion.objects.count(),
                     "pedidos_pendientes": PedidoGestion.objects.filter(estado="pendiente").count(),
-                    "pedidos_aprobados": PedidoGestion.objects.filter(estado="aprobado").count(),
-                    "pedidos_en_camino": PedidoGestion.objects.filter(estado="en_camino").count(),
+                    "pedidos_aprobados": 0,  # No existe estado aprobado en Pedido
+                    "pedidos_en_camino": PedidoGestion.objects.filter(estado="en_ruta").count(),
                     "pedidos_entregados": PedidoGestion.objects.filter(estado="entregado").count(),
                     "pedidos_cancelados": PedidoGestion.objects.filter(estado="cancelado").count(),
                     "total_ventas": PedidoGestion.objects.aggregate(total=Sum("total"))["total"]
@@ -144,7 +144,7 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
             try:
                 from apps.clientes.models import Cliente
                 from apps.facturacion.models import Factura
-                from apps.gestion_pedidos.models import Pedido as PedidoGestion
+                from apps.ordenes.models import Pedido as PedidoGestion
 
                 cliente_obj = Cliente.objects.filter(usuario=usuario).first()
                 if cliente_obj:
@@ -168,14 +168,14 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
         # DATOS PARA CONDUCTORES
         elif rol_usuario == "conductor":
             try:
-                from apps.gestion_pedidos.models import Pedido as PedidoGestion
+                from apps.ordenes.models import Pedido as PedidoGestion
                 from apps.usuarios.models import Conductor, ConductorVehiculo
 
                 conductor_obj = Conductor.objects.filter(usuario=usuario).first()
                 if conductor_obj:
-                    pedidos_conductor = PedidoGestion.objects.filter(conductor=conductor_obj)
+                    pedidos_conductor = PedidoGestion.objects.filter(conductor=conductor_obj.usuario)
                     data["mis_entregas_pendientes"] = pedidos_conductor.filter(
-                        estado__in=["pendiente", "aprobado", "en_camino"]
+                        estado__in=["pendiente", "en_ruta"]
                     ).count()
                     data["mis_entregas_completadas"] = pedidos_conductor.filter(
                         estado="entregado"
