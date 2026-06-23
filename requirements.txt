@@ -77,7 +77,3 @@ django-debug-toolbar==4.4.6
 
 # IA
 openai==1.51.2
-chromadb==0.5.15
-sentence-transformers==3.2.1
-langchain-ollama==0.2.0
-langchain-core==0.3.0
