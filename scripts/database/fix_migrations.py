@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 # Add the project root to the path
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
 # Set up Django
