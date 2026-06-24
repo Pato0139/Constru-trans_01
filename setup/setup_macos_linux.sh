@@ -157,7 +157,16 @@ python manage.py migrate --run-syncdb || {
     echo -e "${GREEN}[OK] Configuración verificada"
 }
 
-echo -e "${GREEN}[OK] Migraciones completadas"
+echo -e "${GREEN}[OK] Migraciones completadas en base local"
+
+if [ -n "$DATABASE_URL" ]; then
+    echo -e ""
+    echo -e "${YELLOW}[INFO] Aplicando migraciones en base remota..."
+    python manage.py migrate --database=remota || {
+        echo -e "${YELLOW}[AVISO] Problema al migrar base remota"
+    }
+    echo -e "${GREEN}[OK] Migraciones completadas en base remota"
+fi
 
 echo -e ""
 echo -e "${CYAN}================================================================"
