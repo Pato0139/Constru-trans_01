@@ -186,7 +186,18 @@ if ($LASTEXITCODE -ne 0) {
         Write-Host "[OK] Configuracion verificada" -ForegroundColor Green
     }
 } else {
-    Write-Host "[OK] Migraciones aplicadas" -ForegroundColor Green
+    Write-Host "[OK] Migraciones aplicadas en base local" -ForegroundColor Green
+}
+
+if ($databaseUrl) {
+    Write-Host ""
+    Write-Host "[INFO] Aplicando migraciones en base remota..." -ForegroundColor Yellow
+    & .\venv\Scripts\python.exe manage.py migrate --database=remota
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[AVISO] Problema al migrar base remota" -ForegroundColor Yellow
+    } else {
+        Write-Host "[OK] Migraciones aplicadas en base remota" -ForegroundColor Green
+    }
 }
 
 # Final
