@@ -1,0 +1,47 @@
+
+{# layout: navbar (default) | sidebar | login #}
+<div class="bd-mode-widget bd-mode-widget--{{ bd_toggle_layout|default:'navbar' }}">
+    <form method="post" action="{% url 'usuarios:cambiar_modo_bd' %}" class="bd-mode-form m-0">
+        {% csrf_token %}
+        <input type="hidden" name="modo" value="{{ bd_siguiente_modo }}">
+        <button
+            type="submit"
+            class="bd-mode-switch {% if bd_usando_remota %}is-remote{% else %}is-local{% endif %} js-confirm-db-switch"
+            aria-label="Cambiar base de datos. Actualmente {{ bd_etiqueta }}"
+            title="{% if bd_usando_remota %}Conectado a Neon. Clic para usar base local.{% else %}Usando SQLite local. Clic para usar Neon.{% endif %}"
+            {% if bd_siguiente_modo == 'remota' and not bd_remota_disponible %}disabled{% endif %}
+        >
+            {% if bd_toggle_layout == 'sidebar' or bd_toggle_layout == 'login' %}
+            <span class="bd-mode-switch__header">
+                <i class="bi bi-database-gear"></i>
+                <span>Origen de datos</span>
+            </span>
+            {% endif %}
+
+            <span class="bd-mode-switch__body">
+                <span class="bd-mode-switch__icon" aria-hidden="true">
+                    <i class="bi {% if bd_usando_remota %}bi-cloud-fill{% else %}bi-pc-display-horizontal{% endif %}"></i>
+                </span>
+                <span class="bd-mode-switch__text">
+                    <span class="bd-mode-switch__status">
+                        {% if bd_usando_remota %}Nube activa{% else %}Modo local{% endif %}
+                    </span>
+                    <span class="bd-mode-switch__target">
+                        {% if bd_siguiente_modo == 'remota' %}
+                            Cambiar a Remoto
+                        {% else %}
+                            Cambiar a Local
+                        {% endif %}
+                    </span>
+                </span>
+                <span class="bd-mode-switch__track" aria-hidden="true">
+                    <span class="bd-mode-switch__thumb"></span>
+                </span>
+            </span>
+
+            {% if bd_siguiente_modo == 'remota' and not bd_remota_disponible %}
+            <span class="bd-mode-switch__hint">Sin conexión a Neon</span>
+            {% endif %}
+        </button>
+    </form>
+</div>

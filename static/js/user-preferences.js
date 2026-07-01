@@ -1,0 +1,378 @@
+(function () {
+    'use strict';
+
+    var KEYS = {
+        theme: 'theme',
+        daltonism: 'daltonism',
+        fontSize: 'fontSize',
+        language: 'language',
+    };
+
+    var DEFAULTS = {
+        theme: 'dark',
+        daltonism: 'none',
+        fontSize: 'normal',
+        language: 'es',
+    };
+
+    var I18N = {
+        es: {
+            'nav.panel': 'Panel de Control',
+            'nav.welcome': 'Bienvenido de nuevo, ¡qué bueno verte!',
+            'nav.accessibility': 'Accesibilidad',
+            'nav.themes': 'TEMAS VISUALES',
+            'nav.theme.dark': 'Modo Oscuro',
+            'nav.theme.light': 'Modo Claro',
+            'nav.theme.a11y': 'Alto Contraste',
+            'nav.daltonism': 'MODOS PARA DALTONISMO',
+            'nav.daltonism.none': 'Normal',
+            'nav.daltonism.protanopia': 'Protanopia (Rojo)',
+            'nav.daltonism.deuteranopia': 'Deuteranopia (Verde)',
+            'nav.daltonism.tritanopia': 'Tritanopia (Azul)',
+            'nav.daltonism.achromatopsia': 'Achromatopsia (Gris)',
+            'nav.notifications': 'Notificaciones',
+            'nav.notif.empty': 'No tienes notificaciones',
+            'nav.notif.emptyHint': 'Las nuevas notificaciones aparecerán aquí',
+            'nav.notif.viewAll': 'Ver todas las notificaciones',
+            'settings.title': 'Configuraciones Avanzadas',
+            'settings.font': 'Tamaño de Fuente',
+            'settings.font.small': 'Pequeña',
+            'settings.font.normal': 'Normal',
+            'settings.font.large': 'Grande',
+            'settings.font.xlarge': 'Extra Grande',
+            'settings.lang': 'Idioma',
+            'settings.lang.es': 'Español',
+            'settings.lang.en': 'English',
+            'settings.theme': 'Tema Visual',
+            'settings.theme.dark': 'Oscuro',
+            'settings.theme.light': 'Claro',
+            'settings.theme.a11y': 'Alto Contraste',
+            'settings.daltonism': 'Filtros para Daltonismo',
+            'settings.daltonism.none': 'Normal',
+            'settings.profile': 'Información de Perfil',
+            'settings.profile.name': 'Nombre',
+            'settings.profile.role': 'Rol',
+            'settings.profile.doc': 'Documento',
+            'settings.profile.edit': 'Editar Perfil',
+            'toast.fontSize': 'Tamaño de fuente actualizado',
+            'toast.theme': 'Tema visual actualizado',
+            'toast.daltonism': 'Filtro de daltonismo aplicado',
+            'toast.language': 'Idioma actualizado',
+            'sidebar.brandSub': 'Panel de gestión',
+            'sidebar.label.principal': 'Principal',
+            'sidebar.general': 'General',
+            'sidebar.label.operaciones': 'Operaciones',
+            'sidebar.ventasCobros': 'Ventas y Cobros',
+            'sidebar.gestionPedidos': 'Gestión Pedidos',
+            'sidebar.pedidosAntiguos': 'Pedidos Antiguos',
+            'sidebar.facturacion': 'Facturación',
+            'sidebar.pagos': 'Pagos',
+            'sidebar.inventarioFlota': 'Inventario y Flota',
+            'sidebar.materiales': 'Materiales',
+            'sidebar.tiposMaterial': 'Tipos de Material',
+            'sidebar.stock': 'Stock',
+            'sidebar.movimientos': 'Movimientos',
+            'sidebar.vehiculos': 'Vehículos',
+            'sidebar.compras': 'Compras',
+            'sidebar.proveedores': 'Proveedores',
+            'sidebar.comprasList': 'Compras',
+            'sidebar.entregas': 'Entregas',
+            'sidebar.entregasList': 'Entregas',
+            'sidebar.label.sistema': 'Sistema',
+            'sidebar.administracion': 'Administración',
+            'sidebar.gestionUsuarios': 'Gestión Usuarios',
+            'sidebar.reportes': 'Reportes',
+            'sidebar.auditoria': 'Auditoría',
+            'sidebar.label.miCuenta': 'Mi cuenta',
+            'sidebar.panelControl': 'Panel de Control',
+            'sidebar.solicitarPedido': 'Solicitar Pedido',
+            'sidebar.label.pedidos': 'Pedidos',
+            'sidebar.misPedidos': 'Mis Pedidos',
+            'sidebar.seguimiento': 'Seguimiento',
+            'sidebar.historial': 'Historial',
+            'sidebar.misFacturas': 'Mis Facturas',
+            'sidebar.label.conductor': 'Conductor',
+            'sidebar.panelConductor': 'Panel Conductor',
+            'sidebar.misEntregas': 'Mis Entregas',
+            'sidebar.label.configuracion': 'Configuración',
+            'sidebar.miCuenta': 'Mi Cuenta',
+            'sidebar.cerrarSesion': 'Cerrar Sesión',
+        },
+        en: {
+            'nav.panel': 'Control Panel',
+            'nav.welcome': 'Welcome back, good to see you!',
+            'nav.accessibility': 'Accessibility',
+            'nav.themes': 'VISUAL THEMES',
+            'nav.theme.dark': 'Dark Mode',
+            'nav.theme.light': 'Light Mode',
+            'nav.theme.a11y': 'High Contrast',
+            'nav.daltonism': 'COLOR BLIND MODES',
+            'nav.daltonism.none': 'Normal',
+            'nav.daltonism.protanopia': 'Protanopia (Red)',
+            'nav.daltonism.deuteranopia': 'Deuteranopia (Green)',
+            'nav.daltonism.tritanopia': 'Tritanopia (Blue)',
+            'nav.daltonism.achromatopsia': 'Achromatopsia (Gray)',
+            'nav.notifications': 'Notifications',
+            'nav.notif.empty': 'You have no notifications',
+            'nav.notif.emptyHint': 'New notifications will appear here',
+            'nav.notif.viewAll': 'View all notifications',
+            'settings.title': 'Advanced Settings',
+            'settings.font': 'Font Size',
+            'settings.font.small': 'Small',
+            'settings.font.normal': 'Normal',
+            'settings.font.large': 'Large',
+            'settings.font.xlarge': 'Extra Large',
+            'settings.lang': 'Language',
+            'settings.lang.es': 'Spanish',
+            'settings.lang.en': 'English',
+            'settings.theme': 'Visual Theme',
+            'settings.theme.dark': 'Dark',
+            'settings.theme.light': 'Light',
+            'settings.theme.a11y': 'High Contrast',
+            'settings.daltonism': 'Color Blind Filters',
+            'settings.daltonism.none': 'Normal',
+            'settings.profile': 'Profile Information',
+            'settings.profile.name': 'Name',
+            'settings.profile.role': 'Role',
+            'settings.profile.doc': 'ID Document',
+            'settings.profile.edit': 'Edit Profile',
+            'toast.fontSize': 'Font size updated',
+            'toast.theme': 'Visual theme updated',
+            'toast.daltonism': 'Color blind filter applied',
+            'toast.language': 'Language updated',
+            'sidebar.brandSub': 'Management panel',
+            'sidebar.label.principal': 'Main',
+            'sidebar.general': 'General',
+            'sidebar.label.operaciones': 'Operations',
+            'sidebar.ventasCobros': 'Sales and Collections',
+            'sidebar.gestionPedidos': 'Order Management',
+            'sidebar.pedidosAntiguos': 'Old Orders',
+            'sidebar.facturacion': 'Invoicing',
+            'sidebar.pagos': 'Payments',
+            'sidebar.inventarioFlota': 'Inventory and Fleet',
+            'sidebar.materiales': 'Materials',
+            'sidebar.tiposMaterial': 'Material Types',
+            'sidebar.stock': 'Stock',
+            'sidebar.movimientos': 'Movements',
+            'sidebar.vehiculos': 'Vehicles',
+            'sidebar.compras': 'Purchases',
+            'sidebar.proveedores': 'Suppliers',
+            'sidebar.comprasList': 'Purchases',
+            'sidebar.entregas': 'Deliveries',
+            'sidebar.entregasList': 'Deliveries',
+            'sidebar.label.sistema': 'System',
+            'sidebar.administracion': 'Administration',
+            'sidebar.gestionUsuarios': 'User Management',
+            'sidebar.reportes': 'Reports',
+            'sidebar.auditoria': 'Audit',
+            'sidebar.label.miCuenta': 'My account',
+            'sidebar.panelControl': 'Control Panel',
+            'sidebar.solicitarPedido': 'Request Order',
+            'sidebar.label.pedidos': 'Orders',
+            'sidebar.misPedidos': 'My Orders',
+            'sidebar.seguimiento': 'Tracking',
+            'sidebar.historial': 'History',
+            'sidebar.misFacturas': 'My Invoices',
+            'sidebar.label.conductor': 'Driver',
+            'sidebar.panelConductor': 'Driver Panel',
+            'sidebar.misEntregas': 'My Deliveries',
+            'sidebar.label.configuracion': 'Settings',
+            'sidebar.miCuenta': 'My Account',
+            'sidebar.cerrarSesion': 'Log Out',
+        },
+    };
+
+    function getPref(key) {
+        var val = localStorage.getItem(KEYS[key]);
+        return val !== null && val !== '' ? val : DEFAULTS[key];
+    }
+
+    function setPref(key, value) {
+        localStorage.setItem(KEYS[key], value);
+    }
+
+    function resetAccessibilityBodyStyles() {
+        if (document.body) {
+            document.body.style.backgroundColor = '';
+            document.body.style.color = '';
+        }
+    }
+
+    function applyAccessibilityBodyStyles() {
+        if (document.body) {
+            document.body.style.backgroundColor = '#000000';
+            document.body.style.color = '#ffffff';
+        }
+    }
+
+    function applyLanguage(lang, options) {
+        options = options || {};
+        var dict = I18N[lang] || I18N.es;
+        document.documentElement.lang = lang === 'en' ? 'en' : 'es';
+        document.querySelectorAll('[data-i18n]').forEach(function (el) {
+            var key = el.getAttribute('data-i18n');
+            if (dict[key]) {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = dict[key];
+                } else {
+                    el.textContent = dict[key];
+                }
+            }
+        });
+        if (!options.silent) {
+            showPreferenceToast('toast.language');
+        }
+    }
+
+    function applyAll() {
+        var html = document.documentElement;
+        var theme = getPref('theme');
+        html.setAttribute('data-theme', theme);
+        html.setAttribute('data-daltonism', getPref('daltonism'));
+        html.setAttribute('data-font-size', getPref('fontSize'));
+        html.style.filter = '';
+        resetAccessibilityBodyStyles();
+        if (theme === 'accessibility') {
+            applyAccessibilityBodyStyles();
+        }
+        applyLanguage(getPref('language'), { silent: true });
+    }
+
+    function showPreferenceToast(messageKey) {
+        if (typeof Swal === 'undefined') {
+            return;
+        }
+        var lang = getPref('language');
+        var dict = I18N[lang] || I18N.es;
+        var text = dict[messageKey] || messageKey;
+        var isDark = getPref('theme') !== 'light';
+        Swal.fire({
+            icon: 'success',
+            title: lang === 'en' ? 'Done!' : '¡Listo!',
+            text: text,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            background: isDark ? '#1a1a1a' : '#ffffff',
+            color: isDark ? '#ffffff' : '#0f172a',
+        });
+    }
+
+    function syncSettingsButtons() {
+        var theme = getPref('theme');
+        var daltonism = getPref('daltonism');
+        var fontSize = getPref('fontSize');
+        var language = getPref('language');
+
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.dataset.theme === theme);
+        });
+        document.querySelectorAll('.daltonism-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.dataset.daltonism === daltonism);
+        });
+        document.querySelectorAll('.font-size-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.dataset.size === fontSize);
+        });
+        document.querySelectorAll('.language-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.dataset.lang === language);
+        });
+    }
+
+    window.setTheme = function (theme) {
+        var valid = ['dark', 'light', 'accessibility'];
+        if (valid.indexOf(theme) === -1) {
+            return false;
+        }
+        var html = document.documentElement;
+        html.setAttribute('data-theme', theme);
+        html.style.filter = '';
+        setPref('theme', theme);
+        resetAccessibilityBodyStyles();
+        if (theme === 'accessibility') {
+            applyAccessibilityBodyStyles();
+        } else if (theme === 'light') {
+            document.body.style.backgroundColor = '';
+            document.body.style.color = '';
+        }
+        syncSettingsButtons();
+        showPreferenceToast('toast.theme');
+        return false;
+    };
+
+    window.setDaltonism = function (mode) {
+        var valid = ['none', 'protanopia', 'deuteranopia', 'tritanopia', 'achromatopsia'];
+        if (valid.indexOf(mode) === -1) {
+            return false;
+        }
+        var html = document.documentElement;
+        html.style.filter = '';
+        html.setAttribute('data-daltonism', mode);
+        setPref('daltonism', mode);
+        syncSettingsButtons();
+        showPreferenceToast('toast.daltonism');
+        return false;
+    };
+
+    window.setFontSize = function (size) {
+        var valid = ['small', 'normal', 'large', 'xlarge'];
+        if (valid.indexOf(size) === -1) {
+            return false;
+        }
+        document.documentElement.setAttribute('data-font-size', size);
+        setPref('fontSize', size);
+        syncSettingsButtons();
+        showPreferenceToast('toast.fontSize');
+        return false;
+    };
+
+    window.setLanguage = function (lang) {
+        if (lang !== 'es' && lang !== 'en') {
+            return false;
+        }
+        setPref('language', lang);
+        applyLanguage(lang, { silent: true });
+        syncSettingsButtons();
+        showPreferenceToast('toast.language');
+        return false;
+    };
+
+    window.syncSettingsButtons = syncSettingsButtons;
+    window.getUserPreference = getPref;
+
+    function initSettingsPage() {
+        document.querySelectorAll('.font-size-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                setFontSize(btn.dataset.size);
+            });
+        });
+        document.querySelectorAll('.language-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                setLanguage(btn.dataset.lang);
+            });
+        });
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                setTheme(btn.dataset.theme);
+            });
+        });
+        document.querySelectorAll('.daltonism-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                setDaltonism(btn.dataset.daltonism);
+            });
+        });
+        syncSettingsButtons();
+    }
+
+    applyAll();
+
+    document.addEventListener('DOMContentLoaded', function () {
+        applyLanguage(getPref('language'), { silent: true });
+        initSettingsPage();
+        syncSettingsButtons();
+    });
+})();
