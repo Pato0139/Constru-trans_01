@@ -7,8 +7,8 @@ from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from historial.utils import registrar_actividad
-from usuarios.forms import CatalogoForm
-from usuarios.models import Catalogo
+from usuarios.forms import CatalogoForm, UnidadMedidaForm
+from usuarios.models import Catalogo, UnidadMedida
 from usuarios.views import admin_required
 
 
@@ -98,3 +98,89 @@ def eliminar_tipo_material(request, codigo):
     )
     messages.success(request, f"Tipo de material '{nombre}' eliminado correctamente.")
     return redirect("inventario:tipos_material_lista")
+
+
+@admin_required
+def unidades_medida_lista(request):
+    query = request.GET.get("q")
+    unidades = UnidadMedida.objects.annotate(num_materiales=Count("materiales"))
+
+    if query:
+        unidades = unidades.filter(
+            Q(codigo__icontains=query)
+            | Q(nombre__icontains=query)
+            | Q(abreviatura__icontains=query)
+        )
+
+    unidades = unidades.order_by("orden", "nombre")
+
+    context = {
+        "unidades": unidades,
+        "query": query,
+    }
+    return render(request, "inventario/unidades_lista.html", context)
+
+
+@admin_required
+def crear_unidad_medida(request):
+    if request.method == "POST":
+        form = UnidadMedidaForm(request.POST)
+        if form.is_valid():
+            try:
+                unidad = form.save()
+                registrar_actividad(
+                    request,
+                    "crear",
+                    "unidad_medida",
+                    unidad.pk,
+                    f"Unidad de medida creada: {unidad.nombre}",
+                )
+                messages.success(request, "Unidad de medida creada correctamente.")
+                return redirect("inventario:unidades_medida_lista")
+            except Exception as e:
+                messages.error(request, f"Error al crear unidad de medida: {e}")
+    else:
+        form = UnidadMedidaForm()
+    context = {"form": form, "action": "crear"}
+    return render(request, "inventario/form_unidad.html", context)
+
+
+@admin_required
+def editar_unidad_medida(request, id):
+    unidad = get_object_or_404(UnidadMedida, pk=id)
+    if request.method == "POST":
+        form = UnidadMedidaForm(request.POST, instance=unidad)
+        if form.is_valid():
+            unidad = form.save()
+            registrar_actividad(
+                request,
+                "editar",
+                "unidad_medida",
+                unidad.pk,
+                f"Unidad de medida editada: {unidad.nombre}",
+            )
+            messages.success(request, "Unidad de medida actualizada correctamente.")
+            return redirect("inventario:unidades_medida_lista")
+    else:
+        form = UnidadMedidaForm(instance=unidad)
+    context = {"form": form, "action": "editar", "unidad": unidad}
+    return render(request, "inventario/form_unidad.html", context)
+
+
+@admin_required
+def eliminar_unidad_medida(request, id):
+    unidad = get_object_or_404(UnidadMedida, pk=id)
+
+    if unidad.materiales.exists():
+        messages.error(
+            request,
+            f"No se puede eliminar '{unidad.nombre}' porque tiene materiales asociados.",
+        )
+        return redirect("inventario:unidades_medida_lista")
+
+    nombre = unidad.nombre
+    unidad.delete()
+    registrar_actividad(
+        request, "eliminar", "unidad_medida", id, f"Unidad de medida eliminada: {nombre}")
+    messages.success(request, f"Unidad de medida '{nombre}' eliminada correctamente.")
+    return redirect("inventario:unidades_medida_lista")

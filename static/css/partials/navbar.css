@@ -70,8 +70,14 @@
     width: 280px;
 }
 .navbar-dropdown-xs {
-    width: 90vw;
+    width: 100vw;
+    max-width: calc(100vw - 1rem);
     right: 0.5rem;
+    left: auto;
+    overflow-wrap: break-word;
+}
+.navbar-dropdown-xs .dropdown-item {
+    white-space: normal;
 }
 .navbar-notif-date {
     font-size: 0.7rem;

@@ -5,9 +5,13 @@ Vistas de Inventario, separadas por dominio.
 from .api_views import api_materiales
 from .catalogo_views import (
     crear_tipo_material,
+    crear_unidad_medida,
     editar_tipo_material,
+    editar_unidad_medida,
     eliminar_tipo_material,
+    eliminar_unidad_medida,
     tipos_material_lista,
+    unidades_medida_lista,
 )
 from .materiales_views import (
     buscar_materiales,
@@ -34,5 +38,9 @@ __all__ = [
     "crear_tipo_material",
     "editar_tipo_material",
     "eliminar_tipo_material",
+    "unidades_medida_lista",
+    "crear_unidad_medida",
+    "editar_unidad_medida",
+    "eliminar_unidad_medida",
     "api_materiales",
 ]

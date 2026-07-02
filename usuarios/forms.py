@@ -316,6 +316,75 @@ class MaterialForm(forms.ModelForm):
         return material
 
 
+class UnidadMedidaForm(forms.ModelForm):
+    class Meta:
+        model = UnidadMedida
+        fields = ["codigo", "nombre", "abreviatura", "descripcion", "activa", "orden"]
+        labels = {
+            "codigo": "Código de Unidad",
+            "nombre": "Nombre de la Unidad",
+            "abreviatura": "Abreviatura",
+            "descripcion": "Descripción",
+            "activa": "Activa",
+            "orden": "Orden",
+        }
+        widgets = {
+            "codigo": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: M3",
+                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
+                }
+            ),
+            "nombre": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: Metro cúbico",
+                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
+                }
+            ),
+            "abreviatura": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: m³",
+                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
+                }
+            ),
+            "descripcion": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Descripción de la unidad...",
+                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
+                }
+            ),
+            "activa": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "orden": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "0",
+                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
+                }
+            ),
+        }
+
+    def clean_codigo(self):
+        codigo = self.cleaned_data.get("codigo")
+        if codigo:
+            codigo = codigo.strip().upper()
+            if not self.instance.pk and UnidadMedida.objects.filter(codigo=codigo).exists():
+                raise forms.ValidationError("Ya existe una unidad con este código.")
+        return codigo
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get("nombre")
+        if nombre:
+            return nombre.strip()
+        return nombre
+
+
 class ProveedorForm(forms.ModelForm):
     class Meta:
         model = Proveedor
