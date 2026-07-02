@@ -29,14 +29,14 @@
                            placeholder="Buscar tipo o código..." value="{{ query|default:'' }}">
                 </div>
 
-                <div class="d-flex justify-content-end gap-2">
-                    <button type="submit" class="btn rounded-pill px-4 py-2 d-flex align-items-center gap-2"
-                            style="background: var(--item-bg); border: 1px solid var(--color-border); color: var(--color-text);">
+                <div class="d-flex flex-column flex-sm-row align-items-center justify-content-end gap-2">
+                    <button type="submit" class="btn rounded-pill px-4 py-2 d-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto"
+                            style="background: var(--item-bg); border: 1px solid var(--color-border); color: var(--color-text); flex: 1;">
                         <i class="bi bi-funnel"></i> Buscar
                     </button>
 
-                    <a href="{% url 'inventario:crear_tipo_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg ms-2"
-                       style="width: 42px; height: 42px; min-width: 42px; background: var(--color-accent); border: none; color: #0f172a;">
+                    <a href="{% url 'inventario:crear_tipo_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg"
+                       style="width: 42px; height: 42px; min-width: 42px; min-height: 42px; background: var(--color-accent); border: none; color: #0f172a; flex-shrink: 0;">
                         <i class="bi bi-plus-lg fs-5"></i>
                     </a>
                 </div>
