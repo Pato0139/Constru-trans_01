@@ -10,11 +10,11 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from core.db_preference import debe_usar_bd_remota
 from historial.utils import registrar_actividad
 from inventario.models import MovimientoInventario
 from usuarios.models import MaterialConstruccion, MetodoPago, Stock, Usuario
 from usuarios.views import admin_required
-from core.db_preference import debe_usar_bd_remota
 
 from .models import DetalleOrden, Entrega, Orden
 from .utils import liberar_vehiculo_pedido, revertir_stock_pedido

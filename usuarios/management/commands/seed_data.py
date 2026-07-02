@@ -8,6 +8,8 @@ from django.db.models.signals import post_save
 from django.utils import timezone
 
 from clientes.models import Cliente, crear_perfil_cliente
+from core.routers import EnrutadorInventario
+from core.utils import conexion_remota_disponible
 from inventario.models import MovimientoInventario
 from ordenes.models import DetallePedido, Entrega, Pedido
 from usuarios.models import (
@@ -20,8 +22,6 @@ from usuarios.models import (
     Usuario,
     Vehiculo,
 )
-from core.routers import EnrutadorInventario
-from core.utils import conexion_remota_disponible
 
 DEFAULT_PASSWORD = "davit12345"
 _router = EnrutadorInventario()

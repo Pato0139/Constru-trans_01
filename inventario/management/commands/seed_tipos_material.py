@@ -3,9 +3,9 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from usuarios.models import Catalogo
 from core.routers import EnrutadorInventario
 from core.utils import conexion_remota_disponible
+from usuarios.models import Catalogo
 
 TIPOS_MATERIAL = [
     ("TM001", "Materiales de Construcción"),

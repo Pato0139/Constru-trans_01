@@ -17,11 +17,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 
-from historial.utils import registrar_actividad
-from ordenes.models import Pedido
 from core.db_preference import PREF_LOCAL, PREF_REMOTA, invalidate_connection_cache
 from core.sync import sync_all_usuarios
 from core.utils import conexion_remota_disponible
+from historial.utils import registrar_actividad
+from ordenes.models import Pedido
 
 from .forms import AsignarVehiculoForm, LoginForm, RegistroForm
 from .models import (

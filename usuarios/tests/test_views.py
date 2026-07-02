@@ -1,7 +1,9 @@
 from datetime import date, timedelta
+
 from django.test import Client, TestCase
 from django.urls import reverse
-from usuarios.models import Usuario, Conductor, ConductorVehiculo, Vehiculo
+
+from usuarios.models import Conductor, ConductorVehiculo, Usuario, Vehiculo
 
 
 class UsuarioViewsTests(TestCase):
