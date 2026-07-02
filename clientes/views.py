@@ -58,11 +58,17 @@ def _obtener_usuario_local(usuario):
             "last_login": usuario.last_login,
         },
     )
+    # Asegurar que el usuario sea recargado de la BD para evitar conflictos
+    usuario_local.refresh_from_db(using="default")
     return usuario_local
 
 
 def _obtener_cliente_local(usuario_local):
-    cliente_local, _ = Cliente.objects.get_or_create(
+    # Asegurar que el usuario existe en la BD default
+    if usuario_local._state.db != "default":
+        usuario_local.using("default").save()
+    
+    cliente_local, _ = Cliente.objects.using("default").get_or_create(
         usuario=usuario_local,
         defaults={"direccion_principal": "Por definir"},
     )
@@ -216,7 +222,8 @@ def panel_cliente(request):
         usuario_remoto = request.user.usuario
         usuario = _obtener_usuario_local(usuario_remoto)
         try:
-            cliente, created = Cliente.objects.get_or_create(usuario=usuario_remoto)
+            db_alias = _obtener_alias_db()
+            cliente, created = Cliente.objects.using(db_alias).get_or_create(usuario=usuario_remoto)
         except Exception as e_c:
             if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
                 from django.db import connections
@@ -227,7 +234,8 @@ def panel_cliente(request):
                 )
                 with connections["remota"].cursor() as cursor:
                     cursor.execute(query)
-                cliente, created = Cliente.objects.get_or_create(usuario=usuario_remoto)
+                db_alias = _obtener_alias_db()
+                cliente, created = Cliente.objects.using(db_alias).get_or_create(usuario=usuario_remoto)
             else:
                 raise e_c
     except (Usuario.DoesNotExist, AttributeError):
@@ -247,16 +255,7 @@ def panel_cliente(request):
         "entregas": pedidos.filter(estado="entregado").count(),
         "total_gastado": pedidos.aggregate(total=Sum("total"))["total"] or 0,
         "total_pagos": pagos.count(),
-        "ultimos_pedidos": (
-            pedidos.only(
-                "codigo_pedido",
-                "estado",
-                "total",
-                "fecha_solicitud",
-                "direccion_destino",
-                "precio",
-            )[:5]
-        ),
+        "ultimos_pedidos": pedidos[:5],
     }
     return render(request, "clientes/lista.html", context)
 
@@ -414,9 +413,9 @@ def crear_pedido(request):
 
         db_alias = _obtener_alias_db()
         try:
-            with transaction.atomic():
+            with transaction.atomic(using=db_alias):
                 total_general = 0
-                nuevo_pedido = Pedido.objects.create(
+                nuevo_pedido = Pedido.objects.using(db_alias).create(
                     usuario=usuario_local,
                     cliente=cliente_local,
                     direccion_origen="Bodega Central",
@@ -462,7 +461,7 @@ def crear_pedido(request):
                         total_item = precio_unitario * cantidad
                         total_general += total_item
 
-                        DetallePedido.objects.using("default").create(
+                        DetallePedido.objects.using(db_alias).create(
                             pedido=nuevo_pedido,
                             material=material,
                             cantidad=cantidad,
@@ -588,59 +587,58 @@ def editar_pedido(request, id):
 
         db_alias = _obtener_alias_db()
         try:
-            with transaction.atomic():
-                with transaction.atomic(using=db_alias):
-                    for detalle in pedido.detalles.all():
-                        try:
-                            stock_obj = (
-                                Stock.objects.select_for_update()
-                                .using(db_alias)
-                                .get(material=detalle.material)
-                            )
-                        except Stock.DoesNotExist:
-                            stock_obj = Stock.objects.using(db_alias).create(
-                                material=detalle.material,
-                                cantidad_actual=0,
-                            )
-                        stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
-                        stock_obj.save(using=db_alias)
-
-                    pedido.detalles.all().delete()
-
-                    total_general = 0
-                    for m_id, cant in zip(materiales_ids, cantidades, strict=False):
-                        material = _obtener_material_local(m_id)
-                        try:
-                            stock_obj = (
-                                Stock.objects.select_for_update()
-                                .using(db_alias)
-                                .get(material=material)
-                            )
-                        except Stock.DoesNotExist:
-                            stock_obj = Stock.objects.using(db_alias).create(
-                                material=material, cantidad_actual=0
-                            )
-                        cantidad = int(cant)
-
-                        if stock_obj.cantidad_actual < cantidad:
-                            raise ValueError(f"Stock insuficiente para {material.nombre}")
-
-                        DetallePedido.objects.using("default").create(
-                            pedido=pedido,
-                            material=material,
-                            cantidad=cantidad,
-                            precio_unitario=material.precio,
+            with transaction.atomic(using=db_alias):
+                for detalle in pedido.detalles.all():
+                    try:
+                        stock_obj = (
+                            Stock.objects.select_for_update()
+                            .using(db_alias)
+                            .get(material=detalle.material)
                         )
+                    except Stock.DoesNotExist:
+                        stock_obj = Stock.objects.using(db_alias).create(
+                            material=detalle.material,
+                            cantidad_actual=0,
+                        )
+                    stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
+                    stock_obj.save(using=db_alias)
 
-                        stock_obj.cantidad_actual = F("cantidad_actual") - cantidad
-                        stock_obj.save(using=db_alias)
-                        total_general += material.precio * cantidad
+                pedido.detalles.all().delete()
+
+                total_general = 0
+                for m_id, cant in zip(materiales_ids, cantidades, strict=False):
+                    material = _obtener_material_local(m_id)
+                    try:
+                        stock_obj = (
+                            Stock.objects.select_for_update()
+                            .using(db_alias)
+                            .get(material=material)
+                        )
+                    except Stock.DoesNotExist:
+                        stock_obj = Stock.objects.using(db_alias).create(
+                            material=material, cantidad_actual=0
+                        )
+                    cantidad = int(cant)
+
+                    if stock_obj.cantidad_actual < cantidad:
+                        raise ValueError(f"Stock insuficiente para {material.nombre}")
+
+                    DetallePedido.objects.using(db_alias).create(
+                        pedido=pedido,
+                        material=material,
+                        cantidad=cantidad,
+                        precio_unitario=material.precio,
+                    )
+
+                    stock_obj.cantidad_actual = F("cantidad_actual") - cantidad
+                    stock_obj.save(using=db_alias)
+                    total_general += material.precio * cantidad
 
                 pedido.direccion_destino = direccion
                 pedido.fecha_entrega_programada = fecha_entrega if fecha_entrega else None
                 pedido.total = total_general
                 pedido.precio = total_general
-                pedido.save()
+                pedido.save(using=db_alias)
 
             messages.success(request, f"Pedido #{pedido.codigo_pedido} actualizado correctamente.")
             if es_admin:

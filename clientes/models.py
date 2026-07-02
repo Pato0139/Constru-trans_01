@@ -41,7 +41,25 @@ def crear_perfil_cliente(sender, instance, created, **kwargs):
     """Auto-crea perfil Cliente si el usuario tiene rol 'cliente'."""
     if created and instance.rol == "cliente":
         using = kwargs.get("using") or instance._state.db or "default"
-        Cliente.objects.using(using).get_or_create(
-            usuario=instance,
-            defaults={"direccion_principal": "Por definir"},
-        )
+        # Evitar crear Cliente en una BD donde no exista el Usuario (evita FK violations).
+        from usuarios.models import Usuario as UsuarioModel
+
+        # Si el usuario existe en la BD objetivo, crear el Cliente allí usando usuario_id
+        try:
+            if UsuarioModel.objects.using(using).filter(pk=instance.pk).exists():
+                Cliente.objects.using(using).get_or_create(
+                    usuario_id=instance.pk,
+                    defaults={"direccion_principal": "Por definir"},
+                )
+            else:
+                # Si la BD objetivo no tiene el usuario pero la BD 'default' sí, crear allí.
+                if using != "default" and UsuarioModel.objects.using("default").filter(pk=instance.pk).exists():
+                    Cliente.objects.using("default").get_or_create(
+                        usuario_id=instance.pk, defaults={"direccion_principal": "Por definir"}
+                    )
+        except Exception:
+            # No dejar que errores en la creación del perfil cliente rompan el flujo de guardado de Usuario.
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.exception("Error al crear perfil Cliente para usuario %s en DB %s", instance.pk, using)
