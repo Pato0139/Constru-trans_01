@@ -274,7 +274,7 @@ class MaterialForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields["unidad_medida"].queryset = UnidadMedida.objects.filter(activa=True).order_by(
+        self.fields["unidad_medida"].queryset = UnidadMedida.objects.using("remota").filter(activa=True).order_by(
             "orden", "nombre"
         )
         self.fields["unidad_medida"].empty_label = "-- Seleccione una unidad --"

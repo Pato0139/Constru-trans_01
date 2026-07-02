@@ -103,7 +103,8 @@ def eliminar_tipo_material(request, codigo):
 @admin_required
 def unidades_medida_lista(request):
     query = request.GET.get("q")
-    unidades = UnidadMedida.objects.annotate(num_materiales=Count("materiales"))
+    
+    unidades = UnidadMedida.objects.using("remota").all()
 
     if query:
         unidades = unidades.filter(
@@ -113,9 +114,15 @@ def unidades_medida_lista(request):
         )
 
     unidades = unidades.order_by("orden", "nombre")
+    
+    # Añadir num_materiales sin GROUP BY
+    unidades_lista = []
+    for unidad in unidades:
+        unidad.num_materiales = unidad.materiales.count()
+        unidades_lista.append(unidad)
 
     context = {
-        "unidades": unidades,
+        "unidades": unidades_lista,
         "query": query,
     }
     return render(request, "inventario/unidades_lista.html", context)

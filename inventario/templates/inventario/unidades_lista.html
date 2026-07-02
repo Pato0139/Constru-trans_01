@@ -29,19 +29,19 @@
                            placeholder="Buscar código, nombre o abreviatura..." value="{{ query|default:'' }}">
                 </div>
 
-                <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 flex-wrap">
-                    <button type="submit" class="btn rounded-pill px-4 py-2 d-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto"
-                            style="background: var(--item-bg); border: 1px solid var(--color-border); color: var(--color-text);">
+                <div class="d-flex gap-2 align-items-center">
+                    <button type="submit" class="btn rounded-pill px-4 py-2 d-flex align-items-center justify-content-center gap-2"
+                            style="background: var(--item-bg); border: 1px solid var(--color-border); color: var(--color-text); flex: 1;">
                         <i class="bi bi-funnel"></i> Buscar
                     </button>
 
-                    <a href="{% url 'inventario:crear_unidad_medida' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg w-100 w-sm-auto"
-                       style="width: 42px; height: 42px; min-width: 42px; background: var(--color-accent); border: none; color: #0f172a;">
+                    <a href="{% url 'inventario:crear_unidad_medida' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg"
+                       style="width: 42px; height: 42px; min-width: 42px; min-height: 42px; background: var(--color-accent); border: none; color: #0f172a; flex-shrink: 0;">
                         <i class="bi bi-plus-lg fs-5"></i>
                     </a>
 
-                    <a href="{% url 'inventario:crear_material' %}" class="btn btn-gold rounded-pill px-4 py-2 d-flex align-items-center justify-content-center gap-2 w-100 w-sm-auto"
-                       style="background-color: var(--color-accent); color: #000; border: none;">
+                    <a href="{% url 'inventario:crear_material' %}" class="btn rounded-pill px-4 py-2 d-flex align-items-center justify-content-center gap-2"
+                       style="background-color: var(--color-accent); color: #000; border: none; flex: 1;">
                         <i class="bi bi-arrow-left"></i> Volver
                     </a>
                 </div>
