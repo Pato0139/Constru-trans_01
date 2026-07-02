@@ -4,17 +4,17 @@ import os
 logger = logging.getLogger(__name__)
 
 try:
-    from openai import OpenAI
     from httpx import Client
+    from openai import OpenAI
 
     LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
     LLM_API_KEY = os.getenv("LLM_API_KEY", "local-key")
     LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2:latest")
-    
+
     # Crear cliente HTTP personalizado sin proxies
     http_client = Client()
     client = OpenAI(
-        base_url=LLM_BASE_URL, 
+        base_url=LLM_BASE_URL,
         api_key=LLM_API_KEY,
         http_client=http_client
     )

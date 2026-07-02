@@ -8,11 +8,6 @@ from django.db import transaction
 from django.db.models import F, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
-from facturacion.models import Factura
-from ordenes.models import DetallePedido, Pedido
-from pagos.models import Pago
-from usuarios.models import Catalogo, MetodoPago, Stock, UnidadMedida, Usuario
-from usuarios.models import MaterialConstruccion as Material
 from core.db_preference import debe_usar_bd_remota
 from core.despacho import (
     CIUDADES_DESPACHO,
@@ -21,6 +16,11 @@ from core.despacho import (
     separar_direccion_destino,
 )
 from core.utils import conexion_remota_disponible
+from facturacion.models import Factura
+from ordenes.models import DetallePedido, Pedido
+from pagos.models import Pago
+from usuarios.models import Catalogo, MetodoPago, Stock, UnidadMedida, Usuario
+from usuarios.models import MaterialConstruccion as Material
 
 from .models import Cliente
 

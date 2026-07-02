@@ -15,9 +15,9 @@ from datetime import datetime
 from django.db import transaction
 from django.db.models import F, Sum
 
+from core.db_preference import debe_usar_bd_remota
 from usuarios.models import MaterialConstruccion as Material
 from usuarios.models import Stock
-from core.db_preference import debe_usar_bd_remota
 
 from ..models import MovimientoInventario
 

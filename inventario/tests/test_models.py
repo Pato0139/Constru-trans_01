@@ -1,5 +1,6 @@
 from django.test import TestCase
-from usuarios.models import UnidadMedida, MaterialConstruccion, Stock
+
+from usuarios.models import MaterialConstruccion, Stock, UnidadMedida
 
 
 class InventarioModelsTests(TestCase):

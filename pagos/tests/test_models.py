@@ -1,7 +1,8 @@
 from django.test import TestCase
-from usuarios.models import Usuario, MetodoPago
+
 from facturacion.models import Factura
 from pagos.models import Pago
+from usuarios.models import MetodoPago, Usuario
 
 
 class PagoModelTests(TestCase):

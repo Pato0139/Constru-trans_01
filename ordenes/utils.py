@@ -4,9 +4,9 @@ import qrcode
 from django.core.files.base import ContentFile
 from django.db.models import F
 
+from core.db_preference import debe_usar_bd_remota
 from inventario.models import MovimientoInventario
 from usuarios.models import Stock
-from core.db_preference import debe_usar_bd_remota
 
 
 def revertir_stock_pedido(orden, usuario, motivo_prefijo="Cancelación", using=None):
