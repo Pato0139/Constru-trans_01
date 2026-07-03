@@ -1,0 +1,81 @@
+/* static/css/utilities.css */
+
+/* Visibilidad */
+.u-hidden { display: none !important; }
+
+/* Layout */
+.ui-flex-center {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.ui-flex-inline-center {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.ui-gap-2 { gap: .5rem !important; }
+.ui-gap-3 { gap: 1rem !important; }
+
+/* Superficies */
+.ui-card {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-xl) !important;
+    overflow: hidden !important;
+}
+
+.ui-card-soft {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--color-border) !important;
+}
+
+.ui-surface-pill {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 999px !important;
+}
+
+/* Botones */
+.ui-btn-primary {
+    background: var(--color-primary) !important;
+    color: #fff !important;
+    border: none !important;
+    text-decoration: none !important;
+}
+
+.ui-btn-accent {
+    background: var(--color-accent) !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.ui-btn-circle-42 {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Texto */
+.ui-text-accent { color: var(--color-accent) !important; }
+.ui-text-primary { color: var(--color-primary) !important; }
+.ui-text-muted-soft { color: var(--color-muted) !important; }
+
+/* Tipografía */
+.ui-badge-xs { font-size: 0.6rem !important; }
+.ui-badge-sm { font-size: 0.75rem !important; }
+
+/* Bordes/radios */
+.ui-radius-lg { border-radius: var(--radius-lg) !important; }
+.ui-radius-xl { border-radius: var(--radius-xl) !important; }
+
+/* Tamaños útiles */
+.ui-w-32 { width: 32px !important; }
+.ui-h-32 { height: 32px !important; }
+.ui-w-35 { width: 35px !important; }
+.ui-h-35 { height: 35px !important; }

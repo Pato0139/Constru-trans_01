@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% load humanize currency_tags %}
+{% load static %}
+
+{% block title %}Área de Cliente - Constru-trans{% endblock %}
+
+{% block header_title %}Mi Panel de Control{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/clientes/lista.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-content animate__animated animate__fadeIn clientes__dashboard-content">
+    
+    <!-- Tarjetas de Estadísticas (Alineadas y responsivas) -->
+    <div class="row g-4 mb-5">
+        <div class="col-12 col-md-3">
+            <div class="stat-card p-4 rounded-4 shadow-sm h-100 clientes__stat-card--accent">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-muted fw-bold m-0 text-uppercase small clientes__stat-label">Pedidos Activos</h6>
+                    <div class="p-2 rounded-circle clientes__stat-icon-wrapper--warning">
+                        <i class="bi bi-clock-history text-warning fs-4"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold mb-0 text-white">{{ pedidos_activos }}</h2>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <div class="stat-card p-4 rounded-4 shadow-sm h-100 clientes__stat-card--success">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-muted fw-bold m-0 text-uppercase small clientes__stat-label">Entregas Completadas</h6>
+                    <div class="p-2 rounded-circle clientes__stat-icon-wrapper--success">
+                        <i class="bi bi-check-circle text-success fs-4"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold mb-0 text-white">{{ entregas }}</h2>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <div class="stat-card p-4 rounded-4 shadow-sm h-100 clientes__stat-card--primary">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-muted fw-bold m-0 text-uppercase small clientes__stat-label">Total Invertido</h6>
+                    <div class="p-2 rounded-circle clientes__stat-icon-wrapper--primary">
+                        <i class="bi bi-cash-coin text-primary fs-4"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold mb-0 text-white">{{ total_gastado|currency }}</h2>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <div class="stat-card p-4 rounded-4 shadow-sm h-100 clientes__stat-card--info">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="text-muted fw-bold m-0 text-uppercase small clientes__stat-label">Pagos</h6>
+                    <div class="p-2 rounded-circle clientes__stat-icon-wrapper--info">
+                        <i class="bi bi-credit-card text-primary fs-4"></i>
+                    </div>
+                </div>
+                <h2 class="fw-bold mb-0 text-white">{{ total_pagos }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos y Acciones Rápidas (Grid Premium interactivo) -->
+    <h5 class="fw-bold mb-4 text-white px-1"><i class="bi bi-lightning-charge-fill text-warning me-2"></i> Acciones Rápidas</h5>
+    <div class="row g-4 mb-5">
+        <div class="col-12 col-md-3">
+            <a href="{% url 'clientes:crear_pedido' %}" class="text-decoration-none card-action-link">
+                <div class="p-4 rounded-4 action-card text-center d-flex flex-column align-items-center justify-content-center h-100 clientes__action-card--primary">
+                    <div class="action-icon-wrapper rounded-circle mb-3 d-flex align-items-center justify-content-center clientes__action-icon-wrapper--accent">
+                        <i class="bi bi-plus-lg fs-3"></i>
+                    </div>
+                    <h6 class="fw-bold text-white mb-2">Solicitar Nuevo Pedido</h6>
+                    <p class="text-muted small mb-0 px-2">Crea una solicitud de transporte de materiales de construcción en minutos.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <a href="{% url 'clientes:mis_pedidos' %}" class="text-decoration-none card-action-link">
+                <div class="p-4 rounded-4 action-card text-center d-flex flex-column align-items-center justify-content-center h-100 clientes__action-card--secondary">
+                    <div class="action-icon-wrapper rounded-circle mb-3 d-flex align-items-center justify-content-center bg-secondary text-white clientes__action-icon-wrapper--secondary">
+                        <i class="bi bi-journal-text fs-3"></i>
+                    </div>
+                    <h6 class="fw-bold text-white mb-2">Mis Pedidos</h6>
+                    <p class="text-muted small mb-0 px-2">Visualiza el historial completo de solicitudes, estados de entrega y facturas.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <a href="{% url 'clientes:mis_pagos' %}" class="text-decoration-none card-action-link">
+                <div class="p-4 rounded-4 action-card text-center d-flex flex-column align-items-center justify-content-center h-100 clientes__action-card--secondary">
+                    <div class="action-icon-wrapper rounded-circle mb-3 d-flex align-items-center justify-content-center bg-secondary text-white clientes__action-icon-wrapper--secondary">
+                        <i class="bi bi-credit-card fs-3"></i>
+                    </div>
+                    <h6 class="fw-bold text-white mb-2">Mis Pagos</h6>
+                    <p class="text-muted small mb-0 px-2">Revisa tu historial de pagos, estados y sube comprobantes.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <a href="{% url 'clientes:perfil_cliente' %}" class="text-decoration-none card-action-link">
+                <div class="p-4 rounded-4 action-card text-center d-flex flex-column align-items-center justify-content-center h-100 clientes__action-card--secondary">
+                    <div class="action-icon-wrapper rounded-circle mb-3 d-flex align-items-center justify-content-center bg-secondary text-white clientes__action-icon-wrapper--secondary">
+                        <i class="bi bi-person-badge fs-3"></i>
+                    </div>
+                    <h6 class="fw-bold text-white mb-2">Mi Perfil</h6>
+                    <p class="text-muted small mb-0 px-2">Administra tus datos personales, dirección de despacho e información de NIT.</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabla de Últimos Pedidos (Estructura impecable y responsiva) -->
+    <div class="table-container p-4 rounded-4 shadow-sm mb-4 clientes__table-container">
+        <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+            <h5 class="fw-bold m-0 text-white">Últimos Pedidos</h5>
+            <a href="{% url 'clientes:mis_pedidos' %}" class="small text-decoration-none fw-bold text-warning hover-glow">Ver historial completo <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle no-datatable mb-0 clientes__table">
+                <thead>
+                    <tr class="clientes__table-head-row">
+                        <th class="py-3 px-3 text-muted small text-uppercase fw-bold clientes__table-head-cell">ID Pedido</th>
+                        <th class="py-3 px-3 text-muted small text-uppercase fw-bold clientes__table-head-cell">Fecha</th>
+                        <th class="py-3 px-3 text-muted small text-uppercase fw-bold clientes__table-head-cell">Estado</th>
+                        <th class="py-3 px-3 text-muted small text-uppercase fw-bold clientes__table-head-cell">Total</th>
+                        <th class="py-3 px-3 text-muted small text-uppercase fw-bold text-center clientes__table-head-cell">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in ultimos_pedidos %}
+                    <tr class="clientes__table-body-row">
+                        <td class="py-3 px-3 fw-bold text-warning">#CT-{{ pedido.id }}</td>
+                        <td class="py-3 px-3 text-muted">{{ pedido.fecha_solicitud|date:"d M, Y" }}</td>
+                        <td class="py-3 px-3">
+                            {% if pedido.estado == "pendiente" %}
+                            <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Pendiente</span>
+                            {% elif pedido.estado == "en_ruta" %}
+                            <span class="badge bg-info-subtle text-info rounded-pill px-3">En ruta</span>
+                            {% elif pedido.estado == "entregado" %}
+                            <span class="badge bg-success-subtle text-success rounded-pill px-3">Entregado</span>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-muted rounded-pill px-3">{{ pedido.estado|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-3 fw-bold text-white">{{ pedido.total|currency }}</td>
+                        <td class="py-3 px-3 text-center">
+                            <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn btn-sm btn-outline-secondary border-0 text-white" title="Ver Detalles">
+                                <i class="bi bi-eye fs-5"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="py-4">
+                                <i class="bi bi-inbox text-muted mb-3 d-block clientes__empty-icon"></i>
+                                <p class="text-muted fw-medium mb-0">Aún no has realizado ningún pedido.</p>
+                                <small class="text-muted">Tus nuevas solicitudes de materiales aparecerán aquí automáticamente.</small>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -14,15 +14,15 @@ django.setup()
 from django.contrib.admin.models import LogEntry
 from django.db import connections, transaction
 
-from apps.clientes.models import Cliente
-from apps.compras.models import Compra, DetalleCompra
-from apps.facturacion.models import Factura
-from apps.historial.models import Historial
-from apps.inventario.models import MovimientoInventario
-from apps.ordenes.models import DetallePedido, Entrega, Pedido
-from apps.pagos.models import Pago
-from apps.reportes.models import HistorialReporte, Reporte
-from apps.usuarios.models import (
+from clientes.models import Cliente
+from compras.models import Compra, DetalleCompra
+from facturacion.models import Factura
+from historial.models import Historial
+from inventario.models import MovimientoInventario
+from ordenes.models import DetallePedido, Entrega, Pedido
+from pagos.models import Pago
+from reportes.models import HistorialReporte, Reporte
+from usuarios.models import (
     EPS,
     Catalogo,
     Conductor,

@@ -1,4 +1,6 @@
-
+/**
+ * Inicializa el widget de chat de IA
+ */
 document.addEventListener('DOMContentLoaded', function() {
   const toggleBtn = document.getElementById('chat-widget-toggle');
   const chatBox = document.getElementById('chat-widget-box');
@@ -46,10 +48,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  /**
+   * Genera un ID único de sesión
+   * @returns {string} ID de sesión
+   */
   function generateSessionId() {
     return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
+  /**
+   * Carga el historial de chat desde localStorage
+   */
   function loadChatHistory() {
     try {
       // Clear ALL chat-related localStorage items to fix old issues!
@@ -68,7 +77,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Clean text to remove stray trailing dashes from lines, but keep line structure
+  /**
+   * Limpia el texto eliminando guiones al final de las líneas
+   * @param {string} text - Texto a limpiar
+   * @returns {string} Texto limpio
+   */
   function cleanText(text) {
     return text.split('\n').map(line => {
       // Remove trailing dashes but keep the line
@@ -79,6 +92,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }).join('\n');
   }
 
+  /**
+   * Guarda el historial de chat en localStorage
+   */
   function saveChatHistory() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
@@ -87,6 +103,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  /**
+   * Limpia los mensajes antiguos cuando se supera el máximo
+   */
   function cleanOldMessages() {
     if (chatHistory.length > MAX_MESSAGES) {
       // Eliminar los mensajes más antiguos
@@ -99,6 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  /**
+   * Envía un mensaje al backend de IA
+   */
   function sendMessage() {
     const message = input.value.trim();
     if (!message) return;
@@ -124,7 +146,12 @@ document.addEventListener('DOMContentLoaded', function() {
         session_id: sessionId
       })
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Error en la respuesta del servidor');
+      }
+      return response.json();
+    })
     .then(data => {
       removeTypingIndicator();
       addMessage(data.respuesta, 'bot', data.message_id);
@@ -140,15 +167,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-
-
+  /**
+   * Muestra el indicador de "escribiendo"
+   */
   function showTypingIndicator() {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'chat-message bot';
     messageDiv.id = 'typing-indicator';
     messageDiv.innerHTML = `
       <div class="chat-message-avatar">
-        <img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo">
+        <img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo" loading="lazy">
       </div>
       <div class="chat-message-bubble">
         <span class="typing-dots">
@@ -163,6 +191,9 @@ document.addEventListener('DOMContentLoaded', function() {
     typingIndicator = messageDiv;
   }
 
+  /**
+   * Elimina el indicador de "escribiendo"
+   */
   function removeTypingIndicator() {
     if (typingIndicator) {
       typingIndicator.remove();
@@ -170,10 +201,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  /**
+   * Agrega un mensaje al chat
+   * @param {string} text - Texto del mensaje
+   * @param {string} sender - Remitente ('user' o 'bot')
+   * @param {string} [messageId=null] - ID del mensaje
+   */
   function addMessage(text, sender, messageId = null) {
     addMessageToDOM(text, sender, true, messageId);
   }
 
+  /**
+   * Agrega un mensaje al DOM
+   * @param {string} text - Texto del mensaje
+   * @param {string} sender - Remitente ('user' o 'bot')
+   * @param {boolean} [save=true] - Si debe guardarse en historial
+   * @param {string} [messageId=null] - ID del mensaje
+   */
   function addMessageToDOM(text, sender, save = true, messageId = null) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${sender}`;
@@ -188,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sender === 'bot') {
       messageDiv.innerHTML = `
         <div class="chat-message-avatar">
-          <img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo">
+          <img src="/static/img/Logo1.jpeg" alt="Logo Constru-Trans" class="chat-message-logo" loading="lazy">
         </div>
         <div class="chat-message-content">
           <div class="chat-message-bubble">${safeText}</div>
@@ -216,6 +260,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  /**
+   * Obtiene el valor de una cookie
+   * @param {string} name - Nombre de la cookie
+   * @returns {string|null} Valor de la cookie
+   */
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -231,6 +280,11 @@ document.addEventListener('DOMContentLoaded', function() {
     return cookieValue;
   }
 
+  /**
+   * Escapa HTML para prevenir XSS
+   * @param {string} text - Texto a escapar
+   * @returns {string} Texto seguro
+   */
   function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;

@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings.base")
 django.setup()
 
-from apps.usuarios.models import MetodoPago
+from usuarios.models import MetodoPago
 
 metodos_pago = [
     ("EFECTIVO", "Efectivo (Pago en persona)"),

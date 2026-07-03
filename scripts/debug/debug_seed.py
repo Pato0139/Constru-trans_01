@@ -10,9 +10,9 @@ django.setup()
 
 from django.contrib.auth.models import User
 
-from apps.clientes.models import Cliente
-from apps.ordenes.models import Pedido
-from apps.usuarios.models import EPS, Usuario
+from clientes.models import Cliente
+from ordenes.models import Pedido
+from usuarios.models import EPS, Usuario
 
 print("=== DEBUG: Creating data step by step ===")
 

@@ -212,10 +212,10 @@
 
         <div class="avatar-container">
             {% if user.usuario.foto_perfil %}
-                <img src="{{ user.usuario.foto_perfil.url }}" class="rounded-circle" width="40" height="40" alt="Avatar" style="object-fit: cover;">
+                <img src="{{ user.usuario.foto_perfil.url }}" class="rounded-circle navbar-avatar-img" width="40" height="40" alt="Avatar" loading="lazy">
             {% else %}
-                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" 
-                     style="width: 40px; height: 40px; background-color: {{ user.usuario.color_avatar }}; font-size: 1rem;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold navbar-avatar-default" 
+                     style="background-color: {{ user.usuario.color_avatar }};">
                     {{ user.usuario.iniciales }}
                 </div>
             {% endif %}
