@@ -15,31 +15,16 @@ from usuarios.views import admin_required
 
 @admin_required
 def materiales_lista(request):
-    query = request.GET.get("q")
-    tipo = request.GET.get("tipo")
-
-    materiales = Material.objects.all().select_related("stock_info", "catalogo")
-
-    if query:
-        materiales = materiales.filter(Q(nombre__icontains=query) | Q(descripcion__icontains=query))
-
-    if tipo:
-        materiales = materiales.filter(catalogo__codigo_catalogo=tipo)
+    query = request.GET.get("q", "")
+    tipo = request.GET.get("tipo", "")
 
     tipos = Catalogo.objects.all().order_by("nombre_empresa")
-
-    page = int(request.GET.get("page", 1))
-    per_page = 25
-    total = materiales.count()
-    materiales = materiales[(page - 1) * per_page : page * per_page]
+    total = Material.objects.count()
 
     context = {
-        "materiales": materiales,
         "query": query,
         "tipo_actual": tipo,
         "tipos": tipos,
-        "page": page,
-        "per_page": per_page,
         "total": total,
     }
 

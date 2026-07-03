@@ -6,6 +6,8 @@ class UsuariosConfig(AppConfig):
     name = "usuarios"
 
     def ready(self):
+        import usuarios.signals
+
         # Parche para asegurar que los LogEntry del admin se guarden
         # en la misma base de datos que el `request.user`, evitando
         # violaciones de FK cuando se usan múltiples DBs.

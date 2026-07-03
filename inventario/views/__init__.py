@@ -2,7 +2,7 @@
 Vistas de Inventario, separadas por dominio.
 """
 
-from .api_views import api_materiales
+from .api_views import api_materiales, api_materiales_listado
 from .catalogo_views import (
     crear_tipo_material,
     crear_unidad_medida,
@@ -43,4 +43,5 @@ __all__ = [
     "editar_unidad_medida",
     "eliminar_unidad_medida",
     "api_materiales",
+    "api_materiales_listado",
 ]

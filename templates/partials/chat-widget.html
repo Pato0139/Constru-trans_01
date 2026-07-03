@@ -11,7 +11,7 @@
     <div class="chat-widget-header">
       <div class="chat-widget-header-content">
         <div class="chat-widget-avatar">
-          <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo Constru-Trans" class="chat-widget-logo">
+          <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo Constru-Trans" class="chat-widget-logo" loading="lazy">
         </div>
         <div>
           <div class="chat-widget-title">Asistente Constru-Trans</div>
@@ -26,7 +26,7 @@
     <div id="chat-widget-messages" class="chat-widget-messages">
         <div class="chat-message bot" id="welcome-message">
             <div class="chat-message-avatar">
-                <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo Constru-Trans" class="chat-message-logo">
+                <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo Constru-Trans" class="chat-message-logo" loading="lazy">
             </div>
             <div class="chat-message-bubble">
                 {% if user.is_authenticated %}
