@@ -274,10 +274,11 @@ function calculatePasswordStrength(password) {
 function getStrengthText(strength) {
     if (strength === 0) return '';
     if (strength < 30) return { text: 'Muy débil', color: 'bg-danger' };
-    if (strength < 60) return { text: 'Débil', color: 'bg-warning' };
-    if (strength < 85) return { text: 'Media', color: 'bg-info' };
+    if (strength < 50) return { text: 'Débil', color: 'bg-warning' };
+    if (strength < 75) return { text: 'Aceptable', color: 'bg-info' };
     return { text: 'Segura', color: 'bg-success' };
 }
+
 
 // Event listener for password field
 const passwordInput = document.getElementById('id_contrasena');
