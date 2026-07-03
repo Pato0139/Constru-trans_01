@@ -178,6 +178,29 @@ def login_usuario(request):
             identifier = form.cleaned_data.get("username")
             password = form.cleaned_data.get("password")
 
+            # Primero, intentamos obtener el usuario para verificar si está bloqueado
+            user_obj = None
+            try:
+                user_obj = User.objects.get(username=identifier)
+            except User.DoesNotExist:
+                try:
+                    user_obj = User.objects.get(email=identifier)
+                except User.DoesNotExist:
+                    pass
+
+            # Verificamos si el usuario está bloqueado
+            if user_obj:
+                if user_obj.esta_bloqueado():
+                    tiempo_restante = user_obj.obtener_tiempo_restante_bloqueo()
+                    messages.error(
+                        request,
+                        f"Tu cuenta está bloqueada. Por favor, inténtalo de nuevo en {tiempo_restante}. "
+                        f"Si necesitas ayuda urgentemente, contacta a soporte."
+                    )
+                    context = {"form": form, "modo_local": modo_local}
+                    return render(request, "usuarios/login.html", context)
+
+            # Ahora intentamos autenticar
             user = authenticate(request, username=identifier, password=password)
 
             if user is None:
@@ -188,6 +211,9 @@ def login_usuario(request):
                     user = None
 
             if user is not None:
+                # Inicio de sesión exitoso: reiniciamos intentos
+                user.reiniciar_intentos()
+
                 if user.rol == "cliente":
                     from clientes.models import Cliente
 
@@ -249,7 +275,26 @@ def login_usuario(request):
                 else:
                     return redirect("usuarios:panel")
             else:
-                messages.error(request, "Usuario o contraseña incorrectos.")
+                # Inicio de sesión fallido: registramos intento
+                if user_obj:
+                    user_obj.registrar_intento_fallido()
+                    if user_obj.esta_bloqueado():
+                        tiempo_restante = user_obj.obtener_tiempo_restante_bloqueo()
+                        messages.error(
+                            request,
+                            f"Demasiados intentos fallidos. Tu cuenta está bloqueada por {tiempo_restante}."
+                        )
+                    else:
+                        intentos_restantes = 3 - user_obj.intentos_fallidos if user_obj.intentos_fallidos < 3 else 0
+                        if intentos_restantes > 0:
+                            messages.error(
+                                request,
+                                f"Usuario o contraseña incorrectos. Te quedan {intentos_restantes} intento(s)."
+                            )
+                        else:
+                            messages.error(request, "Usuario o contraseña incorrectos.")
+                else:
+                    messages.error(request, "Usuario o contraseña incorrectos.")
         else:
             for field, errors in form.errors.items():
                 for error in errors:

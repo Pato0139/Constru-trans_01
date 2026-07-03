@@ -22,4 +22,5 @@ urlpatterns = [
         "tipos/eliminar/<str:codigo>/", views.eliminar_tipo_material, name="eliminar_tipo_material"
     ),
     path("api/materiales/", views.api_materiales, name="api_materiales"),
+    path("api/materiales/listado/", views.api_materiales_listado, name="api_materiales_listado"),
 ]
