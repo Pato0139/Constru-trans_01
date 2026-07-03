@@ -1,11 +1,21 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.timezone import now
+import datetime
+
+def validar_fecha_no_pasada(value):
+    today = now().date()
+    if isinstance(value, datetime.datetime):
+        value = value.date()
+    if value and value < today:
+        raise ValidationError("La fecha no puede ser en el pasado.")
 
 numeric_and_space_validator = RegexValidator(
     regex=r"^[0-9\s]*$", message="Solo se admiten números y espacios.", code="invalid_numeric_space"
 )
+
 
 
 # =====================================================================
@@ -198,7 +208,7 @@ class Conductor(models.Model):
     )
     numero_licencia = models.CharField(max_length=50, unique=True)
     categoria_licencia = models.CharField(max_length=10)
-    fecha_vencimiento_licencia = models.DateField()
+    fecha_vencimiento_licencia = models.DateField(validators=[validar_fecha_no_pasada])
     telefono_empresarial = models.CharField(max_length=20, blank=True)
 
     ESTADO_CONDUCTOR = [("activo", "Activo"), ("inactivo", "Inactivo")]
@@ -416,7 +426,7 @@ class MaterialConstruccion(models.Model):
     precio_referencia = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(0), MaxValueValidator(9999999999.99)],
+        validators=[MinValueValidator(0.01), MaxValueValidator(9999999999.99)],
     )
     activo = models.BooleanField(default=True, help_text="Indica si el material está disponible para uso")
     sincronizado = models.BooleanField(default=False)
