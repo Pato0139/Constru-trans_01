@@ -44,6 +44,11 @@ class Usuario(AbstractUser):
     estado = models.CharField(max_length=15, choices=ESTADO_USUARIO, default="activo")
     foto_perfil = models.ImageField(upload_to="perfiles/", null=True, blank=True)
     sincronizado = models.BooleanField(default=False)
+    
+    # Bloqueo por intentos fallidos
+    intentos_fallidos = models.IntegerField(default=0, help_text="Número de intentos fallidos de inicio de sesión")
+    bloqueado_hasta = models.DateTimeField(null=True, blank=True, help_text="Fecha y hora hasta la que está bloqueado el usuario")
+    nivel_bloqueo = models.IntegerField(default=0, help_text="0: sin bloqueo, 1: 5 minutos, 2: 24 horas")
 
     class Meta:
         db_table = "usuario"
@@ -123,6 +128,46 @@ class Usuario(AbstractUser):
     @property
     def vehiculo_asignado(self):
         return self.vehiculo_actual
+
+    def esta_bloqueado(self):
+        """Verifica si el usuario está bloqueado actualmente."""
+        from django.utils import timezone
+        if self.bloqueado_hasta and timezone.now() < self.bloqueado_hasta:
+            return True
+        return False
+
+    def registrar_intento_fallido(self):
+        """Registra un intento fallido y bloquea el usuario si es necesario."""
+        from django.utils import timezone
+        self.intentos_fallidos += 1
+        if self.intentos_fallidos >= 3 and self.nivel_bloqueo < 1:
+            self.nivel_bloqueo = 1
+            self.bloqueado_hasta = timezone.now() + timezone.timedelta(minutes=5)
+        elif self.intentos_fallidos >= 6 and self.nivel_bloqueo < 2:
+            self.nivel_bloqueo = 2
+            self.bloqueado_hasta = timezone.now() + timezone.timedelta(days=1)
+        self.save()
+
+    def reiniciar_intentos(self):
+        """Reinicia los intentos fallidos después de un inicio de sesión exitoso."""
+        self.intentos_fallidos = 0
+        self.bloqueado_hasta = None
+        self.nivel_bloqueo = 0
+        self.save()
+
+    def obtener_tiempo_restante_bloqueo(self):
+        """Devuelve el tiempo restante de bloqueo en un formato legible."""
+        from django.utils import timezone
+        if not self.esta_bloqueado():
+            return None
+        tiempo_restante = self.bloqueado_hasta - timezone.now()
+        if tiempo_restante.days > 0:
+            return f"{tiempo_restante.days} día(s)"
+        horas, resto = divmod(tiempo_restante.seconds, 3600)
+        minutos, _ = divmod(resto, 60)
+        if horas > 0:
+            return f"{horas} hora(s) y {minutos} minuto(s)"
+        return f"{minutos} minuto(s)"
 
 
 # =====================================================================
@@ -373,6 +418,7 @@ class MaterialConstruccion(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0), MaxValueValidator(9999999999.99)],
     )
+    activo = models.BooleanField(default=True, help_text="Indica si el material está disponible para uso")
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
@@ -405,6 +451,36 @@ class MaterialConstruccion(models.Model):
     @property
     def tipo(self):
         return self.catalogo.nombre_empresa if self.catalogo else ""
+
+
+# =====================================================================
+# HISTORIAL PRECIO MATERIAL
+# =====================================================================
+class HistorialPrecioMaterial(models.Model):
+    material = models.ForeignKey(MaterialConstruccion, on_delete=models.CASCADE, related_name="historial_precios")
+    precio_anterior = models.DecimalField(max_digits=12, decimal_places=2)
+    precio_nuevo = models.DecimalField(max_digits=12, decimal_places=2)
+    fecha_cambio = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="cambios_precios")
+    observaciones = models.TextField(blank=True, help_text="Detalles o razones del cambio de precio")
+    mes = models.IntegerField(editable=False)
+    año = models.IntegerField(editable=False)
+
+    class Meta:
+        db_table = "historial_precio_material"
+        ordering = ["-fecha_cambio"]
+        verbose_name = "Historial de Precio"
+        verbose_name_plural = "Historial de Precios"
+
+    def __str__(self):
+        return f"{self.material.nombre} - {self.fecha_cambio.strftime('%d/%m/%Y')}"
+
+    def save(self, *args, **kwargs):
+        if not self.mes:
+            self.mes = self.fecha_cambio.month
+        if not self.año:
+            self.año = self.fecha_cambio.year
+        super().save(*args, **kwargs)
 
 
 # =====================================================================
