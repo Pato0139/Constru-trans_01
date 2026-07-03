@@ -29,8 +29,9 @@ def verificar_conexion_llm():
         client.models.list()
         return True
     except Exception:
-        logger.exception("No se pudo conectar al servidor LLM")
+        logger.warning("No se pudo conectar al servidor LLM local (Ollama no iniciado).")
         return False
+
 
 
 def construir_prompt_sistema(contexto, nombre_usuario):
@@ -151,7 +152,8 @@ def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
         )
         return (response.choices[0].message.content or "").strip() or None
     except Exception:
-        logger.exception("Error consultando servidor LLM, activando fallback local")
+        logger.warning("Servidor LLM local (Ollama) desconectado o inaccesible. Activando fallback local.")
         return responder_fallback(mensaje_real, contexto, nombre_usuario)
+
 
 
