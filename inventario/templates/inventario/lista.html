@@ -10,23 +10,25 @@
         <h2 class="fw-bold mb-0 text-white"><i class="bi bi-box-seam-fill text-accent me-2"></i>Catálogo de Materiales</h2>
         <div class="d-flex align-items-center gap-2 mt-1">
             <p class="text-white-50 small mb-0">Gestión de productos y precios base</p>
-            <span class="badge rounded-pill px-3" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: 1px solid rgba(59, 130, 246, 0.2);">{{ materiales|length }} registros</span>
+            <span id="materiales-count" class="badge rounded-pill px-3" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: 1px solid rgba(59, 130, 246, 0.2);">
+                {{ total }} registros
+            </span>
         </div>
     </div>
 
     <div class="w-100" style="max-width: 520px;">
         <div class="d-flex flex-column gap-2" data-aos="fade-left">
-            <form action="{% url 'inventario:materiales_lista' %}" method="GET" class="d-flex flex-column gap-2">
+            <form id="filtrosMaterialesForm" action="{% url 'inventario:materiales_lista' %}" method="GET" class="d-flex flex-column gap-2">
                 <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm" style="background: var(--card-bg); border-color: var(--color-border) !important;">
                     <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                         <i class="bi bi-search text-dark" style="font-size: 0.9rem;"></i>
                     </div>
-                    <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
+                    <input id="busquedaMateriales" type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
                            placeholder="Buscar en el catálogo..." value="{{ query|default:'' }}">
                 </div>
 
                 <div class="d-flex gap-2">
-                    <select name="tipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2" style="background: var(--card-bg); color: white; border-color: var(--color-border);" onchange="this.form.submit()">
+                    <select id="filtroTipoMaterial" name="tipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2" style="background: var(--card-bg); color: white; border-color: var(--color-border);">
                         <option value="">Todos los tipos</option>
                         {% for t in tipos %}
                             <option value="{{ t.codigo_catalogo }}" {% if tipo_actual == t.codigo_catalogo %}selected{% endif %}>{{ t.nombre_empresa }}</option>
@@ -49,9 +51,9 @@
 
 <div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);" data-aos="fade-up">
     <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02);">
+        <table id="tablaMateriales" class="table table-dark table-hover align-middle mb-0 no-datatable" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02);" data-api-url="{% url 'inventario:api_materiales_listado' %}">
             <thead>
-                <tr style="border-bottom: 2px solid var(--color-border);">
+                <tr class="clientes__table-head-row" style="border-bottom: 2px solid var(--color-border);">
                     <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 80px;">ID</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Material</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Tipo</th>
@@ -62,52 +64,14 @@
                 </tr>
             </thead>
             <tbody>
-                {% for m in materiales %}
-                <tr style="border-bottom: 1px solid var(--color-border);">
-                    <td class="py-3 px-4 text-center fw-bold">#{{ m.id }}</td>
-                    <td class="py-3 px-4">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark" style="width: 35px; height: 35px; font-size: 0.8rem;">
-                                {{ m.nombre|first }}
-                            </div>
-                            <span class="fw-medium">{{ m.nombre }}</span>
-                        </div>
-                    </td>
-                    <td class="py-3 px-4">
-                        <span class="badge bg-dark text-white-50 border border-white-10">{{ m.tipo }}</span>
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                        {{ m.unidad_medida|default:'-' }}
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                        {{ m.stock|default:0 }}
-                    </td>
-                    <td class="py-3 px-4 text-center fw-bold text-accent">
-                        {{ m.precio|currency }}
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                        <div class="d-flex justify-content-center gap-2">
-                            <a href="{% url 'inventario:editar_material' m.id %}" class="btn-action" title="Editar">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a href="{% url 'inventario:eliminar_material' m.id %}" class="btn-action btn-action--danger confirm-delete" title="Eliminar"
-                               data-title="¿Eliminar material?" data-text="¿Estás seguro de que deseas eliminar {{ m.nombre }}?">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
                 <tr>
-                    <td colspan="7" class="text-center py-5">
-                        <div class="py-5">
-                            <i class="bi bi-box-seam text-muted mb-3 d-block" style="font-size: 3rem;"></i>
-                            <p class="text-muted fw-medium mb-0">No se encontraron materiales en el catálogo.</p>
-                            <small class="text-muted">Los productos registrados aparecerán en esta lista.</small>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <div class="py-4">
+                            <div class="spinner-border spinner-border-sm text-warning mb-3" role="status"></div>
+                            <p class="mb-0">Cargando materiales...</p>
                         </div>
                     </td>
                 </tr>
-                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -125,4 +89,8 @@
         color: white;
     }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/inventario/materiales-ajax.js' %}"></script>
 {% endblock %}
