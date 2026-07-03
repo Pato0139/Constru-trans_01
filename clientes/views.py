@@ -247,16 +247,7 @@ def panel_cliente(request):
         "entregas": pedidos.filter(estado="entregado").count(),
         "total_gastado": pedidos.aggregate(total=Sum("total"))["total"] or 0,
         "total_pagos": pagos.count(),
-        "ultimos_pedidos": (
-            pedidos.only(
-                "codigo_pedido",
-                "estado",
-                "total",
-                "fecha_solicitud",
-                "direccion_destino",
-                "precio",
-            )[:5]
-        ),
+        "ultimos_pedidos": pedidos[:5],
     }
     return render(request, "clientes/lista.html", context)
 
