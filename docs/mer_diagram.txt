@@ -1,8 +1,9 @@
+# Diagrama Entidad-Relación (MER) - Actualizado
 
 ```mermaid
 erDiagram
     %% ==============================
-    %% ENTIDADES PRINCIPALES
+    %% ENTIDADES PRINCIPALES (Modelos Reales)
     %% ==============================
 
     %% Usuarios y Perfiles
@@ -13,24 +14,26 @@ erDiagram
         string email
         string nombres
         string apellidos
+        string telefono
         string documento
         string tipo_documento
         string rol
         string estado
         boolean sincronizado
+        blob foto_perfil
     }
 
-    Cliente {
+    ClienteVIP {
         int id PK
         int usuario_id FK
         string nombre_empresa
         string direccion_principal
-        string tipo_cliente
+        boolean es_vip
+        date fecha_vip
     }
 
     EPS {
-        int id PK
-        string codigo_eps
+        string codigo_eps PK
         string numero_seguro
         string ciudad
         string direccion
@@ -39,62 +42,85 @@ erDiagram
     }
 
     Conductor {
-        int id PK
-        int usuario_id FK
+        int usuario_id FK PK
         string numero_licencia
         string categoria_licencia
         date fecha_vencimiento_licencia
+        string telefono_empresarial
         string estado
-        int eps_id FK
+        date fecha_ingreso
+        string codigo_eps FK
     }
 
     %% Vehículos y Asignaciones
     Vehiculo {
-        int id PK
+        int id_vehiculo PK
         string placa
         string marca
         string modelo
         string tipo_vehiculo
-        float capacidad_carga
+        decimal capacidad_carga
         string estado
+        datetime fecha_registro
+        boolean sincronizado
     }
 
     ConductorVehiculo {
         int id PK
         int conductor_id FK
         int vehiculo_id FK
+        datetime fecha_asignacion
+        datetime fecha_fin
+    }
+
+    %% Catalogo y Unidades
+    Catalogo {
+        string codigo_catalogo PK
+        string nombre_empresa
+    }
+
+    UnidadMedida {
+        int id_unidad PK
+        string codigo
+        string nombre
+        string abreviatura
+        string descripcion
+        boolean activa
+        int orden
     }
 
     %% Inventario y Materiales
     Proveedor {
-        int id PK
-        string nit
+        int codigo_proveedor PK
         string nombre_empresa
+        string nit
         string telefono
         string correo
         string descripcion
+        boolean sincronizado
     }
 
     MaterialConstruccion {
-        int id PK
+        int cod_material PK
+        string codigo_catalogo FK
         string nombre
-        string unidad_medida
-        decimal precio
+        int id_unidad FK
         string descripcion
+        decimal precio_referencia
+        boolean sincronizado
     }
 
     Stock {
-        int id PK
-        int material_id FK
+        int cod_material FK PK
         int cantidad_actual
         int stock_minimo
         string ubicacion
+        datetime fecha_actualizacion
     }
 
     %% Ventas y Pedidos
     MetodoPago {
-        int id PK
-        string codigo_metodo_pago
+        string codigo_metodo_pago PK
         string metodo
     }
 
@@ -110,12 +136,13 @@ erDiagram
         string estado
         datetime fecha_solicitud
         datetime fecha_entrega_programada
+        boolean sincronizado
     }
 
     DetallePedido {
         int id PK
         int pedido_id FK
-        int material_id FK
+        int cod_material FK
         int cantidad
         decimal precio_unitario
     }
@@ -142,32 +169,35 @@ erDiagram
         decimal iva
         decimal total
         string estado
+        boolean sincronizado
     }
 
     Pago {
         int id_pago PK
-        int factura_id FK
+        int id_factura FK
         decimal monto
         datetime fecha
-        int codigo_metodo_pago_id FK
+        string codigo_metodo_pago FK
         string referencia
         int registrado_por_id FK
+        boolean sincronizado
     }
 
     %% Compras
     Compra {
         int id_compra PK
-        int proveedor_id FK
+        int codigo_proveedor FK
         datetime fecha_compra
         decimal total_compra
         string estado
         int usuario_id FK
+        boolean sincronizado
     }
 
     DetalleCompra {
         int id_detalle_compra PK
-        int compra_id FK
-        int material_id FK
+        int id_compra FK
+        int cod_material FK
         int cantidad
         decimal precio_unitario
     }
@@ -175,7 +205,7 @@ erDiagram
     %% Movimientos y Auditoría
     MovimientoInventario {
         int id PK
-        int material_id FK
+        int cod_material FK
         string tipo_movimiento
         int cantidad
         datetime fecha_movimiento
@@ -187,8 +217,10 @@ erDiagram
         int usuario_id FK
         string titulo
         string mensaje
+        string tipo
         boolean leida
         datetime fecha
+        string link
     }
 
     Historial {
@@ -201,26 +233,12 @@ erDiagram
         string ip
     }
 
-    %% Reportes
-    Reporte {
-        int id PK
-        string titulo
-        string tipo
-        datetime fecha_creacion
-    }
-
-    HistorialReporte {
-        int id PK
-        int reporte_id FK
-        datetime fecha_exportacion
-    }
-
     %% ==============================
-    %% RELACIONES
+    %% RELACIONES (Actualizadas)
     %% ==============================
 
     %% Relaciones de Usuario
-    Usuario ||--o| Cliente : "perfil_cliente"
+    Usuario ||--o| ClienteVIP : "perfil_cliente"
     Usuario ||--o| Conductor : "perfil_conductor"
     Usuario ||--o{ Notificacion : "notificaciones"
     Usuario ||--o{ Pedido : "pedidos"
@@ -233,8 +251,12 @@ erDiagram
     EPS ||--o{ Conductor : "conductores"
 
     %% Relaciones de Vehículos
-    Conductor ||--o{ ConductorVehiculo : "vehiculos_asignados"
-    Vehiculo ||--o{ ConductorVehiculo : "conductores_asignados"
+    Conductor ||--o{ ConductorVehiculo : "asignaciones_vehiculo"
+    Vehiculo ||--o{ ConductorVehiculo : "asignaciones_conductor"
+
+    %% Relaciones de Catalogo y Unidades
+    Catalogo ||--o{ MaterialConstruccion : "materiales"
+    UnidadMedida ||--o{ MaterialConstruccion : "materiales"
 
     %% Relaciones de Proveedores y Compras
     Proveedor ||--o{ Compra : "ventas"
@@ -249,8 +271,7 @@ erDiagram
     %% Relaciones de Pedidos
     Pedido ||--|{ DetallePedido : "detalles"
     Pedido ||--o| Factura : "factura"
-    Pedido ||--o| Entrega : "entrega"
-    Pedido ||--o{ Pago : "pagos"
+    Pedido ||--o{ Entrega : "entregas"
 
     %% Relaciones de Facturación y Pagos
     Factura ||--o{ Pago : "pagos"
@@ -259,8 +280,20 @@ erDiagram
     %% Relaciones de Entregas
     Conductor ||--o{ Entrega : "entregas"
     Vehiculo ||--o{ Entrega : "entregas"
-
-    %% Relaciones de Reportes
-    Reporte ||--o{ HistorialReporte : "exportaciones"
 ```
 
+---
+
+## Notas de Actualización vs MER Anterior
+
+| Elemento | Cambio |
+|----------|--------|
+| `Cliente` → `ClienteVIP` | Modelo real es ClienteVIP |
+| `EPS PK` | Es `codigo_eps` (string), no entero autoincremental |
+| `Vehiculo PK` | Es `id_vehiculo`, con alias `id` |
+| `Proveedor PK` | Es `codigo_proveedor` |
+| `MaterialConstruccion PK` | Es `cod_material`, con relación a `Catalogo` y `UnidadMedida` |
+| `Stock PK` | Es `material_id` (OneToOne con Material) |
+| `Pedido → Entrega` | Relación **OneToMany**, no OneToOne |
+| `Pago → Factura` | Pago depende de Factura, no directamente de Pedido |
+| `MetodoPago PK` | Es `codigo_metodo_pago` (string) |

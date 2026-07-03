@@ -1,3 +1,6 @@
+/**
+ * Módulo para manejar el loader de página y formularios
+ */
 document.addEventListener("DOMContentLoaded", function() {
     const loader = document.getElementById("loader-container");
     const body = document.body;
@@ -6,6 +9,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     body.style.overflow = "hidden";
 
+    /**
+     * Oculta el loader con animación
+     */
     function hideLoader() {
         if (!loader.classList.contains("fade-out")) {
 
@@ -17,7 +23,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
             setTimeout(() => {
                 loader.classList.add("fade-out");
-
                 body.style.overflow = "";
 
                 setTimeout(() => {
@@ -27,6 +32,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    // Ocultar loader cuando la página termine de cargar
     if (document.readyState === "complete") {
         setTimeout(hideLoader, 100);
     } else {
@@ -37,14 +43,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     setTimeout(hideLoader, 1500);
 
+    // Mostrar loader al enviar formularios válidos
     const forms = document.querySelectorAll("form");
     forms.forEach((form) => {
         form.addEventListener("submit", function() {
-
             if (form.checkValidity()) {
-
                 body.style.overflow = "hidden";
-
                 const progressBar = loader.querySelector(".progress-bar");
                 if (progressBar) {
                     progressBar.style.transition = "none";

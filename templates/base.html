@@ -33,6 +33,7 @@
 <!-- Custom CSS -->
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=3.4">
 <link rel="stylesheet" href="{% static 'css/base.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/utilities.css' %}?v=1.0">
 <link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=1.0">
 
 <script src="{% static 'js/user-preferences.js' %}?v=1.1"></script>
@@ -83,8 +84,10 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script src="{% static 'js/base.js' %}?v=1.0"></script>
+<script src="{% static 'js/core/http.js' %}?v=1.0"></script>
+<script src="{% static 'js/core/ajax-table.js' %}?v=1.0"></script>
 <script src="{% static 'js/partials/navbar.js' %}?v=1.0"></script>
-<script src="{% static 'js/partials/bd-mode-toggle.js' %}?v=1.0"></script>
+<script src="{% static 'js/partials/bd-mode-toggle.js' %}?v=1.0">
 
 {% block extra_js %}{% endblock %}
 
@@ -92,7 +95,7 @@
 {% include "partials/chat-widget.html" %}
 
 <!-- SVG Filters for Daltonism -->
-<svg style="display:none">
+<svg class="u-hidden">
   <defs>
     <filter id="protanopia-filter">
       <feColorMatrix type="matrix" values="0.567, 0.433, 0, 0, 0 0.558, 0.442, 0, 0, 0 0, 0.242, 0.758, 0, 0 0, 0, 0, 1, 0"/>

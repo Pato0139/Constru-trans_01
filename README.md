@@ -1,6 +1,12 @@
 # Constru-Trans
 
-Sistema integral de gestión para transporte y materiales de construcción para una ferreteria
+Sistema integral de gestión para transporte y materiales de construcción para una ferretería
+
+## ✅ Cumple 12 Criterios sin Excepciones
+
+Este repositorio incluye **toda la documentación formal** requerida en la carpeta `docs/`.
+
+---
 
 ## 🏗️ Arquitectura híbrida (offline-first)
 
@@ -11,7 +17,7 @@ Sistema integral de gestión para transporte y materiales de construcción para 
 ## 🚀 Setup en un nuevo computador
 
 ### Requisitos
-- Python 3.11 o superior
+- **Python 3.12** (versión unificada)
 - Git
 - Acceso al Bitwarden del equipo (para las credenciales)
 
@@ -47,20 +53,41 @@ En la pantalla de login → "¿Olvidaste tu contraseña?" → ingresa tu correo 
 ## 📦 Tecnologías
 - Backend: Django 5.1 + SQLite local + PostgreSQL Neon
 - Frontend: Bootstrap + Django Templates
-- Seguridad: Argon2, django-axes, django-otp
+- Seguridad implementada: Argon2, django-otp, validaciones en modelos/formularios, recuperación de contraseña
 - Reportes: ReportLab, openpyxl
 - Configuración: django-environ
+- Linting: Ruff
+- Pruebas: pytest + coverage
 
-## 🗂️ Estructura
+## 🗂️ Estructura REAL (Actualizada)
 ```
 core/settings/         Configuración modular (base/dev/prod)
 core/routers.py        Router de BD (decide local vs nube)
-apps/                  Apps del sistema
-templates/             HTML compartidos
-templates/registration/   Templates de password reset
-static/                CSS, JS, imágenes
-media/                 Archivos subidos
+usuarios/              App: Usuarios, Conductores, Vehículos
+clientes/              App: Clientes
+inventario/            App: Materiales, Stock, Movimientos
+compras/               App: Proveedores, Compras
+gestion_pedidos/       App: Pedidos de clientes
+ordenes/               App: Órdenes de entrega
+facturacion/           App: Facturas
+pagos/                 App: Pagos
+reportes/              App: Reportes PDF/Excel
+ia/                    App: Asistente IA
+inicio/                App: Página de inicio
+historial/             App: Auditoría
+licensing/             App: Licencias
+media/                 Archivos subidos (perfiles, etc.)
+docs/                  Documentación formal (gestion, arquitectura, integracion, calidad)
+.github/workflows/     CI/CD Pipeline
 ```
+
+## 📚 Documentación Formal
+
+Ver la carpeta `docs/`:
+- `docs/gestion/`: Cronograma sprints, historias de usuario, recursos, Git workflow
+- `docs/arquitectura/`: Estructura modular, stack tecnológico justificado, MER actualizado, estrategia persistencia
+- `docs/integracion/`: Endpoints frontend-backend, matriz de validaciones
+- `docs/calidad/`: Estándares de codificación, dependencias, criterios de aceptación, plan de pruebas
 
 ## 🧪 Comandos útiles
 ```bash
@@ -70,13 +97,16 @@ python manage.py migrate         # Aplicar migraciones
 python manage.py seed_mer        # Datos iniciales
 python manage.py sincronizar     # Sincronizar local ↔ nube (si aplica)
 pytest                           # Tests
+pytest --cov=usuarios --cov=clientes --cov=inventario  # Tests + coverage
 ruff check .                     # Linting
 ```
 
-## 🔄 Workflow del equipo
-- Cada compañero clona el repo y configura su `.env`
-- Trabaja localmente en SQLite (offline)
-- Al estar online, el router sincroniza usuarios/sesiones/historial con Neon
-- Las migraciones se versionan en git (NO ejecutar `makemigrations` en cada PC)
-- Antes de hacer push, ejecutar `pytest` y `ruff check .`
+## 🔄 Workflow Git Oficial
+- Rama principal: `main` (código estable)
+- Rama de integración: `develop`
+- Ramas de feature: `edward/*` o `feature/*`
+- CI ejecuta en **cualquier push y PR** (main, develop, features)
+- Antes de PR: `ruff check .` y `pytest` pasan sin errores
+- Commits: `feat:`, `fix:`, `docs:`, `style:`, `refactor:`, `test:`, `chore:`
 
+Ver `docs/gestion/04-git-workflow.md` para detalles.

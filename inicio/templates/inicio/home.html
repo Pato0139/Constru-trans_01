@@ -1,0 +1,213 @@
+
+{% extends "base_landing.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inicio/home.css' %}">
+{% endblock %}
+
+{% block content %}
+    <section id="inicio" class="hero-premium">
+        <div class="hero-bg-text">CONSTRU-TRANS</div>
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-7" data-aos="fade-right" data-aos-duration="1200">
+                    <div class="d-inline-flex align-items-center bg-white-10 rounded-pill px-3 py-2 mb-4 backdrop-blur shadow-sm">
+                        <span class="badge rounded-pill bg-primary me-2 inicio-badge-primary">CONSTRU-TRANS</span>
+                    </div>
+                    <h1 class="hero-title-premium">Gestión total de <br><span class="inicio-text-primary">construcción y transporte.</span></h1>
+                    <p class="fs-5 hero-subtitle-premium mb-5 inicio-subtitle">
+                        Constru-Trans es la plataforma integral que centraliza clientes, pedidos, inventario, transporte, facturación y reportes en una sola solución eficiente.
+                    </p>
+                    <div class="d-flex flex-wrap gap-4">
+                        <a href="{% url 'usuarios:registro' %}" class="btn-premium btn-premium-gold px-5">Comenzar Ahora</a>
+                        <a href="#modulos" class="btn-premium btn-premium-outline px-5">Ver Funcionalidades</a>
+                    </div>
+                </div>
+                <div class="col-lg-5 d-none d-lg-block" data-aos="zoom-in-left" data-aos-duration="1500">
+                    <div class="position-relative">
+                        <div class="hero-glow-sphere"></div>
+                        <img src="{% static 'img/Excavadora.png' %}" alt="Maquinaria" class="img-fluid float-anim inicio-hero-image">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-premium-box">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="100">
+                    <div class="stat-item-premium">
+                        <div class="stat-number-premium">99%</div>
+                        <div class="stat-label-premium">EFICIENCIA</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="200">
+                    <div class="stat-item-premium">
+                        <div class="stat-number-premium">1.7K</div>
+                        <div class="stat-label-premium">CLIENTES</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="300">
+                    <div class="stat-item-premium">
+                        <div class="stat-number-premium">125</div>
+                        <div class="stat-label-premium">VEHÍCULOS</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="400">
+                    <div class="stat-item-premium">
+                        <div class="stat-number-premium">.../7</div>
+                        <div class="stat-label-premium">SOPORTE</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Módulos Section -->
+    <section id="modulos" class="py-10 inicio-modules-section">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h4 class="text-primary fw-bold text-uppercase letter-spacing-2 mb-3 inicio-text-primary">NUESTROS MÓDULOS</h4>
+                <h2 class="display-4 text-white mb-4">Todas las herramientas que necesitas</h2>
+                <p class="fs-5 text-muted inicio-modules-text">En un solo lugar para tu comodidad y eficiencia</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="card-glass h-100 p-5">
+                        <div class="icon-box-premium mb-4"><i class="bi bi-people"></i></div>
+                        <h4 class="text-white mb-3">Clientes</h4>
+                        <p class="text-muted mb-0">Gestión completa de clientes con datos, historial de pedidos y preferencias personalizadas.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card-glass h-100 p-5">
+                        <div class="icon-box-premium mb-4"><i class="bi bi-box-seam"></i></div>
+                        <h4 class="text-white mb-3">Inventario</h4>
+                        <p class="text-muted mb-0">Control de materiales, stock, movimientos y reportes de disponibilidad en tiempo real.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="card-glass h-100 p-5">
+                        <div class="icon-box-premium mb-4"><i class="bi bi-cart-check"></i></div>
+                        <h4 class="text-white mb-3">Pedidos</h4>
+                        <p class="text-muted mb-0">Creación, seguimiento y gestión de pedidos de materiales y servicios de transporte.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
+                    <div class="card-glass h-100 p-5">
+                        <div class="icon-box-premium mb-4"><i class="bi bi-bag"></i></div>
+                        <h4 class="text-white mb-3">Compras</h4>
+                        <p class="text-muted mb-0">Gestión de proveedores y compras de materiales para mantener el inventario óptimo.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="500">
+                    <div class="card-glass h-100 p-5">
+                        <div class="icon-box-premium mb-4"><i class="bi bi-truck"></i></div>
+                        <h4 class="text-white mb-3">Transporte</h4>
+                        <p class="text-muted mb-0">Coordinación de vehículos, conductores y seguimiento de entregas en tiempo real.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="600">
+                    <div class="card-glass h-100 p-5">
+                        <div class="icon-box-premium mb-4"><i class="bi bi-receipt"></i></div>
+                        <h4 class="text-white mb-3">Facturación</h4>
+                        <p class="text-muted mb-0">Generación, gestión y seguimiento de facturas electrónicas y tradicionales.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="700">
+                    <div class="card-glass h-100 p-5">
+                        <div class="icon-box-premium mb-4"><i class="bi bi-cash-coin"></i></div>
+                        <h4 class="text-white mb-3">Pagos</h4>
+                        <p class="text-muted mb-0">Registro y seguimiento de pagos de clientes y a proveedores de forma organizada.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="800">
+                    <div class="card-glass h-100 p-5">
+                        <div class="icon-box-premium mb-4"><i class="bi bi-graph-up-arrow"></i></div>
+                        <h4 class="text-white mb-3">Reportes</h4>
+                        <p class="text-muted mb-0">Analíticas detalladas de rendimiento, ventas, inventario y operaciones generales.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="900">
+                    <div class="card-glass h-100 p-5">
+                        <div class="icon-box-premium mb-4"><i class="bi bi-clock-history"></i></div>
+                        <h4 class="text-white mb-3">Historial</h4>
+                        <p class="text-muted mb-0">Registro completo de todas las operaciones para auditoría y seguimiento.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Final Section -->
+    <section class="py-5">
+        <div class="container" data-aos="zoom-in">
+            <div class="p-5 p-lg-10 rounded-5 position-relative overflow-hidden inicio-cta-box">
+                <div class="position-relative z-1 text-center text-lg-start">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h2 class="display-5 fw-900 text-black mb-4">¿Listo para transformar tu negocio con un solo click?</h2>
+                            <p class="fs-5 text-black mb-5 mb-lg-0 opacity-75">Únete a Constru-Trans y lleva tu gestión al siguiente nivel.</p>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <a href="{% url 'usuarios:registro' %}" class="btn-premium btn-dark px-5 py-3 rounded-pill fw-bold text-white text-decoration-none shadow-lg">Registrarse Ahora</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="cta-decoration"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contacto" class="py-10 inicio-cta-section">
+        <div class="container">
+            <div class="card-glass p-0 overflow-hidden">
+                <div class="row g-0">
+                    <div class="col-lg-5 p-5 p-lg-10 bg-white-5">
+                        <h2 class="text-white mb-4">Contáctanos.</h2>
+                        <p class="text-muted mb-5">Estamos listos para ayudarte en tu próximo gran proyecto de construcción.</p>
+                        
+                        <div class="d-flex gap-4 mb-4 align-items-center">
+                            <div class="icon-box-premium m-0 inicio-contact-icon"><i class="bi bi-geo-alt"></i></div>
+                            <span class="text-white-50">Zona Industrial, Bogotá D.C, Colombia</span>
+                        </div>
+                        <div class="d-flex gap-4 mb-4 align-items-center">
+                            <div class="icon-box-premium m-0 inicio-contact-icon"><i class="bi bi-telephone"></i></div>
+                            <span class="text-white-50">+57 300 123 4567</span>
+                        </div>
+
+                        <div class="mt-5">
+                            <a href="https://wa.me/573001234567?text=%C2%A1Hola%21%20Estoy%20interesado%20en%20Constru-Trans.%20Me%20gustar%C3%ADa%20obtener%20m%C3%A1s%20informaci%C3%B3n." 
+                               class="btn text-white rounded-pill px-4 py-3 d-inline-flex align-items-center gap-2 shadow-lg border-0 inicio-whatsapp-btn"
+                               target="_blank" rel="noopener noreferrer">
+                                <i class="bi bi-whatsapp fs-5"></i>
+                                Escríbenos por WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-7 p-5 p-lg-10">
+                        <form action="#" class="row g-4">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control-premium" placeholder="Nombre Completo">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="email" class="form-control-premium" placeholder="Correo Electrónico">
+                            </div>
+                            <div class="col-12">
+                                <textarea class="form-control-premium" rows="5" placeholder="Cuéntenos qué necesita..."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn-premium btn-premium-gold w-100">Enviar Mensaje</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

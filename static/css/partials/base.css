@@ -1,0 +1,14 @@
+/**
+ * Estilos para elementos base y partials
+ * BEM Methodology
+ */
+
+.navbar-avatar-img {
+  object-fit: cover;
+}
+
+.navbar-avatar-default {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+}

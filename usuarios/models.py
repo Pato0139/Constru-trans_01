@@ -1,0 +1,561 @@
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.db import models
+from django.utils.timezone import now
+
+numeric_and_space_validator = RegexValidator(
+    regex=r"^[0-9\s]*$", message="Solo se admiten números y espacios.", code="invalid_numeric_space"
+)
+
+
+# =====================================================================
+# USUARIO
+# =====================================================================
+class Usuario(AbstractUser):
+    TIPOS_DOCUMENTO = [
+        ("CC", "Cédula de Ciudadanía"),
+        ("CE", "Cédula de Extranjería"),
+        ("PA", "Pasaporte"),
+        ("PEP", "Permiso Especial de Permanencia"),
+        ("PPT", "Permiso por Protección Temporal"),
+        ("NIT", "Número de Identificación Tributaria"),
+    ]
+    ESTADO_USUARIO = [
+        ("activo", "Activo"),
+        ("inactivo", "Inactivo"),
+        ("suspendido", "Suspendido"),
+    ]
+    ROLES = [
+        ("admin", "Admin"),
+        ("cliente", "Cliente"),
+        ("conductor", "Conductor"),
+        ("empleado", "Empleado"),
+    ]
+
+    nombres = models.CharField(max_length=200)
+    apellidos = models.CharField(max_length=200)
+    telefono = models.CharField(max_length=20, blank=True)
+    documento = models.CharField(max_length=20, validators=[numeric_and_space_validator])
+
+    rol = models.CharField(max_length=50, choices=ROLES)
+
+    # NO se toca
+    tipo_documento = models.CharField(max_length=5, choices=TIPOS_DOCUMENTO)
+    estado = models.CharField(max_length=15, choices=ESTADO_USUARIO, default="activo")
+    foto_perfil = models.ImageField(upload_to="perfiles/", null=True, blank=True)
+    sincronizado = models.BooleanField(default=False)
+    
+    # Bloqueo por intentos fallidos
+    intentos_fallidos = models.IntegerField(default=0, help_text="Número de intentos fallidos de inicio de sesión")
+    bloqueado_hasta = models.DateTimeField(null=True, blank=True, help_text="Fecha y hora hasta la que está bloqueado el usuario")
+    nivel_bloqueo = models.IntegerField(default=0, help_text="0: sin bloqueo, 1: 5 minutos, 2: 24 horas")
+
+    class Meta:
+        db_table = "usuario"
+
+    def __str__(self):
+        return f"{self.nombres} {self.apellidos} ({self.rol})"
+
+    @property
+    def contraseña(self):
+        return self.password
+
+    @property
+    def usuario(self):
+        return self
+
+    @property
+    def user(self):
+        return self
+
+    @property
+    def iniciales(self):
+        partes = self.nombres.split()
+        return "".join([p[0].upper() for p in partes[:2]]) or "?"
+
+    @property
+    def color_avatar(self):
+        colores = [
+            "#3B82F6",
+            "#EF4444",
+            "#10B981",
+            "#F59E0B",
+            "#8B5CF6",
+            "#EC4899",
+            "#06B6D4",
+            "#84CC16",
+            "#F97316",
+            "#6366F1",
+        ]
+        return colores[self.id % len(colores)] if self.id else colores[0]
+
+    @property
+    def es_admin(self):
+        return self.rol == "admin"
+
+    @property
+    def es_conductor(self):
+        return self.rol == "conductor"
+
+    @property
+    def es_cliente(self):
+        return self.rol == "cliente"
+
+    @property
+    def es_empleado(self):
+        return self.rol == "empleado"
+
+    @property
+    def conductor_profile(self):
+        try:
+            return self.perfil_conductor
+        except Conductor.DoesNotExist:
+            return None
+
+    @property
+    def nombre(self):
+        return self.nombres
+
+    @property
+    def vehiculo_actual(self):
+        if self.rol != "conductor":
+            return None
+        try:
+            return self.perfil_conductor.vehiculo_actual
+        except Conductor.DoesNotExist:
+            return None
+
+    @property
+    def vehiculo_asignado(self):
+        return self.vehiculo_actual
+
+    def esta_bloqueado(self):
+        """Verifica si el usuario está bloqueado actualmente."""
+        from django.utils import timezone
+        if self.bloqueado_hasta and timezone.now() < self.bloqueado_hasta:
+            return True
+        return False
+
+    def registrar_intento_fallido(self):
+        """Registra un intento fallido y bloquea el usuario si es necesario."""
+        from django.utils import timezone
+        self.intentos_fallidos += 1
+        if self.intentos_fallidos >= 3 and self.nivel_bloqueo < 1:
+            self.nivel_bloqueo = 1
+            self.bloqueado_hasta = timezone.now() + timezone.timedelta(minutes=5)
+        elif self.intentos_fallidos >= 6 and self.nivel_bloqueo < 2:
+            self.nivel_bloqueo = 2
+            self.bloqueado_hasta = timezone.now() + timezone.timedelta(days=1)
+        self.save()
+
+    def reiniciar_intentos(self):
+        """Reinicia los intentos fallidos después de un inicio de sesión exitoso."""
+        self.intentos_fallidos = 0
+        self.bloqueado_hasta = None
+        self.nivel_bloqueo = 0
+        self.save()
+
+    def obtener_tiempo_restante_bloqueo(self):
+        """Devuelve el tiempo restante de bloqueo en un formato legible."""
+        from django.utils import timezone
+        if not self.esta_bloqueado():
+            return None
+        tiempo_restante = self.bloqueado_hasta - timezone.now()
+        if tiempo_restante.days > 0:
+            return f"{tiempo_restante.days} día(s)"
+        horas, resto = divmod(tiempo_restante.seconds, 3600)
+        minutos, _ = divmod(resto, 60)
+        if horas > 0:
+            return f"{horas} hora(s) y {minutos} minuto(s)"
+        return f"{minutos} minuto(s)"
+
+
+# =====================================================================
+# EPS
+# =====================================================================
+class EPS(models.Model):
+    codigo_eps = models.CharField(max_length=20, primary_key=True)
+    numero_seguro = models.CharField(max_length=50)
+    ciudad = models.CharField(max_length=100)
+    direccion = models.CharField(max_length=200)
+    telefono = models.CharField(max_length=20)
+    correo = models.EmailField()
+
+    class Meta:
+        db_table = "eps"
+        verbose_name_plural = "EPS"
+
+    def __str__(self):
+        return f"EPS {self.codigo_eps}"
+
+
+# =====================================================================
+# CONDUCTOR
+# =====================================================================
+class Conductor(models.Model):
+    usuario = models.OneToOneField(
+        Usuario, on_delete=models.CASCADE, primary_key=True, related_name="perfil_conductor"
+    )
+    numero_licencia = models.CharField(max_length=50, unique=True)
+    categoria_licencia = models.CharField(max_length=10)
+    fecha_vencimiento_licencia = models.DateField()
+    telefono_empresarial = models.CharField(max_length=20, blank=True)
+
+    ESTADO_CONDUCTOR = [("activo", "Activo"), ("inactivo", "Inactivo")]
+    estado = models.CharField(max_length=15, choices=ESTADO_CONDUCTOR, default="activo")
+    fecha_ingreso = models.DateField(null=True, blank=True)
+    eps = models.ForeignKey(EPS, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        db_table = "conductor"
+
+    def __str__(self):
+        return f"Conductor: {self.usuario.nombres}"
+
+    @property
+    def asignacion_actual(self):
+        if hasattr(self, "asignaciones_activas"):
+            return self.asignaciones_activas[0] if self.asignaciones_activas else None
+        return (
+            self.asignaciones_vehiculo.filter(fecha_fin__isnull=True)
+            .select_related("vehiculo")
+            .order_by("-fecha_asignacion")
+            .first()
+        )
+
+    @property
+    def vehiculo_actual(self):
+        asignacion = self.asignacion_actual
+        return asignacion.vehiculo if asignacion else None
+
+    def asignar_vehiculo(self, vehiculo):
+        if vehiculo is None:
+            raise ValueError("El vehículo no puede ser None para la asignación.")
+
+        if self.vehiculo_actual and self.vehiculo_actual.id_vehiculo == vehiculo.id_vehiculo:
+            return self.vehiculo_actual
+
+        self.asignaciones_vehiculo.filter(fecha_fin__isnull=True).update(fecha_fin=now())
+        nueva_asignacion = ConductorVehiculo.objects.create(conductor=self, vehiculo=vehiculo)
+        return nueva_asignacion
+
+
+# =====================================================================
+# VEHICULO
+# =====================================================================
+class Vehiculo(models.Model):
+    id_vehiculo = models.AutoField(primary_key=True)
+    placa = models.CharField(max_length=10, unique=True)
+    marca = models.CharField(max_length=50)
+    modelo = models.CharField(max_length=50)
+    tipo_vehiculo = models.CharField(max_length=50)
+    capacidad_carga = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    ESTADOS_VEHICULO = [
+        ("disponible", "Disponible"),
+        ("en_ruta", "En Ruta"),
+        ("mantenimiento", "Mantenimiento"),
+        ("fuera_de_servicio", "Fuera de Servicio"),
+    ]
+    estado = models.CharField(max_length=20, choices=ESTADOS_VEHICULO, default="disponible")
+
+    sincronizado = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "vehiculo"
+
+    def __str__(self):
+        return f"{self.placa} ({self.marca} {self.modelo})"
+
+    @property
+    def id(self):
+        return self.id_vehiculo
+
+    @property
+    def tipo(self):
+        return self.tipo_vehiculo
+
+    @property
+    def capacidad(self):
+        return self.capacidad_carga
+
+    @property
+    def conductor_actual(self):
+        asignacion = (
+            self.asignaciones_conductor.filter(fecha_fin__isnull=True)
+            .select_related("conductor__usuario")
+            .order_by("-fecha_asignacion")
+            .first()
+        )
+        return asignacion.conductor.usuario if asignacion else None
+
+
+# =====================================================================
+# CONDUCTOR_VEHICULO
+# =====================================================================
+class ConductorVehiculo(models.Model):
+    conductor = models.ForeignKey(
+        Conductor, on_delete=models.CASCADE, related_name="asignaciones_vehiculo"
+    )
+    vehiculo = models.ForeignKey(
+        Vehiculo, on_delete=models.CASCADE, related_name="asignaciones_conductor"
+    )
+    fecha_asignacion = models.DateTimeField(auto_now_add=True)
+    fecha_fin = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "conductor_vehiculo"
+        unique_together = ("conductor", "vehiculo", "fecha_asignacion")
+        ordering = ["-fecha_asignacion"]
+
+    def __str__(self):
+        return f"{self.conductor} - {self.vehiculo.placa}"
+
+
+# =====================================================================
+# CATALOGO
+# =====================================================================
+class Catalogo(models.Model):
+    codigo_catalogo = models.CharField(max_length=20, primary_key=True)
+    nombre_empresa = models.CharField(max_length=150)
+
+    class Meta:
+        db_table = "catalogo"
+
+    def __str__(self):
+        return self.nombre_empresa
+
+
+# =====================================================================
+# PROVEEDOR
+# =====================================================================
+class Proveedor(models.Model):
+    codigo_proveedor = models.AutoField(primary_key=True)
+    nombre_empresa = models.CharField(max_length=150)
+    nit = models.CharField(max_length=20, unique=True, validators=[numeric_and_space_validator])
+    telefono = models.CharField(max_length=20, validators=[numeric_and_space_validator])
+    correo = models.EmailField()
+    descripcion = models.TextField(blank=True)
+    # NO se toca
+    sincronizado = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "proveedor"
+        verbose_name_plural = "Proveedores"
+
+    def __str__(self):
+        return f"{self.nombre_empresa} ({self.nit})"
+
+    @property
+    def id(self):
+        return self.codigo_proveedor
+
+    @property
+    def email(self):
+        return self.correo
+
+    @property
+    def contacto_nombre(self):
+        return self.nombre_empresa
+
+    @property
+    def categoria(self):
+        return "General"
+
+
+# =====================================================================
+# UNIDAD_MEDIDA
+# =====================================================================
+class UnidadMedida(models.Model):
+    """
+    Tabla de referencia para unidades de medida estandarizadas.
+    Garantiza consistencia en toda la aplicación.
+    """
+
+    id_unidad = models.AutoField(primary_key=True)
+    codigo = models.CharField(max_length=10, unique=True, db_index=True)
+    nombre = models.CharField(max_length=50, unique=True)
+    abreviatura = models.CharField(max_length=10)
+    descripcion = models.TextField(blank=True)
+
+    activa = models.BooleanField(default=True)
+    orden = models.PositiveIntegerField(default=0, help_text="Para ordenar en select")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "unidad_medida"
+        verbose_name = "Unidad de Medida"
+        verbose_name_plural = "Unidades de Medida"
+        ordering = ["orden", "nombre"]
+
+    def __str__(self):
+        return f"{self.nombre} ({self.abreviatura})"
+
+    @property
+    def id(self):
+        return self.id_unidad
+
+
+# =====================================================================
+# MATERIAL_CONSTRUCCION
+# =====================================================================
+class MaterialConstruccion(models.Model):
+    cod_material = models.AutoField(primary_key=True)
+    catalogo = models.ForeignKey(
+        Catalogo, on_delete=models.SET_NULL, null=True, blank=True, related_name="materiales"
+    )
+    nombre = models.CharField(max_length=100)
+    unidad_medida = models.ForeignKey(
+        UnidadMedida,
+        on_delete=models.PROTECT,
+        related_name="materiales",
+        help_text="Seleccione una unidad de medida estándar",
+    )
+    descripcion = models.TextField()
+    precio_referencia = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0), MaxValueValidator(9999999999.99)],
+    )
+    activo = models.BooleanField(default=True, help_text="Indica si el material está disponible para uso")
+    sincronizado = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "material_construccion"
+        verbose_name = "Material de Construcción"
+        verbose_name_plural = "Materiales de Construcción"
+
+    def __str__(self):
+        return self.nombre
+
+    @property
+    def id(self):
+        return self.cod_material
+
+    @property
+    def stock(self):
+        try:
+            return self.stock_info.cantidad_actual
+        except Stock.DoesNotExist:
+            return 0
+
+    @property
+    def precio(self):
+        return self.precio_referencia
+
+    @precio.setter
+    def precio(self, value):
+        self.precio_referencia = value
+
+    @property
+    def tipo(self):
+        return self.catalogo.nombre_empresa if self.catalogo else ""
+
+
+# =====================================================================
+# HISTORIAL PRECIO MATERIAL
+# =====================================================================
+class HistorialPrecioMaterial(models.Model):
+    material = models.ForeignKey(MaterialConstruccion, on_delete=models.CASCADE, related_name="historial_precios")
+    precio_anterior = models.DecimalField(max_digits=12, decimal_places=2)
+    precio_nuevo = models.DecimalField(max_digits=12, decimal_places=2)
+    fecha_cambio = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="cambios_precios")
+    observaciones = models.TextField(blank=True, help_text="Detalles o razones del cambio de precio")
+    mes = models.IntegerField(editable=False)
+    año = models.IntegerField(editable=False)
+
+    class Meta:
+        db_table = "historial_precio_material"
+        ordering = ["-fecha_cambio"]
+        verbose_name = "Historial de Precio"
+        verbose_name_plural = "Historial de Precios"
+
+    def __str__(self):
+        return f"{self.material.nombre} - {self.fecha_cambio.strftime('%d/%m/%Y')}"
+
+    def save(self, *args, **kwargs):
+        if not self.mes:
+            self.mes = self.fecha_cambio.month
+        if not self.año:
+            self.año = self.fecha_cambio.year
+        super().save(*args, **kwargs)
+
+
+# =====================================================================
+# STOCK
+# =====================================================================
+class Stock(models.Model):
+    material = models.OneToOneField(
+        MaterialConstruccion, on_delete=models.CASCADE, primary_key=True, related_name="stock_info"
+    )
+    cantidad_actual = models.IntegerField(
+        default=0, validators=[MinValueValidator(0), MaxValueValidator(100000)]
+    )
+    stock_minimo = models.IntegerField(default=10, validators=[MinValueValidator(0)])
+    ubicacion = models.CharField(max_length=120, blank=True, default="")
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "stock"
+
+    def __str__(self):
+        return f"Stock {self.material.nombre}: {self.cantidad_actual}"
+
+    @property
+    def id(self):
+        return self.material.cod_material
+
+    @property
+    def cantidad(self):
+        return self.cantidad_actual
+
+    @property
+    def ultima_actualizacion(self):
+        return self.fecha_actualizacion
+
+
+# =====================================================================
+# METODO_PAGO
+# =====================================================================
+class MetodoPago(models.Model):
+    codigo_metodo_pago = models.CharField(max_length=20, primary_key=True)
+    metodo = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        db_table = "metodo_pago"
+        verbose_name = "Método de Pago"
+        verbose_name_plural = "Métodos de Pago"
+
+    def __str__(self):
+        return self.metodo
+
+
+# =====================================================================
+# NOTIFICACION - No tocar
+# =====================================================================
+class Notificacion(models.Model):
+    TIPOS = [
+        ("info", "Información"),
+        ("success", "Éxito"),
+        ("warning", "Advertencia"),
+        ("danger", "Error"),
+    ]
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="notificaciones")
+    titulo = models.CharField(max_length=100, default="Nueva notificación")
+    mensaje = models.TextField()
+    tipo = models.CharField(max_length=10, choices=TIPOS, default="info")
+    leida = models.BooleanField(default=False)
+    fecha = models.DateTimeField(auto_now_add=True)
+    link = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        ordering = ["-fecha"]
+        db_table = "notificacion"
+
+    def __str__(self):
+        return f"Notif {self.usuario}: {self.mensaje[:20]}..."
+
+
+Material = MaterialConstruccion

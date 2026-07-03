@@ -1,10 +1,13 @@
-
+/**
+ * Manejador de confirmación para cambio de modo de base de datos
+ */
 document.addEventListener('click', (event) => {
     const trigger = event.target.closest('.js-confirm-db-switch');
     if (!trigger) return;
 
     event.preventDefault();
 
+    // Mostrar confirmación antes de cambiar de base de datos
     Swal.fire({
         title: '¿Cambiar de Base de Datos?',
         text: 'Al hacer esto cerrarás sesión y deberás volver a iniciar sesión. ¿Deseas continuar?',

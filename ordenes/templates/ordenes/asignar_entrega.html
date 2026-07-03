@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Asignar Entrega - ConstruTrans{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="table-container p-4 p-md-5 border-0 shadow-lg" style="background: var(--card-bg); border-radius: var(--radius-xl);">
+            <div class="text-center mb-5">
+                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 70px; height: 70px;">
+                    <i class="bi bi-truck text-dark fs-2"></i>
+                </div>
+                <h2 class="fw-900 text-white mb-1">Asignar Entrega</h2>
+                <p class="text-muted small text-uppercase fw-700" style="letter-spacing: 2px;">
+                    Pedido #{{ orden.codigo_pedido }}
+                </p>
+            </div>
+
+            <div class="alert alert-info small mb-4 d-flex align-items-center gap-2" style="background: rgba(13, 202, 240, 0.08); border: 1px solid rgba(13, 202, 240, 0.15); color: #6edff6;">
+                <i class="bi bi-info-circle fs-5"></i>
+                <span>Asignando conductor y vehículo para el pedido <strong>#{{ orden.codigo_pedido }}</strong></span>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-danger small mb-4 d-flex align-items-center gap-2" style="background: rgba(220, 53, 69, 0.08); border: 1px solid rgba(220, 53, 69, 0.15); color: #ea868f;">
+                <i class="bi bi-exclamation-triangle fs-5"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            {% if conductores %}
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">
+                        <i class="bi bi-person-badge me-2"></i>
+                        Conductor y Vehículo
+                    </label>
+                    <select name="conductor" class="form-select" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: white; border-radius: var(--radius-lg); padding: 0.875rem 1.25rem;" required>
+                        <option value="" style="background: #1a1a1a;">Seleccione un conductor</option>
+                        {% for c in conductores %}
+                        <option value="{{ c.id }}" style="background: #1a1a1a;">
+                            {{ c.nombres }} {{ c.apellidos }} &nbsp;|&nbsp; 🚗 {{ c.vehiculo_actual.placa }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text text-white-50 small mt-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-info-circle"></i>
+                        <span>El vehículo se asigna automáticamente según el conductor seleccionado.</span>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-3 mt-5">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">
+                        <i class="bi bi-truck me-2"></i> Confirmar y Enviar
+                    </button>
+                    <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="btn btn-outline-light rounded-pill py-2 opacity-75 hover-opacity-100">
+                        <i class="bi bi-arrow-left me-2"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+            {% else %}
+            <div class="alert alert-warning py-3 d-flex align-items-start gap-2" style="background: rgba(255, 193, 7, 0.08); border: 1px solid rgba(255, 193, 7, 0.15); color: #ffc107;">
+                <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                <div>
+                    <strong>No hay conductores disponibles</strong>
+                    <div class="small mt-1">Primero asigna vehículos a los conductores desde la gestión de conductores.</div>
+                </div>
+            </div>
+            <div class="text-center mt-5">
+                <a href="{% url 'usuarios:lista_conductores' %}" class="btn btn-outline-light rounded-pill px-4 py-2">
+                    <i class="bi bi-people me-2"></i> Ir a gestión de conductores
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.fw-900 { font-weight: 900; }
+.fw-800 { font-weight: 800; }
+.btn-gold {
+    background: var(--color-accent);
+    color: #000;
+    border: none;
+    transition: all 0.3s ease;
+}
+.btn-gold:hover {
+    background: #d68910;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(243, 156, 18, 0.3);
+}
+</style>
+
+{% endblock %}

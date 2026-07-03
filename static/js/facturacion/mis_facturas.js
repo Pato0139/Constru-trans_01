@@ -1,3 +1,6 @@
+/**
+ * Inicializa los eventos de la página de mis facturas
+ */
 document.addEventListener('DOMContentLoaded', function() {
     // Botones ver historial
     document.querySelectorAll('.btn-ver-historial-mis-facturas').forEach(btn => {
@@ -24,6 +27,12 @@ document.addEventListener('DOMContentLoaded', function() {
         formPago.addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
+            const submitBtn = formPago.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Estado de carga
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
             
             fetch(this.action, {
                 method: 'POST',
@@ -33,7 +42,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': formData.get('csrfmiddlewaretoken')
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.status === 'ok') {
                     Swal.fire({
@@ -53,6 +67,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         color: '#fff'
                     });
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'No se pudo registrar el pago. Inténtalo de nuevo.',
+                    background: '#1a1a1a', 
+                    color: '#fff',
+                    confirmButtonColor: '#f39c12'
+                });
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             });
         });
     }
@@ -60,6 +89,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 let pagosData = {};
 
+/**
+ * Formatea un valor numérico como moneda
+ * @param {number|string} value - Valor a formatear
+ * @returns {string} Valor formateado con separadores de miles
+ */
 function formatCurrency(value) {
     let val = parseFloat(value);
     let rounded = Math.round(val);
@@ -72,6 +106,11 @@ function formatCurrency(value) {
     return parts.join('.');
 }
 
+/**
+ * Muestra el historial de pagos de una factura
+ * @param {string} numero - Número de factura
+ * @param {number|string} id - ID de la factura
+ */
 function verHistorial(numero, id) {
     document.getElementById('historialFacturaNum').innerText = numero;
     const lista = document.getElementById('listaPagos');
@@ -97,6 +136,12 @@ function verHistorial(numero, id) {
     new bootstrap.Modal(document.getElementById('modalHistorial')).show();
 }
 
+/**
+ * Abre el modal de pago con los datos de la factura
+ * @param {number|string} id - ID de la factura
+ * @param {string} numero - Número de factura
+ * @param {number|string} total - Monto total de la factura
+ */
 function abrirModalPago(id, numero, total) {
     document.getElementById('modalFacturaId').value = id;
     document.getElementById('modalFacturaNum').innerText = numero;

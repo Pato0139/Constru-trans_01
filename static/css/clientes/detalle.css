@@ -1,0 +1,116 @@
+/**
+ * Estilos para el módulo de clientes - detalle
+ * BEM Methodology
+ */
+
+.fw-900 { 
+    font-weight: 900; 
+}
+
+.fw-800 { 
+    font-weight: 800; 
+}
+
+.fw-700 { 
+    font-weight: 700; 
+}
+
+.fw-600 { 
+    font-weight: 600; 
+}
+
+.text-accent { 
+    color: var(--color-accent) !important; 
+}
+
+.btn-outline-accent {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.btn-outline-accent:hover {
+    background-color: var(--color-accent);
+    color: #000;
+}
+
+.space-y-4 > * + * { 
+    margin-top: 1.5rem; 
+}
+
+.space-y-3 > * + * { 
+    margin-top: 1rem; 
+}
+
+.cliente__table-container {
+    background: var(--card-bg);
+}
+
+.cliente__profile-img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+
+.cliente__profile-avatar {
+    width: 120px;
+    height: 120px;
+    background: var(--color-accent);
+    color: #000;
+    font-size: 2.5rem;
+    border: 4px solid var(--color-surface);
+}
+
+.cliente__status-dot {
+    width: 20px;
+    height: 20px;
+}
+
+.cliente__badge-tipo--cliente {
+    background: rgba(202, 160, 48, 0.05);
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent);
+}
+
+.cliente__info-card {
+    background: var(--item-bg);
+    border: 1px solid var(--color-border);
+}
+
+.cliente__info-text {
+    font-size: 0.9rem;
+}
+
+.cliente__summary-card {
+    background: var(--item-bg);
+    border: 1px dashed var(--color-accent);
+}
+
+.cliente__summary-amount {
+    letter-spacing: 1px;
+}
+
+.cliente__summary-label {
+    letter-spacing: 1px;
+}
+
+.cliente__badge-tipo--al-dia {
+    background: rgba(34, 197, 94, 0.05);
+    color: #22c55e;
+    border: 1px solid #22c55e;
+    padding: 4px 12px;
+    font-size: 0.7rem;
+}
+
+.cliente__stat-card--pendiente {
+    border-left: 4px solid #f59e0b !important;
+    background: var(--item-bg);
+}
+
+.cliente__stat-card--en-ruta {
+    border-left: 4px solid #3b82f6 !important;
+    background: var(--item-bg);
+}
+
+.cliente__stat-label {
+    letter-spacing: 1px;
+}

@@ -9,7 +9,7 @@ django.setup()
 from django.test import Client
 from django.urls import reverse
 
-from apps.usuarios.models import Conductor, ConductorVehiculo, Usuario, Vehiculo
+from usuarios.models import Conductor, ConductorVehiculo, Usuario, Vehiculo
 
 Usuario.objects.filter(username__in=["admin@test.com", "cond@test.com"]).delete()
 Vehiculo.objects.filter(placa__in=["ABC123", "DEF456"]).delete()

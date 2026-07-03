@@ -31,6 +31,11 @@ env = environ.Env(
     AXES_FAILURE_LIMIT=(int, 5),
     AXES_COOLOFF_TIME=(int, 1),
     USE_S3=(bool, False),
+    LICENSE_REQUIRED=(bool, False),
+    LICENSE_SERVER_URL=(str, ""),
+    LICENSE_PUBLIC_KEY=(str, ""),
+    LICENSE_HEARTBEAT_MINUTES=(int, 360),
+    LICENSE_MAX_AGE_DAYS=(int, 30),
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
@@ -78,20 +83,21 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "apps.usuarios",
-    "apps.clientes",
-    "apps.inventario",
-    "apps.compras",
-    "apps.ordenes",
-    "apps.gestion_pedidos",
-    "apps.facturacion",
-    "apps.pagos",
-    "apps.reportes",
-    "apps.inicio",
-    "apps.historial",
-    "apps.transporte",
-    "apps.licensing",
-    "apps.ia",
+    "usuarios",
+    "clientes",
+    "inventario",
+    "compras",
+    "ordenes",
+    "gestion_pedidos",
+    "facturacion",
+    "pagos",
+    "reportes",
+    "inicio",
+    "historial",
+    "transporte",
+    "licensing",
+    "ia",
+    "ayuda",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -114,7 +120,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
-    "apps.licensing.middleware.LicenseEnforcementMiddleware",
+    "licensing.middleware.LicenseEnforcementMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -134,8 +140,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "apps.usuarios.context_processors.notificaciones_context",
-                "apps.usuarios.context_processors.modo_context",
+                "usuarios.context_processors.notificaciones_context",
+                "usuarios.context_processors.modo_context",
             ],
         },
     },
@@ -301,6 +307,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ============================================================
 
 (BASE_DIR / "logs").mkdir(exist_ok=True)
+(BASE_DIR / "media").mkdir(exist_ok=True)
 (STATIC_ROOT).mkdir(exist_ok=True)
 
 LOGGING = {
@@ -341,3 +348,13 @@ RECAPTCHA_PRIVATE_KEY = env(
     "RECAPTCHA_PRIVATE_KEY", default="6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
 )
 SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]
+
+# ============================================================
+# LICENCIAMIENTO
+# ============================================================
+
+LICENSE_REQUIRED = env("LICENSE_REQUIRED")
+LICENSE_SERVER_URL = env("LICENSE_SERVER_URL")
+LICENSE_PUBLIC_KEY = env("LICENSE_PUBLIC_KEY")
+LICENSE_HEARTBEAT_MINUTES = env("LICENSE_HEARTBEAT_MINUTES")
+LICENSE_MAX_AGE_DAYS = env("LICENSE_MAX_AGE_DAYS")

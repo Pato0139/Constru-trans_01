@@ -1,5 +1,8 @@
-
+/**
+ * Manejador de eventos del navbar para cambiar temas y filtros de daltonismo
+ */
 document.addEventListener('click', (event) => {
+    // Manejar cambio de tema
     const themeLink = event.target.closest('.theme-option');
     if (themeLink) {
         event.preventDefault();
@@ -8,6 +11,7 @@ document.addEventListener('click', (event) => {
         return;
     }
 
+    // Manejar cambio de filtro de daltonismo
     const daltonismLink = event.target.closest('.daltonism-option');
     if (daltonismLink) {
         event.preventDefault();

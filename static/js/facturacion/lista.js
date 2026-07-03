@@ -1,3 +1,6 @@
+/**
+ * Inicializa los eventos de la página de facturación
+ */
 document.addEventListener('DOMContentLoaded', function() {
     // Botones ver historial
     document.querySelectorAll('.btn-ver-historial').forEach(btn => {
@@ -54,6 +57,12 @@ document.addEventListener('DOMContentLoaded', function() {
         formPago.addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
+            const submitBtn = formPago.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Estado de carga
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
             
             fetch(this.action, {
                 method: 'POST',
@@ -63,7 +72,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': formData.get('csrfmiddlewaretoken')
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.status === 'ok') {
                     Swal.fire({
@@ -92,11 +106,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error de conexión',
-                    text: 'No se pudo registrar el pago',
+                    text: 'No se pudo registrar el pago. Inténtalo de nuevo.',
                     confirmButtonColor: '#f59e0b',
                     background: '#161a22',
                     color: '#fff'
                 });
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             });
         });
     }
@@ -107,7 +125,13 @@ document.addEventListener('DOMContentLoaded', function() {
         formEditar.addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(this);
-
+            const submitBtn = formEditar.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Estado de carga
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+            
             fetch(this.action, {
                 method: 'POST',
                 body: formData,
@@ -115,7 +139,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRFToken': formData.get('csrfmiddlewaretoken')
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.status === 'ok') {
                     Swal.fire({
@@ -128,11 +157,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     Swal.fire('Error', data.error, 'error');
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo actualizar el monto. Inténtalo de nuevo.',
+                    confirmButtonColor: '#f59e0b',
+                    background: '#161a22',
+                    color: '#fff'
+                });
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             });
         });
     }
 });
 
+/**
+ * Formatea un valor numérico como moneda
+ * @param {number|string} value - Valor a formatear
+ * @returns {string} Valor formateado con separadores de miles
+ */
 function formatCurrency(value) {
     let val = parseFloat(value);
     let rounded = Math.round(val);
@@ -145,6 +194,12 @@ function formatCurrency(value) {
     return parts.join('.');
 }
 
+/**
+ * Abre el modal de pago con los datos de la factura
+ * @param {number|string} id - ID de la factura
+ * @param {string} numero - Número de factura
+ * @param {number|string} saldo - Saldo pendiente
+ */
 function abrirModalPago(id, numero, saldo) {
     document.getElementById('modalFacturaId').value = id;
     document.getElementById('modalFacturaNum').innerText = numero;
@@ -160,6 +215,12 @@ function abrirModalPago(id, numero, saldo) {
     modal.show();
 }
 
+/**
+ * Abre el modal de edición de monto
+ * @param {number|string} id - ID de la factura
+ * @param {string} numero - Número de factura
+ * @param {number|string} total - Monto total de la factura
+ */
 function abrirModalEditar(id, numero, total) {
     document.getElementById('modalEditarId').value = id;
     document.getElementById('modalEditarNum').innerText = numero;
@@ -177,6 +238,11 @@ function abrirModalEditar(id, numero, total) {
     modal.show();
 }
 
+/**
+ * Anula una factura después de confirmación
+ * @param {number|string} id - ID de la factura
+ * @param {string} numero - Número de factura
+ */
 function anularFactura(id, numero) {
     Swal.fire({
         title: '¿Anular Factura?',
@@ -197,7 +263,12 @@ function anularFactura(id, numero) {
                     'X-CSRFToken': csrfToken
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.status === 'ok') {
                     Swal.fire({
@@ -210,11 +281,27 @@ function anularFactura(id, numero) {
                 } else {
                     Swal.fire('Error', data.error, 'error');
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo anular la factura. Inténtalo de nuevo.',
+                    confirmButtonColor: '#f59e0b',
+                    background: '#161a22',
+                    color: '#fff'
+                });
             });
         }
     });
 }
 
+/**
+ * Redirige a la página de historial de pagos
+ * @param {string} numero - Número de factura
+ * @param {number|string} id - ID de la factura
+ */
 function verHistorial(numero, id) {
     window.location.href = "/pagos/?q=" + numero;
 }

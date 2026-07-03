@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Guías de Edición - ConstruTrans{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ayuda/ayuda.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ayuda-container">
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <div class="ayuda-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0 text-white">
+                        <i class="bi bi-book text-primary me-2"></i> 
+                        {% if categoria_actual %}Guías de {{ categoria_actual.nombre }}{% else %}Todas las Guías{% endif %}
+                    </h5>
+                    <a href="{% url 'ayuda:index' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <div class="ayuda-card">
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{% url 'ayuda:lista_guias' %}" class="btn {% if not categoria_actual %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill px-4">
+                        Todas
+                    </a>
+                    {% for categoria in categorias %}
+                    <a href="{% url 'ayuda:lista_guias_categoria' categoria.id %}" class="btn {% if categoria_actual and categoria_actual.id == categoria.id %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill px-4">
+                        {{ categoria.nombre }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Guías -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <div class="ayuda-card">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 no-datatable table-dark">
+                        <thead>
+                            <tr class="border-bottom border-secondary">
+                                <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Título</th>
+                                <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Categoría</th>
+                                <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Pasos</th>
+                                <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Actualización</th>
+                                <th class="py-3 px-4 text-muted small text-uppercase fw-bold text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for guia in guias %}
+                            <tr class="border-bottom border-secondary">
+                                <td class="py-3 px-4 fw-bold text-white">
+                                    {% if guia.es_favorito %}<i class="bi bi-star-fill text-warning me-1"></i>{% endif %}
+                                    {{ guia.titulo }}
+                                </td>
+                                <td class="py-3 px-4 text-muted">{{ guia.categoria.nombre }}</td>
+                                <td class="py-3 px-4 text-muted">{{ guia.pasos.count }} pasos</td>
+                                <td class="py-3 px-4 text-muted">{{ guia.fecha_actualizacion|date:"d/m/Y" }}</td>
+                                <td class="py-3 px-4 text-center">
+                                    <a href="{% url 'ayuda:detalle_guia' guia.id %}" class="btn btn-sm btn-outline-secondary border-0 text-white">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="py-4 text-center text-muted">No hay guías disponibles</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

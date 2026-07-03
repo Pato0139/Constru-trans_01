@@ -10,7 +10,7 @@
     <!-- Logo y marca -->
     <div class="sidebar-brand-card">
         <div class="logo-container">
-            <img src="{% static 'img/Logo1.jpeg' %}" class="sidebar-logo" alt="Logo ConstruTrans">
+            <img src="{% static 'img/Logo1.jpeg' %}" class="sidebar-logo" alt="Logo ConstruTrans" loading="lazy">
         </div>
         <h5 class="sidebar-brand-title">ConstruTrans</h5>
         <p class="sidebar-brand-sub" data-i18n="sidebar.brandSub">Panel de gestión</p>
@@ -214,6 +214,11 @@
         <div class="sidebar-footer-nav">
             <p class="sidebar-nav-label mb-2"><i class="bi bi-gear"></i> <span data-i18n="sidebar.label.configuracion">Configuración</span></p>
             <nav class="nav flex-column sidebar-nav">
+                <!-- Enlace Ayuda -->
+                <a href="{% url 'ayuda:index' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ayuda' %}active{% endif %}">
+                    <span class="nav-icon-wrap nav-icon-wrap--purple"><i class="bi bi-question-circle"></i></span>
+                    <span>Ayuda</span>
+                </a>
                 <!-- Enlace Mi Cuenta según rol -->
                 {% with ''|center:1 as dummy %}
                     {% if user.usuario.rol == 'admin' %}

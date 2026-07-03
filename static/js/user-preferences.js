@@ -1,6 +1,18 @@
+/**
+ * Módulo de preferencias de usuario para temas, filtros de daltonismo, tamaño de fuente e idioma
+ * @namespace UserPreferences
+ */
 (function () {
     'use strict';
 
+    /**
+     * Claves de localStorage para las preferencias
+     * @constant {Object}
+     * @property {string} theme - Tema visual
+     * @property {string} daltonism - Filtro de daltonismo
+     * @property {string} fontSize - Tamaño de fuente
+     * @property {string} language - Idioma
+     */
     var KEYS = {
         theme: 'theme',
         daltonism: 'daltonism',
@@ -8,6 +20,10 @@
         language: 'language',
     };
 
+    /**
+     * Valores predeterminados para las preferencias
+     * @constant {Object}
+     */
     var DEFAULTS = {
         theme: 'dark',
         daltonism: 'none',
@@ -15,6 +31,10 @@
         language: 'es',
     };
 
+    /**
+     * Diccionarios de traducción para español e inglés
+     * @constant {Object}
+     */
     var I18N = {
         es: {
             'nav.panel': 'Panel de Control',
@@ -182,15 +202,28 @@
         },
     };
 
+    /**
+     * Obtiene una preferencia del usuario de localStorage
+     * @param {string} key - Clave de la preferencia
+     * @returns {string} Valor de la preferencia o el predeterminado
+     */
     function getPref(key) {
         var val = localStorage.getItem(KEYS[key]);
         return val !== null && val !== '' ? val : DEFAULTS[key];
     }
 
+    /**
+     * Establece una preferencia del usuario en localStorage
+     * @param {string} key - Clave de la preferencia
+     * @param {string} value - Valor a guardar
+     */
     function setPref(key, value) {
         localStorage.setItem(KEYS[key], value);
     }
 
+    /**
+     * Restablece los estilos del body para el modo accesibilidad
+     */
     function resetAccessibilityBodyStyles() {
         if (document.body) {
             document.body.style.backgroundColor = '';
@@ -198,6 +231,9 @@
         }
     }
 
+    /**
+     * Aplica los estilos del body para el modo de alto contraste
+     */
     function applyAccessibilityBodyStyles() {
         if (document.body) {
             document.body.style.backgroundColor = '#000000';
@@ -205,6 +241,12 @@
         }
     }
 
+    /**
+     * Aplica el idioma seleccionado a la interfaz
+     * @param {string} lang - Código de idioma ('es' o 'en')
+     * @param {Object} [options] - Opciones adicionales
+     * @param {boolean} [options.silent=false] - Si es true, no muestra toast
+     */
     function applyLanguage(lang, options) {
         options = options || {};
         var dict = I18N[lang] || I18N.es;
@@ -224,6 +266,9 @@
         }
     }
 
+    /**
+     * Aplica todas las preferencias guardadas
+     */
     function applyAll() {
         var html = document.documentElement;
         var theme = getPref('theme');
@@ -238,6 +283,10 @@
         applyLanguage(getPref('language'), { silent: true });
     }
 
+    /**
+     * Muestra un toast notificando el cambio de preferencia
+     * @param {string} messageKey - Clave del mensaje en el diccionario
+     */
     function showPreferenceToast(messageKey) {
         if (typeof Swal === 'undefined') {
             return;
@@ -259,6 +308,9 @@
         });
     }
 
+    /**
+     * Sincroniza el estado visual de los botones de configuración
+     */
     function syncSettingsButtons() {
         var theme = getPref('theme');
         var daltonism = getPref('daltonism');
@@ -279,6 +331,11 @@
         });
     }
 
+    /**
+     * Establece el tema visual del usuario
+     * @param {('dark'|'light'|'accessibility')} theme - Tema a aplicar
+     * @returns {boolean} Siempre false para prevenir comportamiento por defecto
+     */
     window.setTheme = function (theme) {
         var valid = ['dark', 'light', 'accessibility'];
         if (valid.indexOf(theme) === -1) {
@@ -300,6 +357,11 @@
         return false;
     };
 
+    /**
+     * Establece el filtro de daltonismo
+     * @param {('none'|'protanopia'|'deuteranopia'|'tritanopia'|'achromatopsia')} mode - Modo de daltonismo
+     * @returns {boolean} Siempre false para prevenir comportamiento por defecto
+     */
     window.setDaltonism = function (mode) {
         var valid = ['none', 'protanopia', 'deuteranopia', 'tritanopia', 'achromatopsia'];
         if (valid.indexOf(mode) === -1) {
@@ -314,6 +376,11 @@
         return false;
     };
 
+    /**
+     * Establece el tamaño de fuente
+     * @param {('small'|'normal'|'large'|'xlarge')} size - Tamaño de fuente
+     * @returns {boolean} Siempre false para prevenir comportamiento por defecto
+     */
     window.setFontSize = function (size) {
         var valid = ['small', 'normal', 'large', 'xlarge'];
         if (valid.indexOf(size) === -1) {
@@ -326,6 +393,11 @@
         return false;
     };
 
+    /**
+     * Establece el idioma de la interfaz
+     * @param {('es'|'en')} lang - Código de idioma
+     * @returns {boolean} Siempre false para prevenir comportamiento por defecto
+     */
     window.setLanguage = function (lang) {
         if (lang !== 'es' && lang !== 'en') {
             return false;
@@ -340,6 +412,9 @@
     window.syncSettingsButtons = syncSettingsButtons;
     window.getUserPreference = getPref;
 
+    /**
+     * Inicializa los listeners de eventos para la página de configuración
+     */
     function initSettingsPage() {
         document.querySelectorAll('.font-size-btn').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
@@ -370,6 +445,9 @@
 
     applyAll();
 
+    /**
+     * Inicializa el módulo cuando el DOM esté listo
+     */
     document.addEventListener('DOMContentLoaded', function () {
         applyLanguage(getPref('language'), { silent: true });
         initSettingsPage();

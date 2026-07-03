@@ -13,12 +13,12 @@ django.setup()
 
 from django.contrib.auth.models import User  # noqa: E402
 
-from apps.clientes.models import Cliente  # noqa: E402
-from apps.facturacion.models import Factura  # noqa: E402
-from apps.inventario.models import MovimientoInventario  # noqa: E402
-from apps.ordenes.models import DetallePedido, Entrega, Pedido  # noqa: E402
-from apps.pagos.models import Pago  # noqa: E402
-from apps.usuarios.models import (  # noqa: E402
+from clientes.models import Cliente  # noqa: E402
+from facturacion.models import Factura  # noqa: E402
+from inventario.models import MovimientoInventario  # noqa: E402
+from ordenes.models import DetallePedido, Entrega, Pedido  # noqa: E402
+from pagos.models import Pago  # noqa: E402
+from usuarios.models import (  # noqa: E402
     EPS,
     Catalogo,
     Conductor,
@@ -29,7 +29,7 @@ from apps.usuarios.models import (  # noqa: E402
     Usuario,
     Vehiculo,
 )
-from apps.usuarios.models import MaterialConstruccion as Material  # noqa: E402
+from usuarios.models import MaterialConstruccion as Material  # noqa: E402
 
 
 def setup_data():
