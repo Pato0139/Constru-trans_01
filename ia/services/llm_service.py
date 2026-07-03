@@ -60,12 +60,12 @@ Datos actuales del sistema:
 def responder_fallback(mensaje, contexto, nombre_usuario):
     mensaje_lower = mensaje.lower().strip()
     
-    # Saludos
-    if any(greet in mensaje_lower for greet in ["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "saludos"]):
+    # Saludos (incluidos "hi", "hello", "hey", "como estas", etc.)
+    if any(greet in mensaje_lower for greet in ["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "saludos", "hi", "hello", "hey", "como estas", "cómo estás", "que tal", "qué tal"]):
         saludo = f"¡Hola {nombre_usuario or ''}! " if nombre_usuario else "¡Hola! "
         return saludo + "Soy el asistente virtual de Constru-Trans. En este momento el servidor de Inteligencia Artificial local (Ollama) no está activo, pero puedo darte datos en tiempo real del sistema. ¿En qué te puedo ayudar hoy?"
         
-    # Preguntas sobre usuarios
+    # Preguntas sobre usuarios (verificando palabras completas o patrones para evitar falsos positivos con saludos cortos)
     if any(word in mensaje_lower for word in ["usuario", "conductor", "cliente", "admin", "empleado", "rol"]):
         total = contexto.get("total_usuarios", 0)
         activos = contexto.get("usuarios_activos", 0)
@@ -122,9 +122,16 @@ def responder_fallback(mensaje, contexto, nombre_usuario):
 
 
 def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
+    # Extraer el mensaje real del usuario si viene con memoria semántica enriquecida
+    mensaje_real = mensaje
+    if "Pregunta del usuario:" in mensaje:
+        parts = mensaje.split("Pregunta del usuario:")
+        if len(parts) > 1:
+            mensaje_real = parts[1].strip()
+
     if client is None:
         logger.error("Cliente LLM no está disponible (openai no instalado)")
-        return responder_fallback(mensaje, contexto, nombre_usuario)
+        return responder_fallback(mensaje_real, contexto, nombre_usuario)
 
     system_prompt = construir_prompt_sistema(contexto, nombre_usuario)
 
@@ -145,5 +152,6 @@ def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
         return (response.choices[0].message.content or "").strip() or None
     except Exception:
         logger.exception("Error consultando servidor LLM, activando fallback local")
-        return responder_fallback(mensaje, contexto, nombre_usuario)
+        return responder_fallback(mensaje_real, contexto, nombre_usuario)
+
 
