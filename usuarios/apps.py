@@ -6,4 +6,4 @@ class UsuariosConfig(AppConfig):
     name = "usuarios"
 
     def ready(self):
-        pass
+        import usuarios.signals

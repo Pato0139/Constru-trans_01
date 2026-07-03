@@ -26,6 +26,7 @@ urlpatterns = [
     path("historial/", include("historial.urls")),
     path("transporte/", include("transporte.urls")),
     path("ia/", include("ia.urls")),
+    path("ayuda/", include("ayuda.urls")),
     path("", include("inicio.urls")),
     # ===== Redirecciones de recuperación de contraseña a usuarios =====
     path("password-reset/", lambda r: redirect("usuarios:password_reset"), name="password_reset"),

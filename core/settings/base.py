@@ -97,6 +97,7 @@ LOCAL_APPS = [
     "transporte",
     "licensing",
     "ia",
+    "ayuda",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
