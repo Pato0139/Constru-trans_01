@@ -7,7 +7,7 @@ django.setup()
 
 from datetime import date, timedelta
 
-from apps.usuarios.models import EPS, Conductor, Usuario
+from usuarios.models import EPS, Conductor, Usuario
 
 
 def add_conductor_to_db(db_alias):

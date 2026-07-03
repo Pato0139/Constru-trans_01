@@ -1,16 +1,16 @@
 [tool.ruff]
 line-length = 100
-target-version = "py313"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "B", "DJ"]
 ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
-"apps/ia/services/math_service.py" = ["N802"]
+"ia/services/math_service.py" = ["N802"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.12"
 plugins = ["mypy_django_plugin.main"]
 
 [tool.django-stubs]
@@ -18,7 +18,22 @@ django_settings_module = "core.settings"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"
-testpaths = ["apps"]
+testpaths = [
+  "usuarios",
+  "clientes",
+  "inventario",
+  "compras",
+  "ordenes",
+  "gestion_pedidos",
+  "facturacion",
+  "pagos",
+  "reportes",
+  "inicio",
+  "historial",
+  "transporte",
+  "licensing",
+  "ia"
+]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 norecursedirs = [".venv", "scripts", "htmlcov", "staticfiles"]
-addopts = "--cov=apps --cov-report=html --cov-report=term"
+addopts = "--cov=usuarios --cov=clientes --cov=inventario --cov=compras --cov=ordenes --cov=gestion_pedidos --cov=facturacion --cov=pagos --cov=reportes --cov=inicio --cov=historial --cov=transporte --cov=licensing --cov=ia --cov-report=html --cov-report=term"

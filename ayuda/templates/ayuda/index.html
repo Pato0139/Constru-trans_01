@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Centro de Ayuda - ConstruTrans{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ayuda/ayuda.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="ayuda-container">
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <div class="ayuda-card">
+                <div class="text-center mb-5">
+                    <h1 class="ayuda-title"><i class="bi bi-question-circle text-primary me-2"></i> Centro de Ayuda</h1>
+                    <p class="ayuda-subtitle">Todo lo que necesitas saber para usar el sistema</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guías Favoritas -->
+    {% if guias_favoritas %}
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <div class="ayuda-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0 text-white"><i class="bi bi-star-fill text-warning me-2"></i> Guías Favoritas</h5>
+                </div>
+                <div class="row g-3">
+                    {% for guia in guias_favoritas %}
+                    <div class="col-md-4">
+                        <a href="{% url 'ayuda:detalle_guia' guia.id %}" class="card h-100 text-decoration-none bg-dark border border-secondary">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-2 text-white">{{ guia.titulo }}</h6>
+                                <p class="text-muted small mb-0">{{ guia.categoria.nombre }}</p>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Categorías -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <div class="ayuda-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0 text-white"><i class="bi bi-folder text-primary me-2"></i> Categorías</h5>
+                </div>
+                <div class="categoria-grid">
+                    {% for categoria in categorias %}
+                    <a href="{% url 'ayuda:lista_guias_categoria' categoria.id %}" class="categoria-card">
+                        <i class="bi bi-book categoria-icon text-primary"></i>
+                        <h6 class="categoria-name">{{ categoria.nombre }}</h6>
+                        <p class="categoria-desc">{{ categoria.guias.count }} guías</p>
+                    </a>
+                    {% empty %}
+                    <div class="col-12 text-center py-4">
+                        <p class="text-muted mb-0">No hay categorías disponibles</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimas Guías -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <div class="ayuda-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0 text-white"><i class="bi bi-clock-history text-accent me-2"></i> Últimas Guías</h5>
+                    <a href="{% url 'ayuda:lista_guias' %}" class="small text-accent text-decoration-none fw-bold">Ver todas <i class="bi bi-arrow-right"></i></a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 no-datatable table-dark">
+                        <thead>
+                            <tr class="border-bottom border-secondary">
+                                <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Título</th>
+                                <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Categoría</th>
+                                <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Actualización</th>
+                                <th class="py-3 px-4 text-muted small text-uppercase fw-bold text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for guia in ultimas_guias %}
+                            <tr class="border-bottom border-secondary">
+                                <td class="py-3 px-4 fw-bold text-white">{{ guia.titulo }}</td>
+                                <td class="py-3 px-4 text-muted">{{ guia.categoria.nombre }}</td>
+                                <td class="py-3 px-4 text-muted">{{ guia.fecha_actualizacion|date:"d/m/Y" }}</td>
+                                <td class="py-3 px-4 text-center">
+                                    <a href="{% url 'ayuda:detalle_guia' guia.id %}" class="btn btn-sm btn-outline-secondary border-0 text-white">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="py-4 text-center text-muted">No hay guías disponibles</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual de Usuario -->
+    {% if manuales %}
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <div class="ayuda-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0 text-white"><i class="bi bi-journal-bookmark text-success me-2"></i> Manual de Usuario</h5>
+                </div>
+                <div class="row g-3">
+                    {% for manual in manuales %}
+                    <div class="col-md-4">
+                        <div class="card bg-dark border border-secondary">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-2 text-white">{{ manual.titulo }}</h6>
+                                <p class="text-muted small mb-3">Versión {{ manual.version }} | {{ manual.fecha_publicacion|date:"d/m/Y" }}</p>
+                                <a href="{{ manual.archivo.url }}" class="btn btn-success d-flex align-items-center justify-content-center gap-2 px-4 py-2 rounded-pill" download>
+                                    <i class="bi bi-download"></i> Descargar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Colores del Sistema -->
+    {% if colores %}
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <div class="ayuda-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0 text-white"><i class="bi bi-palette text-info me-2"></i> Paleta de Colores</h5>
+                    <a href="{% url 'ayuda:lista_colores' %}" class="small text-accent text-decoration-none fw-bold">Ver todos <i class="bi bi-arrow-right"></i></a>
+                </div>
+                <div class="colores-grid">
+                    {% for color in colores %}
+                    <div class="color-card bg-dark">
+                        <div class="color-swatch" style="background: {{ color.codigo_hex }};"></div>
+                        <h6 class="color-name">{{ color.nombre }}</h6>
+                        <p class="color-hex">{{ color.codigo_hex }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Sugerencias -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <div class="ayuda-card">
+                <div class="text-center">
+                    <h5 class="fw-bold mb-3 text-white"><i class="bi bi-lightbulb text-warning me-2"></i> ¿Tienes una sugerencia?</h5>
+                    <p class="text-muted mb-4">Ayúdanos a mejorar el sistema compartiendo tus ideas</p>
+                    <a href="{% url 'ayuda:crear_sugerencia' %}" class="btn-ayuda btn-ayuda--primary">
+                        <i class="bi bi-plus-circle"></i> Enviar Sugerencia
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
