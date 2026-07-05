@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from usuarios.models import MaterialConstruccion, Stock
 from usuarios.views import admin_required
+from core.db_utils import select_for_update_if_supported
 
 from .models import DetalleSolicitudPedido, SolicitudPedido
 
@@ -38,7 +39,7 @@ def crear_pedido(request):
             for m_id, cant in zip(materiales_ids, cantidades, strict=False):
                 cant = int(cant)
                 material = get_object_or_404(MaterialConstruccion, pk=m_id)
-                stock_obj = Stock.objects.select_for_update().get(material=material)
+                stock_obj = select_for_update_if_supported(Stock.objects, "default").get(material=material)
 
                 if stock_obj.cantidad_actual < cant:
                     # Si falla un material, lanzamos excepción para que el atomic haga rollback
@@ -126,7 +127,7 @@ def cancelar_pedido(request, pk):
     if pedido.estado not in ["cancelado", "entregado"]:
         # Devolver stock
         for detalle in pedido.detalles.all():
-            stock_obj = Stock.objects.select_for_update().get(material=detalle.material)
+            stock_obj = select_for_update_if_supported(Stock.objects, "default").get(material=detalle.material)
             stock_obj.cantidad_actual += detalle.cantidad
             stock_obj.save()
 

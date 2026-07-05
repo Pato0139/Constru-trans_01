@@ -214,25 +214,8 @@ def login_usuario(request):
                 # Inicio de sesión exitoso: reiniciamos intentos
                 user.reiniciar_intentos()
 
-                if user.rol == "cliente":
-                    from clientes.models import Cliente
-
-                    try:
-                        Cliente.objects.get_or_create(usuario=user)
-                    except Exception as e_c:
-                        if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
-                            from django.db import connections
-
-                            try:
-                                with connections["remota"].cursor() as cursor:
-                                    cursor.execute(
-                                        "SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));"
-                                    )
-                            except Exception:
-                                pass
-                            Cliente.objects.get_or_create(usuario=user)
-                        else:
-                            raise e_c
+                if user.rol in {"cliente", "conductor"}:
+                    user.ensure_profile_for_role()
 
                 if not hasattr(user, "backend"):
                     user.backend = "django.contrib.auth.backends.ModelBackend"
@@ -328,22 +311,8 @@ def panel(request):
             documento="00000000",
             estado="activo",
         )
-        if usuario.rol == "cliente":
-            from clientes.models import Cliente
-
-            try:
-                Cliente.objects.get_or_create(usuario=usuario)
-            except Exception as e_c:
-                if "duplicate key" in str(e_c).lower() and conexion_remota_disponible():
-                    from django.db import connections
-
-                    with connections["remota"].cursor() as cursor:
-                        cursor.execute(
-                            "SELECT setval(pg_get_serial_sequence('perfil_cliente', 'id'), (SELECT MAX(id) FROM perfil_cliente));"
-                        )
-                    Cliente.objects.get_or_create(usuario=usuario)
-                else:
-                    raise e_c
+        if usuario.rol in {"cliente", "conductor"}:
+            usuario.ensure_profile_for_role()
 
     if usuario.rol == "admin":
         from django.core.cache import cache
@@ -551,15 +520,7 @@ def crear_usuario(request):
                 user.set_password(password)
                 user.save()
                 if rol == "conductor":
-                    Conductor.objects.get_or_create(
-                        usuario=user,
-                        defaults={
-                            "numero_licencia": f"PEND-{user.id}",
-                            "categoria_licencia": "N/A",
-                            "fecha_vencimiento_licencia": now().date(),
-                            "estado": "activo",
-                        },
-                    )
+                    Conductor.ensure_for_user(user)
         except Exception as e:
             if "duplicate key" in str(e).lower() and conexion_remota_disponible():
                 from django.db import connections
@@ -586,15 +547,7 @@ def crear_usuario(request):
                 user.set_password(password)
                 user.save()
                 if rol == "conductor":
-                    Conductor.objects.get_or_create(
-                        usuario=user,
-                        defaults={
-                            "numero_licencia": f"PEND-{user.id}",
-                            "categoria_licencia": "N/A",
-                            "fecha_vencimiento_licencia": now().date(),
-                            "estado": "activo",
-                        },
-                    )
+                    Conductor.ensure_for_user(user)
             else:
                 raise e
 
@@ -733,15 +686,7 @@ def editar_usuario(request, id):
             usuario.sincronizado = False
             usuario.save()
             if usuario.rol == "conductor":
-                Conductor.objects.get_or_create(
-                    usuario=usuario,
-                    defaults={
-                        "numero_licencia": f"PEND-{usuario.id}",
-                        "categoria_licencia": "N/A",
-                        "fecha_vencimiento_licencia": now().date(),
-                        "estado": "activo",
-                    },
-                )
+                Conductor.ensure_for_user(usuario)
             registrar_actividad(
                 request,
                 "editar",
@@ -787,15 +732,7 @@ def asignar_vehiculo_conductor(request, conductor_id):
     usuario = get_object_or_404(Usuario, id=conductor_id, rol="conductor")
     conductor = usuario.conductor_profile
     if conductor is None:
-        conductor, _ = Conductor.objects.get_or_create(
-            usuario=usuario,
-            defaults={
-                "numero_licencia": f"PEND-{usuario.id}",
-                "categoria_licencia": "N/A",
-                "fecha_vencimiento_licencia": now().date(),
-                "estado": "activo",
-            },
-        )
+        conductor, _ = Conductor.ensure_for_user(usuario)
         messages.warning(
             request,
             "Se creó un perfil provisional para este conductor. Actualiza la licencia más adelante.",
