@@ -217,108 +217,319 @@ html[data-theme="light"] .nav-link-premium.active .nav-icon-wrap {
   border-color: #1e40af !important;
 }
 
-[data-theme="light"] .btn-dark-premium i,
-[data-theme="light"] .btn-dark-premium span {
+[data-theme="light"] .btn-dark-premium:hover i,
+[data-theme="light"] .btn-dark-premium:hover span {
   color: #0f172a !important;
 }
 
-[data-theme="accessibility"] {
-  --color-bg: #000000;
-  --color-surface: #000000;
-  --color-primary: #ffff00;
-  --color-accent: #00ffff;
-  --color-text: #ffffff !important;
-  --color-muted: #ffff00 !important;
-  --color-border: #ffffff;
-  --sidebar-bg: #000000;
-  --nav-active-bg: #ffff00;
-  --card-bg: #000000;
-  --item-bg: #000000;
-  font-weight: 600;
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
+/* Fix DataTables elements for light theme */
+[data-theme="light"] div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
 }
 
-html[data-theme="accessibility"] .text-white {
+[data-theme="light"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link,
+[data-theme="light"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link {
+  color: #475569 !important;
+}
+
+[data-theme="light"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link:hover,
+[data-theme="light"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.active a.page-link,
+[data-theme="light"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.active span.page-link {
   color: #ffffff !important;
+}
+
+[data-theme="light"] div.dataTables_wrapper div.dataTables_length select,
+[data-theme="light"] div.dataTables_wrapper div.dataTables_filter input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.2) !important;
+}
+
+[data-theme="light"] div.dataTables_wrapper div.dataTables_length select:focus,
+[data-theme="light"] div.dataTables_wrapper div.dataTables_filter input:focus {
+  border-color: #1e40af !important;
+  box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.1) !important;
+}
+
+/* Fix navbar for light theme */
+[data-theme="light"] .navbar-title {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .navbar-username {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .navbar-role {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .btn-dark-premium i,
+[data-theme="light"] .btn-dark-premium span {
+  color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+[data-theme="light"] .btn-dark-premium {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.2) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .btn-dark-premium:hover {
+  background: #e2e8f0 !important;
+  border-color: #1e40af !important;
+}
+
+[data-theme="light"] .navbar-avatar-default {
+  color: #ffffff !important;
+}
+
+/* Fix BD mode toggle for light theme */
+[data-theme="light"] .bd-mode-switch__status,
+[data-theme="light"] .bd-mode-switch__target,
+[data-theme="light"] .bd-mode-switch__icon {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .bd-mode-switch__body {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.2) !important;
+}
+
+[data-theme="light"] .bd-mode-switch__track {
+  background: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Fix sidebar for light theme */
+[data-theme="light"] .sidebar-brand-title,
+[data-theme="light"] .sidebar-brand-sub,
+[data-theme="light"] .sidebar-nav-label,
+[data-theme="light"] .nav-link-premium,
+[data-theme="light"] .nav-link-premium--parent,
+[data-theme="light"] .nav-submenu .nav-link-premium {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .sidebar-brand-card {
+  background: linear-gradient(145deg, rgba(37, 99, 235, 0.12) 0%, rgba(217, 119, 6, 0.08) 100%) !important;
+  border-color: rgba(217, 119, 6, 0.2) !important;
+}
+
+[data-theme="light"] .nav-icon-wrap {
+  background: #f1f5f9 !important;
+}
+
+[data-theme="light"] .nav-link-premium:hover:not(.active) {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .nav-link-premium.active {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .nav-submenu .nav-link-premium:hover {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .nav-icon-wrap--gold,
+[data-theme="light"] .nav-icon-wrap--blue,
+[data-theme="light"] .nav-icon-wrap--teal,
+[data-theme="light"] .nav-icon-wrap--orange,
+[data-theme="light"] .nav-icon-wrap--green,
+[data-theme="light"] .nav-icon-wrap--purple {
+  background: rgba(217, 119, 6, 0.18) !important;
+  color: #d97706 !important;
+}
+
+[data-theme="light"] .nav-icon-wrap--danger {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #ef4444 !important;
+}
+
+[data-theme="light"] .stat-card,
+[data-theme="light"] .stat-card-ultra,
+[data-theme="light"] .panel-card,
+[data-theme="light"] .table-container {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+[data-theme="light"] .panel-card--accent {
+  border-top-color: #d97706 !important;
+}
+
+[data-theme="light"] .panel-card--info {
+  border-top-color: #38bdf8 !important;
+}
+
+[data-theme="light"] .btn-primary,
+[data-theme="light"] .btn-gold,
+[data-theme="light"] .btn-premium-gold,
+[data-theme="light"] .btn-premium-shape {
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .btn-outline-light,
+[data-theme="light"] .btn-outline-info,
+[data-theme="light"] .btn-outline-warning {
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.3) !important;
+}
+
+[data-theme="light"] .btn-outline-light:hover,
+[data-theme="light"] .btn-outline-info:hover,
+[data-theme="light"] .btn-outline-warning:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #1e40af !important;
+}
+
+[data-theme="accessibility"] {
+    --color-bg: #000000;
+    --color-surface: #000000;
+    --color-primary: #ffff00;
+    --color-accent: #00ffff;
+    --color-text: #ffffff !important;
+    --color-muted: #ffff00 !important;
+    --color-border: #ffffff;
+    --sidebar-bg: #000000;
+    --nav-active-bg: #ffff00;
+    --card-bg: #000000;
+    --item-bg: #000000;
+    font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+html[data-theme="accessibility"] .text-white,
+html[data-theme="accessibility"] .text-light,
+html[data-theme="accessibility"] .text-success-emphasis,
+html[data-theme="accessibility"] .text-danger-emphasis,
+html[data-theme="accessibility"] .text-warning-emphasis,
+html[data-theme="accessibility"] .text-info-emphasis {
+    color: #ffffff !important;
 }
 
 html[data-theme="accessibility"] .text-muted,
 html[data-theme="accessibility"] .text-white-50 {
-  color: #ffff00 !important;
+    color: #ffff00 !important;
 }
 
 html[data-theme="accessibility"] .btn-outline-info,
-html[data-theme="accessibility"] .btn-outline-warning {
-  color: #000000 !important;
-  background-color: #ffff00 !important;
-  border-color: #ffff00 !important;
+html[data-theme="accessibility"] .btn-outline-warning,
+html[data-theme="accessibility"] .btn-outline-light,
+html[data-theme="accessibility"] .btn-outline-dark {
+    color: #000000 !important;
+    background-color: #ffff00 !important;
+    border-color: #ffff00 !important;
 }
 
-html[data-theme="accessibility"] .badge {
-  color: #000000 !important;
-  background-color: #ffff00 !important;
+html[data-theme="accessibility"] .badge,
+html[data-theme="accessibility"] .badge.bg-warning-subtle,
+html[data-theme="accessibility"] .badge.bg-success-subtle,
+html[data-theme="accessibility"] .badge.bg-danger-subtle {
+    color: #000000 !important;
+    background-color: #ffff00 !important;
+    border-color: #ffff00 !important;
 }
 
 html[data-theme="accessibility"] input,
 html[data-theme="accessibility"] select,
 html[data-theme="accessibility"] textarea,
 html[data-theme="accessibility"] .form-control,
-html[data-theme="accessibility"] .form-select {
-  color: #ffffff !important;
-  background-color: #000000 !important;
-  border-color: #ffff00 !important;
+html[data-theme="accessibility"] .form-select,
+html[data-theme="accessibility"] .bg-dark {
+    color: #ffffff !important;
+    background-color: #000000 !important;
+    border-color: #ffff00 !important;
 }
 
-html[data-theme="accessibility"] .table-dark {
-  --bs-table-bg: #000000 !important;
-  --bs-table-color: #ffffff !important;
+html[data-theme="accessibility"] .table-dark,
+html[data-theme="accessibility"] .table {
+    --bs-table-bg: #000000 !important;
+    --bs-table-color: #ffffff !important;
 }
 
-html[data-theme="accessibility"] .table-dark th,
-html[data-theme="accessibility"] .table-dark td {
-  color: #ffffff !important;
-  background-color: #000000 !important;
+html[data-theme="accessibility"] .table th,
+html[data-theme="accessibility"] .table td {
+    color: #ffffff !important;
+    background-color: #000000 !important;
+    border-color: #ffff00 !important;
 }
 
 html[data-theme="accessibility"] .btn-dark-premium {
-  background-color: #000000 !important;
-  border-color: #ffff00 !important;
-  color: #ffffff !important;
+    background-color: #000000 !important;
+    border-color: #ffff00 !important;
+    color: #ffffff !important;
 }
 
 html[data-theme="accessibility"] .btn-dark-premium:hover {
-  background-color: #ffff00 !important;
-  color: #000000 !important;
+    background-color: #ffff00 !important;
+    color: #000000 !important;
 }
 
 html[data-theme="accessibility"] .btn-dark-premium i,
 html[data-theme="accessibility"] .btn-dark-premium span {
-  color: #ffffff !important;
+    color: #ffffff !important;
 }
 
 html[data-theme="accessibility"] .btn-dark-premium:hover i,
 html[data-theme="accessibility"] .btn-dark-premium:hover span {
-  color: #000000 !important;
+    color: #000000 !important;
 }
 
-html[data-theme="accessibility"] .dropdown-menu-dark {
-  background-color: #000000 !important;
-  border-color: #ffff00 !important;
+html[data-theme="accessibility"] .dropdown-menu-dark,
+html[data-theme="accessibility"] .dropdown-menu {
+    background-color: #000000 !important;
+    border-color: #ffff00 !important;
 }
 
-html[data-theme="accessibility"] .dropdown-menu-dark .dropdown-item {
-  color: #ffffff !important;
+html[data-theme="accessibility"] .dropdown-menu-dark .dropdown-item,
+html[data-theme="accessibility"] .dropdown-menu .dropdown-item {
+    color: #ffffff !important;
 }
 
-html[data-theme="accessibility"] .dropdown-menu-dark .dropdown-item:hover {
-  background-color: #ffff00 !important;
-  color: #000000 !important;
+html[data-theme="accessibility"] .dropdown-menu-dark .dropdown-item:hover,
+html[data-theme="accessibility"] .dropdown-menu .dropdown-item:hover {
+    background-color: #ffff00 !important;
+    color: #000000 !important;
+}
+
+html[data-theme="accessibility"] .btn-close-white {
+    filter: invert(0) grayscale(100%) brightness(200%) !important;
+}
+
+html[data-theme="accessibility"] .modal-content,
+html[data-theme="accessibility"] .bg-surface,
+html[data-theme="accessibility"] .table-container,
+html[data-theme="accessibility"] .card,
+html[data-theme="accessibility"] .panel-card {
+    background-color: #000000 !important;
+    border-color: #ffff00 !important;
+}
+
+html[data-theme="accessibility"] .alert {
+    background-color: #ffff00 !important;
+    border-color: #ffff00 !important;
+    color: #000000 !important;
+}
+
+html[data-theme="accessibility"] .alert .text-info {
+    color: #000000 !important;
 }
 
 /* Override muy específico para modo accesibilidad */
 html[data-theme="accessibility"] body {
-  color: #ffffff !important;
-  background-color: #000000 !important;
+    color: #ffffff !important;
+    background-color: #000000 !important;
 }
 
 html[data-theme="accessibility"] h1,
@@ -332,12 +543,51 @@ html[data-theme="accessibility"] span,
 html[data-theme="accessibility"] div,
 html[data-theme="accessibility"] li,
 html[data-theme="accessibility"] a,
-html[data-theme="accessibility"] label {
-  color: #ffffff !important;
+html[data-theme="accessibility"] label,
+html[data-theme="accessibility"] th,
+html[data-theme="accessibility"] td {
+    color: #ffffff !important;
 }
 
-html[data-theme="accessibility"] small {
-  color: #ffff00 !important;
+html[data-theme="accessibility"] small,
+html[data-theme="accessibility"] .small {
+    color: #ffff00 !important;
+}
+
+/* Fix pagination for accessibility theme */
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+    background: #000000 !important;
+    border-color: #ffff00 !important;
+}
+
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link,
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link {
+    color: #ffffff !important;
+}
+
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link:hover,
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link:hover {
+    background-color: #ffff00 !important;
+    color: #000000 !important;
+}
+
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.active a.page-link,
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.active span.page-link {
+    background-color: #ffff00 !important;
+    color: #000000 !important;
+}
+
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_info,
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_length label,
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_filter label {
+    color: #ffff00 !important;
+}
+
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_length select,
+html[data-theme="accessibility"] div.dataTables_wrapper div.dataTables_filter input {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #ffff00 !important;
 }
 
 /* SVG Filters for Daltonism */
