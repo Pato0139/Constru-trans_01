@@ -136,8 +136,8 @@ class Command(BaseCommand):
         clientes = []
         for i in range(1, cantidad + 1):
             user = self.crear_usuario_base(idx=i, rol="cliente")
-            perfil, _ = Cliente.objects.get_or_create(
-                usuario=user,
+            perfil, _ = Cliente.ensure_for_user(
+                user,
                 defaults={
                     "direccion_principal": f"Calle {i} # {10+i}-{20+i}",
                     "tipo_cliente": random.choice(["persona", "empresa"]),
@@ -180,8 +180,8 @@ class Command(BaseCommand):
         conductores = []
         for i in range(1, cantidad + 1):
             user = self.crear_usuario_base(idx=i, rol="conductor")
-            conductor, _ = Conductor.objects.get_or_create(
-                usuario=user,
+            conductor, _ = Conductor.ensure_for_user(
+                user,
                 defaults={
                     "numero_licencia": f"LIC-{10000+i}",
                     "categoria_licencia": random.choice(["B1", "C1", "C2"]),
