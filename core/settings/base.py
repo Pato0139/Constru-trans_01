@@ -158,15 +158,20 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        "OPTIONS": {
+            "timeout": 30,
+            "check_same_thread": False,
+        },
     }
 }
 if DATABASE_URL:
-    DATABASES["remota"] = dj_database_url.parse(
+    postgres_config = dj_database_url.parse(
         DATABASE_URL,
         conn_max_age=600,
         conn_health_checks=True,
         ssl_require=True,
     )
+    DATABASES["remota"] = postgres_config.copy()
 
 # Configuracion de el router para el modo híbrido
 DATABASE_ROUTERS = ["core.routers.EnrutadorInventario"]
