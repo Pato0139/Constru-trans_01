@@ -64,16 +64,44 @@ class ConductorModelTests(TestCase):
             tipo_documento="CC",
             rol="conductor"
         )
-        conductor = Conductor.objects.create(
-            usuario=usuario,
-            numero_licencia="LIC123",
-            categoria_licencia="C2",
-            fecha_vencimiento_licencia=date.today() + timedelta(days=365),
-            estado="activo",
-            eps=eps
-        )
+        conductor = usuario.perfil_conductor
         self.assertEqual(conductor.usuario, usuario)
-        self.assertEqual(conductor.numero_licencia, "LIC123")
+        self.assertEqual(conductor.numero_licencia, f"PEND-{usuario.id}")
+
+    def test_ensure_for_user_crea_perfil_para_usuario_persistido(self):
+        usuario = Usuario.objects.create_user(
+            username="conductor_test",
+            email="conductor.test@example.com",
+            password="password123",
+            nombres="Conductor",
+            apellidos="Prueba",
+            documento="123456789",
+            tipo_documento="CC",
+            rol="conductor"
+        )
+
+        Conductor.objects.filter(usuario=usuario).delete()
+        conductor, created = Conductor.ensure_for_user(usuario)
+
+        self.assertTrue(created)
+        self.assertEqual(conductor.usuario_id, usuario.id)
+        self.assertTrue(Conductor.objects.filter(usuario=usuario).exists())
+
+    def test_ensure_for_user_rechaza_usuario_no_persistido(self):
+        usuario = Usuario.objects.create_user(
+            username="conductor_eliminado",
+            email="conductor.eliminado@example.com",
+            password="password123",
+            nombres="Conductor",
+            apellidos="Eliminado",
+            documento="987654321",
+            tipo_documento="CC",
+            rol="conductor"
+        )
+        usuario.delete()
+
+        with self.assertRaises(ValueError):
+            Conductor.ensure_for_user(usuario)
 
 
 class VehiculoModelTests(TestCase):
@@ -104,13 +132,8 @@ class ConductorVehiculoModelTests(TestCase):
             tipo_documento="CC",
             rol="conductor"
         )
-        conductor = Conductor.objects.create(
-            usuario=usuario,
-            numero_licencia="LIC456",
-            categoria_licencia="C2",
-            fecha_vencimiento_licencia=date.today() + timedelta(days=365),
-            estado="activo"
-        )
+        conductor, created = Conductor.ensure_for_user(usuario)
+        self.assertFalse(created)
         vehiculo = Vehiculo.objects.create(
             placa="DEF456",
             marca="Nissan",
