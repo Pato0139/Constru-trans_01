@@ -62,7 +62,7 @@ def _obtener_usuario_local(usuario):
 
 
 def _obtener_cliente_local(usuario_local):
-    cliente_local, _ = Cliente.objects.get_or_create(
+    cliente_local, _ = Cliente.objects.using("default").get_or_create(
         usuario=usuario_local,
         defaults={"direccion_principal": "Por definir"},
     )
@@ -247,16 +247,7 @@ def panel_cliente(request):
         "entregas": pedidos.filter(estado="entregado").count(),
         "total_gastado": pedidos.aggregate(total=Sum("total"))["total"] or 0,
         "total_pagos": pagos.count(),
-        "ultimos_pedidos": (
-            pedidos.only(
-                "codigo_pedido",
-                "estado",
-                "total",
-                "fecha_solicitud",
-                "direccion_destino",
-                "precio",
-            )[:5]
-        ),
+        "ultimos_pedidos": pedidos[:5],
     }
     return render(request, "clientes/lista.html", context)
 
@@ -413,64 +404,86 @@ def crear_pedido(request):
             )
 
         db_alias = _obtener_alias_db()
+        
+        if db_alias == "remota":
+            usuario_pedido = usuario_remoto
+            cliente_pedido, _ = Cliente.objects.using("remota").get_or_create(
+                usuario=usuario_remoto, 
+                defaults={"direccion_principal": "Por definir"}
+            )
+        else:
+            usuario_pedido = usuario_local
+            cliente_pedido = cliente_local
+
         try:
-            with transaction.atomic():
+            with transaction.atomic(using=db_alias):
                 total_general = 0
-                nuevo_pedido = Pedido.objects.create(
-                    usuario=usuario_local,
-                    cliente=cliente_local,
+                nuevo_pedido = Pedido.objects.using(db_alias).create(
+                    usuario=usuario_pedido,
+                    cliente=cliente_pedido,
                     direccion_origen="Bodega Central",
                     direccion_destino=direccion,
                     estado="pendiente",
                     fecha_entrega_programada=fecha_entrega if fecha_entrega else None,
                 )
 
-                with transaction.atomic(using=db_alias):
-                    for m_id, cant in zip(materiales_ids, cantidades, strict=False):
-                        if not m_id or not cant:
-                            continue
+                for m_id, cant in zip(materiales_ids, cantidades, strict=False):
+                    if not m_id or not cant:
+                        continue
 
-                        material = _obtener_material_local(m_id)
-                        try:
-                            stock_obj = (
-                                Stock.objects.select_for_update()
-                                .using(db_alias)
-                                .get(material=material)
-                            )
-                        except Stock.DoesNotExist:
-                            stock_obj = Stock.objects.using(db_alias).create(
-                                material=material, cantidad_actual=0
-                            )
-
-                        try:
-                            cantidad = int(cant)
-                        except (ValueError, TypeError) as err:
-                            raise ValueError(f"Cantidad inválida para {material.nombre}") from err
-
-                        if cantidad <= 0:
-                            raise ValueError(
-                                f"La cantidad para {material.nombre} debe ser mayor a 0."
-                            )
-
-                        if stock_obj.cantidad_actual < cantidad:
-                            raise ValueError(
-                                f"Stock insuficiente para {material.nombre}. "
-                                f"Quedan {stock_obj.cantidad_actual}."
-                            )
-
-                        precio_unitario = material.precio
-                        total_item = precio_unitario * cantidad
-                        total_general += total_item
-
-                        DetallePedido.objects.using("default").create(
-                            pedido=nuevo_pedido,
-                            material=material,
-                            cantidad=cantidad,
-                            precio_unitario=precio_unitario,
+                    material = _obtener_material_local(m_id)
+                    try:
+                        stock_obj = (
+                            Stock.objects.select_for_update()
+                            .using(db_alias)
+                            .get(material=material)
+                        )
+                    except Stock.DoesNotExist:
+                        stock_obj = Stock.objects.using(db_alias).create(
+                            material=material, cantidad_actual=0
                         )
 
-                        stock_obj.cantidad_actual = F("cantidad_actual") - cantidad
-                        stock_obj.save(using=db_alias)
+                    try:
+                        cantidad = int(cant)
+                    except (ValueError, TypeError) as err:
+                        raise ValueError(f"Cantidad inválida para {material.nombre}") from err
+
+                    if cantidad <= 0:
+                        raise ValueError(
+                            f"La cantidad para {material.nombre} debe ser mayor a 0."
+                        )
+
+                    if stock_obj.cantidad_actual < cantidad:
+                        raise ValueError(
+                            f"Stock insuficiente para {material.nombre}. "
+                            f"Quedan {stock_obj.cantidad_actual}."
+                        )
+
+                    precio_unitario = material.precio
+                    total_item = precio_unitario * cantidad
+                    total_general += total_item
+
+                    DetallePedido.objects.using(db_alias).create(
+                        pedido=nuevo_pedido,
+                        material=material,
+                        cantidad=cantidad,
+                        precio_unitario=precio_unitario,
+                    )
+
+                    stock_obj.cantidad_actual = F("cantidad_actual") - cantidad
+                    stock_obj.save(using=db_alias)
+
+                # Crear la factura del pedido automáticamente
+                from facturacion.models import Factura
+                Factura.objects.using(db_alias).create(
+                    pedido=nuevo_pedido,
+                    cliente=usuario_pedido,
+                    numero=f"FCT-{nuevo_pedido.codigo_pedido}-{db_alias[:3].upper()}",
+                    subtotal=total_general,
+                    total=total_general,
+                    estado="pendiente",
+                    sincronizado=(db_alias == "remota")
+                )
 
             messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente.")
             return redirect("clientes:mis_pedidos")
