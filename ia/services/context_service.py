@@ -68,15 +68,16 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
             try:
                 clientes_pedidos = (
                     PedidoGestion.objects.values("cliente")
-                    .annotate(num_pedidos=Count("id"))
+                    .annotate(num_pedidos=Count("pk"))
                     .order_by("-num_pedidos")
                 )
                 if clientes_pedidos and clientes_pedidos[0]["cliente"]:
                     cliente_obj = (
                         Cliente.objects.select_related("usuario")
-                        .filter(id=clientes_pedidos[0]["cliente"])
+                        .filter(pk=clientes_pedidos[0]["cliente"])
                         .first()
                     )
+
                     if cliente_obj:
                         top_cliente = {
                             "nombre": f"{cliente_obj.usuario.nombres} {cliente_obj.usuario.apellidos}",
