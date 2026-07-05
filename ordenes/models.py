@@ -1,5 +1,16 @@
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
+import datetime
+
+def validar_fecha_no_pasada(value):
+    today = timezone.now().date()
+    if isinstance(value, datetime.datetime):
+        value = value.date()
+    if value and value < today:
+        raise ValidationError("La fecha no puede ser en el pasado.")
+
 
 
 # =====================================================================
@@ -33,7 +44,7 @@ class Pedido(models.Model):
     # NO se toca
     direccion_origen = models.CharField(max_length=200, default="Bodega Central")
     direccion_destino = models.CharField(max_length=200, default="")
-    fecha_entrega_programada = models.DateTimeField(null=True, blank=True)
+    fecha_entrega_programada = models.DateTimeField(null=True, blank=True, validators=[validar_fecha_no_pasada])
     fecha = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     precio = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
     conductor = models.ForeignKey(
@@ -84,7 +95,7 @@ class DetallePedido(models.Model):
     material = models.ForeignKey("usuarios.MaterialConstruccion", on_delete=models.PROTECT)
     cantidad = models.IntegerField(validators=[MinValueValidator(1)])
     precio_unitario = models.DecimalField(
-        max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
+        max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)]
     )
 
     class Meta:

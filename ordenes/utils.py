@@ -7,14 +7,14 @@ from django.db.models import F
 from inventario.models import MovimientoInventario
 from usuarios.models import Stock
 from core.db_preference import debe_usar_bd_remota
+from core.db_utils import select_for_update_if_supported
 
 
 def revertir_stock_pedido(orden, usuario, motivo_prefijo="Cancelación", using=None):
     db_alias = using if using else ("remota" if debe_usar_bd_remota() else "default")
     for detalle in orden.detalles.all():
         stock_obj, _ = (
-            Stock.objects.select_for_update()
-            .using(db_alias)
+            select_for_update_if_supported(Stock.objects.using(db_alias), db_alias)
             .get_or_create(
                 material=detalle.material,
                 defaults={"cantidad_actual": 0},

@@ -4,8 +4,18 @@ Lotes de material — fecha de vencimiento.
 
 from django.db import models
 from django.utils import timezone
+from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
+import datetime
 
 from usuarios.models import MaterialConstruccion
+
+def validar_fecha_no_pasada(value):
+    today = timezone.now().date()
+    if isinstance(value, datetime.datetime):
+        value = value.date()
+    if value and value < today:
+        raise ValidationError("La fecha no puede ser en el pasado.")
 
 
 class LoteMaterial(models.Model):
@@ -15,9 +25,9 @@ class LoteMaterial(models.Model):
     material = models.ForeignKey(
         MaterialConstruccion, on_delete=models.CASCADE, related_name="lotes"
     )
-    cantidad = models.PositiveIntegerField()
+    cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     fecha_entrada = models.DateTimeField(auto_now_add=True)
-    fecha_vencimiento = models.DateField(null=True, blank=True, db_index=True)
+    fecha_vencimiento = models.DateField(null=True, blank=True, db_index=True, validators=[validar_fecha_no_pasada])
     activo = models.BooleanField(default=True)
 
     class Meta:

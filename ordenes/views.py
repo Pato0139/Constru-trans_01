@@ -15,6 +15,7 @@ from inventario.models import MovimientoInventario
 from usuarios.models import MaterialConstruccion, MetodoPago, Stock, Usuario
 from usuarios.views import admin_required
 from core.db_preference import debe_usar_bd_remota
+from core.db_utils import select_for_update_if_supported
 
 from .models import DetalleOrden, Entrega, Orden
 from .utils import liberar_vehiculo_pedido, revertir_stock_pedido
@@ -36,7 +37,9 @@ def eliminar_detalle(request, id):
     with transaction.atomic():
         with transaction.atomic(using=db_alias):
             stock_obj = (
-                Stock.objects.select_for_update().using(db_alias).get(material=detalle.material)
+                select_for_update_if_supported(Stock.objects.using(db_alias), db_alias).get(
+                    material=detalle.material
+                )
             )
             stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
             stock_obj.save(using=db_alias)

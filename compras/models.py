@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.db import models
+from django.core.validators import MinValueValidator
+
 
 from usuarios.models import MaterialConstruccion, Proveedor
 
@@ -50,8 +52,8 @@ class DetalleCompra(models.Model):
     id_detalle_compra = models.AutoField(primary_key=True)
     compra = models.ForeignKey(Compra, on_delete=models.CASCADE, related_name="detalles")
     material = models.ForeignKey(MaterialConstruccion, on_delete=models.PROTECT)
-    cantidad = models.PositiveIntegerField()
-    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2)
+    cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
 
     class Meta:
         db_table = "detalle_compra"

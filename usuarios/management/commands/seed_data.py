@@ -268,8 +268,9 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(f"Conductor usuario creado: {p_cond.username}")
 
-            cond_profile, _ = Conductor.objects.using(db_alias).get_or_create(
-                usuario=p_cond,
+            cond_profile, _ = Conductor.ensure_for_user(
+                p_cond,
+                using=db_alias,
                 defaults={
                     "numero_licencia": f'LIC-{c_data["doc"]}',
                     "categoria_licencia": "C2",
@@ -338,8 +339,9 @@ class Command(BaseCommand):
                 documento=cl_data["doc"],
             )
 
-            cliente_perfil, _ = Cliente.objects.using(db_alias).get_or_create(
-                usuario=p_cl,
+            cliente_perfil, _ = Cliente.ensure_for_user(
+                p_cl,
+                using=db_alias,
                 defaults={
                     "nombre_empresa": cl_data["empresa"],
                     "direccion_principal": "Av Siempre Viva 123",

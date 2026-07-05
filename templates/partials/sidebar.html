@@ -41,10 +41,7 @@
                                 <i class="bi bi-cart-check-fill text-warning"></i>
                                 <span data-i18n="sidebar.gestionPedidos">Gestión de Pedidos</span>
                             </a>
-                            <a href="{% url 'ordenes:lista_entregas_admin' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}active{% endif %}">
-                                <i class="bi bi-truck-flatbed"></i>
-                                <span data-i18n="sidebar.entregasList">Control de Entregas</span>
-                            </a>
+
                             <a href="{% url 'facturacion:lista_facturas' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'facturacion' %}active{% endif %}">
                                 <i class="bi bi-receipt"></i>
                                 <span data-i18n="sidebar.facturacion">Facturación</span>

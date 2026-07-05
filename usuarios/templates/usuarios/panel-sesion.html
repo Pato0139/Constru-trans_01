@@ -235,6 +235,17 @@
             outline: none;
         }
 
+        /* Estilo para sobrescribir el autofill del navegador (Chrome, Safari, Edge) */
+        .input-custom:-webkit-autofill,
+        .input-custom:-webkit-autofill:hover,
+        .input-custom:-webkit-autofill:focus,
+        .input-custom:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+
         .animate-up {
             animation: slideUp 0.8s ease forwards;
             opacity: 0;
