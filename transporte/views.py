@@ -82,14 +82,8 @@ def crear_vehiculo(request):
             )
 
             if conductor_id:
-                conductor_perfil, _ = Conductor.objects.get_or_create(
-                    usuario_id=conductor_id,
-                    defaults={
-                        "numero_licencia": f"PEND-{conductor_id}",
-                        "categoria_licencia": "N/A",
-                        "fecha_vencimiento_licencia": now().date(),
-                        "estado": "activo",
-                    },
+                conductor_perfil, _ = Conductor.ensure_for_user(
+                    Usuario.objects.get(pk=conductor_id)
                 )
                 ConductorVehiculo.objects.create(conductor=conductor_perfil, vehiculo=vehiculo)
 
@@ -170,14 +164,8 @@ def editar_vehiculo(request, id):
                     ).update(fecha_fin=now())
 
                     if conductor_id:
-                        conductor_perfil, _ = Conductor.objects.get_or_create(
-                            usuario_id=conductor_id,
-                            defaults={
-                                "numero_licencia": f"PEND-{conductor_id}",
-                                "categoria_licencia": "N/A",
-                                "fecha_vencimiento_licencia": now().date(),
-                                "estado": "activo",
-                            },
+                        conductor_perfil, _ = Conductor.ensure_for_user(
+                            Usuario.objects.get(pk=conductor_id)
                         )
                         ConductorVehiculo.objects.create(
                             conductor=conductor_perfil, vehiculo=vehiculo

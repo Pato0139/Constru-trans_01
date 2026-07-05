@@ -1,7 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.timezone import now
 import datetime
 
@@ -98,6 +100,18 @@ class Usuario(AbstractUser):
             "#6366F1",
         ]
         return colores[self.id % len(colores)] if self.id else colores[0]
+
+    def ensure_profile_for_role(self, using=None):
+        """Crea o devuelve el perfil asociado al rol del usuario."""
+        if self.rol == "cliente":
+            from clientes.models import Cliente
+
+            return Cliente.ensure_for_user(self, using=using)
+
+        if self.rol == "conductor":
+            return Conductor.ensure_for_user(self, using=using)
+
+        return None
 
     @property
     def es_admin(self):
@@ -222,6 +236,81 @@ class Conductor(models.Model):
     def __str__(self):
         return f"Conductor: {self.usuario.nombres}"
 
+    @classmethod
+    def ensure_for_user(cls, user, using=None, defaults=None):
+        """Crea o devuelve el perfil de conductor para un usuario persistido."""
+        if user is None:
+            raise ValueError("Se requiere un usuario válido para crear el perfil de conductor.")
+
+        if not getattr(user, "pk", None):
+            raise ValueError(
+                "El usuario debe existir en base de datos antes de crear el perfil de conductor."
+            )
+
+        db_alias = using or getattr(getattr(user, "_state", None), "db", None) or "default"
+        user_for_profile = cls._resolve_user_for_db(user, db_alias)
+
+        if user_for_profile is None:
+            raise ValueError("No fue posible resolver un usuario válido para el perfil de conductor.")
+
+        profile_defaults = {
+            "numero_licencia": f"PEND-{user_for_profile.pk}",
+            "categoria_licencia": "N/A",
+            "fecha_vencimiento_licencia": now().date(),
+            "estado": "activo",
+        }
+        if defaults:
+            profile_defaults.update(defaults)
+
+        with transaction.atomic(using=db_alias):
+            return cls.objects.using(db_alias).get_or_create(
+                usuario=user_for_profile,
+                defaults=profile_defaults,
+            )
+
+    @staticmethod
+    def _resolve_user_for_db(user, db_alias):
+        if getattr(getattr(user, "_state", None), "db", None) == db_alias:
+            return user
+
+        try:
+            return Usuario.objects.using(db_alias).get(pk=user.pk)
+        except Usuario.DoesNotExist:
+            pass
+
+        try:
+            return Usuario.objects.using(db_alias).get(username=user.username)
+        except Usuario.DoesNotExist:
+            pass
+
+        mirrored_user, _ = Usuario.objects.using(db_alias).update_or_create(
+            username=user.username,
+            defaults={
+                "password": user.password,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+                "nombres": getattr(user, "nombres", "") or "",
+                "apellidos": getattr(user, "apellidos", "") or "",
+                "telefono": getattr(user, "telefono", ""),
+                "documento": getattr(user, "documento", ""),
+                "rol": getattr(user, "rol", "conductor"),
+                "tipo_documento": getattr(user, "tipo_documento", "CC"),
+                "estado": getattr(user, "estado", "activo"),
+                "foto_perfil": getattr(user, "foto_perfil", None),
+                "sincronizado": True,
+                "is_superuser": getattr(user, "is_superuser", False),
+                "is_staff": getattr(user, "is_staff", False),
+                "is_active": getattr(user, "is_active", True),
+                "date_joined": getattr(user, "date_joined", None),
+                "last_login": getattr(user, "last_login", None),
+                "intentos_fallidos": getattr(user, "intentos_fallidos", 0),
+                "bloqueado_hasta": getattr(user, "bloqueado_hasta", None),
+                "nivel_bloqueo": getattr(user, "nivel_bloqueo", 0),
+            },
+        )
+        return mirrored_user
+
     @property
     def asignacion_actual(self):
         if hasattr(self, "asignaciones_activas"):
@@ -253,6 +342,23 @@ class Conductor(models.Model):
 # =====================================================================
 # VEHICULO
 # =====================================================================
+@receiver(post_save, sender="usuarios.Usuario")
+def crear_perfil_conductor(sender, instance, created, **kwargs):
+    """Auto-crea perfil de conductor cuando un usuario pasa a ser conductor."""
+    if instance.rol != "conductor":
+        return
+
+    using = kwargs.get("using") or instance._state.db or "default"
+    if created:
+        Conductor.ensure_for_user(instance, using=using)
+        return
+
+    try:
+        instance.perfil_conductor
+    except Conductor.DoesNotExist:
+        Conductor.ensure_for_user(instance, using=using)
+
+
 class Vehiculo(models.Model):
     id_vehiculo = models.AutoField(primary_key=True)
     placa = models.CharField(max_length=10, unique=True)
