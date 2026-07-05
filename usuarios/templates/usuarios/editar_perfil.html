@@ -7,8 +7,8 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
-            <div class="card bg-dark text-white border-0 shadow-lg rounded-4 overflow-hidden">
-                <div class="card-header bg-secondary border-0 py-4 text-center">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--card-bg);">
+                <div class="card-header border-0 py-4 text-center" style="background: var(--item-bg);">
                     <h3 class="fw-bold mb-0" style="color: var(--color-accent);">Editar Perfil</h3>
                     <p class="text-muted small mb-0">Actualiza tu información personal</p>
                 </div>
@@ -18,13 +18,12 @@
                         
                         <!-- Imagen de Perfil -->
                         <div class="text-center mb-4">
-                            <div class="position-relative d-inline-block">
+                            <div class="position-relative d-inline-block edit-profile-avatar-container">
                                 {% if usuario.foto_perfil %}
-                                    <img src="{{ usuario.foto_perfil.url }}" alt="Perfil" class="rounded-circle border border-4 border-accent shadow" style="width: 150px; height: 150px; object-fit: cover;">
+                                    <img src="{{ usuario.foto_perfil.url }}" alt="Perfil" class="edit-profile-avatar-img" id="avatar-preview">
                                 {% else %}
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center border border-4 border-accent shadow mx-auto" 
-                                         style="width: 150px; height: 150px; background-color: {{ usuario.color_avatar }};">
-                                        <span class="display-3 fw-bold text-white">{{ usuario.iniciales }}</span>
+                                    <div class="edit-profile-avatar-placeholder" id="avatar-preview">
+                                        <span class="display-3 fw-bold">{{ usuario.iniciales }}</span>
                                     </div>
                                 {% endif %}
                                 <div class="mt-3">
@@ -38,20 +37,20 @@
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted">Nombres</label>
-                                <input type="text" name="nombres" value="{{ usuario.nombres }}" class="form-control bg-secondary border-0 text-white rounded-3 py-2" required>
+                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Nombres</label>
+                                <input type="text" name="nombres" value="{{ usuario.nombres }}" class="form-control rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted">Apellidos</label>
-                                <input type="text" name="apellidos" value="{{ usuario.apellidos }}" class="form-control bg-secondary border-0 text-white rounded-3 py-2" required>
+                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Apellidos</label>
+                                <input type="text" name="apellidos" value="{{ usuario.apellidos }}" class="form-control rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);" required>
                             </div>
                             <div class="col-12">
-                                <label class="form-label small fw-bold text-muted">Correo Electrónico</label>
-                                <input type="email" name="email" value="{{ request.user.email }}" class="form-control bg-secondary border-0 text-white rounded-3 py-2" required>
+                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Correo Electrónico</label>
+                                <input type="email" name="email" value="{{ request.user.email }}" class="form-control rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);" required>
                             </div>
                             <div class="col-md-5">
-                                <label class="form-label small fw-bold text-muted">País</label>
-                                <select name="pais_codigo" class="form-select bg-secondary border-0 text-white rounded-3 py-2" id="paisCodigo">
+                                <label class="form-label small fw-bold" style="color: var(--color-muted);">País</label>
+                                <select name="pais_codigo" class="form-select rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);" id="paisCodigo">
                                     <option value="+57" selected>COL (+57)</option>
                                     <option value="+1">USA (+1)</option>
                                     <option value="+52">MEX (+52)</option>
@@ -61,21 +60,21 @@
                                 </select>
                             </div>
                             <div class="col-md-7">
-                                <label class="form-label small fw-bold text-muted">Teléfono</label>
-                                <input type="text" name="telefono" value="{{ usuario.telefono }}" class="form-control bg-secondary border-0 text-white rounded-3 py-2"
+                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Teléfono</label>
+                                <input type="text" name="telefono" value="{{ usuario.telefono }}" class="form-control rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);"
                                 pattern="[0-9\s]*" title="Solo se admiten números y espacios" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted">Tipo Documento</label>
-                                <select name="tipo_documento" class="form-select bg-secondary border-0 text-white rounded-3 py-2">
+                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Tipo Documento</label>
+                                <select name="tipo_documento" class="form-select rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);">
                                     {% for code, name in usuario.TIPOS_DOCUMENTO %}
                                         <option value="{{ code }}" {% if usuario.tipo_documento == code %}selected{% endif %}>{{ name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="col-12">
-                                <label class="form-label small fw-bold text-muted">Número de Identificación</label>
-                                <input type="text" name="documento" value="{{ usuario.documento }}" class="form-control bg-secondary border-0 text-white rounded-3 py-2" required
+                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Número de Identificación</label>
+                                <input type="text" name="documento" value="{{ usuario.documento }}" class="form-control rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);" required
                                 pattern="[0-9\s]*" title="Solo se admiten números y espacios" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                             </div>
                         </div>
@@ -84,7 +83,7 @@
                             <button type="submit" class="btn btn-accent fw-bold py-3 rounded-pill shadow-sm">
                                 Guardar Cambios
                             </button>
-                            <a href="javascript:history.back()" class="btn btn-outline-light py-3 rounded-pill">
+                            <a href="javascript:history.back()" class="btn btn-outline-light py-3 rounded-pill" style="color: var(--color-text); border-color: var(--color-border);">
                                 Cancelar
                             </a>
                         </div>
@@ -96,9 +95,6 @@
 </div>
 
 <style>
-    :root {
-        --color-accent: #F39C12;
-    }
     .btn-accent {
         background-color: var(--color-accent);
         color: #000;
@@ -116,20 +112,40 @@
         background-color: var(--color-accent);
         color: #000;
     }
-    .bg-dark {
-        background-color: #000000 !important;
-    }
-    .bg-secondary {
-        background-color: #333333 !important;
-    }
-    .border-accent {
-        border-color: var(--color-accent) !important;
-    }
     .form-control:focus, .form-select:focus {
-        background-color: #444444 !important;
+        background-color: var(--item-bg) !important;
         box-shadow: 0 0 0 0.25rem rgba(243, 156, 18, 0.25);
-        border: none;
-        color: white;
+        border-color: var(--color-accent);
+        color: var(--color-text);
+    }
+
+    .edit-profile-avatar-container {
+        position: relative;
+        display: inline-block;
+        z-index: 1;
+    }
+
+    .edit-profile-avatar-img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 4px solid var(--color-accent);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        display: block;
+    }
+
+    .edit-profile-avatar-placeholder {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background-color: var(--color-accent);
+        border: 4px solid var(--color-accent);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #000;
     }
 </style>
 
@@ -152,20 +168,17 @@
                 return;
             }
             
-            const container = this.closest('.text-center').querySelector('.position-relative');
-            const img = container.querySelector('img');
-            const initialsDiv = container.querySelector('div');
-            
-            if (img) {
-                img.src = URL.createObjectURL(file);
-            } else if (initialsDiv) {
+            const preview = document.getElementById('avatar-preview');
+            if (preview.tagName === 'IMG') {
+                preview.src = URL.createObjectURL(file);
+            } else {
+                // Replace placeholder with image
                 const newImg = document.createElement('img');
                 newImg.src = URL.createObjectURL(file);
-                newImg.className = "rounded-circle border border-4 border-accent shadow";
-                newImg.style.width = "150px";
-                newImg.style.height = "150px";
-                newImg.style.objectFit = "cover";
-                initialsDiv.replaceWith(newImg);
+                newImg.className = "edit-profile-avatar-img";
+                newImg.id = "avatar-preview";
+                newImg.alt = "Perfil";
+                preview.replaceWith(newImg);
             }
         }
     });

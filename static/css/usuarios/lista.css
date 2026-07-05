@@ -7,7 +7,7 @@
 }
 .btn-tab:hover {
     border-color: var(--color-primary) !important;
-    color: white !important;
+    color: var(--color-text) !important;
 }
 .btn-tab.active {
     background: var(--color-primary) !important;
@@ -35,5 +35,59 @@
     border-bottom: 1px solid var(--color-border);
 }
 .usuario-table-row {
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Action buttons styles */
+.btn-action {
+    border: 1px solid var(--color-border);
+    background: var(--card-bg);
+    color: var(--color-text);
+    border-radius: 8px;
+    padding: 6px 10px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-action-edit {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+.btn-action-edit:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-action-lock {
+    color: var(--color-warning);
+    border-color: var(--color-warning);
+}
+.btn-action-lock:hover {
+    background: var(--color-warning);
+    color: #000;
+}
+
+.btn-action-unlock {
+    color: var(--color-success);
+    border-color: var(--color-success);
+}
+.btn-action-unlock:hover {
+    background: var(--color-success);
+    color: white;
+}
+
+.btn-action-delete {
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+.btn-action-delete:hover {
+    background: var(--color-danger);
+    color: white;
 }
