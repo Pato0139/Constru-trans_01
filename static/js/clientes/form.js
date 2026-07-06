@@ -18,6 +18,15 @@ function actualizarTotalDisplay() {
     }
 }
 
+function calcularTotalDesdeFilas() {
+    const botones = document.querySelectorAll('#lista-detalles .btn-eliminar-material');
+    let total = 0;
+    botones.forEach((btn) => {
+        total += parseFloat(btn.dataset.subtotal || 0);
+    });
+    return Math.round(total * 100) / 100;
+}
+
 function eliminarFila(btn, subtotal) {
     btn.closest('tr')?.remove();
     totalGeneral = Math.round((totalGeneral - subtotal) * 100) / 100;
@@ -137,7 +146,14 @@ function formatFechaParaInput(value) {
 
 document.addEventListener('DOMContentLoaded', () => {
     const totalInicial = document.getElementById('display-total')?.dataset.totalInicial;
-    totalGeneral = parseFloat(totalInicial || 0);
+    const totalDesdeFilas = calcularTotalDesdeFilas();
+    const filasMateriales = document.querySelectorAll('#lista-detalles tr.material-item').length;
+
+    if (!Number.isNaN(totalDesdeFilas) && filasMateriales > 0) {
+        totalGeneral = totalDesdeFilas;
+    } else {
+        totalGeneral = filasMateriales > 0 ? 0 : parseFloat(totalInicial || 0);
+    }
 
     document.getElementById('btn-agregar-material')
         ?.addEventListener('click', agregarMaterial);
