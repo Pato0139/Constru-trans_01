@@ -22,6 +22,34 @@
         </div>
     </div>
 
+    <div class="card bg-dark border-0 shadow-sm p-3 mb-4 mx-4">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            <div class="col-md-3">
+                <input type="text" id="filter-id-cli" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID Pedido">
+            </div>
+            <div class="col-md-3">
+                <input type="text" id="filter-destino-cli" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Destino">
+            </div>
+            <div class="col-md-3">
+                <select id="filter-estado-cli" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                    <option value="">Estado (Todos)</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="en_ruta">En Ruta</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+            </div>
+            <div class="col-auto ms-auto">
+                <button class="btn btn-sm btn-outline-secondary" id="clear-filters-cli" type="button" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
@@ -193,6 +221,37 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Error al realizar el pago');
         });
     });
+
+    // Filtros DataTables
+    setTimeout(function() {
+        var tableEl = document.querySelector('.table-responsive .table');
+        if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
+            var table = $(tableEl).DataTable();
+            
+            // 0: ID
+            // 1: Destino
+            // 2: Fecha
+            // 3: Total
+            // 4: Estado
+            // 5: Acciones
+            
+            $('#filter-id-cli').on('keyup change', function() {
+                table.column(0).search(this.value).draw();
+            });
+            $('#filter-destino-cli').on('keyup change', function() {
+                table.column(1).search(this.value).draw();
+            });
+            $('#filter-estado-cli').on('change', function() {
+                table.column(4).search(this.value).draw();
+            });
+            
+            $('#clear-filters-cli').on('click', function() {
+                $('#filter-id-cli, #filter-destino-cli').val('');
+                $('#filter-estado-cli').val('');
+                table.columns().search('').draw();
+            });
+        }
+    }, 150);
 });
 </script>
 {% endblock %}

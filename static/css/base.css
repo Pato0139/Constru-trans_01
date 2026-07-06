@@ -432,13 +432,19 @@ html[data-theme="accessibility"] .btn-outline-dark {
     border-color: #ffff00 !important;
 }
 
+.badge {
+    transition: all 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
 html[data-theme="accessibility"] .badge,
 html[data-theme="accessibility"] .badge.bg-warning-subtle,
 html[data-theme="accessibility"] .badge.bg-success-subtle,
-html[data-theme="accessibility"] .badge.bg-danger-subtle {
+html[data-theme="accessibility"] .badge.bg-danger-subtle,
+html[data-theme="accessibility"] .badge-tipo {
     color: #000000 !important;
     background-color: #ffff00 !important;
-    border-color: #ffff00 !important;
+    border: 2px solid #ffff00 !important;
+    font-weight: 900 !important;
 }
 
 html[data-theme="accessibility"] input,
@@ -552,6 +558,21 @@ html[data-theme="accessibility"] td {
 html[data-theme="accessibility"] small,
 html[data-theme="accessibility"] .small {
     color: #ffff00 !important;
+}
+
+/* Especificar estilos para badge-tipo en modo accesibilidad (sobrescribe el span general) */
+html[data-theme="accessibility"] .badge-tipo {
+    color: #000000 !important;
+    background-color: #ffff00 !important;
+    border: 2px solid #ffff00 !important;
+    font-weight: 900 !important;
+    transition: all 0.3s ease !important;
+}
+
+html[data-theme="accessibility"] .badge-tipo:hover {
+    background-color: #e6e600 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(255, 255, 0, 0.4) !important;
 }
 
 /* Fix pagination for accessibility theme */
