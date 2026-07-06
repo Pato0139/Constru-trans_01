@@ -15,34 +15,41 @@
         </div>
     </div>
 
-    <div class="w-100" style="max-width: 520px;">
-        <div class="d-flex flex-column gap-2" data-aos="fade-left">
-            <form action="{% url 'inventario:tipos_material_lista' %}" method="GET" class="d-flex flex-column gap-2">
-                <div class="d-flex align-items-center rounded-pill p-1 shadow-sm"
-                     style="background: var(--card-bg); border: 1px solid var(--color-border);">
-                    <div class="rounded-circle ms-1 d-flex align-items-center justify-content-center flex-shrink-0"
-                         style="width: 32px; height: 32px; background: var(--item-bg);">
-                        <i class="bi bi-search" style="font-size: 0.9rem; color: var(--color-muted);"></i>
-                    </div>
-                    <input type="text" name="q" class="form-control bg-transparent border-0 shadow-none ps-3"
-                           style="color: var(--color-text);"
-                           placeholder="Buscar tipo o código..." value="{{ query|default:'' }}">
-                </div>
-
-                <div class="d-flex justify-content-end gap-2">
-                    <button type="submit" class="btn rounded-pill px-4 py-2 d-flex align-items-center gap-2"
-                            style="background: var(--item-bg); border: 1px solid var(--color-border); color: var(--color-text);">
-                        <i class="bi bi-funnel"></i> Buscar
-                    </button>
-
-                    <a href="{% url 'inventario:crear_tipo_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg ms-2"
-                       style="width: 42px; height: 42px; min-width: 42px; background: var(--color-accent); border: none; color: #0f172a;">
-                        <i class="bi bi-plus-lg fs-5"></i>
-                    </a>
-                </div>
-            </form>
-        </div>
+    <div class="d-flex gap-2" data-aos="fade-left">
+        <a href="{% url 'inventario:crear_tipo_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg"
+           style="width: 42px; height: 42px; background: var(--color-accent); border: none; color: #0f172a;">
+            <i class="bi bi-plus-lg fs-5"></i>
+        </a>
     </div>
+</div>
+
+<div class="card bg-dark border-0 shadow-sm p-3 mb-4" data-aos="fade-down">
+    <form action="." method="GET">
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            
+            <div class="col-md-3">
+                <input type="text" name="codigo" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Código" value="{{ codigo|default:'' }}">
+            </div>
+            
+            <div class="col-md-4">
+                <input type="text" name="nombre" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Nombre del Tipo" value="{{ nombre|default:'' }}">
+            </div>
+            
+            <div class="col-auto ms-auto d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary px-3">
+                    <i class="bi bi-search me-1"></i> Buscar
+                </button>
+                {% if codigo or nombre %}
+                <a href="." class="btn btn-sm btn-outline-secondary" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
 </div>
 
 <div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);" data-aos="fade-up">
