@@ -117,7 +117,7 @@ def lista_historial(request):
     # Normal render (empty tbody, handled by Ajax DataTable)
     context = {
         "acciones": Historial.ACCIONES,
-        "modulos": Historial.objects.values_list("modulo", flat=True).distinct(),
+        "modulos": Historial.objects.order_by("modulo").values_list("modulo", flat=True).distinct(),
     }
     return render(request, "historial/lista.html", context)
 

@@ -3,9 +3,11 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    const inputBusqueda = document.getElementById('busquedaMateriales');
+    const inputId = document.getElementById('filtroId');
+    const inputMaterial = document.getElementById('filtroMaterial');
     const filtroTipo = document.getElementById('filtroTipoMaterial');
     const formFiltros = document.getElementById('filtrosMaterialesForm');
+    const btnLimpiar = document.getElementById('btnLimpiarFiltros');
 
     const table = AppAjaxTable.init({
         selector: '#tablaMateriales',
@@ -13,7 +15,8 @@ document.addEventListener('DOMContentLoaded', function () {
         countSelector: '#materiales-count',
         filters: {
             tipo: () => filtroTipo ? filtroTipo.value : '',
-            'search[value]': () => inputBusqueda ? inputBusqueda.value.trim() : ''
+            material: () => inputMaterial ? inputMaterial.value.trim() : '',
+            id: () => inputId ? inputId.value.trim() : ''
         },
         columns: [
             {
@@ -69,18 +72,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!table) return;
 
-    if (inputBusqueda) {
-        inputBusqueda.addEventListener('input', AppHTTP.debounce(() => table.ajax.reload(), 300));
+    if (!table) return;
+
+    function checkActiveFilters() {
+        if (btnLimpiar) {
+            const hasFilters = (inputId && inputId.value.trim()) || 
+                               (inputMaterial && inputMaterial.value.trim()) || 
+                               (filtroTipo && filtroTipo.value);
+            btnLimpiar.style.display = hasFilters ? 'inline-block' : 'none';
+        }
     }
 
-    if (filtroTipo) {
-        filtroTipo.addEventListener('change', () => table.ajax.reload());
-    }
+    const reloadTable = AppHTTP.debounce(() => {
+        table.ajax.reload();
+        checkActiveFilters();
+    }, 300);
+
+    if (inputId) inputId.addEventListener('input', reloadTable);
+    if (inputMaterial) inputMaterial.addEventListener('input', reloadTable);
+    if (filtroTipo) filtroTipo.addEventListener('change', reloadTable);
 
     if (formFiltros) {
         formFiltros.addEventListener('submit', function (event) {
             event.preventDefault();
             table.ajax.reload();
+            checkActiveFilters();
+        });
+    }
+
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener('click', function() {
+            if (inputId) inputId.value = '';
+            if (inputMaterial) inputMaterial.value = '';
+            if (filtroTipo) filtroTipo.value = '';
+            table.ajax.reload();
+            checkActiveFilters();
         });
     }
 });
