@@ -20,8 +20,30 @@
     <div class="mb-5">
         <h6 class="fw-bold text-white mb-3"><i class="bi bi-exclamation-circle text-warning me-2"></i> Facturas Pendientes (para pagar)</h6>
         {% if facturas_pendientes %}
+        <!-- Filtros para Facturas Pendientes -->
+        <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="filter-factura-pendiente-numero" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Nº Factura">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="filter-factura-pendiente-pedido" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Pedido">
+                </div>
+                <div class="col-md-2">
+                    <input type="date" id="filter-factura-pendiente-fecha" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                </div>
+                <div class="col-auto ms-auto">
+                    <button class="btn btn-sm btn-outline-secondary" id="clear-filters-facturas-pendientes" type="button" title="Limpiar filtros">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
+            <table id="table-facturas-pendientes" class="table table-hover align-middle">
                 <thead>
                     <tr>
                         <th>Nº Factura</th>
@@ -80,8 +102,38 @@
     <div>
         <h6 class="fw-bold text-white mb-3"><i class="bi bi-clock-history text-info me-2"></i> Historial de Pagos</h6>
         {% if pagos %}
+        <!-- Filtros para Historial de Pagos -->
+        <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="filter-pago-id" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID Pago">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="filter-pago-factura" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Factura">
+                </div>
+                <div class="col-md-2">
+                    <input type="date" id="filter-pago-fecha" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                </div>
+                <div class="col-md-2">
+                    <select id="filter-pago-estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                        <option value="">Estado (Todos)</option>
+                        <option value="Completado">Completado</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Fallido">Fallido</option>
+                    </select>
+                </div>
+                <div class="col-auto ms-auto">
+                    <button class="btn btn-sm btn-outline-secondary" id="clear-filters-pagos" type="button" title="Limpiar filtros">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
+            <table id="table-historial-pagos" class="table table-hover align-middle">
                 <thead>
                     <tr>
                         <th>ID Pago</th>
@@ -226,6 +278,72 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Error al realizar el pago');
         });
     });
+
+    // JavaScript para los filtros de DataTables
+    setTimeout(function() {
+        // Filtros para Facturas Pendientes
+        var tablePendientesEl = document.getElementById('table-facturas-pendientes');
+        if (tablePendientesEl && $.fn.DataTable.isDataTable(tablePendientesEl)) {
+            var tablePendientes = $(tablePendientesEl).DataTable();
+            
+            // Índices de columnas:
+            // 0: Nº Factura
+            // 1: Pedido
+            // 2: Fecha
+            // 3: Total
+            // 4: Pagado
+            // 5: Por Pagar
+            // 6: Acciones
+            
+            $('#filter-factura-pendiente-numero').on('keyup change', function() {
+                tablePendientes.column(0).search(this.value).draw();
+            });
+            $('#filter-factura-pendiente-pedido').on('keyup change', function() {
+                tablePendientes.column(1).search(this.value).draw();
+            });
+            $('#filter-factura-pendiente-fecha').on('change', function() {
+                tablePendientes.column(2).search(this.value).draw();
+            });
+            
+            $('#clear-filters-facturas-pendientes').on('click', function() {
+                $('#filter-factura-pendiente-numero, #filter-factura-pendiente-pedido, #filter-factura-pendiente-fecha').val('');
+                tablePendientes.columns().search('').draw();
+            });
+        }
+
+        // Filtros para Historial de Pagos
+        var tablePagosEl = document.getElementById('table-historial-pagos');
+        if (tablePagosEl && $.fn.DataTable.isDataTable(tablePagosEl)) {
+            var tablePagos = $(tablePagosEl).DataTable();
+            
+            // Índices de columnas:
+            // 0: ID Pago
+            // 1: Factura
+            // 2: Fecha
+            // 3: Monto
+            // 4: Método
+            // 5: Estado
+            
+            $('#filter-pago-id').on('keyup change', function() {
+                tablePagos.column(0).search(this.value).draw();
+            });
+            $('#filter-pago-factura').on('keyup change', function() {
+                tablePagos.column(1).search(this.value).draw();
+            });
+            $('#filter-pago-fecha').on('change', function() {
+                tablePagos.column(2).search(this.value).draw();
+            });
+            $('#filter-pago-estado').on('change', function() {
+                tablePagos.column(5).search(this.value).draw();
+            });
+            
+            $('#clear-filters-pagos').on('click', function() {
+                $('#filter-pago-id, #filter-pago-factura, #filter-pago-fecha').val('');
+                $('#filter-pago-estado').val('');
+                tablePagos.columns().search('').draw();
+            });
+        }
+    }, 150);
 });
 </script>
 {% endblock %}
