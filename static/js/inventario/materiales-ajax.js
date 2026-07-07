@@ -53,10 +53,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 className: 'py-3 px-4 text-center'
             },
             {
-                data: 'stock',
-                className: 'py-3 px-4 text-center'
-            },
-            {
                 data: 'precio',
                 className: 'py-3 px-4 text-center fw-bold ui-text-accent'
             },
