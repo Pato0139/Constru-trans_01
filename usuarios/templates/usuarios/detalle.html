@@ -15,19 +15,18 @@
                 </a>
             </div>
             <div class="text-center mb-5">
-                <div class="position-relative d-inline-block mb-3">
+                <div class="position-relative d-inline-block mb-3 profile-avatar-container">
                     {% if request.user.usuario.foto_perfil %}
-                        <img src="{{ request.user.usuario.foto_perfil.url }}" alt="Perfil" class="rounded-circle shadow-lg border border-4 border-dark" style="width: 120px; height: 120px; object-fit: cover;">
+                        <img src="{{ request.user.usuario.foto_perfil.url }}" alt="Perfil" class="profile-avatar-img">
                     {% else %}
-                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-900 shadow-lg" 
-                             style="width: 120px; height: 120px; background: var(--color-accent); color: #000; font-size: 2.5rem; border: 4px solid var(--color-surface);">
+                        <div class="profile-avatar-placeholder">
                             {{ request.user.usuario.nombres|slice:":1" }}{{ request.user.usuario.apellidos|slice:":1" }}
                         </div>
                     {% endif %}
-                    <span class="position-absolute bottom-0 end-0 bg-success border border-3 border-dark rounded-circle p-2" style="width: 20px; height: 20px;"></span>
+                    <span class="profile-status-badge"></span>
                 </div>
-                <h3 class="fw-900 text-white mb-1">{{ request.user.usuario.nombres }} {{ request.user.usuario.apellidos }}</h3>
-                <span class="badge-tipo" style="background: rgba(202, 160, 48, 0.05); color: var(--color-accent); border: 1px solid var(--color-accent);">ADMINISTRADOR GLOBAL</span>
+                <h3 class="fw-900 mb-1 profile-name">{{ request.user.usuario.nombres }} {{ request.user.usuario.apellidos }}</h3>
+                <span class="badge-tipo profile-badge">ADMINISTRADOR GLOBAL</span>
             </div>
             
             <div class="space-y-3">
@@ -115,6 +114,75 @@
     }
     .space-y-4 > * + * { margin-top: 1.5rem; }
     .space-y-3 > * + * { margin-top: 1rem; }
+
+    .profile-avatar-container {
+        position: relative;
+        display: inline-block;
+        z-index: 1;
+    }
+
+    .profile-avatar-img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        border: 4px solid var(--color-border);
+        display: block;
+    }
+
+    .profile-avatar-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        color: #000000;
+        font-size: 2.5rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        border: 4px solid var(--color-border);
+    }
+
+    .profile-status-badge {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background-color: var(--color-success);
+        border: 3px solid var(--color-surface);
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        z-index: 2;
+    }
+
+    .profile-name {
+        color: var(--color-text);
+    }
+
+    .profile-badge {
+        background: var(--color-accent);
+        color: #000000 !important;
+        border: 2px solid var(--color-accent);
+        font-weight: 900;
+        padding: 4px 16px;
+        border-radius: 4px;
+    }
+
+    /* Fix text visibility in all sections */
+    .table-container p,
+    .table-container h5,
+    .table-container h1,
+    .table-container span {
+        color: var(--color-text);
+    }
+
+    .table-container .text-muted {
+        color: var(--color-muted);
+    }
 </style>
 
 {% endblock %}
