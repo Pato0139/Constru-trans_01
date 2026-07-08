@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load static currency_tags %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/compras/form.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -40,7 +44,7 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-dark table-hover mb-0" id="detalles-table">
+                            <table class="table table-dark table-hover mb-0 no-datatable" id="detalles-table">
                                 <thead class="text-uppercase small text-muted border-secondary">
                                     <tr>
                                         <th class="ps-4">#</th>
@@ -120,22 +124,7 @@
     </form>
 </div>
 
-<style>
-    .glass-card {
-        background: rgba(30, 34, 45, 0.7) !important;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-    .form-control, .form-select {
-        background-color: rgba(0,0,0,0.2) !important;
-        border-color: rgba(255,255,255,0.1) !important;
-        color: white !important;
-    }
-    .form-control:focus {
-        border-color: var(--bs-warning) !important;
-        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25) !important;
-    }
-</style>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

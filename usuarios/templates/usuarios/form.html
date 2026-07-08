@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/usuarios/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/usuarios/form.css' %}?v=3.0">
 {% endblock %}
 
 {% block extra_js %}
@@ -14,14 +14,14 @@
 
 {% block content %}
 
-<div class="row justify-content-center">
+<div class="row justify-content-center" id="usuario-form-container">
     <div class="col-lg-8">
         <div class="table-container p-4 p-md-5 border-0 shadow-lg usuario-form-card">
             <div class="text-center mb-5">
                 <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow usuario-icon-circle">
                     <i class="bi {% if action == 'crear' %}bi-person-plus-fill{% else %}bi-person-gear{% endif %} text-dark fs-2"></i>
                 </div>
-                <h3 class="fw-900 text-white mb-2">
+                <h3 class="fw-900 mb-2">
                     {% if action == 'crear' %}Registrar Usuario{% else %}Editar Usuario{% endif %}
                 </h3>
                 <p class="text-muted small text-uppercase fw-700 usuario-subtitle">
@@ -171,7 +171,7 @@
                         <i class="bi {% if action == 'crear' %}bi-person-check{% else %}bi-save{% endif %} me-2"></i> 
                         {% if action == 'crear' %}Registrar Usuario{% else %}Guardar Cambios{% endif %}
                     </button>
-                    <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-outline-light rounded-pill py-3 usuario-cancel-btn">
+                    <a href="{% url 'usuarios:lista_usuarios' %}" class="btn rounded-pill py-3 usuario-cancel-btn">
                         <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
                     </a>
                 </div>
