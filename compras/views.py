@@ -13,15 +13,41 @@ from .models import Compra, Proveedor
 
 @admin_required
 def lista_compras(request):
-    q = request.GET.get("q", "")
+    orden = request.GET.get("orden", "")
+    proveedor = request.GET.get("proveedor", "")
+    fecha = request.GET.get("fecha", "")
+    usuario = request.GET.get("usuario", "")
+    estado = request.GET.get("estado", "")
+
     compras = (
         Compra.objects.select_related("proveedor", "usuario").prefetch_related("detalles").all()
     )
-    if q:
+
+    if orden:
+        compras = compras.filter(id_compra__icontains=orden)
+    if proveedor:
         compras = compras.filter(
-            Q(proveedor__nombre__icontains=q) | Q(id__icontains=q) | Q(estado__icontains=q)
+            Q(proveedor__nombre_empresa__icontains=proveedor) | Q(proveedor__nit__icontains=proveedor)
         )
-    context = {"compras": compras, "query": q}
+    if fecha:
+        compras = compras.filter(fecha_compra__date=fecha)
+    if usuario:
+        compras = compras.filter(
+            Q(usuario__username__icontains=usuario) |
+            Q(usuario__nombres__icontains=usuario) |
+            Q(usuario__apellidos__icontains=usuario)
+        )
+    if estado:
+        compras = compras.filter(estado=estado)
+
+    context = {
+        "compras": compras,
+        "orden": orden,
+        "proveedor": proveedor,
+        "fecha": fecha,
+        "usuario": usuario,
+        "estado_actual": estado,
+    }
 
     return render(request, "compras/lista.html", context)
 
@@ -165,18 +191,29 @@ def contactar_proveedor(request, codigo_proveedor):
 
 @admin_required
 def lista_proveedores(request):
-    q = request.GET.get("q", "")
-    if q:
-        proveedores = Proveedor.objects.filter(
-            Q(nombre_empresa__icontains=q)
-            | Q(nit__icontains=q)
-            | Q(contacto_nombre__icontains=q)
-            | Q(telefono__icontains=q)
-            | Q(email__icontains=q)
+    empresa_nit = request.GET.get("empresa_nit", "")
+    contacto = request.GET.get("contacto", "")
+    categoria = request.GET.get("categoria", "")
+
+    proveedores = Proveedor.objects.all()
+
+    if empresa_nit:
+        proveedores = proveedores.filter(
+            Q(nombre_empresa__icontains=empresa_nit) | Q(nit__icontains=empresa_nit)
         )
-    else:
-        proveedores = Proveedor.objects.all()
-    context = {"proveedores": proveedores, "query": q}
+    if contacto:
+        proveedores = proveedores.filter(
+            Q(contacto_nombre__icontains=contacto) | Q(email__icontains=contacto) | Q(telefono__icontains=contacto)
+        )
+    if categoria:
+        proveedores = proveedores.filter(categoria__icontains=categoria)
+
+    context = {
+        "proveedores": proveedores,
+        "empresa_nit": empresa_nit,
+        "contacto": contacto,
+        "categoria": categoria,
+    }
 
     return render(request, "compras/proveedores_lista.html", context)
 

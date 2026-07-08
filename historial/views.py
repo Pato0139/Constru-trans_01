@@ -103,7 +103,7 @@ def lista_historial(request):
                 reg.modulo.capitalize() if reg.modulo else "-",
                 reg.elemento_id or "-",
                 f'<small>{reg.descripcion}</small>',
-                reg.fecha_hora.strftime("%Y-m-d %H:%M") if reg.fecha_hora else "",
+                reg.fecha_hora.strftime("%Y-%m-%d %H:%M") if reg.fecha_hora else "",
                 f'<small class="text-muted">{reg.ip_address or "-"}</small>'
             ])
 
@@ -117,7 +117,7 @@ def lista_historial(request):
     # Normal render (empty tbody, handled by Ajax DataTable)
     context = {
         "acciones": Historial.ACCIONES,
-        "modulos": Historial.objects.values_list("modulo", flat=True).distinct(),
+        "modulos": Historial.objects.order_by("modulo").values_list("modulo", flat=True).distinct(),
     }
     return render(request, "historial/lista.html", context)
 

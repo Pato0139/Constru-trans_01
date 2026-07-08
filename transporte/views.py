@@ -10,42 +10,44 @@ from usuarios.views import admin_required
 
 @admin_required
 def lista_vehiculos(request):
-    q = request.GET.get("q")
+    id_vehiculo = request.GET.get("id_vehiculo")
+    placa = request.GET.get("placa")
+    tipo = request.GET.get("tipo")
     estado = request.GET.get("estado")
+    conductor = request.GET.get("conductor")
 
     vehiculos = Vehiculo.objects.all()
 
-    if q:
-        vehiculos = vehiculos.filter(
-            models.Q(placa__icontains=q)
-            | models.Q(tipo_vehiculo__icontains=q)
-            | models.Q(marca__icontains=q)
-            | models.Q(modelo__icontains=q)
-        )
-
+    if id_vehiculo and id_vehiculo.isdigit():
+        vehiculos = vehiculos.filter(id_vehiculo=int(id_vehiculo))
+    if placa:
+        vehiculos = vehiculos.filter(placa__icontains=placa)
+    if tipo:
+        vehiculos = vehiculos.filter(tipo_vehiculo__icontains=tipo)
     if estado:
         vehiculos = vehiculos.filter(estado=estado)
+    if conductor:
+        vehiculos = vehiculos.filter(
+            models.Q(asignaciones_conductor__fecha_fin__isnull=True) & (
+                models.Q(asignaciones_conductor__conductor__usuario__nombres__icontains=conductor) |
+                models.Q(asignaciones_conductor__conductor__usuario__apellidos__icontains=conductor)
+            )
+        ).distinct()
 
-    page = int(request.GET.get("page", 1))
-    per_page = 20
-    total = vehiculos.count()
-
-    total_pages = (total + per_page - 1) // per_page if total > 0 else 1
-    start_page = max(1, page - 2)
-    end_page = min(total_pages, page + 2)
-    pages_list = list(range(start_page, end_page + 1))
-
-    vehiculos = vehiculos[(page - 1) * per_page : page * per_page]
+    # Pre-cargar property conductor_actual y related models optimiza el acceso en plantilla
+    # No eliminamos el paginador nativo aquí para dejar que DataTables lo haga
+    vehiculos = list(vehiculos) # Ejecutar la query para inyectar al contexto y evitar slice
+    for v in vehiculos:
+        # Pre-cachamos el conductor_actual
+        v.conductor = v.conductor_actual
 
     context = {
         "vehiculos": vehiculos,
-        "query": q,
+        "id_vehiculo": id_vehiculo,
+        "placa": placa,
+        "tipo": tipo,
         "estado_actual": estado,
-        "page": page,
-        "per_page": per_page,
-        "total": total,
-        "total_pages": total_pages,
-        "pages_list": pages_list,
+        "conductor": conductor,
     }
 
     return render(request, "transporte/lista.html", context)

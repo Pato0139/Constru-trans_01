@@ -13,43 +13,63 @@
         </div>
     </div>
 
-    <div class="d-flex flex-column flex-md-row gap-2 align-items-center">
-        <div class="w-100" style="max-width: 520px;">
-            <div class="d-flex flex-column gap-2" data-aos="fade-left">
-                <form action="{% url 'transporte:lista_vehiculos' %}" method="GET" class="d-flex flex-column gap-2">
-                    <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm" style="background: var(--card-bg); border-color: var(--color-border) !important;">
-                        <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                            <i class="bi bi-search text-dark" style="font-size: 0.9rem;"></i>
-                        </div>
-                        <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
-                               placeholder="Buscar placa, tipo o conductor..." value="{{ query|default:'' }}">
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <select name="estado" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2" style="background: var(--card-bg); color: white; border-color: var(--color-border);" onchange="this.form.submit()">
-                            <option value="">Todos los estados</option>
-                            <option value="disponible" {% if estado_actual == 'disponible' %}selected{% endif %}>Disponible</option>
-                            <option value="en_ruta" {% if estado_actual == 'en_ruta' %}selected{% endif %}>En Ruta</option>
-                            <option value="mantenimiento" {% if estado_actual == 'mantenimiento' %}selected{% endif %}>Mantenimiento</option>
-                        </select>
-                        
-                        <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2" style="border-color: var(--color-border); color: var(--color-text-muted);">
-                            <i class="bi bi-funnel"></i> Filtrar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
+    <div class="d-flex gap-2 align-items-center" data-aos="fade-left">
         <a href="{% url 'transporte:crear_vehiculo' %}" class="btn btn-premium px-4 fw-bold d-flex align-items-center gap-2" style="border-radius: var(--radius-lg); background: var(--color-primary); color: white; border: none; text-decoration: none;">
             <i class="bi bi-plus-lg"></i> CREAR VEHÍCULO
         </a>
     </div>
 </div>
 
+<div class="card bg-dark border-0 shadow-sm p-3 mb-4" data-aos="fade-down">
+    <form action="." method="GET">
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            
+            <div class="col-md-2">
+                <input type="number" name="id_vehiculo" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID" value="{{ id_vehiculo|default:'' }}">
+            </div>
+            
+            <div class="col-md-2">
+                <input type="text" name="placa" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Placa" value="{{ placa|default:'' }}">
+            </div>
+
+            <div class="col-md-2">
+                <input type="text" name="tipo" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Tipo" value="{{ tipo|default:'' }}">
+            </div>
+            
+            <div class="col-md-2">
+                <select name="estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                    <option value="">Estado (Todos)</option>
+                    <option value="disponible" {% if estado_actual == 'disponible' %}selected{% endif %}>Disponible</option>
+                    <option value="en_ruta" {% if estado_actual == 'en_ruta' %}selected{% endif %}>En Ruta</option>
+                    <option value="mantenimiento" {% if estado_actual == 'mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+                    <option value="fuera_de_servicio" {% if estado_actual == 'fuera_de_servicio' %}selected{% endif %}>Fuera de Servicio</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <input type="text" name="conductor" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Conductor" value="{{ conductor|default:'' }}">
+            </div>
+            
+            <div class="col-auto ms-auto d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary px-3">
+                    <i class="bi bi-search me-1"></i> Buscar
+                </button>
+                {% if id_vehiculo or placa or tipo or estado_actual or conductor %}
+                <a href="." class="btn btn-sm btn-outline-secondary" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
 <div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);" data-aos="fade-up">
     <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02);">
+        <table id="tablaVehiculos" class="table table-dark table-hover align-middle mb-0 no-datatable" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02);">
             <thead>
                 <tr style="border-bottom: 2px solid var(--color-border);">
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 80px;">ID</th>
@@ -74,7 +94,7 @@
                         {% elif v.estado == 'en_ruta' %}
                             <span class="badge bg-warning-subtle text-warning px-3">En Ruta</span>
                         {% else %}
-                            <span class="badge bg-danger-subtle text-danger px-3">{{ v.estado|title }}</span>
+                            <span class="badge bg-danger-subtle text-danger px-3">{{ v.get_estado_display }}</span>
                         {% endif %}
                     </td>
                     <td class="py-3 px-4">
@@ -90,7 +110,7 @@
                                 <span>{{ v.conductor.nombres }} {{ v.conductor.apellidos }}</span>
                             </div>
                         {% else %}
-                            <span class="text-muted small italic">Sin asignar</span>
+                            <span class="text-muted small fst-italic">Sin asignar</span>
                         {% endif %}
                     </td>
                     <td class="py-3 px-4 text-center">
@@ -122,30 +142,6 @@
             </tbody>
         </table>
     </div>
-    
-    {% if total_pages and total_pages > 1 %}
-    <nav class="mt-4 d-flex justify-content-center" aria-label="Paginación">
-        <ul class="pagination pagination-dark">
-            {% if page > 1 %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page|add:-1 }}{% if query %}&q={{ query }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">Anterior</a>
-            </li>
-            {% endif %}
-            
-            {% for p in pages_list %}
-            <li class="page-item {% if p == page %}active{% endif %}">
-                <a class="page-link" href="?page={{ p }}{% if query %}&q={{ query }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">{{ p }}</a>
-            </li>
-            {% endfor %}
-            
-            {% if page < total_pages %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page|add:1 }}{% if query %}&q={{ query }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">Siguiente</a>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
 </div>
 
 <style>
@@ -160,4 +156,33 @@
         color: white;
     }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if ($.fn.DataTable.isDataTable('#tablaVehiculos')) {
+        $('#tablaVehiculos').DataTable().destroy();
+    }
+    
+    $('#tablaVehiculos').DataTable({
+        "language": {
+            "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            "infoEmpty": "No hay registros disponibles",
+            "infoFiltered": "(filtrado de _MAX_ registros totales)",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
+        },
+        "pageLength": 10,
+        "responsive": true,
+        "dom": 'rt<"d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4 p-4 border-top border-white-5"ip>',
+        "order": [],
+        "ordering": false
+    });
+});
+</script>
 {% endblock %}

@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
@@ -15,17 +16,29 @@ from .models import Factura
 
 @admin_required
 def lista_facturas(request):
-    estado = request.GET.get("estado")
-    q = request.GET.get("q")
+    estado = request.GET.get("estado", "")
+    cliente = request.GET.get("cliente", "")
+    factura = request.GET.get("factura", "")
 
     qs = Factura.objects.select_related("cliente", "pedido").prefetch_related("pagos")
 
     if estado in ["pendiente", "pagada", "anulada"]:
         qs = qs.filter(estado=estado)
-    if q:
-        qs = qs.filter(numero__icontains=q)
+    if cliente:
+        qs = qs.filter(
+            Q(cliente__nombres__icontains=cliente)
+            | Q(cliente__apellidos__icontains=cliente)
+        )
+    if factura:
+        qs = qs.filter(numero__icontains=factura)
 
-    context = {"facturas": qs, "estado": estado, "metodos_pago": MetodoPago.objects.all()}
+    context = {
+        "facturas": qs,
+        "estado": estado,
+        "cliente": cliente,
+        "factura": factura,
+        "metodos_pago": MetodoPago.objects.all(),
+    }
 
     return render(request, "facturacion/lista.html", context)
 

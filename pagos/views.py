@@ -9,7 +9,9 @@ from .models import Pago
 
 @admin_required
 def lista_pagos(request):
-    q = request.GET.get("q", "")
+    cliente = request.GET.get("cliente", "")
+    factura = request.GET.get("factura", "")
+    referencia = request.GET.get("referencia", "")
     fecha = request.GET.get("fecha", "")
     metodo = request.GET.get("metodo", "")
 
@@ -21,13 +23,15 @@ def lista_pagos(request):
         .order_by("-fecha")
     )
 
-    if q:
+    if cliente:
         pagos = pagos.filter(
-            Q(factura__numero__icontains=q)
-            | Q(factura__cliente__nombres__icontains=q)
-            | Q(factura__cliente__apellidos__icontains=q)
-            | Q(referencia__icontains=q)
+            Q(factura__cliente__nombres__icontains=cliente)
+            | Q(factura__cliente__apellidos__icontains=cliente)
         )
+    if factura:
+        pagos = pagos.filter(factura__numero__icontains=factura)
+    if referencia:
+        pagos = pagos.filter(referencia__icontains=referencia)
 
     if fecha:
         pagos = pagos.filter(fecha__date=fecha)
@@ -37,7 +41,9 @@ def lista_pagos(request):
 
     context = {
         "pagos": pagos,
-        "q": q,
+        "cliente": cliente,
+        "factura": factura,
+        "referencia": referencia,
         "fecha": fecha,
         "metodo": metodo,
         "metodos_pago": MetodoPago.objects.all(),

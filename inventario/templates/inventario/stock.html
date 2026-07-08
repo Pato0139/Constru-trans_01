@@ -15,34 +15,44 @@
         </div>
     </div>
 
-    <div class="w-100" style="max-width: 520px;">
-        <div class="d-flex flex-column gap-2" data-aos="fade-left">
-            <form action="{% url 'inventario:stock_lista' %}" method="GET" class="d-flex flex-column gap-2">
-                <div class="d-flex align-items-center rounded-pill p-1 shadow-sm"
-                     style="background: var(--card-bg); border: 1px solid var(--color-border);">
-                    <div class="rounded-circle ms-1 d-flex align-items-center justify-content-center flex-shrink-0"
-                         style="width: 32px; height: 32px; background: var(--item-bg);">
-                        <i class="bi bi-search" style="font-size: 0.9rem; color: var(--color-muted);"></i>
-                    </div>
-                    <input type="text" name="q" class="form-control bg-transparent border-0 shadow-none ps-3"
-                           style="color: var(--color-text);"
-                           placeholder="Buscar por material..." value="{{ query|default:'' }}">
-                </div>
+</div>
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn rounded-pill px-4 py-2 d-flex align-items-center gap-2"
-                            style="background: var(--item-bg); border: 1px solid var(--color-border); color: var(--color-text);">
-                        <i class="bi bi-funnel"></i> Filtrar
-                    </button>
-                </div>
-            </form>
+<div class="card bg-dark border-0 shadow-sm p-3 mb-4" data-aos="fade-down">
+    <form action="." method="GET">
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            
+            <div class="col-md-3">
+                <input type="text" name="material" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Material" value="{{ material|default:'' }}">
+            </div>
+            
+            <div class="col-md-3">
+                <input type="number" name="stock_actual" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Stock Actual" value="{{ stock_actual|default:'' }}">
+            </div>
+
+            <div class="col-md-3">
+                <input type="text" name="ubicacion" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Ubicación" value="{{ ubicacion|default:'' }}">
+            </div>
+            
+            <div class="col-auto ms-auto d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary px-3">
+                    <i class="bi bi-search me-1"></i> Buscar
+                </button>
+                {% if material or stock_actual or ubicacion %}
+                <a href="." class="btn btn-sm btn-outline-secondary" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+                {% endif %}
+            </div>
         </div>
-    </div>
+    </form>
 </div>
 
 <div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);" data-aos="fade-up">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-color: var(--color-text); --bs-table-hover-bg: rgba(37, 99, 235, 0.06);">
+        <table id="tablaStock" class="table table-hover align-middle mb-0 no-datatable" style="--bs-table-bg: transparent; --bs-table-color: var(--color-text); --bs-table-hover-bg: rgba(37, 99, 235, 0.06);">
             <thead>
                 <tr style="border-bottom: 2px solid var(--color-border);">
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Material</th>
@@ -98,4 +108,33 @@
 <style>
     .text-accent { color: var(--color-accent) !important; }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if ($.fn.DataTable.isDataTable('#tablaStock')) {
+        $('#tablaStock').DataTable().destroy();
+    }
+    
+    $('#tablaStock').DataTable({
+        "language": {
+            "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            "infoEmpty": "No hay registros disponibles",
+            "infoFiltered": "(filtrado de _MAX_ registros totales)",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
+        },
+        "pageLength": 10,
+        "responsive": true,
+        "dom": 'rt<"d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4 p-4 border-top border-white-5"ip>',
+        "order": [],
+        "ordering": false
+    });
+});
+</script>
 {% endblock %}
