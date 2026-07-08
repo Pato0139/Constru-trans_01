@@ -7,7 +7,7 @@
 }
 .btn-tab:hover {
     border-color: var(--color-primary) !important;
-    color: white !important;
+    color: var(--color-text) !important;
 }
 .btn-tab.active {
     background: var(--color-primary) !important;
@@ -16,8 +16,21 @@
     box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
 }
 .usuario-search-input {
-    width: 250px;
+    width: 280px;
     border-radius: var(--radius-lg);
+    padding-left: 3rem !important;
+    background-color: var(--item-bg) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-text) !important;
+}
+
+.usuario-search-input::placeholder {
+    color: var(--color-muted) !important;
+}
+
+.usuario-search-input:focus {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.15) !important;
 }
 .usuario-avatar {
     width: 40px;
@@ -35,5 +48,147 @@
     border-bottom: 1px solid var(--color-border);
 }
 .usuario-table-row {
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Action buttons styles */
+.btn-action {
+    border: 1px solid var(--color-border);
+    background: var(--card-bg);
+    color: var(--color-text);
+    border-radius: 8px;
+    padding: 6px 10px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-action-edit {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+.btn-action-edit:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-action-lock {
+    color: var(--color-warning);
+    border-color: var(--color-warning);
+}
+.btn-action-lock:hover {
+    background: var(--color-warning);
+    color: #000;
+}
+
+.btn-action-unlock {
+    color: var(--color-success);
+    border-color: var(--color-success);
+}
+.btn-action-unlock:hover {
+    background: var(--color-success);
+    color: white;
+}
+
+.btn-action-delete {
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+.btn-action-delete:hover {
+    background: var(--color-danger);
+    color: white;
+}
+
+.badge-tipo {
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease, background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid transparent;
+    display: inline-block;
+}
+
+.badge-tipo:hover {
+    transform: translateY(-2px);
+}
+
+/* Modifiers - Dark Theme (Default) */
+.badge-tipo-admin {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+.badge-tipo-admin:hover {
+    background: rgba(245, 158, 11, 0.25);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+.badge-tipo-cliente {
+    background: rgba(14, 165, 233, 0.15);
+    color: #0ea5e9;
+}
+.badge-tipo-cliente:hover {
+    background: rgba(14, 165, 233, 0.25);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+}
+
+.badge-tipo-conductor {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+.badge-tipo-conductor:hover {
+    background: rgba(59, 130, 246, 0.25);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.badge-tipo-empleado {
+    background: rgba(100, 116, 139, 0.15);
+    color: #94a3b8;
+}
+.badge-tipo-empleado:hover {
+    background: rgba(100, 116, 139, 0.25);
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.2);
+}
+
+/* Light Theme */
+[data-theme="light"] .badge-tipo-admin {
+    background: rgba(217, 119, 6, 0.12);
+    color: #d97706;
+}
+[data-theme="light"] .badge-tipo-admin:hover {
+    background: rgba(217, 119, 6, 0.2);
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
+}
+
+[data-theme="light"] .badge-tipo-cliente {
+    background: rgba(2, 132, 199, 0.12);
+    color: #0284c7;
+}
+[data-theme="light"] .badge-tipo-cliente:hover {
+    background: rgba(2, 132, 199, 0.2);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+}
+
+[data-theme="light"] .badge-tipo-conductor {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+}
+[data-theme="light"] .badge-tipo-conductor:hover {
+    background: rgba(37, 99, 235, 0.2);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+[data-theme="light"] .badge-tipo-empleado {
+    background: rgba(71, 85, 105, 0.12);
+    color: #475569;
+}
+[data-theme="light"] .badge-tipo-empleado:hover {
+    background: rgba(71, 85, 105, 0.2);
+    box-shadow: 0 4px 12px rgba(71, 85, 105, 0.2);
 }

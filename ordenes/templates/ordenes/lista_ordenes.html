@@ -16,6 +16,37 @@
     </a>
 </div>
 
+<div class="card bg-dark border-0 shadow-sm p-3 mb-4">
+    <div class="row g-2 align-items-center">
+        <div class="col-auto">
+            <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+        </div>
+        <div class="col-md-2">
+            <input type="text" id="filter-id" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID Orden">
+        </div>
+        <div class="col-md-3">
+            <input type="text" id="filter-cliente" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Cliente">
+        </div>
+        <div class="col-md-3">
+            <input type="text" id="filter-destino" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Destino">
+        </div>
+        <div class="col-md-2">
+            <select id="filter-estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                <option value="">Estado (Todos)</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="en_ruta">En ruta</option>
+                <option value="entregado">Entregado</option>
+                <option value="cancelado">Cancelado</option>
+            </select>
+        </div>
+        <div class="col-auto ms-auto">
+            <button class="btn btn-sm btn-outline-secondary" id="clear-filters" type="button" title="Limpiar filtros">
+                <i class="bi bi-x-circle"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="table-container p-4">
     <div class="table-responsive">
         <table class="table table-hover align-middle">
@@ -119,4 +150,47 @@
     .text-accent { color: var(--color-accent) !important; }
 </style>
 
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Esperar a que DataTables se inicialice en base.js
+    setTimeout(function() {
+        var tableEl = document.querySelector('.table-container .table');
+        if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
+            var table = $(tableEl).DataTable();
+            
+            // Índices de columnas (según thead en lista_ordenes.html):
+            // 0: ID
+            // 1: Cliente
+            // 2: Conductor
+            // 3: Destino
+            // 4: Estado
+            // 5: Fecha
+            // 6: Acciones
+            
+            $('#filter-id').on('keyup change', function() {
+                table.column(0).search(this.value).draw();
+            });
+            $('#filter-cliente').on('keyup change', function() {
+                table.column(1).search(this.value).draw();
+            });
+            $('#filter-destino').on('keyup change', function() {
+                table.column(3).search(this.value).draw();
+            });
+            $('#filter-estado').on('change', function() {
+                table.column(4).search(this.value).draw();
+            });
+            
+            $('#clear-filters').on('click', function() {
+                $('#filter-id, #filter-cliente, #filter-destino').val('');
+                $('#filter-estado').val('');
+                table.columns().search('').draw();
+            });
+        }
+    }, 150);
+});
+</script>
 {% endblock %}
