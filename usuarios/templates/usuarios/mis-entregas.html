@@ -11,6 +11,43 @@
         <h5 class="fw-800 m-0 text-white">Entregas Realizadas</h5>
     </div>
 
+    <!-- Filtros -->
+    <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-auto">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="id_pedido" value="{{ id_pedido|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID Pedido">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="origen" value="{{ origen|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Origen">
+            </div>
+            <div class="col-md-2">
+                <input type="text" name="destino" value="{{ destino|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Destino">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="fecha" value="{{ fecha|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+            </div>
+            <div class="col-md-2">
+                <select name="estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                    <option value="">Estado (Todos)</option>
+                    {% for valor, etiqueta in estados %}
+                    <option value="{{ valor }}" {% if estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto ms-auto d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center gap-1">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+                <a href="{% url 'usuarios:mis_entregas' %}" class="btn btn-sm btn-outline-secondary" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
@@ -29,11 +66,27 @@
                     <td class="fw-700 text-accent">#CT-{{ orden.id }}</td>
                     <td class="text-muted small">{{ orden.direccion_origen }}</td>
                     <td class="fw-600 text-white">{{ orden.direccion_destino }}</td>
-                    <td class="text-muted small">{{ orden.fecha|date:"d M, Y" }}</td>
+                    <td class="text-muted small">{{ orden.fecha_solicitud|date:"d M, Y H:i" }}</td>
                     <td>
+                        {% if orden.estado == "entregado" %}
                         <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">
                             <i class="bi bi-check-circle-fill me-1"></i> Entregado
                         </span>
+                        {% elif orden.estado == "en_ruta" %}
+                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">
+                            <i class="bi bi-truck me-1"></i> En Ruta
+                        </span>
+                        {% elif orden.estado == "pendiente" %}
+                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">
+                            <i class="bi bi-clock me-1"></i> Pendiente
+                        </span>
+                        {% elif orden.estado == "cancelado" %}
+                        <span class="badge-tipo" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">
+                            <i class="bi bi-x-circle me-1"></i> Cancelado
+                        </span>
+                        {% else %}
+                        <span class="badge-tipo">{{ orden.get_estado_display }}</span>
+                        {% endif %}
                     </td>
                     <td class="text-center">
                         <a href="{% url 'ordenes:ver_pedido_admin' orden.id %}" class="btn-action" title="Ver Detalles">
