@@ -181,6 +181,11 @@ html[data-theme="light"] .nav-link-premium.active .nav-icon-wrap {
   color: #0f172a !important;
 }
 
+[data-theme="light"] .bg-dark {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
 [data-theme="light"] .btn-dark-premium {
   background-color: #f1f5f9 !important;
   border-color: #64748b !important;

@@ -33,16 +33,41 @@
     box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.15) !important;
 }
 .usuario-avatar {
-    width: 40px;
-    height: 40px;
-    overflow: hidden;
-    border: 2px solid var(--color-primary);
-    border-radius: 50%;
+    width: 40px !important;
+    height: 40px !important;
+    overflow: hidden !important;
+    border: 2px solid var(--color-primary) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: var(--card-bg) !important;
+}
+.usuario-avatar span {
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    color: var(--color-text) !important;
 }
 .usuario-avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    opacity: 1 !important;
+}
+/* Para modo claro: ajustes específicos para que las iniciales sean visibles */
+[data-theme="light"] .usuario-avatar {
+    background-color: var(--item-bg) !important;
+}
+[data-theme="light"] .usuario-avatar span {
+    color: #0f172a !important;
+}
+/* Para modo de accesibilidad */
+[data-theme="accessibility"] .usuario-avatar {
+    background-color: #000000 !important;
+}
+[data-theme="accessibility"] .usuario-avatar span {
+    color: #ffffff !important;
 }
 .usuario-table-header {
     border-bottom: 1px solid var(--color-border);
