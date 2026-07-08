@@ -12,6 +12,51 @@
     <a href="{% url 'usuarios:lista_conductores' %}" class="btn btn-outline-light">Refrescar</a>
 </div>
 
+<!-- Filtros personalizados DataTables -->
+<div class="card bg-dark border-0 shadow-sm p-3 mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col-auto">
+            <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+        </div>
+        <div class="col-md-2">
+            <input type="text" id="filter-nombre" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Nombre">
+        </div>
+        <div class="col-md-2">
+            <input type="text" id="filter-licencia" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Licencia">
+        </div>
+        <div class="col-md-2">
+            <select id="filter-categoria" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                <option value="">Categoría (Todas)</option>
+                <option value="A1">A1</option>
+                <option value="A2">A2</option>
+                <option value="B1">B1</option>
+                <option value="B2">B2</option>
+                <option value="B3">B3</option>
+                <option value="C1">C1</option>
+                <option value="C2">C2</option>
+                <option value="C3">C3</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select id="filter-estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                <option value="">Estado (Todos)</option>
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+                <option value="Suspendido">Suspendido</option>
+                <option value="Sin perfil">Sin perfil</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="text" id="filter-vehiculo" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Vehículo Actual">
+        </div>
+        <div class="col-auto ms-auto">
+            <button class="btn btn-sm btn-outline-secondary" id="clear-filters" type="button" title="Limpiar filtros">
+                <i class="bi bi-x-circle"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="card bg-dark border-0 shadow-sm p-3">
     <div class="table-responsive">
         <table class="table table-dark table-hover align-middle mb-0">
@@ -87,4 +132,47 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Esperar un breve momento para asegurar que DataTables se haya inicializado en base.js
+    setTimeout(function() {
+        if ($.fn.DataTable.isDataTable('.table')) {
+            var table = $('.table').DataTable();
+            
+            // Índices de columnas basados en el thead (0-indexed):
+            // 0: ID
+            // 1: Nombre
+            // 2: Licencia
+            // 3: Categoría
+            // 4: Estado
+            // 5: Vehículo actual
+            
+            $('#filter-nombre').on('keyup change', function() {
+                table.column(1).search(this.value).draw();
+            });
+            $('#filter-licencia').on('keyup change', function() {
+                table.column(2).search(this.value).draw();
+            });
+            $('#filter-categoria').on('change', function() {
+                table.column(3).search(this.value).draw();
+            });
+            $('#filter-estado').on('change', function() {
+                table.column(4).search(this.value).draw();
+            });
+            $('#filter-vehiculo').on('keyup change', function() {
+                table.column(5).search(this.value).draw();
+            });
+            
+            $('#clear-filters').on('click', function() {
+                $('#filter-nombre, #filter-licencia, #filter-vehiculo').val('');
+                $('#filter-categoria, #filter-estado').val('');
+                table.columns().search('').draw();
+            });
+        }
+    }, 150);
+});
+</script>
 {% endblock %}
