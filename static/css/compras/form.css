@@ -2,3 +2,90 @@
  * Estilos para el módulo de compras - form
  * BEM Methodology
  */
+
+/* Estilos para la tabla de materiales */
+#detalles-table {
+    background-color: rgba(30, 34, 45, 0.7) !important;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#detalles-table thead th {
+    background-color: rgba(0, 0, 0, 0.3);
+    color: var(--color-primary, #FF8C00);
+    font-weight: 800;
+    border-bottom: 2px solid rgba(255, 140, 0, 0.3);
+    padding: 1rem 0.75rem;
+    text-align: left;
+}
+
+#detalles-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+#detalles-table tbody tr:hover {
+    background-color: rgba(255, 140, 0, 0.05);
+}
+
+#detalles-table tbody td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+#detalles-table .form-control,
+#detalles-table .form-select {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s ease;
+}
+
+#detalles-table .form-control:focus,
+#detalles-table .form-select:focus {
+    border-color: var(--color-primary, #FF8C00) !important;
+    box-shadow: 0 0 0 0.25rem rgba(255, 140, 0, 0.25) !important;
+    outline: none;
+}
+
+#detalles-table .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+#detalles-table .subtotal-cell {
+    color: var(--color-success, #10b981) !important;
+    font-weight: 800;
+    font-size: 1.05rem;
+}
+
+#detalles-table .remove-form-row {
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+}
+
+#detalles-table .remove-form-row:hover {
+    color: #ef4444 !important;
+    transform: scale(1.1);
+}
+
+/* Counter column styling */
+#detalles-table .counter {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* General form improvements */
+.glass-card {
+    background: rgba(30, 34, 45, 0.7) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.glass-card .card-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
