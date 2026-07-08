@@ -103,7 +103,7 @@ def lista_historial(request):
                 reg.modulo.capitalize() if reg.modulo else "-",
                 reg.elemento_id or "-",
                 f'<small>{reg.descripcion}</small>',
-                reg.fecha_hora.strftime("%Y-m-d %H:%M") if reg.fecha_hora else "",
+                reg.fecha_hora.strftime("%Y-%m-%d %H:%M") if reg.fecha_hora else "",
                 f'<small class="text-muted">{reg.ip_address or "-"}</small>'
             ])
 
