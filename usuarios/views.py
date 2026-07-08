@@ -379,7 +379,34 @@ def panel_conductor(request):
 def pedidos_conductor(request):
     conductor = request.user.usuario
     pedidos = Pedido.objects.filter(conductor=conductor).exclude(estado="entregado").select_related("usuario", "cliente__usuario")
-    context = {"pedidos": pedidos}
+
+    # Apply filters
+    id_pedido = request.GET.get("id_pedido")
+    origen = request.GET.get("origen")
+    destino = request.GET.get("destino")
+    fecha = request.GET.get("fecha")
+    estado = request.GET.get("estado")
+
+    if id_pedido:
+        pedidos = pedidos.filter(codigo_pedido__icontains=id_pedido)
+    if origen:
+        pedidos = pedidos.filter(direccion_origen__icontains=origen)
+    if destino:
+        pedidos = pedidos.filter(direccion_destino__icontains=destino)
+    if fecha:
+        pedidos = pedidos.filter(fecha_solicitud__date=fecha)
+    if estado:
+        pedidos = pedidos.filter(estado=estado)
+
+    context = {
+        "pedidos": pedidos,
+        "estados": Pedido.ESTADOS,
+        "id_pedido": id_pedido,
+        "origen": origen,
+        "destino": destino,
+        "fecha": fecha,
+        "estado": estado,
+    }
 
     return render(request, "usuarios/pedidos_conductor.html", context)
 
@@ -387,10 +414,37 @@ def pedidos_conductor(request):
 @login_required
 def mis_entregas(request):
     conductor = request.user.usuario
-    entregas = Pedido.objects.filter(conductor=conductor, estado="entregado").select_related("usuario", "cliente__usuario").order_by(
+    entregas = Pedido.objects.filter(conductor=conductor).select_related("usuario", "cliente__usuario").order_by(
         "-fecha_solicitud"
     )
-    context = {"entregas": entregas}
+
+    # Apply filters
+    id_pedido = request.GET.get("id_pedido")
+    origen = request.GET.get("origen")
+    destino = request.GET.get("destino")
+    fecha = request.GET.get("fecha")
+    estado = request.GET.get("estado")
+
+    if id_pedido:
+        entregas = entregas.filter(codigo_pedido__icontains=id_pedido)
+    if origen:
+        entregas = entregas.filter(direccion_origen__icontains=origen)
+    if destino:
+        entregas = entregas.filter(direccion_destino__icontains=destino)
+    if fecha:
+        entregas = entregas.filter(fecha_solicitud__date=fecha)
+    if estado:
+        entregas = entregas.filter(estado=estado)
+
+    context = {
+        "entregas": entregas,
+        "estados": Pedido.ESTADOS,
+        "id_pedido": id_pedido,
+        "origen": origen,
+        "destino": destino,
+        "fecha": fecha,
+        "estado": estado,
+    }
 
     return render(request, "usuarios/mis-entregas.html", context)
 
