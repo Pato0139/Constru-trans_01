@@ -22,16 +22,16 @@
             <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
         </div>
         <div class="col-md-2">
-            <input type="text" id="filter-id" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID Orden">
+            <input type="text" id="filter-id" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="ID Orden">
         </div>
         <div class="col-md-3">
-            <input type="text" id="filter-cliente" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Cliente">
+            <input type="text" id="filter-cliente" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Cliente">
         </div>
         <div class="col-md-3">
-            <input type="text" id="filter-destino" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Destino">
+            <input type="text" id="filter-destino" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Destino">
         </div>
         <div class="col-md-2">
-            <select id="filter-estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+            <select id="filter-estado" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
                 <option value="">Estado (Todos)</option>
                 <option value="pendiente">Pendiente</option>
                 <option value="en_ruta">En ruta</option>
@@ -67,15 +67,15 @@
                     <td class="text-center text-muted fw-bold">#{{ orden.id }}</td>
                     <td>
                         <div class="d-flex align-items-center gap-3">
-                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark" style="width: 35px; height: 35px; font-size: 0.8rem; overflow: hidden; border: 2px solid var(--color-primary);">
+                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark u-inline-befea9ac15">
                                 {% if orden.cliente.usuario.foto_perfil %}
-                                    <img src="{{ orden.cliente.usuario.foto_perfil.url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="{{ orden.cliente.usuario.foto_perfil.url }}" alt="Avatar" class="u-inline-4a466668db">
                                 {% else %}
                                     {{ orden.cliente.usuario.nombres|slice:":1"|default:"C" }}{{ orden.cliente.usuario.apellidos|slice:":1"|default:"L" }}
                                 {% endif %}
                             </div>
                             <div>
-                                <p class="fw-700 text-white mb-0" style="font-size: 0.9rem;">{{ orden.cliente.usuario.nombres|default:"Cliente" }} {{ orden.cliente.usuario.apellidos }}</p>
+                                <p class="fw-700 text-white mb-0 u-inline-27895aa49c">{{ orden.cliente.usuario.nombres|default:"Cliente" }} {{ orden.cliente.usuario.apellidos }}</p>
                                 <p class="text-muted small mb-0">{{ orden.cliente.usuario.user.email }}</p>
                             </div>
                         </div>
@@ -93,13 +93,13 @@
                     <td class="text-muted small">{{ orden.direccion_destino|truncatechars:30 }}</td>
                     <td class="text-center">
                         {% if orden.estado == "pendiente" %}
-                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                        <span class="badge-tipo u-inline-2167e5ffe5">Pendiente</span>
                         {% elif orden.estado == "en_ruta" %}
-                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">En ruta</span>
+                        <span class="badge-tipo u-inline-503ec04587">En ruta</span>
                         {% elif orden.estado == "entregado" %}
-                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Entregado</span>
+                        <span class="badge-tipo u-inline-a9b2e7691f">Entregado</span>
                         {% else %}
-                        <span class="badge-tipo" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">{{ orden.estado|title }}</span>
+                        <span class="badge-tipo u-inline-ebad2c140e">{{ orden.estado|title }}</span>
                         {% endif %}
                     </td>
                     <td class="text-center text-muted small">

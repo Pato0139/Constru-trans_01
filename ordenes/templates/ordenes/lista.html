@@ -14,16 +14,16 @@
             <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
         </div>
         <div class="col-md-2">
-            <input type="text" id="filter-id" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID">
+            <input type="text" id="filter-id" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="ID">
         </div>
         <div class="col-md-3">
-            <input type="text" id="filter-cliente" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Cliente">
+            <input type="text" id="filter-cliente" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Cliente">
         </div>
         <div class="col-md-3">
-            <input type="text" id="filter-destino" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Destino">
+            <input type="text" id="filter-destino" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Destino">
         </div>
         <div class="col-md-2">
-            <select id="filter-estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+            <select id="filter-estado" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
                 <option value="">Estado (Todos)</option>
                 <option value="pendiente">Pendiente</option>
                 <option value="en_ruta">En Ruta</option>
@@ -38,11 +38,11 @@
     </div>
 </div>
 
-<div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
+<div class="table-container u-inline-ab87d0b2ff">
     <div class="table-responsive">
         <table class="table table-dark mb-0">
             <thead>
-                <tr style="border-bottom: 1px solid var(--color-border);">
+                <tr class="u-inline-e91738c112">
                     <th class="p-4 text-muted small fw-bold">ID</th>
                     <th class="p-4 text-muted small fw-bold">Cliente</th>
                     <th class="p-4 text-muted small fw-bold">Destino</th>
@@ -53,7 +53,7 @@
             </thead>
             <tbody>
                 {% for p in pedidos %}
-                <tr style="border-bottom: 1px solid var(--color-border);">
+                <tr class="u-inline-e91738c112">
                     <td class="p-4 fw-bold">#{{ p.codigo_pedido }}</td>
                     <td class="p-4">
                         <div class="fw-medium">{{ p.usuario.nombres }} {{ p.usuario.apellidos }}</div>
@@ -91,7 +91,7 @@
                 {% empty %}
                 <tr>
                     <td colspan="6" class="text-center py-5 text-muted">
-                        <i class="bi bi-box-seam mb-3 d-block" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <i class="bi bi-box-seam mb-3 d-block u-inline-208090be59"></i>
                         No hay pedidos registrados en el sistema
                     </td>
                 </tr>
