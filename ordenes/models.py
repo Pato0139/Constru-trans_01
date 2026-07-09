@@ -19,11 +19,15 @@ def validar_fecha_no_pasada(value):
 class Pedido(models.Model):
     ESTADOS = [
         ("pendiente", "Pendiente"),
+        ("autorizado_despacho", "Autorizado para despacho"),
+        ("vehiculo_asignado", "Vehículo asignado"),
         ("en_ruta", "En Ruta"),
         ("entregado", "Entregado"),
         ("cancelado", "Cancelado"),
     ]
     PENDIENTE = "pendiente"
+    AUTORIZADO_DESPACHO = "autorizado_despacho"
+    VEHICULO_ASIGNADO = "vehiculo_asignado"
     EN_RUTA = "en_ruta"
     ENTREGADO = "entregado"
     CANCELADO = "cancelado"

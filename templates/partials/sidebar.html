@@ -46,9 +46,13 @@
                                 <i class="bi bi-receipt"></i>
                                 <span data-i18n="sidebar.facturacion">Facturación</span>
                             </a>
-                            <a href="{% url 'pagos:lista_pagos' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' %}active{% endif %}">
+                            <a href="{% url 'pagos:gestion_pagos' %}" class="nav-link-premium {% if request.resolver_match.url_name == 'gestion_pagos' %}active{% endif %}">
                                 <i class="bi bi-cash-stack"></i>
-                                <span data-i18n="sidebar.pagos">Pagos</span>
+                                <span data-i18n="sidebar.gestionPagos">Gestión de pagos</span>
+                            </a>
+                            <a href="{% url 'pagos:lista_pagos' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'lista_pagos' %}active{% endif %}">
+                                <i class="bi bi-journal-bookmark"></i>
+                                <span data-i18n="sidebar.pagos">Historial de pagos</span>
                             </a>
                         </div>
                     </div>

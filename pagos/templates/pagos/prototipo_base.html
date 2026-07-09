@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Prototipo pagos - Constru-Trans{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'pagos/prototipo.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="prototipo-shell">
+    <div class="prototipo-hero card-shadow">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <p class="eyebrow mb-2">Prototipo funcional</p>
+                <h2 class="fw-bold mb-2">Gestión de pagos y despacho</h2>
+                <p class="mb-0 text-muted">Simulación completa de pedidos, pagos, revisión administrativa, asignación de transporte y cobro para conductor.</p>
+            </div>
+            <div class="role-pill">
+                <span class="fw-semibold">Rol actual:</span>
+                <span class="badge bg-accent text-dark ms-2">{{ state.role|default:"cliente"|title }}</span>
+                <div class="d-flex gap-2 mt-2">
+                    <a href="{% url 'pagos:prototype_switch_role' 'cliente' %}" class="btn btn-sm btn-outline-light">Cliente</a>
+                    <a href="{% url 'pagos:prototype_switch_role' 'administrador' %}" class="btn btn-sm btn-outline-light">Administrador</a>
+                    <a href="{% url 'pagos:prototype_switch_role' 'conductor' %}" class="btn btn-sm btn-outline-light">Conductor</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-4">
+            <a href="{% url 'pagos:prototype_home' %}" class="btn btn-outline-primary btn-sm">Inicio</a>
+            <a href="{% url 'pagos:prototype_order_form' %}" class="btn btn-outline-primary btn-sm">Crear pedido</a>
+            <a href="{% url 'pagos:prototype_customer_orders' %}" class="btn btn-outline-primary btn-sm">Mis pedidos</a>
+            <a href="{% url 'pagos:prototype_admin_orders' %}" class="btn btn-outline-primary btn-sm">Gestión de pagos</a>
+            <a href="{% url 'pagos:prototype_conductor' %}" class="btn btn-outline-primary btn-sm">Conductor</a>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} rounded-4 shadow-sm">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block prototype_content %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'pagos/prototipo.js' %}"></script>
+{% endblock %}

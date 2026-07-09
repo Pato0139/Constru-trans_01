@@ -82,7 +82,7 @@
                     </td>
                     <td class="text-center">
                         <div class="d-flex justify-content-center gap-2">
-                            <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
+                            <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}?tab=pagos" class="btn-action" title="Ver Detalles">
                                 <i class="bi bi-eye"></i>
                             </a>
                             {% if pedido.factura and pedido.factura.estado == 'pendiente' %}
