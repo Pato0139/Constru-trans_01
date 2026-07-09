@@ -33,7 +33,7 @@
                             <option value="mantenimiento" {% if estado_actual == 'mantenimiento' %}selected{% endif %}>Mantenimiento</option>
                         </select>
                         
-                        <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9">
+                        <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                             <i class="bi bi-funnel"></i> Filtrar
                         </button>
                     </div>
@@ -41,7 +41,7 @@
             </div>
         </div>
 
-        <a href="{% url 'transporte:crear_vehiculo' %}" class="btn btn-premium px-4 fw-bold d-flex align-items-center gap-2 u-inline-300bde8981">
+        <a href="{% url 'transporte:crear_vehiculo' %}" class="btn btn-premium px-4 fw-bold d-flex align-items-center gap-2 u-inline-300bde8981" aria-label="Agregar vehiculo" data-tooltip="Agregar vehiculo" title="Agregar vehiculo">
             <i class="bi bi-plus-lg"></i> CREAR VEHÍCULO
         </a>
     </div>

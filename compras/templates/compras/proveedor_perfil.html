@@ -48,9 +48,9 @@
                                     <tr>
                                         <th class="ps-4">#</th>
                                         <th>Material</th>
-                                        <th style="width: 150px;">Precio ($)</th>
-                                        <th style="width: 150px;">Referencia</th>
-                                        <th style="width: 80px;">Activo</th>
+                                        <th class="u-inline-5cb57137c7">Precio ($)</th>
+                                        <th class="u-inline-5cb57137c7">Referencia</th>
+                                        <th class="u-inline-1b3b307987">Activo</th>
                                         <th class="text-center">Quitar</th>
                                     </tr>
                                 </thead>
@@ -78,7 +78,7 @@
                                             {% if formset.can_delete %}
                                                 <div class="d-none">{{ mat_form.DELETE }}</div>
                                             {% endif %}
-                                            <button type="button" class="btn btn-link text-danger remove-form-row">
+                                            <button type="button" class="btn btn-link text-danger remove-form-row" aria-label="Eliminar fila" data-tooltip="Eliminar fila" title="Eliminar fila">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </td>
@@ -98,7 +98,7 @@
         </div>
 
         <div class="mt-4 pt-3 border-top border-secondary text-end">
-            <button type="submit" class="btn btn-warning px-5 fw-bold text-uppercase">
+            <button type="submit" class="btn btn-warning px-5 fw-bold text-uppercase" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                 <i class="fas fa-save me-2"></i> Guardar Cambios
             </button>
         </div>
