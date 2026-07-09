@@ -1,4 +1,5 @@
 import os
+import socket
 from functools import lru_cache
 
 from django.core.cache import cache
@@ -13,6 +14,9 @@ def conexion_remota_disponible_cached():
             return False
         if not os.getenv("DATABASE_URL"):
             return False
+        
+        # First try a quick socket check if possible, but fall back to Django's ensure_connection
+        # For now, just use Django's ensure_connection with the timeout we set in settings
         connections["remota"].ensure_connection()
         return True
     except (OperationalError, ConnectionDoesNotExist, Exception):
@@ -22,13 +26,16 @@ def conexion_remota_disponible_cached():
 def conexion_remota_disponible():
     import time
 
-    # Si la caché está muy vieja, la invalidamos
-    last_check = getattr(conexion_remota_disponible, "_last_check", 0)
-    if time.time() - last_check > 60:  # 60 segundos
-        conexion_remota_disponible_cached.cache_clear()
-        conexion_remota_disponible._last_check = time.time()
-
-    return conexion_remota_disponible_cached()
+    # Check cache first, and only refresh every 5 minutes (300s)
+    cache_key = "core:conexion_remota_disponible"
+    cached_value = cache.get(cache_key)
+    if cached_value is not None:
+        return cached_value
+    
+    # If not cached, check and set cache
+    result = conexion_remota_disponible_cached()
+    cache.set(cache_key, result, 300)  # Cache for 5 minutes
+    return result
 
 
 def get_cache_key(prefix, user_id, *args):

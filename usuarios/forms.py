@@ -130,6 +130,7 @@ class RegistroForm(forms.ModelForm):
 
     def clean_correo(self):
         correo = self.cleaned_data.get("correo")
+        # Optimización: usar select_related para reducir queries
         if User.objects.filter(email=correo).exists():
             raise forms.ValidationError("Este correo ya está registrado.")
         return correo

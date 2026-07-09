@@ -1,0 +1,57 @@
+{% extends "pagos/prototipo_base.html" %}
+
+{% block prototype_content %}
+<div class="prototype-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">Panel del conductor</h4>
+            <p class="text-muted mb-0">Visualiza los pedidos asignados y confirma el cobro al finalizar la entrega.</p>
+        </div>
+        <div class="method-badge"><i class="bi bi-truck"></i> Asignaciones</div>
+    </div>
+
+    {% for order in orders %}
+    <div class="payment-method-card mb-3">
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <h6 class="fw-bold mb-3">{{ order.id }} - {{ order.customer }}</h6>
+                <p class="text-muted mb-1">Teléfono</p>
+                <p class="fw-bold mb-2">{{ order.phone }}</p>
+                <p class="text-muted mb-1">Dirección</p>
+                <p class="fw-bold mb-2">{{ order.delivery_address }}</p>
+                <p class="text-muted mb-1">Materiales</p>
+                <p class="fw-bold mb-2">{% for item in order.materials %}{{ item.name }} ({{ item.quantity }} {{ item.unit }}){% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                <p class="text-muted mb-1">Valor total</p>
+                <p class="fw-bold text-success mb-0">${{ order.total|floatformat:0 }}</p>
+            </div>
+            <div class="col-lg-5">
+                <p class="text-muted mb-1">Método de pago</p>
+                <p class="fw-bold mb-2">{{ order.payment_method }}</p>
+                <p class="text-muted mb-1">Estado del pago</p>
+                <p class="fw-bold mb-2">{{ order.payment_status }}</p>
+                {% if order.payment_method == "Contra entrega" %}
+                <div class="alert alert-warning text-dark">
+                    <strong>Pendiente por cobrar.</strong> Debe recibir el pago antes de finalizar la entrega.
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="mark_delivery">
+                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                    <div class="d-flex gap-2 mb-2">
+                        <button class="btn btn-success btn-sm" name="delivery_result" value="yes" type="submit">Sí, recibió el pago</button>
+                        <button class="btn btn-outline-light btn-sm" name="delivery_result" value="no" type="submit">No recibió el pago</button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-info">
+                    <strong>Pagado.</strong> No es necesario realizar cobro.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-4 text-muted">No hay pedidos asignados para este conductor.</div>
+    {% endfor %}
+</div>
+{% endblock %}

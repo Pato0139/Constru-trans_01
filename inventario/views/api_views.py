@@ -35,6 +35,8 @@ def api_materiales(request):
 def api_materiales_listado(request):
     params = get_dt_params(request)
     tipo = request.GET.get("tipo", "").strip()
+    material_query = request.GET.get("material", "").strip()
+    id_query = request.GET.get("id", "").strip()
 
     qs = Material.objects.select_related("stock_info", "catalogo", "unidad_medida").all()
     total = qs.count()
@@ -43,6 +45,10 @@ def api_materiales_listado(request):
 
     if tipo:
         qs = qs.filter(catalogo__codigo_catalogo=tipo)
+    if material_query:
+        qs = qs.filter(nombre__icontains=material_query)
+    if id_query:
+        qs = qs.filter(id__icontains=id_query)
 
     filtrados = qs.count()
     materiales = qs.order_by("nombre")[params["start"]: params["start"] + params["length"]]

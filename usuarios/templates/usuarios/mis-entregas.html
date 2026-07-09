@@ -11,8 +11,42 @@
         <h5 class="fw-800 m-0 text-white">Entregas Realizadas</h5>
     </div>
 
+    <!-- Filtros -->
+    <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            <div class="col-md-2">
+                <input type="text" id="filter-id" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID Pedido">
+            </div>
+            <div class="col-md-2">
+                <input type="text" id="filter-origen" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Origen">
+            </div>
+            <div class="col-md-2">
+                <input type="text" id="filter-destino" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Destino">
+            </div>
+            <div class="col-md-2">
+                <input type="date" id="filter-fecha" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+            </div>
+            <div class="col-md-2">
+                <select id="filter-estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                    <option value="">Estado (Todos)</option>
+                    {% for valor, etiqueta in estados %}
+                    <option value="{{ etiqueta }}">{{ etiqueta }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto ms-auto">
+                <button class="btn btn-sm btn-outline-secondary" id="clear-filters" type="button" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="table-responsive">
-        <table class="table table-hover align-middle">
+        <table id="tablaEntregas" class="table table-hover align-middle">
             <thead>
                 <tr>
                     <th>ID Pedido</th>
@@ -20,7 +54,7 @@
                     <th>Destino</th>
                     <th>Fecha</th>
                     <th>Estado</th>
-                    <th class="text-center">Acción</th>
+                    <th class="text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -29,11 +63,27 @@
                     <td class="fw-700 text-accent">#CT-{{ orden.id }}</td>
                     <td class="text-muted small">{{ orden.direccion_origen }}</td>
                     <td class="fw-600 text-white">{{ orden.direccion_destino }}</td>
-                    <td class="text-muted small">{{ orden.fecha|date:"d M, Y" }}</td>
+                    <td class="text-muted small">{{ orden.fecha_solicitud|date:"d M, Y H:i" }}</td>
                     <td>
+                        {% if orden.estado == "entregado" %}
                         <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">
                             <i class="bi bi-check-circle-fill me-1"></i> Entregado
                         </span>
+                        {% elif orden.estado == "en_ruta" %}
+                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">
+                            <i class="bi bi-truck me-1"></i> En Ruta
+                        </span>
+                        {% elif orden.estado == "pendiente" %}
+                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">
+                            <i class="bi bi-clock me-1"></i> Pendiente
+                        </span>
+                        {% elif orden.estado == "cancelado" %}
+                        <span class="badge-tipo" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">
+                            <i class="bi bi-x-circle me-1"></i> Cancelado
+                        </span>
+                        {% else %}
+                        <span class="badge-tipo">{{ orden.get_estado_display }}</span>
+                        {% endif %}
                     </td>
                     <td class="text-center">
                         <a href="{% url 'ordenes:ver_pedido_admin' orden.id %}" class="btn-action" title="Ver Detalles">
@@ -57,4 +107,67 @@
     .text-accent { color: var(--color-accent) !important; }
 </style>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        var tableEl = document.getElementById('tablaEntregas');
+        if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
+            var table = $(tableEl).DataTable();
+        } else {
+            var table = $(tableEl).DataTable({
+                "pageLength": 10,
+                "lengthMenu": [10, 25, 50, 100],
+                "language": {
+                    "processing": '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>',
+                    "search": "Buscar:",
+                    "lengthMenu": "Mostrar _MENU_ registros",
+                    "zeroRecords": "No se encontraron registros",
+                    "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_",
+                    "infoEmpty": "No hay registros disponibles",
+                    "infoFiltered": "(filtrado de _MAX_ registros totales)",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Último",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    }
+                }
+            });
+        }
+
+        // Índices de columnas:
+        // 0: ID Pedido
+        // 1: Origen
+        // 2: Destino
+        // 3: Fecha
+        // 4: Estado
+        // 5: Acciones
+
+        $('#filter-id').on('keyup change', function() {
+            table.column(0).search(this.value).draw();
+        });
+        $('#filter-origen').on('keyup change', function() {
+            table.column(1).search(this.value).draw();
+        });
+        $('#filter-destino').on('keyup change', function() {
+            table.column(2).search(this.value).draw();
+        });
+        $('#filter-fecha').on('change', function() {
+            table.column(3).search(this.value).draw();
+        });
+        $('#filter-estado').on('change', function() {
+            table.column(4).search(this.value).draw();
+        });
+
+        $('#clear-filters').on('click', function() {
+            $('#filter-id, #filter-origen, #filter-destino, #filter-fecha').val('');
+            $('#filter-estado').val('');
+            table.columns().search('').draw();
+        });
+    }, 150);
+});
+</script>
 {% endblock %}
