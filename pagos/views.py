@@ -104,7 +104,7 @@ def gestion_pagos(request):
         pedidos = (
             Pedido.objects.select_related("cliente__usuario")
             .prefetch_related("pagos_pedido")
-            .order_by("-fecha_creacion")
+            .order_by("-fecha_solicitud")
         )
         if request.method == "POST":
             pago_id = request.POST.get("pago_id")
