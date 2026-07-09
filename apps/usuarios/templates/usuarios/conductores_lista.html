@@ -32,9 +32,9 @@
                     <td class="text-center text-muted fw-bold">#{{ conductor.id }}</td>
                     <td>
                         <div class="d-flex align-items-center gap-3">
-                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold text-white" style="width: 36px; height: 36px; font-size: 0.9rem; overflow: hidden; border: 1px solid var(--color-primary);">
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold text-white u-inline-229037fbee">
                                 {% if conductor.foto_perfil %}
-                                    <img src="{{ conductor.foto_perfil.url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="{{ conductor.foto_perfil.url }}" alt="Avatar" class="u-inline-4a466668db">
                                 {% else %}
                                     {{ conductor.nombres|first }}{{ conductor.apellidos|first }}
                                 {% endif %}

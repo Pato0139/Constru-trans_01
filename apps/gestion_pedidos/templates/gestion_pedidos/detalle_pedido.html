@@ -73,7 +73,7 @@
             <div class="glass-card p-4 mb-4 animate__animated animate__fadeInRight">
                 <h5 class="text-white mb-3">Información del Cliente</h5>
                 <div class="d-flex align-items-center mb-3">
-                    <div class="avatar-lg bg-primary rounded-circle text-center me-3" style="width: 50px; height: 50px; line-height: 50px; font-size: 1.2rem; font-weight: bold; color: white;">
+                    <div class="avatar-lg bg-primary rounded-circle text-center me-3 u-inline-4319dfc1c3">
                         {{ pedido.cliente.nombres|slice:":1" }}{{ pedido.cliente.apellidos|slice:":1" }}
                     </div>
                     <div>
@@ -86,7 +86,7 @@
             </div>
 
             {% if user.rol == 'admin' %}
-            <div class="glass-card p-4 animate__animated animate__fadeInRight" style="animation-delay: 200ms;">
+            <div class="glass-card p-4 animate__animated animate__fadeInRight u-inline-0f6fc7ccde">
                 <h5 class="text-white mb-3">Acciones Administrativas</h5>
                 {% if pedido.estado == 'pendiente' %}
                 <a href="{% url 'gestion_pedidos:aprobar' pedido.id %}" class="btn btn-success w-100 mb-2">

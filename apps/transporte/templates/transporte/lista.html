@@ -9,31 +9,31 @@
         <h2 class="fw-bold mb-0 text-white"><i class="bi bi-truck text-accent me-2"></i>Gestión de Vehículos</h2>
         <div class="d-flex align-items-center gap-2 mt-1">
             <p class="text-white-50 small mb-0">Control de flota y disponibilidad</p>
-            <span class="badge rounded-pill px-3" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: 1px solid rgba(59, 130, 246, 0.2);">{{ vehiculos|length }} registros</span>
+            <span class="badge rounded-pill px-3 u-inline-b2204c9e00">{{ vehiculos|length }} registros</span>
         </div>
     </div>
 
     <div class="d-flex flex-column flex-md-row gap-2 align-items-center">
-        <div class="w-100" style="max-width: 520px;">
+        <div class="w-100 u-inline-ffa089e03c">
             <div class="d-flex flex-column gap-2" data-aos="fade-left">
                 <form action="{% url 'transporte:lista_vehiculos' %}" method="GET" class="d-flex flex-column gap-2">
-                    <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm" style="background: var(--card-bg); border-color: var(--color-border) !important;">
-                        <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                            <i class="bi bi-search text-dark" style="font-size: 0.9rem;"></i>
+                    <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm u-inline-a493700b8c">
+                        <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center u-inline-7a3b56f7ab">
+                            <i class="bi bi-search text-dark u-inline-27895aa49c"></i>
                         </div>
                         <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
                                placeholder="Buscar placa, tipo o conductor..." value="{{ query|default:'' }}">
                     </div>
 
                     <div class="d-flex gap-2">
-                        <select name="estado" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2" style="background: var(--card-bg); color: white; border-color: var(--color-border);" onchange="this.form.submit()">
+                        <select name="estado" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2 u-inline-11ec6e757e" onchange="this.form.submit()">
                             <option value="">Todos los estados</option>
                             <option value="disponible" {% if estado_actual == 'disponible' %}selected{% endif %}>Disponible</option>
                             <option value="en_ruta" {% if estado_actual == 'en_ruta' %}selected{% endif %}>En Ruta</option>
                             <option value="mantenimiento" {% if estado_actual == 'mantenimiento' %}selected{% endif %}>Mantenimiento</option>
                         </select>
                         
-                        <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2" style="border-color: var(--color-border); color: var(--color-text-muted);">
+                        <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9">
                             <i class="bi bi-funnel"></i> Filtrar
                         </button>
                     </div>
@@ -41,29 +41,29 @@
             </div>
         </div>
 
-        <a href="{% url 'transporte:crear_vehiculo' %}" class="btn btn-premium px-4 fw-bold d-flex align-items-center gap-2" style="border-radius: var(--radius-lg); background: var(--color-primary); color: white; border: none; text-decoration: none;">
+        <a href="{% url 'transporte:crear_vehiculo' %}" class="btn btn-premium px-4 fw-bold d-flex align-items-center gap-2 u-inline-300bde8981">
             <i class="bi bi-plus-lg"></i> CREAR VEHÍCULO
         </a>
     </div>
 </div>
 
-<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);" data-aos="fade-up">
+<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8" data-aos="fade-up">
     <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02);">
+        <table class="table table-dark table-hover align-middle mb-0 u-inline-16fd8a5fe1">
             <thead>
-                <tr style="border-bottom: 2px solid var(--color-border);">
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 80px;">ID</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Placa</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Tipo</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Capacidad</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Estado</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Conductor</th>
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 150px;">Acciones</th>
+                <tr class="u-inline-0d59a3f53c">
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2c34455993">ID</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Placa</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Tipo</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Capacidad</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Estado</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Conductor</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-e1986338af">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for v in vehiculos %}
-                <tr style="border-bottom: 1px solid var(--color-border);">
+                <tr class="u-inline-e91738c112">
                     <td class="py-3 px-4 text-center fw-bold">#{{ v.id }}</td>
                     <td class="py-3 px-4"><span class="badge badge-tipo px-3 py-2">{{ v.placa }}</span></td>
                     <td class="py-3 px-4">{{ v.tipo }}</td>
@@ -80,9 +80,9 @@
                     <td class="py-3 px-4">
                         {% if v.conductor %}
                             <div class="d-flex align-items-center gap-2">
-                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold text-white" style="width: 32px; height: 32px; font-size: 0.8rem; overflow: hidden; border: 1px solid var(--color-primary);">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold text-white u-inline-40f91f91b8">
                                     {% if v.conductor.foto_perfil %}
-                                        <img src="{{ v.conductor.foto_perfil.url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <img src="{{ v.conductor.foto_perfil.url }}" alt="Avatar" class="u-inline-4a466668db">
                                     {% else %}
                                         {{ v.conductor.nombres|first }}{{ v.conductor.apellidos|first }}
                                     {% endif %}
@@ -113,7 +113,7 @@
                 <tr>
                     <td colspan="7" class="text-center py-5">
                         <div class="py-5">
-                            <i class="bi bi-truck text-muted mb-3 d-block" style="font-size: 3rem;"></i>
+                            <i class="bi bi-truck text-muted mb-3 d-block u-inline-8ae57e885d"></i>
                             <p class="text-muted fw-medium mb-0">No hay vehículos registrados en el sistema</p>
                         </div>
                     </td>
