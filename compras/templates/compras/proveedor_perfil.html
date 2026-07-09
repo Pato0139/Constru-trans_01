@@ -1,174 +1,192 @@
 {% extends "base.html" %}
+{% load static currency_tags %}
 
-{% block title %}Perfil de Proveedor - {{ proveedor.nombre_empresa }}{% endblock %}
+{% block title %}Proveedor - {{ proveedor.nombre_empresa }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/compras/proveedores.css' %}?v=2.1">
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-white mb-0">
-            <i class="fas fa-truck-loading me-2"></i> Perfil de Proveedor: {{ proveedor.nombre_empresa }}
-        </h2>
-        <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light">
-            <i class="fas fa-arrow-left me-1"></i> Volver
-        </a>
+<section class="supplier-page supplier-profile">
+    <header class="supplier-hero">
+        <div>
+            <p class="supplier-eyebrow">Perfil del proveedor</p>
+            <h2 class="supplier-title">{{ proveedor.nombre_empresa }}</h2>
+            <p class="supplier-subtitle">{{ proveedor.descripcion|default:"Proveedor registrado para abastecimiento de inventario." }}</p>
+        </div>
+        <div class="supplier-profile-actions">
+            <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light" aria-label="Volver a proveedores" data-tooltip="Volver a proveedores" title="Volver a proveedores">
+                <i class="bi bi-arrow-left"></i>
+                Volver
+            </a>
+            <a href="#catalog-editor" class="btn btn-outline-info" aria-label="Registrar material al proveedor" data-tooltip="Registrar material al proveedor" title="Registrar material al proveedor">
+                <i class="bi bi-box-seam"></i>
+                Registrar material
+            </a>
+            <a href="{% url 'compras:crear_compra' %}?proveedor={{ proveedor.codigo_proveedor }}" class="btn btn-warning" aria-label="Crear orden de compra" data-tooltip="Crear orden de compra" title="Crear orden de compra">
+                <i class="bi bi-bag-plus"></i>
+                Crear orden de compra
+            </a>
+        </div>
+    </header>
+
+    <div class="supplier-profile-grid">
+        <aside class="supplier-panel">
+            <div class="supplier-panel__header">
+                <i class="bi bi-info-circle"></i>
+                Información general
+            </div>
+            <dl class="supplier-detail-list">
+                <div><dt>Nombre</dt><dd>{{ proveedor.contacto_nombre|default:proveedor.nombre_empresa }}</dd></div>
+                <div><dt>Empresa</dt><dd>{{ proveedor.nombre_empresa }}</dd></div>
+                <div><dt>NIT</dt><dd>{{ proveedor.nit }}</dd></div>
+                <div><dt>Correo</dt><dd>{{ proveedor.correo|default:"Sin correo" }}</dd></div>
+                <div><dt>Teléfono</dt><dd>{{ proveedor.telefono|default:"Sin teléfono" }}</dd></div>
+                <div><dt>Dirección</dt><dd>{{ proveedor.direccion|default:"Sin dirección" }}</dd></div>
+                <div><dt>Ciudad</dt><dd>{{ proveedor.ciudad|default:"Sin ciudad" }}</dd></div>
+                <div>
+                    <dt>Estado</dt>
+                    <dd>
+                        {% if proveedor.activo %}
+                            <span class="supplier-status supplier-status--active">Activo</span>
+                        {% else %}
+                            <span class="supplier-status supplier-status--inactive">Inactivo</span>
+                        {% endif %}
+                    </dd>
+                </div>
+                <div><dt>Observaciones</dt><dd>{{ proveedor.descripcion|default:"Sin observaciones" }}</dd></div>
+            </dl>
+        </aside>
+
+        <main class="supplier-panel">
+            <div class="supplier-panel__header supplier-panel__header--split">
+                <span><i class="bi bi-box-seam"></i> Materiales que suministra</span>
+                <a href="#catalog-editor" class="btn btn-sm btn-outline-info" aria-label="Agregar material al catálogo" data-tooltip="Agregar material al catálogo" title="Agregar material al catálogo">
+                    <i class="bi bi-plus-circle"></i>
+                    Agregar material
+                </a>
+            </div>
+            <div class="supplier-table-wrap">
+                <table class="supplier-table">
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Unidad</th>
+                            <th>Precio actual</th>
+                            <th>Actualización</th>
+                            <th>Disponibilidad</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in catalogo %}
+                        <tr>
+                            <td>{{ item.material.nombre }}</td>
+                            <td>{{ item.material.unidad_medida.abreviatura }}</td>
+                            <td>{{ item.precio_actual|currency }}</td>
+                            <td>{{ item.fecha_actualizacion|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if item.activo %}
+                                    <span class="supplier-status supplier-status--active">Disponible</span>
+                                {% else %}
+                                    <span class="supplier-status supplier-status--inactive">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="#catalog-editor" class="btn btn-sm btn-outline-warning" aria-label="Editar material del proveedor" data-tooltip="Editar material del proveedor" title="Editar material del proveedor">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="supplier-empty-row">
+                                <div class="supplier-empty-callout">
+                                    <i class="bi bi-box-seam"></i>
+                                    <p>Este proveedor aún no tiene materiales registrados.</p>
+                                    <a href="#catalog-editor" class="btn btn-sm btn-warning" aria-label="Registrar primer material" data-tooltip="Registrar primer material" title="Registrar primer material">
+                                        Registrar primer material
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
     </div>
 
-    <form method="POST" id="proveedor-form">
+    <form method="post" id="catalog-editor" class="supplier-panel supplier-editor">
         {% csrf_token %}
-        <div class="row">
-            <!-- Datos del Proveedor -->
-            <div class="col-lg-6">
-                <div class="card border-secondary shadow-lg mb-4 glass-card">
-                    <div class="card-header border-secondary bg-transparent">
-                        <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-info"></i> Datos del Proveedor</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            {% for field in form %}
-                            <div class="col-md-6">
-                                <label class="mb-2">{{ field.label }}</label>
-                                {{ field }}
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Catálogo de Materiales -->
-            <div class="col-lg-6">
-                <div class="card border-secondary shadow-lg glass-card">
-                    <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-boxes me-2 text-warning"></i> Catálogo de Materiales</h5>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0" id="materiales-table">
-                                <thead class="text-uppercase small border-secondary">
-                                    <tr>
-                                        <th class="ps-4">#</th>
-                                        <th>Material</th>
-                                        <th class="u-inline-5cb57137c7">Precio ($)</th>
-                                        <th class="u-inline-5cb57137c7">Referencia</th>
-                                        <th class="u-inline-1b3b307987">Activo</th>
-                                        <th class="text-center">Quitar</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {{ formset.management_form }}
-                                    {% for mat_form in formset %}
-                                    <tr class="formset-row border-secondary">
-                                        <td class="ps-4 align-middle counter">{{ forloop.counter }}</td>
-                                        <td class="align-middle">
-                                            {% for hidden in mat_form.hidden_fields %}
-                                                {{ hidden }}
-                                            {% endfor %}
-                                            {{ mat_form.material }}
-                                        </td>
-                                        <td class="align-middle">
-                                            {{ mat_form.precio_proveedor }}
-                                        </td>
-                                        <td class="align-middle">
-                                            {{ mat_form.referencia_proveedor }}
-                                        </td>
-                                        <td class="align-middle">
-                                            {{ mat_form.activo }}
-                                        </td>
-                                        <td class="text-center align-middle">
-                                            {% if formset.can_delete %}
-                                                <div class="d-none">{{ mat_form.DELETE }}</div>
-                                            {% endif %}
-                                            <button type="button" class="btn btn-link text-danger remove-form-row" aria-label="Eliminar fila" data-tooltip="Eliminar fila" title="Eliminar fila">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="p-3 border-top border-secondary text-end">
-                            <button type="button" class="btn btn-primary btn-sm rounded-pill px-4" id="add-material-row">
-                                <i class="fas fa-plus me-1"></i> Agregar Material
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="supplier-panel__header">
+            <i class="bi bi-pencil-square"></i>
+            Registrar materiales y precios del proveedor
+        </div>
+        <div class="supplier-editor-note">
+            <strong>Cómo se registra:</strong> selecciona el material, escribe el precio actual de este proveedor, deja Activo marcado y guarda cambios.
         </div>
 
-        <div class="mt-4 pt-3 border-top border-secondary text-end">
-            <button type="submit" class="btn btn-warning px-5 fw-bold text-uppercase" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
-                <i class="fas fa-save me-2"></i> Guardar Cambios
+        <div class="supplier-form-grid">
+            {% for field in form %}
+            <label>
+                <span>{{ field.label }}</span>
+                {{ field }}
+            </label>
+            {% endfor %}
+        </div>
+
+        <div class="supplier-table-wrap">
+            <table class="supplier-table" id="supplier-catalog-formset">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Material</th>
+                        <th>Precio actual</th>
+                        <th>Referencia</th>
+                        <th>Activo</th>
+                        <th>Quitar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ formset.management_form }}
+                    {% for mat_form in formset %}
+                    <tr class="supplier-formset-row">
+                        <td class="supplier-row-count">{{ forloop.counter }}</td>
+                        <td>
+                            {% for hidden in mat_form.hidden_fields %}{{ hidden }}{% endfor %}
+                            {{ mat_form.material }}
+                        </td>
+                        <td>{{ mat_form.precio_actual }}</td>
+                        <td>{{ mat_form.referencia_proveedor }}</td>
+                        <td>{{ mat_form.activo }}</td>
+                        <td>
+                            {% if formset.can_delete %}<span class="supplier-delete-field">{{ mat_form.DELETE }}</span>{% endif %}
+                            <button type="button" class="btn btn-sm btn-outline-danger supplier-remove-row" aria-label="Quitar material" data-tooltip="Quitar material" title="Quitar material">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="supplier-editor-actions">
+            <button type="button" class="btn btn-outline-info" id="add-material-row" aria-label="Agregar material al catálogo" data-tooltip="Agregar material al catálogo" title="Agregar material al catálogo">
+                <i class="bi bi-plus-circle"></i>
+                Agregar material
+            </button>
+            <button type="submit" class="btn btn-warning" aria-label="Guardar perfil del proveedor" data-tooltip="Guardar perfil del proveedor" title="Guardar perfil del proveedor">
+                <i class="bi bi-save"></i>
+                Guardar cambios
             </button>
         </div>
     </form>
-</div>
+</section>
+{% endblock %}
 
-<style>
-    .glass-card {
-        background: var(--card-bg) !important;
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--color-border) !important;
-    }
-    .form-control, .form-select {
-        background-color: var(--color-surface) !important;
-        border-color: var(--color-border) !important;
-        color: var(--color-text) !important;
-    }
-    .form-control:focus, .form-select:focus {
-        border-color: var(--color-accent) !important;
-        box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25) !important;
-    }
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tableBody = document.querySelector('#materiales-table tbody');
-    const totalForms = document.querySelector('#id_catalogo-TOTAL_FORMS');
-
-    // Add Row
-    document.getElementById('add-material-row').addEventListener('click', function() {
-        const formCount = parseInt(totalForms.value);
-        const firstRow = document.querySelector('#materiales-table .formset-row');
-        const newRow = firstRow.cloneNode(true);
-        
-        // Update names and IDs
-        newRow.querySelectorAll('input, select').forEach(input => {
-            if (input.getAttribute('name')) {
-                const name = input.getAttribute('name').replace('-0-', `-${formCount}-`);
-                const id = input.getAttribute('id').replace('-0-', `-${formCount}-`);
-                input.setAttribute('name', name);
-                input.setAttribute('id', id);
-                if (input.type !== 'hidden' && input.type !== 'checkbox') input.value = '';
-                if (input.type === 'checkbox') input.checked = true;
-            }
-        });
-        
-        // Limpiar estilos y clases de la nueva fila
-        newRow.classList.remove('d-none');
-        
-        // Update counter
-        newRow.querySelector('.counter').textContent = formCount + 1;
-        
-        tableBody.appendChild(newRow);
-        totalForms.value = formCount + 1;
-    });
-
-    // Remove Row
-    tableBody.addEventListener('click', function(e) {
-        if (e.target.closest('.remove-form-row')) {
-            const row = e.target.closest('.formset-row');
-            const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
-            
-            if (deleteCheckbox) {
-                deleteCheckbox.checked = true;
-                row.classList.add('d-none');
-            } else {
-                row.remove();
-            }
-        }
-    });
-});
-</script>
+{% block extra_js %}
+<script src="{% static 'js/compras/proveedores.js' %}?v=2.1"></script>
 {% endblock %}

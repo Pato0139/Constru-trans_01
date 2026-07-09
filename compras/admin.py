@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Compra, DetalleCompra
+from .models import Compra, DetalleCompra, ProveedorMaterial
 
 
 class DetalleCompraInline(admin.TabularInline):
@@ -30,3 +30,10 @@ class DetalleCompraAdmin(admin.ModelAdmin):
     )
     list_filter = ("compra", "material")
     readonly_fields = ("subtotal",)
+
+
+@admin.register(ProveedorMaterial)
+class ProveedorMaterialAdmin(admin.ModelAdmin):
+    list_display = ("proveedor", "material", "precio_actual", "fecha_actualizacion", "activo")
+    list_filter = ("activo", "proveedor")
+    search_fields = ("proveedor__nombre_empresa", "material__nombre", "referencia_proveedor")

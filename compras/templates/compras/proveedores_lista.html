@@ -3,107 +3,113 @@
 
 {% block title %}Proveedores - ConstruTrans{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/compras/proveedores.css' %}?v=2.1">
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+<section class="supplier-page">
+    <header class="supplier-hero" data-aos="fade-down">
         <div>
-            <h2 class="fw-bold text-white mb-1">
-                <i class="bi bi-truck-loading text-accent me-2"></i>Directorio de Proveedores
+            <p class="supplier-eyebrow">Abastecimiento</p>
+            <h2 class="supplier-title">
+                <i class="bi bi-buildings text-accent"></i>
+                Proveedores
             </h2>
-            <p class="text-white-50 small mb-0">Gestiona todos los proveedores de materiales</p>
+            <p class="supplier-subtitle">Administra contactos, estado y catálogo comercial de cada proveedor.</p>
         </div>
-        
-        <div class="d-flex gap-2 align-items-center">
-            <form method="GET" class="d-flex gap-2">
-                <div class="input-group u-inline-e74a373e7f">
-                    <span class="input-group-text bg-dark border-white-10 text-white-50">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="text" name="q" class="form-control bg-dark border-white-10 text-white py-2" 
-                           placeholder="Buscar empresa, NIT, contacto..." value="{{ query|default:'' }}">
+        <a href="{% url 'compras:crear_proveedor' %}" class="btn btn-primary supplier-primary-action" aria-label="Crear nuevo proveedor" data-tooltip="Crear nuevo proveedor" title="Crear nuevo proveedor">
+            <i class="bi bi-plus-circle"></i>
+            Nuevo proveedor
+        </a>
+    </header>
+
+    <form method="get" class="supplier-toolbar supplier-toolbar--advanced" data-aos="fade-up">
+        <div class="supplier-search supplier-toolbar__wide">
+            <i class="bi bi-search"></i>
+            <input type="text" name="q" value="{{ query }}" placeholder="Búsqueda general">
+        </div>
+        <input type="text" name="nombre" value="{{ nombre }}" placeholder="Nombre / empresa">
+        <input type="text" name="nit" value="{{ nit }}" placeholder="NIT / DNI">
+        <input type="text" name="contacto" value="{{ contacto }}" placeholder="Contacto, correo o teléfono">
+        <input type="text" name="ciudad" value="{{ ciudad }}" placeholder="Ciudad">
+        <input type="text" name="categoria" value="{{ categoria }}" placeholder="Categoría">
+        <select name="estado" aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+            <option value="activo" {% if estado_actual == "activo" %}selected{% endif %}>Activos</option>
+            <option value="inactivo" {% if estado_actual == "inactivo" %}selected{% endif %}>Inactivos</option>
+        </select>
+        <button type="submit" class="btn btn-outline-light" aria-label="Filtrar proveedores" data-tooltip="Filtrar proveedores" title="Filtrar proveedores">
+            <i class="bi bi-funnel"></i>
+            Filtrar
+        </button>
+        <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-secondary" aria-label="Limpiar filtros" data-tooltip="Limpiar filtros" title="Limpiar filtros">
+            <i class="bi bi-x-circle"></i>
+            Limpiar
+        </a>
+    </form>
+
+    <div class="supplier-list" data-aos="fade-up">
+        {% for p in proveedores %}
+        <article class="supplier-card {% if not p.activo %}supplier-card--inactive{% endif %}">
+            <div class="supplier-card__main">
+                <div class="supplier-avatar">
+                    <i class="bi bi-building"></i>
                 </div>
-            </form>
+                <div>
+                    <h3>{{ p.nombre_empresa }}</h3>
+                    <p>NIT: {{ p.nit }}</p>
+                </div>
+            </div>
 
-            <a href="{% url 'compras:crear_proveedor' %}" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" aria-label="Agregar" data-tooltip="Agregar" title="Agregar">
-                <i class="bi bi-plus-circle me-1"></i>NUEVO PROVEEDOR
-            </a>
+            <div class="supplier-card__info">
+                <span><i class="bi bi-person"></i>{{ p.contacto_nombre|default:"Sin contacto" }}</span>
+                <span><i class="bi bi-telephone"></i>{{ p.telefono|default:"Sin teléfono" }}</span>
+                <span><i class="bi bi-envelope"></i>{{ p.correo|default:"Sin correo" }}</span>
+                <span><i class="bi bi-geo-alt"></i>{{ p.ciudad|default:"Sin ciudad" }}</span>
+                <span><i class="bi bi-calendar3"></i>{{ p.fecha_registro|date:"d/m/Y" }}</span>
+            </div>
+
+            <div class="supplier-card__meta">
+                <span class="supplier-badge">{{ p.categoria|default:"General" }}</span>
+                {% if p.activo %}
+                    <span class="supplier-status supplier-status--active">Activo</span>
+                {% else %}
+                    <span class="supplier-status supplier-status--inactive">Inactivo</span>
+                {% endif %}
+            </div>
+
+            <div class="supplier-actions">
+                <a href="{% url 'compras:perfil_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-info" aria-label="Ver proveedor" data-tooltip="Ver proveedor" title="Ver proveedor">
+                    <i class="bi bi-eye"></i>
+                </a>
+                <a href="{% url 'compras:editar_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-warning" aria-label="Editar proveedor" data-tooltip="Editar proveedor" title="Editar proveedor">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post" action="{% url 'compras:cambiar_estado_proveedor' p.codigo_proveedor %}" class="supplier-action-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn btn-sm {% if p.activo %}btn-outline-danger{% else %}btn-outline-success{% endif %}" aria-label="{% if p.activo %}Inhabilitar proveedor{% else %}Habilitar proveedor{% endif %}" data-tooltip="{% if p.activo %}Inhabilitar proveedor{% else %}Habilitar proveedor{% endif %}" title="{% if p.activo %}Inhabilitar proveedor{% else %}Habilitar proveedor{% endif %}">
+                        <i class="bi {% if p.activo %}bi-slash-circle{% else %}bi-check-circle{% endif %}"></i>
+                    </button>
+                </form>
+                <a href="{% url 'compras:contactar_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-light" aria-label="Contactar proveedor" data-tooltip="Contactar proveedor" title="Contactar proveedor">
+                    <i class="bi bi-envelope-paper"></i>
+                </a>
+                <a href="{% url 'compras:perfil_proveedor' p.codigo_proveedor %}#catalog-editor" class="btn btn-sm btn-outline-primary" aria-label="Registrar materiales" data-tooltip="Registrar materiales" title="Registrar materiales">
+                    <i class="bi bi-box-seam"></i>
+                </a>
+                <a href="{% url 'compras:crear_compra' %}?proveedor={{ p.codigo_proveedor }}" class="btn btn-sm btn-warning" aria-label="Nueva orden de compra" data-tooltip="Nueva orden de compra" title="Nueva orden de compra">
+                    <i class="bi bi-bag-plus"></i>
+                </a>
+            </div>
+        </article>
+        {% empty %}
+        <div class="supplier-empty">
+            <i class="bi bi-inboxes"></i>
+            <p>No hay proveedores con esos filtros.</p>
         </div>
+        {% endfor %}
     </div>
-
-    <!-- Tabla con Glassmorphism -->
-    <div class="table-container p-0 overflow-hidden u-inline-e91809ca27" data-aos="fade-up">
-        <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle mb-0">
-                <thead>
-                    <tr class="u-inline-e91738c112">
-                        <th class="ps-4 py-4 text-muted small fw-bold text-uppercase">Empresa / NIT</th>
-                        <th class="py-4 text-muted small fw-bold text-uppercase">Contacto</th>
-                        <th class="py-4 text-muted small fw-bold text-uppercase">Categoría</th>
-                        <th class="py-4 text-muted small fw-bold text-uppercase">Información de Contacto</th>
-                        <th class="py-4 text-muted small fw-bold text-uppercase text-center pe-4">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in proveedores %}
-                    <tr class="u-inline-dd0d9e7c89">
-                        <td class="ps-4">
-                            <div class="fw-bold text-white">{{ p.nombre_empresa }}</div>
-                            <div class="text-muted small u-inline-cb8a8ef79f">NIT: {{ p.nit }}</div>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center u-inline-7a3b56f7ab">
-                                    <i class="bi bi-person text-primary"></i>
-                                </div>
-                                <span class="text-white">{{ p.contacto_nombre }}</span>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge bg-dark border border-white-10 text-info px-3">{{ p.categoria }}</span>
-                        </td>
-                        <td class="small">
-                            <div class="mb-1 text-white-50"><i class="bi bi-envelope me-2"></i>{{ p.email }}</div>
-                            <div class="text-white-50"><i class="bi bi-telephone me-2"></i>{{ p.telefono }}</div>
-                        </td>
-                        <td class="text-center pe-4">
-                            <div class="d-flex gap-2 justify-content-center">
-                                <a href="{% url 'compras:contactar_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-info border-white-10" title="Contactar">
-                                    <i class="bi bi-envelope"></i>
-                                </a>
-                                <a href="{% url 'compras:editar_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-warning border-white-10" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
-                            <i class="bi bi-briefcase mb-3 d-block u-inline-a1dd7c987c"></i>
-                            No hay proveedores registrados en el sistema
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<style>
-    .table-container {
-        backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.02) !important;
-    }
-    .table thead th {
-        letter-spacing: 1px;
-        background: rgba(0, 0, 0, 0.2);
-    }
-    .text-accent {
-        color: #f59e0b !important;
-    }
-    .border-white-10 {
-        border-color: rgba(255, 255, 255, 0.1) !important;
-    }
-</style>
+</section>
 {% endblock %}
