@@ -545,8 +545,6 @@ def editar_perfil(request):
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
         telefono = limpiar_telefono(request.POST.get("telefono"))
-        tipo_documento = request.POST.get("tipo_documento")
-        documento = limpiar_telefono(request.POST.get("documento"))
         email = request.POST.get("email")
 
         if "foto_perfil" in request.FILES:
@@ -561,8 +559,6 @@ def editar_perfil(request):
         usuario.nombres = nombres
         usuario.apellidos = apellidos
         usuario.telefono = telefono
-        usuario.tipo_documento = tipo_documento
-        usuario.documento = documento
         usuario.sincronizado = False
         usuario.save()
 
