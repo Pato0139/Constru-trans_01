@@ -77,7 +77,7 @@
                 </div>
                 <div>
                     <a href="{% url 'gestion_pedidos:lista' %}" class="btn btn-outline-secondary me-2">Cancelar</a>
-                    <button type="submit" class="btn btn-primary px-4">Confirmar Pedido</button>
+                    <button type="submit" class="btn btn-primary px-4" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Confirmar Pedido</button>
                 </div>
             </div>
         </form>
@@ -95,7 +95,11 @@
             </select>
         </td>
         <td>
-            <input type="number" name="cantidades[]" class="form-control bg-dark text-white border-0 input-cantidad" value="1" min="1" required>
+            <div class="quantity-stepper" data-min="1">
+                <button type="button" class="quantity-stepper__btn quantity-stepper__btn--minus" aria-label="Disminuir cantidad" data-tooltip="Disminuir cantidad" title="Disminuir cantidad"><i class="bi bi-dash-lg"></i></button>
+                <input type="number" name="cantidades[]" class="quantity-stepper__input input-cantidad" value="1" min="1" required aria-label="Cantidad de material">
+                <button type="button" class="quantity-stepper__btn quantity-stepper__btn--plus" aria-label="Aumentar cantidad" data-tooltip="Aumentar cantidad" title="Aumentar cantidad"><i class="bi bi-plus-lg"></i></button>
+            </div>
         </td>
         <td>
             <span class="precio-unitario">$0.00</span>
@@ -104,7 +108,7 @@
             <span class="subtotal-fila">$0.00</span>
         </td>
         <td>
-            <button type="button" class="btn btn-link text-danger btn-eliminar-fila"><i class="fas fa-trash"></i></button>
+            <button type="button" class="btn btn-link text-danger btn-eliminar-fila" aria-label="Eliminar fila" data-tooltip="Eliminar fila" title="Eliminar fila"><i class="fas fa-trash"></i></button>
         </td>
     </tr>
 </template>

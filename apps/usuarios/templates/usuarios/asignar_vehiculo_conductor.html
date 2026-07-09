@@ -64,7 +64,7 @@
                             <div class="invalid-feedback d-block">{{ form.vehiculo.errors|first }}</div>
                         {% endif %}
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 py-2">Guardar asignación</button>
+                    <button type="submit" class="btn btn-primary w-100 py-2" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Guardar asignación</button>
                 </form>
                 {% if form.fields.vehiculo.queryset.count == 0 %}
                     <div class="alert alert-warning mt-3">No hay vehículos disponibles para asignar. Verifica el estado o libera un vehículo existente.</div>

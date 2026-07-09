@@ -45,16 +45,16 @@ def registrar_entrada(request):
 
 @admin_required
 def movimientos_lista(request):
-    material = request.GET.get("material")
+    query = request.GET.get("q")
     tipo = request.GET.get("tipo")
     fecha = request.GET.get("fecha")
     usuario = request.GET.get("usuario")
 
     movimientos = MovimientoInventario.objects.all().select_related("material", "usuario")
 
-    if material:
+    if query:
         movimientos = movimientos.filter(
-            Q(material__nombre__icontains=material) | Q(observacion__icontains=material)
+            Q(material__nombre__icontains=query) | Q(observacion__icontains=query)
         )
 
     if tipo:
@@ -74,7 +74,7 @@ def movimientos_lista(request):
     context = {
         "movimientos": movimientos,
         "materiales": materiales,
-        "material": material,
+        "query": query,
         "tipo_actual": tipo,
         "fecha": fecha,
         "usuario": usuario,

@@ -45,8 +45,8 @@
                                     <tr>
                                         <th class="ps-4">#</th>
                                         <th>Material</th>
-                                        <th style="width: 150px;">Cantidad</th>
-                                        <th style="width: 200px;">Precio Unitario ($)</th>
+                                        <th class="u-inline-5cb57137c7">Cantidad</th>
+                                        <th class="u-inline-ec060bac5e">Precio Unitario ($)</th>
                                         <th class="text-end">Subtotal</th>
                                         <th class="text-center">Quitar</th>
                                     </tr>
@@ -75,7 +75,7 @@
                                             {% if formset.can_delete %}
                                                 <div class="d-none">{{ detail_form.DELETE }}</div>
                                             {% endif %}
-                                            <button type="button" class="btn btn-link text-danger remove-form-row">
+                                            <button type="button" class="btn btn-link text-danger remove-form-row" aria-label="Eliminar fila" data-tooltip="Eliminar fila" title="Eliminar fila">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </td>
@@ -95,7 +95,7 @@
 
             <!-- Resumen -->
             <div class="col-lg-4">
-                <div class="card bg-dark border-secondary shadow-lg glass-card sticky-top" style="top: 20px;">
+                <div class="card bg-dark border-secondary shadow-lg glass-card sticky-top u-inline-b8a5af0b3b">
                     <div class="card-header border-secondary bg-transparent">
                         <h5 class="text-white mb-0"><i class="fas fa-receipt me-2 text-success"></i> Resumen</h5>
                     </div>
@@ -110,7 +110,7 @@
                         
                         <hr class="border-secondary my-4">
                         
-                        <button type="submit" class="btn btn-warning w-100 py-3 fw-bold text-uppercase shadow-sm">
+                        <button type="submit" class="btn btn-warning w-100 py-3 fw-bold text-uppercase shadow-sm" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                             <i class="fas fa-save me-2"></i> Guardar Orden
                         </button>
                     </div>

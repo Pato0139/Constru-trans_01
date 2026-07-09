@@ -91,16 +91,16 @@
                 </div>
 
                 <div class="d-grid gap-3">
-                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase u-inline-37b2cef266">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase u-inline-37b2cef266" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                         <i class="bi bi-check2-circle me-2"></i> {% if action == 'crear' %}Guardar Unidad{% else %}Actualizar Unidad{% endif %}
                     </button>
                     <div class="d-flex gap-2 flex-column flex-sm-row">
                         <a href="{% url 'inventario:unidades_medida_lista' %}" class="btn btn-outline-light rounded-pill py-3 opacity-75 hover-opacity-100 w-100 u-inline-20f19d2528"
-                          >
+                           aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
                             <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
                         </a>
                         <a href="{% url 'inventario:crear_material' %}" class="btn btn-secondary rounded-pill py-3 opacity-75 hover-opacity-100 w-100 u-inline-40a4768960"
-                          >
+                           aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
                             <i class="bi bi-box-seam me-2"></i> Ir a Registrar Material
                         </a>
                     </div>
