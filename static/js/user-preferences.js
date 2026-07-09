@@ -25,7 +25,7 @@
      * @constant {Object}
      */
     var DEFAULTS = {
-        theme: 'dark',
+        theme: 'light',
         daltonism: 'none',
         fontSize: 'normal',
         language: 'es',
@@ -222,22 +222,18 @@
     }
 
     /**
-     * Restablece los estilos del body para el modo accesibilidad
+     * Restablece completamente todos los estilos en línea del body
      */
-    function resetAccessibilityBodyStyles() {
+    function resetAllBodyStyles() {
         if (document.body) {
             document.body.style.backgroundColor = '';
             document.body.style.color = '';
+            document.body.style.fontWeight = '';
+            document.body.style.fontFamily = '';
         }
-    }
-
-    /**
-     * Aplica los estilos del body para el modo de alto contraste
-     */
-    function applyAccessibilityBodyStyles() {
-        if (document.body) {
-            document.body.style.backgroundColor = '#000000';
-            document.body.style.color = '#ffffff';
+        // Also clear html element styles if any
+        if (document.documentElement) {
+            document.documentElement.style.filter = '';
         }
     }
 
@@ -272,14 +268,12 @@
     function applyAll() {
         var html = document.documentElement;
         var theme = getPref('theme');
+        resetAllBodyStyles();
+        
         html.setAttribute('data-theme', theme);
         html.setAttribute('data-daltonism', getPref('daltonism'));
         html.setAttribute('data-font-size', getPref('fontSize'));
-        html.style.filter = '';
-        resetAccessibilityBodyStyles();
-        if (theme === 'accessibility') {
-            applyAccessibilityBodyStyles();
-        }
+        
         applyLanguage(getPref('language'), { silent: true });
     }
 
@@ -342,16 +336,11 @@
             return false;
         }
         var html = document.documentElement;
+        
+        resetAllBodyStyles();
         html.setAttribute('data-theme', theme);
-        html.style.filter = '';
         setPref('theme', theme);
-        resetAccessibilityBodyStyles();
-        if (theme === 'accessibility') {
-            applyAccessibilityBodyStyles();
-        } else if (theme === 'light') {
-            document.body.style.backgroundColor = '';
-            document.body.style.color = '';
-        }
+        
         syncSettingsButtons();
         showPreferenceToast('toast.theme');
         return false;

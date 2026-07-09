@@ -12,6 +12,8 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 
 from historial.utils import registrar_actividad
 from inventario.models import MovimientoInventario
+from pagos.models import PagoPedido
+from pagos.services import registrar_estado_pago
 from usuarios.models import MaterialConstruccion, MetodoPago, Stock, Usuario
 from usuarios.views import admin_required
 from core.db_preference import debe_usar_bd_remota
@@ -186,6 +188,70 @@ def ver_pedido_admin(request, id):
 
     # Manejo de acciones
     if request.method == "POST":
+        if request.POST.get("accion_pago") == "registrar":
+            metodo = request.POST.get("metodo_pago", "").strip()
+            referencia = request.POST.get("referencia", "").strip()
+            comprobante = request.FILES.get("comprobante")
+
+            if not metodo:
+                messages.error(request, "Selecciona un método de pago para continuar.")
+                return redirect(f"{request.path}?tab=pagos")
+
+            pago_pedido = orden.pagos_pedido.order_by("-fecha_creacion").first()
+            if not pago_pedido:
+                pago_pedido = PagoPedido.objects.create(
+                    pedido=orden,
+                    cliente=orden.cliente,
+                    metodo_pago=metodo,
+                    monto=orden.total or orden.precio or 0,
+                    referencia=referencia,
+                    estado_pago="contra_entrega" if metodo == "Contra entrega" else "pendiente",
+                )
+            else:
+                pago_pedido.metodo_pago = metodo
+                pago_pedido.referencia = referencia
+                pago_pedido.monto = orden.total or orden.precio or 0
+
+            if comprobante:
+                pago_pedido.comprobante = comprobante
+                pago_pedido.estado_pago = "en_revision"
+            elif metodo == "Contra entrega":
+                pago_pedido.estado_pago = "contra_entrega"
+            else:
+                pago_pedido.estado_pago = "pendiente"
+
+            pago_pedido.save()
+            pago_pedido.agregar_historial(
+                f"Registro de pago enviado por {request.user.username} con método {metodo}."
+            )
+            messages.success(request, "Tu solicitud de pago quedó registrada. En breve será revisada.")
+            return redirect(f"{request.path}?tab=pagos")
+
+        if request.POST.get("accion_pago") in {"aprobar", "rechazar"}:
+            pago_pedido = orden.pagos_pedido.order_by("-fecha_creacion").first()
+            if not pago_pedido:
+                messages.error(request, "Aún no existe un registro de pago para esta orden.")
+                return redirect(f"{request.path}?tab=pagos")
+
+            if request.POST.get("accion_pago") == "aprobar":
+                registrar_estado_pago(pago_pedido, orden, "pago aprobado")
+                pago_pedido.agregar_historial(f"Pago aprobado por {request.user.username}")
+                pago_pedido.save(update_fields=["estado_pago", "motivo_rechazo", "fecha_actualizacion"])
+                messages.success(request, f"Pago aprobado para el pedido #{orden.codigo_pedido}.")
+            else:
+                motivo = request.POST.get("motivo_rechazo", "").strip()
+                if not motivo:
+                    messages.error(request, "Escribe un motivo para rechazar el comprobante.")
+                    return redirect(f"{request.path}?tab=pagos")
+                pago_pedido.estado_pago = "pago rechazado"
+                pago_pedido.motivo_rechazo = motivo
+                pago_pedido.pedido.estado = "pendiente"
+                pago_pedido.pedido.save(update_fields=["estado"])
+                pago_pedido.agregar_historial(f"Pago rechazado por {request.user.username}: {motivo}")
+                pago_pedido.save(update_fields=["estado_pago", "motivo_rechazo", "fecha_actualizacion"])
+                messages.warning(request, "Pago rechazado y cliente notificado.")
+            return redirect(f"{request.path}?tab=pagos")
+
         if request.user.usuario.rol == "conductor":
             accion = request.POST.get("accion")
             if accion == "confirmar":
@@ -248,6 +314,9 @@ def ver_pedido_admin(request, id):
                 return redirect("usuarios:panel")
 
         elif request.user.usuario.rol == "admin":
+            if orden.estado == Orden.CANCELADO:
+                messages.info(request, "El pedido está cancelado. Solo se permite su consulta.")
+                return redirect("ordenes:ver_pedido_admin", id=orden.codigo_pedido)
             db_alias = "remota" if debe_usar_bd_remota() else "default"
             nuevo_estado = request.POST.get("estado")
             if nuevo_estado:
@@ -287,7 +356,35 @@ def ver_pedido_admin(request, id):
                     )
                 return redirect("ordenes:ver_pedido_admin", id=orden.codigo_pedido)
 
-    context = {"orden": orden, "metodos_pago": MetodoPago.objects.all()}
+    pago_pedido = orden.pagos_pedido.order_by("-fecha_creacion").first()
+    context = {
+        "orden": orden,
+        "metodos_pago": MetodoPago.objects.all(),
+        "metodos_disponibles": [
+            "Nequi",
+            "Daviplata",
+            "Bancolombia",
+            "Contra entrega",
+        ],
+        "pago_pedido": pago_pedido,
+        "cuentas_transferencia": {
+            "Nequi": {
+                "telefono": "300 123 4567",
+                "titular": "ConstruTrans SAS",
+                "documento": "900.123.456-1",
+            },
+            "Daviplata": {
+                "telefono": "300 123 4567",
+                "titular": "ConstruTrans SAS",
+                "documento": "900.123.456-1",
+            },
+            "Bancolombia": {
+                "numero": "0134 123 456 789",
+                "titular": "ConstruTrans SAS",
+                "tipo": "Cuenta corriente",
+            },
+        },
+    }
 
     return render(request, "ordenes/detalle.html", context)
 

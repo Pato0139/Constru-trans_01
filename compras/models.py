@@ -45,6 +45,36 @@ class Compra(models.Model):
 
 
 # =====================================================================
+# PROVEEDOR_MATERIAL
+# =====================================================================
+class ProveedorMaterial(models.Model):
+    proveedor = models.ForeignKey(
+        Proveedor, on_delete=models.CASCADE, related_name="materiales_ofertados"
+    )
+    material = models.ForeignKey(
+        MaterialConstruccion, on_delete=models.PROTECT, related_name="proveedores_ofertantes"
+    )
+    precio_proveedor = models.DecimalField(
+        max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)]
+    )
+    referencia_proveedor = models.CharField(max_length=100, blank=True)
+    observaciones = models.CharField(max_length=255, blank=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "proveedor_material"
+        ordering = ["proveedor__nombre_empresa", "material__nombre"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["proveedor", "material"], name="unique_material_por_proveedor"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.proveedor.nombre_empresa} - {self.material.nombre}"
+
+
+# =====================================================================
 # DETALLE_COMPRA  (MER: #id_detalle_compra *id_compra *cod_material
 #                  -cantidad -precio_unitario -subtotal)
 # =====================================================================

@@ -39,21 +39,6 @@
     --glass-border: rgba(0, 0, 0, 0.05);
 }
 
-[data-theme="accessibility"] {
-    --color-bg: #000000;
-    --color-surface: #000000;
-    --color-primary: #ffff00;
-    --color-accent: #00ffff;
-    --color-text: #ffffff;
-    --color-muted: #ffff00;
-    --color-border: #ffffff;
-    --sidebar-bg: #000000;
-    --nav-active-bg: #ffff00;
-    --card-bg: #000000;
-    --item-bg: #000000;
-    font-weight: 600;
-}
-
 body {
     background-color: var(--color-bg);
     color: var(--color-text);
@@ -89,13 +74,6 @@ input:focus, select:focus, textarea:focus {
 option {
     background-color: var(--color-surface) !important;
     color: var(--color-text) !important;
-}
-
-[data-theme="accessibility"] .btn-primary,
-[data-theme="accessibility"] .btn-gold,
-[data-theme="accessibility"] .badge-tipo {
-    color: #000000 !important;
-    font-weight: 900 !important;
 }
 
 .text-white { color: var(--color-text) !important; }

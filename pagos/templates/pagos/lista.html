@@ -12,22 +12,9 @@
             </h2>
             <p class="text-white-50 small mb-0">Consulta de todos los pagos registrados</p>
         </div>
-        
-        <div class="d-flex gap-2">
-            <form action="." method="GET" class="d-flex gap-2">
-                <div class="position-relative">
-                    <i class="bi bi-calendar3 position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                    <input type="date" name="fecha" class="form-control bg-dark border-white-10 text-white ps-5 rounded-pill" value="{{ fecha }}">
-                </div>
-                <select name="metodo" class="form-select bg-dark border-white-10 text-white rounded-pill w-auto" onchange="this.form.submit()">
-                    <option value="">Todos los métodos</option>
-                    {% for mp in metodos_pago %}
-                    <option value="{{ mp.codigo_metodo_pago }}" {% if metodo == mp.codigo_metodo_pago %}selected{% endif %}>{{ mp.metodo }}</option>
-                    {% endfor %}
-                </select>
-            </form>
-        </div>
     </div>
+
+    {% include 'partials/filter_bar.html' with form_id='filterForm' filter_fields=filter_fields q=q has_filters=has_filters %}
 
     <!-- Tabla con Glassmorphism -->
     <div class="table-container p-0 overflow-hidden u-inline-e91809ca27" data-aos="fade-up">

@@ -96,65 +96,90 @@ def buscar_conductores(query=None):
 
 
 def registro(request):
-
-
     if request.method == "POST":
-        form = RegistroForm(request.POST)
-        if form.is_valid():
-            try:
-                email = form.cleaned_data.get("correo")
-                password = form.cleaned_data.get("contrasena")
+        nombres = request.POST.get("nombres")
+        apellidos = request.POST.get("apellidos")
+        correo = request.POST.get("correo")
+        contrasena = request.POST.get("contrasena")
+        confirmar_contrasena = request.POST.get("confirmar_contrasena")
+        telefono = limpiar_telefono(request.POST.get("telefono"))
+        tipo_documento = request.POST.get("tipo_documento")
+        documento = limpiar_telefono(request.POST.get("documento"))
+        pais_codigo = request.POST.get("pais_codigo", "+57")
 
-                with transaction.atomic():
-                    try:
-                        user = form.save(commit=False)
-                        user.username = email
-                        user.email = email
-                        user.set_password(password)
-                        user.rol = "cliente"
-                        user.sincronizado = False
-                        user.estado = "activo"
-                        user.save()
-                    except Exception as e:
-                        if "duplicate key" in str(e).lower() and conexion_remota_disponible():
-                            from django.db import connections
+        logger.info(f"Intentando registro: {correo}")
 
-                            try:
-                                with connections["remota"].cursor() as cursor:
-                                    cursor.execute(
-                                        "SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));"
-                                    )
-                            except Exception:
-                                pass
+        # Validaciones básicas
+        if not all([nombres, apellidos, correo, contrasena, confirmar_contrasena, telefono, tipo_documento, documento]):
+            error_msg = "Todos los campos son obligatorios."
+            logger.warning("Campos incompletos en registro")
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"status": "error", "message": error_msg}, status=400)
+            messages.error(request, error_msg)
+            return render(request, "usuarios/registro.html", {"form": RegistroForm()})
 
-                            user = form.save(commit=False)
-                            user.username = email
-                            user.email = email
-                            user.set_password(password)
-                            user.rol = "cliente"
-                            user.sincronizado = False
-                            user.estado = "activo"
-                            user.save()
-                        else:
-                            raise e
+        if contrasena != confirmar_contrasena:
+            error_msg = "Las contraseñas no coinciden."
+            logger.warning("Contraseñas no coinciden")
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"status": "error", "message": error_msg}, status=400)
+            messages.error(request, error_msg)
+            return render(request, "usuarios/registro.html", {"form": RegistroForm()})
 
-                    registrar_actividad(
-                        request, "crear", "usuarios", user.id, f"Nuevo registro: {email}"
-                    )
+        # Verificar si el usuario ya existe (forzar BD local)
+        if User.objects.db_manager('default').filter(username=correo).exists() or User.objects.db_manager('default').filter(email=correo).exists():
+            error_msg = "Este correo electrónico ya está registrado."
+            logger.warning(f"Correo duplicado: {correo}")
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"status": "error", "message": error_msg}, status=400)
+            messages.error(request, error_msg)
+            return render(request, "usuarios/registro.html", {"form": RegistroForm()})
 
-                messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
-                return redirect("usuarios:login")
+        try:
+            # Creación directa de usuario - MÁS SIMPLE POSIBLE
+            logger.info(f"Creando usuario registro: {correo}")
+            telefono_completo = f"{pais_codigo}{telefono}"
+            
+            # Forzar uso de base de datos local para evitar latencia
+            user = User.objects.db_manager('default').create_user(
+                username=correo,
+                email=correo,
+                password=contrasena,
+                nombres=nombres,
+                apellidos=apellidos,
+                telefono=telefono_completo,
+                rol="cliente",
+                tipo_documento=tipo_documento,
+                documento=documento,
+                estado="activo",
+                sincronizado=False,
+            )
+            logger.info(f"Usuario registro creado: {user.id}")
 
-            except Exception as e_final:
-                messages.error(request, f"Error al crear el usuario: {str(e_final)}")
-        else:
-            pass
+            # RESPUESTA INMEDIATA sin registrar actividad
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({
+                    "status": "success",
+                    "message": "¡Listo! Ya quedó registrado. Ahora puede entrar.",
+                    "redirect_url": reverse("usuarios:login")
+                })
 
-    else:
-        form = RegistroForm()
+            messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
+            return redirect("usuarios:login")
 
+        except Exception as e:
+            logger.error(f"Error en registro {correo}: {str(e)}", exc_info=True)
+            error_msg = f"Error al crear el usuario: {str(e)}"
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({
+                    "status": "error",
+                    "message": error_msg
+                }, status=400)
+            messages.error(request, error_msg)
+            return render(request, "usuarios/registro.html", {"form": RegistroForm()})
+
+    form = RegistroForm()
     context = {"form": form}
-
     return render(request, "usuarios/registro.html", context)
 
 
@@ -164,11 +189,26 @@ def registro(request):
 
 
 def login_usuario(request):
-    if conexion_remota_disponible():
+    # Si el usuario ya está autenticado, redirigir al panel correspondiente
+    if request.user.is_authenticated:
         try:
-            sync_all_usuarios()
-        except Exception as e:
-            logger.error(f"Error sincronizando en login: {e}")
+            usuario = request.user.usuario
+            if usuario.rol == "admin":
+                return redirect("usuarios:panel")
+            elif usuario.rol == "cliente":
+                return redirect("clientes:panel_cliente")
+            elif usuario.rol == "conductor":
+                return redirect("usuarios:panel_conductor")
+        except Exception:
+            pass
+        return redirect("usuarios:panel")
+
+    # Desactivado para optimizar rendimiento - sincronización se hará en background
+    # if conexion_remota_disponible():
+    #     try:
+    #         sync_all_usuarios()
+    #     except Exception as e:
+    #         logger.error(f"Error sincronizando en login: {e}")
 
     modo_local = not conexion_remota_disponible()
 
@@ -242,46 +282,69 @@ def login_usuario(request):
                 from django.utils.http import url_has_allowed_host_and_scheme
 
                 next_url = request.GET.get("next")
-                if next_url and url_has_allowed_host_and_scheme(
+                redirect_target = next_url if next_url and url_has_allowed_host_and_scheme(
                     url=next_url,
                     allowed_hosts={request.get_host()},
                     require_https=request.is_secure(),
-                ):
-                    return redirect(next_url)
+                ) else (
+                    "usuarios:panel" if user.rol == "admin" else
+                    "clientes:panel_cliente" if user.rol == "cliente" else
+                    "usuarios:panel_conductor" if user.rol == "conductor" else
+                    "usuarios:panel"
+                )
 
-                if user.rol == "admin":
-                    return redirect("usuarios:panel")
-                elif user.rol == "cliente":
-                    return redirect("clientes:panel_cliente")
-                elif user.rol == "conductor":
-                    return redirect("usuarios:panel_conductor")
-                else:
-                    return redirect("usuarios:panel")
+                # Check if request is AJAX
+                if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                    return JsonResponse({
+                        "status": "success",
+                        "message": f"¡Bienvenido de nuevo, {user.nombres}!",
+                        "redirect_url": reverse(redirect_target)
+                    })
+
+                return redirect(redirect_target)
             else:
                 # Inicio de sesión fallido: registramos intento
+                error_message = "Usuario o contraseña incorrectos."
                 if user_obj:
                     user_obj.registrar_intento_fallido()
                     if user_obj.esta_bloqueado():
                         tiempo_restante = user_obj.obtener_tiempo_restante_bloqueo()
-                        messages.error(
-                            request,
-                            f"Demasiados intentos fallidos. Tu cuenta está bloqueada por {tiempo_restante}."
-                        )
+                        error_message = f"Demasiados intentos fallidos. Tu cuenta está bloqueada por {tiempo_restante}."
+                        messages.error(request, error_message)
                     else:
                         intentos_restantes = 3 - user_obj.intentos_fallidos if user_obj.intentos_fallidos < 3 else 0
                         if intentos_restantes > 0:
-                            messages.error(
-                                request,
-                                f"Usuario o contraseña incorrectos. Te quedan {intentos_restantes} intento(s)."
-                            )
+                            error_message = f"Usuario o contraseña incorrectos. Te quedan {intentos_restantes} intento(s)."
+                            messages.error(request, error_message)
                         else:
-                            messages.error(request, "Usuario o contraseña incorrectos.")
+                            messages.error(request, error_message)
                 else:
-                    messages.error(request, "Usuario o contraseña incorrectos.")
+                    messages.error(request, error_message)
+                
+                # Check if request is AJAX
+                if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                    return JsonResponse({
+                        "status": "error",
+                        "message": error_message
+                    }, status=400)
         else:
+            # Form validation errors
+            error_message = "Por favor corrige los errores en el formulario."
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f"{field}: {error}")
+                    error_message = f"{field}: {error}"
+                    messages.error(request, error_message)
+            
+            # Check if request is AJAX
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                errors_dict = {}
+                for field, error_list in form.errors.items():
+                    errors_dict[field] = [str(error) for error in error_list]
+                return JsonResponse({
+                    "status": "error",
+                    "message": error_message,
+                    "errors": errors_dict
+                }, status=400)
             pass
 
     else:
@@ -326,11 +389,11 @@ def panel(request):
         if not context:
             context = {
                 "pedidos_pendientes": Pedido.objects.filter(estado="pendiente").count(),
-                "conductores": Usuario.objects.filter(rol="conductor").count(),
+                "conductores": Usuario.objects.filter(rol="conductor").select_related('user').count(),
                 "entregas_hoy": Pedido.objects.filter(
                     estado="entregado", fecha_solicitud__date=now().date()
                 ).count(),
-                "clientes": Usuario.objects.filter(rol="cliente").count(),
+                "clientes": Usuario.objects.filter(rol="cliente").select_related('user').count(),
                 "pedidos_recientes": Pedido.objects.select_related(
                     "usuario", "cliente__usuario"
                 ).order_by("-fecha_solicitud")[:5],
@@ -364,7 +427,9 @@ def panel_conductor(request):
         .select_related("usuario", "cliente__usuario")
         .exclude(estado="entregado")
     )
-    entregas_completadas = Pedido.objects.filter(conductor=conductor, estado="entregado")
+    entregas_completadas = Pedido.objects.filter(
+        conductor=conductor, estado="entregado"
+    ).select_related("usuario", "cliente__usuario")
 
     context = {
         "pedidos": pedidos_asignados,
@@ -379,7 +444,34 @@ def panel_conductor(request):
 def pedidos_conductor(request):
     conductor = request.user.usuario
     pedidos = Pedido.objects.filter(conductor=conductor).exclude(estado="entregado").select_related("usuario", "cliente__usuario")
-    context = {"pedidos": pedidos}
+
+    # Apply filters
+    id_pedido = request.GET.get("id_pedido")
+    origen = request.GET.get("origen")
+    destino = request.GET.get("destino")
+    fecha = request.GET.get("fecha")
+    estado = request.GET.get("estado")
+
+    if id_pedido:
+        pedidos = pedidos.filter(codigo_pedido__icontains=id_pedido)
+    if origen:
+        pedidos = pedidos.filter(direccion_origen__icontains=origen)
+    if destino:
+        pedidos = pedidos.filter(direccion_destino__icontains=destino)
+    if fecha:
+        pedidos = pedidos.filter(fecha_solicitud__date=fecha)
+    if estado:
+        pedidos = pedidos.filter(estado=estado)
+
+    context = {
+        "pedidos": pedidos,
+        "estados": Pedido.ESTADOS,
+        "id_pedido": id_pedido,
+        "origen": origen,
+        "destino": destino,
+        "fecha": fecha,
+        "estado": estado,
+    }
 
     return render(request, "usuarios/pedidos_conductor.html", context)
 
@@ -387,10 +479,37 @@ def pedidos_conductor(request):
 @login_required
 def mis_entregas(request):
     conductor = request.user.usuario
-    entregas = Pedido.objects.filter(conductor=conductor, estado="entregado").select_related("usuario", "cliente__usuario").order_by(
+    entregas = Pedido.objects.filter(conductor=conductor).select_related("usuario", "cliente__usuario").order_by(
         "-fecha_solicitud"
     )
-    context = {"entregas": entregas}
+
+    # Apply filters
+    id_pedido = request.GET.get("id_pedido")
+    origen = request.GET.get("origen")
+    destino = request.GET.get("destino")
+    fecha = request.GET.get("fecha")
+    estado = request.GET.get("estado")
+
+    if id_pedido:
+        entregas = entregas.filter(codigo_pedido__icontains=id_pedido)
+    if origen:
+        entregas = entregas.filter(direccion_origen__icontains=origen)
+    if destino:
+        entregas = entregas.filter(direccion_destino__icontains=destino)
+    if fecha:
+        entregas = entregas.filter(fecha_solicitud__date=fecha)
+    if estado:
+        entregas = entregas.filter(estado=estado)
+
+    context = {
+        "entregas": entregas,
+        "estados": Pedido.ESTADOS,
+        "id_pedido": id_pedido,
+        "origen": origen,
+        "destino": destino,
+        "fecha": fecha,
+        "estado": estado,
+    }
 
     return render(request, "usuarios/mis-entregas.html", context)
 
@@ -426,23 +545,26 @@ def editar_perfil(request):
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
         telefono = limpiar_telefono(request.POST.get("telefono"))
-        tipo_documento = request.POST.get("tipo_documento")
-        documento = limpiar_telefono(request.POST.get("documento"))
         email = request.POST.get("email")
 
         if "foto_perfil" in request.FILES:
+            # Eliminar foto anterior si existe
+            if usuario.foto_perfil:
+                try:
+                    usuario.foto_perfil.delete(save=False)
+                except Exception:
+                    pass
             usuario.foto_perfil = request.FILES["foto_perfil"]
 
         usuario.nombres = nombres
         usuario.apellidos = apellidos
         usuario.telefono = telefono
-        usuario.tipo_documento = tipo_documento
-        usuario.documento = documento
         usuario.sincronizado = False
         usuario.save()
 
         if email:
             request.user.email = email
+            request.user.username = email  # Sincronizar username con email
             request.user.save()
 
         messages.success(request, "Perfil actualizado correctamente.")
@@ -482,106 +604,79 @@ def crear_usuario(request):
         tipo_doc = request.POST.get("tipo_doc")
         documento = limpiar_telefono(request.POST.get("documento"))
 
+        logger.info(f"Intentando crear usuario: {email}, rol: {rol}")
+
+        # Validación básica simplificada
         if not all([nombres, apellidos, email, password, telefono, rol, tipo_doc, documento]):
             error_msg = "Todos los campos son obligatorios."
+            logger.warning(f"Campos incompletos")
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
             context = {"form_data": request.POST, "action": "crear"}
-
-            return render(request, "usuarios/form.html", context)
-
-        if (
-            User.objects.filter(email=email).exists()
-            or User.objects.filter(username=email).exists()
-        ):
-            error_msg = "Este correo electrónico ya está registrado."
-            if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                return JsonResponse({"status": "error", "message": error_msg}, status=400)
-            messages.error(request, error_msg)
-            context = {"form_data": request.POST, "action": "crear"}
-
             return render(request, "usuarios/form.html", context)
 
         try:
-            with transaction.atomic():
-                user = User(
-                    username=email,
-                    email=email,
-                    nombres=nombres,
-                    apellidos=apellidos,
-                    telefono=telefono,
-                    rol=rol,
-                    tipo_documento=tipo_doc,
-                    documento=documento,
-                    estado="activo",
-                    sincronizado=False,
-                )
-                user.set_password(password)
-                user.save()
-                if rol == "conductor":
-                    Conductor.ensure_for_user(user)
-        except Exception as e:
-            if "duplicate key" in str(e).lower() and conexion_remota_disponible():
-                from django.db import connections
+            # Creación directa de usuario - MÁS SIMPLE POSIBLE
+            logger.info(f"Creando usuario directamente: {email}")
+            # Forzar uso de base de datos local para evitar latencia
+            user = User.objects.db_manager('default').create_user(
+                username=email,
+                email=email,
+                password=password,
+                nombres=nombres,
+                apellidos=apellidos,
+                telefono=telefono,
+                rol=rol,
+                tipo_documento=tipo_doc,
+                documento=documento,
+                estado="activo",
+                sincronizado=False,
+            )
+            logger.info(f"Usuario creado exitosamente: {user.id}")
 
+            # Crear perfil de conductor si es necesario (sin transacción)
+            if rol == "conductor":
                 try:
-                    with connections["remota"].cursor() as cursor:
-                        cursor.execute(
-                            "SELECT setval(pg_get_serial_sequence('usuario', 'id'), (SELECT MAX(id) FROM usuario));"
-                        )
-                except Exception:
-                    pass
-                user = User(
-                    username=email,
-                    email=email,
-                    nombres=nombres,
-                    apellidos=apellidos,
-                    telefono=telefono,
-                    rol=rol,
-                    tipo_documento=tipo_doc,
-                    documento=documento,
-                    estado="activo",
-                    sincronizado=False,
-                )
-                user.set_password(password)
-                user.save()
-                if rol == "conductor":
-                    Conductor.ensure_for_user(user)
-            else:
-                raise e
+                    logger.info(f"Creando perfil de conductor para: {email}")
+                    Conductor.objects.create(
+                        usuario=user,
+                        numero_licencia=f"PEND-{user.id}",
+                        categoria_licencia="N/A",
+                        fecha_vencimiento_licencia=now().date(),
+                        estado="activo",
+                    )
+                    logger.info(f"Perfil de conductor creado")
+                except Exception as e:
+                    logger.warning(f"Error creando perfil conductor (no crítico): {str(e)}")
 
-        try:
+            # Foto de perfil si existe
             if "foto_perfil" in request.FILES:
                 user.foto_perfil = request.FILES["foto_perfil"]
                 user.save()
 
-            registrar_actividad(
-                request,
-                "crear",
-                "usuarios",
-                user.id,
-                f"Administrador creó usuario: {email} como {rol}",
-            )
-
+            # RESPUESTA INMEDIATA sin registrar actividad
             success_msg = f"Usuario {nombres} creado correctamente."
+            logger.info(f"Proceso completado exitosamente para: {email}")
+            
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "success", "message": success_msg})
 
             messages.success(request, success_msg)
             return redirect("usuarios:lista_usuarios")
+
         except Exception as e:
+            logger.error(f"Error creando usuario {email}: {str(e)}", exc_info=True)
             error_msg = f"Error al crear usuario: {str(e)}"
+            
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=500)
 
             messages.error(request, error_msg)
             context = {"error": error_msg, "form_data": request.POST, "action": "crear"}
-
             return render(request, "usuarios/form.html", context)
 
     context = {"action": "crear", "form_data": {}}
-
     return render(request, "usuarios/form.html", context)
 
 
@@ -678,6 +773,12 @@ def editar_usuario(request, id):
             usuario.telefono = telefono
 
             if "foto_perfil" in request.FILES:
+                # Eliminar foto anterior si existe
+                if usuario.foto_perfil:
+                    try:
+                        usuario.foto_perfil.delete(save=False)
+                    except Exception:
+                        pass
                 usuario.foto_perfil = request.FILES["foto_perfil"]
 
             if request.user.usuario.rol == "admin" and rol:

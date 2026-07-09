@@ -1,0 +1,83 @@
+{% extends "pagos/prototipo_base.html" %}
+
+{% block prototype_content %}
+<div class="prototype-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">Crear pedido</h4>
+            <p class="text-muted mb-0">Completa la información del pedido y calcula el total automáticamente.</p>
+        </div>
+        <div class="method-badge"><i class="bi bi-cart-check"></i> Nuevo pedido</div>
+    </div>
+
+    <form method="post" class="row g-4">
+        {% csrf_token %}
+        <div class="col-lg-8">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Cliente</label>
+                    <input type="text" class="form-control" name="customer" value="María Gómez" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Teléfono</label>
+                    <input type="text" class="form-control" name="phone" value="3004567890" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Dirección de entrega</label>
+                    <input type="text" class="form-control" name="delivery_address" value="Cra 45 # 89-10" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Fecha</label>
+                    <input type="date" class="form-control" name="delivery_date" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Observaciones</label>
+                    <input type="text" class="form-control" name="observations" value="Entrega en horario de la mañana">
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0">Materiales</h6>
+                    <button type="button" class="btn btn-outline-light btn-sm" id="add-material"><i class="bi bi-plus"></i> Agregar material</button>
+                </div>
+                <div id="materials-body">
+                    <div class="material-row">
+                        <div>
+                            <label class="form-label small text-muted">Material</label>
+                            <select class="form-select form-select-sm" name="material_name">
+                                {% for item in materials_catalog %}
+                                <option value="{{ item.name }}">{{ item.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label small text-muted">Cantidad</label>
+                            <input type="number" class="form-control form-control-sm" name="material_quantity" min="1" value="10">
+                        </div>
+                        <div>
+                            <label class="form-label small text-muted">Unidad</label>
+                            <input type="text" class="form-control form-control-sm" name="material_unit" value="sacos">
+                        </div>
+                        <div>
+                            <label class="form-label small text-muted">&nbsp;</label>
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-row">Quitar</button>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="materials_json" id="materials-json" value="[]">
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="payment-method-card">
+                <h6 class="fw-bold mb-3">Resumen automático</h6>
+                <div class="d-flex justify-content-between text-muted mb-2"><span>Subtotal</span><strong id="summary-subtotal">$0</strong></div>
+                <div class="d-flex justify-content-between text-muted mb-2"><span>IVA</span><strong id="summary-iva">$0</strong></div>
+                <div class="d-flex justify-content-between fw-bold fs-5"><span>Total</span><strong id="summary-total">$0</strong></div>
+                <button class="btn btn-success w-100 mt-4" type="submit">Continuar al pago</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

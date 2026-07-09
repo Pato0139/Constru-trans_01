@@ -15,37 +15,37 @@
 
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card bg-dark border-secondary shadow-lg glass-card">
+            <div class="card border-secondary shadow-lg glass-card">
                 <div class="card-body p-4">
                     <form method="POST">
                         {% csrf_token %}
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="text-white-50 mb-2">Nombre de la Empresa / Razón Social</label>
+                                <label class="mb-2">Nombre de la Empresa / Razón Social</label>
                                 <input type="text" name="nombre_empresa" class="form-control" required value="{{ proveedor.nombre_empresa|default:'' }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="text-white-50 mb-2">NIT</label>
+                                <label class="mb-2">NIT</label>
                                 <input type="text" name="nit" class="form-control" required value="{{ proveedor.nit|default:'' }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="text-white-50 mb-2">Nombre de Contacto</label>
+                                <label class="mb-2">Nombre de Contacto</label>
                                 <input type="text" name="contacto_nombre" class="form-control" required value="{{ proveedor.contacto_nombre|default:'' }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="text-white-50 mb-2">Categoría</label>
+                                <label class="mb-2">Categoría</label>
                                 <input type="text" name="categoria" class="form-control" placeholder="Ej: Materiales, Repuestos..." value="{{ proveedor.categoria|default:'' }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="text-white-50 mb-2">Teléfono</label>
+                                <label class="mb-2">Teléfono</label>
                                 <input type="text" name="telefono" class="form-control" required value="{{ proveedor.telefono|default:'' }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="text-white-50 mb-2">Correo Electrónico</label>
+                                <label class="mb-2">Correo Electrónico</label>
                                 <input type="email" name="email" class="form-control" required value="{{ proveedor.email|default:'' }}">
                             </div>
                             <div class="col-12">
-                                <label class="text-white-50 mb-2">Dirección</label>
+                                <label class="mb-2">Dirección</label>
                                 <input type="text" name="direccion" class="form-control" required value="{{ proveedor.direccion|default:'' }}">
                             </div>
                         </div>
@@ -64,14 +64,14 @@
 
 <style>
     .glass-card {
-        background: rgba(30, 34, 45, 0.7) !important;
+        background: var(--card-bg) !important;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid var(--color-border) !important;
     }
     .form-control {
-        background-color: rgba(0,0,0,0.2) !important;
-        border-color: rgba(255,255,255,0.1) !important;
-        color: white !important;
+        background-color: var(--color-surface) !important;
+        border-color: var(--color-border) !important;
+        color: var(--color-text) !important;
     }
 </style>
 {% endblock %}
