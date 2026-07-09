@@ -1,5 +1,4 @@
 from django.shortcuts import redirect, render
-from django.contrib.auth.decorators import login_required
 
 
 def inicio(request):
@@ -15,4 +14,4 @@ def inicio(request):
         except Exception:
             pass
         return redirect("usuarios:panel")
-    return redirect("usuarios:login")
+    return render(request, "inicio/home.html")
