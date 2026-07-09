@@ -121,13 +121,9 @@
 
     <p class="auth-footer-text">
         Al iniciar sesión acepta nuestros
-        <button type="button" onclick="abrirTerminosLogin()" class="auth-terms-link">
-            Términos y Condiciones
-        </button>
+        <span role="button" tabindex="0" onclick="abrirTerminosLogin()" onkeydown="if(event.key==='Enter')abrirTerminosLogin()" class="auth-terms-link">Términos y Condiciones</span>
         y la
-        <button type="button" onclick="abrirPrivacidadLogin()" class="auth-terms-link">
-            Política de Privacidad
-        </button>
+        <span role="button" tabindex="0" onclick="abrirPrivacidadLogin()" onkeydown="if(event.key==='Enter')abrirPrivacidadLogin()" class="auth-terms-link">Política de Privacidad</span>
     </p>
 </form>
 
