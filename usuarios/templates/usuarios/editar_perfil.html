@@ -66,16 +66,22 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold" style="color: var(--color-muted);">Tipo Documento</label>
-                                <select name="tipo_documento" class="form-select rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);">
-                                    {% for code, name in usuario.TIPOS_DOCUMENTO %}
-                                        <option value="{{ code }}" {% if usuario.tipo_documento == code %}selected{% endif %}>{{ name }}</option>
-                                    {% endfor %}
-                                </select>
+                                <input
+                                    type="text"
+                                    class="form-control rounded-3 py-2"
+                                    style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);"
+                                    value="{{ usuario.get_tipo_documento_display }}"
+                                    readonly>
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold" style="color: var(--color-muted);">Número de Identificación</label>
-                                <input type="text" name="documento" value="{{ usuario.documento }}" class="form-control rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);" required
-                                pattern="[0-9\s]*" title="Solo se admiten números y espacios" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
+                                <input
+                                    type="text"
+                                    class="form-control rounded-3 py-2"
+                                    style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);"
+                                    value="{{ usuario.documento }}"
+                                    readonly>
+                                <small class="text-muted">El documento no puede modificarse desde el perfil.</small>
                             </div>
                         </div>
 
