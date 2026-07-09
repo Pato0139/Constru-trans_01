@@ -1,0 +1,126 @@
+.fw-900 {
+  font-weight: 900;
+}
+.fw-800 {
+  font-weight: 800;
+}
+.text-accent {
+  color: var(--color-accent) !important;
+}
+.bg-accent {
+  background-color: var(--color-accent) !important;
+}
+.usuario-form-card {
+  background: #000000;
+  border-radius: 32px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.usuario-icon-circle {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background-color: var(--color-accent) !important;
+}
+.usuario-subtitle {
+  letter-spacing: 2px;
+}
+.usuario-section-label {
+  letter-spacing: 1px;
+  color: var(--color-accent) !important;
+}
+.usuario-divider {
+  border-color: rgba(255,255,255,0.1);
+}
+.usuario-alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-radius: 16px;
+  border: 0;
+}
+.usuario-form-label {
+  letter-spacing: 1px;
+}
+.usuario-profile-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--color-accent);
+  background: #1a1a1a;
+  margin: 0 auto;
+}
+.usuario-preview-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+  color: var(--color-accent);
+  font-size: 2rem;
+  font-weight: 900;
+}
+.usuario-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.usuario-input {
+  background: #1a1a1a !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: white !important;
+  border-radius: 12px !important;
+  padding: 12px 20px !important;
+}
+.usuario-input:focus {
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 15px rgba(243, 156, 18, 0.1) !important;
+  background: rgba(255,255,255,0.05) !important;
+}
+.usuario-select {
+  background: #1a1a1a !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: white !important;
+  border-radius: 12px !important;
+  padding: 12px 20px !important;
+}
+.usuario-select:focus {
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 15px rgba(243, 156, 18, 0.1) !important;
+  background: rgba(255,255,255,0.05) !important;
+}
+.usuario-input-group-text {
+  background: #1a1a1a;
+  color: var(--color-accent);
+  border: 0;
+}
+.usuario-rol-disabled {
+  background: #1a1a1a !important;
+  border: 1px dashed rgba(255,255,255,0.1) !important;
+  color: white;
+}
+.usuario-submit-btn {
+  letter-spacing: 1px;
+  background-color: var(--color-accent);
+  color: #000;
+  border: none;
+  border-radius: 50px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  font-weight: 900;
+  transition: all 0.3s ease;
+}
+.usuario-submit-btn:hover {
+  background: #d68910;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(243, 156, 18, 0.3);
+}
+.usuario-cancel-btn {
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 50px;
+  opacity: 0.75;
+  transition: all 0.3s ease;
+}
+.usuario-cancel-btn:hover {
+  opacity: 1;
+}
