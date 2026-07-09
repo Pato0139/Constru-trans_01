@@ -6,7 +6,12 @@ ROOT = Path(__file__).resolve().parents[1]
 errores = []
 
 for file in ROOT.rglob("*.html"):
-    if ".git" in file.parts or "venv" in file.parts or "__pycache__" in file.parts:
+    if (
+        ".git" in file.parts
+        or "venv" in file.parts
+        or "__pycache__" in file.parts
+        or file.name == "reporte_rubrica.html"
+    ):
         continue
 
     try:

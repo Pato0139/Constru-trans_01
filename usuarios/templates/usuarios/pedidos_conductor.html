@@ -11,46 +11,9 @@
 <div class="table-container p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 px-2">
         <h5 class="fw-800 m-0 text-white">Entregas por Realizar</h5>
-        <span class="badge-tipo" style="background: rgba(202, 160, 48, 0.1); color: var(--color-accent); border-color: rgba(202, 160, 48, 0.2);">
+        <span class="badge-tipo u-inline-611ca6a6fa">
             {{ pedidos|length }} Pedidos Asignados
         </span>
-    </div>
-
-    <!-- Filtros -->
-    <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
-        <form method="get" class="row g-2 align-items-center">
-            <div class="col-auto">
-                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
-            </div>
-            <div class="col-md-2">
-                <input type="text" name="id_pedido" value="{{ id_pedido|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID Pedido">
-            </div>
-            <div class="col-md-2">
-                <input type="text" name="origen" value="{{ origen|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Origen">
-            </div>
-            <div class="col-md-2">
-                <input type="text" name="destino" value="{{ destino|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Destino">
-            </div>
-            <div class="col-md-2">
-                <input type="date" name="fecha" value="{{ fecha|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
-            </div>
-            <div class="col-md-2">
-                <select name="estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
-                    <option value="">Estado (Todos)</option>
-                    {% for valor, etiqueta in estados %}
-                    <option value="{{ valor }}" {% if estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-auto ms-auto d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center gap-1">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
-                <a href="{% url 'usuarios:pedidos_conductor' %}" class="btn btn-sm btn-outline-secondary" title="Limpiar filtros">
-                    <i class="bi bi-x-circle"></i>
-                </a>
-            </div>
-        </form>
     </div>
 
     <div class="table-responsive">
@@ -60,7 +23,6 @@
                     <th>ID Pedido</th>
                     <th>Origen</th>
                     <th>Destino</th>
-                    <th>Fecha</th>
                     <th>Estado</th>
                     <th>Precio</th>
                     <th class="text-center">Acciones</th>
@@ -76,16 +38,13 @@
                     <td class="fw-600 text-white">
                         <i class="bi bi-geo-fill text-danger me-1"></i> {{ pedido.direccion_destino }}
                     </td>
-                    <td class="text-muted small">{{ pedido.fecha_solicitud|date:"d M, Y H:i" }}</td>
                     <td>
                         {% if pedido.estado == "pendiente" %}
-                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                        <span class="badge-tipo u-inline-2167e5ffe5">Pendiente</span>
                         {% elif pedido.estado == "en_ruta" %}
-                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">En ruta</span>
+                        <span class="badge-tipo u-inline-503ec04587">En ruta</span>
                         {% elif pedido.estado == "entregado" %}
-                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Entregado</span>
-                        {% elif pedido.estado == "cancelado" %}
-                        <span class="badge-tipo" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">Cancelado</span>
+                        <span class="badge-tipo u-inline-a9b2e7691f">Entregado</span>
                         {% endif %}
                     </td>
                     <td class="price-tag">{{ pedido.precio|currency }}</td>
@@ -97,7 +56,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="text-center py-5 text-muted">
+                    <td colspan="6" class="text-center py-5 text-muted">
                         <i class="bi bi-inbox fs-2 mb-3 d-block"></i>
                         No tienes pedidos asignados actualmente.
                     </td>

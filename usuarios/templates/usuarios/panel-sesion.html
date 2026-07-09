@@ -462,7 +462,8 @@
         }
     </style>
     
-    {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=1.0">
+{% block extra_css %}{% endblock %}
 </head>
 <body>
     <div id="particles-js"></div>

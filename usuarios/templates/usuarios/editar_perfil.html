@@ -7,9 +7,9 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
-            <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="background: var(--card-bg);">
-                <div class="card-header border-0 py-4 text-center" style="background: var(--item-bg);">
-                    <h3 class="fw-bold mb-0" style="color: var(--color-accent);">Editar Perfil</h3>
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden u-inline-11d9ca5a15">
+                <div class="card-header border-0 py-4 text-center u-inline-2286cd84e7">
+                    <h3 class="fw-bold mb-0 u-inline-598e65ac7a">Editar Perfil</h3>
                     <p class="text-muted small mb-0">Actualiza tu información personal</p>
                 </div>
                 <div class="card-body p-4 p-md-5">
@@ -37,20 +37,20 @@
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Nombres</label>
-                                <input type="text" name="nombres" value="{{ usuario.nombres }}" class="form-control rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);" required>
+                                <label class="form-label small fw-bold u-inline-9bca4b1fbc">Nombres</label>
+                                <input type="text" name="nombres" value="{{ usuario.nombres }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Apellidos</label>
-                                <input type="text" name="apellidos" value="{{ usuario.apellidos }}" class="form-control rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);" required>
+                                <label class="form-label small fw-bold u-inline-9bca4b1fbc">Apellidos</label>
+                                <input type="text" name="apellidos" value="{{ usuario.apellidos }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" required>
                             </div>
                             <div class="col-12">
-                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Correo Electrónico</label>
-                                <input type="email" name="email" value="{{ request.user.email }}" class="form-control rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);" required>
+                                <label class="form-label small fw-bold u-inline-9bca4b1fbc">Correo Electrónico</label>
+                                <input type="email" name="email" value="{{ request.user.email }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" required>
                             </div>
                             <div class="col-md-5">
-                                <label class="form-label small fw-bold" style="color: var(--color-muted);">País</label>
-                                <select name="pais_codigo" class="form-select rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);" id="paisCodigo">
+                                <label class="form-label small fw-bold u-inline-9bca4b1fbc">País</label>
+                                <select name="pais_codigo" class="form-select rounded-3 py-2 u-inline-b4973e868e" id="paisCodigo">
                                     <option value="+57" selected>COL (+57)</option>
                                     <option value="+1">USA (+1)</option>
                                     <option value="+52">MEX (+52)</option>
@@ -60,28 +60,22 @@
                                 </select>
                             </div>
                             <div class="col-md-7">
-                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Teléfono</label>
-                                <input type="text" name="telefono" value="{{ usuario.telefono }}" class="form-control rounded-3 py-2" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);"
+                                <label class="form-label small fw-bold u-inline-9bca4b1fbc">Teléfono</label>
+                                <input type="text" name="telefono" value="{{ usuario.telefono }}" class="form-control rounded-3 py-2 u-inline-b4973e868e"
                                 pattern="[0-9\s]*" title="Solo se admiten números y espacios" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Tipo Documento</label>
-                                <input
-                                    type="text"
-                                    class="form-control rounded-3 py-2"
-                                    style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);"
-                                    value="{{ usuario.get_tipo_documento_display }}"
-                                    readonly>
+                                <label class="form-label small fw-bold u-inline-9bca4b1fbc">Tipo Documento</label>
+                                <select name="tipo_documento" class="form-select rounded-3 py-2 u-inline-b4973e868e">
+                                    {% for code, name in usuario.TIPOS_DOCUMENTO %}
+                                        <option value="{{ code }}" {% if usuario.tipo_documento == code %}selected{% endif %}>{{ name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="col-12">
-                                <label class="form-label small fw-bold" style="color: var(--color-muted);">Número de Identificación</label>
-                                <input
-                                    type="text"
-                                    class="form-control rounded-3 py-2"
-                                    style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border);"
-                                    value="{{ usuario.documento }}"
-                                    readonly>
-                                <small class="text-muted">El documento no puede modificarse desde el perfil.</small>
+                                <label class="form-label small fw-bold u-inline-9bca4b1fbc">Número de Identificación</label>
+                                <input type="text" name="documento" value="{{ usuario.documento }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" required
+                                pattern="[0-9\s]*" title="Solo se admiten números y espacios" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                             </div>
                         </div>
 
@@ -89,7 +83,7 @@
                             <button type="submit" class="btn btn-accent fw-bold py-3 rounded-pill shadow-sm">
                                 Guardar Cambios
                             </button>
-                            <a href="javascript:history.back()" class="btn btn-outline-light py-3 rounded-pill" style="color: var(--color-text); border-color: var(--color-border);">
+                            <a href="javascript:history.back()" class="btn btn-outline-light py-3 rounded-pill u-inline-8980a04e41">
                                 Cancelar
                             </a>
                         </div>

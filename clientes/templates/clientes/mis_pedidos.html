@@ -13,7 +13,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4 px-2 flex-wrap gap-3">
         <h5 class="fw-800 m-0 text-white">Listado de Pedidos</h5>
         <div class="d-flex gap-2">
-            <a href="{% url 'clientes:mis_pagos' %}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2">
+            <a href="{% url 'clientes:mis_pagos' %}" class="btn btn-outline-light btn-sm btn-premium-shape d-flex align-items-center gap-2">
                 <i class="bi bi-cash-coin"></i> Mis Pagos
             </a>
             <a href="{% url 'clientes:crear_pedido' %}" class="btn btn-gold btn-sm d-flex align-items-center gap-2">
@@ -22,8 +22,32 @@
         </div>
     </div>
 
-    <div class="mx-4">
-        {% include 'partials/filter_bar.html' with form_id='filterForm' filter_fields=filter_fields q=q has_filters=has_filters %}
+    <div class="card bg-dark border-0 shadow-sm p-3 mb-4 mx-4">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            <div class="col-md-3">
+                <input type="text" id="filter-id-cli" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="ID Pedido">
+            </div>
+            <div class="col-md-3">
+                <input type="text" id="filter-destino-cli" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Destino">
+            </div>
+            <div class="col-md-3">
+                <select id="filter-estado-cli" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+                    <option value="">Estado (Todos)</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="en_ruta">En Ruta</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+            </div>
+            <div class="col-auto ms-auto">
+                <button class="btn btn-sm btn-outline-secondary" id="clear-filters-cli" type="button" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
     <div class="table-responsive">
@@ -47,13 +71,13 @@
                     <td class="price-tag">{{ pedido.precio|currency }}</td>
                     <td>
                         {% if pedido.estado == "pendiente" %}
-                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                        <span class="badge-tipo u-inline-2167e5ffe5">Pendiente</span>
                         {% elif pedido.estado == "en_ruta" %}
-                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">En ruta</span>
+                        <span class="badge-tipo u-inline-503ec04587">En ruta</span>
                         {% elif pedido.estado == "entregado" %}
-                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Entregado</span>
+                        <span class="badge-tipo u-inline-a9b2e7691f">Entregado</span>
                         {% else %}
-                        <span class="badge-tipo" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">{{ pedido.estado|title }}</span>
+                        <span class="badge-tipo u-inline-ebad2c140e">{{ pedido.estado|title }}</span>
                         {% endif %}
                     </td>
                     <td class="text-center">
@@ -197,6 +221,37 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Error al realizar el pago');
         });
     });
+
+    // Filtros DataTables
+    setTimeout(function() {
+        var tableEl = document.querySelector('.table-responsive .table');
+        if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
+            var table = $(tableEl).DataTable();
+            
+            // 0: ID
+            // 1: Destino
+            // 2: Fecha
+            // 3: Total
+            // 4: Estado
+            // 5: Acciones
+            
+            $('#filter-id-cli').on('keyup change', function() {
+                table.column(0).search(this.value).draw();
+            });
+            $('#filter-destino-cli').on('keyup change', function() {
+                table.column(1).search(this.value).draw();
+            });
+            $('#filter-estado-cli').on('change', function() {
+                table.column(4).search(this.value).draw();
+            });
+            
+            $('#clear-filters-cli').on('click', function() {
+                $('#filter-id-cli, #filter-destino-cli').val('');
+                $('#filter-estado-cli').val('');
+                table.columns().search('').draw();
+            });
+        }
+    }, 150);
 });
 </script>
 {% endblock %}
