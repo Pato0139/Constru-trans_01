@@ -21,7 +21,7 @@
             <input type="text" name="q" value="{{ query|default:'' }}" class="form-control bg-dark border-secondary text-white ps-5 usuario-search-input" placeholder="Buscar usuario...">
             <input type="hidden" name="tab" id="activeTabInput" value="{{ active_tab|default:'general' %}">
         </form>
-        <a href="{% url 'usuarios:crear_usuario' %}" class="btn btn-premium px-4 fw-bold" style="border-radius: var(--radius-lg); background: var(--color-primary); color: white; border: none; text-decoration: none; display: flex; align-items: center;">
+        <a href="{% url 'usuarios:crear_usuario' %}" class="btn btn-premium px-4 fw-bold u-inline-b581529032">
             <i class="bi bi-plus-lg me-2"></i> Nuevo
         </a>
     </div>
@@ -51,7 +51,7 @@
 <div class="tab-content" id="userTabsContent">
     <!-- General -->
     <div class="tab-pane fade {% if active_tab == 'general' or not active_tab %}show active{% endif %}" id="general" role="tabpanel">
-        <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
+        <div class="table-container u-inline-ab87d0b2ff">
             <table class="table table-dark mb-0">
                 <thead>
                     <tr class="usuario-table-header">
@@ -78,7 +78,7 @@
                                     <div class="fw-bold text-white">
                                         {{ u.nombres }} {{ u.apellidos }}
                                         {% if u.user.username == 'Edward_Fonseca' %}
-                                            <span class="badge bg-danger ms-1" style="font-size: 0.6rem;">ADMIN GLOBAL</span>
+                                            <span class="badge bg-danger ms-1 u-inline-1ed2f53daf">ADMIN GLOBAL</span>
                                         {% endif %}
                                     </div>
                                     {% if u.rol == 'cliente' and u.perfil_cliente %}
@@ -137,7 +137,7 @@
 
     <!-- Clientes -->
     <div class="tab-pane fade {% if active_tab == 'clientes' %}show active{% endif %}" id="clientes" role="tabpanel">
-        <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
+        <div class="table-container u-inline-ab87d0b2ff">
             <table class="table table-dark mb-0">
                 <thead>
                     <tr class="usuario-table-header">
@@ -212,7 +212,7 @@
 
     <!-- Conductores -->
     <div class="tab-pane fade {% if active_tab == 'conductores' %}show active{% endif %}" id="conductores" role="tabpanel">
-        <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
+        <div class="table-container u-inline-ab87d0b2ff">
             <table class="table table-dark mb-0">
                 <thead>
                     <tr class="usuario-table-header">
@@ -282,7 +282,7 @@
 
     <!-- Administradores -->
     <div class="tab-pane fade {% if active_tab == 'admin' %}show active{% endif %}" id="admin" role="tabpanel">
-        <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
+        <div class="table-container u-inline-ab87d0b2ff">
             <table class="table table-dark mb-0">
                 <thead>
                     <tr class="usuario-table-header">
@@ -308,7 +308,7 @@
                                     <div class="fw-bold text-white">
                                         {{ admin.nombres }} {{ admin.apellidos }}
                                         {% if admin.user.username == 'Edward_Fonseca' %}
-                                            <span class="badge bg-danger ms-1" style="font-size: 0.6rem;">ADMIN GLOBAL</span>
+                                            <span class="badge bg-danger ms-1 u-inline-1ed2f53daf">ADMIN GLOBAL</span>
                                         {% endif %}
                                     </div>
                                     <div class="text-muted small">Admin: {{ admin.documento }}</div>

@@ -52,8 +52,8 @@ body {
     padding: 0.85rem 1rem !important;
     box-shadow: var(--shadow-panel);
     position: sticky;
-    top: 0.75rem;
-    z-index: 900;
+    top: 0;
+    z-index: 1080;
 }
 
 /* --- SIDEBAR RESPONSIVE --- */

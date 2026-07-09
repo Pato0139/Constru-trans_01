@@ -8,21 +8,21 @@
 
 <div class="row justify-content-center">
     <div class="col-lg-6">
-        <div class="table-container p-4 p-md-5 border-0 shadow-lg" style="background: #000000; border-radius: 32px; border: 1px solid rgba(255,255,255,0.05);">
+        <div class="table-container p-4 p-md-5 border-0 shadow-lg u-inline-47ff80852a">
             <div class="text-center mb-5">
-                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 70px; height: 70px; background-color: var(--color-accent) !important;">
+                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow u-inline-07d9b275b0">
                     <i class="bi {% if action == 'crear' %}bi-box-seam{% else %}bi-pencil-square{% endif %} text-dark fs-2"></i>
                 </div>
                 <h3 class="fw-900 text-white mb-2">
                     {% if action == 'crear' %}Registrar Material{% else %}Editar Material{% endif %}
                 </h3>
-                <p class="text-muted small text-uppercase fw-700" style="letter-spacing: 2px;">
+                <p class="text-muted small text-uppercase fw-700 u-inline-1ddabe40c2">
                     Gestión de inventario y suministros
                 </p>
             </div>
 
             {% if form.errors %}
-                <div class="alert alert-danger rounded-4 px-4 mb-4 border-0 shadow-sm animate__animated animate__shakeX" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                <div class="alert alert-danger rounded-4 px-4 mb-4 border-0 shadow-sm animate__animated animate__shakeX u-inline-d124d549e7">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     {% for field in form %}
                         {% for error in field.errors %}
@@ -36,9 +36,9 @@
                 {% csrf_token %}
                 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Nombre del Material</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Nombre del Material</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
                             <i class="bi bi-tag"></i>
                         </span>
                         {{ form.nombre }}
@@ -46,9 +46,9 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Unidad de Medida</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Unidad de Medida</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
                             <i class="bi bi-rulers"></i>
                         </span>
                         {{ form.unidad_medida }}
@@ -56,9 +56,9 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Tipo de Material</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Tipo de Material</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
                             <i class="bi bi-layers"></i>
                         </span>
                         {{ form.tipo }}
@@ -66,9 +66,9 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Descripción</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Descripción</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
                             <i class="bi bi-text-paragraph"></i>
                         </span>
                         {{ form.descripcion }}
@@ -76,9 +76,9 @@
                 </div>
 
                 <div class="mb-5">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Precio Unitario ($)</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Precio Unitario ($)</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
                             <i class="bi bi-currency-dollar"></i>
                         </span>
                         {{ form.precio_referencia }}
@@ -86,9 +86,9 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Stock actual</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Stock actual</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
                             <i class="bi bi-stack"></i>
                         </span>
                         {{ form.stock }}
@@ -96,9 +96,9 @@
                 </div>
 
                 <div class="mb-5">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Ubicación en bodega</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Ubicación en bodega</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: var(--item-bg); color: var(--color-accent); border: 1px solid var(--color-border);">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
                             <i class="bi bi-geo-alt"></i>
                         </span>
                         {{ form.ubicacion }}
@@ -106,10 +106,10 @@
                 </div>
 
                 <div class="d-grid gap-3">
-                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px; background-color: var(--color-accent); color: #000; border: none;">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase u-inline-37b2cef266">
                         <i class="bi bi-check2-circle me-2"></i> {% if action == 'crear' %}Registrar Material{% else %}Actualizar Material{% endif %}
                     </button>
-                    <a href="{% url 'inventario:materiales_lista' %}" class="btn btn-outline-light rounded-pill py-3 opacity-75 hover-opacity-100" style="border: 1px solid rgba(255,255,255,0.2);">
+                    <a href="{% url 'inventario:materiales_lista' %}" class="btn btn-outline-light rounded-pill py-3 opacity-75 hover-opacity-100 u-inline-20f19d2528">
                         <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
                     </a>
                 </div>
