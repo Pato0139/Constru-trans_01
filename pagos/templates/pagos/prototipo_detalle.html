@@ -68,20 +68,20 @@
                     <form method="post" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="approve_payment">
-                        <button class="btn btn-success" type="submit">Aprobar pago</button>
+                        <button class="btn btn-success" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Aprobar pago</button>
                     </form>
                     <form method="post" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="reject_payment">
                         <input type="text" class="form-control form-control-sm d-inline-block u-inline-b746efa1a0" name="rejection_reason" placeholder="Motivo del rechazo">
-                        <button class="btn btn-danger" type="submit">Rechazar pago</button>
+                        <button class="btn btn-danger" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Rechazar pago</button>
                     </form>
                 </div>
                 {% else %}
                 <form method="post" class="mb-3">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="authorize_dispatch">
-                    <button class="btn btn-warning text-dark" type="submit">Autorizar despacho</button>
+                    <button class="btn btn-warning text-dark" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Autorizar despacho</button>
                 </form>
                 {% endif %}
 
@@ -110,7 +110,7 @@
                         <input type="text" class="form-control" name="transport_notes" value="Ruta prioritaria">
                     </div>
                     <div class="col-12">
-                        <button class="btn btn-outline-light" type="submit">Asignar transporte</button>
+                        <button class="btn btn-outline-light" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Asignar transporte</button>
                     </div>
                 </form>
                 {% endif %}

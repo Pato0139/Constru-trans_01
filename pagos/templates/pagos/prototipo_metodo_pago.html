@@ -19,7 +19,7 @@
                     <form method="post" enctype="multipart/form-data" class="mb-0">
                         {% csrf_token %}
                         <input type="hidden" name="payment_method" value="{{ method }}">
-                        <button class="btn btn-outline-light w-100 text-start" type="submit">
+                        <button class="btn btn-outline-light w-100 text-start" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                             <i class="bi bi-wallet2 me-2"></i>{{ method }}
                         </button>
                     </form>
@@ -95,7 +95,7 @@
                     <form method="post">
                         {% csrf_token %}
                         <input type="hidden" name="payment_method" value="Contra entrega">
-                        <button class="btn btn-warning text-dark" type="submit">Confirmar método de pago</button>
+                        <button class="btn btn-warning text-dark" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Confirmar método de pago</button>
                     </form>
                 </div>
                 {% endif %}
@@ -123,7 +123,7 @@
                             <p class="small mb-0 text-muted" id="preview-name"></p>
                             <p class="small mb-0 text-muted" id="preview-size"></p>
                         </div>
-                        <button class="btn btn-success" type="submit">Enviar comprobante</button>
+                        <button class="btn btn-success" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Enviar comprobante</button>
                     </div>
                 </form>
                 {% endif %}

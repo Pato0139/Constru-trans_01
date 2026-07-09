@@ -23,7 +23,7 @@
         </span>
       </small>
     </div>
-    <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="btn btn-outline-secondary btn-sm">
+    <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="btn btn-outline-secondary btn-sm" aria-label="Volver a pedidos" data-tooltip="Volver a pedidos" title="Volver a pedidos">
      
     </a>
   </div>
@@ -31,7 +31,7 @@
   {% if messages %}
     {% for msg in messages %}
       <div class="alert alert-{% if msg.tags == 'error' %}danger{% else %}{{ msg.tags }}{% endif %} alert-dismissible fade show">
-        {{ msg }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        {{ msg }} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar ventana" data-tooltip="Cerrar ventana" title="Cerrar ventana"></button>
       </div>
     {% endfor %}
   {% endif %}
@@ -65,8 +65,12 @@
 
             <div class="mb-3">
               <label class="form-label fw-semibold">Cantidad</label>
-              <input type="number" name="cantidad" id="inp-cantidad"
-                     class="form-control" min="0.01" step="0.01" required placeholder="0">
+              <div class="quantity-stepper" data-min="0.01" data-step="0.01">
+                <button type="button" class="quantity-stepper__btn quantity-stepper__btn--minus" aria-label="Disminuir cantidad" data-tooltip="Disminuir cantidad" title="Disminuir cantidad"><i class="bi bi-dash-lg"></i></button>
+                <input type="number" name="cantidad" id="inp-cantidad"
+                       class="quantity-stepper__input" min="0.01" step="0.01" required placeholder="0" aria-label="Cantidad de material">
+                <button type="button" class="quantity-stepper__btn quantity-stepper__btn--plus" aria-label="Aumentar cantidad" data-tooltip="Aumentar cantidad" title="Aumentar cantidad"><i class="bi bi-plus-lg"></i></button>
+              </div>
               <small class="text-muted" id="txt-stock"></small>
             </div>
 

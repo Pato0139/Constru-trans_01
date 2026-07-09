@@ -1,10 +1,10 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg navbar-premium fixed-top w-100" style="z-index: 1050;">
+<nav class="navbar navbar-expand-lg navbar-premium fixed-top w-100 landing-navbar-fixed">
     <div class="container">
         <!-- Logo -->
         <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'inicio:inicio' %}">
             <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo" height="44" class="rounded-3 shadow-lg" loading="lazy">
-            <span class="fw-bold text-white d-none d-sm-inline u-inline-44c4e49065" style="font-size: clamp(1rem, 2.5vw, 1.25rem);">
+            <span class="fw-bold text-white d-none d-sm-inline u-inline-44c4e49065 landing-navbar-brand-text">
                 CONSTRU<span class="u-inline-e2246649aa">TRANS</span>
             </span>
         </a>
@@ -16,8 +16,8 @@
                 aria-controls="navbarPremiumContent"
                 aria-expanded="false"
                 aria-label="Abrir menú"
-                style="background: rgba(255,255,255,0.12); border-radius: 12px; padding: 8px 12px; color: #fff;">
-            <i class="bi bi-list fs-4" style="color: #fff;"></i>
+                >
+            <i class="bi bi-list fs-4 landing-navbar-toggler-icon"></i>
         </button>
 
         <!-- Menú colapsable -->
@@ -41,13 +41,11 @@
             <!-- Botones de acción -->
             <div class="d-flex flex-column flex-lg-row gap-2 pb-3 pb-lg-0">
                 <a href="{% url 'usuarios:login' %}"
-                   class="btn-premium btn-premium-outline d-flex align-items-center justify-content-center"
-                   style="min-height: 44px; padding: 10px 22px; font-size: 0.82rem;">
+                   class="btn-premium btn-premium-outline d-flex align-items-center justify-content-center landing-navbar-action">
                     Iniciar Sesión
                 </a>
                 <a href="{% url 'usuarios:registro' %}"
-                   class="btn-premium btn-premium-gold d-flex align-items-center justify-content-center"
-                   style="min-height: 44px; padding: 10px 22px; font-size: 0.82rem;">
+                   class="btn-premium btn-premium-gold d-flex align-items-center justify-content-center landing-navbar-action">
                     Registrarse
                 </a>
             </div>
