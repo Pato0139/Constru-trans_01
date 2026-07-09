@@ -3,7 +3,7 @@
 <header class="navbar-premium app-navbar d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center gap-3 flex-grow-1 min-w-0">
         <!-- Sidebar Toggle (Mobile) -->
-        <button class="btn btn-dark-premium d-lg-none rounded-circle d-flex align-items-center justify-content-center navbar-icon-btn" id="sidebarToggle" aria-label="Toggle menu">
+        <button class="btn btn-dark-premium d-lg-none rounded-circle d-flex align-items-center justify-content-center navbar-icon-btn" id="sidebarToggle" aria-label="Abrir menú lateral" title="Abrir menú lateral">
             <i class="bi bi-list fs-4"></i>
         </button>
         <div class="min-w-0">
@@ -19,13 +19,13 @@
         {% include "partials/bd_mode_toggle.html" %}
 
         <!-- Configuraciones -->
-        <a href="{% url 'usuarios:configuraciones' %}" class="btn btn-dark-premium rounded-circle d-flex align-items-center justify-content-center navbar-icon-btn" title="Configuraciones">
+        <a href="{% url 'usuarios:configuraciones' %}" class="btn btn-dark-premium rounded-circle d-flex align-items-center justify-content-center navbar-icon-btn" aria-label="Abrir configuraciones" title="Abrir configuraciones">
             <i class="bi bi-gear fs-5 opacity-75"></i>
         </a>
         
         <!-- Notificaciones -->
         <div class="dropdown">
-            <button class="btn btn-dark-premium rounded-circle position-relative d-flex align-items-center justify-content-center navbar-icon-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
+            <button class="btn btn-dark-premium rounded-circle position-relative d-flex align-items-center justify-content-center navbar-icon-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Ver notificaciones" title="Ver notificaciones">
                 <i class="bi bi-bell fs-5 opacity-75"></i>
                 {% if notif_unread_count > 0 %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-danger p-0 d-flex align-items-center justify-content-center navbar-notif-badge">
@@ -76,7 +76,7 @@
 
         <!-- Accesibilidad - Hidden on very small screens, shows icon only -->
         <div class="dropdown d-none d-md-block">
-            <button class="btn btn-dark-premium rounded-pill px-3 py-2 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad">
+            <button class="btn btn-dark-premium rounded-pill px-3 py-2 d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad" title="Opciones de accesibilidad">
                 <i class="bi bi-universal-access"></i>
                 <span class="fw-bold" data-i18n="nav.accessibility">Accesibilidad</span>
             </button>
@@ -141,7 +141,7 @@
 
         <!-- Accessibility Icon Only for Small Screens -->
         <div class="dropdown d-md-none">
-            <button class="btn btn-dark-premium rounded-circle d-flex align-items-center justify-content-center navbar-icon-btn" type="button" data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad">
+            <button class="btn btn-dark-premium rounded-circle d-flex align-items-center justify-content-center navbar-icon-btn" type="button" data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad" title="Opciones de accesibilidad">
                 <i class="bi bi-universal-access fs-5 opacity-75"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-3 navbar-dropdown-xs">
