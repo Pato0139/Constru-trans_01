@@ -106,10 +106,10 @@
                 </div>
 
                 <div class="d-grid gap-3">
-                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase u-inline-37b2cef266">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase u-inline-37b2cef266" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                         <i class="bi bi-check2-circle me-2"></i> {% if action == 'crear' %}Registrar Material{% else %}Actualizar Material{% endif %}
                     </button>
-                    <a href="{% url 'inventario:materiales_lista' %}" class="btn btn-outline-light rounded-pill py-3 opacity-75 hover-opacity-100 u-inline-20f19d2528">
+                    <a href="{% url 'inventario:materiales_lista' %}" class="btn btn-outline-light rounded-pill py-3 opacity-75 hover-opacity-100 u-inline-20f19d2528" aria-label="Volver" data-tooltip="Volver" title="Volver">
                         <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
                     </a>
                 </div>

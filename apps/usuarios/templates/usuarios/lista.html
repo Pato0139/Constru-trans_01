@@ -21,7 +21,7 @@
             <input type="text" name="q" value="{{ query|default:'' }}" class="form-control bg-dark border-secondary text-white ps-5 usuario-search-input" placeholder="Buscar usuario...">
             <input type="hidden" name="tab" id="activeTabInput" value="{{ active_tab|default:'general' %}">
         </form>
-        <a href="{% url 'usuarios:crear_usuario' %}" class="btn btn-premium px-4 fw-bold u-inline-b581529032">
+        <a href="{% url 'usuarios:crear_usuario' %}" class="btn btn-premium px-4 fw-bold u-inline-b581529032" aria-label="Agregar usuario" data-tooltip="Agregar usuario" title="Agregar usuario">
             <i class="bi bi-plus-lg me-2"></i> Nuevo
         </a>
     </div>
@@ -112,7 +112,7 @@
                                 </a>
                                 <form action="{% url 'usuarios:eliminar_usuario' u.id %}" method="POST" class="d-inline">
                                     {% csrf_token %}
-                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 confirm-delete-form" 
+                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 confirm-delete-form" aria-label="Eliminar usuario" data-tooltip="Eliminar usuario" title="Eliminar usuario" 
                                             data-title="¿Eliminar usuario?" 
                                             data-text="¿Estás seguro de que deseas eliminar a {{ u.nombres }}? Esta acción no se puede deshacer.">
                                         <i class="bi bi-trash"></i>
@@ -188,7 +188,7 @@
                                 </a>
                                 <form action="{% url 'usuarios:eliminar_usuario' cliente.id %}" method="POST" class="d-inline">
                                     {% csrf_token %}
-                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 confirm-delete-form" 
+                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 confirm-delete-form" aria-label="Eliminar usuario" data-tooltip="Eliminar usuario" title="Eliminar usuario" 
                                             data-title="¿Eliminar usuario?" 
                                             data-text="¿Estás seguro de que deseas eliminar a {{ cliente.nombres }}? Esta acción no se puede deshacer.">
                                         <i class="bi bi-trash"></i>
@@ -258,7 +258,7 @@
                                 </a>
                                 <form action="{% url 'usuarios:eliminar_usuario' conductor.id %}" method="POST" class="d-inline">
                                     {% csrf_token %}
-                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 confirm-delete-form" 
+                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 confirm-delete-form" aria-label="Eliminar usuario" data-tooltip="Eliminar usuario" title="Eliminar usuario" 
                                             data-title="¿Eliminar conductor?" 
                                             data-text="¿Estás seguro de que deseas eliminar a {{ conductor.nombres }}? Esta acción no se puede deshacer.">
                                         <i class="bi bi-trash"></i>
@@ -343,7 +343,7 @@
                                     </a>
                                     <form action="{% url 'usuarios:eliminar_usuario' admin.id %}" method="POST" class="d-inline">
                                         {% csrf_token %}
-                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 confirm-delete-form" 
+                                        <button type="button" class="btn btn-sm btn-outline-danger border-0 confirm-delete-form" aria-label="Eliminar usuario" data-tooltip="Eliminar usuario" title="Eliminar usuario" 
                                                 data-title="¿Eliminar administrador?" 
                                                 data-text="¿Estás seguro de que deseas eliminar a {{ admin.nombres }}? Esta acción no se puede deshacer.">
                                             <i class="bi bi-trash"></i>

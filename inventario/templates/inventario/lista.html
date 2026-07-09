@@ -35,12 +35,12 @@
                         {% endfor %}
                     </select>
                     
-                    <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9">
+                    <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9" aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
                         <i class="bi bi-funnel"></i> Filtrar
                     </button>
 
                     <a href="{% url 'inventario:crear_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg ms-2 u-inline-602188a7ef" 
-                           >
+                            aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
                         <i class="bi bi-plus-lg fs-5"></i>
                     </a>
                 </div>

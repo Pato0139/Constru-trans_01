@@ -220,7 +220,7 @@
             <label class="label-custom">Contraseña</label>
             <div class="position-relative">
                 {{ form.contrasena }}
-                <button type="button" onclick="togglePassword('id_contrasena', 'toggleIcon1')" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4 u-inline-f7b1d7528c">
+                <button type="button" onclick="togglePassword('id_contrasena', 'toggleIcon1')" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4 u-inline-f7b1d7528c" aria-label="Ver detalle" data-tooltip="Ver detalle" title="Ver detalle">
                     <i class="bi bi-eye-slash u-inline-701fee2099" id="toggleIcon1"></i>
                 </button>
             </div>
@@ -236,14 +236,14 @@
             <label class="label-custom">Confirmar</label>
             <div class="position-relative">
                 {{ form.confirmar_contrasena }}
-                <button type="button" onclick="togglePassword('id_confirmar_contrasena', 'toggleIcon2')" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4 u-inline-f7b1d7528c">
+                <button type="button" onclick="togglePassword('id_confirmar_contrasena', 'toggleIcon2')" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4 u-inline-f7b1d7528c" aria-label="Ver detalle" data-tooltip="Ver detalle" title="Ver detalle">
                     <i class="bi bi-eye-slash u-inline-701fee2099" id="toggleIcon2"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <button type="submit" class="btn-main d-flex align-items-center justify-content-center" id="registroBtn">
+    <button type="submit" class="btn-main d-flex align-items-center justify-content-center" id="registroBtn" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
         <i class="bi bi-person-plus-fill me-2"></i> Unirme ahora
     </button>
 </form>

@@ -75,7 +75,7 @@
                                             {% if formset.can_delete %}
                                                 <div class="d-none">{{ detail_form.DELETE }}</div>
                                             {% endif %}
-                                            <button type="button" class="btn btn-link text-danger remove-form-row">
+                                            <button type="button" class="btn btn-link text-danger remove-form-row" aria-label="Eliminar fila" data-tooltip="Eliminar fila" title="Eliminar fila">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </td>
@@ -110,7 +110,7 @@
                         
                         <hr class="border-secondary my-4">
                         
-                        <button type="submit" class="btn btn-warning w-100 py-3 fw-bold text-uppercase shadow-sm">
+                        <button type="submit" class="btn btn-warning w-100 py-3 fw-bold text-uppercase shadow-sm" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                             <i class="fas fa-save me-2"></i> Guardar Orden
                         </button>
                     </div>
