@@ -27,7 +27,7 @@
         .recaptcha-text { color: #e0e0e0; font-size: 14px; font-weight: 500; font-family: 'Roboto','Inter',sans-serif; }
         .recaptcha-right { display: flex; flex-direction: column; align-items: center; opacity: 0.8; }
         .recaptcha-right img { width: 28px; height: 28px; margin-bottom: 2px; }
-        .recaptcha-privacy { font-size: 10px; color: #b0b0b0; text-align: center; line-height: 1.3; max-width: 90px; word-wrap: break-word; }
+        .recaptcha-privacy { font-size: 9px; color: #999; text-align: center; line-height: 1.2; }
         /* Olvidé mi clave */
         .link-gold { color: var(--primary-gold); }
         /* Alerta modo local */
@@ -104,10 +104,7 @@
             </div>
             <div class="recaptcha-right">
                 <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA logo">
-                <div class="recaptcha-privacy">
-                    reCAPTCHA<br>
-                    <span style="font-size: 8px;">Privacidad - Condiciones</span>
-                </div>
+                <div class="recaptcha-privacy">reCAPTCHA<br>Privacidad - Condiciones</div>
             </div>
         </div>
         <input type="checkbox" name="captcha" id="id_captcha" class="d-none">
@@ -124,11 +121,11 @@
 
     <p class="auth-footer-text">
         Al iniciar sesión acepta nuestros
-        <button type="button" onclick="abrirTerminosLogin()" class="btn auth-terms-link p-0 border-0">
+        <button type="button" onclick="abrirTerminosLogin()" class="auth-terms-link">
             Términos y Condiciones
         </button>
         y la
-        <button type="button" onclick="abrirPrivacidadLogin()" class="btn auth-terms-link p-0 border-0">
+        <button type="button" onclick="abrirPrivacidadLogin()" class="auth-terms-link">
             Política de Privacidad
         </button>
     </p>
