@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Perfil de Proveedor - {{ proveedor.nombre_empresa }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white mb-0">
+            <i class="fas fa-truck-loading me-2"></i> Perfil de Proveedor: {{ proveedor.nombre_empresa }}
+        </h2>
+        <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light">
+            <i class="fas fa-arrow-left me-1"></i> Volver
+        </a>
+    </div>
+
+    <form method="POST" id="proveedor-form">
+        {% csrf_token %}
+        <div class="row">
+            <!-- Datos del Proveedor -->
+            <div class="col-lg-6">
+                <div class="card border-secondary shadow-lg mb-4 glass-card">
+                    <div class="card-header border-secondary bg-transparent">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-info"></i> Datos del Proveedor</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            {% for field in form %}
+                            <div class="col-md-6">
+                                <label class="mb-2">{{ field.label }}</label>
+                                {{ field }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Catálogo de Materiales -->
+            <div class="col-lg-6">
+                <div class="card border-secondary shadow-lg glass-card">
+                    <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-boxes me-2 text-warning"></i> Catálogo de Materiales</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="materiales-table">
+                                <thead class="text-uppercase small border-secondary">
+                                    <tr>
+                                        <th class="ps-4">#</th>
+                                        <th>Material</th>
+                                        <th style="width: 150px;">Precio ($)</th>
+                                        <th style="width: 150px;">Referencia</th>
+                                        <th style="width: 80px;">Activo</th>
+                                        <th class="text-center">Quitar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{ formset.management_form }}
+                                    {% for mat_form in formset %}
+                                    <tr class="formset-row border-secondary">
+                                        <td class="ps-4 align-middle counter">{{ forloop.counter }}</td>
+                                        <td class="align-middle">
+                                            {% for hidden in mat_form.hidden_fields %}
+                                                {{ hidden }}
+                                            {% endfor %}
+                                            {{ mat_form.material }}
+                                        </td>
+                                        <td class="align-middle">
+                                            {{ mat_form.precio_proveedor }}
+                                        </td>
+                                        <td class="align-middle">
+                                            {{ mat_form.referencia_proveedor }}
+                                        </td>
+                                        <td class="align-middle">
+                                            {{ mat_form.activo }}
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            {% if formset.can_delete %}
+                                                <div class="d-none">{{ mat_form.DELETE }}</div>
+                                            {% endif %}
+                                            <button type="button" class="btn btn-link text-danger remove-form-row">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-3 border-top border-secondary text-end">
+                            <button type="button" class="btn btn-primary btn-sm rounded-pill px-4" id="add-material-row">
+                                <i class="fas fa-plus me-1"></i> Agregar Material
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-top border-secondary text-end">
+            <button type="submit" class="btn btn-warning px-5 fw-bold text-uppercase">
+                <i class="fas fa-save me-2"></i> Guardar Cambios
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .glass-card {
+        background: var(--card-bg) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--color-border) !important;
+    }
+    .form-control, .form-select {
+        background-color: var(--color-surface) !important;
+        border-color: var(--color-border) !important;
+        color: var(--color-text) !important;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--color-accent) !important;
+        box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25) !important;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tableBody = document.querySelector('#materiales-table tbody');
+    const totalForms = document.querySelector('#id_catalogo-TOTAL_FORMS');
+
+    // Add Row
+    document.getElementById('add-material-row').addEventListener('click', function() {
+        const formCount = parseInt(totalForms.value);
+        const firstRow = document.querySelector('#materiales-table .formset-row');
+        const newRow = firstRow.cloneNode(true);
+        
+        // Update names and IDs
+        newRow.querySelectorAll('input, select').forEach(input => {
+            if (input.getAttribute('name')) {
+                const name = input.getAttribute('name').replace('-0-', `-${formCount}-`);
+                const id = input.getAttribute('id').replace('-0-', `-${formCount}-`);
+                input.setAttribute('name', name);
+                input.setAttribute('id', id);
+                if (input.type !== 'hidden' && input.type !== 'checkbox') input.value = '';
+                if (input.type === 'checkbox') input.checked = true;
+            }
+        });
+        
+        // Limpiar estilos y clases de la nueva fila
+        newRow.classList.remove('d-none');
+        
+        // Update counter
+        newRow.querySelector('.counter').textContent = formCount + 1;
+        
+        tableBody.appendChild(newRow);
+        totalForms.value = formCount + 1;
+    });
+
+    // Remove Row
+    tableBody.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-form-row')) {
+            const row = e.target.closest('.formset-row');
+            const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+            
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = true;
+                row.classList.add('d-none');
+            } else {
+                row.remove();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
