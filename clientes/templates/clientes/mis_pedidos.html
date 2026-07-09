@@ -28,13 +28,13 @@
                 <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
             </div>
             <div class="col-md-3">
-                <input type="text" id="filter-id-cli" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID Pedido">
+                <input type="text" id="filter-id-cli" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="ID Pedido">
             </div>
             <div class="col-md-3">
-                <input type="text" id="filter-destino-cli" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Destino">
+                <input type="text" id="filter-destino-cli" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Destino">
             </div>
             <div class="col-md-3">
-                <select id="filter-estado-cli" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                <select id="filter-estado-cli" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
                     <option value="">Estado (Todos)</option>
                     <option value="pendiente">Pendiente</option>
                     <option value="en_ruta">En Ruta</option>
@@ -71,18 +71,18 @@
                     <td class="price-tag">{{ pedido.precio|currency }}</td>
                     <td>
                         {% if pedido.estado == "pendiente" %}
-                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                        <span class="badge-tipo u-inline-2167e5ffe5">Pendiente</span>
                         {% elif pedido.estado == "en_ruta" %}
-                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">En ruta</span>
+                        <span class="badge-tipo u-inline-503ec04587">En ruta</span>
                         {% elif pedido.estado == "entregado" %}
-                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Entregado</span>
+                        <span class="badge-tipo u-inline-a9b2e7691f">Entregado</span>
                         {% else %}
-                        <span class="badge-tipo" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">{{ pedido.estado|title }}</span>
+                        <span class="badge-tipo u-inline-ebad2c140e">{{ pedido.estado|title }}</span>
                         {% endif %}
                     </td>
                     <td class="text-center">
                         <div class="d-flex justify-content-center gap-2">
-                            <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}?tab=pagos" class="btn-action" title="Ver Detalles">
+                            <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
                                 <i class="bi bi-eye"></i>
                             </a>
                             {% if pedido.factura and pedido.factura.estado == 'pendiente' %}

@@ -24,16 +24,10 @@
                 <div class="text-end">
                     {% if orden.estado == "pendiente" %}
                     <span class="badge-tipo badge-tipo-pendiente">Pendiente</span>
-                    {% elif orden.estado == "autorizado_despacho" %}
-                    <span class="badge-tipo badge-tipo-en-ruta">Autorizado para despacho</span>
-                    {% elif orden.estado == "vehiculo_asignado" %}
-                    <span class="badge-tipo badge-tipo-en-ruta">Vehículo asignado</span>
                     {% elif orden.estado == "en_ruta" %}
                     <span class="badge-tipo badge-tipo-en-ruta">En ruta</span>
                     {% elif orden.estado == "entregado" %}
                     <span class="badge-tipo badge-tipo-entregado">Entregado</span>
-                    {% elif orden.estado == "cancelado" %}
-                    <span class="badge-tipo badge-tipo-cancelado">Cancelado</span>
                     {% endif %}
                 </div>
             </div>
@@ -42,9 +36,9 @@
                 <!-- Información -->
                 <div class="col-md-6">
                     <div class="mb-4">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px;">Datos del Cliente</h6>
-                        <div class="d-flex align-items-center p-2 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                            <div class="bg-accent rounded-circle p-2 me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-2ecb5783f5">Datos del Cliente</h6>
+                        <div class="d-flex align-items-center p-2 rounded-4 u-inline-a07baf5f39">
+                            <div class="bg-accent rounded-circle p-2 me-3 u-inline-c5c190eb0b">
                                 <i class="bi bi-person-fill text-dark fs-5"></i>
                             </div>
                             <div>
@@ -55,7 +49,7 @@
                     </div>
 
                     <div class="mb-4">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px;">Logística de Entrega</h6>
+                        <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-2ecb5783f5">Logística de Entrega</h6>
                         <div class="space-y-3">
                             <div class="d-flex gap-2">
                                 <div class="text-accent fs-5"><i class="bi bi-geo-alt"></i></div>
@@ -84,181 +78,152 @@
 
                 <!-- Materiales y Pago -->
                 <div class="col-md-6">
-                    <ul class="nav nav-tabs nav-fill mb-4" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <a class="nav-link {% if request.GET.tab != 'pagos' %}active{% endif %} text-white" data-bs-toggle="tab" href="#tab-materiales" role="tab">
-                                <i class="bi bi-box-seam me-2"></i>Materiales
-                            </a>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <a class="nav-link {% if request.GET.tab == 'pagos' %}active{% endif %} text-white" data-bs-toggle="tab" href="#tab-pagos" role="tab">
-                                <i class="bi bi-cash-coin me-2"></i>Pagos
-                            </a>
-                        </li>
-                    </ul>
+                    <div class="mb-4">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-2ecb5783f5">Resumen de Materiales</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle no-datatable mb-0">
+                                <thead>
+                                    <tr class="text-muted small border-bottom border-secondary">
+                                        <th class="ps-0">Material</th>
+                                        <th class="text-center">Cant.</th>
+                                        <th class="text-end pe-0">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for detalle in orden.detalles.all %}
+                                    <tr class="border-bottom border-white-5">
+                                        <td class="ps-0 text-white fw-600">
+                                            {{ detalle.material.nombre }}
+                                            <div class="text-muted x-small text-uppercase mt-1">{{ detalle.material.tipo }}</div>
+                                        </td>
+                                        <td class="text-center text-muted fw-700">{{ detalle.cantidad }}</td>
+                                        <td class="text-end pe-0 text-accent fw-800">{{ detalle.subtotal|currency }}</td>
+                                    </tr>
+                                    {% empty %}
+                                        {% if orden.material %}
+                                        <tr class="border-bottom border-white-5">
+                                            <td class="ps-0 text-white fw-600">{{ orden.material.nombre }} (Unificado)</td>
+                                            <td class="text-center text-muted fw-700">{{ orden.cantidad }}</td>
+                                            <td class="text-end pe-0 text-accent fw-800">{{ orden.precio|currency }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="3" class="text-center py-5 text-muted">
+                                                <i class="bi bi-cart-x fs-2 d-block mb-2 opacity-25"></i>
+                                                No hay detalles registrados.
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot class="border-top-0 u-inline-762163235e">
+                                    <tr class="u-inline-762163235e">
+                                        <td colspan="2" class="ps-0 pt-4 fw-800 text-uppercase u-inline-bfe2d8575b">Total de la Orden</td>
+                                        <td class="pe-0 pt-4 text-end u-inline-d3a4ab8539">
+                                            <h2 class="fw-900 text-white mb-0 u-inline-f5c79ab02d">{{ orden.precio|currency }}</h2>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
 
-                    <div class="tab-content">
-                        <div class="tab-pane fade {% if request.GET.tab != 'pagos' %}show active{% endif %}" id="tab-materiales" role="tabpanel">
-                            <div class="mb-4">
-                                <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px;">Resumen de Materiales</h6>
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle no-datatable mb-0">
-                                        <thead>
-                                            <tr class="text-muted small border-bottom border-secondary">
-                                                <th class="ps-0">Material</th>
-                                                <th class="text-center">Cant.</th>
-                                                <th class="text-end pe-0">Subtotal</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for detalle in orden.detalles.all %}
-                                            <tr class="border-bottom border-white-5">
-                                                <td class="ps-0 text-white fw-600">
-                                                    {{ detalle.material.nombre }}
-                                                    <div class="text-muted x-small text-uppercase mt-1">{{ detalle.material.tipo }}</div>
-                                                </td>
-                                                <td class="text-center text-muted fw-700">{{ detalle.cantidad }}</td>
-                                                <td class="text-end pe-0 text-accent fw-800">{{ detalle.subtotal|currency }}</td>
-                                            </tr>
-                                            {% empty %}
-                                                {% if orden.material %}
-                                                <tr class="border-bottom border-white-5">
-                                                    <td class="ps-0 text-white fw-600">{{ orden.material.nombre }} (Unificado)</td>
-                                                    <td class="text-center text-muted fw-700">{{ orden.cantidad }}</td>
-                                                    <td class="text-end pe-0 text-accent fw-800">{{ orden.precio|currency }}</td>
-                                                </tr>
-                                                {% else %}
-                                                <tr>
-                                                    <td colspan="3" class="text-center py-5 text-muted">
-                                                        <i class="bi bi-cart-x fs-2 d-block mb-2 opacity-25"></i>
-                                                        No hay detalles registrados.
-                                                    </td>
-                                                </tr>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </tbody>
-                                        <tfoot class="border-top-0" style="background: transparent !important; color: white !important;">
-                                            <tr style="background: transparent !important; color: white !important;">
-                                                <td colspan="2" class="ps-0 pt-4 fw-800 text-uppercase" style="letter-spacing: 2px; font-size: 0.7rem; background: transparent !important; border: none !important; color: rgba(255,255,255,0.6) !important;">Total de la Orden</td>
-                                                <td class="pe-0 pt-4 text-end" style="background: transparent !important; border: none !important;">
-                                                    <h2 class="fw-900 text-white mb-0" style="letter-spacing: -1px; text-shadow: 0 0 10px rgba(243, 156, 18, 0.5); font-size: 1.8rem;">{{ orden.precio|currency }}</h2>
-                                                </td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+                    <!-- Sección de Pago -->
+                    <div class="mb-4">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-2ecb5783f5">Pago del Pedido</h6>
+                        
+                        {% if orden.factura %}
+                        <div class="p-3 rounded-4 u-inline-a07baf5f39">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small fw-700">Número de Factura</span>
+                                    <span class="text-accent fw-800">{{ orden.factura.numero }}</span>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="tab-pane fade {% if request.GET.tab == 'pagos' %}show active{% endif %}" id="tab-pagos" role="tabpanel">
-                            <div class="mb-4">
-                                <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px;">Gestión de Pagos</h6>
-
-                                {% if pago_pedido %}
-                                <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                                        <div>
-                                            <span class="text-muted small fw-700">Estado</span>
-                                            <div class="fw-800 text-white">{{ pago_pedido.get_estado_pago_display }}</div>
-                                        </div>
-                                        <div>
-                                            <span class="text-muted small fw-700">Método</span>
-                                            <div class="fw-800 text-accent">{{ pago_pedido.metodo_pago }}</div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <span class="text-muted small fw-700">Monto</span>
-                                        <div class="fw-800 text-white">{{ pago_pedido.monto|currency }}</div>
-                                    </div>
-                                    {% if pago_pedido.referencia %}
-                                    <div class="mb-3">
-                                        <span class="text-muted small fw-700">Referencia</span>
-                                        <div class="fw-700 text-white">{{ pago_pedido.referencia }}</div>
-                                    </div>
-                                    {% endif %}
-                                    {% if pago_pedido.motivo_rechazo %}
-                                    <div class="alert alert-danger py-2 mb-0" role="alert">
-                                        <i class="bi bi-exclamation-triangle me-2"></i>{{ pago_pedido.motivo_rechazo }}
-                                    </div>
-                                    {% endif %}
-                                    {% if pago_pedido.comprobante %}
-                                    <div class="mt-3">
-                                        <a href="{{ pago_pedido.comprobante.url }}" target="_blank" class="btn btn-outline-light btn-sm rounded-pill">
-                                            <i class="bi bi-paperclip me-2"></i>Ver comprobante
-                                        </a>
-                                    </div>
-                                    {% endif %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small fw-700">Total de la Factura</span>
+                                    <span class="text-white fw-800">{{ orden.factura.total|currency }}</span>
                                 </div>
-                                {% endif %}
-
-                                <form method="POST" enctype="multipart/form-data" class="p-3 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small fw-700">Total Pagado</span>
+                                    <span class="text-success fw-800">{{ orden.factura.total_pagado|currency }}</span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small fw-700">Saldo Pendiente</span>
+                                    <span class="text-warning fw-800">{{ orden.factura.saldo_pendiente|currency }}</span>
+                                </div>
+                            </div>
+                            
+                            {% if orden.factura.estado == 'pendiente' %}
+                            <div class="mt-3">
+                                <form method="POST" action="{% url 'facturacion:registrar_pago' %}" id="form-pago-factura">
                                     {% csrf_token %}
-                                    <input type="hidden" name="accion_pago" value="registrar">
+                                    <input type="hidden" name="factura_id" value="{{ orden.factura.id }}">
+                                    
                                     <div class="mb-3">
-                                        <label class="text-muted small fw-bold text-uppercase px-3 mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Método de Pago</label>
-                                        <select name="metodo_pago" class="form-select rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" required>
-                                            <option value="">Selecciona un método</option>
-                                            {% for metodo in metodos_disponibles %}
-                                            <option value="{{ metodo }}" {% if pago_pedido and pago_pedido.metodo_pago == metodo %}selected{% endif %}>{{ metodo }}</option>
+                                        <label class="text-muted small fw-bold text-uppercase px-3 mb-1 u-inline-e4a2d41a44">Monto a Pagar</label>
+                                        <input type="number" name="monto" step="0.01" min="0.01" max="{{ orden.factura.saldo_pendiente }}" class="form-control rounded-pill border-0 px-4 py-2 u-inline-882d487185" value="{{ orden.factura.saldo_pendiente }}" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="text-muted small fw-bold text-uppercase px-3 mb-1 u-inline-e4a2d41a44">Método de Pago</label>
+                                        <select name="metodo" class="form-select rounded-pill border-0 px-4 py-2 u-inline-882d487185" required>
+                                            {% for mp in metodos_pago %}
+                                            <option value="{{ mp.codigo_metodo_pago }}">{{ mp.metodo }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
+                                    
                                     <div class="mb-3">
-                                        <label class="text-muted small fw-bold text-uppercase px-3 mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Referencia</label>
-                                        <input type="text" name="referencia" value="{{ pago_pedido.referencia|default:'' }}" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" placeholder="Número de transacción, cheque o cuenta">
+                                        <label class="text-muted small fw-bold text-uppercase px-3 mb-1 u-inline-e4a2d41a44">Referencia (opcional)</label>
+                                        <input type="text" name="referencia" class="form-control rounded-pill border-0 px-4 py-2 u-inline-882d487185" placeholder="Número de transacción, cheque, etc.">
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="text-muted small fw-bold text-uppercase px-3 mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Comprobante</label>
-                                        <input type="file" name="comprobante" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" accept="image/*,.pdf">
-                                    </div>
-                                    <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
-                                        <div class="fw-700 text-accent mb-2"><i class="bi bi-bank me-2"></i>Datos para transferencia</div>
-                                        <div class="small text-white-50">Nequi / Daviplata: {{ cuentas_transferencia.Nequi.telefono }} · {{ cuentas_transferencia.Nequi.titular }}</div>
-                                        <div class="small text-white-50">Bancolombia: {{ cuentas_transferencia.Bancolombia.numero }} · {{ cuentas_transferencia.Bancolombia.titular }}</div>
-                                    </div>
+                                    
                                     <button type="submit" class="btn btn-gold rounded-pill w-100 py-2 fw-800 shadow-sm">
-                                        <i class="bi bi-send-fill me-1"></i> Enviar pago
+                                        <i class="bi bi-credit-card-2-front-fill me-1"></i> Registrar Pago
                                     </button>
                                 </form>
-
-                                {% if user.usuario.rol == 'admin' and pago_pedido %}
-                                <div class="mt-3 p-3 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                                    <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Revisión administrativa</h6>
-                                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                                        <form method="POST" class="d-inline">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="accion_pago" value="aprobar">
-                                            <input type="hidden" name="pago_id" value="{{ pago_pedido.id_pago_pedido }}">
-                                            <button type="submit" class="btn btn-success rounded-pill py-2 fw-800">
-                                                <i class="bi bi-check-circle me-2"></i>Aprobar pago
-                                            </button>
-                                        </form>
-                                        <form method="POST" class="d-inline">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="accion_pago" value="rechazar">
-                                            <input type="hidden" name="pago_id" value="{{ pago_pedido.id_pago_pedido }}">
-                                            <input type="text" name="motivo_rechazo" class="form-control rounded-pill border-0 px-4 py-2 d-inline-block" style="background: rgba(255,255,255,0.05) !important; min-width: 240px;" placeholder="Motivo de rechazo" required>
-                                            <button type="submit" class="btn btn-outline-danger rounded-pill py-2 fw-800 ms-2">
-                                                <i class="bi bi-x-circle me-2"></i>Rechazar
-                                            </button>
-                                        </form>
-                                        {% if orden.estado == 'autorizado_despacho' %}
-                                        <a href="{% url 'ordenes:crear_entrega' orden.id %}" class="btn btn-outline-light rounded-pill py-2 fw-800">
-                                            <i class="bi bi-truck me-2"></i>Asignar conductor y vehículo
-                                        </a>
-                                        {% endif %}
+                            </div>
+                            {% elif orden.factura.estado == 'pagada' %}
+                            <div class="mt-3">
+                                <div class="p-3 rounded-4 u-inline-184116ee7e">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                        <span class="text-success fw-800">Factura Pagada Completamente</span>
                                     </div>
                                 </div>
-                                {% endif %}
+                            </div>
+                            {% elif orden.factura.estado == 'anulada' %}
+                            <div class="mt-3">
+                                <div class="p-3 rounded-4 u-inline-ee33bae249">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-x-circle-fill text-danger fs-4"></i>
+                                        <span class="text-danger fw-800">Factura Anulada</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="p-3 rounded-4 u-inline-a07baf5f39">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-info-circle text-info fs-4"></i>
+                                <span class="text-muted small">La factura aún no ha sido generada para este pedido.</span>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
 
                     <!-- Sección para Modificar/Cancelar -->
                     {% if orden.estado == "pendiente" %}
                         {% if user.usuario.rol == "admin" or user.usuario.rol == "cliente" %}
-                        <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                            <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px; font-size: 0.7rem;">Gestión del Pedido</h6>
+                        <div class="p-3 rounded-4 mb-3 u-inline-a07baf5f39">
+                            <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-271fec847f">Gestión del Pedido</h6>
                             <div class="d-grid gap-2">
                                 {% if user.usuario.rol == "admin" %}
                                     <a href="{% url 'ordenes:crear_entrega' orden.id %}" class="btn btn-gold rounded-pill py-2 fw-800 shadow-sm mb-1 small">
@@ -275,8 +240,8 @@
                         </div>
                         {% endif %}
                     {% elif orden.estado == "en_ruta" and user.usuario.rol == "admin" %}
-                    <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                            <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px; font-size: 0.7rem;">Gestión del Pedido (Admin)</h6>
+                    <div class="p-3 rounded-4 mb-3 u-inline-a07baf5f39">
+                            <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-271fec847f">Gestión del Pedido (Admin)</h6>
                             <div class="d-grid gap-2">
                                 <a href="{% url 'ordenes:crear_entrega' orden.id %}" class="btn btn-outline-info rounded-pill py-2 fw-800 shadow-sm mb-1 small">
                                     <i class="bi bi-person-gear me-1"></i> Reasignar Conductor
@@ -287,49 +252,29 @@
 
                     <!-- Cambio de Estado Manual -->
                     {% if user.usuario.rol == "admin" %}
-                        {% if orden.estado != "cancelado" %}
-                        <div class="p-3 rounded-4 mb-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                            <h6 class="fw-800 text-accent text-uppercase small mb-2" style="letter-spacing: 1px; font-size: 0.7rem;">Control Maestro (Admin)</h6>
-                            <form method="POST">
-                                {% csrf_token %}
-                                <div class="mb-2">
-                                    <select name="estado" class="form-select rounded-pill border-0 px-3 bg-dark text-white small" style="height: 35px;">
-                                        <option value="pendiente" {% if orden.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                                        <option value="en_ruta" {% if orden.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
-                                        <option value="entregado" {% if orden.estado == 'entregado' %}selected{% endif %}>Entregado</option>
-                                        <option value="cancelado" {% if orden.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
-                                    </select>
-                                </div>
-                                <button type="submit" class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm small">
-                                    <i class="bi bi-save me-1"></i> Aplicar
-                                </button>
-                            </form>
-                        </div>
-                        {% else %}
-                        <div class="p-3 rounded-4 mb-3" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);">
-                            <h6 class="fw-800 text-uppercase small mb-2 text-danger" style="letter-spacing: 1px; font-size: 0.7rem;">Pedido Cancelado</h6>
-                            <p class="text-muted small mb-0">
-                                Este pedido ya está cancelado. Solo se permite consultarlo; no se pueden aplicar cambios.
-                            </p>
-                        </div>
-                        {% endif %}
+                    <div class="p-3 rounded-4 mb-3 u-inline-a07baf5f39">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-271fec847f">Control Maestro (Admin)</h6>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-2">
+                                <select name="estado" class="form-select rounded-pill border-0 px-3 bg-dark text-white small u-inline-a3e311813a">
+                                    <option value="pendiente" {% if orden.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                    <option value="en_ruta" {% if orden.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
+                                    <option value="entregado" {% if orden.estado == 'entregado' %}selected{% endif %}>Entregado</option>
+                                    <option value="cancelado" {% if orden.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm small">
+                                <i class="bi bi-save me-1"></i> Aplicar
+                            </button>
+                        </form>
+                    </div>
                     {% endif %}
 
                     <!-- Sección para el Conductor -->
                     {% if user.usuario.rol == "conductor" and orden.conductor == user.usuario and orden.estado != "entregado" and orden.estado != "cancelado" %}
-                    <div class="p-4 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-3" style="letter-spacing: 1px;">Panel del Conductor</h6>
-                        <div class="mb-3 p-3 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
-                            <div class="small text-muted fw-700 text-uppercase">Pago</div>
-                            <div class="fw-800 text-white">{{ pago_pedido.get_estado_pago_display|default:"Sin registro" }}</div>
-                            <div class="small text-white-50">Método: {{ pago_pedido.metodo_pago|default:"Sin definir" }}</div>
-                            <div class="small text-white-50">Valor: {{ pago_pedido.monto|currency|default:orden.precio|currency }}</div>
-                            {% if pago_pedido and pago_pedido.estado_pago == 'contra_entrega' %}
-                            <div class="text-warning fw-700 mt-2"><i class="bi bi-cash-stack me-2"></i>Pendiente por cobrar al entregar.</div>
-                            {% elif pago_pedido and pago_pedido.estado_pago == 'pago aprobado' %}
-                            <div class="text-success fw-700 mt-2"><i class="bi bi-check-circle me-2"></i>Pago confirmado para cobro.</div>
-                            {% endif %}
-                        </div>
+                    <div class="p-4 rounded-4 u-inline-a07baf5f39">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-3 u-inline-2ecb5783f5">Panel del Conductor</h6>
                         <p class="text-muted small mb-4">Como conductor asignado, puedes confirmar la entrega exitosa o reportar una cancelación.</p>
                         <form method="POST" class="d-grid gap-3">
                             {% csrf_token %}

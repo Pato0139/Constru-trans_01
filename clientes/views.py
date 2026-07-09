@@ -7,7 +7,6 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 
 from facturacion.models import Factura
 from ordenes.models import DetallePedido, Pedido
@@ -248,9 +247,50 @@ def mis_pedidos(request):
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
 
+    # Get filter parameters
+    id_pedido = request.GET.get("id_pedido", "")
+    destino = request.GET.get("destino", "")
+    estado = request.GET.get("estado", "")
+    q = request.GET.get("q", "")
+
     pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto).select_related("factura").prefetch_related("factura__pagos")
+
+    # Apply filters
+    if id_pedido:
+        pedidos = pedidos.filter(codigo_pedido__icontains=id_pedido)
+    if destino:
+        pedidos = pedidos.filter(direccion_destino__icontains=destino)
+    if estado:
+        pedidos = pedidos.filter(estado=estado)
+    if q:
+        pedidos = pedidos.filter(
+            Q(codigo_pedido__icontains=q)
+            | Q(direccion_destino__icontains=q)
+            | Q(estado__icontains=q)
+        )
+
+    # Prepare filter fields
+    filter_fields = [
+        {"type": "text", "name": "id_pedido", "placeholder": "ID Pedido", "value": id_pedido, "size": "3"},
+        {"type": "text", "name": "destino", "placeholder": "Destino", "value": destino, "size": "3"},
+        {"type": "select", "name": "estado", "placeholder": "Estado (Todos)", "value": estado, "size": "3",
+         "options": [
+             {"value": "pendiente", "label": "Pendiente"},
+             {"value": "en_ruta", "label": "En Ruta"},
+             {"value": "entregado", "label": "Entregado"},
+             {"value": "cancelado", "label": "Cancelado"},
+         ]},
+    ]
+
+    has_filters = any([id_pedido, destino, estado, q])
     metodos_pago = MetodoPago.objects.all()
-    context = {"pedidos": pedidos, "metodos_pago": metodos_pago}
+    context = {
+        "pedidos": pedidos,
+        "metodos_pago": metodos_pago,
+        "filter_fields": filter_fields,
+        "has_filters": has_filters,
+        "q": q,
+    }
 
     return render(request, "clientes/mis_pedidos.html", context)
 
@@ -454,7 +494,7 @@ def crear_pedido(request):
                     stock_obj.save(using=db_alias)
 
             messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente.")
-            return redirect(f"{reverse('ordenes:ver_pedido_admin', args=[nuevo_pedido.codigo_pedido])}?tab=pagos")
+            return redirect("clientes:mis_pedidos")
 
         except ValueError as e:
             messages.error(request, str(e))

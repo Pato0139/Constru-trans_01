@@ -137,17 +137,14 @@ document.addEventListener('DOMContentLoaded', function() {
 {% block content %}
 
 <div class="mb-4 d-flex justify-content-between align-items-center">
-    <h2 class="fw-bold mb-0" style="color: var(--color-text);">Gestión de Usuarios</h2>
+    <h2 class="fw-bold text-white mb-0">Gestión de Usuarios</h2>
     <div class="d-flex gap-3 align-items-center">
         <form method="GET" action="{% url 'usuarios:lista_usuarios' %}" class="position-relative" id="searchForm">
-            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3" style="color: var(--color-muted);"></i>
-            <input type="text" name="q" value="{{ query|default:'' }}" 
-                   class="form-control ps-5 usuario-search-input" 
-                   style="background: var(--item-bg); color: var(--color-text); border: 1px solid var(--color-border);" 
-                   placeholder="Buscar usuario...">
-            <input type="hidden" name="tab" id="activeTabInput" value="{{ active_tab|default:'general' %}">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 u-inline-9bca4b1fbc"></i>
+            <input type="text" name="q" value="{{ query|default:'' }}" class="form-control usuario-search-input" placeholder="Buscar usuario...">
+            <input type="hidden" name="tab" id="activeTabInput" value="{{ active_tab|default:'general' }}">
         </form>
-        <a href="{% url 'usuarios:crear_usuario' %}" class="btn btn-premium px-4 fw-bold" style="border-radius: var(--radius-lg); background: var(--color-primary); color: white; border: none; text-decoration: none; display: flex; align-items: center;">
+        <a href="{% url 'usuarios:crear_usuario' %}" class="btn btn-premium px-4 fw-bold u-inline-b581529032">
             <i class="bi bi-plus-lg me-2"></i> Nuevo
         </a>
     </div>
@@ -185,10 +182,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" id="filter-usuario-gen" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Usuario">
+                    <input type="text" id="filter-usuario-gen" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Usuario">
                 </div>
                 <div class="col-md-2">
-                    <select id="filter-rol-gen" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                    <select id="filter-rol-gen" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
                         <option value="">Rol (Todos)</option>
                         <option value="admin">Admin</option>
                         <option value="cliente">Cliente</option>
@@ -197,10 +194,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" id="filter-email-gen" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Email">
+                    <input type="text" id="filter-email-gen" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Email">
                 </div>
                 <div class="col-md-2">
-                    <select id="filter-estado-gen" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                    <select id="filter-estado-gen" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
                         <option value="">Estado (Todos)</option>
                         <option value="activo">Activo</option>
                         <option value="inactivo">Inactivo</option>
@@ -215,8 +212,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
 
-        <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
-            <table class="table mb-0" style="--bs-table-bg: transparent; --bs-table-color: var(--color-text);">
+        <div class="table-container u-inline-ab87d0b2ff">
+            <table class="table table-dark mb-0">
                 <thead>
                     <tr class="usuario-table-header">
                         <th class="p-4 text-muted small fw-bold">Usuario</th>
@@ -231,29 +228,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     <tr class="usuario-table-row">
                         <td class="p-4">
                             <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3 rounded-circle d-flex align-items-center justify-content-center usuario-avatar" style="background: var(--color-primary);">
-                                    {% if u.avatar_url %}
-                                        <img src="{{ u.avatar_url }}" alt="Avatar" class="usuario-avatar-img">
+                                <div class="avatar-sm me-3 bg-secondary rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
+                                    {% if u.foto_perfil %}
+                                        <img src="{{ u.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
                                     {% else %}
-                                        <span class="fw-bold" style="color: #ffffff;">{{ u.iniciales }}</span>
+                                        <span class="fw-bold text-white">{{ u.nombres|first }}{{ u.apellidos|first }}</span>
                                     {% endif %}
                                 </div>
                                 <div>
-                                    <div class="fw-bold" style="color: var(--color-text);">
-                                        {{ u.nombre_mostrar }}
+                                    <div class="fw-bold text-white">
+                                        {{ u.nombres }} {{ u.apellidos }}
                                         {% if u.user.username == 'Edward_Fonseca' %}
-                                            <span class="badge bg-danger ms-1" style="font-size: 0.6rem;">ADMIN GLOBAL</span>
+                                            <span class="badge bg-danger ms-1 u-inline-1ed2f53daf">ADMIN GLOBAL</span>
                                         {% endif %}
                                     </div>
                                     {% if u.rol == 'cliente' and u.perfil_cliente %}
                                         <div class="text-info small fw-bold">{{ u.perfil_cliente.razon_social }}</div>
                                     {% endif %}
-                                    <div class="text-muted small">Doc: {{ u.documento_mostrar }}</div>
+                                    <div class="text-muted small">Doc: {{ u.documento }}</div>
                                 </div>
                             </div>
                         </td>
                         <td class="p-4 align-middle">
-                            <span class="badge badge-tipo rounded-pill px-3">
+                            <span class="badge-tipo {% if u.rol == 'admin' %}badge-tipo-admin{% elif u.rol == 'cliente' %}badge-tipo-cliente{% elif u.rol == 'conductor' %}badge-tipo-conductor{% else %}badge-tipo-empleado{% endif %}">
                                 {{ u.get_rol_display }}
                             </span>
                         </td>
@@ -265,10 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </td>
                         <td class="p-4 align-middle">
                             <div class="d-flex gap-2">
-                                <a href="{% url 'usuarios:editar_usuario' u.id %}" 
-                                   class="btn btn-sm" 
-                                   style="color: var(--color-text); background: var(--item-bg); border: 1px solid var(--color-border);" 
-                                   title="Editar">
+                                <a href="{% url 'usuarios:editar_usuario' u.id %}" class="btn btn-sm btn-action btn-action-edit" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 {% if u.user.username != 'Edward_Fonseca' and u.user != request.user %}
@@ -312,13 +306,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
                 </div>
                 <div class="col-md-4">
-                    <input type="text" id="filter-usuario-cli" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Usuario / Cliente">
+                    <input type="text" id="filter-usuario-cli" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Usuario / Cliente">
                 </div>
                 <div class="col-md-4">
-                    <input type="text" id="filter-email-cli" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Email">
+                    <input type="text" id="filter-email-cli" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Email">
                 </div>
                 <div class="col-md-3">
-                    <select id="filter-estado-cli" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                    <select id="filter-estado-cli" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
                         <option value="">Estado (Todos)</option>
                         <option value="activo">Activo</option>
                         <option value="inactivo">Inactivo</option>
@@ -333,8 +327,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
 
-        <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
-            <table class="table mb-0" style="--bs-table-bg: transparent; --bs-table-color: var(--color-text);">
+        <div class="table-container u-inline-ab87d0b2ff">
+            <table class="table table-dark mb-0">
                 <thead>
                     <tr class="usuario-table-header">
                         <th class="p-4 text-muted small fw-bold">Usuario</th>
@@ -349,19 +343,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm me-3 bg-primary rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
-                                    {% if cliente.avatar_url %}
-                                        <img src="{{ cliente.avatar_url }}" alt="Avatar" class="usuario-avatar-img">
+                                    {% if cliente.foto_perfil %}
+                                        <img src="{{ cliente.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
                                     {% else %}
-                                        <span class="fw-bold text-white">{{ cliente.iniciales }}</span>
+                                        <span class="fw-bold text-white">{{ cliente.nombres|first }}{{ cliente.apellidos|first }}</span>
                                     {% endif %}
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-white">{{ cliente.nombre_mostrar }}</div>
+                                    <div class="fw-bold text-white">{{ cliente.nombres }} {{ cliente.apellidos }}</div>
                                     {% if cliente.rol == 'cliente' and cliente.perfil_cliente %}
                                         <div class="text-info small fw-bold">{{ cliente.perfil_cliente.razon_social }}</div>
                                         <div class="text-muted small">NIT: {{ cliente.perfil_cliente.nit_rut }}</div>
                                     {% else %}
-                                        <div class="text-muted small">Doc: {{ cliente.documento_mostrar }}</div>
+                                        <div class="text-muted small">Doc: {{ cliente.documento }}</div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -416,13 +410,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
                 </div>
                 <div class="col-md-4">
-                    <input type="text" id="filter-usuario-cond" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Usuario / Conductor">
+                    <input type="text" id="filter-usuario-cond" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Usuario / Conductor">
                 </div>
                 <div class="col-md-4">
-                    <input type="text" id="filter-email-cond" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Email">
+                    <input type="text" id="filter-email-cond" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Email">
                 </div>
                 <div class="col-md-3">
-                    <select id="filter-estado-cond" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                    <select id="filter-estado-cond" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
                         <option value="">Estado (Todos)</option>
                         <option value="activo">Activo</option>
                         <option value="inactivo">Inactivo</option>
@@ -437,8 +431,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
 
-        <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
-            <table class="table mb-0" style="--bs-table-bg: transparent; --bs-table-color: var(--color-text);">
+        <div class="table-container u-inline-ab87d0b2ff">
+            <table class="table table-dark mb-0">
                 <thead>
                     <tr class="usuario-table-header">
                         <th class="p-4 text-muted small fw-bold">Usuario</th>
@@ -453,15 +447,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm me-3 bg-info rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
-                                    {% if conductor.avatar_url %}
-                                        <img src="{{ conductor.avatar_url }}" alt="Avatar" class="usuario-avatar-img">
+                                    {% if conductor.foto_perfil %}
+                                        <img src="{{ conductor.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
                                     {% else %}
-                                        <span class="fw-bold text-white">{{ conductor.iniciales }}</span>
+                                        <span class="fw-bold text-white">{{ conductor.nombres|first }}{{ conductor.apellidos|first }}</span>
                                     {% endif %}
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-white">{{ conductor.nombre_mostrar }}</div>
-                                    <div class="text-muted small">Cond: {{ conductor.documento_mostrar }}</div>
+                                    <div class="fw-bold text-white">{{ conductor.nombres }} {{ conductor.apellidos }}</div>
+                                    <div class="text-muted small">Cond: {{ conductor.documento }}</div>
                                 </div>
                             </div>
                         </td>
@@ -515,13 +509,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
                 </div>
                 <div class="col-md-4">
-                    <input type="text" id="filter-usuario-admin" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Usuario / Admin">
+                    <input type="text" id="filter-usuario-admin" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Usuario / Admin">
                 </div>
                 <div class="col-md-4">
-                    <input type="text" id="filter-email-admin" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Email">
+                    <input type="text" id="filter-email-admin" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Email">
                 </div>
                 <div class="col-md-3">
-                    <select id="filter-estado-admin" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                    <select id="filter-estado-admin" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
                         <option value="">Estado (Todos)</option>
                         <option value="activo">Activo</option>
                         <option value="inactivo">Inactivo</option>
@@ -536,8 +530,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
 
-        <div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
-            <table class="table mb-0" style="--bs-table-bg: transparent; --bs-table-color: var(--color-text);">
+        <div class="table-container u-inline-ab87d0b2ff">
+            <table class="table table-dark mb-0">
                 <thead>
                     <tr class="usuario-table-header">
                         <th class="p-4 text-muted small fw-bold">Usuario</th>
@@ -552,20 +546,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm me-3 bg-warning rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
-                                    {% if admin.avatar_url %}
-                                        <img src="{{ admin.avatar_url }}" alt="Avatar" class="usuario-avatar-img">
+                                    {% if admin.foto_perfil %}
+                                        <img src="{{ admin.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
                                     {% else %}
-                                        <span class="fw-bold text-white">{{ admin.iniciales }}</span>
+                                        <span class="fw-bold text-white">{{ admin.nombres|first }}{{ admin.apellidos|first }}</span>
                                     {% endif %}
                                 </div>
                                 <div>
                                     <div class="fw-bold text-white">
-                                        {{ admin.nombre_mostrar }}
+                                        {{ admin.nombres }} {{ admin.apellidos }}
                                         {% if admin.user.username == 'Edward_Fonseca' %}
-                                            <span class="badge bg-danger ms-1" style="font-size: 0.6rem;">ADMIN GLOBAL</span>
+                                            <span class="badge bg-danger ms-1 u-inline-1ed2f53daf">ADMIN GLOBAL</span>
                                         {% endif %}
                                     </div>
-                                    <div class="text-muted small">Admin: {{ admin.documento_mostrar }}</div>
+                                    <div class="text-muted small">Admin: {{ admin.documento }}</div>
                                 </div>
                             </div>
                         </td>
@@ -583,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                     {% else %}
-                                        <span class="small italic" style="color: var(--color-muted);">Protegido</span>
+                                        <span class="small italic u-inline-9bca4b1fbc">Protegido</span>
                                     {% endif %}
                                 {% else %}
                                     <a href="{% url 'usuarios:editar_usuario' admin.id %}" class="btn btn-sm btn-action btn-action-edit" title="Editar">

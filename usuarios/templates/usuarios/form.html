@@ -59,7 +59,7 @@
                                 <div id="preview-initials" class="usuario-preview-initials">
                                     {{ usuario.nombres|slice:":1" }}{{ usuario.apellidos|slice:":1" }}
                                 </div>
-                                <img id="preview-image" class="usuario-preview-image" style="display: none;" alt="Preview">
+                                <img id="preview-image" class="usuario-preview-image u-inline-f2892a2e8a" alt="Preview">
                             {% endif %}
 
                         </div>
@@ -112,16 +112,25 @@
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Tipo de Documento</label>
-                        <select name="tipo_doc" class="form-select py-2 usuario-select" required>
-                            <option value="CC" {% if usuario.tipo_documento == 'CC' or form_data.tipo_doc == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
-                            <option value="CE" {% if usuario.tipo_documento == 'CE' or form_data.tipo_doc == 'CE' %}selected{% endif %}>Cédula de Extranjería</option>
-                            <option value="NIT" {% if usuario.tipo_documento == 'NIT' or form_data.tipo_doc == 'NIT' %}selected{% endif %}>NIT</option>
-                            <option value="PA" {% if usuario.tipo_documento == 'PA' or form_data.tipo_doc == 'PA' %}selected{% endif %}>Pasaporte</option>
-                        </select>
+                        {% if action == 'editar' %}
+                            <input type="text" class="form-control py-2 usuario-input" value="{{ usuario.get_tipo_documento_display }}" readonly>
+                        {% else %}
+                            <select name="tipo_doc" class="form-select py-2 usuario-select" required>
+                                <option value="CC" {% if usuario.tipo_documento == 'CC' or form_data.tipo_doc == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
+                                <option value="CE" {% if usuario.tipo_documento == 'CE' or form_data.tipo_doc == 'CE' %}selected{% endif %}>Cédula de Extranjería</option>
+                                <option value="NIT" {% if usuario.tipo_documento == 'NIT' or form_data.tipo_doc == 'NIT' %}selected{% endif %}>NIT</option>
+                                <option value="PA" {% if usuario.tipo_documento == 'PA' or form_data.tipo_doc == 'PA' %}selected{% endif %}>Pasaporte</option>
+                            </select>
+                        {% endif %}
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Número de Documento</label>
-                        <input type="text" name="documento" class="form-control py-2 usuario-input" placeholder="12345678" value="{% if form_data %}{{ form_data.documento|default:'' }}{% else %}{{ usuario.documento|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios">
+                        {% if action == 'editar' %}
+                            <input type="text" class="form-control py-2 usuario-input" value="{{ usuario.documento }}" readonly>
+                            <small class="text-muted">El documento no puede modificarse.</small>
+                        {% else %}
+                            <input type="text" name="documento" class="form-control py-2 usuario-input" placeholder="12345678" value="{% if form_data %}{{ form_data.documento|default:'' }}{% else %}{{ usuario.documento|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios">
+                        {% endif %}
                     </div>
                 </div>
 

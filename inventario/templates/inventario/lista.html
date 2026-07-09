@@ -10,67 +10,57 @@
         <h2 class="fw-bold mb-0 text-white"><i class="bi bi-box-seam-fill text-accent me-2"></i>Catálogo de Materiales</h2>
         <div class="d-flex align-items-center gap-2 mt-1">
             <p class="text-white-50 small mb-0">Gestión de productos y precios base</p>
-            <span id="materiales-count" class="badge rounded-pill px-3" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: 1px solid rgba(59, 130, 246, 0.2);">
+            <span id="materiales-count" class="badge rounded-pill px-3 u-inline-b2204c9e00">
                 {{ total }} registros
             </span>
         </div>
     </div>
 
-    <div class="d-flex gap-2" data-aos="fade-left">
-        <a href="{% url 'inventario:crear_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg" 
-           style="width: 42px; height: 42px; background: var(--color-accent); border: none; color: white;">
-            <i class="bi bi-plus-lg fs-5"></i>
-        </a>
+    <div class="w-100 u-inline-ffa089e03c">
+        <div class="d-flex flex-column gap-2" data-aos="fade-left">
+            <form id="filtrosMaterialesForm" action="{% url 'inventario:materiales_lista' %}" method="GET" class="d-flex flex-column gap-2">
+                <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm u-inline-a493700b8c">
+                    <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center u-inline-7a3b56f7ab">
+                        <i class="bi bi-search text-dark u-inline-27895aa49c"></i>
+                    </div>
+                    <input id="busquedaMateriales" type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
+                           placeholder="Buscar en el catálogo..." value="{{ query|default:'' }}">
+                </div>
+
+                <div class="d-flex gap-2">
+                    <select id="filtroTipoMaterial" name="tipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2 u-inline-11ec6e757e">
+                        <option value="">Todos los tipos</option>
+                        {% for t in tipos %}
+                            <option value="{{ t.codigo_catalogo }}" {% if tipo_actual == t.codigo_catalogo %}selected{% endif %}>{{ t.nombre_empresa }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9">
+                        <i class="bi bi-funnel"></i> Filtrar
+                    </button>
+
+                    <a href="{% url 'inventario:crear_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg ms-2 u-inline-602188a7ef" 
+                           >
+                        <i class="bi bi-plus-lg fs-5"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<div class="card bg-dark border-0 shadow-sm p-3 mb-4" data-aos="fade-down">
-    <form id="filtrosMaterialesForm" action="." method="GET">
-        <div class="row g-3 align-items-center">
-            <div class="col-auto">
-                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
-            </div>
-            
-            <div class="col-md-2">
-                <input type="text" id="filtroId" name="id" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID">
-            </div>
-            
-            <div class="col-md-3">
-                <input type="text" id="filtroMaterial" name="material" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Material">
-            </div>
-            
-            <div class="col-md-3">
-                <select id="filtroTipoMaterial" name="tipo" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
-                    <option value="">Tipo (Todos)</option>
-                    {% for t in tipos %}
-                        <option value="{{ t.codigo_catalogo }}" {% if tipo_actual == t.codigo_catalogo %}selected{% endif %}>{{ t.nombre_empresa }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
-            <div class="col-auto ms-auto d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-primary px-3">
-                    <i class="bi bi-search me-1"></i> Buscar
-                </button>
-                <button type="button" id="btnLimpiarFiltros" class="btn btn-sm btn-outline-secondary" title="Limpiar filtros" style="display: none;">
-                    <i class="bi bi-x-circle"></i>
-                </button>
-            </div>
-        </div>
-    </form>
-</div>
-
-<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);" data-aos="fade-up">
+<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8" data-aos="fade-up">
     <div class="table-responsive">
-        <table id="tablaMateriales" class="table table-dark table-hover align-middle mb-0 no-datatable" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02);" data-api-url="{% url 'inventario:api_materiales_listado' %}">
+        <table id="tablaMateriales" class="table table-dark table-hover align-middle mb-0 no-datatable u-inline-16fd8a5fe1" data-api-url="{% url 'inventario:api_materiales_listado' %}">
             <thead>
-                <tr class="clientes__table-head-row" style="border-bottom: 2px solid var(--color-border);">
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 80px;">ID</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Material</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Tipo</th>
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Unidad</th>
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Precio Unitario</th>
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold" style="letter-spacing: 1px; width: 120px;">Acciones</th>
+                <tr class="clientes__table-head-row u-inline-0d59a3f53c">
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2c34455993">ID</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Material</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Tipo</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Unidad</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Stock</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Precio Unitario</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-9c77c1e711">Acciones</th>
                 </tr>
             </thead>
             <tbody>

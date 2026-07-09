@@ -26,47 +26,47 @@
     <!-- Resumen de Órdenes -->
     <div class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="border-left: 4px solid var(--color-primary);">
+            <div class="stat-card p-4 rounded-4 shadow-sm text-center u-inline-7a37e2ac97">
                 <div class="mb-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 60px; height: 60px; background: rgba(59, 130, 246, 0.1);">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto u-inline-437415c087">
                         <i class="bi bi-box-seam text-primary fs-2"></i>
                     </div>
                 </div>
                 <p class="text-muted small text-uppercase fw-bold mb-2">Total Órdenes</p>
-                <h1 class="mb-0 fw-bold text-white" style="font-size: 3rem;">{{ total_ordenes }}</h1>
+                <h1 class="mb-0 fw-bold text-white u-inline-8ae57e885d">{{ total_ordenes }}</h1>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="border-left: 4px solid #f59e0b;">
+            <div class="stat-card p-4 rounded-4 shadow-sm text-center u-inline-29c0c6650c">
                 <div class="mb-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 60px; height: 60px; background: rgba(245, 158, 11, 0.1);">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto u-inline-0089d0abf5">
                         <i class="bi bi-clock-history text-warning fs-2"></i>
                     </div>
                 </div>
                 <p class="text-muted small text-uppercase fw-bold mb-2">Pendientes</p>
-                <h1 class="mb-0 fw-bold text-white" style="font-size: 3rem;">{{ pendientes }}</h1>
+                <h1 class="mb-0 fw-bold text-white u-inline-8ae57e885d">{{ pendientes }}</h1>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="border-left: 4px solid #0ea5e9;">
+            <div class="stat-card p-4 rounded-4 shadow-sm text-center u-inline-0bf49b252f">
                 <div class="mb-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 60px; height: 60px; background: rgba(14, 165, 233, 0.1);">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto u-inline-8c6fdafe61">
                         <i class="bi bi-truck text-info fs-2"></i>
                     </div>
                 </div>
                 <p class="text-muted small text-uppercase fw-bold mb-2">En Ruta</p>
-                <h1 class="mb-0 fw-bold text-white" style="font-size: 3rem;">{{ en_ruta }}</h1>
+                <h1 class="mb-0 fw-bold text-white u-inline-8ae57e885d">{{ en_ruta }}</h1>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card p-4 rounded-4 shadow-sm text-center" style="border-left: 4px solid var(--color-success);">
+            <div class="stat-card p-4 rounded-4 shadow-sm text-center u-inline-e6d138bd7d">
                 <div class="mb-3">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 60px; height: 60px; background: rgba(16, 185, 129, 0.1);">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto u-inline-1f453544a7">
                         <i class="bi bi-check-circle text-success fs-2"></i>
                     </div>
                 </div>
                 <p class="text-muted small text-uppercase fw-bold mb-2">Entregadas</p>
-                <h1 class="mb-0 fw-bold text-white" style="font-size: 3rem;">{{ entregadas }}</h1>
+                <h1 class="mb-0 fw-bold text-white u-inline-8ae57e885d">{{ entregadas }}</h1>
             </div>
         </div>
     </div>
@@ -97,8 +97,8 @@
                    data-pdf="{% url 'reportes:exportar_reporte_pdf' 'clientes' %}"
                    data-excel="{% url 'reportes:exportar_reporte_excel' 'clientes' %}"
                    data-xml="{% url 'reportes:exportar_reporte_xml' 'clientes' %}"
-                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" 
-                   style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 u-inline-4eb189190c" 
+                  >
                     <i class="bi bi-people-fill text-primary"></i> Clientes
                 </a>
             </div>
@@ -107,8 +107,8 @@
                    data-pdf="{% url 'reportes:exportar_reporte_pdf' 'materiales' %}"
                    data-excel="{% url 'reportes:exportar_reporte_excel' 'materiales' %}"
                    data-xml="{% url 'reportes:exportar_reporte_xml' 'materiales' %}"
-                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" 
-                   style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 u-inline-4eb189190c" 
+                  >
                     <i class="bi bi-bricks text-accent"></i> Inventario
                 </a>
             </div>
@@ -117,8 +117,8 @@
                    data-pdf="{% url 'reportes:exportar_reporte_pdf' 'ventas' %}"
                    data-excel="{% url 'reportes:exportar_reporte_excel' 'ventas' %}"
                    data-xml="{% url 'reportes:exportar_reporte_xml' 'ventas' %}"
-                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" 
-                   style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 u-inline-4eb189190c" 
+                  >
                     <i class="bi bi-cash-stack text-success"></i> Ventas
                 </a>
             </div>
@@ -127,8 +127,8 @@
                    data-pdf="{% url 'reportes:exportar_reporte_pdf' 'pedidos' %}"
                    data-excel="{% url 'reportes:exportar_reporte_excel' 'pedidos' %}"
                    data-xml="{% url 'reportes:exportar_reporte_xml' 'pedidos' %}"
-                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2" 
-                   style="background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--color-border);">
+                   class="btn btn-premium w-100 py-3 rounded-3 d-flex align-items-center justify-content-center gap-2 u-inline-4eb189190c" 
+                  >
                     <i class="bi bi-list-task text-info"></i> Pedidos
                 </a>
             </div>
@@ -144,7 +144,7 @@
                     <span class="text-muted small">Sin datos disponibles</span>
                 </div>
                 <div class="d-flex flex-column align-items-center justify-content-center py-5">
-                    <i class="bi bi-bar-chart text-muted mb-3" style="font-size: 4rem;"></i>
+                    <i class="bi bi-bar-chart text-muted mb-3 u-inline-4824bc6416"></i>
                     <p class="text-muted">No hay suficientes datos para generar estadísticas visuales.</p>
                 </div>
             </div>
@@ -155,47 +155,47 @@
                 <div class="d-flex flex-column gap-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(59, 130, 246, 0.1);">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center u-inline-4b1cc70d43">
                                 <i class="bi bi-people text-primary fs-4"></i>
                             </div>
                             <span class="text-white">Clientes Registrados</span>
                         </div>
-                        <span class="fw-bold text-white" style="font-size: 2rem;">{{ total_clientes }}</span>
+                        <span class="fw-bold text-white u-inline-2b9dc75405">{{ total_clientes }}</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(249, 115, 22, 0.1);">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center u-inline-c4ffca010c">
                                 <i class="bi bi-person-badge text-accent fs-4"></i>
                             </div>
                             <span class="text-white">Conductores Activos</span>
                         </div>
-                        <span class="fw-bold text-white" style="font-size: 2rem;">{{ total_conductores }}</span>
+                        <span class="fw-bold text-white u-inline-2b9dc75405">{{ total_conductores }}</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(16, 185, 129, 0.1);">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center u-inline-3ed64239f1">
                                 <i class="bi bi-bricks text-success fs-4"></i>
                             </div>
                             <span class="text-white">Materiales en Catálogo</span>
                         </div>
-                        <span class="fw-bold text-white" style="font-size: 2rem;">{{ total_materiales }}</span>
+                        <span class="fw-bold text-white u-inline-2b9dc75405">{{ total_materiales }}</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(14, 165, 233, 0.1);">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center u-inline-532db7221a">
                                 <i class="bi bi-truck-flatbed text-info fs-4"></i>
                             </div>
                             <span class="text-white">Vehículos en Flota</span>
                         </div>
-                        <span class="fw-bold text-white" style="font-size: 2rem;">{{ total_vehiculos }}</span>
+                        <span class="fw-bold text-white u-inline-2b9dc75405">{{ total_vehiculos }}</span>
                     </div>
-                    <hr style="border-color: var(--color-border); margin: 0;">
+                    <hr class="u-inline-cd175428a6">
                     <div class="d-flex justify-content-between align-items-center pt-2">
                         <div>
                             <span class="text-muted small d-block">Total Ingresos</span>
-                            <span class="text-success fw-bold" style="font-size: 2.5rem;">${{ total_ingresos }}</span>
+                            <span class="text-success fw-bold u-inline-8c22ea6973">${{ total_ingresos }}</span>
                         </div>
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 55px; height: 55px; background: rgba(16, 185, 129, 0.1);">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center u-inline-6d9130d0fb">
                             <i class="bi bi-cash-stack text-success fs-2"></i>
                         </div>
                     </div>
