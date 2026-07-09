@@ -181,20 +181,25 @@
 }
 
 .auth-terms-link {
-    color: var(--primary-gold, #f2a21b);
-    text-decoration: underline;
+    color: var(--primary-gold, #f2a21b) !important;
+    text-decoration: underline !important;
     text-underline-offset: 3px;
-    font-size: inherit;
-    vertical-align: baseline;
-    background: transparent;
-    border: none;
-    padding: 0;
+    font-size: inherit !important;
+    vertical-align: baseline !important;
+    display: inline !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
     font-weight: 700;
     cursor: pointer;
+    box-shadow: none !important;
+    line-height: inherit !important;
+    white-space: normal !important;
 }
 
 .auth-terms-link:hover {
-    color: #d35400;
+    color: #d35400 !important;
 }
 
 /* =====================================================================
@@ -221,6 +226,35 @@
     text-align: center;
     font-size: 0.875rem;
     margin-top: 1.5rem;
+    line-height: 2;
+}
+
+/* Botones inline de T&C - override fuerte contra Bootstrap */
+.auth-footer-text .auth-terms-link,
+.auth-terms-label .auth-terms-link {
+    display: inline !important;
+    color: var(--primary-gold, #f2a21b) !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: inherit !important;
+    font-weight: 700 !important;
+    text-decoration: underline !important;
+    text-underline-offset: 3px !important;
+    vertical-align: baseline !important;
+    line-height: inherit !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    outline: none !important;
+    white-space: normal !important;
+}
+
+.auth-footer-text .auth-terms-link:hover,
+.auth-terms-label .auth-terms-link:hover {
+    color: #d35400 !important;
+    background: transparent !important;
+    text-decoration: underline !important;
 }
 
 /* =====================================================================

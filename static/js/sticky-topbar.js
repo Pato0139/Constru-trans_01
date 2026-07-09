@@ -1,85 +1,51 @@
 /**
- * @file Sistema de topbar sticky con animación de reducción al hacer scroll
- * @description Aplica comportamiento sticky a todos los headers del dashboard con transiciones suaves
+ * sticky-topbar.js
+ * Detecta scroll y añade/quita la clase 'navbar-scrolled' al .app-navbar.
+ * Funciona escuchando el scroll del window (NO del main, que no tiene overflow).
  */
 
-/**
- * Inicializa el comportamiento sticky para todos los topbars del dashboard
- * @listens DOMContentLoaded
- * @listens scroll
- */
-document.addEventListener('DOMContentLoaded', () => {
-    const navbar = document.querySelector('.app-navbar');
-    const contentHeaders = document.querySelectorAll('.content-header, [class*="header"]:not(.app-navbar):not(header.navbar-premium)');
-    
-    let lastScrollY = window.scrollY;
-    let ticking = false;
+(function () {
+    'use strict';
+
+    var SCROLL_THRESHOLD = 50;
+    var navbar = null;
+    var ticking = false;
 
     /**
-     * Aplica las clases de scroll al navbar
-     * @param {number} scrollY - Posición actual del scroll
+     * Aplica o quita la clase navbar-scrolled según la posición del scroll
      */
-    function updateNavbar(scrollY) {
+    function updateNavbar() {
         if (!navbar) return;
-
-        if (scrollY > 50) {
+        if (window.scrollY > SCROLL_THRESHOLD) {
             navbar.classList.add('navbar-scrolled');
         } else {
             navbar.classList.remove('navbar-scrolled');
         }
+        ticking = false;
     }
 
     /**
-     * Aplica las clases de scroll a los content headers
-     * @param {number} scrollY - Posición actual del scroll
+     * Handler de scroll con requestAnimationFrame para performance
      */
-    function updateContentHeaders(scrollY) {
-        contentHeaders.forEach(header => {
-            if (scrollY > 50) {
-                header.classList.add('header-scrolled');
-            } else {
-                header.classList.remove('header-scrolled');
-            }
-        });
-    }
-
-    /**
-     * Handler optimizado con requestAnimationFrame
-     */
-    function handleScroll() {
-        lastScrollY = window.scrollY;
-
+    function onScroll() {
         if (!ticking) {
-            window.requestAnimationFrame(() => {
-                updateNavbar(lastScrollY);
-                updateContentHeaders(lastScrollY);
-                ticking = false;
-            });
-
+            window.requestAnimationFrame(updateNavbar);
             ticking = true;
         }
     }
 
-    // Aplicar estado inicial
-    updateNavbar(window.scrollY);
-    updateContentHeaders(window.scrollY);
+    /**
+     * Inicialización cuando el DOM esté listo
+     */
+    document.addEventListener('DOMContentLoaded', function () {
+        navbar = document.querySelector('.app-navbar');
+        if (!navbar) return;
 
-    // Escuchar el evento scroll
-    window.addEventListener('scroll', handleScroll, { passive: true });
+        // Estado inicial (por si ya hubo scroll antes del DOMContentLoaded)
+        updateNavbar();
 
-    // Aplicar sticky a cualquier header dinámicamente agregado
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-                if (node.nodeType === 1) {
-                    const newHeaders = node.querySelectorAll('.content-header, [class*="header"]:not(.app-navbar)');
-                    if (newHeaders.length > 0) {
-                        updateContentHeaders(window.scrollY);
-                    }
-                }
-            });
-        });
+        // Escuchar scroll en window
+        window.addEventListener('scroll', onScroll, { passive: true });
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
-});
+})();
