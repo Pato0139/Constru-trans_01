@@ -1,7 +1,7 @@
 {% load static %}
 <footer class="py-5" style="background: #050505; border-top: 1px solid var(--color-border);">
-    <div class="container text-center">
-        <div class="mb-4">
+    <div class="container">
+        <div class="text-center mb-4">
             <img src="{% static 'img/Logo1.jpeg' %}" height="40" class="rounded-1 opacity-75" loading="lazy">
         </div>
         <div class="d-flex justify-content-center gap-4 mb-4">
@@ -9,6 +9,209 @@
             <a href="#" class="text-muted text-decoration-none hover-white"><i class="bi bi-instagram fs-5"></i></a>
             <a href="#" class="text-muted text-decoration-none hover-white"><i class="bi bi-linkedin fs-5"></i></a>
         </div>
-        <p class="text-muted small">© 2026 CONSTRU-TRANS. LOGÍSTICA DE ÉLITE SIN FRONTERAS.</p>
+        <p class="text-muted small text-center mb-3">© 2026 CONSTRU-TRANS. LOGÍSTICA DE ÉLITE SIN FRONTERAS.</p>
+
+        <!-- Links de Créditos y Política -->
+        <div class="d-flex justify-content-center gap-4">
+            <button id="btnCreditos" type="button" class="btn btn-link text-muted" style="cursor: pointer; text-decoration: underline; text-underline-offset: 4px;">
+                <i class="bi bi-image me-1"></i> Créditos y Referencias
+            </button>
+            <button id="btnPrivacidad" type="button" class="btn btn-link text-muted" style="cursor: pointer; text-decoration: underline; text-underline-offset: 4px;">
+                <i class="bi bi-shield-lock me-1"></i> Política de Privacidad
+            </button>
+        </div>
     </div>
 </footer>
+
+<!-- Custom Modal de Créditos -->
+<div id="creditosModalCustom" class="fixed-top d-none" style="z-index: 9999; top: 0; left: 0; right: 0; bottom: 0;">
+    <!-- Backdrop -->
+    <div id="creditosBackdrop" class="position-absolute" style="background: rgba(0,0,0,0.85); top: 0; left: 0; right: 0; bottom: 0;"></div>
+
+    <!-- Modal Content -->
+    <div class="position-relative d-flex justify-content-center align-items-center h-100 p-4">
+        <div class="bg-dark rounded-4 p-5 w-100" style="max-width: 900px; border: 1px solid var(--color-border);">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-white fw-bold d-flex align-items-center gap-2">
+                    <i class="bi bi-image fs-5"></i> Créditos y Referencias
+                </h5>
+                <button id="btnCerrarCreditos" type="button" class="btn btn-link text-muted text-decoration-none p-0" style="font-size: 1.5rem;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <p class="text-muted small mb-4">
+                En cumplimiento con las normas de propiedad intelectual, se listan las referencias y autorías de los recursos audiovisuales y tipográficos utilizados en esta aplicación:
+            </p>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.05); border: 1px solid var(--color-border);">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-fonts text-primary fs-5"></i>
+                            <h6 class="text-white m-0">Tipografías</h6>
+                        </div>
+                        <p class="text-muted small mb-0">
+                            Fuentes Plus Jakarta Sans y Montserrat provistas por Google Fonts bajo la licencia SIL Open Font License (OFL).
+                        </p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.05); border: 1px solid var(--color-border);">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-stars text-primary fs-5"></i>
+                            <h6 class="text-white m-0">Iconografía</h6>
+                        </div>
+                        <p class="text-muted small mb-0">
+                            Íconos vectoriales provistos por Bootstrap Icons bajo la licencia MIT.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.05); border: 1px solid var(--color-border);">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-image text-primary fs-5"></i>
+                            <h6 class="text-white m-0">Imágenes y Fondos</h6>
+                        </div>
+                        <p class="text-muted small mb-2">
+                            Algunas imágenes fueron obtenidas de:
+                        </p>
+                        <a href="https://www.takeoffsoftware.com/wp-content/uploads/2019/02/testimonials-bg-790x555.jpg" target="_blank" rel="noopener noreferrer" class="d-block text-decoration-none text-primary small mb-2">
+                            <i class="bi bi-link-45deg me-1"></i> Takeoff Software
+                        </a>
+                        <p class="text-muted small mb-0">
+                            Recursos adicionales generados con inteligencia artificial (Gemini y ChatGPT) para fines educativos y demostrativos.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.05); border: 1px solid var(--color-border);">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-building text-primary fs-5"></i>
+                            <h6 class="text-white m-0">Identidad Institucional</h6>
+                        </div>
+                        <p class="text-muted small mb-0">
+                            Logotipo y recursos visuales de Constru-Trans desarrollados para fines académicos y de demostración.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Modal de Política de Privacidad -->
+<div id="privacidadModalCustom" class="fixed-top d-none" style="z-index: 9999; top: 0; left: 0; right: 0; bottom: 0;">
+    <!-- Backdrop -->
+    <div id="privacidadBackdrop" class="position-absolute" style="background: rgba(0,0,0,0.85); top: 0; left: 0; right: 0; bottom: 0;"></div>
+
+    <!-- Modal Content -->
+    <div class="position-relative d-flex justify-content-center align-items-center h-100 p-4">
+        <div class="bg-dark rounded-4 p-5 w-100" style="max-width: 900px; border: 1px solid var(--color-border); max-height: 90vh; overflow-y: auto;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-white fw-bold d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-lock fs-5"></i> Política de Privacidad
+                </h5>
+                <button id="btnCerrarPrivacidad" type="button" class="btn btn-link text-muted text-decoration-none p-0" style="font-size: 1.5rem;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="text-white">
+                <h6 class="text-primary mb-3"><i class="bi bi-info-circle me-2"></i> Información General</h6>
+                <p class="text-muted small mb-4">
+                    Esta Política de Privacidad describe cómo Constru-Trans ("nosotros", "nuestro" o "la empresa") recopila, usa y protege la información personal que usted ("usuario" o "usted") proporciona al utilizar nuestra plataforma web. Esta política se aplica a todos los servicios y funcionalidades ofrecidas en nuestro sitio.
+                </p>
+
+                <h6 class="text-primary mb-3"><i class="bi bi-database me-2"></i> Información que Recopilamos</h6>
+                <ul class="text-muted small mb-4">
+                    <li><strong>Información de Identificación Personal:</strong> Nombre, apellidos, correo electrónico, número de teléfono, dirección y otros datos que usted proporciona voluntariamente al registrarse o utilizar nuestros servicios.</li>
+                    <li><strong>Datos de Uso:</strong> Información sobre cómo accede y utiliza nuestra plataforma, incluyendo dirección IP, tipo de navegador, páginas visitadas, tiempo de permanencia y otros datos de análisis.</li>
+                    <li><strong>Datos de Transacciones:</strong> Información relacionada con pedidos, facturación y pagos realizados a través de la plataforma.</li>
+                </ul>
+
+                <h6 class="text-primary mb-3"><i class="bi bi-gear me-2"></i> Uso de la Información</h6>
+                <p class="text-muted small mb-4">
+                    Utilizamos la información recopilada para: (1) Proporcionar y mantener nuestros servicios; (2) Procesar transacciones y enviar confirmaciones; (3) Mejorar la experiencia del usuario; (4) Enviar comunicaciones relevantes (con su consentimiento); (5) Cumplir con obligaciones legales y regulatorias.
+                </p>
+
+                <h6 class="text-primary mb-3"><i class="bi bi-safe2 me-2"></i> Protección de Datos</h6>
+                <p class="text-muted small mb-4">
+                    Implementamos medidas de seguridad técnicas, administrativas y físicas para proteger su información personal contra acceso no autorizado, alteración, divulgación o destrucción.
+                </p>
+
+                <h6 class="text-primary mb-3"><i class="bi bi-globe me-2"></i> Cumplimiento Normativo</h6>
+                <ul class="text-muted small mb-4">
+                    <li><strong>Reglamento General de Protección de Datos (RGPD - UE):</strong> Para usuarios residentes en la Unión Europea, se aplican los derechos de acceso, rectificación, supresión, limitación y portabilidad de datos.</li>
+                    <li><strong>Ley Federal de Protección de Datos Personales Held por los Particulares (LFPDPPP - México):</strong> Cumplimos con las obligaciones establecidas en esta ley para usuarios mexicanos.</li>
+                    <li><strong>Ley de Protección de Datos Personales (Ley 1581 de 2012 - Colombia):</strong> Aplicable para usuarios colombianos, garantizando los derechos de habeas data.</li>
+                    <li><strong>California Consumer Privacy Act (CCPA):</strong> Para residentes de California, derechos sobre información personal y exclusión de ventas.</li>
+                </ul>
+
+                <h6 class="text-primary mb-3"><i class="bi bi-person-check me-2"></i> Sus Derechos</h6>
+                <p class="text-muted small mb-4">
+                    Usted tiene derecho a: acceder, corregir o eliminar su información personal; revocar el consentimiento; oponerse al procesamiento; y solicitar la portabilidad de sus datos. Para ejercer estos derechos, contáctenos a través de los canales indicados.
+                </p>
+
+                <h6 class="text-primary mb-3"><i class="bi bi-envelope me-2"></i> Contacto</h6>
+                <p class="text-muted small mb-0">
+                    Si tiene preguntas sobre esta Política de Privacidad, puede contactarnos a través de: <a href="mailto:construtranscolombia@gmail.com" class="text-primary text-decoration-none">construtranscolombia@gmail.com</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal de Créditos
+    const btnCreditos = document.getElementById('btnCreditos');
+    const btnCerrarCreditos = document.getElementById('btnCerrarCreditos');
+    const creditosModal = document.getElementById('creditosModalCustom');
+    const creditosBackdrop = document.getElementById('creditosBackdrop');
+
+    function abrirModalCreditos() {
+        creditosModal.classList.remove('d-none');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarModalCreditos() {
+        creditosModal.classList.add('d-none');
+        document.body.style.overflow = '';
+    }
+
+    btnCreditos.addEventListener('click', abrirModalCreditos);
+    btnCerrarCreditos.addEventListener('click', cerrarModalCreditos);
+    creditosBackdrop.addEventListener('click', cerrarModalCreditos);
+
+
+    // Modal de Política de Privacidad
+    const btnPrivacidad = document.getElementById('btnPrivacidad');
+    const btnCerrarPrivacidad = document.getElementById('btnCerrarPrivacidad');
+    const privacidadModal = document.getElementById('privacidadModalCustom');
+    const privacidadBackdrop = document.getElementById('privacidadBackdrop');
+
+    function abrirModalPrivacidad() {
+        privacidadModal.classList.remove('d-none');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarModalPrivacidad() {
+        privacidadModal.classList.add('d-none');
+        document.body.style.overflow = '';
+    }
+
+    btnPrivacidad.addEventListener('click', abrirModalPrivacidad);
+    btnCerrarPrivacidad.addEventListener('click', cerrarModalPrivacidad);
+    privacidadBackdrop.addEventListener('click', cerrarModalPrivacidad);
+
+
+    // Cerrar cualquier modal con Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarModalCreditos();
+            cerrarModalPrivacidad();
+        }
+    });
+});
+</script>
