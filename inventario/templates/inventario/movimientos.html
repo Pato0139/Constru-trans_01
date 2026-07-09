@@ -14,30 +14,30 @@
         <h2 class="fw-bold mb-0 text-white"><i class="bi bi-arrow-left-right text-accent me-2"></i>Movimientos de Inventario</h2>
         <div class="d-flex align-items-center gap-2 mt-1">
             <p class="text-white-50 small mb-0">Registro de entradas y salidas de materiales</p>
-            <span class="badge rounded-pill px-3" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: 1px solid rgba(59, 130, 246, 0.2);">{{ movimientos|length }} registros</span>
+            <span class="badge rounded-pill px-3 u-inline-b2204c9e00">{{ movimientos|length }} registros</span>
         </div>
     </div>
 
     <div class="d-flex flex-column flex-md-row gap-2 align-items-center">
-        <div class="w-100" style="max-width: 520px;">
+        <div class="w-100 u-inline-ffa089e03c">
             <div class="d-flex flex-column gap-2" data-aos="fade-left">
                 <form action="{% url 'inventario:movimientos_lista' %}" method="GET" class="d-flex flex-column gap-2" id="filterForm">
-                    <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm" style="background: var(--card-bg); border-color: var(--color-border) !important;">
-                        <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                            <i class="bi bi-search text-dark" style="font-size: 0.9rem;"></i>
+                    <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm u-inline-a493700b8c">
+                        <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center u-inline-7a3b56f7ab">
+                            <i class="bi bi-search text-dark u-inline-27895aa49c"></i>
                         </div>
                         <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
                                placeholder="Buscar por material..." value="{{ query|default:'' }}">
                     </div>
 
                     <div class="d-flex gap-2">
-                        <select name="tipo" id="selectTipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2" style="background: var(--card-bg); color: white; border-color: var(--color-border);">
+                        <select name="tipo" id="selectTipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2 u-inline-11ec6e757e">
                             <option value="">Todos los tipos</option>
                             <option value="entrada" {% if tipo_actual == 'entrada' %}selected{% endif %}>Entrada</option>
                             <option value="salida" {% if tipo_actual == 'salida' %}selected{% endif %}>Salida</option>
                         </select>
                         
-                        <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2" style="border-color: var(--color-border); color: var(--color-text-muted);">
+                        <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9">
                             <i class="bi bi-funnel"></i> Filtrar
                         </button>
                     </div>
@@ -45,32 +45,32 @@
             </div>
         </div>
 
-        <button class="btn btn-warning px-4 fw-bold text-dark" style="border-radius: var(--radius-lg); background-color: var(--color-accent); border: none;" data-bs-toggle="modal" data-bs-target="#modalEntrada">
+        <button class="btn btn-warning px-4 fw-bold text-dark u-inline-142d515f24" data-bs-toggle="modal" data-bs-target="#modalEntrada">
             <i class="bi bi-plus-lg me-2"></i> Registrar Entrada
         </button>
     </div>
 </div>
 
-<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);" data-aos="fade-up">
+<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8" data-aos="fade-up">
     <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02);">
+        <table class="table table-dark table-hover align-middle mb-0 u-inline-16fd8a5fe1">
             <thead>
-                <tr style="border-bottom: 2px solid var(--color-border);">
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Fecha</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Material</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Tipo</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Cantidad</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Motivo</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Usuario</th>
+                <tr class="u-inline-0d59a3f53c">
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Fecha</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Material</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Tipo</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Cantidad</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Motivo</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Usuario</th>
                 </tr>
             </thead>
             <tbody>
                 {% for m in movimientos %}
-                <tr style="border-bottom: 1px solid var(--color-border);">
+                <tr class="u-inline-e91738c112">
                     <td class="py-3 px-4 text-muted small">{{ m.fecha|date:"d/m/Y H:i" }}</td>
                     <td class="py-3 px-4">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark u-inline-f4e11011b6">
                                 {{ m.material.nombre|first }}
                             </div>
                             <span class="fw-medium">{{ m.material.nombre }}</span>
@@ -103,7 +103,7 @@
                 <tr>
                     <td colspan="6" class="text-center py-5">
                         <div class="py-5">
-                            <i class="bi bi-arrow-left-right text-muted mb-3 d-block" style="font-size: 3rem;"></i>
+                            <i class="bi bi-arrow-left-right text-muted mb-3 d-block u-inline-8ae57e885d"></i>
                             <p class="text-muted fw-medium mb-0">No hay movimientos registrados en el sistema</p>
                         </div>
                     </td>
@@ -145,7 +145,7 @@
                 </div>
                 <div class="modal-footer border-secondary">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning px-4 fw-bold text-dark" style="background-color: var(--color-accent); border: none;">
+                    <button type="submit" class="btn btn-warning px-4 fw-bold text-dark u-inline-39e73822ed">
                         GUARDAR ENTRADA
                     </button>
                 </div>

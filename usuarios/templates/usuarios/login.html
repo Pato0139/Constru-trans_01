@@ -94,8 +94,8 @@
 {% endif %}
 
 {% if modo_local %}
-    <div class="alert alert-warning animate__animated animate__fadeIn" style="background: rgba(243, 156, 18, 0.2); border: 1px solid #F39C12; color: #fff; border-radius: 10px; padding: 10px; margin-bottom: 20px;">
-        <i class="bi bi-cloud-slash-fill me-2" style="color: #F39C12;"></i> 
+    <div class="alert alert-warning animate__animated animate__fadeIn u-inline-50a9a51797">
+        <i class="bi bi-cloud-slash-fill me-2 u-inline-319e70efdd"></i> 
         <strong>Modo Local:</strong> No se pudo conectar a la nube. Los cambios solo se guardarán en este equipo hasta que sincronice.
     </div>
 {% endif %}
@@ -112,20 +112,20 @@
         <label class="label-custom">{{ form.password.label }}</label>
         <div class="position-relative">
             {{ form.password }}
-            <button type="button" onclick="togglePassword()" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4" style="background: transparent; z-index: 10;">
-                <i class="bi bi-eye-slash" id="toggleIcon" style="font-size: 1.4rem; color: #F39C12; opacity: 1 !important; text-shadow: 0 0 5px rgba(0,0,0,0.5);"></i>
+            <button type="button" onclick="togglePassword()" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4 u-inline-f7b1d7528c">
+                <i class="bi bi-eye-slash u-inline-701fee2099" id="toggleIcon"></i>
             </button>
         </div>
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="{{ form.remember_me.name }}" id="{{ form.remember_me.id_for_label }}" style="background-color: transparent; border: 2px solid var(--primary-gold);" {% if form.remember_me.value %}checked{% endif %}>
+            <input class="form-check-input u-inline-eb232224dd" type="checkbox" name="{{ form.remember_me.name }}" id="{{ form.remember_me.id_for_label }}" {% if form.remember_me.value %}checked{% endif %}>
             <label class="form-check-label small text-white fw-bold ms-2" for="{{ form.remember_me.id_for_label }}">
                 Recordarme en este dispositivo
             </label>
         </div>
-        <a href="{% url 'usuarios:password_reset' %}" class="text-decoration-none small fw-bold" style="color: var(--primary-gold);">
+        <a href="{% url 'usuarios:password_reset' %}" class="text-decoration-none small fw-bold u-inline-38ae72d06e">
             ¿Se le olvidó la clave?
         </a>
     </div>
@@ -135,7 +135,7 @@
         <div class="recaptcha-mock" onclick="toggleCaptcha()">
             <div class="recaptcha-left">
                 <div class="recaptcha-checkbox" id="captcha-box">
-                    <i class="bi bi-check" style="display: none;" id="captcha-icon"></i>
+                    <i class="bi bi-check u-inline-f2892a2e8a" id="captcha-icon"></i>
                 </div>
                 <span class="recaptcha-text">No soy un robot</span>
             </div>

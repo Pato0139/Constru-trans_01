@@ -85,31 +85,31 @@
     <div class="col-lg-8">
 
       <!-- Resumen de Materiales CT-275 -->
-      <div class="card border-0 shadow-lg mb-4 overflow-hidden" style="background-color: #1a1c23; border-radius: 12px;">
+      <div class="card border-0 shadow-lg mb-4 overflow-hidden u-inline-eac8ddd721">
         <div class="card-header bg-transparent border-0 pt-4 px-4">
-          <h6 class="text-uppercase fw-900 mb-0" style="color: #FF8C00; letter-spacing: 1px; font-size: 0.9rem;">
+          <h6 class="text-uppercase fw-900 mb-0 u-inline-e2cd233ee9">
             RESUMEN DE MATERIALES
           </h6>
         </div>
         <div class="card-body px-4 pb-4">
           <div class="table-responsive">
-            <table class="table table-borderless align-middle mb-0" style="color: #ffffff;">
-              <thead style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <table class="table table-borderless align-middle mb-0 u-inline-7117e3abfb">
+              <thead class="u-inline-dd0d9e7c89">
                 <tr>
-                  <th class="ps-0 text-uppercase fw-800 py-3" style="color: #FF8C00; font-size: 0.8rem;">MATERIAL</th>
-                  <th class="text-center text-uppercase fw-800 py-3" style="color: #FF8C00; font-size: 0.8rem;">CANT.</th>
-                  <th class="pe-0 text-end text-uppercase fw-800 py-3" style="color: #FF8C00; font-size: 0.8rem;">SUBTOTAL</th>
+                  <th class="ps-0 text-uppercase fw-800 py-3 u-inline-fca584a970">MATERIAL</th>
+                  <th class="text-center text-uppercase fw-800 py-3 u-inline-fca584a970">CANT.</th>
+                  <th class="pe-0 text-end text-uppercase fw-800 py-3 u-inline-fca584a970">SUBTOTAL</th>
                 </tr>
               </thead>
-              <tbody style="background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);">
+              <tbody class="u-inline-5e38107553">
                 {% if detalles %}
                   {% for d in detalles %}
-                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                  <tr class="u-inline-81742e12de">
                     <td class="ps-0 py-3 fw-600">
                       {{ d.material.nombre }}
                     </td>
                     <td class="text-center py-3">
-                      <span class="badge rounded-pill px-3 py-2" style="font-size: 0.9rem; background-color: #FF8C00 !important; color: #000000 !important; font-weight: 800; box-shadow: 0 0 15px rgba(255, 140, 0, 0.3);">
+                      <span class="badge rounded-pill px-3 py-2 u-inline-5760ddf5b6">
                         {{ d.cantidad|floatformat:0 }}
                       </span>
                     </td>
@@ -128,7 +128,7 @@
                   {% endfor %}
                 {% else %}
                   <tr>
-                    <td colspan="3" class="text-center py-5 text-white-50 fw-500 italic" style="font-style: italic; opacity: 0.6;">
+                    <td colspan="3" class="text-center py-5 text-white-50 fw-500 italic u-inline-8193d89630">
                       No hay detalles registrados.
                     </td>
                   </tr>
@@ -136,9 +136,9 @@
               </tbody>
               <tfoot>
                 <tr>
-                  <td class="ps-0 pt-4 text-white-50 fw-600" style="font-style: italic; font-size: 1.1rem;">Total de la Orden</td>
+                  <td class="ps-0 pt-4 text-white-50 fw-600 u-inline-16f81590ef">Total de la Orden</td>
                   <td colspan="2" class="pe-0 pt-4 text-end">
-                    <span class="fw-900" id="d-total" style="font-size: 2.2rem; color: #ffffff;">{{ orden.precio|currency }}</span>
+                    <span class="fw-900 u-inline-8f4dee9e87" id="d-total">{{ orden.precio|currency }}</span>
                   </td>
                 </tr>
               </tfoot>
@@ -150,7 +150,7 @@
       </div>
 
       <div class="text-end mt-3">
-          <a href="{% url 'ordenes:ver_pedido_admin' orden.id %}" class="btn btn-warning px-5 py-2 fw-900 rounded-pill shadow-lg" style="letter-spacing: 0.5px;">
+          <a href="{% url 'ordenes:ver_pedido_admin' orden.id %}" class="btn btn-warning px-5 py-2 fw-900 rounded-pill shadow-lg u-inline-5db9ed9f68">
             CONFIRMAR ORDEN →
           </a>
         </div>

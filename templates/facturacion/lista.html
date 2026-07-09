@@ -14,13 +14,13 @@
     <h2 class="fw-bold text-white mb-4">Facturación</h2>
     
     <div class="d-flex flex-column flex-md-row gap-3 align-items-center justify-content-between mb-4">
-        <div class="d-flex gap-3 align-items-center flex-grow-1" style="max-width: 800px;">
+        <div class="d-flex gap-3 align-items-center flex-grow-1 u-inline-6c0f8d518b">
             <form action="." method="GET" class="position-relative flex-grow-1">
                 <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                <input type="text" name="q" class="form-control bg-dark border-secondary text-white ps-5" placeholder="Buscador por numero de factura" style="border-radius: var(--radius-lg);" value="{{ q|default:'' }}">
+                <input type="text" name="q" class="form-control bg-dark border-secondary text-white ps-5 u-inline-e535f3ea53" placeholder="Buscador por numero de factura" value="{{ q|default:'' }}">
             </form>
             <form action="." method="GET" id="filterForm" class="d-flex gap-2">
-                <select name="estado" class="form-select bg-dark border-secondary text-white w-auto" style="border-radius: var(--radius-lg); min-width: 200px;">
+                <select name="estado" class="form-select bg-dark border-secondary text-white w-auto u-inline-163d1ff67a">
                     <option value="">Todos los estados</option>
                     <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
                     <option value="pagada" {% if estado == 'pagada' %}selected{% endif %}>Pagada</option>
@@ -31,11 +31,11 @@
     </div>
 </div>
 
-<div class="table-container" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border); overflow: hidden;">
+<div class="table-container u-inline-ab87d0b2ff">
     <div class="table-responsive">
         <table class="table table-dark mb-0">
             <thead>
-                <tr style="border-bottom: 1px solid var(--color-border);">
+                <tr class="u-inline-e91738c112">
                     <th class="p-4 text-muted small fw-bold">N° Factura</th>
                     <th class="p-4 text-muted small fw-bold">Cliente</th>
                     <th class="p-4 text-muted small fw-bold">Fecha Emisión</th>
@@ -49,7 +49,7 @@
             </thead>
             <tbody>
                 {% for f in facturas %}
-                <tr style="border-bottom: 1px solid var(--color-border);">
+                <tr class="u-inline-e91738c112">
                     <td class="p-4 fw-bold text-accent">{{ f.numero }}</td>
                     <td class="p-4">
                         <div class="fw-medium text-white">{{ f.cliente.nombres }} {{ f.cliente.apellidos }}</div>
@@ -112,7 +112,7 @@
                 {% empty %}
                 <tr>
                     <td colspan="9" class="text-center py-5 text-muted">
-                        <i class="bi bi-receipt mb-3 d-block" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <i class="bi bi-receipt mb-3 d-block u-inline-208090be59"></i>
                         No hay facturas registradas en el sistema
                     </td>
                 </tr>
