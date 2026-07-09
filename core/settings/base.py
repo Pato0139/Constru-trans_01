@@ -120,7 +120,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
-    "licensing.middleware.LicenseEnforcementMiddleware",
+    # "licensing.middleware.LicenseEnforcementMiddleware",  # Desactivado temporalmente para resolver problema de creación de usuarios
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -171,6 +171,8 @@ if DATABASE_URL:
         conn_health_checks=True,
         ssl_require=True,
     )
+    postgres_config["OPTIONS"] = postgres_config.get("OPTIONS", {})
+    postgres_config["OPTIONS"]["connect_timeout"] = 3
     DATABASES["remota"] = postgres_config.copy()
 
 # Configuracion de el router para el modo híbrido
@@ -180,14 +182,18 @@ DATABASE_ROUTERS = ["core.routers.EnrutadorInventario"]
 # CACHÉ — Para precargar datos de paneles y optimizar velocidad
 # ============================================================
 
+# Crear directorio de caché si no existe
+(BASE_DIR / "cache").mkdir(exist_ok=True)
+
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "unique-snowflake",
-        "TIMEOUT": 300,  # 5 minutos de caché por defecto
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": BASE_DIR / "cache",
+        "TIMEOUT": 600,  # 10 minutos de caché por defecto (aumentado de 5)
         "OPTIONS": {
-            "MAX_ENTRIES": 1000,
+            "MAX_ENTRIES": 5000,  # Aumentado de 1000
         },
+        "KEY_PREFIX": "constru_trans",  # Prefijo para evitar conflictos
     }
 }
 

@@ -25,11 +25,11 @@
      * @constant {Object}
      */
     var DEFAULTS = {
-        theme: 'dark',
-        daltonism: 'none',
-        fontSize: 'normal',
-        language: 'es',
-    };
+    theme: 'light',
+    daltonism: 'none',
+    fontSize: 'normal',
+    language: 'es',
+  };
 
     /**
      * Diccionarios de traducción para español e inglés

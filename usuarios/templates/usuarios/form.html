@@ -113,15 +113,15 @@
                     <div class="col-md-6">
                         <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Tipo de Documento</label>
                         <select name="tipo_doc" class="form-select py-2 usuario-select" required>
-                            <option value="CC" {% if usuario.tipo_documento == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
-                            <option value="CE" {% if usuario.tipo_documento == 'CE' %}selected{% endif %}>Cédula de Extranjería</option>
-                            <option value="NIT" {% if usuario.tipo_documento == 'NIT' %}selected{% endif %}>NIT</option>
-                            <option value="PA" {% if usuario.tipo_documento == 'PA' %}selected{% endif %}>Pasaporte</option>
+                            <option value="CC" {% if usuario.tipo_documento == 'CC' or form_data.tipo_doc == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
+                            <option value="CE" {% if usuario.tipo_documento == 'CE' or form_data.tipo_doc == 'CE' %}selected{% endif %}>Cédula de Extranjería</option>
+                            <option value="NIT" {% if usuario.tipo_documento == 'NIT' or form_data.tipo_doc == 'NIT' %}selected{% endif %}>NIT</option>
+                            <option value="PA" {% if usuario.tipo_documento == 'PA' or form_data.tipo_doc == 'PA' %}selected{% endif %}>Pasaporte</option>
                         </select>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Número de Documento</label>
-                        <input type="text" name="documento" class="form-control py-2 usuario-input" placeholder="12345678" value="{{ usuario.documento|default:'' }}" required>
+                        <input type="text" name="documento" class="form-control py-2 usuario-input" placeholder="12345678" value="{% if form_data %}{{ form_data.documento|default:'' }}{% else %}{{ usuario.documento|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios">
                     </div>
                 </div>
 
@@ -140,28 +140,6 @@
                             <span class="input-group-text border-0 usuario-input-group-text"><i class="bi bi-lock"></i></span>
                             <input type="password" name="password" class="form-control py-2 usuario-input" placeholder="••••••••" required>
                         </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if action == 'crear' %}
-                <div class="section-label mb-4 mt-5">
-                    <span class="text-accent fw-800 small text-uppercase usuario-section-label">3. Identificación Oficial</span>
-                    <hr class="mt-2 opacity-10 usuario-divider">
-                </div>
-
-                <div class="row g-4 mb-5">
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Tipo de Documento</label>
-                        <select name="tipo_doc" class="form-select usuario-select" required>
-                            <option value="CC" {% if form_data %}{% if form_data.tipo_doc == 'CC' %}selected{% endif %}{% endif %}>Cédula Ciudadanía</option>
-                            <option value="CE" {% if form_data %}{% if form_data.tipo_doc == 'CE' %}selected{% endif %}{% endif %}>Cédula Extranjería</option>
-                            <option value="NIT" {% if form_data %}{% if form_data.tipo_doc == 'NIT' %}selected{% endif %}{% endif %}>NIT</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Número de Documento</label>
-                        <input type="text" name="documento" class="form-control usuario-input numeric-only" placeholder="12345678" value="{% if form_data %}{{ form_data.documento|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios">
                     </div>
                 </div>
                 {% endif %}
