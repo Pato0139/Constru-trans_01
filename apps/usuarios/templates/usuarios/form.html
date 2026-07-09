@@ -167,11 +167,11 @@
                 {% endif %}
 
                 <div class="d-grid gap-3 mt-4">
-                    <button type="submit" class="btn usuario-submit-btn">
+                    <button type="submit" class="btn usuario-submit-btn" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                         <i class="bi {% if action == 'crear' %}bi-person-check{% else %}bi-save{% endif %} me-2"></i> 
                         {% if action == 'crear' %}Registrar Usuario{% else %}Guardar Cambios{% endif %}
                     </button>
-                    <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-outline-light rounded-pill py-3 usuario-cancel-btn">
+                    <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-outline-light rounded-pill py-3 usuario-cancel-btn" aria-label="Volver" data-tooltip="Volver" title="Volver">
                         <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
                     </a>
                 </div>

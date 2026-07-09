@@ -68,11 +68,11 @@
                     </button>
                     <div class="collapse {% if request.resolver_match.app_name == 'inventario' or request.resolver_match.app_name == 'transporte' %}show{% endif %}" id="inventarioCollapse">
                         <div class="nav-submenu">
-                            <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name in 'materiales_lista,crear_material,editar_material' %}active{% endif %}">
+                            <a href="{% url 'inventario:materiales_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name in 'materiales_lista,crear_material,editar_material' %}active{% endif %}" aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
                                 <i class="bi bi-box"></i>
                                 <span data-i18n="sidebar.materiales">Materiales</span>
                             </a>
-                            <a href="{% url 'inventario:tipos_material_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name in 'tipos_material_lista,crear_tipo_material,editar_tipo_material' %}active{% endif %}">
+                            <a href="{% url 'inventario:tipos_material_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name in 'tipos_material_lista,crear_tipo_material,editar_tipo_material' %}active{% endif %}" aria-label="Agregar tipo de material" data-tooltip="Agregar tipo de material" title="Agregar tipo de material">
                                 <i class="bi bi-tags"></i>
                                 <span data-i18n="sidebar.tiposMaterial">Tipos de Material</span>
                             </a>
@@ -80,7 +80,7 @@
                                 <i class="bi bi-clipboard-data-fill"></i>
                                 <span data-i18n="sidebar.stock">Stock</span>
                             </a>
-                            <a href="{% url 'inventario:movimientos_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'movimientos_lista' %}active{% endif %}">
+                            <a href="{% url 'inventario:movimientos_lista' %}" class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'movimientos_lista' %}active{% endif %}" aria-label="Volver" data-tooltip="Volver" title="Volver">
                                 <i class="bi bi-arrow-left-right"></i>
                                 <span data-i18n="sidebar.movimientos">Movimientos</span>
                             </a>
@@ -169,7 +169,7 @@
                     <span class="nav-icon-wrap nav-icon-wrap--gold"><i class="bi bi-grid-1x2-fill"></i></span>
                     <span data-i18n="sidebar.panelControl">Panel de Control</span>
                 </a>
-                <a href="{% url 'clientes:crear_pedido' %}" class="nav-link-premium nav-link-premium--cta {% if request.resolver_match.url_name == 'crear_pedido' %}active{% endif %}">
+                <a href="{% url 'clientes:crear_pedido' %}" class="nav-link-premium nav-link-premium--cta {% if request.resolver_match.url_name == 'crear_pedido' %}active{% endif %}" aria-label="Agregar pedido" data-tooltip="Agregar pedido" title="Agregar pedido">
                     <span class="nav-icon-wrap nav-icon-wrap--orange"><i class="bi bi-plus-circle-fill"></i></span>
                     <span data-i18n="sidebar.solicitarPedido">Solicitar Pedido</span>
                 </a>

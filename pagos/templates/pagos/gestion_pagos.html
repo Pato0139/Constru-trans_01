@@ -65,7 +65,7 @@
                     <td class="text-center">
                         {% if pago %}
                         <div class="d-flex justify-content-center gap-2">
-                            <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}?tab=pagos" class="btn btn-outline-light btn-sm rounded-pill">
+                            <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}?tab=pagos" class="btn btn-outline-light btn-sm rounded-pill" aria-label="Ver detalle" data-tooltip="Ver detalle" title="Ver detalle">
                                 <i class="bi bi-eye me-2"></i>Detalle
                             </a>
                             {% if pago.estado_pago != 'pago aprobado' %}
@@ -73,7 +73,7 @@
                                 {% csrf_token %}
                                 <input type="hidden" name="pago_id" value="{{ pago.id_pago_pedido }}">
                                 <input type="hidden" name="accion" value="aprobar">
-                                <button type="submit" class="btn btn-success btn-sm rounded-pill">
+                                <button type="submit" class="btn btn-success btn-sm rounded-pill" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                                     <i class="bi bi-check-circle me-2"></i>Aprobar
                                 </button>
                             </form>
@@ -83,7 +83,7 @@
                                 <input type="hidden" name="pago_id" value="{{ pago.id_pago_pedido }}">
                                 <input type="hidden" name="accion" value="rechazar">
                                 <input type="text" name="motivo_rechazo" class="form-control form-control-sm rounded-pill d-inline-block u-inline-d369d47afa" placeholder="Motivo" required>
-                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill mt-1">
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill mt-1" aria-label="Cerrar" data-tooltip="Cerrar" title="Cerrar">
                                     <i class="bi bi-x-circle me-2"></i>Rechazar
                                 </button>
                             </form>

@@ -50,7 +50,7 @@
                         </td>
                         <td class="align-middle fw-bold text-primary">{{ pedido.total|currency }}</td>
                         <td class="text-end align-middle">
-                            <a href="{% url 'gestion_pedidos:detalle' pedido.id %}" class="btn btn-sm btn-outline-light">
+                            <a href="{% url 'gestion_pedidos:detalle' pedido.id %}" class="btn btn-sm btn-outline-light" aria-label="Ver detalle del pedido" data-tooltip="Ver detalle del pedido" title="Ver detalle del pedido">
                                 <i class="fas fa-eye"></i>
                             </a>
                         </td>

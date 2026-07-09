@@ -112,7 +112,7 @@
         <label class="label-custom">{{ form.password.label }}</label>
         <div class="position-relative">
             {{ form.password }}
-            <button type="button" onclick="togglePassword()" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4 u-inline-f7b1d7528c">
+            <button type="button" onclick="togglePassword()" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4 u-inline-f7b1d7528c" aria-label="Ver detalle" data-tooltip="Ver detalle" title="Ver detalle">
                 <i class="bi bi-eye-slash u-inline-701fee2099" id="toggleIcon"></i>
             </button>
         </div>
@@ -156,7 +156,7 @@
         {% endif %}
     </div>
 
-    <button type="submit" class="btn-main d-flex align-items-center justify-content-center" id="loginBtn" onclick="return validateCaptcha(event)">
+    <button type="submit" class="btn-main d-flex align-items-center justify-content-center" id="loginBtn" onclick="return validateCaptcha(event)" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
         <i class="bi bi-box-arrow-in-right me-2"></i> Entrar
     </button>
 </form>

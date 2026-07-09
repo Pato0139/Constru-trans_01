@@ -78,7 +78,7 @@
                                             {% if formset.can_delete %}
                                                 <div class="d-none">{{ mat_form.DELETE }}</div>
                                             {% endif %}
-                                            <button type="button" class="btn btn-link text-danger remove-form-row">
+                                            <button type="button" class="btn btn-link text-danger remove-form-row" aria-label="Eliminar fila" data-tooltip="Eliminar fila" title="Eliminar fila">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </td>
@@ -98,7 +98,7 @@
         </div>
 
         <div class="mt-4 pt-3 border-top border-secondary text-end">
-            <button type="submit" class="btn btn-warning px-5 fw-bold text-uppercase">
+            <button type="submit" class="btn btn-warning px-5 fw-bold text-uppercase" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                 <i class="fas fa-save me-2"></i> Guardar Cambios
             </button>
         </div>
