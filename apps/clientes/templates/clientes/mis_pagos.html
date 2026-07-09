@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load currency_tags %}
+{% load static %}
+
+{% block title %}Mis Pagos - Constru-trans{% endblock %}
+
+{% block content %}
+<div class="table-container p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2 flex-wrap gap-3">
+        <h5 class="fw-800 m-0 text-white">Mis Pagos</h5>
+        <div class="d-flex gap-2">
+            <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2">
+                <i class="bi bi-journal-text"></i> Mis Pedidos
+            </a>
+        </div>
+    </div>
+
+    <!-- Sección 1: Facturas Pendientes -->
+    <div class="mb-5">
+        <h6 class="fw-bold text-white mb-3"><i class="bi bi-exclamation-circle text-warning me-2"></i> Facturas Pendientes (para pagar)</h6>
+        {% if facturas_pendientes %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Nº Factura</th>
+                        <th>Pedido</th>
+                        <th>Fecha</th>
+                        <th>Total</th>
+                        <th>Pagado</th>
+                        <th>Por Pagar</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for factura in facturas_pendientes %}
+                    <tr>
+                        <td class="fw-700 text-accent">{{ factura.numero|default:"Sin número" }}</td>
+                        <td class="text-white">
+                            {% if factura.pedido %}
+                            #CT-{{ factura.pedido.id }}
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ factura.fecha|date:"d/m/Y H:i" }}</td>
+                        <td class="price-tag">{{ factura.total|currency }}</td>
+                        <td class="text-success-emphasis">{{ factura.total_pagado|currency }}</td>
+                        <td class="fw-bold text-accent">{{ factura.saldo_pendiente|currency }}</td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <button class="btn btn-premium btn-premium-gold btn-sm btn-abrir-modal-pago" 
+                                        data-id="{{ factura.id_factura }}"
+                                        data-numero="{{ factura.numero|default:'Sin número' }}"
+                                        data-total="{{ factura.saldo_pendiente }}">
+                                    <i class="bi bi-credit-card me-1"></i> Pagar
+                                </button>
+                                {% if factura.pedido %}
+                                <a href="{% url 'ordenes:descargar_factura' factura.pedido.id %}" class="btn-action" title="Ver PDF" target="_blank">
+                                    <i class="bi bi-file-pdf"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-check-circle fs-1 mb-2"></i>
+            <p class="mb-0">No tienes facturas pendientes de pago.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sección 2: Historial de Pagos -->
+    <div>
+        <h6 class="fw-bold text-white mb-3"><i class="bi bi-clock-history text-info me-2"></i> Historial de Pagos</h6>
+        {% if pagos %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID Pago</th>
+                        <th>Factura</th>
+                        <th>Fecha</th>
+                        <th>Monto</th>
+                        <th>Método</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in pagos %}
+                    <tr>
+                        <td class="fw-700 text-accent">#P-{{ pago.id_pago }}</td>
+                        <td class="text-white">{{ pago.factura.numero|default:"Sin número" }}</td>
+                        <td class="text-muted small">{{ pago.fecha|date:"d M, Y" }}</td>
+                        <td class="price-tag">{{ pago.monto|currency }}</td>
+                        <td class="fw-600 text-white">{{ pago.codigo_metodo_pago.metodo }}</td>
+                        <td>
+                            {% if pago.estado == "completado" %}
+                            <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Completado</span>
+                            {% elif pago.estado == "pendiente" %}
+                            <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                            {% elif pago.estado == "fallido" %}
+                            <span class="badge-tipo" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">Fallido</span>
+                            {% else %}
+                            <span class="badge-tipo" style="background: rgba(107, 114, 128, 0.1); color: #6b7280; border-color: rgba(107, 114, 128, 0.2);">{{ pago.estado|title }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <p class="mb-0">Aún no has realizado ningún pago.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Pago Cliente -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-white-10 shadow-2xl">
+            <div class="modal-header border-white-10">
+                <h5 class="modal-title text-white fw-bold">
+                    <i class="bi bi-cash-stack text-accent me-2"></i>Realizar Pago - <span id="modalFacturaNum"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formPago" action="{% url 'facturacion:registrar_pago' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="factura_id" id="modalFacturaId">
+                <div class="modal-body p-4">
+                    <div class="mb-4 text-center">
+                        <div class="text-white-50 small text-uppercase fw-bold mb-2">Total a Pagar</div>
+                        <h2 class="text-accent fw-bold" id="displayMonto"></h2>
+                        <input type="hidden" name="monto" id="modalMonto">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Método de Pago</label>
+                        <div class="row g-2">
+                            {% for mp in metodos_pago %}
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="metodo" id="metodo_{{ mp.codigo_metodo_pago }}" value="{{ mp.codigo_metodo_pago }}" required>
+                                <label class="btn btn-outline-light w-100 py-3 rounded-4" for="metodo_{{ mp.codigo_metodo_pago }}">
+                                    <i class="bi bi-{% if mp.metodo == 'Efectivo' %}cash{% elif mp.metodo == 'Transferencia' %}bank{% elif mp.metodo == 'Tarjeta' %}credit-card{% else %}phone{% endif %} d-block mb-1 fs-4"></i>
+                                    {{ mp.metodo }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Referencia (Opcional)</label>
+                        <input type="text" name="referencia" class="form-control bg-dark border-white-10 text-white rounded-4" placeholder="Ej: Nº de transferencia, recibo, etc.">
+                    </div>
+                    
+                    <div class="alert alert-info bg-info-subtle border-0 text-info small rounded-4 mb-0">
+                        <i class="bi bi-info-circle me-2"></i> Al confirmar, el administrador recibirá una notificación de tu pago.
+                    </div>
+                </div>
+                <div class="modal-footer border-white-10 p-4">
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-premium btn-premium-gold px-4">Confirmar y Pagar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/facturacion/mis_facturas.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Botones de abrir modal de pago
+    document.querySelectorAll('.btn-abrir-modal-pago').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const numero = this.dataset.numero;
+            const total = this.dataset.total;
+            
+            document.getElementById('modalFacturaId').value = id;
+            document.getElementById('modalFacturaNum').textContent = numero;
+            document.getElementById('modalMonto').value = total;
+            document.getElementById('displayMonto').textContent = `$${parseFloat(total).toFixed(2)}`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('modalPago'));
+            modal.show();
+        });
+    });
+
+    // Formulario de pago
+    document.getElementById('formPago').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                alert(data.mensaje);
+                window.location.reload();
+            } else {
+                alert(data.error || 'Error al realizar el pago');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al realizar el pago');
+        });
+    });
+});
+</script>
+{% endblock %}

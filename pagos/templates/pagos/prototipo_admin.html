@@ -1,0 +1,46 @@
+{% extends "pagos/prototipo_base.html" %}
+
+{% block prototype_content %}
+<div class="prototype-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">Gestión de pagos</h4>
+            <p class="text-muted mb-0">Administración del flujo de pagos, revisión de comprobantes y autorización de despacho.</p>
+        </div>
+        <div class="method-badge"><i class="bi bi-shield-check"></i> Panel de revisión</div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Cliente</th>
+                    <th>Método</th>
+                    <th>Valor</th>
+                    <th>Fecha</th>
+                    <th>Estado pago</th>
+                    <th>Estado pedido</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><strong>{{ order.id }}</strong></td>
+                    <td>{{ order.customer }}</td>
+                    <td>{{ order.payment_method|default:"Transferencia Bancolombia" }}</td>
+                    <td>${{ order.total|floatformat:0 }}</td>
+                    <td>{{ order.delivery_date|default:"Sin fecha" }}</td>
+                    <td><span class="badge bg-info text-dark">{{ order.payment_status }}</span></td>
+                    <td><span class="badge bg-warning text-dark">{{ order.order_status }}</span></td>
+                    <td><a href="{% url 'pagos:prototype_order_detail' order.id %}" class="btn btn-outline-light btn-sm">Ver</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No hay pedidos para revisar.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

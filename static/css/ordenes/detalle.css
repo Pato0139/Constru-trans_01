@@ -1,0 +1,6 @@
+
+.badge-tipo-cancelado {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}

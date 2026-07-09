@@ -20,6 +20,34 @@
     </div>
 
     <div class="table-container p-0" data-aos="fade-up">
+        <!-- Filtros personalizados DataTables -->
+        <div class="card bg-dark border-0 shadow-sm p-3 mb-3 m-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="filter-numero-factura" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Nº Factura">
+                </div>
+                <div class="col-md-2">
+                    <input type="date" id="filter-fecha-emision" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Fecha Emisión">
+                </div>
+                <div class="col-md-2">
+                    <select id="filter-estado-factura" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                        <option value="">Estado (Todos)</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Pagada">Pagada</option>
+                        <option value="Anulada">Anulada</option>
+                    </select>
+                </div>
+                <div class="col-auto ms-auto">
+                    <button class="btn btn-sm btn-outline-secondary" id="clear-filters-facturas" type="button" title="Limpiar filtros">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 text-white">
                 <thead>
@@ -187,6 +215,44 @@ pagosData = {
     ]{% if not forloop.last %},{% endif %}
     {% endfor %}
 };
+
+// JavaScript para los filtros de DataTables
+document.addEventListener('DOMContentLoaded', function() {
+    // Esperar a que DataTables se inicialice en base.js
+    setTimeout(function() {
+        // Seleccionamos la tabla
+        var tableEl = document.querySelector('.table');
+        if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
+            var table = $(tableEl).DataTable();
+            
+            // Índices de columnas:
+            // 0: Nº Factura
+            // 1: Fecha Emisión
+            // 2: Total
+            // 3: Pagado
+            // 4: Por Pagar
+            // 5: Estado
+            // 6: Historial
+            // 7: Acciones
+            
+            $('#filter-numero-factura').on('keyup change', function() {
+                table.column(0).search(this.value).draw();
+            });
+            $('#filter-fecha-emision').on('change', function() {
+                table.column(1).search(this.value).draw();
+            });
+            $('#filter-estado-factura').on('change', function() {
+                table.column(5).search(this.value).draw();
+            });
+            
+            $('#clear-filters-facturas').on('click', function() {
+                $('#filter-numero-factura, #filter-fecha-emision').val('');
+                $('#filter-estado-factura').val('');
+                table.columns().search('').draw();
+            });
+        }
+    }, 150);
+});
 </script>
 <script src="{% static 'js/facturacion/mis_facturas.js' %}"></script>
 {% endblock %}
