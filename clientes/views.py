@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from facturacion.models import Factura
 from ordenes.models import DetallePedido, Pedido
@@ -453,7 +454,7 @@ def crear_pedido(request):
                     stock_obj.save(using=db_alias)
 
             messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente.")
-            return redirect("clientes:mis_pedidos")
+            return redirect(f"{reverse('ordenes:ver_pedido_admin', args=[nuevo_pedido.codigo_pedido])}?tab=pagos")
 
         except ValueError as e:
             messages.error(request, str(e))

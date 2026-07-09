@@ -1,0 +1,134 @@
+{% extends "pagos/prototipo_base.html" %}
+
+{% block prototype_content %}
+<div class="prototype-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">Método de pago</h4>
+            <p class="text-muted mb-0">Selecciona la opción para el pedido <strong>{{ order.id }}</strong>.</p>
+        </div>
+        <div class="method-badge"><i class="bi bi-credit-card"></i> Paso 2</div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="payment-method-card">
+                <h6 class="fw-bold mb-3">Opciones disponibles</h6>
+                <div class="d-grid gap-2">
+                    {% for method in payment_methods %}
+                    <form method="post" enctype="multipart/form-data" class="mb-0">
+                        {% csrf_token %}
+                        <input type="hidden" name="payment_method" value="{{ method }}">
+                        <button class="btn btn-outline-light w-100 text-start" type="submit">
+                            <i class="bi bi-wallet2 me-2"></i>{{ method }}
+                        </button>
+                    </form>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="payment-method-card">
+                {% if order.payment_method == "Nequi" %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Nequi</h5>
+                    <span class="method-badge">Pago digital</span>
+                </div>
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted">Número</p>
+                        <p class="fw-bold mb-0">310 222 4455</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted">Titular</p>
+                        <p class="fw-bold mb-0">Constru-Trans S.A.S.</p>
+                    </div>
+                    <div class="col-12">
+                        <p class="mb-1 text-muted">Valor a pagar</p>
+                        <p class="h4 fw-bold text-success mb-0">${{ order.total|floatformat:0 }}</p>
+                    </div>
+                    <div class="col-12">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Nequi%20Constru-Trans" alt="QR Nequi" class="img-fluid rounded-4" style="max-width: 180px;">
+                    </div>
+                </div>
+                {% elif order.payment_method == "Daviplata" %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Daviplata</h5>
+                    <span class="method-badge">Pago digital</span>
+                </div>
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted">Número</p>
+                        <p class="fw-bold mb-0">311 998 1122</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted">Titular</p>
+                        <p class="fw-bold mb-0">Constru-Trans S.A.S.</p>
+                    </div>
+                    <div class="col-12">
+                        <p class="mb-1 text-muted">Valor a pagar</p>
+                        <p class="h4 fw-bold text-success mb-0">${{ order.total|floatformat:0 }}</p>
+                    </div>
+                    <div class="col-12">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Daviplata%20Constru-Trans" alt="QR Daviplata" class="img-fluid rounded-4" style="max-width: 180px;">
+                    </div>
+                </div>
+                {% elif order.payment_method == "Transferencia Bancolombia" %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Transferencia Bancolombia</h5>
+                    <span class="method-badge">Pago por transferencia</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6"><p class="mb-1 text-muted">Banco</p><p class="fw-bold mb-0">Bancolombia</p></div>
+                    <div class="col-md-6"><p class="mb-1 text-muted">Tipo de cuenta</p><p class="fw-bold mb-0">Ahorros</p></div>
+                    <div class="col-md-6"><p class="mb-1 text-muted">Número</p><p class="fw-bold mb-0">123 456 78901</p><button class="btn btn-sm btn-outline-light mt-2" type="button" data-copy="123 456 78901">Copiar número</button></div>
+                    <div class="col-md-6"><p class="mb-1 text-muted">Titular</p><p class="fw-bold mb-0">Constru-Trans S.A.S.</p></div>
+                    <div class="col-12"><p class="mb-1 text-muted">NIT</p><p class="fw-bold mb-0">900.123.456-7</p></div>
+                    <div class="col-12"><p class="mb-1 text-muted">Valor a pagar</p><p class="h4 fw-bold text-success mb-0">${{ order.total|floatformat:0 }}</p></div>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-truck fs-1 text-warning"></i>
+                    <h5 class="fw-bold mt-3">Pago contra entrega</h5>
+                    <p class="text-muted">El pago se realizará al conductor en el momento de recibir el pedido.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="payment_method" value="Contra entrega">
+                        <button class="btn btn-warning text-dark" type="submit">Confirmar método de pago</button>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% if order.payment_method != "Contra entrega" and order.payment_method %}
+                <hr class="my-4">
+                <h6 class="fw-bold mb-3">Subir comprobante</h6>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="payment_method" value="{{ order.payment_method }}">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Archivo</label>
+                        <input type="file" class="form-control" id="proof-input" name="proof" accept=".pdf,.jpg,.jpeg,.png">
+                    </div>
+                    <div class="preview-box" id="preview-box">
+                        <div class="text-center">
+                            <i class="bi bi-cloud-arrow-up fs-1"></i>
+                            <p class="mb-0 mt-2">Vista previa del comprobante</p>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-3" id="proof-text">Aún no se ha adjuntado ningún archivo.</div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <p class="small mb-0 fw-bold" id="preview-label">Vista previa</p>
+                            <p class="small mb-0 text-muted" id="preview-name"></p>
+                            <p class="small mb-0 text-muted" id="preview-size"></p>
+                        </div>
+                        <button class="btn btn-success" type="submit">Enviar comprobante</button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
