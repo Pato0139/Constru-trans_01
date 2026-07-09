@@ -156,7 +156,7 @@
         {% endif %}
     </div>
 
-    <button type="submit" class="btn-main d-flex align-items-center justify-content-center">
+    <button type="submit" class="btn-main d-flex align-items-center justify-content-center" id="loginBtn" onclick="return validateCaptcha(event)">
         <i class="bi bi-box-arrow-in-right me-2"></i> Entrar
     </button>
 </form>
@@ -189,5 +189,80 @@ function toggleCaptcha() {
         input.checked = false;
     }
 }
+
+function validateCaptcha(event) {
+    const captchaInput = document.getElementById('id_captcha');
+    
+    if (!captchaInput.checked) {
+        event.preventDefault();
+        
+        Swal.fire({
+            icon: 'warning',
+            title: '¡Atención!',
+            text: 'Por favor, confirma que no eres un robot marcando la casilla de reCAPTCHA.',
+            confirmButtonColor: '#F39C12',
+            confirmButtonText: 'Entendido',
+            background: '#1a1a1a',
+            color: '#ffffff',
+            iconColor: '#F39C12'
+        });
+        
+        return false;
+    }
+    
+    return true;
+}
+
+// Intercept form submission for AJAX
+document.querySelector('form').addEventListener('submit', function(e) {
+    const form = this;
+    const loginBtn = document.getElementById('loginBtn');
+    const captchaInput = document.getElementById('id_captcha');
+    
+    // Validate captcha first
+    if (!captchaInput.checked) {
+        e.preventDefault();
+        return false;
+    }
+    
+    e.preventDefault();
+    
+    // Show loading state
+    loginBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Iniciando sesión...';
+    loginBtn.disabled = true;
+    
+    // Submit the form via AJAX
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Redirigir automáticamente sin alert
+            window.location.href = data.redirect_url;
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Usuario o contraseña incorrectos.',
+                confirmButtonColor: '#F39C12',
+                confirmButtonText: 'Intentar nuevamente',
+                background: '#1a1a1a',
+                color: '#ffffff',
+                iconColor: '#dc3545'
+            });
+            loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i> Entrar';
+            loginBtn.disabled = false;
+        }
+    })
+    .catch(() => {
+        // If not AJAX, submit normally
+        form.submit();
+    });
+});
 </script>
 {% endblock %}

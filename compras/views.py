@@ -2,13 +2,14 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from historial.utils import registrar_actividad
 from usuarios.views import admin_required
 
-from .forms import CompraForm, DetalleCompraFormSet
-from .models import Compra, Proveedor
+from .forms import CompraForm, DetalleCompraFormSet, ProveedorPerfilForm, ProveedorMaterialFormSet
+from .models import Compra, Proveedor, ProveedorMaterial
 
 
 @admin_required
@@ -275,3 +276,56 @@ def editar_proveedor(request, codigo_proveedor):
     context = {"proveedor": proveedor, "action": "Editar"}
 
     return render(request, "compras/proveedor_form.html", context)
+
+
+@admin_required
+def perfil_proveedor(request, codigo_proveedor):
+    proveedor = get_object_or_404(Proveedor, codigo_proveedor=codigo_proveedor)
+
+    if request.method == "POST":
+        form = ProveedorPerfilForm(request.POST, instance=proveedor)
+        formset = ProveedorMaterialFormSet(request.POST, instance=proveedor, prefix="catalogo")
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            messages.success(request, "Perfil del proveedor actualizado correctamente.")
+            return redirect("compras:perfil_proveedor", codigo_proveedor=proveedor.codigo_proveedor)
+    else:
+        form = ProveedorPerfilForm(instance=proveedor)
+        formset = ProveedorMaterialFormSet(instance=proveedor, prefix="catalogo")
+
+    return render(request, "compras/proveedor_perfil.html", {
+        "proveedor": proveedor,
+        "form": form,
+        "formset": formset,
+    })
+
+
+@admin_required
+def materiales_proveedor_json(request, codigo_proveedor):
+    proveedor = get_object_or_404(Proveedor, codigo_proveedor=codigo_proveedor)
+    materiales = (
+        ProveedorMaterial.objects.filter(proveedor=proveedor, activo=True)
+        .select_related("material", "material__unidad_medida")
+        .order_by("material__nombre")
+    )
+
+    data = [
+        {
+            "id": item.material_id,
+            "nombre": item.material.nombre,
+            "unidad": getattr(item.material.unidad_medida, "abreviatura", ""),
+            "precio": str(item.precio_proveedor),
+            "referencia": item.referencia_proveedor,
+        }
+        for item in materiales
+    ]
+
+    return JsonResponse({
+        "proveedor": {
+            "id": proveedor.codigo_proveedor,
+            "nombre": proveedor.nombre_empresa,
+            "contacto": proveedor.contacto_nombre,
+        },
+        "materiales": data,
+    })

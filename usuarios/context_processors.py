@@ -56,10 +56,25 @@ def notificaciones_context(request):
 
 def modo_context(request):
     """Estado de BD local/remota y preferencia de sesión para la UI."""
+    from django.core.cache import cache
+    
     remota_configurada = "remota" in settings.DATABASES
-    remota_disponible = remota_configurada and conexion_remota_disponible()
-    usando_remota = debe_usar_bd_remota()
-    preferencia = request.session.get("bd_preferida", PREF_AUTO)
+    
+    # Get remota_disponible from cache to avoid repeated expensive calls
+    cache_key = "core:conexion_remota_disponible"
+    remota_disponible = cache.get(cache_key)
+    if remota_disponible is None and remota_configurada:
+        remota_disponible = conexion_remota_disponible()
+    elif not remota_configurada:
+        remota_disponible = False
+    
+    try:
+        from core.db_preference import debe_usar_bd_remota
+        usando_remota = debe_usar_bd_remota() if remota_disponible else False
+    except (ImportError, Exception):
+        usando_remota = False
+    
+    preferencia = request.session.get("bd_preferida", "auto")
 
     if usando_remota:
         bd_etiqueta = "Remoto (Neon)"

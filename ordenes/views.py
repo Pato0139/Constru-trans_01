@@ -314,6 +314,9 @@ def ver_pedido_admin(request, id):
                 return redirect("usuarios:panel")
 
         elif request.user.usuario.rol == "admin":
+            if orden.estado == Orden.CANCELADO:
+                messages.info(request, "El pedido está cancelado. Solo se permite su consulta.")
+                return redirect("ordenes:ver_pedido_admin", id=orden.codigo_pedido)
             db_alias = "remota" if debe_usar_bd_remota() else "default"
             nuevo_estado = request.POST.get("estado")
             if nuevo_estado:
