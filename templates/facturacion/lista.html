@@ -1,225 +1,119 @@
 {% extends "base.html" %}
-{% load currency_tags %}
+{% load humanize currency_tags %}
+{% load static %}
+
+{% block title %}Facturación - ConstruTrans{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/facturacion/lista.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="table-container p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-2">
-                    <li class="breadcrumb-item text-muted">Inicio</li>
-                    <li class="breadcrumb-item active text-white" aria-current="page">Facturación</li>
-                </ol>
-            </nav>
-            <h4 class="fw-800 m-0 text-white">Facturación</h4>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{% url 'facturacion:crear' %}" class="btn btn-primary btn-sm px-3">
-                <i class="bi bi-plus-lg me-1"></i> Nueva Factura
-            </a>
-        </div>
-    </div>
 
-    <!-- Filtros -->
-    <div class="card bg-dark border-0 shadow-sm p-3 mb-4">
-        <div class="row g-3 align-items-center">
-            <div class="col-auto">
-                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
-            </div>
-            <div class="col-md-3">
-                <input type="text" id="filter-cliente" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Cliente">
-            </div>
-            <div class="col-md-3">
-                <input type="text" id="filter-numero" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="N° Factura">
-            </div>
-            <div class="col-md-3">
-                <select id="filter-estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
-                    <option value="">Estado (Todos)</option>
-                    <option value="Pendiente">Pendiente</option>
-                    <option value="Pagada">Pagada</option>
-                    <option value="Anulada">Anulada</option>
+<div class="mb-4">
+    <h2 class="fw-bold text-white mb-4">Facturación</h2>
+    
+    <div class="d-flex flex-column flex-md-row gap-3 align-items-center justify-content-between mb-4">
+        <div class="d-flex gap-3 align-items-center flex-grow-1 u-inline-6c0f8d518b">
+            <form action="." method="GET" class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                <input type="text" name="q" class="form-control bg-dark border-secondary text-white ps-5 u-inline-e535f3ea53" placeholder="Buscador por numero de factura" value="{{ q|default:'' }}">
+            </form>
+            <form action="." method="GET" id="filterForm" class="d-flex gap-2">
+                <select name="estado" class="form-select bg-dark border-secondary text-white w-auto u-inline-163d1ff67a">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="pagada" {% if estado == 'pagada' %}selected{% endif %}>Pagada</option>
+                    <option value="anulada" {% if estado == 'anulada' %}selected{% endif %}>Anulada</option>
                 </select>
-            </div>
-            <div class="col-auto ms-auto">
-                <button class="btn btn-sm btn-outline-secondary" id="clear-filters" type="button" title="Limpiar filtros">
-                    <i class="bi bi-x-circle"></i>
-                </button>
-            </div>
+            </form>
         </div>
     </div>
+</div>
 
+<div class="table-container u-inline-ab87d0b2ff">
     <div class="table-responsive">
-        <table id="tablaFacturas" class="table table-hover align-middle">
+        <table class="table table-dark mb-0">
             <thead>
-                <tr>
-                    <th>N° FACTURA</th>
-                    <th>CLIENTE</th>
-                    <th>FECHA EMISIÓN</th>
-                    <th>TOTAL</th>
-                    <th>PAGADO</th>
-                    <th>POR PAGAR</th>
-                    <th>ESTADO</th>
-                    <th>HISTORIAL</th>
-                    <th class="text-center">ACCIONES</th>
+                <tr class="u-inline-e91738c112">
+                    <th class="p-4 text-muted small fw-bold">N° Factura</th>
+                    <th class="p-4 text-muted small fw-bold">Cliente</th>
+                    <th class="p-4 text-muted small fw-bold">Fecha Emisión</th>
+                    <th class="p-4 text-muted small fw-bold text-end">Total</th>
+                    <th class="p-4 text-muted small fw-bold text-end">Pagado</th>
+                    <th class="p-4 text-muted small fw-bold text-end">Por Pagar</th>
+                    <th class="p-4 text-muted small fw-bold text-center">Estado</th>
+                    <th class="p-4 text-muted small fw-bold text-center">Historial</th>
+                    <th class="p-4 text-muted small fw-bold text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for factura in facturas %}
-                <tr>
-                    <td class="fw-700 text-accent">{{ factura.numero }}</td>
-                    <td>
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="avatar-sm">
-                                {% if factura.cliente.avatar %}
-                                <img src="{{ factura.cliente.avatar.url }}" alt="" class="img-fluid">
-                                {% else %}
-                                <span>{{ factura.cliente.nombre|make_list|first|upper }}{{ factura.cliente.apellido|make_list|first|upper }}</span>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <div class="fw-600 text-white">{{ factura.cliente.nombre }} {{ factura.cliente.apellido }}</div>
-                                <div class="text-muted small">ID: {{ factura.cliente.identificacion }}</div>
-                            </div>
-                        </div>
+                {% for f in facturas %}
+                <tr class="u-inline-e91738c112">
+                    <td class="p-4 fw-bold text-accent">{{ f.numero }}</td>
+                    <td class="p-4">
+                        <div class="fw-medium text-white">{{ f.cliente.nombres }} {{ f.cliente.apellidos }}</div>
+                        <div class="text-muted small">ID: {{ f.cliente.id }}</div>
                     </td>
-                    <td class="text-muted">{{ factura.fecha_emision|date:"d/m/Y" }}</td>
-                    <td class="fw-700">{{ factura.total|currency }}</td>
-                    <td class="text-success">{{ factura.total_pagado|currency }}</td>
-                    <td class="text-danger">{{ factura.saldo_pendiente|currency }}</td>
-                    <td>
-                        {% if factura.estado == 'pagada' %}
-                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Pagada</span>
-                        {% elif factura.estado == 'pendiente' %}
-                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                    <td class="p-4 text-muted small">{{ f.fecha_emision|date:"d/m/Y H:i" }}</td>
+                    <td class="p-4 text-end text-white-50">{{ f.total|currency }}</td>
+                    <td class="p-4 text-end text-success-emphasis">{{ f.total_pagado|currency }}</td>
+                    <td class="p-4 text-end fw-bold text-accent">{{ f.saldo_pendiente|currency }}</td>
+                    <td class="p-4 text-center">
+                        {% if f.estado == 'pendiente' %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle px-3">Pendiente</span>
+                        {% elif f.estado == 'pagada' %}
+                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3">Pagada</span>
                         {% else %}
-                        <span class="badge-tipo" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">Anulada</span>
+                            <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3">Anulada</span>
                         {% endif %}
                     </td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-link btn-sm text-muted p-0" data-bs-toggle="modal" data-bs-target="#historialModal{{ factura.id }}">
-                            <i class="bi bi-clock-history"></i>
+                    <td class="p-4 text-center">
+                        <button class="btn btn-sm btn-outline-info rounded-pill px-3 btn-ver-historial" 
+                                type="button"
+                                data-numero="{{ f.numero }}"
+                                data-id="{{ f.id }}" title="Ver historial">
+                            <i class="bi bi-list-check"></i>
                         </button>
                     </td>
-                    <td class="text-center">
+                    <td class="p-4 text-center">
                         <div class="d-flex justify-content-center gap-2">
-                            <a href="{% url 'facturacion:detalle' factura.id %}" class="btn-action" title="Ver Detalles">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            {% if factura.estado == 'pendiente' %}
-                            <button type="button" class="btn-action text-primary" data-bs-toggle="modal" data-bs-target="#pagoModal{{ factura.id }}" title="Registrar Pago">
-                                <i class="bi bi-cash-coin"></i>
+                            {% if f.estado == 'pendiente' %}
+                            <button class="btn btn-premium btn-premium-gold btn-sm px-3 btn-abrir-modal-pago" 
+                                    type="button"
+                                    data-id="{{ f.id }}"
+                                    data-numero="{{ f.numero }}"
+                                    data-saldo="{{ f.saldo_pendiente }}"
+                                    title="Pagar">
+                                <i class="bi bi-cash-stack"></i>
                             </button>
-                            <button type="button" class="btn-action text-danger" data-bs-toggle="modal" data-bs-target="#anularModal{{ factura.id }}" title="Anular Factura">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 btn-abrir-modal-editar" 
+                                    type="button"
+                                    data-id="{{ f.id }}"
+                                    data-numero="{{ f.numero }}"
+                                    data-total="{{ f.total }}"
+                                    title="Editar Monto">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3 btn-anular-factura" 
+                                    type="button"
+                                    data-id="{{ f.id }}"
+                                    data-numero="{{ f.numero }}"
+                                    title="Anular/Cancelar">
                                 <i class="bi bi-x-circle"></i>
                             </button>
                             {% endif %}
-                            <a href="{% url 'facturacion:pdf' factura.id %}" class="btn-action" title="Descargar PDF" target="_blank">
-                                <i class="bi bi-file-earmark-pdf"></i>
+                            <a href="{% url 'ordenes:descargar_factura' f.orden.id %}" class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3" title="Descargar PDF" target="_blank">
+                                <i class="bi bi-file-pdf"></i>
                             </a>
                         </div>
                     </td>
                 </tr>
-
-                <!-- Modal Historial -->
-                <div class="modal fade" id="historialModal{{ factura.id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content bg-dark border-0">
-                            <div class="modal-header border-0">
-                                <h5 class="modal-title text-white">Historial de Pagos</h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                {% if factura.pagos.all %}
-                                <div class="list-group">
-                                    {% for pago in factura.pagos.all %}
-                                    <div class="list-group-item bg-dark border-secondary">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <div class="fw-600 text-white">{{ pago.metodo_pago }}</div>
-                                                <div class="text-muted small">{{ pago.fecha_pago|date:"d/m/Y H:i" }}</div>
-                                            </div>
-                                            <span class="fw-700 text-success">{{ pago.monto|currency }}</span>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <div class="text-center py-5 text-muted">
-                                    <i class="bi bi-inbox fs-2 mb-3"></i>
-                                    No hay pagos registrados
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal Pago -->
-                <div class="modal fade" id="pagoModal{{ factura.id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content bg-dark border-0">
-                            <form action="{% url 'facturacion:registrar_pago' factura.id %}" method="post">
-                                {% csrf_token %}
-                                <div class="modal-header border-0">
-                                    <h5 class="modal-title text-white">Registrar Pago</h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label class="form-label text-white">Monto</label>
-                                        <input type="number" step="0.01" name="monto" class="form-control bg-dark text-white" value="{{ factura.saldo_pendiente }}" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label text-white">Método de Pago</label>
-                                        <select name="metodo_pago" class="form-select bg-dark text-white" required>
-                                            <option value="Efectivo">Efectivo</option>
-                                            <option value="Transferencia">Transferencia</option>
-                                            <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
-                                            <option value="Tarjeta de Débito">Tarjeta de Débito</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label text-white">Referencia (opcional)</label>
-                                        <input type="text" name="referencia" class="form-control bg-dark text-white">
-                                    </div>
-                                </div>
-                                <div class="modal-footer border-0">
-                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-primary btn-sm">Registrar</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal Anular -->
-                <div class="modal fade" id="anularModal{{ factura.id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content bg-dark border-0">
-                            <form action="{% url 'facturacion:anular' factura.id %}" method="post">
-                                {% csrf_token %}
-                                <div class="modal-header border-0">
-                                    <h5 class="modal-title text-white">Anular Factura</h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <p class="text-white">¿Estás seguro de que deseas anular la factura {{ factura.numero }}?</p>
-                                    <p class="text-muted small">Esta acción no se puede deshacer.</p>
-                                </div>
-                                <div class="modal-footer border-0">
-                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-danger btn-sm">Anular</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
                 {% empty %}
                 <tr>
                     <td colspan="9" class="text-center py-5 text-muted">
-                        <i class="bi bi-inbox fs-2 mb-3"></i>
-                        No hay facturas registradas
+                        <i class="bi bi-receipt mb-3 d-block u-inline-208090be59"></i>
+                        No hay facturas registradas en el sistema
                     </td>
                 </tr>
                 {% endfor %}
@@ -228,71 +122,13 @@
     </div>
 </div>
 
-<style>
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
-    .fw-600 { font-weight: 600; }
-    .text-accent { color: var(--color-accent) !important; }
-</style>
+{% include "facturacion/modales_factura.html" %}
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-        var tableEl = document.getElementById('tablaFacturas');
-        if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
-            var table = $(tableEl).DataTable();
-        } else {
-            var table = $(tableEl).DataTable({
-                "pageLength": 10,
-                "lengthMenu": [10, 25, 50, 100],
-                "language": {
-                    "processing": '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>',
-                    "search": "Buscar:",
-                    "lengthMenu": "Mostrar _MENU_ registros",
-                    "zeroRecords": "No se encontraron registros",
-                    "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_",
-                    "infoEmpty": "No hay registros disponibles",
-                    "infoFiltered": "(filtrado de _MAX_ registros totales)",
-                    "paginate": {
-                        "first": "Primero",
-                        "last": "Último",
-                        "next": "Siguiente",
-                        "previous": "Anterior"
-                    }
-                }
-            });
-        }
-
-        // Índices de columnas:
-        // 0: N° FACTURA
-        // 1: CLIENTE
-        // 2: FECHA EMISIÓN
-        // 3: TOTAL
-        // 4: PAGADO
-        // 5: POR PAGAR
-        // 6: ESTADO
-        // 7: HISTORIAL
-        // 8: ACCIONES
-
-        $('#filter-cliente').on('keyup change', function() {
-            table.column(1).search(this.value).draw();
-        });
-        $('#filter-numero').on('keyup change', function() {
-            table.column(0).search(this.value).draw();
-        });
-        $('#filter-estado').on('change', function() {
-            table.column(6).search(this.value).draw();
-        });
-
-        $('#clear-filters').on('click', function() {
-            $('#filter-cliente, #filter-numero').val('');
-            $('#filter-estado').val('');
-            table.columns().search('').draw();
-        });
-    }, 150);
-});
+const csrfToken = '{{ csrf_token }}';
 </script>
+<script src="{% static 'js/facturacion/lista.js' %}"></script>
 {% endblock %}

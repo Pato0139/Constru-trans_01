@@ -14,85 +14,70 @@
         <h2 class="fw-bold mb-0 text-white"><i class="bi bi-arrow-left-right text-accent me-2"></i>Movimientos de Inventario</h2>
         <div class="d-flex align-items-center gap-2 mt-1">
             <p class="text-white-50 small mb-0">Registro de entradas y salidas de materiales</p>
-            <span class="badge rounded-pill px-3" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); color: var(--color-primary); border: 1px solid rgba(59, 130, 246, 0.2);">{{ movimientos|length }} registros</span>
+            <span class="badge rounded-pill px-3 u-inline-b2204c9e00">{{ movimientos|length }} registros</span>
         </div>
     </div>
 
-    <div class="d-flex gap-2 align-items-center" data-aos="fade-left">
-        <button class="btn btn-warning px-4 fw-bold text-dark" style="border-radius: var(--radius-lg); background-color: var(--color-accent); border: none;" data-bs-toggle="modal" data-bs-target="#modalEntrada">
+    <div class="d-flex flex-column flex-md-row gap-2 align-items-center">
+        <div class="w-100 u-inline-ffa089e03c">
+            <div class="d-flex flex-column gap-2" data-aos="fade-left">
+                <form action="{% url 'inventario:movimientos_lista' %}" method="GET" class="d-flex flex-column gap-2" id="filterForm">
+                    <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm u-inline-a493700b8c">
+                        <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center u-inline-7a3b56f7ab">
+                            <i class="bi bi-search text-dark u-inline-27895aa49c"></i>
+                        </div>
+                        <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
+                               placeholder="Buscar por material..." value="{{ query|default:'' }}">
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <select name="tipo" id="selectTipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2 u-inline-11ec6e757e">
+                            <option value="">Todos los tipos</option>
+                            <option value="entrada" {% if tipo_actual == 'entrada' %}selected{% endif %}>Entrada</option>
+                            <option value="salida" {% if tipo_actual == 'salida' %}selected{% endif %}>Salida</option>
+                        </select>
+                        
+                        <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9">
+                            <i class="bi bi-funnel"></i> Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <button class="btn btn-warning px-4 fw-bold text-dark u-inline-142d515f24" data-bs-toggle="modal" data-bs-target="#modalEntrada">
             <i class="bi bi-plus-lg me-2"></i> Registrar Entrada
         </button>
     </div>
 </div>
 
-<div class="card bg-dark border-0 shadow-sm p-3 mb-4" data-aos="fade-down">
-    <form action="." method="GET" id="filterForm">
-        <div class="row g-3 align-items-center">
-            <div class="col-auto">
-                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
-            </div>
-            
-            <div class="col-md-2">
-                <input type="date" name="fecha" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border); color-scheme: dark;" value="{{ fecha|default:'' }}">
-            </div>
-
-            <div class="col-md-3">
-                <input type="text" name="material" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Material o Motivo" value="{{ material|default:'' }}">
-            </div>
-            
-            <div class="col-md-2">
-                <select name="tipo" id="selectTipo" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
-                    <option value="">Tipo (Todos)</option>
-                    <option value="entrada" {% if tipo_actual == 'entrada' %}selected{% endif %}>Entrada</option>
-                    <option value="salida" {% if tipo_actual == 'salida' %}selected{% endif %}>Salida</option>
-                </select>
-            </div>
-
-            <div class="col-md-2">
-                <input type="text" name="usuario" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Usuario" value="{{ usuario|default:'' }}">
-            </div>
-            
-            <div class="col-auto ms-auto d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-primary px-3">
-                    <i class="bi bi-search me-1"></i> Buscar
-                </button>
-                {% if fecha or material or tipo_actual or usuario %}
-                <a href="." class="btn btn-sm btn-outline-secondary" title="Limpiar filtros">
-                    <i class="bi bi-x-circle"></i>
-                </a>
-                {% endif %}
-            </div>
-        </div>
-    </form>
-</div>
-
-<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);" data-aos="fade-up">
+<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8" data-aos="fade-up">
     <div class="table-responsive">
-        <table id="tablaMovimientos" class="table table-dark table-hover align-middle mb-0 no-datatable" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02);">
+        <table class="table table-dark table-hover align-middle mb-0 u-inline-16fd8a5fe1">
             <thead>
-                <tr style="border-bottom: 2px solid var(--color-border);">
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Fecha</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Material</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Tipo</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Cantidad</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Motivo</th>
-                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold" style="letter-spacing: 1px;">Usuario</th>
+                <tr class="u-inline-0d59a3f53c">
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Fecha</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Material</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Tipo</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Cantidad</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Motivo</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Usuario</th>
                 </tr>
             </thead>
             <tbody>
                 {% for m in movimientos %}
-                <tr style="border-bottom: 1px solid var(--color-border);">
+                <tr class="u-inline-e91738c112">
                     <td class="py-3 px-4 text-muted small">{{ m.fecha|date:"d/m/Y H:i" }}</td>
                     <td class="py-3 px-4">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark u-inline-f4e11011b6">
                                 {{ m.material.nombre|first }}
                             </div>
                             <span class="fw-medium">{{ m.material.nombre }}</span>
                         </div>
                     </td>
                     <td class="py-3 px-4">
-                        {% if m.tipo_movimiento == 'entrada' %}
+                        {% if m.tipo == 'entrada' %}
                             <span class="badge bg-success-subtle text-success px-3">
                                 <i class="bi bi-arrow-down-left me-1"></i>Entrada
                             </span>
@@ -102,15 +87,15 @@
                             </span>
                         {% endif %}
                     </td>
-                    <td class="py-3 px-4 fw-bold {% if m.tipo_movimiento == 'entrada' %}text-success{% else %}text-danger{% endif %}">
-                        {% if m.tipo_movimiento == 'entrada' %}+{% else %}-{% endif %}{{ m.cantidad }}
+                    <td class="py-3 px-4 fw-bold {% if m.tipo == 'entrada' %}text-success{% else %}text-danger{% endif %}">
+                        {% if m.tipo == 'entrada' %}+{% else %}-{% endif %}{{ m.cantidad }}
                     </td>
-                    <td class="py-3 px-4 text-muted">{{ m.observacion }}</td>
+                    <td class="py-3 px-4 text-muted">{{ m.motivo }}</td>
                     <td class="py-3 px-4 small">
                         {% if m.usuario %}
                             {{ m.usuario.username }}
                         {% else %}
-                            <span class="text-muted fst-italic">Sistema</span>
+                            <span class="text-muted italic">Sistema</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -118,7 +103,7 @@
                 <tr>
                     <td colspan="6" class="text-center py-5">
                         <div class="py-5">
-                            <i class="bi bi-arrow-left-right text-muted mb-3 d-block" style="font-size: 3rem;"></i>
+                            <i class="bi bi-arrow-left-right text-muted mb-3 d-block u-inline-8ae57e885d"></i>
                             <p class="text-muted fw-medium mb-0">No hay movimientos registrados en el sistema</p>
                         </div>
                     </td>
@@ -160,7 +145,7 @@
                 </div>
                 <div class="modal-footer border-secondary">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning px-4 fw-bold text-dark" style="background-color: var(--color-accent); border: none;">
+                    <button type="submit" class="btn btn-warning px-4 fw-bold text-dark u-inline-39e73822ed">
                         GUARDAR ENTRADA
                     </button>
                 </div>
@@ -174,31 +159,6 @@
 {% block extra_js %}
 <script>
 const urlRegistrarEntrada = "{% url 'inventario:registrar_entrada' %}";
-
-document.addEventListener('DOMContentLoaded', function() {
-    if ($.fn.DataTable.isDataTable('#tablaMovimientos')) {
-        $('#tablaMovimientos').DataTable().destroy();
-    }
-    
-    $('#tablaMovimientos').DataTable({
-        "language": {
-            "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-            "infoEmpty": "No hay registros disponibles",
-            "infoFiltered": "(filtrado de _MAX_ registros totales)",
-            "paginate": {
-                "first": "Primero",
-                "last": "Último",
-                "next": "Siguiente",
-                "previous": "Anterior"
-            }
-        },
-        "pageLength": 10,
-        "responsive": true,
-        "dom": 'rt<"d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4 p-4 border-top border-white-5"ip>',
-        "order": [],
-        "ordering": false
-    });
-});
 </script>
 <script src="{% static 'js/inventario/movimientos.js' %}"></script>
 {% endblock %}

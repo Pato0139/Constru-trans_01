@@ -214,8 +214,8 @@
             {% if user.usuario.foto_perfil %}
                 <img src="{{ user.usuario.foto_perfil.url }}" class="rounded-circle navbar-avatar-img" width="40" height="40" alt="Avatar" loading="lazy">
             {% else %}
-                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold navbar-avatar-default" 
-                     style="background-color: {{ user.usuario.color_avatar }};">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold navbar-avatar-default js-dynamic-bg" 
+                     data-bg-color="{{ user.usuario.color_avatar }}">
                     {{ user.usuario.iniciales }}
                 </div>
             {% endif %}
