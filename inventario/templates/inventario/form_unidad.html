@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if action == 'crear' %}Nueva Unidad de Medida{% else %}Editar Unidad de Medida{% endif %} - Constru-trans
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="table-container p-4 p-md-5 border-0 shadow-lg u-inline-47ff80852a">
+            <div class="text-center mb-5">
+                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow u-inline-07d9b275b0">
+                    <i class="bi {% if action == 'crear' %}bi-rulers{% else %}bi-pencil-square{% endif %} text-dark fs-2"></i>
+                </div>
+                <h3 class="fw-900 text-white mb-2">
+                    {% if action == 'crear' %}Nueva Unidad de Medida{% else %}Editar Unidad de Medida{% endif %}
+                </h3>
+                <p class="text-muted small text-uppercase fw-700 u-inline-1ddabe40c2">
+                    Control de unidades de medida estándar
+                </p>
+            </div>
+
+            {% if form.errors %}
+                <div class="alert alert-danger rounded-4 px-4 mb-4 border-0 shadow-sm animate__animated animate__shakeX u-inline-d124d549e7">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <div>{{ field.label }}: {{ error }}</div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Código</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
+                            <i class="bi bi-qr-code"></i>
+                        </span>
+                        {{ form.codigo }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Nombre de la Unidad</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
+                            <i class="bi bi-card-text"></i>
+                        </span>
+                        {{ form.nombre }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Abreviatura</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
+                            <i class="bi bi-type"></i>
+                        </span>
+                        {{ form.abreviatura }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Descripción</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
+                            <i class="bi bi-text-paragraph"></i>
+                        </span>
+                        {{ form.descripcion }}
+                    </div>
+                </div>
+
+                <div class="mb-4 form-check">
+                    {{ form.activa }}
+                    <label class="form-check-label text-white-75" for="id_activa">Activa</label>
+                </div>
+
+                <div class="mb-5">
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Orden</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
+                            <i class="bi bi-list-ol"></i>
+                        </span>
+                        {{ form.orden }}
+                    </div>
+                </div>
+
+                <div class="d-grid gap-3">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase u-inline-37b2cef266">
+                        <i class="bi bi-check2-circle me-2"></i> {% if action == 'crear' %}Guardar Unidad{% else %}Actualizar Unidad{% endif %}
+                    </button>
+                    <div class="d-flex gap-2 flex-column flex-sm-row">
+                        <a href="{% url 'inventario:unidades_medida_lista' %}" class="btn btn-outline-light rounded-pill py-3 opacity-75 hover-opacity-100 w-100 u-inline-20f19d2528"
+                          >
+                            <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
+                        </a>
+                        <a href="{% url 'inventario:crear_material' %}" class="btn btn-secondary rounded-pill py-3 opacity-75 hover-opacity-100 w-100 u-inline-40a4768960"
+                          >
+                            <i class="bi bi-box-seam me-2"></i> Ir a Registrar Material
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-900 { font-weight: 900; }
+    .fw-800 { font-weight: 800; }
+    .text-accent { color: var(--color-accent) !important; }
+    .bg-accent { background-color: var(--color-accent) !important; }
+
+    .form-control {
+        background: var(--item-bg) !important;
+        border: 1px solid var(--color-border) !important;
+        padding: 12px 20px !important;
+        color: var(--color-text) !important;
+        border-radius: 12px !important;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
+    }
+    .form-control:focus {
+        background: var(--item-bg) !important;
+        color: var(--color-text) !important;
+        border-color: var(--color-accent) !important;
+        box-shadow: 0 0 0 0.15rem rgba(245, 158, 11, 0.18) !important;
+    }
+
+    .btn-gold {
+        background: var(--color-accent);
+        color: #000;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-gold:hover {
+        background: #d68910;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(243, 156, 18, 0.3);
+    }
+
+    .hover-opacity-100:hover {
+        opacity: 1 !important;
+    }
+</style>
+
+{% endblock %}

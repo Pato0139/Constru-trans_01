@@ -21,6 +21,10 @@ urlpatterns = [
     path(
         "tipos/eliminar/<str:codigo>/", views.eliminar_tipo_material, name="eliminar_tipo_material"
     ),
+    path("unidades/", views.unidades_medida_lista, name="unidades_medida_lista"),
+    path("unidades/crear/", views.crear_unidad_medida, name="crear_unidad_medida"),
+    path("unidades/editar/<int:id>/", views.editar_unidad_medida, name="editar_unidad_medida"),
+    path("unidades/eliminar/<int:id>/", views.eliminar_unidad_medida, name="eliminar_unidad_medida"),
     path("api/materiales/", views.api_materiales, name="api_materiales"),
     path("api/materiales/listado/", views.api_materiales_listado, name="api_materiales_listado"),
 ]
