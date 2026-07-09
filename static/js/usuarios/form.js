@@ -1,6 +1,18 @@
+/**
+ * @file Gestión de carga de imagen de perfil con validación y vista previa
+ */
+
+/**
+ * Inicializa el evento de cambio de foto de perfil
+ * @listens DOMContentLoaded
+ */
 document.addEventListener('DOMContentLoaded', function() {
     const fotoPerfilInput = document.getElementById('foto_perfil_input');
     if (fotoPerfilInput) {
+        /**
+         * Valida y muestra vista previa de la imagen seleccionada
+         * @listens change
+         */
         fotoPerfilInput.addEventListener('change', function(evt) {
             const [file] = this.files;
             if (file) {
