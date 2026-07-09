@@ -1,0 +1,72 @@
+/**
+ * landing-footer.css
+ * Estilos del footer de la landing page, modales de Créditos y Política de Privacidad.
+ */
+
+/* =====================================================================
+   Footer principal
+   ===================================================================== */
+.landing-footer {
+    background: #050505;
+    border-top: 1px solid var(--color-border);
+}
+
+/* =====================================================================
+   Botones de enlace del footer (Créditos / Privacidad)
+   ===================================================================== */
+.footer-link-btn {
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+/* =====================================================================
+   Overlay de modales del footer
+   ===================================================================== */
+.footer-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.footer-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+}
+
+/* =====================================================================
+   Contenedor del modal
+   ===================================================================== */
+.footer-modal-box {
+    max-width: 900px;
+    border: 1px solid var(--color-border);
+}
+
+.footer-modal-box--scrollable {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* =====================================================================
+   Botón cerrar modal
+   ===================================================================== */
+.footer-modal-close {
+    font-size: 1.5rem;
+}
+
+/* =====================================================================
+   Tarjetas de contenido dentro del modal
+   ===================================================================== */
+.footer-modal-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
