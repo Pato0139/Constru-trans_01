@@ -56,8 +56,6 @@ def api_materiales_listado(request):
                 "material": nombre_seguro,
                 "tipo": material.tipo or "-",
                 "unidad": getattr(material.unidad_medida, "abreviatura", "-"),
-                "stock": getattr(getattr(material, "stock_info", None), "cantidad_actual", 0),
-                "precio": f"${material.precio_referencia:,.0f}".replace(",", "."),
                 "acciones": f'''
                     <div class="d-flex justify-content-center gap-2">
                         <a href="{reverse('inventario:editar_material', args=[material.id])}" class="btn-action" title="Editar">
