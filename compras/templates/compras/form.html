@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% load static currency_tags %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/compras/form.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -17,31 +21,31 @@
         <div class="row">
             <!-- Datos Generales -->
             <div class="col-lg-8">
-                <div class="card bg-dark border-secondary shadow-lg mb-4 glass-card">
+                <div class="card border-secondary shadow-lg mb-4 glass-card">
                     <div class="card-header border-secondary bg-transparent">
-                        <h5 class="text-white mb-0"><i class="fas fa-info-circle me-2 text-info"></i> Datos Generales</h5>
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-info"></i> Datos Generales</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label class="text-white-50 mb-2">Proveedor <span class="text-danger">*</span></label>
+                            <label class="mb-2">Proveedor <span class="text-danger">*</span></label>
                             {{ form.proveedor }}
                         </div>
                         <div class="mb-0">
-                            <label class="text-white-50 mb-2">Observaciones</label>
+                            <label class="mb-2">Observaciones</label>
                             {{ form.observaciones }}
                         </div>
                     </div>
                 </div>
 
                 <!-- Materiales -->
-                <div class="card bg-dark border-secondary shadow-lg glass-card">
+                <div class="card border-secondary shadow-lg glass-card">
                     <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
-                        <h5 class="text-white mb-0"><i class="fas fa-boxes me-2 text-warning"></i> Materiales</h5>
+                        <h5 class="mb-0"><i class="fas fa-boxes me-2 text-warning"></i> Materiales</h5>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-dark table-hover mb-0" id="detalles-table">
-                                <thead class="text-uppercase small text-muted border-secondary">
+                            <table class="table table-hover mb-0" id="detalles-table">
+                                <thead class="text-uppercase small border-secondary">
                                     <tr>
                                         <th class="ps-4">#</th>
                                         <th>Material</th>
@@ -95,16 +99,16 @@
 
             <!-- Resumen -->
             <div class="col-lg-4">
-                <div class="card bg-dark border-secondary shadow-lg glass-card sticky-top" style="top: 20px;">
+                <div class="card border-secondary shadow-lg glass-card sticky-top" style="top: 20px;">
                     <div class="card-header border-secondary bg-transparent">
-                        <h5 class="text-white mb-0"><i class="fas fa-receipt me-2 text-success"></i> Resumen</h5>
+                        <h5 class="mb-0"><i class="fas fa-receipt me-2 text-success"></i> Resumen</h5>
                     </div>
                     <div class="card-body text-center py-4">
-                        <p class="text-white-50 mb-1">Total de la orden</p>
-                        <h2 class="text-white fw-bold mb-4" id="total-order">{% if compra %}{{ compra.total|currency }}{% else %}$0,00{% endif %}</h2>
+                        <p class="mb-1">Total de la orden</p>
+                        <h2 class="fw-bold mb-4" id="total-order">{% if compra %}{{ compra.total|currency }}{% else %}$0,00{% endif %}</h2>
                         
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-white-50">Materiales agregados</span>
+                            <span class="">Materiales agregados</span>
                             <span class="text-info fw-bold" id="material-count">0</span>
                         </div>
                         
@@ -122,18 +126,18 @@
 
 <style>
     .glass-card {
-        background: rgba(30, 34, 45, 0.7) !important;
+        background: var(--card-bg) !important;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid var(--color-border) !important;
     }
     .form-control, .form-select {
-        background-color: rgba(0,0,0,0.2) !important;
-        border-color: rgba(255,255,255,0.1) !important;
-        color: white !important;
+        background-color: var(--color-surface) !important;
+        border-color: var(--color-border) !important;
+        color: var(--color-text) !important;
     }
-    .form-control:focus {
-        border-color: var(--bs-warning) !important;
-        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25) !important;
+    .form-control:focus, .form-select:focus {
+        border-color: var(--color-accent) !important;
+        box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25) !important;
     }
 </style>
 
@@ -143,6 +147,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalForms = document.querySelector('#id_detalles-TOTAL_FORMS');
     const totalOrderElement = document.getElementById('total-order');
     const materialCountElement = document.getElementById('material-count');
+    const proveedorSelect = document.getElementById('id_proveedor');
+    let catalogoProveedor = [];
+    let materialMap = {};
 
     function formatCurrency(value) {
         let val = parseFloat(value);
@@ -150,6 +157,52 @@ document.addEventListener('DOMContentLoaded', function() {
         // Formato es-CO: . para miles, , para decimales
         let res = formatted.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
         return '$' + res;
+    }
+
+    async function cargarCatalogoProveedor(proveedorId) {
+        if (!proveedorId) {
+            catalogoProveedor = [];
+            materialMap = {};
+            refreshMaterialSelects();
+            return;
+        }
+
+        try {
+            const endpoint = `/compras/proveedores/${proveedorId}/materiales/`;
+            const response = await fetch(endpoint, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const payload = await response.json();
+
+            catalogoProveedor = payload.materiales || [];
+            materialMap = catalogoProveedor.reduce((acc, item) => {
+                acc[String(item.id)] = item;
+                return acc;
+            }, {});
+
+            refreshMaterialSelects();
+        } catch (error) {
+            console.error('Error cargando catálogo de proveedor:', error);
+        }
+    }
+
+    function refreshMaterialSelects() {
+        document.querySelectorAll('.material-select').forEach(select => {
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Selecciona un material</option>';
+
+            catalogoProveedor.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.unidad
+                    ? `${item.nombre} (${item.unidad})`
+                    : item.nombre;
+                if (String(item.id) === String(currentValue)) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        });
     }
 
     function updateCalculations() {
@@ -211,6 +264,8 @@ document.addEventListener('DOMContentLoaded', function() {
         newRow.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', updateCalculations);
         });
+        // Refresh material options on new row
+        refreshMaterialSelects();
         updateCalculations();
     });
 
@@ -233,10 +288,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Material select change
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('.material-select')) {
+            const row = e.target.closest('.formset-row');
+            const priceInput = row.querySelector('.precio-input');
+            const selected = materialMap[e.target.value];
+            if (selected && priceInput) {
+                priceInput.value = selected.precio;
+                updateCalculations();
+            }
+        }
+    });
+
+    // Proveedor select change
+    proveedorSelect?.addEventListener('change', function() {
+        cargarCatalogoProveedor(this.value);
+    });
+
     // Initial events
     document.querySelectorAll('.cantidad-input, .precio-input').forEach(input => {
         input.addEventListener('input', updateCalculations);
     });
+    
+    // Initial load if proveedor is already selected
+    if (proveedorSelect?.value) {
+        cargarCatalogoProveedor(proveedorSelect.value);
+    }
     
     updateCalculations();
 });

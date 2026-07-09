@@ -113,23 +113,24 @@ def eliminar_material(request, id):
 
 @admin_required
 def stock_lista(request):
-    q = request.GET.get("q")
+    material = request.GET.get("material", "")
+    ubicacion = request.GET.get("ubicacion", "")
+    stock_actual = request.GET.get("stock_actual", "")
+    
     stocks = Stock.objects.all().select_related("material")
 
-    if q:
-        stocks = stocks.filter(Q(material__nombre__icontains=q) | Q(ubicacion__icontains=q))
-
-    page = int(request.GET.get("page", 1))
-    per_page = 25
-    total = stocks.count()
-    stocks = stocks[(page - 1) * per_page : page * per_page]
+    if material:
+        stocks = stocks.filter(material__nombre__icontains=material)
+    if ubicacion:
+        stocks = stocks.filter(ubicacion__icontains=ubicacion)
+    if stock_actual and stock_actual.isdigit():
+        stocks = stocks.filter(cantidad_actual=int(stock_actual))
 
     context = {
         "stocks": stocks,
-        "query": q,
-        "page": page,
-        "per_page": per_page,
-        "total": total,
+        "material": material,
+        "ubicacion": ubicacion,
+        "stock_actual": stock_actual,
     }
 
     return render(request, "inventario/stock.html", context)
