@@ -29,7 +29,7 @@
         {% for color in colores %}
         <div class="col-md-4">
             <div class="color-card bg-dark">
-                <div class="color-swatch color-swatch--large" style="background: {{ color.codigo_hex }};"></div>
+                <div class="color-swatch color-swatch--large js-dynamic-bg" data-bg-color="{{ color.codigo_hex }}"></div>
                 <h6 class="color-name">{{ color.nombre }}</h6>
                 <p class="color-hex mb-2"><strong>Código:</strong> {{ color.codigo_hex }}</p>
                 <p class="color-hex mb-0"><strong>Uso:</strong> {{ color.uso }}</p>

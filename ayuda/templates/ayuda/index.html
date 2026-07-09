@@ -151,7 +151,7 @@
                 <div class="colores-grid">
                     {% for color in colores %}
                     <div class="color-card bg-dark">
-                        <div class="color-swatch" style="background: {{ color.codigo_hex }};"></div>
+                        <div class="color-swatch js-dynamic-bg" data-bg-color="{{ color.codigo_hex }}"></div>
                         <h6 class="color-name">{{ color.nombre }}</h6>
                         <p class="color-hex">{{ color.codigo_hex }}</p>
                     </div>
