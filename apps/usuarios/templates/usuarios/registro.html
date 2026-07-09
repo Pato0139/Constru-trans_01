@@ -171,13 +171,9 @@
         <input class="form-check-input auth-terms-checkbox" type="checkbox" id="aceptarTerminos" required>
         <label class="form-check-label small text-white fw-bold ms-2 auth-terms-label" for="aceptarTerminos">
             He leído y acepto los
-            <button type="button" onclick="abrirTerminos()" class="auth-terms-link">
-                Términos y Condiciones
-            </button>
+            <span role="button" tabindex="0" onclick="abrirTerminos()" onkeydown="if(event.key==='Enter')abrirTerminos()" class="auth-terms-link">Términos y Condiciones</span>
             y la
-            <button type="button" onclick="abrirPrivacidadRegistro()" class="auth-terms-link">
-                Política de Privacidad
-            </button>
+            <span role="button" tabindex="0" onclick="abrirPrivacidadRegistro()" onkeydown="if(event.key==='Enter')abrirPrivacidadRegistro()" class="auth-terms-link">Política de Privacidad</span>
         </label>
     </div>
 
