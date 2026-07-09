@@ -759,8 +759,6 @@ def editar_usuario(request, id):
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
         telefono = limpiar_telefono(request.POST.get("telefono"))
-        tipo_documento = request.POST.get("tipo_documento")
-        documento = limpiar_telefono(request.POST.get("documento"))
         rol = request.POST.get("rol")
 
         if not all([nombres, apellidos, telefono]):
@@ -773,10 +771,6 @@ def editar_usuario(request, id):
             usuario.nombres = nombres
             usuario.apellidos = apellidos
             usuario.telefono = telefono
-            if tipo_documento:
-                usuario.tipo_documento = tipo_documento
-            if documento:
-                usuario.documento = documento
 
             if "foto_perfil" in request.FILES:
                 # Eliminar foto anterior si existe
