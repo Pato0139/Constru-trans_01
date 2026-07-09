@@ -1,3 +1,11 @@
+/**
+ * @file Gestión del formulario de catálogo de materiales de proveedores
+ */
+
+/**
+ * Inicializa el formset de catálogo de proveedores
+ * @listens DOMContentLoaded
+ */
 document.addEventListener('DOMContentLoaded', () => {
   const table = document.getElementById('supplier-catalog-formset');
   const addButton = document.getElementById('add-material-row');
@@ -7,6 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const tbody = table.querySelector('tbody');
 
+  /**
+   * Actualiza los contadores de fila después de agregar o eliminar
+   */
   function refreshCounters() {
     tbody.querySelectorAll('.supplier-formset-row:not(.d-none)').forEach((row, index) => {
       const counter = row.querySelector('.supplier-row-count');

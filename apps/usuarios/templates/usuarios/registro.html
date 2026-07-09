@@ -39,7 +39,7 @@
     .recaptcha-text { color: #fff; font-size: 14px; font-weight: 500; user-select: none; }
     .recaptcha-right { text-align: center; opacity: 0.8; flex-shrink: 0; }
     .recaptcha-logo { width: 30px; height: 30px; margin-bottom: 2px; }
-    .recaptcha-privacy { font-size: 8px; color: #888; display: block; text-decoration: none; }
+    .recaptcha-privacy { font-size: 9px; color: #999; display: block; text-decoration: none; line-height: 1.3; max-width: 80px; word-wrap: break-word; }
     .captcha-challenge-box {
         display: none; background: #333; border: 1px solid #444; border-radius: 8px;
         padding: 20px; margin-top: -10px; margin-bottom: 20px; animation: fadeIn 0.3s ease;
@@ -171,11 +171,11 @@
         <input class="form-check-input auth-terms-checkbox" type="checkbox" id="aceptarTerminos" required>
         <label class="form-check-label small text-white fw-bold ms-2 auth-terms-label" for="aceptarTerminos">
             He leído y acepto los
-            <button type="button" onclick="abrirTerminos()" class="btn auth-terms-link">
+            <button type="button" onclick="abrirTerminos()" class="btn auth-terms-link p-0 border-0">
                 Términos y Condiciones
             </button>
             y la
-            <button type="button" onclick="abrirPrivacidadRegistro()" class="btn auth-terms-link">
+            <button type="button" onclick="abrirPrivacidadRegistro()" class="btn auth-terms-link p-0 border-0">
                 Política de Privacidad
             </button>
         </label>
