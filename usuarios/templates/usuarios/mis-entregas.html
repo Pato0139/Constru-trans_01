@@ -13,43 +13,40 @@
 
     <!-- Filtros -->
     <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
-        <form method="get" class="row g-2 align-items-center">
+        <div class="row g-2 align-items-center">
             <div class="col-auto">
                 <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
             </div>
             <div class="col-md-2">
-                <input type="text" name="id_pedido" value="{{ id_pedido|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID Pedido">
+                <input type="text" id="filter-id" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="ID Pedido">
             </div>
             <div class="col-md-2">
-                <input type="text" name="origen" value="{{ origen|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Origen">
+                <input type="text" id="filter-origen" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Origen">
             </div>
             <div class="col-md-2">
-                <input type="text" name="destino" value="{{ destino|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Destino">
+                <input type="text" id="filter-destino" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);" placeholder="Destino">
             </div>
             <div class="col-md-2">
-                <input type="date" name="fecha" value="{{ fecha|default:'' }}" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                <input type="date" id="filter-fecha" class="form-control form-control-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
             </div>
             <div class="col-md-2">
-                <select name="estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
+                <select id="filter-estado" class="form-select form-select-sm bg-dark text-white" style="border: 1px solid var(--color-border);">
                     <option value="">Estado (Todos)</option>
                     {% for valor, etiqueta in estados %}
-                    <option value="{{ valor }}" {% if estado == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                    <option value="{{ etiqueta }}">{{ etiqueta }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-auto ms-auto d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center gap-1">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
-                <a href="{% url 'usuarios:mis_entregas' %}" class="btn btn-sm btn-outline-secondary" title="Limpiar filtros">
+            <div class="col-auto ms-auto">
+                <button class="btn btn-sm btn-outline-secondary" id="clear-filters" type="button" title="Limpiar filtros">
                     <i class="bi bi-x-circle"></i>
-                </a>
+                </button>
             </div>
-        </form>
+        </div>
     </div>
 
     <div class="table-responsive">
-        <table class="table table-hover align-middle">
+        <table id="tablaEntregas" class="table table-hover align-middle">
             <thead>
                 <tr>
                     <th>ID Pedido</th>
@@ -57,7 +54,7 @@
                     <th>Destino</th>
                     <th>Fecha</th>
                     <th>Estado</th>
-                    <th class="text-center">Acción</th>
+                    <th class="text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -110,4 +107,67 @@
     .text-accent { color: var(--color-accent) !important; }
 </style>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        var tableEl = document.getElementById('tablaEntregas');
+        if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
+            var table = $(tableEl).DataTable();
+        } else {
+            var table = $(tableEl).DataTable({
+                "pageLength": 10,
+                "lengthMenu": [10, 25, 50, 100],
+                "language": {
+                    "processing": '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>',
+                    "search": "Buscar:",
+                    "lengthMenu": "Mostrar _MENU_ registros",
+                    "zeroRecords": "No se encontraron registros",
+                    "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_",
+                    "infoEmpty": "No hay registros disponibles",
+                    "infoFiltered": "(filtrado de _MAX_ registros totales)",
+                    "paginate": {
+                        "first": "Primero",
+                        "last": "Último",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    }
+                }
+            });
+        }
+
+        // Índices de columnas:
+        // 0: ID Pedido
+        // 1: Origen
+        // 2: Destino
+        // 3: Fecha
+        // 4: Estado
+        // 5: Acciones
+
+        $('#filter-id').on('keyup change', function() {
+            table.column(0).search(this.value).draw();
+        });
+        $('#filter-origen').on('keyup change', function() {
+            table.column(1).search(this.value).draw();
+        });
+        $('#filter-destino').on('keyup change', function() {
+            table.column(2).search(this.value).draw();
+        });
+        $('#filter-fecha').on('change', function() {
+            table.column(3).search(this.value).draw();
+        });
+        $('#filter-estado').on('change', function() {
+            table.column(4).search(this.value).draw();
+        });
+
+        $('#clear-filters').on('click', function() {
+            $('#filter-id, #filter-origen, #filter-destino, #filter-fecha').val('');
+            $('#filter-estado').val('');
+            table.columns().search('').draw();
+        });
+    }, 150);
+});
+</script>
 {% endblock %}
