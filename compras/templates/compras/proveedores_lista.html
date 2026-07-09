@@ -59,7 +59,7 @@
                             </div>
                         </td>
                         <td>
-                            <span class="badge bg-dark border border-white-10 text-info px-3">{{ p.categoria }}</span>
+                            <span class="badge badge-tipo px-3">{{ p.categoria }}</span>
                         </td>
                         <td class="small">
                             <div class="mb-1 text-white-50"><i class="bi bi-envelope me-2"></i>{{ p.email }}</div>
@@ -67,6 +67,9 @@
                         </td>
                         <td class="text-center pe-4">
                             <div class="d-flex gap-2 justify-content-center">
+                                <a href="{% url 'compras:perfil_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-primary border-white-10" title="Perfil y Catálogo">
+                                    <i class="bi bi-box-seam"></i>
+                                </a>
                                 <a href="{% url 'compras:contactar_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-info border-white-10" title="Contactar">
                                     <i class="bi bi-envelope"></i>
                                 </a>

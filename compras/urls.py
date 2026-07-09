@@ -24,4 +24,14 @@ urlpatterns = [
         views.contactar_proveedor,
         name="contactar_proveedor",
     ),
+    path(
+        "proveedores/perfil/<int:codigo_proveedor>/",
+        views.perfil_proveedor,
+        name="perfil_proveedor",
+    ),
+    path(
+        "proveedores/<int:codigo_proveedor>/materiales/",
+        views.materiales_proveedor_json,
+        name="materiales_proveedor_json",
+    ),
 ]

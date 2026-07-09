@@ -1,11 +1,20 @@
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator, FileExtensionValidator
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import now
+from django.core.files.storage import default_storage
 import datetime
+import uuid
+from pathlib import Path
+
+
+def foto_perfil_upload_path(instance, filename):
+    extension = Path(filename or "avatar.jpg").suffix.lower() or ".jpg"
+    user_segment = instance.pk or "nuevo"
+    return f"perfiles/usuario_{user_segment}/{uuid.uuid4().hex}{extension}"
 
 def validar_fecha_no_pasada(value):
     today = now().date()
@@ -54,7 +63,12 @@ class Usuario(AbstractUser):
     # NO se toca
     tipo_documento = models.CharField(max_length=5, choices=TIPOS_DOCUMENTO)
     estado = models.CharField(max_length=15, choices=ESTADO_USUARIO, default="activo")
-    foto_perfil = models.ImageField(upload_to="perfiles/", null=True, blank=True)
+    foto_perfil = models.ImageField(
+        upload_to=foto_perfil_upload_path,
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"])],
+    )
     sincronizado = models.BooleanField(default=False)
     
     # Bloqueo por intentos fallidos
@@ -84,6 +98,29 @@ class Usuario(AbstractUser):
     def iniciales(self):
         partes = self.nombres.split()
         return "".join([p[0].upper() for p in partes[:2]]) or "?"
+        
+    @property
+    def nombre_completo(self):
+        return f"{self.nombres} {self.apellidos}".strip()
+        
+    @property
+    def nombre_mostrar(self):
+        return self.nombre_completo or self.email or self.username or f"Usuario #{self.pk}"
+        
+    @property
+    def documento_mostrar(self):
+        return self.documento or "Sin documento"
+        
+    @property
+    def avatar_url(self):
+        if not self.foto_perfil or not self.foto_perfil.name:
+            return None
+        try:
+            if default_storage.exists(self.foto_perfil.name):
+                return self.foto_perfil.url
+        except Exception:
+            return None
+        return None
 
     @property
     def color_avatar(self):
@@ -342,21 +379,22 @@ class Conductor(models.Model):
 # =====================================================================
 # VEHICULO
 # =====================================================================
-@receiver(post_save, sender="usuarios.Usuario")
-def crear_perfil_conductor(sender, instance, created, **kwargs):
-    """Auto-crea perfil de conductor cuando un usuario pasa a ser conductor."""
-    if instance.rol != "conductor":
-        return
-
-    using = kwargs.get("using") or instance._state.db or "default"
-    if created:
-        Conductor.ensure_for_user(instance, using=using)
-        return
-
-    try:
-        instance.perfil_conductor
-    except Conductor.DoesNotExist:
-        Conductor.ensure_for_user(instance, using=using)
+# Desactivado temporalmente para evitar bloqueos en creación de usuarios
+# @receiver(post_save, sender="usuarios.Usuario")
+# def crear_perfil_conductor(sender, instance, created, **kwargs):
+#     """Auto-crea perfil de conductor cuando un usuario pasa a ser conductor."""
+#     if instance.rol != "conductor":
+#         return
+#
+#     using = kwargs.get("using") or instance._state.db or "default"
+#     if created:
+#         Conductor.ensure_for_user(instance, using=using)
+#         return
+#
+#     try:
+#         instance.perfil_conductor
+#     except Conductor.DoesNotExist:
+#         Conductor.ensure_for_user(instance, using=using)
 
 
 class Vehiculo(models.Model):
@@ -450,10 +488,12 @@ class Proveedor(models.Model):
     codigo_proveedor = models.AutoField(primary_key=True)
     nombre_empresa = models.CharField(max_length=150)
     nit = models.CharField(max_length=20, unique=True, validators=[numeric_and_space_validator])
+    contacto_nombre = models.CharField(max_length=150, blank=True)
     telefono = models.CharField(max_length=20, validators=[numeric_and_space_validator])
-    correo = models.EmailField()
+    correo = models.EmailField(blank=True)
+    direccion = models.CharField(max_length=255, blank=True)
+    categoria = models.CharField(max_length=100, blank=True, default="General")
     descripcion = models.TextField(blank=True)
-    # NO se toca
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
@@ -471,13 +511,12 @@ class Proveedor(models.Model):
     def email(self):
         return self.correo
 
-    @property
-    def contacto_nombre(self):
-        return self.nombre_empresa
-
-    @property
-    def categoria(self):
-        return "General"
+    def save(self, *args, **kwargs):
+        if not self.contacto_nombre:
+            self.contacto_nombre = self.nombre_empresa
+        if not self.categoria:
+            self.categoria = "General"
+        super().save(*args, **kwargs)
 
 
 # =====================================================================

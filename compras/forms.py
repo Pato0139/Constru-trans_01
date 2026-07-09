@@ -3,7 +3,37 @@ from django.forms import inlineformset_factory
 
 from usuarios.models import Proveedor
 
-from .models import Compra, DetalleCompra
+from .models import Compra, DetalleCompra, ProveedorMaterial
+
+
+class ProveedorPerfilForm(forms.ModelForm):
+    class Meta:
+        model = Proveedor
+        fields = [
+            "nombre_empresa",
+            "contacto_nombre",
+            "nit",
+            "telefono",
+            "correo",
+            "direccion",
+            "categoria",
+            "descripcion",
+        ]
+
+
+class ProveedorMaterialForm(forms.ModelForm):
+    class Meta:
+        model = ProveedorMaterial
+        fields = ["material", "precio_proveedor", "referencia_proveedor", "observaciones", "activo"]
+
+
+ProveedorMaterialFormSet = inlineformset_factory(
+    Proveedor,
+    ProveedorMaterial,
+    form=ProveedorMaterialForm,
+    extra=1,
+    can_delete=True,
+)
 
 
 class CompraForm(forms.ModelForm):

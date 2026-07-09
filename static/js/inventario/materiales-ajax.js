@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 data: 'tipo',
                 className: 'py-3 px-4',
                 render: function (data) {
-                    return `<span class="badge bg-dark text-white-50 border border-white-10">${data || '-'}</span>`;
+                    return `<span class="badge badge-tipo">${data || '-'}</span>`;
                 }
             },
             {
