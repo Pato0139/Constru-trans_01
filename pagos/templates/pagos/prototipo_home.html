@@ -1,0 +1,69 @@
+{% extends "pagos/prototipo_base.html" %}
+
+{% block prototype_content %}
+<div class="prototype-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">Vista general del prototipo</h4>
+            <p class="text-muted mb-0">El flujo está conectado desde la creación del pedido hasta la entrega y el cobro.</p>
+        </div>
+        <div class="stepper">
+            <span class="step active">1. Pedido</span>
+            <span class="step active">2. Pago</span>
+            <span class="step active">3. Revisión</span>
+            <span class="step active">4. Despacho</span>
+        </div>
+    </div>
+
+    <div class="prototype-grid">
+        <div class="prototype-card">
+            <h5 class="fw-bold mb-2">Cliente</h5>
+            <p class="text-muted">Crea un pedido, selecciona el método de pago, sube el comprobante y revisa su estado en tiempo real.</p>
+            <a href="{% url 'pagos:prototype_order_form' %}" class="btn btn-success btn-sm">Crear pedido</a>
+            <a href="{% url 'pagos:prototype_customer_orders' %}" class="btn btn-outline-light btn-sm ms-2">Mis pedidos</a>
+        </div>
+        <div class="prototype-card">
+            <h5 class="fw-bold mb-2">Administrador</h5>
+            <p class="text-muted">Revisa pagos, aprueba o rechaza comprobantes, autoriza despachos y asigna transporte.</p>
+            <a href="{% url 'pagos:prototype_admin_orders' %}" class="btn btn-warning btn-sm">Gestionar pagos</a>
+        </div>
+        <div class="prototype-card">
+            <h5 class="fw-bold mb-2">Conductor</h5>
+            <p class="text-muted">Consulta únicamente los pedidos asignados, confirma el cobro y cierra la entrega.</p>
+            <a href="{% url 'pagos:prototype_conductor' %}" class="btn btn-info btn-sm">Ver asignaciones</a>
+        </div>
+    </div>
+</div>
+
+<div class="prototype-card mt-4">
+    <h5 class="fw-bold mb-3">Pedido de ejemplo</h5>
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Cliente</th>
+                    <th>Método</th>
+                    <th>Estado pedido</th>
+                    <th>Estado pago</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in state.orders %}
+                <tr>
+                    <td><strong>{{ order.id }}</strong></td>
+                    <td>{{ order.customer }}</td>
+                    <td>{{ order.payment_method|default:"Transferencia Bancolombia" }}</td>
+                    <td><span class="badge bg-warning text-dark">{{ order.order_status }}</span></td>
+                    <td><span class="badge bg-info text-dark">{{ order.payment_status }}</span></td>
+                    <td>${{ order.total|floatformat:0 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-4">Aún no hay pedidos creados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

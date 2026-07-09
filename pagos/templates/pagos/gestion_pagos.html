@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load currency_tags %}
+{% load static %}
+
+{% block title %}Gestión de pagos - Constru-trans{% endblock %}
+{% block header_title %}Gestión de pagos{% endblock %}
+
+{% block content %}
+<div class="table-container p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-800 text-white mb-1">Revisión de pagos</h4>
+            <p class="text-muted small mb-0">Aprobación y seguimiento de comprobantes por pedido.</p>
+        </div>
+        <a href="{% url 'pagos:lista_pagos' %}" class="btn btn-outline-light btn-sm rounded-pill">
+            <i class="bi bi-journal-bookmark me-2"></i>Historial de pagos
+        </a>
+    </div>
+
+    {% if db_missing_pagos_table %}
+    <div class="alert alert-danger">
+        <strong>Tabla de pagos no encontrada.</strong> Aplica las migraciones pendientes: ejecuta <code>python manage.py migrate</code>.
+    </div>
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Cliente</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th>Estado</th>
+                    <th>Comprobante</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                {% with pago=pedido.pagos_pedido.first %}
+                <tr>
+                    <td class="fw-700 text-accent">#CT-{{ pedido.id }}</td>
+                    <td class="text-white">{{ pedido.cliente.usuario.nombres }} {{ pedido.cliente.usuario.apellidos }}</td>
+                    <td class="fw-700">{{ pedido.total|currency }}</td>
+                    <td>{{ pago.metodo_pago|default:"Sin registrar" }}</td>
+                    <td>
+                        {% if pago %}
+                        <span class="badge rounded-pill {% if pago.estado_pago == 'pago aprobado' %}bg-success{% elif pago.estado_pago == 'pago rechazado' %}bg-danger{% elif pago.estado_pago == 'en_revision' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                            {{ pago.get_estado_pago_display }}
+                        </span>
+                        {% else %}
+                        <span class="badge rounded-pill bg-secondary">Sin pago</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if pago and pago.comprobante %}
+                        <a href="{{ pago.comprobante.url }}" target="_blank" class="btn btn-outline-light btn-sm rounded-pill">
+                            <i class="bi bi-paperclip me-2"></i>Ver
+                        </a>
+                        {% else %}
+                        <span class="text-muted small">Sin archivo</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if pago %}
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}?tab=pagos" class="btn btn-outline-light btn-sm rounded-pill">
+                                <i class="bi bi-eye me-2"></i>Detalle
+                            </a>
+                            {% if pago.estado_pago != 'pago aprobado' %}
+                            <form method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="pago_id" value="{{ pago.id_pago_pedido }}">
+                                <input type="hidden" name="accion" value="aprobar">
+                                <button type="submit" class="btn btn-success btn-sm rounded-pill">
+                                    <i class="bi bi-check-circle me-2"></i>Aprobar
+                                </button>
+                            </form>
+                            {% endif %}
+                            <form method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="pago_id" value="{{ pago.id_pago_pedido }}">
+                                <input type="hidden" name="accion" value="rechazar">
+                                <input type="text" name="motivo_rechazo" class="form-control form-control-sm rounded-pill d-inline-block" style="min-width: 180px;" placeholder="Motivo" required>
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill mt-1">
+                                    <i class="bi bi-x-circle me-2"></i>Rechazar
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <span class="text-muted small">Sin registro</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endwith %}
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">No hay pagos registrados aún.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
