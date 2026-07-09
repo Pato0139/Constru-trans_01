@@ -45,25 +45,39 @@ def registrar_entrada(request):
 
 @admin_required
 def movimientos_lista(request):
-    query = request.GET.get("q")
+    material = request.GET.get("material")
     tipo = request.GET.get("tipo")
+    fecha = request.GET.get("fecha")
+    usuario = request.GET.get("usuario")
 
     movimientos = MovimientoInventario.objects.all().select_related("material", "usuario")
 
-    if query:
+    if material:
         movimientos = movimientos.filter(
-            Q(material__nombre__icontains=query) | Q(observacion__icontains=query)
+            Q(material__nombre__icontains=material) | Q(observacion__icontains=material)
         )
 
     if tipo:
         movimientos = movimientos.filter(tipo_movimiento=tipo)
 
+    if fecha:
+        movimientos = movimientos.filter(fecha__date=fecha)
+
+    if usuario:
+        movimientos = movimientos.filter(
+            Q(usuario__username__icontains=usuario) |
+            Q(usuario__first_name__icontains=usuario) |
+            Q(usuario__last_name__icontains=usuario)
+        )
+
     materiales = Material.objects.all().order_by("nombre")
     context = {
         "movimientos": movimientos,
         "materiales": materiales,
-        "query": query,
+        "material": material,
         "tipo_actual": tipo,
+        "fecha": fecha,
+        "usuario": usuario,
     }
 
     return render(request, "inventario/movimientos.html", context)

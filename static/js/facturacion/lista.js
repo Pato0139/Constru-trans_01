@@ -51,6 +51,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Inicializar DataTables sin búsqueda ni menú de cantidad para la tabla de facturas
+    if ($.fn.DataTable.isDataTable('#tablaFacturas')) {
+        $('#tablaFacturas').DataTable().destroy();
+    }
+    
+    $('#tablaFacturas').DataTable({
+        "language": {
+            "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            "infoEmpty": "No hay registros disponibles",
+            "infoFiltered": "(filtrado de _MAX_ registros totales)",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
+        },
+        "pageLength": 10,
+        "responsive": true,
+        "dom": 'rt<"d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4 p-3"ip>',
+        "order": [],
+        "ordering": false // Opcional: si ya viene ordenado del backend y no queremos flechitas extra, sino dejarlo true
+    });
+
     // Formulario pago
     const formPago = document.getElementById('formPago');
     if (formPago) {

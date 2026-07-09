@@ -1,0 +1,117 @@
+{% extends "pagos/prototipo_base.html" %}
+
+{% block prototype_content %}
+<div class="prototype-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">Mis pedidos</h4>
+            <p class="text-muted mb-0">Revisa el estado del pedido, el método de pago y la evolución del mismo.</p>
+        </div>
+        <a href="{% url 'pagos:prototype_order_form' %}" class="btn btn-success btn-sm">Crear otro pedido</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Método</th>
+                    <th>Estado del pedido</th>
+                    <th>Estado del pago</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><strong>{{ order.id }}</strong></td>
+                    <td>{{ order.delivery_date|default:"Sin fecha" }}</td>
+                    <td>${{ order.total|floatformat:0 }}</td>
+                    <td>{{ order.payment_method|default:"Sin definir" }}</td>
+                    <td><span class="badge bg-warning text-dark">{{ order.order_status }}</span></td>
+                    <td><span class="badge bg-info text-dark">{{ order.payment_status }}</span></td>
+                    <td><a href="{% url 'pagos:prototype_customer_orders' %}?order_id={{ order.id }}" class="btn btn-outline-light btn-sm">Ver detalles</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">Aún no hay pedidos disponibles.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if selected_order %}
+<div class="prototype-card mt-4">
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <h5 class="fw-bold mb-3">Detalle del pedido {{ selected_order.id }}</h5>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <p class="text-muted mb-1">Cliente</p>
+                    <p class="fw-bold mb-0">{{ selected_order.customer }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="text-muted mb-1">Teléfono</p>
+                    <p class="fw-bold mb-0">{{ selected_order.phone }}</p>
+                </div>
+                <div class="col-12">
+                    <p class="text-muted mb-1">Dirección</p>
+                    <p class="fw-bold mb-0">{{ selected_order.delivery_address }}</p>
+                </div>
+                <div class="col-12">
+                    <p class="text-muted mb-1">Materiales</p>
+                    <ul class="mb-0">
+                        {% for item in selected_order.materials %}
+                        <li>{{ item.name }} - {{ item.quantity }} {{ item.unit }} - ${{ item.unit_price|floatformat:0 }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="payment-method-card">
+                <h6 class="fw-bold mb-3">Estado del pago</h6>
+                <p class="mb-2"><span class="method-badge">{{ selected_order.payment_method|default:"Sin definir" }}</span></p>
+                <p class="text-muted mb-1">Subtotal</p>
+                <p class="fw-bold">${{ selected_order.subtotal|floatformat:0 }}</p>
+                <p class="text-muted mb-1">IVA</p>
+                <p class="fw-bold">${{ selected_order.iva|floatformat:0 }}</p>
+                <p class="text-muted mb-1">Total</p>
+                <p class="fw-bold fs-4 text-success">${{ selected_order.total|floatformat:0 }}</p>
+                {% if selected_order.rejection_reason %}
+                <div class="alert alert-danger mt-3">
+                    <strong>Motivo de rechazo:</strong> {{ selected_order.rejection_reason }}
+                </div>
+                <a href="{% url 'pagos:prototype_payment_method' selected_order.id %}" class="btn btn-warning text-dark">Subir nuevo comprobante</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-2">
+        <div class="col-lg-6">
+            <h6 class="fw-bold mb-3">Historial de cambios</h6>
+            <div class="timeline">
+                {% for event in selected_order.history %}
+                <div class="timeline-item">
+                    <p class="mb-0 fw-bold">{{ event.timestamp }}</p>
+                    <p class="text-muted mb-0">{{ event.text }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <h6 class="fw-bold mb-3">Actualizar comprobante</h6>
+            <form method="post" action="{% url 'pagos:prototype_order_detail' selected_order.id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="upload_new_proof">
+                <input type="file" class="form-control mb-3" name="proof" accept=".pdf,.jpg,.jpeg,.png">
+                <button class="btn btn-success" type="submit">Enviar nuevo comprobante</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -327,3 +327,49 @@
 .feedback-btn.bad:hover {
   background: #ef4444;
 }
+
+/* ========================================= 
+   CHAT WIDGET EN MODO CLARO!
+ ========================================= */
+ html[data-theme="light"] .chat-widget-box {
+   background: #ffffff;
+   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.15);
+ }
+
+ html[data-theme="light"] .chat-widget-messages {
+   background: #f8fafc;
+ }
+
+ html[data-theme="light"] .chat-widget-messages::-webkit-scrollbar-thumb {
+   background: #cbd5e1;
+ }
+
+ html[data-theme="light"] .chat-message.bot .chat-message-bubble {
+   background: #e2e8f0;
+   color: #0f172a;
+ }
+
+ html[data-theme="light"] .chat-widget-input-container {
+   background: #ffffff;
+   border-top: 1px solid #e2e8f0;
+ }
+
+ html[data-theme="light"] .chat-widget-input {
+   background: #f1f5f9;
+   border: 1px solid #e2e8f0;
+   color: #0f172a;
+ }
+
+ html[data-theme="light"] .chat-widget-input:focus {
+   border-color: #6366f1;
+   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+ }
+
+ html[data-theme="light"] .feedback-btn {
+   background: #e2e8f0;
+ }
+
+ html[data-theme="light"] .feedback-btn:hover {
+   background: #cbd5e1;
+ }
+

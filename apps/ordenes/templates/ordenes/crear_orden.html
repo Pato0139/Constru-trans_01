@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>{% if orden %}Editar{% else %}Crear{% endif %} Orden</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label>Cliente</label>
+        <select name="cliente" class="form-control" required>
+            {% for cliente in clientes %}
+            <option value="{{cliente.id}}" {% if orden.cliente_id == cliente.id %}selected{% endif %}>
+                {{cliente}}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Conductor (Opcional)</label>
+        <select name="conductor" class="form-control">
+            <option value="">Seleccione un conductor</option>
+            {% for conductor in conductores %}
+            <option value="{{conductor.id}}" {% if orden.conductor_id == conductor.id %}selected{% endif %}>
+                {{conductor}}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label>Dirección origen</label>
+        <input type="text" name="origen" class="form-control" value="{{ orden.direccion_origen|default:'' }}" required>
+    </div>
+
+    <div class="mb-3">
+        <label>Dirección destino</label>
+        <input type="text" name="destino" class="form-control" value="{{ orden.direccion_destino|default:'' }}" required>
+    </div>
+
+    <div class="mb-3">
+        <label>Precio</label>
+        <input type="number" name="precio" class="form-control" step="0.01" min="0" value="{{ orden.precio|default:0 }}">
+    </div>
+
+    {% if orden %}
+    <div class="mb-3">
+        <label>Estado</label>
+        <select name="estado" class="form-control">
+            <option value="pendiente" {% if orden.estado == "pendiente" %}selected{% endif %}>Pendiente</option>
+            <option value="en_ruta" {% if orden.estado == "en_ruta" %}selected{% endif %}>En ruta</option>
+            <option value="entregado" {% if orden.estado == "entregado" %}selected{% endif %}>Entregado</option>
+        </select>
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">
+            {% if orden %}Guardar Cambios{% else %}Crear Orden{% endif %}
+        </button>
+        <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="btn btn-secondary">Cancelar</a>
+    </div>
+
+</form>
+
+{% endblock %}

@@ -14,19 +14,22 @@ from usuarios.views import admin_required
 
 @admin_required
 def tipos_material_lista(request):
-    query = request.GET.get("q")
+    codigo = request.GET.get("codigo", "")
+    nombre = request.GET.get("nombre", "")
+    
     tipos = Catalogo.objects.annotate(num_materiales=Count("materiales"))
 
-    if query:
-        tipos = tipos.filter(
-            Q(codigo_catalogo__icontains=query) | Q(nombre_empresa__icontains=query)
-        )
+    if codigo:
+        tipos = tipos.filter(codigo_catalogo__icontains=codigo)
+    if nombre:
+        tipos = tipos.filter(nombre_empresa__icontains=nombre)
 
     tipos = tipos.order_by("codigo_catalogo")
 
     context = {
         "tipos": tipos,
-        "query": query,
+        "codigo": codigo,
+        "nombre": nombre,
     }
 
     return render(request, "inventario/tipos_lista.html", context)
