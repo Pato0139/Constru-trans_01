@@ -1,3 +1,11 @@
+/**
+ * @file Gestión de formularios de compras con carga dinámica de catálogo de proveedores
+ */
+
+/**
+ * Inicializa el formulario de compra con manejo de proveedores y materiales
+ * @listens DOMContentLoaded
+ */
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('compra-form');
   const providerSelect = document.getElementById('id_proveedor');
@@ -10,9 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (!form || !providerSelect || !catalogUrlInput || !tableBody || !totalForms || !addButton) return;
 
+  /**
+   * Catálogo de materiales del proveedor seleccionado
+   * @type {Array<Object>}
+   */
   let catalog = [];
   const taxRate = Number(window.purchaseTaxRate || 0);
 
+  /**
+   * Formatea un valor numérico como moneda colombiana
+   * @param {number} value - Valor a formatear
+   * @returns {string} Valor formateado con símbolo de peso colombiano
+   */
   function formatCurrency(value) {
     return Number(value || 0).toLocaleString('es-CO', {
       style: 'currency',
@@ -21,14 +38,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /**
+   * Obtiene la URL del catálogo para un proveedor específico
+   * @param {string|number} providerId - ID del proveedor
+   * @returns {string} URL del endpoint de catálogo
+   */
   function getCatalogUrl(providerId) {
     return catalogUrlInput.value.replace('/0/', `/${providerId}/`);
   }
 
+  /**
+   * Muestra u oculta el indicador de carga
+   * @param {boolean} isLoading - Estado de carga
+   */
   function setLoading(isLoading) {
     if (loader) loader.classList.toggle('is-visible', isLoading);
   }
 
+  /**
+   * Genera opciones HTML para el select de materiales
+   * @param {string} selectedValue - Valor seleccionado actualmente
+   * @returns {string} HTML de opciones
+   */
   function materialOptions(selectedValue = '') {
     const options = ['<option value="">Seleccionar material...</option>'];
     catalog.forEach((item) => {
@@ -38,6 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return options.join('');
   }
 
+  /**
+   * Obtiene los campos principales de una fila del formset
+   * @param {HTMLElement} row - Fila del formset
+   * @returns {Object} Objeto con referencias a los campos
+   */
   function rowFields(row) {
     return {
       material: row.querySelector('.material-select'),
@@ -49,6 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  /**
+   * Aplica los datos del material seleccionado a la fila
+   * @param {HTMLElement} row - Fila a actualizar
+   */
   function applyMaterialData(row) {
     const fields = rowFields(row);
     const item = catalog.find((entry) => String(entry.id) === String(fields.material.value));
@@ -67,6 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCalculations();
   }
 
+  /**
+   * Recalcula subtotales, impuestos y total de la orden
+   */
   function updateCalculations() {
     let subtotal = 0;
     let count = 0;
@@ -90,6 +133,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('material-count').textContent = count;
   }
 
+  /**
+   * Prepara una fila del formset con eventos y opciones de materiales
+   * @param {HTMLElement} row - Fila a preparar
+   */
   function prepareRow(row) {
     const fields = rowFields(row);
     const selected = fields.material.value;
@@ -102,6 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
     applyMaterialData(row);
   }
 
+  /**
+   * Carga el catálogo de materiales del proveedor seleccionado
+   * @async
+   */
   async function loadCatalog() {
     const providerId = providerSelect.value;
     catalog = [];
@@ -143,6 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /**
+   * Agrega una nueva fila al formset de materiales
+   */
   function addRow() {
     const firstRow = tableBody.querySelector('.formset-row');
     if (!firstRow) return;
