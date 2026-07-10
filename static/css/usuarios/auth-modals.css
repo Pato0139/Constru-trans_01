@@ -226,7 +226,7 @@
    Enlace de T&C en el pie del login
    ===================================================================== */
 .auth-footer-text {
-    color: #94a3b8;
+    color: #e5e7eb;
     text-align: center;
     font-size: 0.8rem;
     margin-top: 1.25rem;
@@ -242,7 +242,7 @@
 .auth-footer-text .auth-terms-link,
 .auth-terms-label .auth-terms-link {
     display: inline !important;
-    color: var(--primary-gold, #f2a21b) !important;
+    color: #fbbf24 !important;
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
@@ -261,7 +261,7 @@
 
 .auth-footer-text .auth-terms-link:hover,
 .auth-terms-label .auth-terms-link:hover {
-    color: #d35400 !important;
+    color: #ffd166 !important;
     background: transparent !important;
     text-decoration: underline !important;
 }
