@@ -64,6 +64,8 @@ backups/*.sql
 backups/*.dump
 backups/*.json
 
+*.djcache
+
 # Migraciones Django (generadas localmente)
 # !**/migrations/__init__.py
 
