@@ -2,6 +2,7 @@
 Preferencia de base de datos (local / remota) por sesión de usuario.
 El middleware establece el valor en thread-local para que el router lo use.     
 """
+import sys
 import threading
 
 PREF_LOCAL = 'local'
@@ -29,6 +30,9 @@ def clear_db_preference() -> None:
 def debe_usar_bd_remota() -> bool:
     from django.conf import settings
     from core.utils import conexion_remota_disponible
+
+    if "test" in sys.argv:
+        return False
 
     if 'remota' not in settings.DATABASES:
         return False
