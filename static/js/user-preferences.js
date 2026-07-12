@@ -314,8 +314,16 @@
         document.querySelectorAll('.theme-btn').forEach(function (btn) {
             btn.classList.toggle('active', btn.dataset.theme === theme);
         });
+        document.querySelectorAll('.theme-option').forEach(function (item) {
+            item.classList.toggle('active', item.dataset.themeValue === theme);
+            item.setAttribute('aria-current', item.dataset.themeValue === theme ? 'true' : 'false');
+        });
         document.querySelectorAll('.daltonism-btn').forEach(function (btn) {
             btn.classList.toggle('active', btn.dataset.daltonism === daltonism);
+        });
+        document.querySelectorAll('.daltonism-option').forEach(function (item) {
+            item.classList.toggle('active', item.dataset.daltonismValue === daltonism);
+            item.setAttribute('aria-current', item.dataset.daltonismValue === daltonism ? 'true' : 'false');
         });
         document.querySelectorAll('.font-size-btn').forEach(function (btn) {
             btn.classList.toggle('active', btn.dataset.size === fontSize);
