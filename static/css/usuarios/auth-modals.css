@@ -178,10 +178,9 @@
 
 .auth-terms-label {
     line-height: 1.8;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.25rem;
+    /* Cambio: inline en vez de flex */
+    display: inline;
+    cursor: default;
 }
 
 .auth-terms-link {
@@ -222,23 +221,18 @@
     background: #2d2d2d;
 }
 
-/* =====================================================================
-   Enlace de T&C en el pie del login
-   ===================================================================== */
+/* ── Pie del login ── */
 .auth-footer-text {
     color: #e5e7eb;
     text-align: center;
     font-size: 0.8rem;
     margin-top: 1.25rem;
     line-height: 1.8;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 0.25rem;
+    /* Cambio: block en vez de flex para que fluya como texto */
+    display: block;
 }
 
-/* Botones inline de T&C - override fuerte contra Bootstrap */
+/* Botones inline de T&C */
 .auth-footer-text .auth-terms-link,
 .auth-terms-label .auth-terms-link {
     display: inline !important;
@@ -246,7 +240,7 @@
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
-    margin: 0 !important;
+    margin: 0 0.1rem !important;
     font-size: inherit !important;
     font-weight: 700 !important;
     text-decoration: underline !important;
@@ -258,7 +252,6 @@
     outline: none !important;
     white-space: normal !important;
 }
-
 .auth-footer-text .auth-terms-link:hover,
 .auth-terms-label .auth-terms-link:hover {
     color: #ffd166 !important;
