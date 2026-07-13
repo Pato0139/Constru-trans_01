@@ -1,3 +1,11 @@
+/* =========================================================
+   STICKY NAVBAR — se queda fija al hacer scroll
+   ========================================================= */
+.app-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+}
 
 .btn-dark-premium {
     background: rgba(255, 255, 255, 0.08);
