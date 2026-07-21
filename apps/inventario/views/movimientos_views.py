@@ -59,11 +59,24 @@ def movimientos_lista(request):
         movimientos = movimientos.filter(tipo_movimiento=tipo)
 
     materiales = Material.objects.all().order_by("nombre")
+    filter_fields = [
+        {
+            "name": "tipo",
+            "type": "select",
+            "placeholder": "Todos los tipos",
+            "value": tipo,
+            "options": [
+                {"value": "entrada", "label": "Entrada"},
+                {"value": "salida", "label": "Salida"},
+            ]
+        }
+    ]
     context = {
         "movimientos": movimientos,
         "materiales": materiales,
         "query": query,
         "tipo_actual": tipo,
+        "filter_fields": filter_fields,
     }
 
     return render(request, "inventario/movimientos.html", context)
