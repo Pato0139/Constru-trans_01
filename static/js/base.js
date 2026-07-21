@@ -55,9 +55,9 @@ $(document).ready(function() {
                 "previous": "Anterior"
             }
         },
-        "pageLength": 10,
-        "responsive": true,
-        "dom": '<"d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3"lf>rt<"d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4"ip>'
+        pageLength: 10,
+        responsive: true,
+        dom: '<"d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3"l>rt<"d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4"ip>'
     });
 
     // Custom SweetAlert for Django Messages

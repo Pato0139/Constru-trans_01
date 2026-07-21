@@ -5,9 +5,21 @@
 
 /* --- MOBILE FIRST BASE STYLES --- */
 html {
-    font-size: 16px; /* Tamaño de fuente consistente */
+    font-size: 14px; /* Tamaño de fuente para móviles */
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 15px; /* Tamaño de fuente para tablet */
+    }
+}
+
+@media (min-width: 992px) {
+    html {
+        font-size: 16px; /* Tamaño de fuente para escritorio */
+    }
 }
 
 body {
@@ -44,16 +56,38 @@ body {
 
 .app-navbar {
     background: var(--navbar-bg) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--color-border) !important;
     border-radius: 16px !important;
     margin-bottom: 1.25rem !important;
     padding: 0.85rem 1rem !important;
     box-shadow: var(--shadow-panel);
-    position: sticky;
-    top: 0;
-    z-index: 1080;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    z-index: 1040;
+}
+[data-theme="dark"] .app-navbar,
+[data-theme="dark"] .app-topbar,
+[data-theme="accessibility"] .app-navbar,
+[data-theme="accessibility"] .app-topbar {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.app-topbar {
+    isolation: isolate;
+}
+
+.app-topbar::before {
+    content: "";
+    position: absolute;
+    inset: -0.75rem -0.75rem auto;
+    height: calc(100% + 1.5rem);
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.58), rgba(15, 23, 42, 0));
+    pointer-events: none;
+    z-index: -1;
 }
 
 /* --- SIDEBAR RESPONSIVE --- */
@@ -226,11 +260,14 @@ body {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
     z-index: 1150;
     opacity: 0;
     transition: opacity 0.3s ease;
+}
+[data-theme="dark"] .sidebar-overlay,
+[data-theme="accessibility"] .sidebar-overlay {
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .sidebar-overlay.active {
@@ -331,8 +368,7 @@ body {
 
 /* --- RESPONSIVE GRIDS & CARDS --- */
 .stat-card, .stat-card-ultra {
-    background: linear-gradient(145deg, var(--card-bg) 0%, var(--card-bg-alt) 100%);
-    backdrop-filter: blur(15px);
+    background: var(--card-bg);
     border-radius: 20px;
     padding: 1.25rem;
     border: 1px solid var(--color-border-strong);
@@ -341,6 +377,13 @@ body {
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     margin-bottom: 1rem;
+}
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .stat-card-ultra,
+[data-theme="accessibility"] .stat-card,
+[data-theme="accessibility"] .stat-card-ultra {
+    background: linear-gradient(145deg, var(--card-bg) 0%, var(--card-bg-alt) 100%);
+    backdrop-filter: blur(15px);
 }
 
 @media (min-width: 576px) {
@@ -433,13 +476,16 @@ body {
 /* --- RESPONSIVE TABLES --- */
 .table-container {
     background: linear-gradient(160deg, var(--card-bg) 0%, var(--card-bg-alt) 100%) !important;
-    backdrop-filter: blur(15px);
     border-radius: 16px;
     border: 1px solid var(--color-border-strong);
     border-top: 3px solid var(--color-primary);
     padding: 1rem !important;
     box-shadow: var(--shadow-panel);
     overflow: hidden;
+}
+[data-theme="dark"] .table-container,
+[data-theme="accessibility"] .table-container {
+    backdrop-filter: blur(15px);
 }
 
 .panel-card {
@@ -1341,6 +1387,9 @@ button.nav-link-premium:focus {
    background: #ffffff !important; 
    border: 1px solid rgba(15, 23, 42, 0.12) !important; 
    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08) !important; 
+ }
+ [data-theme="dark"] html body div.dataTables_wrapper div.dataTables_paginate ul.pagination,
+ [data-theme="accessibility"] html body div.dataTables_wrapper div.dataTables_paginate ul.pagination {
    backdrop-filter: blur(12px) !important; 
    -webkit-backdrop-filter: blur(12px) !important;
  } 

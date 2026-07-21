@@ -185,7 +185,9 @@
 .u-inline-6c0f8d518b { max-width: 800px; }
 .u-inline-e535f3ea53 { border-radius: var(--radius-lg); }
 .u-inline-163d1ff67a { border-radius: var(--radius-lg); min-width: 200px; }
-.u-inline-10748ae058 { border-radius: 20px; backdrop-filter: blur(20px); }
+.u-inline-10748ae058 { border-radius: 20px; }
+[data-theme="dark"] .u-inline-10748ae058,
+[data-theme="accessibility"] .u-inline-10748ae058 { backdrop-filter: blur(20px); }
 .u-inline-dcf50088c4 { background: var(--color-bg); border-top: 1px solid var(--color-border); }
 .u-inline-e2a5f92044 { background: #050505; border-top: 1px solid var(--color-border); }
 .u-inline-44c4e49065 { font-family: 'Montserrat', sans-serif; letter-spacing: -1.5px; }

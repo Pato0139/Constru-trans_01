@@ -9,6 +9,9 @@
 /* Filter Bar Styles */
 .filter-bar-card {
   border-radius: var(--radius-lg);
+}
+[data-theme="dark"] .filter-bar-card,
+[data-theme="accessibility"] .filter-bar-card {
   backdrop-filter: blur(10px);
 }
 
@@ -87,7 +90,7 @@
   --sidebar-section-bg: rgba(15, 23, 42, 0.04);
   --main-bg: linear-gradient(160deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
   --main-glow: radial-gradient(ellipse at top right, rgba(30, 64, 175, 0.06) 0%, transparent 70%);
-  --navbar-bg: rgba(255, 255, 255, 0.96);
+  --navbar-bg: #ffffff;
   --nav-link-color: #475569;
   --nav-link-muted: #64748b;
   --nav-link-parent: #334155;
@@ -98,8 +101,23 @@
   --item-bg-hover: #e2e8f0;
   --shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.08);
   --shadow-panel: 0 4px 20px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-bg: #ffffff;
   --glass-border: rgba(15, 23, 42, 0.08);
+}
+
+/* No glass effect in light mode */
+[data-theme="light"] .filter-bar-card,
+[data-theme="light"] .app-navbar,
+[data-theme="light"] .app-topbar,
+[data-theme="light"] .sidebar-overlay,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .stat-card-ultra,
+[data-theme="light"] .table-container,
+[data-theme="light"] .glass-effect,
+[data-theme="light"] html body div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--card-bg) !important;
 }
 
 /* ==============================
@@ -313,7 +331,10 @@ option {
 [data-theme="light"] .panel-card,
 [data-theme="light"] .table-container {
   background: #ffffff !important;
+  background-image: none !important;
   border-color: rgba(15, 23, 42, 0.1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 [data-theme="light"] .panel-card--accent {
   border-top-color: #d97706 !important;

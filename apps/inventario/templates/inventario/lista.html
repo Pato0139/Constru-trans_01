@@ -5,46 +5,19 @@
 {% block title %}Catálogo - ConstruTrans{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
-    <div>
-        <h2 class="fw-bold mb-0 text-white"><i class="bi bi-box-seam-fill text-accent me-2"></i>Catálogo de Materiales</h2>
-        <div class="d-flex align-items-center gap-2 mt-1">
+<div class="mb-4" data-sticky-header>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-4" data-aos="fade-down">
+        <div>
+            <h2 class="fw-bold mb-1 text-white"><i class="bi bi-box-seam-fill text-accent me-2"></i>Catálogo de Materiales</h2>
             <p class="text-white-50 small mb-0">Gestión de productos y precios base</p>
-            <span class="badge rounded-pill px-3 u-inline-b2204c9e00">{{ materiales|length }} registros</span>
         </div>
+        <a href="{% url 'inventario:crear_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg u-inline-602188a7ef" 
+                aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
+            <i class="bi bi-plus-lg fs-5"></i>
+        </a>
     </div>
 
-    <div class="w-100 u-inline-ffa089e03c">
-        <div class="d-flex flex-column gap-2" data-aos="fade-left">
-            <form action="{% url 'inventario:materiales_lista' %}" method="GET" class="d-flex flex-column gap-2">
-                <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm u-inline-a493700b8c">
-                    <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center u-inline-7a3b56f7ab">
-                        <i class="bi bi-search text-dark u-inline-27895aa49c"></i>
-                    </div>
-                    <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
-                           placeholder="Buscar en el catálogo..." value="{{ query|default:'' }}">
-                </div>
-
-                <div class="d-flex gap-2">
-                    <select name="tipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2 u-inline-11ec6e757e" onchange="this.form.submit()">
-                        <option value="">Todos los tipos</option>
-                        {% for t in tipos %}
-                            <option value="{{ t.codigo_catalogo }}" {% if tipo_actual == t.codigo_catalogo %}selected{% endif %}>{{ t.nombre_empresa }}</option>
-                        {% endfor %}
-                    </select>
-                    
-                    <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9" aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
-                        <i class="bi bi-funnel"></i> Filtrar
-                    </button>
-
-                    <a href="{% url 'inventario:crear_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg ms-2 u-inline-602188a7ef" 
-                            aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
-                        <i class="bi bi-plus-lg fs-5"></i>
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
+    {% include "partials/filter_bar.html" with filter_fields=filter_fields q=query has_filters=True %}
 </div>
 
 <div class="table-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8" data-aos="fade-up">
