@@ -8,7 +8,6 @@ html {
     font-size: 16px; /* Tamaño de fuente consistente */
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
-    overflow-x: clip;
 }
 
 body {
@@ -16,24 +15,15 @@ body {
     color: var(--color-text);
     font-family: var(--font-main);
     letter-spacing: -0.01em;
-    max-width: 100%;
-    overflow-x: clip;
-}
-
-/* Evita que elementos flex/grid con textos largos ensanchen el viewport. */
-*, *::before, *::after {
-    box-sizing: border-box;
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* --- ÁREA PRINCIPAL (contraste con sidebar) --- */
 .app-main {
     min-height: 100vh;
-    min-width: 0;
-    max-width: 100%;
     background: var(--main-bg);
     position: relative;
-    /* La barra superior permanece dentro del flujo; así nunca tapa el contenido. */
-    padding-top: 1rem !important;
+    padding-top: 6.75rem !important;
 }
 
 .app-main::before {
@@ -51,7 +41,6 @@ body {
 .app-main > * {
     position: relative;
     z-index: 1;
-    min-width: 0;
 }
 
 .app-navbar,
@@ -64,8 +53,10 @@ body {
     margin-bottom: 1.25rem !important;
     padding: 0.85rem 1rem !important;
     box-shadow: var(--shadow-panel);
-    position: sticky;
+    position: fixed;
     top: 1rem;
+    left: 1rem;
+    right: 1rem;
     z-index: 1040;
 }
 
@@ -269,22 +260,24 @@ body {
 /* --- MAIN CONTENT --- */
 .main-content {
     padding: 1rem !important;
-    min-width: 0;
-    max-width: 100%;
     transition: all 0.3s ease;
 }
 
 @media (min-width: 768px) {
     .main-content {
-        padding: 1rem 1.5rem 1.5rem !important;
+        padding: 6.75rem 1.5rem 1.5rem !important;
     }
 }
 
 @media (min-width: 992px) {
     .main-content {
         margin-left: 280px;
-        width: calc(100% - 280px);
-        padding: 1rem 2rem 2rem !important;
+        padding: 6.75rem 2rem 2rem !important;
+    }
+
+    .app-topbar {
+        left: calc(280px + 2rem);
+        right: 2rem;
     }
 }
 
@@ -309,33 +302,7 @@ body {
 
 /* --- FIX HORIZONTAL SCROLL --- */
 .container-fluid {
-    max-width: 100%;
-    overflow-x: clip;
-}
-
-/* En pantallas intermedias el sidebar ya consume 280px: compactar la barra
-   superior antes de que sus controles empujen o recorten el contenido. */
-@media (min-width: 992px) and (max-width: 1199.98px) {
-    .app-topbar {
-        gap: 0.5rem;
-    }
-
-    .app-topbar .bd-mode-widget--navbar {
-        display: none;
-    }
-
-    .app-topbar .navbar-title {
-        font-size: 1rem !important;
-    }
-}
-
-/* Los componentes Bootstrap dentro de filas o flexibles deben poder encogerse. */
-.d-flex > *,
-.row > *,
-.card,
-.panel-card,
-.table-container {
-    min-width: 0;
+    overflow-x: hidden;
 }
 
 /* --- RESPONSIVE NAVBAR --- */
@@ -1395,8 +1362,8 @@ button.nav-link-premium:focus {
    margin: 0 !important; 
    padding: 0.75rem 1rem !important; 
    border-radius: 9999px !important; 
-   background: #ffffff !important; 
-   border: 1px solid rgba(15, 23, 42, 0.12) !important; 
+   background: var(--color-surface) !important; 
+   border: 1px solid var(--color-border) !important; 
    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08) !important; 
    backdrop-filter: blur(12px) !important; 
    -webkit-backdrop-filter: blur(12px) !important;
@@ -1415,7 +1382,7 @@ button.nav-link-premium:focus {
    border: 1px solid transparent !important; 
    background-color: transparent !important; 
    background: transparent !important;
-   color: #475569 !important; 
+   color: var(--color-text) !important; 
    display: inline-flex !important; 
    align-items: center !important; 
    justify-content: center !important; 
@@ -1436,10 +1403,10 @@ button.nav-link-premium:focus {
 
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link:hover,
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link:hover { 
-   background-color: #e2e8f0 !important; 
-   background: #e2e8f0 !important;
-   border-color: rgba(15, 23, 42, 0.1) !important; 
-   color: #0f172a !important; 
+   background-color: rgba(255, 255, 255, 0.08) !important; 
+   background: rgba(255, 255, 255, 0.08) !important;
+   border-color: rgba(255, 255, 255, 0.12) !important; 
+   color: var(--color-text) !important; 
    transform: translateY(-2px) !important; 
  } 
 
@@ -1454,25 +1421,25 @@ button.nav-link-premium:focus {
 
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled a.page-link,
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled span.page-link { 
-   background-color: #f1f5f9 !important; 
-   background: #f1f5f9 !important;
-   color: #94a3b8 !important; 
+   background-color: rgba(255, 255, 255, 0.05) !important; 
+   background: rgba(255, 255, 255, 0.05) !important;
+   color: var(--color-muted) !important; 
    border-color: transparent !important; 
-   opacity: 0.5 !important; 
+   opacity: 0.75 !important; 
    cursor: not-allowed !important; 
  } 
 
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled a.page-link:hover,
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled span.page-link:hover { 
    transform: none !important; 
-   background-color: #f1f5f9 !important; 
-   background: #f1f5f9 !important;
-   color: #94a3b8 !important; 
+   background-color: rgba(255, 255, 255, 0.05) !important; 
+   background: rgba(255, 255, 255, 0.05) !important;
+   color: var(--color-muted) !important; 
  } 
 
  /* DataTables info text */
  html body div.dataTables_wrapper div.dataTables_info { 
-   color: #64748b !important; 
+   color: var(--color-muted) !important; 
    font-size: 0.9rem !important; 
    font-weight: 500 !important; 
    padding-top: 0.25rem !important; 
@@ -1481,22 +1448,22 @@ button.nav-link-premium:focus {
  /* DataTables length and filter */
  html body div.dataTables_wrapper div.dataTables_length label, 
  html body div.dataTables_wrapper div.dataTables_filter label { 
-   color: #64748b !important; 
+   color: var(--color-muted) !important; 
    font-weight: 500 !important; 
  } 
 
  html body div.dataTables_wrapper div.dataTables_length select, 
  html body div.dataTables_wrapper div.dataTables_filter input { 
-   background-color: #ffffff !important; 
-   color: #0f172a !important; 
-   border: 1px solid rgba(15, 23, 42, 0.12) !important; 
+   background-color: var(--color-surface) !important; 
+   color: var(--color-text) !important; 
+   border: 1px solid var(--color-border) !important; 
    border-radius: 12px !important; 
  } 
 
  html body div.dataTables_wrapper div.dataTables_filter input:focus, 
  html body div.dataTables_wrapper div.dataTables_length select:focus { 
-   border-color: #1e40af !important; 
-   box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.15) !important; 
+   border-color: var(--color-primary) !important; 
+   box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.15) !important; 
  } 
 
  /* Responsive for mobile */
