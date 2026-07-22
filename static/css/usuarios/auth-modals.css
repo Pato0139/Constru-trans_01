@@ -1,0 +1,282 @@
+/**
+ * auth-modals.css
+ * Estilos para los modales de Términos y Condiciones y Política de Privacidad
+ * usados en las páginas de registro e inicio de sesión.
+ */
+
+/* =====================================================================
+   Overlay / Backdrop del modal
+   ===================================================================== */
+.auth-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+}
+
+.auth-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+}
+
+/* =====================================================================
+   Contenedor centrado del modal
+   ===================================================================== */
+.auth-modal-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 1rem;
+}
+
+.auth-modal-box {
+    width: 100%;
+    max-width: 860px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    padding: 2rem;
+}
+
+@media (min-width: 768px) {
+    .auth-modal-box {
+        padding: 3rem;
+    }
+}
+
+/* =====================================================================
+   Encabezado del modal
+   ===================================================================== */
+.auth-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.auth-modal-title {
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    color: var(--primary-gold, #f2a21b);
+}
+
+.auth-modal-close {
+    font-size: 1.5rem;
+    color: #94a3b8;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.auth-modal-close:hover {
+    color: #ffffff;
+}
+
+/* =====================================================================
+   Subtítulo / descripción
+   ===================================================================== */
+.auth-modal-subtitle {
+    color: #94a3b8;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+}
+
+/* =====================================================================
+   Sección de contenido (tarjeta individual por tema)
+   ===================================================================== */
+.auth-modal-section {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.auth-modal-section-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--primary-gold, #f2a21b);
+}
+
+.auth-modal-section-text {
+    color: #cbd5e1;
+    font-size: 0.875rem;
+    margin-bottom: 0;
+}
+
+.auth-modal-section-list {
+    color: #cbd5e1;
+    font-size: 0.875rem;
+    padding-left: 1.25rem;
+    margin-bottom: 0;
+}
+
+/* =====================================================================
+   Pie del modal (botones)
+   ===================================================================== */
+.auth-modal-footer {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.auth-modal-btn-accept {
+    flex: 1;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-gold, #f2a21b) 0%, #d35400 100%);
+    color: #000000;
+    border: none;
+    border-radius: 0.625rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+}
+
+.auth-modal-btn-accept:hover {
+    filter: brightness(1.1);
+}
+
+.auth-modal-btn-close {
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.07);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0.625rem;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+}
+
+.auth-modal-btn-close:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* =====================================================================
+   Checkbox de aceptación de términos
+   ===================================================================== */
+.auth-terms-checkbox {
+    background-color: transparent;
+    border: 2px solid var(--primary-gold, #f2a21b);
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.auth-terms-label {
+    line-height: 1.8;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.auth-terms-link {
+    color: var(--primary-gold, #f2a21b) !important;
+    text-decoration: underline !important;
+    text-underline-offset: 3px;
+    font-size: inherit !important;
+    vertical-align: baseline !important;
+    display: inline !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: none !important;
+    line-height: inherit !important;
+    white-space: normal !important;
+}
+
+.auth-terms-link:hover {
+    color: #d35400 !important;
+}
+
+/* =====================================================================
+   Botón submit deshabilitado
+   ===================================================================== */
+.btn-main:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* =====================================================================
+   Barra de fortaleza de contraseña
+   ===================================================================== */
+.password-strength-bar {
+    height: 8px;
+    background: #2d2d2d;
+}
+
+/* =====================================================================
+   Enlace de T&C en el pie del login
+   ===================================================================== */
+.auth-footer-text {
+    color: #e5e7eb;
+    text-align: center;
+    font-size: 0.8rem;
+    margin-top: 1.25rem;
+    line-height: 1.8;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Botones inline de T&C - override fuerte contra Bootstrap */
+.auth-footer-text .auth-terms-link,
+.auth-terms-label .auth-terms-link {
+    display: inline !important;
+    color: #fbbf24 !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: inherit !important;
+    font-weight: 700 !important;
+    text-decoration: underline !important;
+    text-underline-offset: 3px !important;
+    vertical-align: baseline !important;
+    line-height: inherit !important;
+    cursor: pointer !important;
+    box-shadow: none !important;
+    outline: none !important;
+    white-space: normal !important;
+}
+
+.auth-footer-text .auth-terms-link:hover,
+.auth-terms-label .auth-terms-link:hover {
+    color: #ffd166 !important;
+    background: transparent !important;
+    text-decoration: underline !important;
+}
+
+/* =====================================================================
+   Botón toggle de contraseña (ojo)
+   ===================================================================== */
+.btn-password-toggle {
+    background: transparent;
+    z-index: 10;
+}
+
+.icon-password-toggle {
+    font-size: 1.4rem;
+    color: #F39C12;
+    opacity: 1 !important;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}

@@ -492,8 +492,11 @@ class Proveedor(models.Model):
     telefono = models.CharField(max_length=20, validators=[numeric_and_space_validator])
     correo = models.EmailField(blank=True)
     direccion = models.CharField(max_length=255, blank=True)
+    ciudad = models.CharField(max_length=100, blank=True)
     categoria = models.CharField(max_length=100, blank=True, default="General")
     descripcion = models.TextField(blank=True)
+    activo = models.BooleanField(default=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
@@ -510,6 +513,18 @@ class Proveedor(models.Model):
     @property
     def email(self):
         return self.correo
+
+    @email.setter
+    def email(self, value):
+        self.correo = value
+
+    @property
+    def nombre(self):
+        return self.nombre_empresa
+
+    @property
+    def contacto(self):
+        return self.contacto_nombre
 
     def save(self, *args, **kwargs):
         if not self.contacto_nombre:

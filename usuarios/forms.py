@@ -43,7 +43,7 @@ class UsuarioForm(forms.ModelForm):
         if not (7 <= len(documento) <= 15):
             raise forms.ValidationError("El número de documento debe tener entre 7 y 15 dígitos.")
 
-        existing = Usuario.objects.filter(documento=documento)
+        existing = Usuario.objects.using("default").filter(documento=documento)
         if self.instance:
             existing = existing.exclude(pk=self.instance.pk)
         if existing.exists():
@@ -131,7 +131,7 @@ class RegistroForm(forms.ModelForm):
     def clean_correo(self):
         correo = self.cleaned_data.get("correo")
         # Optimización: usar select_related para reducir queries
-        if User.objects.filter(email=correo).exists():
+        if User.objects.using("default").filter(email=correo).exists():
             raise forms.ValidationError("Este correo ya está registrado.")
         return correo
 
@@ -146,7 +146,7 @@ class RegistroForm(forms.ModelForm):
         documento = limpiar_telefono(documento)
         if not (7 <= len(documento) <= 15):
             raise forms.ValidationError("El número de documento debe tener entre 7 y 15 dígitos.")
-        if Usuario.objects.filter(documento=documento).exists():
+        if Usuario.objects.using("default").filter(documento=documento).exists():
             raise forms.ValidationError("Este documento ya está registrado.")
         return documento
 
