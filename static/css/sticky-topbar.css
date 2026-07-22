@@ -1,7 +1,7 @@
 /**
  * sticky-topbar.css
  * Navbar sticky con reducción suave al hacer scroll > 50px.
- * Requiere que el scroll ocurra en el body/html (NO en el main).
+ * El scroll ocurre en .main-content (ver dashboard.css).
  */
 
 /* =====================================================================
