@@ -8,6 +8,8 @@
     flex-direction: column;
     gap: 1.5rem;
     padding: 1rem 0 2rem;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .purchase-header,
@@ -59,6 +61,7 @@
     grid-template-columns: minmax(0, 1fr) 320px;
     gap: 1rem;
     align-items: start;
+    min-width: 0;
 }
 
 .purchase-main {
@@ -228,7 +231,8 @@
     width: calc(100% - 2.3rem) !important;
 }
 
-@media (max-width: 1100px) {
+/* Considera el ancho ocupado por el sidebar fijo en el panel administrativo. */
+@media (max-width: 1380px) {
     .purchase-layout {
         grid-template-columns: 1fr;
     }
