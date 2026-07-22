@@ -8,6 +8,7 @@ html {
     font-size: 16px; /* Tamaño de fuente consistente */
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    height: 100%;
 }
 
 body {
@@ -15,7 +16,8 @@ body {
     color: var(--color-text);
     font-family: var(--font-main);
     letter-spacing: -0.01em;
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow: hidden; /* el scroll vive en .main-content, no en body */
+    height: 100%;
 }
 
 /* --- ÁREA PRINCIPAL (contraste con sidebar) --- */
@@ -258,9 +260,23 @@ body {
 }
 
 /* --- MAIN CONTENT --- */
+.container-fluid.p-0 > .d-flex {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
 .main-content {
     padding: 1rem !important;
     transition: all 0.3s ease;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 @media (min-width: 768px) {
