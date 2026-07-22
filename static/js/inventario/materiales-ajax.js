@@ -30,15 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 data: 'material',
                 className: 'py-3 px-4',
                 render: function (data) {
-                    const inicial = data ? data.charAt(0).toUpperCase() : '-';
-                    return `
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark ui-w-35 ui-h-35">
-                                ${inicial}
-                            </div>
-                            <span class="fw-medium">${data}</span>
-                        </div>
-                    `;
+                    return `<span class="fw-medium">${data}</span>`;
                 }
             },
             {
@@ -51,10 +43,6 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 data: 'unidad',
                 className: 'py-3 px-4 text-center'
-            },
-            {
-                data: 'precio',
-                className: 'py-3 px-4 text-center fw-bold ui-text-accent'
             },
             {
                 data: 'acciones',

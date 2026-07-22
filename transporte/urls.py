@@ -9,5 +9,6 @@ urlpatterns = [
     path("vehiculos/crear/", views.crear_vehiculo, name="crear_vehiculo"),
     path("vehiculos/editar/<int:id>/", views.editar_vehiculo, name="editar_vehiculo"),
     path("vehiculos/desactivar/<int:id>/", views.desactivar_vehiculo, name="desactivar_vehiculo"),
+    path("vehiculos/disponibilidad/<int:id>/", views.cambiar_disponibilidad_vehiculo, name="cambiar_disponibilidad_vehiculo"),
     path("vehiculos/eliminar/<int:id>/", views.eliminar_vehiculo, name="eliminar_vehiculo"),
 ]

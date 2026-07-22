@@ -8,6 +8,7 @@ html {
     font-size: 16px; /* Tamaño de fuente consistente */
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    overflow-x: clip;
 }
 
 body {
@@ -15,15 +16,24 @@ body {
     color: var(--color-text);
     font-family: var(--font-main);
     letter-spacing: -0.01em;
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+/* Evita que elementos flex/grid con textos largos ensanchen el viewport. */
+*, *::before, *::after {
+    box-sizing: border-box;
 }
 
 /* --- ÁREA PRINCIPAL (contraste con sidebar) --- */
 .app-main {
     min-height: 100vh;
+    min-width: 0;
+    max-width: 100%;
     background: var(--main-bg);
     position: relative;
-    padding-top: 6.75rem !important;
+    /* La barra superior permanece dentro del flujo; así nunca tapa el contenido. */
+    padding-top: 1rem !important;
 }
 
 .app-main::before {
@@ -41,6 +51,7 @@ body {
 .app-main > * {
     position: relative;
     z-index: 1;
+    min-width: 0;
 }
 
 .app-navbar,
@@ -53,10 +64,8 @@ body {
     margin-bottom: 1.25rem !important;
     padding: 0.85rem 1rem !important;
     box-shadow: var(--shadow-panel);
-    position: fixed;
+    position: sticky;
     top: 1rem;
-    left: 1rem;
-    right: 1rem;
     z-index: 1040;
 }
 
@@ -260,24 +269,22 @@ body {
 /* --- MAIN CONTENT --- */
 .main-content {
     padding: 1rem !important;
+    min-width: 0;
+    max-width: 100%;
     transition: all 0.3s ease;
 }
 
 @media (min-width: 768px) {
     .main-content {
-        padding: 6.75rem 1.5rem 1.5rem !important;
+        padding: 1rem 1.5rem 1.5rem !important;
     }
 }
 
 @media (min-width: 992px) {
     .main-content {
         margin-left: 280px;
-        padding: 6.75rem 2rem 2rem !important;
-    }
-
-    .app-topbar {
-        left: calc(280px + 2rem);
-        right: 2rem;
+        width: calc(100% - 280px);
+        padding: 1rem 2rem 2rem !important;
     }
 }
 
@@ -302,7 +309,33 @@ body {
 
 /* --- FIX HORIZONTAL SCROLL --- */
 .container-fluid {
-    overflow-x: hidden;
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+/* En pantallas intermedias el sidebar ya consume 280px: compactar la barra
+   superior antes de que sus controles empujen o recorten el contenido. */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+    .app-topbar {
+        gap: 0.5rem;
+    }
+
+    .app-topbar .bd-mode-widget--navbar {
+        display: none;
+    }
+
+    .app-topbar .navbar-title {
+        font-size: 1rem !important;
+    }
+}
+
+/* Los componentes Bootstrap dentro de filas o flexibles deben poder encogerse. */
+.d-flex > *,
+.row > *,
+.card,
+.panel-card,
+.table-container {
+    min-width: 0;
 }
 
 /* --- RESPONSIVE NAVBAR --- */

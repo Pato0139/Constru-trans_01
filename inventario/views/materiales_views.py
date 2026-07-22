@@ -112,6 +112,22 @@ def eliminar_material(request, id):
 
 
 @admin_required
+def cambiar_estado_material(request, id):
+    """Cambia la disponibilidad sin borrar el material ni su historial."""
+    if request.method != "POST":
+        messages.error(request, "La actualización del estado requiere una solicitud POST.")
+        return redirect("inventario:materiales_lista")
+
+    material = get_object_or_404(Material, pk=id)
+    material.activo = not material.activo
+    material.save(update_fields=["activo"])
+    estado = "habilitado" if material.activo else "inhabilitado"
+    registrar_actividad(request, "actualizar", "inventario", material.pk, f"Material {estado}: {material.nombre}")
+    messages.success(request, f"Material {material.nombre} {estado} correctamente.")
+    return redirect("inventario:materiales_lista")
+
+
+@admin_required
 def stock_lista(request):
     material = request.GET.get("material", "")
     ubicacion = request.GET.get("ubicacion", "")
