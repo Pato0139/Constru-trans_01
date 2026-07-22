@@ -35,6 +35,7 @@
 <link rel="stylesheet" href="{% static 'css/base.css' %}?v=1.0">
 <link rel="stylesheet" href="{% static 'css/utilities.css' %}?v=1.0">
 <link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/sticky-topbar.css' %}?v=1.0">
 
 <script src="{% static 'js/user-preferences.js' %}?v=1.1"></script>
 
@@ -51,7 +52,7 @@
 
 {% include "partials/sidebar.html" %}
 
-<main class="main-content app-main flex-grow-1 p-3 overflow-auto">
+<main class="main-content app-main flex-grow-1 p-3">
 
 {% include "partials/navbar.html" %}
 
@@ -92,6 +93,7 @@
 <script src="{% static 'js/tooltips.js' %}?v=1.0"></script>
 <script src="{% static 'js/partials/navbar.js' %}?v=1.0"></script>
 <script src="{% static 'js/partials/bd-mode-toggle.js' %}?v=1.0"></script>
+<script src="{% static 'js/sticky-topbar.js' %}?v=1.0"></script>
 
 {% block extra_js %}{% endblock %}
 

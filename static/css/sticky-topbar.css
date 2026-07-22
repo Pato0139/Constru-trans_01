@@ -1,0 +1,113 @@
+/**
+ * sticky-topbar.css
+ * Navbar sticky con reducción suave al hacer scroll > 50px.
+ * Requiere que el scroll ocurra en el body/html (NO en el main).
+ */
+
+/* =====================================================================
+   ESTADO BASE - navbar normal (antes del scroll)
+   ===================================================================== */
+.app-navbar {
+    transition:
+        padding         0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        border-radius   0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow      0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        background      0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Título */
+.app-navbar .navbar-title {
+    transition: font-size 0.3s ease !important;
+    font-size: 1.35rem;
+}
+
+/* Subtítulo */
+.app-navbar .navbar-title + p,
+.app-navbar p.text-muted {
+    transition: opacity 0.3s ease, max-height 0.3s ease;
+    max-height: 2rem;
+    opacity: 1;
+    overflow: hidden;
+}
+
+/* Botones icono */
+.app-navbar .navbar-icon-btn {
+    transition: width 0.3s ease, height 0.3s ease,
+                min-width 0.3s ease, min-height 0.3s ease !important;
+}
+
+/* =====================================================================
+   ESTADO SCROLLED - navbar reducido (scroll > 50px)
+   ===================================================================== */
+.app-navbar.navbar-scrolled {
+    padding: 0.45rem 1rem !important;
+    border-radius: 10px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    background: rgba(15, 23, 42, 0.97) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* Título reducido */
+.app-navbar.navbar-scrolled .navbar-title {
+    font-size: 1.1rem !important;
+}
+
+/* Subtítulo oculto */
+.app-navbar.navbar-scrolled .navbar-title + p,
+.app-navbar.navbar-scrolled p.text-muted {
+    opacity: 0 !important;
+    max-height: 0 !important;
+}
+
+/* Botones un poco más pequeños */
+.app-navbar.navbar-scrolled .navbar-icon-btn {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+}
+
+/* =====================================================================
+   TEMA CLARO
+   ===================================================================== */
+[data-theme="light"] .app-navbar.navbar-scrolled {
+    background: rgba(255, 255, 255, 0.97) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* =====================================================================
+   RESPONSIVE
+   ===================================================================== */
+@media (max-width: 768px) {
+    .app-navbar .navbar-title {
+        font-size: 1.15rem;
+    }
+    .app-navbar.navbar-scrolled .navbar-title {
+        font-size: 1rem !important;
+    }
+    .app-navbar.navbar-scrolled {
+        padding: 0.4rem 0.75rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-navbar .navbar-title {
+        font-size: 1rem;
+    }
+    .app-navbar.navbar-scrolled .navbar-title {
+        font-size: 0.9rem !important;
+    }
+}
+
+/* =====================================================================
+   ACCESIBILIDAD - Respetar preferencia de movimiento reducido
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .app-navbar,
+    .app-navbar *,
+    .app-navbar .navbar-title,
+    .app-navbar .navbar-icon-btn {
+        transition: none !important;
+    }
+}
