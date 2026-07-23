@@ -4,6 +4,7 @@ Endpoints JSON (autocompletar, select2, AJAX).
 
 from html import escape
 from django.http import JsonResponse
+from django.middleware.csrf import get_token
 from django.urls import reverse
 
 from usuarios.models import Material, Catalogo
@@ -62,17 +63,19 @@ def api_materiales_listado(request):
                 "material": nombre_seguro,
                 "tipo": material.tipo or "-",
                 "unidad": getattr(material.unidad_medida, "abreviatura", "-"),
-                "stock": getattr(getattr(material, "stock_info", None), "cantidad_actual", 0),
-                "precio": f"${material.precio_referencia:,.0f}".replace(",", "."),
                 "acciones": f'''
                     <div class="d-flex justify-content-center gap-2">
                         <a href="{reverse('inventario:editar_material', args=[material.id])}" class="btn-action" title="Editar">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="{reverse('inventario:eliminar_material', args=[material.id])}" class="btn-action btn-action--danger confirm-delete" title="Eliminar"
-                           data-title="¿Eliminar material?" data-text="¿Estás seguro de que deseas eliminar {nombre_seguro}?">
-                            <i class="bi bi-trash"></i>
-                        </a>
+                        <form method="post" action="{reverse('inventario:cambiar_estado_material', args=[material.id])}" class="d-inline">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">
+                            <button type="submit" class="btn-action {'btn-action--danger' if material.activo else 'btn-action--success'}"
+                                    title="{'Inhabilitar' if material.activo else 'Habilitar'} material"
+                                    aria-label="{'Inhabilitar' if material.activo else 'Habilitar'} {nombre_seguro}">
+                                <i class="bi {'bi-toggle-on' if material.activo else 'bi-toggle-off'}"></i>
+                            </button>
+                        </form>
                     </div>
                 ''',
             }

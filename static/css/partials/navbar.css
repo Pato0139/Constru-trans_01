@@ -1,3 +1,11 @@
+/* =========================================================
+   STICKY NAVBAR — se queda fija al hacer scroll
+   ========================================================= */
+.app-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+}
 
 .btn-dark-premium {
     background: rgba(255, 255, 255, 0.08);
@@ -105,6 +113,101 @@
     right: 0.5rem;
     left: auto;
     overflow-wrap: break-word;
+}
+.navbar-dropdown,
+.navbar-dropdown-small,
+.navbar-dropdown-xs {
+    --bs-dropdown-bg: var(--color-surface);
+    --bs-dropdown-color: var(--color-text);
+    --bs-dropdown-link-color: var(--color-text);
+    --bs-dropdown-link-hover-color: var(--color-text);
+    --bs-dropdown-link-hover-bg: var(--item-bg-hover);
+    --bs-dropdown-link-active-color: #ffffff;
+    --bs-dropdown-link-active-bg: var(--color-primary);
+    --bs-dropdown-border-color: var(--color-border);
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+}
+.navbar-dropdown .dropdown-item,
+.navbar-dropdown-small .dropdown-item,
+.navbar-dropdown-xs .dropdown-item {
+    color: var(--color-text) !important;
+}
+.navbar-dropdown .dropdown-item:hover,
+.navbar-dropdown .dropdown-item:focus,
+.navbar-dropdown-small .dropdown-item:hover,
+.navbar-dropdown-small .dropdown-item:focus,
+.navbar-dropdown-xs .dropdown-item:hover,
+.navbar-dropdown-xs .dropdown-item:focus {
+    background: var(--item-bg-hover) !important;
+    color: var(--color-text) !important;
+}
+.navbar-dropdown .dropdown-item.active,
+.navbar-dropdown-small .dropdown-item.active,
+.navbar-dropdown-xs .dropdown-item.active {
+    background: var(--nav-active-bg) !important;
+    color: #ffffff !important;
+    font-weight: 800;
+}
+.navbar-dropdown .dropdown-header,
+.navbar-dropdown-small .dropdown-header,
+.navbar-dropdown-xs .dropdown-header {
+    color: var(--color-primary) !important;
+}
+.navbar-dropdown .dropdown-divider,
+.navbar-dropdown-small .dropdown-divider,
+.navbar-dropdown-xs .dropdown-divider {
+    border-color: var(--color-border) !important;
+}
+.navbar-dropdown .text-muted,
+.navbar-dropdown-small .text-muted,
+.navbar-dropdown-xs .text-muted {
+    color: var(--color-muted) !important;
+}
+[data-theme="light"] .navbar-dropdown,
+[data-theme="light"] .navbar-dropdown-small,
+[data-theme="light"] .navbar-dropdown-xs {
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16) !important;
+}
+[data-theme="light"] .navbar-dropdown .dropdown-item.active,
+[data-theme="light"] .navbar-dropdown-small .dropdown-item.active,
+[data-theme="light"] .navbar-dropdown-xs .dropdown-item.active {
+    color: #ffffff !important;
+}
+[data-theme="dark"] .navbar-dropdown,
+[data-theme="dark"] .navbar-dropdown-small,
+[data-theme="dark"] .navbar-dropdown-xs {
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45) !important;
+}
+[data-theme="accessibility"] .navbar-dropdown,
+[data-theme="accessibility"] .navbar-dropdown-small,
+[data-theme="accessibility"] .navbar-dropdown-xs {
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: none !important;
+}
+[data-theme="accessibility"] .navbar-dropdown .dropdown-item,
+[data-theme="accessibility"] .navbar-dropdown-small .dropdown-item,
+[data-theme="accessibility"] .navbar-dropdown-xs .dropdown-item {
+    border: 2px solid transparent;
+}
+[data-theme="accessibility"] .navbar-dropdown .dropdown-item:hover,
+[data-theme="accessibility"] .navbar-dropdown .dropdown-item:focus,
+[data-theme="accessibility"] .navbar-dropdown-small .dropdown-item:hover,
+[data-theme="accessibility"] .navbar-dropdown-small .dropdown-item:focus,
+[data-theme="accessibility"] .navbar-dropdown-xs .dropdown-item:hover,
+[data-theme="accessibility"] .navbar-dropdown-xs .dropdown-item:focus {
+    background: #1f1f1f !important;
+    border-color: #ffffff;
+    color: #ffffff !important;
+}
+[data-theme="accessibility"] .navbar-dropdown .dropdown-item.active,
+[data-theme="accessibility"] .navbar-dropdown-small .dropdown-item.active,
+[data-theme="accessibility"] .navbar-dropdown-xs .dropdown-item.active {
+    background: #ffd600 !important;
+    border-color: #ffd600;
+    color: #000000 !important;
 }
 .navbar-dropdown-xs .dropdown-item {
     white-space: normal;
