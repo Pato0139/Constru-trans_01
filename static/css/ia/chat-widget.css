@@ -369,7 +369,24 @@
    background: #e2e8f0;
  }
 
- html[data-theme="light"] .feedback-btn:hover {
+html[data-theme="light"] .feedback-btn:hover {
    background: #cbd5e1;
  }
+
+/* Keep the floating assistant inside narrow screens.  It is linked from the
+   component itself, after global styles, so its mobile rule lives here. */
+@media (max-width: 575.98px) {
+  .chat-widget-container {
+    right: 0.75rem;
+    bottom: 0.75rem;
+    left: auto;
+  }
+
+  .chat-widget-box {
+    width: calc(100vw - 1.5rem);
+    max-width: calc(100vw - 1.5rem);
+    height: min(70vh, 560px);
+    max-height: calc(100dvh - 6rem);
+  }
+}
 
