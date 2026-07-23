@@ -4,8 +4,10 @@
 
 {% block content %}
 
-<div class="mb-4" data-sticky-header>
-    <h2 class="fw-bold text-white mb-1">{{ titulo_panel|default:"Control de Pedidos" }}</h2>
+<div class="mb-4" data-sticky-header data-aos="fade-down">
+    <h2 class="fw-bold text-white mb-1">
+        <i class="bi bi-cart-check text-accent me-2"></i>{{ titulo_panel|default:"Control de Pedidos" }}
+    </h2>
 </div>
 
 <div class="table-container u-inline-ab87d0b2ff">

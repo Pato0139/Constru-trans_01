@@ -21,11 +21,29 @@ def materiales_lista(request):
     tipos = Catalogo.objects.all().order_by("nombre_empresa")
     total = Material.objects.count()
 
+    filter_fields = [
+        {
+            "name": "tipo",
+            "type": "select",
+            "placeholder": "Todos los tipos",
+            "value": tipo,
+            "options": [
+                {
+                    "value": t.codigo_catalogo,
+                    "label": t.nombre_empresa,
+                    "selected": t.codigo_catalogo == tipo,
+                }
+                for t in tipos
+            ],
+        }
+    ]
+
     context = {
         "query": query,
         "tipo_actual": tipo,
         "tipos": tipos,
         "total": total,
+        "filter_fields": filter_fields,
     }
 
     return render(request, "inventario/lista.html", context)

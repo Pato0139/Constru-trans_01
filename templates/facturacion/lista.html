@@ -11,23 +11,13 @@
 {% block content %}
 
 <div class="mb-4" data-sticky-header>
-    <h2 class="fw-bold text-white mb-4">Facturación</h2>
-    
-    <div class="d-flex flex-column flex-md-row gap-3 align-items-center justify-content-between mb-4">
-        <div class="d-flex gap-3 align-items-center flex-grow-1 u-inline-6c0f8d518b">
-            <form action="." method="GET" class="position-relative flex-grow-1">
-                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                <input type="text" name="q" class="form-control bg-dark border-secondary text-white ps-5 u-inline-e535f3ea53" placeholder="Buscador por numero de factura" value="{{ q|default:'' }}">
-            </form>
-            <form action="." method="GET" id="filterForm" class="d-flex gap-2">
-                <select name="estado" class="form-select bg-dark border-secondary text-white w-auto u-inline-163d1ff67a">
-                    <option value="">Todos los estados</option>
-                    <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                    <option value="pagada" {% if estado == 'pagada' %}selected{% endif %}>Pagada</option>
-                    <option value="anulada" {% if estado == 'anulada' %}selected{% endif %}>Anulada</option>
-                </select>
-            </form>
-        </div>
+    <div data-aos="fade-down">
+        <h2 class="fw-bold text-white mb-4">
+            <i class="bi bi-receipt text-accent me-2"></i>Facturación
+        </h2>
+    </div>
+
+    {% include "partials/filter_bar.html" %}
     </div>
 </div>
 
@@ -61,49 +51,43 @@
                     <td class="p-4 text-end fw-bold text-accent">{{ f.saldo_pendiente|currency }}</td>
                     <td class="p-4 text-center">
                         {% if f.estado == 'pendiente' %}
-                            <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle px-3">Pendiente</span>
+                        <span
+                            class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle px-3">Pendiente</span>
                         {% elif f.estado == 'pagada' %}
-                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3">Pagada</span>
+                        <span
+                            class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3">Pagada</span>
                         {% else %}
-                            <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3">Anulada</span>
+                        <span
+                            class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3">Anulada</span>
                         {% endif %}
                     </td>
                     <td class="p-4 text-center">
-                        <button class="btn btn-sm btn-outline-info rounded-pill px-3 btn-ver-historial" 
-                                type="button"
-                                data-numero="{{ f.numero }}"
-                                data-id="{{ f.id }}" title="Ver historial">
+                        <button class="btn btn-sm btn-outline-info rounded-pill px-3 btn-ver-historial" type="button"
+                            data-numero="{{ f.numero }}" data-id="{{ f.id }}" title="Ver historial">
                             <i class="bi bi-list-check"></i>
                         </button>
                     </td>
                     <td class="p-4 text-center">
                         <div class="d-flex justify-content-center gap-2">
                             {% if f.estado == 'pendiente' %}
-                            <button class="btn btn-premium btn-premium-gold btn-sm px-3 btn-abrir-modal-pago" 
-                                    type="button"
-                                    data-id="{{ f.id }}"
-                                    data-numero="{{ f.numero }}"
-                                    data-saldo="{{ f.saldo_pendiente }}"
-                                    title="Pagar">
+                            <button class="btn btn-premium btn-premium-gold btn-sm px-3 btn-abrir-modal-pago"
+                                type="button" data-id="{{ f.id }}" data-numero="{{ f.numero }}"
+                                data-saldo="{{ f.saldo_pendiente }}" title="Pagar">
                                 <i class="bi bi-cash-stack"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 btn-abrir-modal-editar" 
-                                    type="button"
-                                    data-id="{{ f.id }}"
-                                    data-numero="{{ f.numero }}"
-                                    data-total="{{ f.total }}"
-                                    title="Editar Monto">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 btn-abrir-modal-editar"
+                                type="button" data-id="{{ f.id }}" data-numero="{{ f.numero }}"
+                                data-total="{{ f.total }}" title="Editar Monto">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3 btn-anular-factura" 
-                                    type="button"
-                                    data-id="{{ f.id }}"
-                                    data-numero="{{ f.numero }}"
-                                    title="Anular/Cancelar">
+                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3 btn-anular-factura"
+                                type="button" data-id="{{ f.id }}" data-numero="{{ f.numero }}" title="Anular/Cancelar">
                                 <i class="bi bi-x-circle"></i>
                             </button>
                             {% endif %}
-                            <a href="{% url 'ordenes:descargar_factura' f.orden.id %}" class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3" title="Descargar PDF" target="_blank">
+                            <a href="{% url 'ordenes:descargar_factura' f.orden.id %}"
+                                class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3"
+                                title="Descargar PDF" target="_blank">
                                 <i class="bi bi-file-pdf"></i>
                             </a>
                         </div>
@@ -128,7 +112,7 @@
 
 {% block extra_js %}
 <script>
-const csrfToken = '{{ csrf_token }}';
+    const csrfToken = '{{ csrf_token }}';
 </script>
 <script src="{% static 'js/facturacion/lista.js' %}"></script>
 {% endblock %}
