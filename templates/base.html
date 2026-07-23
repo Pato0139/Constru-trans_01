@@ -31,15 +31,17 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 
 <!-- Custom CSS -->
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=3.4">
-<link rel="stylesheet" href="{% static 'css/base.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=3.6">
+<link rel="stylesheet" href="{% static 'css/base.css' %}?v=1.5">
 <link rel="stylesheet" href="{% static 'css/utilities.css' %}?v=1.0">
 <link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/sticky-topbar.css' %}?v=1.0">
 
 <script src="{% static 'js/user-preferences.js' %}?v=1.1"></script>
 
-<link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=1.1">
 {% block extra_css %}{% endblock %}
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=1.0">
 </head>
 
 <body>
@@ -51,7 +53,7 @@
 
 {% include "partials/sidebar.html" %}
 
-<main class="main-content app-main flex-grow-1 p-3 overflow-auto">
+<main class="main-content app-main flex-grow-1 p-3">
 
 {% include "partials/navbar.html" %}
 
@@ -90,8 +92,9 @@
 <script src="{% static 'js/dynamic-styles.js' %}?v=1.0"></script>
 <script src="{% static 'js/quantity-stepper.js' %}?v=1.0"></script>
 <script src="{% static 'js/tooltips.js' %}?v=1.0"></script>
-<script src="{% static 'js/partials/navbar.js' %}?v=1.0"></script>
+<script src="{% static 'js/partials/navbar.js' %}?v=1.1"></script>
 <script src="{% static 'js/partials/bd-mode-toggle.js' %}?v=1.0"></script>
+<script src="{% static 'js/sticky-topbar.js' %}?v=1.0"></script>
 
 {% block extra_js %}{% endblock %}
 

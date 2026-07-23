@@ -1,91 +1,254 @@
 /**
- * Estilos para el módulo de compras - form
- * BEM Methodology
+ * Ordenes de compra inteligentes.
+ * Flujo proveedor -> catálogo -> materiales -> totales.
  */
 
-/* Estilos para la tabla de materiales */
-#detalles-table {
-    background-color: rgba(30, 34, 45, 0.7) !important;
-    border-collapse: separate;
-    border-spacing: 0;
+.purchase-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem 0 2rem;
+    min-width: 0;
+    max-width: 100%;
 }
 
-#detalles-table thead th {
-    background-color: rgba(0, 0, 0, 0.3);
-    color: var(--color-primary, #FF8C00);
+.purchase-header,
+.purchase-panel,
+.purchase-summary {
+    background: rgba(22, 27, 37, 0.84);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+}
+
+.purchase-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.35rem;
+}
+
+.purchase-header .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.purchase-eyebrow {
+    margin: 0 0 0.25rem;
+    color: #f59e0b;
+    font-size: 0.72rem;
     font-weight: 800;
-    border-bottom: 2px solid rgba(255, 140, 0, 0.3);
-    padding: 1rem 0.75rem;
-    text-align: left;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
-#detalles-table tbody tr {
-    transition: all 0.3s ease;
+.purchase-header h2 {
+    margin: 0;
+    color: #f8fafc;
+    font-size: 1.55rem;
+    font-weight: 850;
 }
 
-#detalles-table tbody tr:hover {
-    background-color: rgba(255, 140, 0, 0.05);
+.purchase-header p {
+    margin: 0.35rem 0 0;
+    color: #94a3b8;
 }
 
-#detalles-table tbody td {
-    padding: 0.75rem;
-    vertical-align: middle;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+.purchase-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 1rem;
+    align-items: start;
+    min-width: 0;
 }
 
-#detalles-table .form-control,
-#detalles-table .form-select {
-    background-color: rgba(0, 0, 0, 0.3) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: #ffffff !important;
-    border-radius: 8px;
-    padding: 0.5rem 0.75rem;
-    transition: all 0.3s ease;
+.purchase-main {
+    display: grid;
+    gap: 1rem;
 }
 
-#detalles-table .form-control:focus,
-#detalles-table .form-select:focus {
-    border-color: var(--color-primary, #FF8C00) !important;
-    box-shadow: 0 0 0 0.25rem rgba(255, 140, 0, 0.25) !important;
-    outline: none;
+.purchase-panel {
+    overflow: hidden;
 }
 
-#detalles-table .form-control::placeholder {
-    color: rgba(255, 255, 255, 0.4);
-}
-
-#detalles-table .subtotal-cell {
-    color: var(--color-success, #10b981) !important;
-    font-weight: 800;
-    font-size: 1.05rem;
-}
-
-#detalles-table .remove-form-row {
-    transition: all 0.3s ease;
-    padding: 0.5rem;
-}
-
-#detalles-table .remove-form-row:hover {
-    color: #ef4444 !important;
-    transform: scale(1.1);
-}
-
-/* Counter column styling */
-#detalles-table .counter {
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 700;
-    font-size: 0.9rem;
-}
-
-/* General form improvements */
-.glass-card {
-    background: rgba(30, 34, 45, 0.7) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-}
-
-.glass-card .card-header {
+.purchase-panel__header,
+.purchase-summary__header {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 1rem 1.15rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+    font-weight: 800;
+}
+
+.purchase-panel__header--split {
+    justify-content: space-between;
+}
+
+.purchase-loader {
+    display: none;
+    color: #38bdf8;
+    font-size: 0.78rem;
+}
+
+.purchase-loader.is-visible {
+    display: inline-flex;
+}
+
+.purchase-grid {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) 180px;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.purchase-grid__wide {
+    grid-column: 1 / -1;
+}
+
+.purchase-grid label {
+    display: grid;
+    gap: 0.45rem;
+    color: #94a3b8;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.purchase-grid select,
+.purchase-grid input,
+.purchase-grid textarea,
+.purchase-table select,
+.purchase-table input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 11px;
+    background: rgba(5, 8, 14, 0.65);
+    color: #f8fafc;
+    padding: 0.55rem 0.75rem;
+}
+
+.purchase-table input[readonly] {
+    color: #facc15;
+    background: rgba(245, 158, 11, 0.08);
+}
+
+.purchase-catalog-hint {
+    margin: 1rem;
+    padding: 0.8rem 1rem;
+    border: 1px dashed rgba(56, 189, 248, 0.35);
+    border-radius: 12px;
+    color: #93c5fd;
+    background: rgba(14, 165, 233, 0.08);
+}
+
+.purchase-table-wrap {
+    overflow-x: auto;
+}
+
+.purchase-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.purchase-table th,
+.purchase-table td {
+    padding: 0.85rem 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+    vertical-align: middle;
+}
+
+.purchase-table th {
+    color: #f59e0b;
+    font-size: 0.74rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.purchase-table .counter,
+.purchase-table .unit-cell,
+.purchase-table .updated-cell {
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.purchase-table .subtotal-cell {
+    color: #86efac;
+    font-weight: 900;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.purchase-delete-field {
+    display: none;
+}
+
+.purchase-panel__footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+}
+
+.purchase-summary {
+    position: sticky;
+    top: 96px;
+    overflow: hidden;
+}
+
+.purchase-summary dl {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 1rem 1.15rem;
+}
+
+.purchase-summary dl div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.purchase-summary dt {
+    color: #94a3b8;
+    font-weight: 800;
+}
+
+.purchase-summary dd {
+    margin: 0;
+    color: #f8fafc;
+    font-weight: 900;
+}
+
+.purchase-summary .btn {
+    margin: 0 1.15rem 1.15rem;
+    min-height: 48px;
+    width: calc(100% - 2.3rem) !important;
+}
+
+/* Considera el ancho ocupado por el sidebar fijo en el panel administrativo. */
+@media (max-width: 1380px) {
+    .purchase-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .purchase-summary {
+        position: static;
+    }
+}
+
+@media (max-width: 760px) {
+    .purchase-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .purchase-grid {
+        grid-template-columns: 1fr;
+    }
 }

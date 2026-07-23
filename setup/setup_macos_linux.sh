@@ -1,6 +1,8 @@
 
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -15,43 +17,84 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
+VENV_DIR="$REPO_ROOT/venv"
+VENV_ACTIVATE="$VENV_DIR/bin/activate"
+VENV_PYTHON="$VENV_DIR/bin/python"
+
+ensure_python() {
+    if command -v python3 >/dev/null 2>&1; then
+        PYTHON_CMD="python3"
+    elif command -v python >/dev/null 2>&1; then
+        PYTHON_CMD="python"
+    else
+        echo -e "${RED}[ERROR] Python 3 no encontrado. Instala Python 3.11+ y vuelve a intentar."
+        exit 1
+    fi
+
+    if ! "$PYTHON_CMD" -c 'import sys; sys.exit(not (sys.version_info >= (3, 11)))' >/dev/null 2>&1; then
+        echo -e "${RED}[ERROR] Python 3.11 o superior es requerido. Encontrado: $($PYTHON_CMD --version)"
+        exit 1
+    fi
+
+    echo -e "${GREEN}[OK] Python encontrado: $($PYTHON_CMD --version)"
+}
+
+ensure_venv() {
+    echo -e "${BLUE}[2/5] Creando entorno virtual..."
+
+    if [ -x "$VENV_PYTHON" ] && [ -f "$VENV_ACTIVATE" ]; then
+        echo -e "${GREEN}[OK] Entorno virtual ya existe"
+        return 0
+    fi
+
+    rm -rf "$VENV_DIR"
+
+    if "$PYTHON_CMD" -m venv "$VENV_DIR"; then
+        echo -e "${GREEN}[OK] Entorno virtual creado"
+        return 0
+    fi
+
+    echo -e "${YELLOW}[AVISO] No se pudo crear el entorno virtual con venv. Intentando instalar virtualenv de forma portátil..."
+
+    if ! command -v curl >/dev/null 2>&1; then
+        echo -e "${RED}[ERROR] No se pudo crear el entorno virtual y no está disponible curl. Instala curl o el paquete de venv para tu sistema."
+        exit 1
+    fi
+
+    if ! "$PYTHON_CMD" -m pip install --user virtualenv --break-system-packages >/dev/null 2>&1; then
+        echo -e "${RED}[ERROR] No se pudo instalar virtualenv desde pip."
+        exit 1
+    fi
+
+    if ! "$PYTHON_CMD" -m virtualenv "$VENV_DIR"; then
+        echo -e "${RED}[ERROR] No se pudo crear el entorno virtual con virtualenv."
+        exit 1
+    fi
+
+    if [ ! -x "$VENV_PYTHON" ] || [ ! -f "$VENV_ACTIVATE" ]; then
+        echo -e "${RED}[ERROR] El entorno virtual no quedó correctamente creado."
+        exit 1
+    fi
+
+    echo -e "${GREEN}[OK] Entorno virtual creado"
+}
+
 echo -e "${CYAN}================================================================"
 echo -e "${BLUE}CONSTRU-TRANS - Setup automático (macOS/Linux)"
-echo -e "${CYAN}================================================================" 
+echo -e "${CYAN}================================================================"
 echo -e "${NC}"
 
 echo -e "${BLUE}[1/5] Verificando Python..."
-if command -v python3 >/dev/null 2>&1; then
-    PYTHON_CMD="python3"
-elif command -v python >/dev/null 2>&1; then
-    PYTHON_CMD="python"
-else
-    echo -e "${RED}[ERROR] Python 3 no encontrado. Instala Python 3.11+ y vuelve a intentar."
-    exit 1
-fi
+ensure_python
+ensure_venv
 
-if ! $PYTHON_CMD -c 'import sys; sys.exit(not (sys.version_info >= (3, 11)))' >/dev/null 2>&1; then
-    echo -e "${RED}[ERROR] Python 3.11 o superior es requerido. Encontrado: $($PYTHON_CMD --version)"
-    exit 1
-fi
-
-echo -e "${GREEN}[OK] Python encontrado: $($PYTHON_CMD --version)"
-
-echo -e ""
-echo -e "${BLUE}[2/5] Creando entorno virtual..."
-if [ ! -d "venv" ]; then
-    $PYTHON_CMD -m venv venv
-    echo -e "${GREEN}[OK] Entorno virtual creado"
-else
-    echo -e "${GREEN}[OK] Entorno virtual ya existe"
-fi
-
-source venv/bin/activate
+# shellcheck disable=SC1090
+source "$VENV_ACTIVATE"
 
 echo -e ""
 echo -e "${BLUE}[3/5] Instalando dependencias..."
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+"$VENV_PYTHON" -m pip install --upgrade pip
+"$VENV_PYTHON" -m pip install -r requirements.txt
 
 echo -e "${GREEN}[OK] Dependencias instaladas"
 
@@ -77,7 +120,7 @@ if command -v git >/dev/null 2>&1; then
     fi
     if git clone --depth 1 "$NEON_REPO_URL" "$TEMP_DIR" 2>/dev/null; then
         echo -e "${GREEN}[OK] Repositorio clonado"
-        
+
         echo -e "${BLUE}[2/3] Copiando archivo de configuración..."
         if [ -f "$TEMP_DIR/.env.example" ]; then
             cp "$TEMP_DIR/.env.example" ".env"
@@ -86,7 +129,7 @@ if command -v git >/dev/null 2>&1; then
         else
             echo -e "${YELLOW}[AVISO] No se encontró .env.example en el repo"
         fi
-        
+
         echo -e "${BLUE}[3/3] Limpiando repositorio temporal..."
         rm -rf "$TEMP_DIR"
         echo -e "${GREEN}[OK] Repositorio temporal eliminado"
@@ -102,8 +145,12 @@ if [ "$ENV_CREADO" = false ]; then
     echo -e ""
     echo -e "${BLUE}[OK] Generando configuración básica..."
     DJANGO_ENV="development"
-    SECRET_KEY="$(python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')"
-    
+    SECRET_KEY="$($VENV_PYTHON - <<'PY'
+from django.core.management.utils import get_random_secret_key
+print(get_random_secret_key())
+PY
+)"
+
     cat > ".env" <<EOF
 # Variables minimas para desarrollo local
 DJANGO_ENV=$DJANGO_ENV
@@ -153,9 +200,9 @@ fi
 
 echo -e ""
 echo -e "${BLUE}[5/5] Aplicando migraciones..."
-python manage.py migrate --run-syncdb || {
+"$VENV_PYTHON" manage.py migrate --run-syncdb || {
     echo -e "${YELLOW}[AVISO] Migraciones fallaron. Verificando configuración..."
-    python manage.py check
+    "$VENV_PYTHON" manage.py check
     echo -e "${GREEN}[OK] Configuración verificada"
 }
 
@@ -164,7 +211,7 @@ echo -e "${GREEN}[OK] Migraciones completadas en base local"
 if [ -n "$DATABASE_URL" ]; then
     echo -e ""
     echo -e "${YELLOW}[INFO] Aplicando migraciones en base remota..."
-    python manage.py migrate --database=remota || {
+    "$VENV_PYTHON" manage.py migrate --database=remota || {
         echo -e "${YELLOW}[AVISO] Problema al migrar base remota"
     }
     echo -e "${GREEN}[OK] Migraciones completadas en base remota"

@@ -25,6 +25,11 @@ urlpatterns = [
         name="contactar_proveedor",
     ),
     path(
+        "proveedores/estado/<int:codigo_proveedor>/",
+        views.cambiar_estado_proveedor,
+        name="cambiar_estado_proveedor",
+    ),
+    path(
         "proveedores/perfil/<int:codigo_proveedor>/",
         views.perfil_proveedor,
         name="perfil_proveedor",

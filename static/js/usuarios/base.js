@@ -1,13 +1,26 @@
+/**
+ * @file Inicialización de AOS, DataTables y manejo de mensajes Django para usuarios
+ */
 
+/**
+ * Inicializa AOS (Animate On Scroll) con configuración predeterminada
+ */
 AOS.init({
     duration: 800,
     once: true,
     easing: 'ease-in-out'
 });
 
+// Configurar manejo de errores de DataTables
 $.fn.dataTable.ext.errMode = 'throw';
 
+/**
+ * Inicializa DataTables y mensajes Django cuando el DOM está listo
+ */
 $(document).ready(function() {
+    /**
+     * Configuración predeterminada de DataTables para todas las tablas
+     */
     $('.table:not(.no-datatable)').DataTable({
         "language": {
             "search": "Buscar:",
@@ -28,6 +41,9 @@ $(document).ready(function() {
         "dom": '<"d-flex justify-content-between align-items-center mb-3"lf>rt<"d-flex justify-content-between align-items-center mt-3"ip>'
     });
 
+    /**
+     * Procesa y muestra mensajes de Django usando SweetAlert2
+     */
     const djangoMessagesDiv = document.getElementById('django-messages-data');
     if (djangoMessagesDiv) {
         const messages = djangoMessagesDiv.querySelectorAll('.django-message-item');
@@ -55,10 +71,18 @@ $(document).ready(function() {
     }
 });
 
+/**
+ * Filtro para inputs que solo aceptan valores numéricos
+ * @listens input
+ */
 $(document).on('input', '.numeric-only', function() {
     this.value = this.value.replace(/[^0-9]/g, '');
 });
 
+/**
+ * Confirmación de cierre de sesión con SweetAlert2
+ * @listens click
+ */
 $(document).on('click', '.confirm-logout', function(e) {
     e.preventDefault();
     const url = $(this).attr('href');

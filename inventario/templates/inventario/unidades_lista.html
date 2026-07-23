@@ -84,13 +84,13 @@
                                title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="{% url 'inventario:eliminar_unidad_medida' unidad.pk %}"
-                               class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--delete confirm-delete"
-                               title="Eliminar"
-                               data-title="¿Eliminar unidad?"
-                               data-text="¿Estás seguro de que deseas eliminar «{{ unidad.nombre }}»?">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                            <form method="post" action="{% url 'inventario:cambiar_estado_unidad_medida' unidad.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm rounded-pill px-3 {% if unidad.activa %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                                        title="{% if unidad.activa %}Inhabilitar{% else %}Habilitar{% endif %}">
+                                    <i class="bi {% if unidad.activa %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>

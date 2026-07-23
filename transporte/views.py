@@ -206,6 +206,36 @@ def eliminar_vehiculo(request, id):
 
 
 @admin_required
+def cambiar_disponibilidad_vehiculo(request, id):
+    """Alterna disponible/fuera de servicio sin borrar el vehículo."""
+    if request.method != "POST":
+        messages.error(request, "La disponibilidad debe actualizarse mediante POST.")
+        return redirect("transporte:lista_vehiculos")
+
+    vehiculo = get_object_or_404(Vehiculo, pk=id)
+    entregas_activas = Entrega.objects.filter(
+        vehiculo=vehiculo, estado__in=["pendiente", "en_ruta"]
+    ).exists()
+    if entregas_activas:
+        messages.error(request, "No se puede inhabilitar el vehículo porque tiene entregas activas.")
+        return redirect("transporte:lista_vehiculos")
+
+    if vehiculo.estado == "fuera_de_servicio":
+        vehiculo.estado = "disponible"
+        mensaje = "habilitado"
+    elif vehiculo.estado == "disponible":
+        vehiculo.estado = "fuera_de_servicio"
+        mensaje = "inhabilitado"
+    else:
+        messages.error(request, "El vehículo debe finalizar su estado actual antes de cambiar disponibilidad.")
+        return redirect("transporte:lista_vehiculos")
+
+    vehiculo.save(update_fields=["estado"])
+    messages.success(request, f"Vehículo {vehiculo.placa} {mensaje} correctamente.")
+    return redirect("transporte:lista_vehiculos")
+
+
+@admin_required
 def desactivar_vehiculo(request, id):
     vehiculo = get_object_or_404(Vehiculo, pk=id)
 
