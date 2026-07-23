@@ -98,14 +98,15 @@
                             <a href="{% url 'transporte:editar_vehiculo' v.id %}" class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3" title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            {% if v.estado == 'disponible' %}
-                            <a href="{% url 'transporte:desactivar_vehiculo' v.id %}" class="btn btn-sm btn-outline-warning border-white-10 rounded-pill px-3" title="Desactivar">
-                                <i class="bi bi-slash-circle"></i>
-                            </a>
+                            {% if v.estado == 'disponible' or v.estado == 'fuera_de_servicio' %}
+                            <form method="post" action="{% url 'transporte:cambiar_disponibilidad_vehiculo' v.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm {% if v.estado == 'disponible' %}btn-outline-warning{% else %}btn-outline-success{% endif %} border-white-10 rounded-pill px-3"
+                                        title="{% if v.estado == 'disponible' %}Inhabilitar{% else %}Habilitar{% endif %}">
+                                    <i class="bi {% if v.estado == 'disponible' %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                                </button>
+                            </form>
                             {% endif %}
-                            <a href="{% url 'transporte:eliminar_vehiculo' v.id %}" class="btn btn-sm btn-outline-danger border-white-10 rounded-pill px-3 confirm-delete" data-title="¿Eliminar vehículo?" data-text="¿Estás seguro de que deseas eliminar el vehículo {{ v.placa }}?" title="Eliminar">
-                                <i class="bi bi-trash"></i>
-                            </a>
                         </div>
                     </td>
                 </tr>

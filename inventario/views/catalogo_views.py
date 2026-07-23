@@ -178,6 +178,21 @@ def editar_unidad_medida(request, id):
 
 
 @admin_required
+def cambiar_estado_unidad_medida(request, id):
+    if request.method != "POST":
+        messages.error(request, "El estado de la unidad debe actualizarse mediante POST.")
+        return redirect("inventario:unidades_medida_lista")
+
+    unidad = get_object_or_404(UnidadMedida, pk=id)
+    unidad.activa = not unidad.activa
+    unidad.save(update_fields=["activa"])
+    estado = "habilitada" if unidad.activa else "inhabilitada"
+    registrar_actividad(request, "actualizar", "unidad_medida", unidad.pk, f"Unidad {estado}: {unidad.nombre}")
+    messages.success(request, f"Unidad de medida '{unidad.nombre}' {estado} correctamente.")
+    return redirect("inventario:unidades_medida_lista")
+
+
+@admin_required
 def eliminar_unidad_medida(request, id):
     unidad = get_object_or_404(UnidadMedida, pk=id)
 

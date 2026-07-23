@@ -50,23 +50,14 @@
                         </label>
 
                         <div class="profile-preview-container mb-3 usuario-profile-preview">
-
-                            {% if usuario.foto_perfil %}
-                                <img id="preview-image" src="{{ usuario.foto_perfil.url }}"
-                                     alt="Foto de perfil"
-                                     class="usuario-preview-image">
-                            {% else %}
-                                <div id="preview-initials" class="usuario-preview-initials">
-                                    {{ usuario.nombres|slice:":1" }}{{ usuario.apellidos|slice:":1" }}
-                                </div>
-                                <img id="preview-image" class="usuario-preview-image u-inline-f2892a2e8a" alt="Preview">
-                            {% endif %}
-
+                            <div id="preview-initials" class="usuario-preview-initials">
+                                {{ usuario.iniciales }}
+                            </div>
                         </div>
                         <label for="foto_perfil_input" class="btn btn-sm btn-outline-accent rounded-pill px-3">
-                            <i class="bi bi-camera-fill me-2"></i> Seleccionar Imagen
+                            <i class="bi bi-camera-fill me-2"></i> Cambiar Foto
                         </label>
-                        <input type="file" id="foto_perfil_input" name="foto_perfil" class="d-none" accept="image/*">
+                        <input type="file" id="foto_perfil_input" name="foto_perfil" class="d-none">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Nombres</label>

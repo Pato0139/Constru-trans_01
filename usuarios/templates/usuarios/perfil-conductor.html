@@ -17,13 +17,9 @@
             </div>
             <div class="text-center mb-5">
                 <div class="position-relative d-inline-block mb-3 profile-avatar-container">
-                    {% if conductor.foto_perfil %}
-                        <img src="{{ conductor.foto_perfil.url }}" alt="Perfil" class="profile-avatar-img">
-                    {% else %}
-                        <div class="profile-avatar-placeholder">
-                            {% if conductor.nombres %}{{ conductor.nombres|slice:":1"|upper }}{% endif %}{% if conductor.apellidos %}{{ conductor.apellidos|slice:":1"|upper }}{% endif %}
-                        </div>
-                    {% endif %}
+                    <div class="profile-avatar-placeholder">
+                        {{ conductor.iniciales }}
+                    </div>
                     <span class="profile-status-badge"></span>
                 </div>
                 <h3 class="fw-900 mb-1 profile-name">{{ conductor.nombres }} {{ conductor.apellidos }}</h3>

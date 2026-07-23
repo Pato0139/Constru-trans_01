@@ -3,7 +3,8 @@
 
 {% block title %}Crear Cuenta - Constru-trans{% endblock %}
 
-{% block content %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/usuarios/auth-modals.css' %}">
 <style>
     /* Para registro (formulario largo) el scroll debe estar en el body, no en la tarjeta */
     body {
@@ -27,137 +28,46 @@
         margin-bottom: 20px;
         box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-    .recaptcha-left {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
+    .recaptcha-left { display: flex; align-items: center; gap: 15px; }
     .recaptcha-checkbox {
-        width: 24px;
-        height: 24px;
-        border: 2px solid #555;
-        border-radius: 2px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #333;
-        transition: all 0.2s;
-        flex-shrink: 0;
+        width: 24px; height: 24px; border: 2px solid #555; border-radius: 2px;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        background: #333; transition: all 0.2s; flex-shrink: 0;
     }
-    .recaptcha-checkbox.checked {
-        border-color: #F39C12;
-        background: #F39C12;
-    }
-    .recaptcha-checkbox.checked i {
-        display: block !important;
-        color: white;
-        font-size: 16px;
-    }
-    .recaptcha-text {
-        color: #fff;
-        font-size: 14px;
-        font-weight: 500;
-        user-select: none;
-    }
-    .recaptcha-right {
-        text-align: center;
-        opacity: 0.8;
-        flex-shrink: 0;
-    }
-    .recaptcha-logo {
-        width: 30px;
-        height: 30px;
-        margin-bottom: 2px;
-    }
-    .recaptcha-privacy {
-        font-size: 8px;
-        color: #888;
-        display: block;
-        text-decoration: none;
-    }
-
-    /* Challenge box (hidden initially) */
+    .recaptcha-checkbox.checked { border-color: #F39C12; background: #F39C12; }
+    .recaptcha-checkbox.checked i { display: block !important; color: white; font-size: 16px; }
+    .recaptcha-text { color: #fff; font-size: 14px; font-weight: 500; user-select: none; }
+    .recaptcha-right { text-align: center; opacity: 0.8; flex-shrink: 0; }
+    .recaptcha-logo { width: 30px; height: 30px; margin-bottom: 2px; }
+    .recaptcha-privacy { font-size: 8px; color: #888; display: block; text-decoration: none; }
     .captcha-challenge-box {
-        display: none;
-        background: #333;
-        border: 1px solid #444;
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: -10px;
-        margin-bottom: 20px;
-        animation: fadeIn 0.3s ease;
+        display: none; background: #333; border: 1px solid #444; border-radius: 8px;
+        padding: 20px; margin-top: -10px; margin-bottom: 20px; animation: fadeIn 0.3s ease;
     }
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
+        to   { opacity: 1; transform: translateY(0); }
     }
-
-    .captcha-container img {
-        border-radius: 8px;
-        margin-bottom: 15px;
-        display: block;
-        border: 2px solid #444;
-        max-width: 100%;
-    }
+    .captcha-container img { border-radius: 8px; margin-bottom: 15px; display: block; border: 2px solid #444; max-width: 100%; }
     .captcha-container input {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        color: white !important;
-        padding: 10px 15px !important;
-        border-radius: 8px !important;
-        width: 100% !important;
-        text-align: center !important;
-        font-weight: bold !important;
-        letter-spacing: 2px !important;
-        box-sizing: border-box !important;
+        background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.2) !important;
+        color: white !important; padding: 10px 15px !important; border-radius: 8px !important;
+        width: 100% !important; text-align: center !important; font-weight: bold !important;
+        letter-spacing: 2px !important; box-sizing: border-box !important;
     }
-    /* Dropdown oscuro */
-    select.input-custom option {
-        background-color: #333333 !important;
-        color: white !important;
-    }
-
-    /* Mejoras de responsividad para el formulario */
+    select.input-custom option { background-color: #333333 !important; color: white !important; }
     @media (max-width: 576px) {
-        .recaptcha-mock {
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-start;
-        }
-        .recaptcha-right {
-            width: 100%;
-            text-align: left;
-        }
-        
-        .row.g-3 {
-            gap: 12px !important;
-        }
-        .row.g-3 > div {
-            margin-bottom: 8px;
-        }
-
-        /* Hacer que los campos de contraseña se adapten en móvil */
-        .position-relative .bi {
-            font-size: 1.2rem !important;
-        }
-
-        .btn.position-absolute {
-            padding-right: 8px !important;
-        }
+        .recaptcha-mock { flex-direction: column; gap: 10px; align-items: flex-start; }
+        .recaptcha-right { width: 100%; text-align: left; }
+        .row.g-3 { gap: 12px !important; }
+        .row.g-3 > div { margin-bottom: 8px; }
     }
-
-    /* Asegurar que el botón ocupe ancho completo */
-    .btn-main {
-        width: 100%;
-        margin-top: 8px;
-    }
-
-    /* Asegurar que los campos de formulario se adapten bien */
-    form {
-        width: 100%;
-    }
+    .btn-main { width: 100%; margin-top: 8px; }
+    form { width: 100%; }
 </style>
+{% endblock %}
+
+{% block content %}
 <div class="animate-up">
     <h1 class="welcome-h1">CREAR CUENTA</h1>
     <p class="welcome-p">¿Ya tiene una cuenta? <a href="{% url 'usuarios:login' %}">Ingrese aquí</a></p>
@@ -230,14 +140,16 @@
             <label class="label-custom">Contraseña</label>
             <div class="position-relative">
                 {{ form.contrasena }}
-                <button type="button" onclick="togglePassword('id_contrasena', 'toggleIcon1')" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4" style="background: transparent; z-index: 10;">
-                    <i class="bi bi-eye-slash" id="toggleIcon1" style="font-size: 1.4rem; color: #F39C12; opacity: 1 !important; text-shadow: 0 0 5px rgba(0,0,0,0.5);"></i>
+                <button type="button" onclick="togglePassword('id_contrasena', 'toggleIcon1')"
+                        class="btn btn-password-toggle position-absolute top-50 end-0 translate-middle-y border-0 pe-4">
+                    <i class="bi bi-eye-slash icon-password-toggle" id="toggleIcon1"></i>
                 </button>
             </div>
             <!-- Indicador de fortaleza de contraseña -->
             <div class="mt-2">
-                <div class="progress" style="height: 8px; background: #2d2d2d;">
-                    <div id="passwordStrengthBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress password-strength-bar">
+                    <div id="passwordStrengthBar" class="progress-bar" role="progressbar"
+                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
                 <div id="passwordStrengthText" class="text-muted small mt-1"></div>
             </div>
@@ -246,8 +158,9 @@
             <label class="label-custom">Confirmar</label>
             <div class="position-relative">
                 {{ form.confirmar_contrasena }}
-                <button type="button" onclick="togglePassword('id_confirmar_contrasena', 'toggleIcon2')" class="btn position-absolute top-50 end-0 translate-middle-y border-0 pe-4" style="background: transparent; z-index: 10;">
-                    <i class="bi bi-eye-slash" id="toggleIcon2" style="font-size: 1.4rem; color: #F39C12; opacity: 1 !important; text-shadow: 0 0 5px rgba(0,0,0,0.5);"></i>
+                <button type="button" onclick="togglePassword('id_confirmar_contrasena', 'toggleIcon2')"
+                        class="btn btn-password-toggle position-absolute top-50 end-0 translate-middle-y border-0 pe-4">
+                    <i class="bi bi-eye-slash icon-password-toggle" id="toggleIcon2"></i>
                 </button>
             </div>
         </div>
@@ -255,62 +168,48 @@
 
     <!-- Checkbox de términos y condiciones -->
     <div class="form-check mb-4 mt-2">
-        <input class="form-check-input" type="checkbox" id="aceptarTerminos" required
-               style="background-color: transparent; border: 2px solid var(--primary-gold); width: 20px; height: 20px; cursor: pointer;">
-        <label class="form-check-label small text-white fw-bold ms-2" for="aceptarTerminos" style="line-height: 1.5;">
+        <input class="form-check-input auth-terms-checkbox" type="checkbox" id="aceptarTerminos" required>
+        <label class="form-check-label small text-white fw-bold ms-2 auth-terms-label" for="aceptarTerminos">
             He leído y acepto los
-            <button type="button" onclick="abrirTerminos()" class="btn btn-link p-0 fw-bold"
-                    style="color: var(--primary-gold); text-decoration: underline; text-underline-offset: 3px; font-size: inherit; vertical-align: baseline;">
-                Términos y Condiciones
-            </button>
+            <span role="button" tabindex="0" onclick="abrirTerminos()" onkeydown="if(event.key==='Enter')abrirTerminos()" class="auth-terms-link">Términos y Condiciones</span>
             y la
-            <button type="button" onclick="abrirPrivacidadRegistro()" class="btn btn-link p-0 fw-bold"
-                    style="color: var(--primary-gold); text-decoration: underline; text-underline-offset: 3px; font-size: inherit; vertical-align: baseline;">
-                Política de Privacidad
-            </button>
+            <span role="button" tabindex="0" onclick="abrirPrivacidadRegistro()" onkeydown="if(event.key==='Enter')abrirPrivacidadRegistro()" class="auth-terms-link">Política de Privacidad</span>
         </label>
     </div>
 
-    <button type="submit" id="btnRegistrar" class="btn-main d-flex align-items-center justify-content-center"
-            disabled style="opacity: 0.5; cursor: not-allowed;">
+    <button type="submit" id="btnRegistrar" class="btn-main d-flex align-items-center justify-content-center" disabled>
         <i class="bi bi-person-plus-fill me-2"></i> Unirme ahora
     </button>
 </form>
 
 <!-- Modal Términos y Condiciones -->
-<div id="terminosModalRegistro" class="fixed-top d-none" style="z-index: 9999; top: 0; left: 0; right: 0; bottom: 0;">
-    <div id="terminosBackdropRegistro" class="position-absolute" style="background: rgba(0,0,0,0.85); top: 0; left: 0; right: 0; bottom: 0;"></div>
-    <div class="position-relative d-flex justify-content-center align-items-center h-100 p-3">
-        <div class="rounded-4 p-4 p-md-5 w-100" style="max-width: 860px; border: 1px solid rgba(255,255,255,0.1); background: #1a1a1a; max-height: 90vh; overflow-y: auto;">
-
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold d-flex align-items-center gap-2 m-0" style="color: var(--primary-gold);">
+<div id="terminosModalRegistro" class="fixed-top d-none auth-modal-overlay">
+    <div id="terminosBackdropRegistro" class="auth-modal-backdrop"></div>
+    <div class="auth-modal-wrapper">
+        <div class="auth-modal-box">
+            <div class="auth-modal-header">
+                <h5 class="auth-modal-title">
                     <i class="bi bi-file-earmark-text-fill fs-5"></i> Términos y Condiciones de Uso
                 </h5>
-                <button type="button" onclick="cerrarTerminos()" class="btn btn-link text-muted text-decoration-none p-0" style="font-size: 1.5rem;">
+                <button type="button" onclick="cerrarTerminos()" class="auth-modal-close">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
-
-            <p class="small mb-4" style="color: #94a3b8;">
+            <p class="auth-modal-subtitle">
                 Última actualización: julio de 2026. Al crear una cuenta en Constru-Trans, usted acepta los siguientes términos en su totalidad.
             </p>
-
             <div class="d-flex flex-column gap-3">
-
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-1-circle me-2"></i>Aceptación de los Términos</h6>
-                    <p class="small mb-0" style="color: #cbd5e1;">Al registrarse y utilizar la plataforma Constru-Trans, usted acepta quedar vinculado por estos Términos y Condiciones, así como por nuestra Política de Privacidad. Si no está de acuerdo con alguno de estos términos, no debe utilizar la plataforma.</p>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-1-circle me-2"></i>Aceptación de los Términos</h6>
+                    <p class="auth-modal-section-text">Al registrarse y utilizar la plataforma Constru-Trans, usted acepta quedar vinculado por estos Términos y Condiciones, así como por nuestra Política de Privacidad. Si no está de acuerdo con alguno de estos términos, no debe utilizar la plataforma.</p>
                 </div>
-
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-2-circle me-2"></i>Descripción del Servicio</h6>
-                    <p class="small mb-0" style="color: #cbd5e1;">Constru-Trans es una plataforma de gestión logística que facilita la conexión entre clientes que requieren transporte de materiales de construcción y conductores/proveedores registrados. La plataforma permite gestionar pedidos, facturación, pagos e historial de servicios.</p>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-2-circle me-2"></i>Descripción del Servicio</h6>
+                    <p class="auth-modal-section-text">Constru-Trans es una plataforma de gestión logística que facilita la conexión entre clientes que requieren transporte de materiales de construcción y conductores/proveedores registrados. La plataforma permite gestionar pedidos, facturación, pagos e historial de servicios.</p>
                 </div>
-
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-3-circle me-2"></i>Registro y Cuenta de Usuario</h6>
-                    <ul class="small mb-0 ps-3" style="color: #cbd5e1;">
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-3-circle me-2"></i>Registro y Cuenta de Usuario</h6>
+                    <ul class="auth-modal-section-list">
                         <li>Debe proporcionar información verídica, completa y actualizada durante el registro.</li>
                         <li>Es responsable de mantener la confidencialidad de su contraseña.</li>
                         <li>Debe notificarnos inmediatamente si sospecha de acceso no autorizado a su cuenta.</li>
@@ -318,11 +217,10 @@
                         <li>Está prohibido ceder, vender o transferir su cuenta a terceros.</li>
                     </ul>
                 </div>
-
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-4-circle me-2"></i>Uso Aceptable</h6>
-                    <p class="small mb-2" style="color: #cbd5e1;">Usted se compromete a no utilizar la plataforma para:</p>
-                    <ul class="small mb-0 ps-3" style="color: #cbd5e1;">
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-4-circle me-2"></i>Uso Aceptable</h6>
+                    <p class="auth-modal-section-text">Usted se compromete a no utilizar la plataforma para:</p>
+                    <ul class="auth-modal-section-list">
                         <li>Actividades ilegales o que infrinjan derechos de terceros.</li>
                         <li>Publicar información falsa, engañosa o fraudulenta.</li>
                         <li>Intentar acceder de forma no autorizada a sistemas o datos.</li>
@@ -330,41 +228,32 @@
                         <li>Realizar actividades de spam, phishing o distribución de malware.</li>
                     </ul>
                 </div>
-
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-5-circle me-2"></i>Pagos y Facturación</h6>
-                    <p class="small mb-0" style="color: #cbd5e1;">Los precios y tarifas de los servicios son los establecidos en cada cotización o pedido confirmado. Constru-Trans actúa como intermediario y no se hace responsable por disputas de pago entre clientes y proveedores. Los comprobantes de pago deben ser verídicos; la presentación de documentos falsos resultará en la suspensión inmediata de la cuenta.</p>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-5-circle me-2"></i>Pagos y Facturación</h6>
+                    <p class="auth-modal-section-text">Los precios y tarifas de los servicios son los establecidos en cada cotización o pedido confirmado. Constru-Trans actúa como intermediario y no se hace responsable por disputas de pago entre clientes y proveedores. Los comprobantes de pago deben ser verídicos; la presentación de documentos falsos resultará en la suspensión inmediata de la cuenta.</p>
                 </div>
-
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-6-circle me-2"></i>Limitación de Responsabilidad</h6>
-                    <p class="small mb-0" style="color: #cbd5e1;">Constru-Trans no será responsable por daños directos, indirectos, incidentales o consecuentes derivados del uso o la imposibilidad de uso de la plataforma. La plataforma se provee "tal como está" y no garantizamos disponibilidad ininterrumpida del servicio.</p>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-6-circle me-2"></i>Limitación de Responsabilidad</h6>
+                    <p class="auth-modal-section-text">Constru-Trans no será responsable por daños directos, indirectos, incidentales o consecuentes derivados del uso o la imposibilidad de uso de la plataforma. La plataforma se provee "tal como está" y no garantizamos disponibilidad ininterrumpida del servicio.</p>
                 </div>
-
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-7-circle me-2"></i>Suspensión y Terminación</h6>
-                    <p class="small mb-0" style="color: #cbd5e1;">Nos reservamos el derecho de suspender o terminar su cuenta sin previo aviso si detectamos violaciones a estos términos, actividad fraudulenta o comportamiento que perjudique a otros usuarios o a la plataforma.</p>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-7-circle me-2"></i>Suspensión y Terminación</h6>
+                    <p class="auth-modal-section-text">Nos reservamos el derecho de suspender o terminar su cuenta sin previo aviso si detectamos violaciones a estos términos, actividad fraudulenta o comportamiento que perjudique a otros usuarios o a la plataforma.</p>
                 </div>
-
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-8-circle me-2"></i>Cambios en los Términos</h6>
-                    <p class="small mb-0" style="color: #cbd5e1;">Podemos actualizar estos Términos en cualquier momento. Le notificaremos sobre cambios significativos por correo electrónico o mediante un aviso en la plataforma. El uso continuado de la plataforma después de dichas modificaciones constituye su aceptación de los nuevos términos.</p>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-8-circle me-2"></i>Cambios en los Términos</h6>
+                    <p class="auth-modal-section-text">Podemos actualizar estos Términos en cualquier momento. Le notificaremos sobre cambios significativos por correo electrónico o mediante un aviso en la plataforma. El uso continuado de la plataforma después de dichas modificaciones constituye su aceptación de los nuevos términos.</p>
                 </div>
-
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-envelope me-2"></i>Contacto</h6>
-                    <p class="small mb-0" style="color: #cbd5e1;">Para dudas sobre estos términos: <a href="mailto:construtranscolombia@gmail.com" class="fw-bold" style="color: var(--primary-gold); text-decoration: none;">construtranscolombia@gmail.com</a></p>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-envelope me-2"></i>Contacto</h6>
+                    <p class="auth-modal-section-text">Para dudas sobre estos términos: <a href="mailto:construtranscolombia@gmail.com" class="auth-terms-link">construtranscolombia@gmail.com</a></p>
                 </div>
-
             </div>
-
-            <div class="d-flex gap-3 mt-4 flex-wrap">
-                <button type="button" onclick="aceptarTerminosDesdeModal()" class="btn fw-bold flex-fill"
-                        style="background: linear-gradient(135deg, var(--primary-gold) 0%, #d35400 100%); color: black; border-radius: 10px; padding: 12px;">
+            <div class="auth-modal-footer">
+                <button type="button" onclick="aceptarTerminosDesdeModal()" class="auth-modal-btn-accept">
                     <i class="bi bi-check-circle-fill me-2"></i> Acepto los Términos
                 </button>
-                <button type="button" onclick="cerrarTerminos()" class="btn fw-bold"
-                        style="background: rgba(255,255,255,0.07); color: white; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 12px 24px;">
+                <button type="button" onclick="cerrarTerminos()" class="auth-modal-btn-close">
                     Cerrar
                 </button>
             </div>
@@ -373,45 +262,46 @@
 </div>
 
 <!-- Modal Política de Privacidad (desde registro) -->
-<div id="privacidadModalRegistro" class="fixed-top d-none" style="z-index: 9999; top: 0; left: 0; right: 0; bottom: 0;">
-    <div id="privacidadBackdropRegistro" class="position-absolute" style="background: rgba(0,0,0,0.85); top: 0; left: 0; right: 0; bottom: 0;"></div>
-    <div class="position-relative d-flex justify-content-center align-items-center h-100 p-3">
-        <div class="rounded-4 p-4 p-md-5 w-100" style="max-width: 860px; border: 1px solid rgba(255,255,255,0.1); background: #1a1a1a; max-height: 90vh; overflow-y: auto;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold d-flex align-items-center gap-2 m-0" style="color: var(--primary-gold);">
+<div id="privacidadModalRegistro" class="fixed-top d-none auth-modal-overlay">
+    <div id="privacidadBackdropRegistro" class="auth-modal-backdrop"></div>
+    <div class="auth-modal-wrapper">
+        <div class="auth-modal-box">
+            <div class="auth-modal-header">
+                <h5 class="auth-modal-title">
                     <i class="bi bi-shield-lock-fill fs-5"></i> Política de Privacidad
                 </h5>
-                <button type="button" onclick="cerrarPrivacidadRegistro()" class="btn btn-link text-muted text-decoration-none p-0" style="font-size: 1.5rem;">
+                <button type="button" onclick="cerrarPrivacidadRegistro()" class="auth-modal-close">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
-            <p class="small mb-4" style="color: #94a3b8;">Esta Política describe cómo Constru-Trans recopila, usa y protege su información personal al utilizar nuestra plataforma.</p>
+            <p class="auth-modal-subtitle">Esta Política describe cómo Constru-Trans recopila, usa y protege su información personal al utilizar nuestra plataforma.</p>
             <div class="d-flex flex-column gap-3">
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-database me-2"></i>Datos que recopilamos</h6>
-                    <ul class="small mb-0 ps-3" style="color: #cbd5e1;">
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-database me-2"></i>Datos que recopilamos</h6>
+                    <ul class="auth-modal-section-list">
                         <li>Nombre, apellidos, correo electrónico, teléfono y documento de identidad.</li>
                         <li>Datos de uso: páginas visitadas, acciones realizadas, dirección IP.</li>
                         <li>Información de transacciones: pedidos, pagos y comprobantes.</li>
                     </ul>
                 </div>
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-gear me-2"></i>Cómo usamos sus datos</h6>
-                    <p class="small mb-0" style="color: #cbd5e1;">Para proveer el servicio, procesar transacciones, mejorar la experiencia del usuario, enviar comunicaciones relevantes (con su consentimiento) y cumplir obligaciones legales.</p>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-gear me-2"></i>Cómo usamos sus datos</h6>
+                    <p class="auth-modal-section-text">Para proveer el servicio, procesar transacciones, mejorar la experiencia del usuario, enviar comunicaciones relevantes (con su consentimiento) y cumplir obligaciones legales.</p>
                 </div>
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-safe2 me-2"></i>Protección de datos</h6>
-                    <p class="small mb-0" style="color: #cbd5e1;">Aplicamos medidas de seguridad técnicas y administrativas para proteger su información contra acceso no autorizado. Cumplimos con la Ley 1581 de 2012 (Colombia), RGPD (UE) y CCPA (California).</p>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-safe2 me-2"></i>Protección de datos</h6>
+                    <p class="auth-modal-section-text">Aplicamos medidas de seguridad técnicas y administrativas para proteger su información contra acceso no autorizado. Cumplimos con la Ley 1581 de 2012 (Colombia), RGPD (UE) y CCPA (California).</p>
                 </div>
-                <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
-                    <h6 class="fw-bold mb-2" style="color: var(--primary-gold);"><i class="bi bi-person-check me-2"></i>Sus derechos</h6>
-                    <p class="small mb-0" style="color: #cbd5e1;">Puede acceder, corregir, eliminar o portar sus datos personales en cualquier momento contactándonos en <a href="mailto:construtranscolombia@gmail.com" class="fw-bold" style="color: var(--primary-gold); text-decoration: none;">construtranscolombia@gmail.com</a>.</p>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-person-check me-2"></i>Sus derechos</h6>
+                    <p class="auth-modal-section-text">Puede acceder, corregir, eliminar o portar sus datos personales en cualquier momento contactándonos en <a href="mailto:construtranscolombia@gmail.com" class="auth-terms-link">construtranscolombia@gmail.com</a>.</p>
                 </div>
             </div>
-            <button type="button" onclick="cerrarPrivacidadRegistro()" class="btn fw-bold w-100 mt-4"
-                    style="background: linear-gradient(135deg, var(--primary-gold) 0%, #d35400 100%); color: black; border-radius: 10px; padding: 12px;">
-                <i class="bi bi-check-circle-fill me-2"></i> Entendido
-            </button>
+            <div class="auth-modal-footer">
+                <button type="button" onclick="cerrarPrivacidadRegistro()" class="auth-modal-btn-accept">
+                    <i class="bi bi-check-circle-fill me-2"></i> Entendido
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -422,15 +312,7 @@ const checkTerminos = document.getElementById('aceptarTerminos');
 const btnRegistrar  = document.getElementById('btnRegistrar');
 
 checkTerminos.addEventListener('change', function() {
-    if (this.checked) {
-        btnRegistrar.disabled = false;
-        btnRegistrar.style.opacity = '1';
-        btnRegistrar.style.cursor = 'pointer';
-    } else {
-        btnRegistrar.disabled = true;
-        btnRegistrar.style.opacity = '0.5';
-        btnRegistrar.style.cursor = 'not-allowed';
-    }
+    btnRegistrar.disabled = !this.checked;
 });
 
 // ---- Modal Términos ----
@@ -470,6 +352,11 @@ document.addEventListener('keydown', function(e) {
 </script>
 
 <script>
+/**
+ * Alterna la visibilidad de un campo de contraseña
+ * @param {string} inputId - ID del input de contraseña
+ * @param {string} iconId  - ID del ícono toggle
+ */
 function togglePassword(inputId, iconId) {
     const passwordInput = document.getElementById(inputId);
     const toggleIcon = document.getElementById(iconId);
@@ -482,9 +369,14 @@ function togglePassword(inputId, iconId) {
     }
 }
 
+/**
+ * Calcula la fortaleza de una contraseña en porcentaje
+ * @param {string} password - Contraseña a evaluar
+ * @returns {number} Valor entre 0 y 100
+ */
 function calculatePasswordStrength(password) {
     let strength = 0;
-    if (password.length >= 8) strength += 25;
+    if (password.length >= 8)  strength += 25;
     if (password.length >= 12) strength += 25;
     if (/[A-Z]/.test(password)) strength += 25;
     if (/[0-9]/.test(password)) strength += 25;
@@ -492,39 +384,42 @@ function calculatePasswordStrength(password) {
     return Math.min(strength, 100);
 }
 
+/**
+ * Devuelve texto y clase CSS según el nivel de fortaleza
+ * @param {number} strength - Porcentaje de fortaleza
+ * @returns {{text: string, color: string}|string}
+ */
 function getStrengthText(strength) {
     if (strength === 0) return '';
     if (strength < 30) return { text: 'Muy débil', color: 'bg-danger' };
-    if (strength < 60) return { text: 'Débil', color: 'bg-warning' };
-    if (strength < 85) return { text: 'Media', color: 'bg-info' };
+    if (strength < 60) return { text: 'Débil',     color: 'bg-warning' };
+    if (strength < 85) return { text: 'Media',      color: 'bg-info' };
     return { text: 'Segura', color: 'bg-success' };
 }
 
-// Event listener for password field
 const passwordInput = document.getElementById('id_contrasena');
-const strengthBar = document.getElementById('passwordStrengthBar');
-const strengthText = document.getElementById('passwordStrengthText');
+const strengthBar   = document.getElementById('passwordStrengthBar');
+const strengthText  = document.getElementById('passwordStrengthText');
 
 if (passwordInput) {
     passwordInput.addEventListener('input', function() {
-        const strength = calculatePasswordStrength(this.value);
+        const strength     = calculatePasswordStrength(this.value);
         const strengthInfo = getStrengthText(strength);
-        
+
         strengthBar.style.width = strength + '%';
         strengthBar.setAttribute('aria-valuenow', strength);
-        
-        // Remove previous classes and add new one
         strengthBar.className = 'progress-bar';
+
         if (strengthInfo.color) {
             strengthBar.classList.add(strengthInfo.color);
         }
-        
+
         strengthText.textContent = strengthInfo.text || '';
         if (strengthInfo.text) {
             strengthText.className = 'small mt-1';
-            if (strengthInfo.color === 'bg-danger') strengthText.classList.add('text-danger');
+            if (strengthInfo.color === 'bg-danger')  strengthText.classList.add('text-danger');
             else if (strengthInfo.color === 'bg-warning') strengthText.classList.add('text-warning');
-            else if (strengthInfo.color === 'bg-info') strengthText.classList.add('text-info');
+            else if (strengthInfo.color === 'bg-info')    strengthText.classList.add('text-info');
             else if (strengthInfo.color === 'bg-success') strengthText.classList.add('text-success');
         }
     });
