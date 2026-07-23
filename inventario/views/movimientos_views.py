@@ -71,6 +71,19 @@ def movimientos_lista(request):
         )
 
     materiales = Material.objects.all().order_by("nombre")
+    filter_fields = [
+        {
+            "type": "select",
+            "name": "tipo",
+            "placeholder": "Tipo (Todos)",
+            "value": tipo,
+            "options": [
+                {"value": "entrada", "label": "Entrada", "selected": tipo == "entrada"},
+                {"value": "salida", "label": "Salida", "selected": tipo == "salida"},
+            ],
+        },
+        {"type": "date", "name": "fecha", "value": fecha},
+    ]
     context = {
         "movimientos": movimientos,
         "materiales": materiales,
@@ -78,6 +91,7 @@ def movimientos_lista(request):
         "tipo_actual": tipo,
         "fecha": fecha,
         "usuario": usuario,
+        "filter_fields": filter_fields,
     }
 
     return render(request, "inventario/movimientos.html", context)
