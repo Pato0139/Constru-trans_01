@@ -4,30 +4,24 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4"
+        data-aos="fade-down">
         <div>
             <h2 class="fw-bold text-white mb-1">
                 <i class="bi bi-bag-check-fill text-accent me-2"></i>Órdenes de Compra
             </h2>
             <p class="text-white-50 small mb-0">Gestión de compras a proveedores y reposición de inventario</p>
         </div>
-        
-        <div class="d-flex gap-2 align-items-center">
-            <form method="get" class="d-flex gap-2">
-                <div class="input-group u-inline-ceafc34d25">
-                    <span class="input-group-text bg-dark border-white-10 text-white-50">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="text" name="q" class="form-control bg-dark border-white-10 text-white py-2" 
-                           placeholder="Buscar por proveedor, número de orden o estado..." value="{{ query }}">
-                </div>
-            </form>
 
-            <a href="{% url 'compras:crear_compra' %}" class="btn btn-warning fw-bold rounded-pill px-4 shadow-sm" aria-label="Agregar compra" data-tooltip="Agregar compra" title="Agregar compra">
+        <div class="d-flex gap-2 align-items-center">
+            <a href="{% url 'compras:crear_compra' %}" class="btn btn-warning fw-bold rounded-pill px-4 shadow-sm"
+                aria-label="Agregar compra" data-tooltip="Agregar compra" title="Agregar compra">
                 <i class="bi bi-plus-circle me-1"></i>Nueva Orden
             </a>
         </div>
     </div>
+
+    {% include "partials/filter_bar.html" %}
 
     <!-- Tabla con Glassmorphism -->
     <div class="table-container p-0 overflow-hidden u-inline-6b0d9e24ec" data-aos="fade-up">
@@ -53,7 +47,8 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-center">
-                                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3 u-inline-7a3b56f7ab">
+                                <div
+                                    class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3 u-inline-7a3b56f7ab">
                                     <i class="bi bi-truck text-primary small"></i>
                                 </div>
                                 <div>
@@ -67,18 +62,19 @@
                             <div class="small">{{ compra.fecha_compra|date:"H:i" }}</div>
                         </td>
                         <td class="text-center">
-                            <span class="badge bg-dark border border-white-10 text-info px-3">{{ compra.detalles.count }}</span>
+                            <span class="badge bg-dark border border-white-10 text-info px-3">{{ compra.detalles.count
+                                }}</span>
                         </td>
                         <td class="text-end fw-bold text-success">
                             {{ compra.total_compra|currency }}
                         </td>
                         <td class="text-center">
                             {% if compra.usuario %}
-                                <span class="badge bg-dark border border-white-10 text-info px-3">
-                                    <i class="bi bi-person-circle me-1"></i> {{ compra.usuario.username }}
-                                </span>
+                            <span class="badge bg-dark border border-white-10 text-info px-3">
+                                <i class="bi bi-person-circle me-1"></i> {{ compra.usuario.username }}
+                            </span>
                             {% else %}
-                                <span class="text-muted small">N/A</span>
+                            <span class="text-muted small">N/A</span>
                             {% endif %}
                         </td>
                         <td class="text-center">
@@ -91,11 +87,13 @@
                         </td>
                         <td class="text-center pe-4">
                             <div class="d-flex gap-2 justify-content-center">
-                                <a href="{% url 'compras:detalle_compra' compra.id_compra %}" class="btn btn-sm btn-outline-info border-white-10" title="Ver Detalle">
+                                <a href="{% url 'compras:detalle_compra' compra.id_compra %}"
+                                    class="btn btn-sm btn-outline-info border-white-10" title="Ver Detalle">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 {% if compra.estado == 'pendiente' %}
-                                <a href="{% url 'compras:editar_compra' compra.id_compra %}" class="btn btn-sm btn-outline-warning border-white-10" title="Editar">
+                                <a href="{% url 'compras:editar_compra' compra.id_compra %}"
+                                    class="btn btn-sm btn-outline-warning border-white-10" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 {% endif %}
@@ -123,69 +121,86 @@
         overflow-x: auto !important;
         border-radius: 24px !important;
     }
+
     .table-responsive {
         overflow-x: auto !important;
         border-radius: 24px;
         overflow: hidden !important;
     }
-    .table-responsive > .table {
+
+    .table-responsive>.table {
         min-width: 42rem;
         border-collapse: separate !important;
         border-radius: 24px;
     }
+
     .table thead th:first-child {
         border-top-left-radius: 24px;
     }
+
     .table thead th:last-child {
         border-top-right-radius: 24px;
     }
+
     .table tbody tr:last-child td:first-child {
         border-bottom-left-radius: 24px;
     }
+
     .table tbody tr:last-child td:last-child {
         border-bottom-right-radius: 24px;
     }
+
     .table thead th {
         letter-spacing: 1px;
         background: var(--item-bg) !important;
     }
+
     .table tbody td,
     .table tfoot td {
         white-space: nowrap;
     }
+
     .table-container .table {
         border-collapse: separate;
         border-spacing: 0;
     }
+
     .text-accent {
         color: #f59e0b !important;
     }
+
     .border-white-10 {
         border-color: var(--color-border) !important;
     }
+
     .table-hover tbody tr:hover {
         background-color: var(--item-bg-hover) !important;
     }
+
     .input-group {
         min-width: 0;
         border-radius: 999px;
         overflow: hidden;
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
     }
+
     .input-group .form-control {
         border: none;
         background: transparent;
     }
+
     .input-group .input-group-text {
         border: none;
         background: transparent;
     }
+
     @media (max-width: 575.98px) {
         .btn-warning.text-nowrap {
             white-space: nowrap;
         }
-        .table-responsive > .table {
+
+        .table-responsive>.table {
             min-width: 32rem;
         }
     }

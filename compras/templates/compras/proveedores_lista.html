@@ -18,36 +18,14 @@
             </h2>
             <p class="supplier-subtitle">Administra contactos, estado y catálogo comercial de cada proveedor.</p>
         </div>
-        <a href="{% url 'compras:crear_proveedor' %}" class="btn btn-primary supplier-primary-action" aria-label="Crear nuevo proveedor" data-tooltip="Crear nuevo proveedor" title="Crear nuevo proveedor">
+        <a href="{% url 'compras:crear_proveedor' %}" class="btn btn-primary supplier-primary-action"
+            aria-label="Crear nuevo proveedor" data-tooltip="Crear nuevo proveedor" title="Crear nuevo proveedor">
             <i class="bi bi-plus-circle"></i>
             Nuevo proveedor
         </a>
     </header>
 
-    <form method="get" class="supplier-toolbar supplier-toolbar--advanced" data-aos="fade-up">
-        <div class="supplier-search supplier-toolbar__wide">
-            <i class="bi bi-search"></i>
-            <input type="text" name="q" value="{{ query }}" placeholder="Búsqueda general">
-        </div>
-        <input type="text" name="nombre" value="{{ nombre }}" placeholder="Nombre / empresa">
-        <input type="text" name="nit" value="{{ nit }}" placeholder="NIT / DNI">
-        <input type="text" name="contacto" value="{{ contacto }}" placeholder="Contacto, correo o teléfono">
-        <input type="text" name="ciudad" value="{{ ciudad }}" placeholder="Ciudad">
-        <input type="text" name="categoria" value="{{ categoria }}" placeholder="Categoría">
-        <select name="estado" aria-label="Filtrar por estado">
-            <option value="">Todos los estados</option>
-            <option value="activo" {% if estado_actual == "activo" %}selected{% endif %}>Activos</option>
-            <option value="inactivo" {% if estado_actual == "inactivo" %}selected{% endif %}>Inactivos</option>
-        </select>
-        <button type="submit" class="btn btn-outline-light" aria-label="Filtrar proveedores" data-tooltip="Filtrar proveedores" title="Filtrar proveedores">
-            <i class="bi bi-funnel"></i>
-            Filtrar
-        </button>
-        <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-secondary" aria-label="Limpiar filtros" data-tooltip="Limpiar filtros" title="Limpiar filtros">
-            <i class="bi bi-x-circle"></i>
-            Limpiar
-        </a>
-    </form>
+    {% include "partials/filter_bar.html" %}
 
     <div class="supplier-list" data-aos="fade-up">
         {% for p in proveedores %}
@@ -73,33 +51,46 @@
             <div class="supplier-card__meta">
                 <span class="supplier-badge">{{ p.categoria|default:"General" }}</span>
                 {% if p.activo %}
-                    <span class="supplier-status supplier-status--active">Activo</span>
+                <span class="supplier-status supplier-status--active">Activo</span>
                 {% else %}
-                    <span class="supplier-status supplier-status--inactive">Inactivo</span>
+                <span class="supplier-status supplier-status--inactive">Inactivo</span>
                 {% endif %}
             </div>
 
             <div class="supplier-actions">
-                <a href="{% url 'compras:perfil_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-info" aria-label="Ver proveedor" data-tooltip="Ver proveedor" title="Ver proveedor">
+                <a href="{% url 'compras:perfil_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-info"
+                    aria-label="Ver proveedor" data-tooltip="Ver proveedor" title="Ver proveedor">
                     <i class="bi bi-eye"></i>
                 </a>
-                <a href="{% url 'compras:editar_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-warning" aria-label="Editar proveedor" data-tooltip="Editar proveedor" title="Editar proveedor">
+                <a href="{% url 'compras:editar_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-warning"
+                    aria-label="Editar proveedor" data-tooltip="Editar proveedor" title="Editar proveedor">
                     <i class="bi bi-pencil"></i>
                 </a>
-                <form method="post" action="{% url 'compras:cambiar_estado_proveedor' p.codigo_proveedor %}" class="supplier-action-form">
+                <form method="post" action="{% url 'compras:cambiar_estado_proveedor' p.codigo_proveedor %}"
+                    class="supplier-action-form">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                    <button type="submit" class="btn btn-sm {% if p.activo %}btn-outline-danger{% else %}btn-outline-success{% endif %}" aria-label="{% if p.activo %}Inhabilitar proveedor{% else %}Habilitar proveedor{% endif %}" data-tooltip="{% if p.activo %}Inhabilitar proveedor{% else %}Habilitar proveedor{% endif %}" title="{% if p.activo %}Inhabilitar proveedor{% else %}Habilitar proveedor{% endif %}">
+                    <button type="submit"
+                        class="btn btn-sm {% if p.activo %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                        aria-label="{% if p.activo %}Inhabilitar proveedor{% else %}Habilitar proveedor{% endif %}"
+                        data-tooltip="{% if p.activo %}Inhabilitar proveedor{% else %}Habilitar proveedor{% endif %}"
+                        title="{% if p.activo %}Inhabilitar proveedor{% else %}Habilitar proveedor{% endif %}">
                         <i class="bi {% if p.activo %}bi-slash-circle{% else %}bi-check-circle{% endif %}"></i>
                     </button>
                 </form>
-                <a href="{% url 'compras:contactar_proveedor' p.codigo_proveedor %}" class="btn btn-sm btn-outline-light" aria-label="Contactar proveedor" data-tooltip="Contactar proveedor" title="Contactar proveedor">
+                <a href="{% url 'compras:contactar_proveedor' p.codigo_proveedor %}"
+                    class="btn btn-sm btn-outline-light" aria-label="Contactar proveedor"
+                    data-tooltip="Contactar proveedor" title="Contactar proveedor">
                     <i class="bi bi-envelope-paper"></i>
                 </a>
-                <a href="{% url 'compras:perfil_proveedor' p.codigo_proveedor %}#catalog-editor" class="btn btn-sm btn-outline-primary" aria-label="Registrar materiales" data-tooltip="Registrar materiales" title="Registrar materiales">
+                <a href="{% url 'compras:perfil_proveedor' p.codigo_proveedor %}#catalog-editor"
+                    class="btn btn-sm btn-outline-primary" aria-label="Registrar materiales"
+                    data-tooltip="Registrar materiales" title="Registrar materiales">
                     <i class="bi bi-box-seam"></i>
                 </a>
-                <a href="{% url 'compras:crear_compra' %}?proveedor={{ p.codigo_proveedor }}" class="btn btn-sm btn-warning" aria-label="Nueva orden de compra" data-tooltip="Nueva orden de compra" title="Nueva orden de compra">
+                <a href="{% url 'compras:crear_compra' %}?proveedor={{ p.codigo_proveedor }}"
+                    class="btn btn-sm btn-warning" aria-label="Nueva orden de compra"
+                    data-tooltip="Nueva orden de compra" title="Nueva orden de compra">
                     <i class="bi bi-bag-plus"></i>
                 </a>
             </div>

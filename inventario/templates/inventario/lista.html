@@ -9,9 +9,11 @@
 {% block title %}Catálogo - ConstruTrans{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4 standard-page-header"
+    data-aos="fade-down">
     <div>
-        <h2 class="fw-bold mb-0 text-white"><i class="bi bi-box-seam-fill text-accent me-2"></i>Catálogo de Materiales</h2>
+        <h2 class="fw-bold mb-0 text-white"><i class="bi bi-box-seam-fill text-accent me-2"></i>Catálogo de Materiales
+        </h2>
         <div class="d-flex align-items-center gap-2 mt-1">
             <p class="text-white-50 small mb-0">Gestión de productos y precios base</p>
             <span id="materiales-count" class="badge rounded-pill px-3 u-inline-b2204c9e00">
@@ -20,49 +22,31 @@
         </div>
     </div>
 
-    <div class="w-100 u-inline-ffa089e03c">
-        <div class="d-flex flex-column gap-2" data-aos="fade-left">
-            <form id="filtrosMaterialesForm" action="{% url 'inventario:materiales_lista' %}" method="GET" class="d-flex flex-column gap-2">
-                <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm u-inline-a493700b8c">
-                    <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center u-inline-7a3b56f7ab">
-                        <i class="bi bi-search text-dark u-inline-27895aa49c"></i>
-                    </div>
-                    <input id="busquedaMateriales" type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
-                           placeholder="Buscar en el catálogo..." value="{{ query|default:'' }}">
-                </div>
-
-                <div class="d-flex gap-2">
-                    <select id="filtroTipoMaterial" name="tipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2 u-inline-11ec6e757e">
-                        <option value="">Todos los tipos</option>
-                        {% for t in tipos %}
-                            <option value="{{ t.codigo_catalogo }}" {% if tipo_actual == t.codigo_catalogo %}selected{% endif %}>{{ t.nombre_empresa }}</option>
-                        {% endfor %}
-                    </select>
-                    
-                    <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9" aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
-                        <i class="bi bi-funnel"></i> Filtrar
-                    </button>
-
-                    <a href="{% url 'inventario:crear_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg ms-2 u-inline-602188a7ef" 
-                            aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
-                        <i class="bi bi-plus-lg fs-5"></i>
-                    </a>
-                </div>
-            </form>
-        </div>
+    <div class="d-flex flex-column flex-md-row align-items-stretch gap-2 w-100">
+        {% include "partials/filter_bar.html" %}
+        <a href="{% url 'inventario:crear_material' %}" class="btn btn-premium align-self-md-center"
+            aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
+            <i class="bi bi-plus-lg"></i>
+        </a>
     </div>
 </div>
 
-<div class="table-container inventory-materials-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8" data-aos="fade-up">
+<div class="table-container inventory-materials-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8"
+    data-aos="fade-up">
     <div class="table-responsive">
-        <table id="tablaMateriales" class="table table-dark table-hover align-middle mb-0 no-datatable inventory-materials-table u-inline-16fd8a5fe1" data-api-url="{% url 'inventario:api_materiales_listado' %}">
+        <table id="tablaMateriales"
+            class="table table-dark table-hover align-middle mb-0 no-datatable inventory-materials-table u-inline-16fd8a5fe1"
+            data-api-url="{% url 'inventario:api_materiales_listado' %}">
             <thead>
                 <tr class="clientes__table-head-row u-inline-0d59a3f53c">
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2c34455993">ID</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2c34455993">ID
+                    </th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Material</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Tipo</th>
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Unidad</th>
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-9c77c1e711">Acciones</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Unidad
+                    </th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-9c77c1e711">
+                        Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -80,12 +64,16 @@
 </div>
 
 <style>
-    .text-accent { color: var(--color-accent) !important; }
+    .text-accent {
+        color: var(--color-accent) !important;
+    }
+
     .btn-premium:hover {
         opacity: 0.9;
         transform: scale(1.05);
         transition: all 0.3s ease;
     }
+
     .form-select option {
         background: #1a1a1a;
         color: white;
