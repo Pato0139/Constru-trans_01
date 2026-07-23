@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 User = get_user_model()
 from django.contrib.auth.views import PasswordResetView
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Prefetch, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -560,14 +560,17 @@ def editar_perfil(request):
         usuario.apellidos = apellidos
         usuario.telefono = telefono
         usuario.sincronizado = False
-        usuario.save()
 
         if email:
-            request.user.email = email
-            request.user.username = email  # Sincronizar username con email
-            request.user.save()
+            usuario.email = email
+            usuario.username = email  # Sincronizar username con email
 
-        messages.success(request, "Perfil actualizado correctamente.")
+        try:
+            usuario.save()
+            messages.success(request, "Perfil actualizado correctamente.")
+        except IntegrityError:
+            messages.error(request, "No se pudo actualizar el perfil porque el correo ya está en uso.")
+            return render(request, "usuarios/editar_perfil.html", {"usuario": usuario})
 
         if usuario.rol == "admin":
             return redirect("usuarios:perfil_admin")
