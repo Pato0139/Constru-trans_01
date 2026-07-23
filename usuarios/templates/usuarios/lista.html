@@ -229,11 +229,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm me-3 bg-secondary rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
-                                    {% if u.foto_perfil %}
-                                        <img src="{{ u.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
-                                    {% else %}
-                                        <span class="fw-bold text-white">{{ u.nombres|first }}{{ u.apellidos|first }}</span>
-                                    {% endif %}
+                                    <span class="fw-bold text-white">{{ u.iniciales }}</span>
                                 </div>
                                 <div>
                                     <div class="fw-bold text-white">
@@ -335,11 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm me-3 bg-primary rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
-                                    {% if cliente.foto_perfil %}
-                                        <img src="{{ cliente.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
-                                    {% else %}
-                                        <span class="fw-bold text-white">{{ cliente.nombres|first }}{{ cliente.apellidos|first }}</span>
-                                    {% endif %}
+                                    <span class="fw-bold text-white">{{ cliente.iniciales }}</span>
                                 </div>
                                 <div>
                                     <div class="fw-bold text-white">{{ cliente.nombres }} {{ cliente.apellidos }}</div>
@@ -431,11 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm me-3 bg-info rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
-                                    {% if conductor.foto_perfil %}
-                                        <img src="{{ conductor.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
-                                    {% else %}
-                                        <span class="fw-bold text-white">{{ conductor.nombres|first }}{{ conductor.apellidos|first }}</span>
-                                    {% endif %}
+                                    <span class="fw-bold text-white">{{ conductor.iniciales }}</span>
                                 </div>
                                 <div>
                                     <div class="fw-bold text-white">{{ conductor.nombres }} {{ conductor.apellidos }}</div>
@@ -522,11 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm me-3 bg-warning rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
-                                    {% if admin.foto_perfil %}
-                                        <img src="{{ admin.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
-                                    {% else %}
-                                        <span class="fw-bold text-white">{{ admin.nombres|first }}{{ admin.apellidos|first }}</span>
-                                    {% endif %}
+                                    <span class="fw-bold text-white">{{ admin.iniciales }}</span>
                                 </div>
                                 <div>
                                     <div class="fw-bold text-white">

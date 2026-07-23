@@ -1,5 +1,5 @@
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator, FileExtensionValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models.signals import post_save
@@ -13,8 +13,8 @@ from pathlib import Path
 
 def foto_perfil_upload_path(instance, filename):
     extension = Path(filename or "avatar.jpg").suffix.lower() or ".jpg"
-    user_segment = instance.pk or "nuevo"
-    return f"perfiles/usuario_{user_segment}/{uuid.uuid4().hex}{extension}"
+    user_segment = instance.pk if instance and instance.pk is not None else "nuevo"
+    return f"perfiles/usuarios/usuario_{user_segment}/{uuid.uuid4().hex}{extension}"
 
 def validar_fecha_no_pasada(value):
     today = now().date()
@@ -63,11 +63,10 @@ class Usuario(AbstractUser):
     # NO se toca
     tipo_documento = models.CharField(max_length=5, choices=TIPOS_DOCUMENTO)
     estado = models.CharField(max_length=15, choices=ESTADO_USUARIO, default="activo")
-    foto_perfil = models.ImageField(
+    foto_perfil = models.FileField(
         upload_to=foto_perfil_upload_path,
         null=True,
         blank=True,
-        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"])],
     )
     sincronizado = models.BooleanField(default=False)
     

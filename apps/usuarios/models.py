@@ -2,10 +2,18 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.utils.timezone import now
+from pathlib import Path
+import uuid
 
 numeric_and_space_validator = RegexValidator(
     regex=r"^[0-9\s]*$", message="Solo se admiten números y espacios.", code="invalid_numeric_space"
 )
+
+
+def foto_perfil_upload_path(instance, filename):
+    extension = Path(filename or "avatar.jpg").suffix.lower() or ".jpg"
+    user_segment = instance.pk if instance and instance.pk is not None else "nuevo"
+    return f"perfiles/usuarios/usuario_{user_segment}/{uuid.uuid4().hex}{extension}"
 
 
 # =====================================================================
@@ -42,7 +50,7 @@ class Usuario(AbstractUser):
     # NO se toca
     tipo_documento = models.CharField(max_length=5, choices=TIPOS_DOCUMENTO)
     estado = models.CharField(max_length=15, choices=ESTADO_USUARIO, default="activo")
-    foto_perfil = models.ImageField(upload_to="perfiles/", null=True, blank=True)
+    foto_perfil = models.FileField(upload_to=foto_perfil_upload_path, null=True, blank=True)
     sincronizado = models.BooleanField(default=False)
 
     class Meta:

@@ -16,13 +16,9 @@
             </div>
             <div class="text-center mb-5">
                 <div class="position-relative d-inline-block mb-3 profile-avatar-container">
-                    {% if request.user.usuario.foto_perfil %}
-                        <img src="{{ request.user.usuario.foto_perfil.url }}" alt="Perfil" class="profile-avatar-img">
-                    {% else %}
-                        <div class="profile-avatar-placeholder">
-                            {{ request.user.usuario.nombres|slice:":1" }}{{ request.user.usuario.apellidos|slice:":1" }}
-                        </div>
-                    {% endif %}
+                    <div class="profile-avatar-placeholder">
+                        {{ request.user.usuario.iniciales }}
+                    </div>
                     <span class="profile-status-badge"></span>
                 </div>
                 <h3 class="fw-900 mb-1 profile-name">{{ request.user.usuario.nombres }} {{ request.user.usuario.apellidos }}</h3>
