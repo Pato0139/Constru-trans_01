@@ -243,3 +243,41 @@ $(document).on('click', '.confirm-delete-btn', function(e) {
         customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
     }).then(result => { if (result.isConfirmed) form.submit(); });
 });
+
+/* =====================================================================
+   Detección de Tablas Desplazables en Móviles
+   ===================================================================== */
+
+/**
+ * Detecta si una tabla es desplazable horizontalmente en móviles
+ * y añade una clase para indicar al usuario que puede desplazarse
+ */
+function initTableScrollability() {
+    const isSmallScreen = window.innerWidth <= 576;
+    
+    if (isSmallScreen) {
+        const tableResponsives = document.querySelectorAll('.table-responsive');
+        
+        tableResponsives.forEach(container => {
+            const checkScroll = () => {
+                // Detectar scroll horizontal
+                if (container.scrollWidth > container.clientWidth) {
+                    container.classList.add('is-scrollable');
+                } else {
+                    container.classList.remove('is-scrollable');
+                }
+            };
+            
+            checkScroll();
+            window.addEventListener('resize', checkScroll);
+        });
+    }
+}
+
+// Inicializar al cargar la página
+document.addEventListener('DOMContentLoaded', initTableScrollability);
+
+// Reinicializar después de que DataTables redibuje las tablas
+$(document).on('draw.dt', function() {
+    initTableScrollability();
+});
