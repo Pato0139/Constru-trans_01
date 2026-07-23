@@ -35,12 +35,12 @@ staticfiles/
 collected_static/
 logs/*.log
 
-# Media
+# Media (archivos subidos por usuarios)
+# Ignorar todo en media/ EXCEPTO las imágenes de perfil
 media/*
 !media/.gitkeep
 !media/perfiles/
-media/perfiles/*
-!media/perfiles/.gitkeep
+!media/perfiles/**
 
 # IDEs
 .vscode/
@@ -63,6 +63,8 @@ docker-compose.override.yml
 backups/*.sql
 backups/*.dump
 backups/*.json
+
+*.djcache
 
 # Migraciones Django (generadas localmente)
 # !**/migrations/__init__.py

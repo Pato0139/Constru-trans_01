@@ -229,11 +229,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm me-3 bg-secondary rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
-                                    {% if u.foto_perfil %}
-                                        <img src="{{ u.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
-                                    {% else %}
-                                        <span class="fw-bold text-white">{{ u.nombres|first }}{{ u.apellidos|first }}</span>
-                                    {% endif %}
+                                    <span class="fw-bold text-white">{{ u.iniciales }}</span>
                                 </div>
                                 <div>
                                     <div class="fw-bold text-white">
@@ -271,14 +267,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                    title="{% if u.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
                                     <i class="bi {% if u.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
                                 </a>
-                                <form action="{% url 'usuarios:eliminar_usuario' u.id %}" method="POST" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="button" class="btn btn-sm btn-action btn-action-delete confirm-delete-form" aria-label="Eliminar usuario" data-tooltip="Eliminar usuario" title="Eliminar usuario" 
-                                            data-title="¿Eliminar usuario?" 
-                                            data-text="¿Estás seguro de que deseas eliminar a {{ u.nombres }}? Esta acción no se puede deshacer.">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
                                 {% endif %}
                             </div>
                         </td>
@@ -343,11 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm me-3 bg-primary rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
-                                    {% if cliente.foto_perfil %}
-                                        <img src="{{ cliente.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
-                                    {% else %}
-                                        <span class="fw-bold text-white">{{ cliente.nombres|first }}{{ cliente.apellidos|first }}</span>
-                                    {% endif %}
+                                    <span class="fw-bold text-white">{{ cliente.iniciales }}</span>
                                 </div>
                                 <div>
                                     <div class="fw-bold text-white">{{ cliente.nombres }} {{ cliente.apellidos }}</div>
@@ -376,14 +360,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                    title="{% if cliente.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
                                     <i class="bi {% if cliente.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
                                 </a>
-                                <form action="{% url 'usuarios:eliminar_usuario' cliente.id %}" method="POST" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="button" class="btn btn-sm btn-action btn-action-delete confirm-delete-form" aria-label="Eliminar usuario" data-tooltip="Eliminar usuario" title="Eliminar usuario" 
-                                            data-title="¿Eliminar usuario?" 
-                                            data-text="¿Estás seguro de que deseas eliminar a {{ cliente.nombres }}? Esta acción no se puede deshacer.">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
                             </div>
                         </td>
                     </tr>
@@ -447,11 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm me-3 bg-info rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
-                                    {% if conductor.foto_perfil %}
-                                        <img src="{{ conductor.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
-                                    {% else %}
-                                        <span class="fw-bold text-white">{{ conductor.nombres|first }}{{ conductor.apellidos|first }}</span>
-                                    {% endif %}
+                                    <span class="fw-bold text-white">{{ conductor.iniciales }}</span>
                                 </div>
                                 <div>
                                     <div class="fw-bold text-white">{{ conductor.nombres }} {{ conductor.apellidos }}</div>
@@ -475,14 +447,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                    title="{% if conductor.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
                                     <i class="bi {% if conductor.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
                                 </a>
-                                <form action="{% url 'usuarios:eliminar_usuario' conductor.id %}" method="POST" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="button" class="btn btn-sm btn-action btn-action-delete confirm-delete-form" aria-label="Eliminar usuario" data-tooltip="Eliminar usuario" title="Eliminar usuario" 
-                                            data-title="¿Eliminar conductor?" 
-                                            data-text="¿Estás seguro de que deseas eliminar a {{ conductor.nombres }}? Esta acción no se puede deshacer.">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
                             </div>
                         </td>
                     </tr>
@@ -546,11 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="p-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-sm me-3 bg-warning rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
-                                    {% if admin.foto_perfil %}
-                                        <img src="{{ admin.foto_perfil.url }}" alt="Avatar" class="usuario-avatar-img">
-                                    {% else %}
-                                        <span class="fw-bold text-white">{{ admin.nombres|first }}{{ admin.apellidos|first }}</span>
-                                    {% endif %}
+                                    <span class="fw-bold text-white">{{ admin.iniciales }}</span>
                                 </div>
                                 <div>
                                     <div class="fw-bold text-white">
@@ -589,14 +549,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                        title="{% if admin.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
                                         <i class="bi {% if admin.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
                                     </a>
-                                    <form action="{% url 'usuarios:eliminar_usuario' admin.id %}" method="POST" class="d-inline">
-                                        {% csrf_token %}
-                                        <button type="button" class="btn btn-sm btn-action btn-action-delete confirm-delete-form" aria-label="Eliminar usuario" data-tooltip="Eliminar usuario" title="Eliminar usuario" 
-                                                data-title="¿Eliminar administrador?" 
-                                                data-text="¿Estás seguro de que deseas eliminar a {{ admin.nombres }}? Esta acción no se puede deshacer.">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
                                     {% endif %}
                                 {% endif %}
                             </div>

@@ -1,3 +1,11 @@
+/**
+ * @file Gestión de formulario modal para registro de entradas de inventario
+ */
+
+/**
+ * Inicializa el modal y formulario de entradas de inventario
+ * @listens DOMContentLoaded
+ */
 document.addEventListener('DOMContentLoaded', () => {
   const modalElement = document.getElementById('modalEntrada');
   const form = document.getElementById('formEntrada');
@@ -12,6 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const submitButton = form.querySelector('button[type="submit"]');
   const originalSubmitText = submitButton ? submitButton.innerHTML : '';
 
+  /**
+   * Muestra un mensaje usando SweetAlert2 o alert como fallback
+   * @param {('success'|'error')} type - Tipo de mensaje
+   * @param {string} message - Texto del mensaje
+   */
   function showMessage(type, message) {
     if (window.Swal) {
       Swal.fire({
@@ -27,17 +40,30 @@ document.addEventListener('DOMContentLoaded', () => {
     window.alert(message);
   }
 
+  /**
+   * Enfoca el primer control al abrir el modal
+   * @listens shown.bs.modal
+   */
   modalElement.addEventListener('shown.bs.modal', () => {
     const firstControl = form.querySelector('select, input, textarea, button');
     if (firstControl) firstControl.focus();
   });
 
+  /**
+   * Resetea el formulario al cerrar el modal
+   * @listens hidden.bs.modal
+   */
   modalElement.addEventListener('hidden.bs.modal', () => {
     form.reset();
     const quantity = form.querySelector('input[name="cantidad"]');
     if (quantity) quantity.value = '1';
   });
 
+  /**
+   * Maneja el envío del formulario de entrada de inventario
+   * @listens submit
+   * @async
+   */
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
