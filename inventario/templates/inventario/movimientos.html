@@ -9,9 +9,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4 standard-page-header"
+    data-aos="fade-down">
     <div>
-        <h2 class="fw-bold mb-0 text-white"><i class="bi bi-arrow-left-right text-accent me-2"></i>Movimientos de Inventario</h2>
+        <h2 class="fw-bold mb-0 text-white"><i class="bi bi-arrow-left-right text-accent me-2"></i>Movimientos de
+            Inventario</h2>
         <div class="d-flex align-items-center gap-2 mt-1">
             <p class="text-white-50 small mb-0">Registro de entradas y salidas de materiales</p>
             <span class="badge rounded-pill px-3 u-inline-b2204c9e00">{{ movimientos|length }} registros</span>
@@ -19,33 +21,10 @@
     </div>
 
     <div class="d-flex flex-column flex-md-row gap-2 align-items-center">
-        <div class="w-100 u-inline-ffa089e03c">
-            <div class="d-flex flex-column gap-2" data-aos="fade-left">
-                <form action="{% url 'inventario:movimientos_lista' %}" method="GET" class="d-flex flex-column gap-2" id="filterForm">
-                    <div class="d-flex align-items-center bg-surface rounded-pill p-1 border border-white-10 shadow-sm u-inline-a493700b8c">
-                        <div class="bg-white rounded-circle ms-1 d-flex align-items-center justify-content-center u-inline-7a3b56f7ab">
-                            <i class="bi bi-search text-dark u-inline-27895aa49c"></i>
-                        </div>
-                        <input type="text" name="q" class="form-control bg-transparent border-0 text-white shadow-none ps-3" 
-                               placeholder="Buscar por material..." value="{{ query|default:'' }}">
-                    </div>
+        {% include "partials/filter_bar.html" %}
 
-                    <div class="d-flex gap-2">
-                        <select name="tipo" id="selectTipo" class="form-select rounded-pill border-white-10 shadow-none ps-3 py-2 u-inline-11ec6e757e">
-                            <option value="">Todos los tipos</option>
-                            <option value="entrada" {% if tipo_actual == 'entrada' %}selected{% endif %}>Entrada</option>
-                            <option value="salida" {% if tipo_actual == 'salida' %}selected{% endif %}>Salida</option>
-                        </select>
-                        
-                        <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
-                            <i class="bi bi-funnel"></i> Filtrar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <button class="btn btn-warning px-4 fw-bold text-dark u-inline-142d515f24" data-bs-toggle="modal" data-bs-target="#modalEntrada" aria-label="Agregar" data-tooltip="Agregar" title="Agregar">
+        <button class="btn btn-warning px-4 fw-bold text-dark u-inline-142d515f24" data-bs-toggle="modal"
+            data-bs-target="#modalEntrada" aria-label="Agregar" data-tooltip="Agregar" title="Agregar">
             <i class="bi bi-plus-lg me-2"></i> Registrar Entrada
         </button>
     </div>
@@ -70,7 +49,8 @@
                     <td class="py-3 px-4 text-muted small">{{ m.fecha|date:"d/m/Y H:i" }}</td>
                     <td class="py-3 px-4">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark u-inline-f4e11011b6">
+                            <div
+                                class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark u-inline-f4e11011b6">
                                 {{ m.material.nombre|first }}
                             </div>
                             <span class="fw-medium">{{ m.material.nombre }}</span>
@@ -78,24 +58,25 @@
                     </td>
                     <td class="py-3 px-4">
                         {% if m.tipo_movimiento == 'entrada' %}
-                            <span class="badge bg-success-subtle text-success px-3">
-                                <i class="bi bi-arrow-down-left me-1"></i>Entrada
-                            </span>
+                        <span class="badge bg-success-subtle text-success px-3">
+                            <i class="bi bi-arrow-down-left me-1"></i>Entrada
+                        </span>
                         {% else %}
-                            <span class="badge bg-danger-subtle text-danger px-3">
-                                <i class="bi bi-arrow-up-right me-1"></i>Salida
-                            </span>
+                        <span class="badge bg-danger-subtle text-danger px-3">
+                            <i class="bi bi-arrow-up-right me-1"></i>Salida
+                        </span>
                         {% endif %}
                     </td>
-                    <td class="py-3 px-4 fw-bold {% if m.tipo_movimiento == 'entrada' %}text-success{% else %}text-danger{% endif %}">
+                    <td
+                        class="py-3 px-4 fw-bold {% if m.tipo_movimiento == 'entrada' %}text-success{% else %}text-danger{% endif %}">
                         {% if m.tipo_movimiento == 'entrada' %}+{% else %}-{% endif %}{{ m.cantidad }}
                     </td>
                     <td class="py-3 px-4 text-muted">{{ m.observacion|default:"Sin observación" }}</td>
                     <td class="py-3 px-4 small">
                         {% if m.usuario %}
-                            {{ m.usuario.username }}
+                        {{ m.usuario.username }}
                         {% else %}
-                            <span class="text-muted italic">Sistema</span>
+                        <span class="text-muted italic">Sistema</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -115,12 +96,14 @@
 </div>
 
 <!-- Modal Registrar Entrada -->
-<div class="modal fade inventory-entry-modal" id="modalEntrada" tabindex="-1" aria-labelledby="modalEntradaTitle" aria-hidden="true">
+<div class="modal fade inventory-entry-modal" id="modalEntrada" tabindex="-1" aria-labelledby="modalEntradaTitle"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark border-secondary text-white">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title fw-bold" id="modalEntradaTitle">Registrar Entrada de Material</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar formulario" data-tooltip="Cerrar formulario" title="Cerrar formulario"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Cerrar formulario" data-tooltip="Cerrar formulario" title="Cerrar formulario"></button>
             </div>
             <form id="formEntrada">
                 {% csrf_token %}
@@ -137,23 +120,31 @@
                     <div class="mb-3">
                         <label class="form-label small text-muted">Cantidad</label>
                         <div class="quantity-stepper inventory-entry-stepper" data-min="1">
-                            <button type="button" class="quantity-stepper__btn quantity-stepper__btn--minus" aria-label="Restar cantidad" data-tooltip="Restar cantidad" title="Restar cantidad">
+                            <button type="button" class="quantity-stepper__btn quantity-stepper__btn--minus"
+                                aria-label="Restar cantidad" data-tooltip="Restar cantidad" title="Restar cantidad">
                                 <i class="bi bi-dash-lg"></i>
                             </button>
-                            <input type="number" name="cantidad" class="quantity-stepper__input" min="1" value="1" required aria-label="Cantidad de entrada">
-                            <button type="button" class="quantity-stepper__btn quantity-stepper__btn--plus" aria-label="Sumar cantidad" data-tooltip="Sumar cantidad" title="Sumar cantidad">
+                            <input type="number" name="cantidad" class="quantity-stepper__input" min="1" value="1"
+                                required aria-label="Cantidad de entrada">
+                            <button type="button" class="quantity-stepper__btn quantity-stepper__btn--plus"
+                                aria-label="Sumar cantidad" data-tooltip="Sumar cantidad" title="Sumar cantidad">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small text-muted">Motivo / Referencia</label>
-                        <textarea name="motivo" class="form-control bg-black border-secondary text-white" rows="2" placeholder="Ej: Compra a proveedor X, Devolución..."></textarea>
+                        <textarea name="motivo" class="form-control bg-black border-secondary text-white" rows="2"
+                            placeholder="Ej: Compra a proveedor X, Devolución..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" aria-label="Cancelar registro de entrada" data-tooltip="Cancelar registro de entrada" title="Cancelar registro de entrada">Cancelar</button>
-                    <button type="submit" class="btn btn-warning px-4 fw-bold text-dark u-inline-39e73822ed" aria-label="Guardar entrada de material" data-tooltip="Guardar entrada de material" title="Guardar entrada de material">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
+                        aria-label="Cancelar registro de entrada" data-tooltip="Cancelar registro de entrada"
+                        title="Cancelar registro de entrada">Cancelar</button>
+                    <button type="submit" class="btn btn-warning px-4 fw-bold text-dark u-inline-39e73822ed"
+                        aria-label="Guardar entrada de material" data-tooltip="Guardar entrada de material"
+                        title="Guardar entrada de material">
                         GUARDAR ENTRADA
                     </button>
                 </div>
@@ -166,7 +157,7 @@
 
 {% block extra_js %}
 <script>
-window.urlRegistrarEntrada = "{% url 'inventario:registrar_entrada' %}";
+    window.urlRegistrarEntrada = "{% url 'inventario:registrar_entrada' %}";
 </script>
 <script src="{% static 'js/inventario/movimientos.js' %}?v=1.1"></script>
 {% endblock %}

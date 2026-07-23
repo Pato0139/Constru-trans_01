@@ -10,7 +10,8 @@
     <div class="d-flex justify-content-between align-items-center mb-4 px-2 flex-wrap gap-3">
         <h5 class="fw-800 m-0 text-white">Mis Pagos</h5>
         <div class="d-flex gap-2">
-            <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-2">
+            <a href="{% url 'clientes:mis_pedidos' %}"
+                class="btn btn-outline-light btn-sm d-flex align-items-center gap-2">
                 <i class="bi bi-journal-text"></i> Mis Pedidos
             </a>
         </div>
@@ -18,25 +19,31 @@
 
     <!-- Sección 1: Facturas Pendientes -->
     <div class="mb-5">
-        <h6 class="fw-bold text-white mb-3"><i class="bi bi-exclamation-circle text-warning me-2"></i> Facturas Pendientes (para pagar)</h6>
+        <h6 class="fw-bold text-white mb-3"><i class="bi bi-exclamation-circle text-warning me-2"></i> Facturas
+            Pendientes (para pagar)</h6>
         {% if facturas_pendientes %}
         <!-- Filtros para Facturas Pendientes -->
-        <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
-            <div class="row g-2 align-items-center">
+        <div class="card border-0 shadow-sm p-3 mb-3 filter-bar-card" data-aos="fade-down">
+            <div class="row g-3 align-items-center">
                 <div class="col-auto">
                     <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
                 </div>
                 <div class="col-md-2">
-                    <input type="text" id="filter-factura-pendiente-numero" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Nº Factura">
+                    <input type="text" id="filter-factura-pendiente-numero"
+                        class="form-control form-control-sm bg-surface text-white filter-input"
+                        placeholder="Nº Factura">
                 </div>
                 <div class="col-md-2">
-                    <input type="text" id="filter-factura-pendiente-pedido" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Pedido">
+                    <input type="text" id="filter-factura-pendiente-pedido"
+                        class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Pedido">
                 </div>
                 <div class="col-md-2">
-                    <input type="date" id="filter-factura-pendiente-fecha" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c">
+                    <input type="date" id="filter-factura-pendiente-fecha"
+                        class="form-control form-control-sm bg-surface text-white filter-input">
                 </div>
                 <div class="col-auto ms-auto">
-                    <button class="btn btn-sm btn-outline-secondary" id="clear-filters-facturas-pendientes" type="button" title="Limpiar filtros">
+                    <button class="btn btn-sm btn-outline-secondary" id="clear-filters-facturas-pendientes"
+                        type="button" title="Limpiar filtros">
                         <i class="bi bi-x-circle"></i>
                     </button>
                 </div>
@@ -72,14 +79,15 @@
                         <td class="fw-bold text-accent">{{ factura.saldo_pendiente|currency }}</td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
-                                <button class="btn btn-premium btn-premium-gold btn-sm btn-abrir-modal-pago" 
-                                        data-id="{{ factura.id_factura }}"
-                                        data-numero="{{ factura.numero|default:'Sin número' }}"
-                                        data-total="{{ factura.saldo_pendiente }}">
+                                <button class="btn btn-premium btn-premium-gold btn-sm btn-abrir-modal-pago"
+                                    data-id="{{ factura.id_factura }}"
+                                    data-numero="{{ factura.numero|default:'Sin número' }}"
+                                    data-total="{{ factura.saldo_pendiente }}">
                                     <i class="bi bi-credit-card me-1"></i> Pagar
                                 </button>
                                 {% if factura.pedido %}
-                                <a href="{% url 'ordenes:descargar_factura' factura.pedido.id %}" class="btn-action" title="Ver PDF" target="_blank">
+                                <a href="{% url 'ordenes:descargar_factura' factura.pedido.id %}" class="btn-action"
+                                    title="Ver PDF" target="_blank">
                                     <i class="bi bi-file-pdf"></i>
                                 </a>
                                 {% endif %}
@@ -103,22 +111,26 @@
         <h6 class="fw-bold text-white mb-3"><i class="bi bi-clock-history text-info me-2"></i> Historial de Pagos</h6>
         {% if pagos %}
         <!-- Filtros para Historial de Pagos -->
-        <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
-            <div class="row g-2 align-items-center">
+        <div class="card border-0 shadow-sm p-3 mb-3 filter-bar-card" data-aos="fade-down">
+            <div class="row g-3 align-items-center">
                 <div class="col-auto">
                     <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
                 </div>
                 <div class="col-md-2">
-                    <input type="text" id="filter-pago-id" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="ID Pago">
+                    <input type="text" id="filter-pago-id"
+                        class="form-control form-control-sm bg-surface text-white filter-input" placeholder="ID Pago">
                 </div>
                 <div class="col-md-2">
-                    <input type="text" id="filter-pago-factura" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Factura">
+                    <input type="text" id="filter-pago-factura"
+                        class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Factura">
                 </div>
                 <div class="col-md-2">
-                    <input type="date" id="filter-pago-fecha" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c">
+                    <input type="date" id="filter-pago-fecha"
+                        class="form-control form-control-sm bg-surface text-white filter-input">
                 </div>
                 <div class="col-md-2">
-                    <select id="filter-pago-estado" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+                    <select id="filter-pago-estado"
+                        class="form-select form-select-sm bg-surface text-white filter-select">
                         <option value="">Estado (Todos)</option>
                         <option value="Completado">Completado</option>
                         <option value="Pendiente">Pendiente</option>
@@ -126,7 +138,8 @@
                     </select>
                 </div>
                 <div class="col-auto ms-auto">
-                    <button class="btn btn-sm btn-outline-secondary" id="clear-filters-pagos" type="button" title="Limpiar filtros">
+                    <button class="btn btn-sm btn-outline-secondary" id="clear-filters-pagos" type="button"
+                        title="Limpiar filtros">
                         <i class="bi bi-x-circle"></i>
                     </button>
                 </div>
@@ -184,7 +197,8 @@
                 <h5 class="modal-title text-white fw-bold">
                     <i class="bi bi-cash-stack text-accent me-2"></i>Realizar Pago - <span id="modalFacturaNum"></span>
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <form id="formPago" action="{% url 'facturacion:registrar_pago' %}" method="POST">
                 {% csrf_token %}
@@ -195,15 +209,19 @@
                         <h2 class="text-accent fw-bold" id="displayMonto"></h2>
                         <input type="hidden" name="monto" id="modalMonto">
                     </div>
-                    
+
                     <div class="mb-4">
                         <label class="form-label text-white-50 small text-uppercase fw-bold">Método de Pago</label>
                         <div class="row g-2">
                             {% for mp in metodos_pago %}
                             <div class="col-6">
-                                <input type="radio" class="btn-check" name="metodo" id="metodo_{{ mp.codigo_metodo_pago }}" value="{{ mp.codigo_metodo_pago }}" required>
-                                <label class="btn btn-outline-light w-100 py-3 rounded-4" for="metodo_{{ mp.codigo_metodo_pago }}">
-                                    <i class="bi bi-{% if mp.metodo == 'Efectivo' %}cash{% elif mp.metodo == 'Transferencia' %}bank{% elif mp.metodo == 'Tarjeta' %}credit-card{% else %}phone{% endif %} d-block mb-1 fs-4"></i>
+                                <input type="radio" class="btn-check" name="metodo"
+                                    id="metodo_{{ mp.codigo_metodo_pago }}" value="{{ mp.codigo_metodo_pago }}"
+                                    required>
+                                <label class="btn btn-outline-light w-100 py-3 rounded-4"
+                                    for="metodo_{{ mp.codigo_metodo_pago }}">
+                                    <i
+                                        class="bi bi-{% if mp.metodo == 'Efectivo' %}cash{% elif mp.metodo == 'Transferencia' %}bank{% elif mp.metodo == 'Tarjeta' %}credit-card{% else %}phone{% endif %} d-block mb-1 fs-4"></i>
                                     {{ mp.metodo }}
                                 </label>
                             </div>
@@ -212,17 +230,23 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label text-white-50 small text-uppercase fw-bold">Referencia (Opcional)</label>
-                        <input type="text" name="referencia" class="form-control bg-dark border-white-10 text-white rounded-4" placeholder="Ej: Nº de transferencia, recibo, etc.">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Referencia
+                            (Opcional)</label>
+                        <input type="text" name="referencia"
+                            class="form-control bg-dark border-white-10 text-white rounded-4"
+                            placeholder="Ej: Nº de transferencia, recibo, etc.">
                     </div>
-                    
+
                     <div class="alert alert-info bg-info-subtle border-0 text-info small rounded-4 mb-0">
-                        <i class="bi bi-info-circle me-2"></i> Al confirmar, el administrador recibirá una notificación de tu pago.
+                        <i class="bi bi-info-circle me-2"></i> Al confirmar, el administrador recibirá una notificación
+                        de tu pago.
                     </div>
                 </div>
                 <div class="modal-footer border-white-10 p-4">
-                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-premium btn-premium-gold px-4" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Confirmar y Pagar</button>
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4"
+                        data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-premium btn-premium-gold px-4" aria-label="Enviar formulario"
+                        data-tooltip="Enviar formulario" title="Enviar formulario">Confirmar y Pagar</button>
                 </div>
             </form>
         </div>
@@ -233,117 +257,117 @@
 {% block extra_js %}
 <script src="{% static 'js/facturacion/mis_facturas.js' %}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Botones de abrir modal de pago
-    document.querySelectorAll('.btn-abrir-modal-pago').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const numero = this.dataset.numero;
-            const total = this.dataset.total;
-            
-            document.getElementById('modalFacturaId').value = id;
-            document.getElementById('modalFacturaNum').textContent = numero;
-            document.getElementById('modalMonto').value = total;
-            document.getElementById('displayMonto').textContent = `$${parseFloat(total).toFixed(2)}`;
-            
-            const modal = new bootstrap.Modal(document.getElementById('modalPago'));
-            modal.show();
+    document.addEventListener('DOMContentLoaded', function () {
+        // Botones de abrir modal de pago
+        document.querySelectorAll('.btn-abrir-modal-pago').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.dataset.id;
+                const numero = this.dataset.numero;
+                const total = this.dataset.total;
+
+                document.getElementById('modalFacturaId').value = id;
+                document.getElementById('modalFacturaNum').textContent = numero;
+                document.getElementById('modalMonto').value = total;
+                document.getElementById('displayMonto').textContent = `$${parseFloat(total).toFixed(2)}`;
+
+                const modal = new bootstrap.Modal(document.getElementById('modalPago'));
+                modal.show();
+            });
         });
-    });
 
-    // Formulario de pago
-    document.getElementById('formPago').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const form = e.target;
-        const formData = new FormData(form);
-        
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'ok') {
-                alert(data.mensaje);
-                window.location.reload();
-            } else {
-                alert(data.error || 'Error al realizar el pago');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al realizar el pago');
+        // Formulario de pago
+        document.getElementById('formPago').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        alert(data.mensaje);
+                        window.location.reload();
+                    } else {
+                        alert(data.error || 'Error al realizar el pago');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al realizar el pago');
+                });
         });
+
+        // JavaScript para los filtros de DataTables
+        setTimeout(function () {
+            // Filtros para Facturas Pendientes
+            var tablePendientesEl = document.getElementById('table-facturas-pendientes');
+            if (tablePendientesEl && $.fn.DataTable.isDataTable(tablePendientesEl)) {
+                var tablePendientes = $(tablePendientesEl).DataTable();
+
+                // Índices de columnas:
+                // 0: Nº Factura
+                // 1: Pedido
+                // 2: Fecha
+                // 3: Total
+                // 4: Pagado
+                // 5: Por Pagar
+                // 6: Acciones
+
+                $('#filter-factura-pendiente-numero').on('keyup change', function () {
+                    tablePendientes.column(0).search(this.value).draw();
+                });
+                $('#filter-factura-pendiente-pedido').on('keyup change', function () {
+                    tablePendientes.column(1).search(this.value).draw();
+                });
+                $('#filter-factura-pendiente-fecha').on('change', function () {
+                    tablePendientes.column(2).search(this.value).draw();
+                });
+
+                $('#clear-filters-facturas-pendientes').on('click', function () {
+                    $('#filter-factura-pendiente-numero, #filter-factura-pendiente-pedido, #filter-factura-pendiente-fecha').val('');
+                    tablePendientes.columns().search('').draw();
+                });
+            }
+
+            // Filtros para Historial de Pagos
+            var tablePagosEl = document.getElementById('table-historial-pagos');
+            if (tablePagosEl && $.fn.DataTable.isDataTable(tablePagosEl)) {
+                var tablePagos = $(tablePagosEl).DataTable();
+
+                // Índices de columnas:
+                // 0: ID Pago
+                // 1: Factura
+                // 2: Fecha
+                // 3: Monto
+                // 4: Método
+                // 5: Estado
+
+                $('#filter-pago-id').on('keyup change', function () {
+                    tablePagos.column(0).search(this.value).draw();
+                });
+                $('#filter-pago-factura').on('keyup change', function () {
+                    tablePagos.column(1).search(this.value).draw();
+                });
+                $('#filter-pago-fecha').on('change', function () {
+                    tablePagos.column(2).search(this.value).draw();
+                });
+                $('#filter-pago-estado').on('change', function () {
+                    tablePagos.column(5).search(this.value).draw();
+                });
+
+                $('#clear-filters-pagos').on('click', function () {
+                    $('#filter-pago-id, #filter-pago-factura, #filter-pago-fecha').val('');
+                    $('#filter-pago-estado').val('');
+                    tablePagos.columns().search('').draw();
+                });
+            }
+        }, 150);
     });
-
-    // JavaScript para los filtros de DataTables
-    setTimeout(function() {
-        // Filtros para Facturas Pendientes
-        var tablePendientesEl = document.getElementById('table-facturas-pendientes');
-        if (tablePendientesEl && $.fn.DataTable.isDataTable(tablePendientesEl)) {
-            var tablePendientes = $(tablePendientesEl).DataTable();
-            
-            // Índices de columnas:
-            // 0: Nº Factura
-            // 1: Pedido
-            // 2: Fecha
-            // 3: Total
-            // 4: Pagado
-            // 5: Por Pagar
-            // 6: Acciones
-            
-            $('#filter-factura-pendiente-numero').on('keyup change', function() {
-                tablePendientes.column(0).search(this.value).draw();
-            });
-            $('#filter-factura-pendiente-pedido').on('keyup change', function() {
-                tablePendientes.column(1).search(this.value).draw();
-            });
-            $('#filter-factura-pendiente-fecha').on('change', function() {
-                tablePendientes.column(2).search(this.value).draw();
-            });
-            
-            $('#clear-filters-facturas-pendientes').on('click', function() {
-                $('#filter-factura-pendiente-numero, #filter-factura-pendiente-pedido, #filter-factura-pendiente-fecha').val('');
-                tablePendientes.columns().search('').draw();
-            });
-        }
-
-        // Filtros para Historial de Pagos
-        var tablePagosEl = document.getElementById('table-historial-pagos');
-        if (tablePagosEl && $.fn.DataTable.isDataTable(tablePagosEl)) {
-            var tablePagos = $(tablePagosEl).DataTable();
-            
-            // Índices de columnas:
-            // 0: ID Pago
-            // 1: Factura
-            // 2: Fecha
-            // 3: Monto
-            // 4: Método
-            // 5: Estado
-            
-            $('#filter-pago-id').on('keyup change', function() {
-                tablePagos.column(0).search(this.value).draw();
-            });
-            $('#filter-pago-factura').on('keyup change', function() {
-                tablePagos.column(1).search(this.value).draw();
-            });
-            $('#filter-pago-fecha').on('change', function() {
-                tablePagos.column(2).search(this.value).draw();
-            });
-            $('#filter-pago-estado').on('change', function() {
-                tablePagos.column(5).search(this.value).draw();
-            });
-            
-            $('#clear-filters-pagos').on('click', function() {
-                $('#filter-pago-id, #filter-pago-factura, #filter-pago-fecha').val('');
-                $('#filter-pago-estado').val('');
-                tablePagos.columns().search('').draw();
-            });
-        }
-    }, 150);
-});
 </script>
 {% endblock %}

@@ -14,28 +14,32 @@
     </div>
 
     <!-- Filtros personalizados DataTables -->
-    <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
-        <div class="row g-2 align-items-center">
+    <div class="card border-0 shadow-sm p-3 mb-3 filter-bar-card" data-aos="fade-down">
+        <div class="row g-3 align-items-center">
             <div class="col-auto">
                 <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
             </div>
             <div class="col-md-2">
-                <input type="text" id="filter-id-pedido" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="ID Pedido">
+                <input type="text" id="filter-id-pedido"
+                    class="form-control form-control-sm bg-surface text-white filter-input" placeholder="ID Pedido">
             </div>
             <div class="col-md-3">
-                <input type="text" id="filter-material" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Material">
+                <input type="text" id="filter-material"
+                    class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Material">
             </div>
             <div class="col-md-2">
-                <input type="date" id="filter-fecha" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c">
+                <input type="date" id="filter-fecha"
+                    class="form-control form-control-sm bg-surface text-white filter-input">
             </div>
             <div class="col-md-2">
-                <select id="filter-estado" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+                <select id="filter-estado" class="form-select form-select-sm bg-surface text-white filter-select">
                     <option value="">Estado (Todos)</option>
                     <option value="Entregado">Entregado</option>
                 </select>
             </div>
             <div class="col-auto ms-auto">
-                <button class="btn btn-sm btn-outline-secondary" id="clear-filters" type="button" title="Limpiar filtros">
+                <button class="btn btn-sm btn-outline-secondary" id="clear-filters" type="button"
+                    title="Limpiar filtros">
                     <i class="bi bi-x-circle"></i>
                 </button>
             </div>
@@ -69,7 +73,8 @@
                         </span>
                     </td>
                     <td class="text-center">
-                        <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
+                        <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action"
+                            title="Ver Detalles">
                             <i class="bi bi-eye"></i>
                         </a>
                     </td>
@@ -85,50 +90,58 @@
 </div>
 
 <style>
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
-    .text-accent { color: var(--color-accent) !important; }
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
+    .text-accent {
+        color: var(--color-accent) !important;
+    }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Esperar a que DataTables se inicialice en base.js
-    setTimeout(function() {
-        // Seleccionamos la tabla
-        var tableEl = document.querySelector('.table');
-        if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
-            var table = $(tableEl).DataTable();
-            
-            // Índices de columnas:
-            // 0: ID Pedido
-            // 1: Material
-            // 2: Cantidad
-            // 3: Fecha
-            // 4: Total
-            // 5: Estado
-            // 6: Acciones
-            
-            $('#filter-id-pedido').on('keyup change', function() {
-                table.column(0).search(this.value).draw();
-            });
-            $('#filter-material').on('keyup change', function() {
-                table.column(1).search(this.value).draw();
-            });
-            $('#filter-fecha').on('change', function() {
-                table.column(3).search(this.value).draw();
-            });
-            $('#filter-estado').on('change', function() {
-                table.column(5).search(this.value).draw();
-            });
-            
-            $('#clear-filters').on('click', function() {
-                $('#filter-id-pedido, #filter-material, #filter-fecha').val('');
-                $('#filter-estado').val('');
-                table.columns().search('').draw();
-            });
-        }
-    }, 150);
-});
+    document.addEventListener('DOMContentLoaded', function () {
+        // Esperar a que DataTables se inicialice en base.js
+        setTimeout(function () {
+            // Seleccionamos la tabla
+            var tableEl = document.querySelector('.table');
+            if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
+                var table = $(tableEl).DataTable();
+
+                // Índices de columnas:
+                // 0: ID Pedido
+                // 1: Material
+                // 2: Cantidad
+                // 3: Fecha
+                // 4: Total
+                // 5: Estado
+                // 6: Acciones
+
+                $('#filter-id-pedido').on('keyup change', function () {
+                    table.column(0).search(this.value).draw();
+                });
+                $('#filter-material').on('keyup change', function () {
+                    table.column(1).search(this.value).draw();
+                });
+                $('#filter-fecha').on('change', function () {
+                    table.column(3).search(this.value).draw();
+                });
+                $('#filter-estado').on('change', function () {
+                    table.column(5).search(this.value).draw();
+                });
+
+                $('#clear-filters').on('click', function () {
+                    $('#filter-id-pedido, #filter-material, #filter-fecha').val('');
+                    $('#filter-estado').val('');
+                    table.columns().search('').draw();
+                });
+            }
+        }, 150);
+    });
 </script>
 
 {% endblock %}

@@ -13,28 +13,33 @@
     <div class="d-flex justify-content-between align-items-center mb-4 px-2 flex-wrap gap-3">
         <h5 class="fw-800 m-0 text-white">Listado de Pedidos</h5>
         <div class="d-flex gap-2">
-            <a href="{% url 'clientes:mis_pagos' %}" class="btn btn-outline-light btn-sm btn-premium-shape d-flex align-items-center gap-2" aria-label="Agregar pedido" data-tooltip="Agregar pedido" title="Agregar pedido">
+            <a href="{% url 'clientes:mis_pagos' %}"
+                class="btn btn-outline-light btn-sm btn-premium-shape d-flex align-items-center gap-2"
+                aria-label="Agregar pedido" data-tooltip="Agregar pedido" title="Agregar pedido">
                 <i class="bi bi-cash-coin"></i> Mis Pagos
             </a>
-            <a href="{% url 'clientes:crear_pedido' %}" class="btn btn-gold btn-sm d-flex align-items-center gap-2" aria-label="Agregar pedido" data-tooltip="Agregar pedido" title="Agregar pedido">
+            <a href="{% url 'clientes:crear_pedido' %}" class="btn btn-gold btn-sm d-flex align-items-center gap-2"
+                aria-label="Agregar pedido" data-tooltip="Agregar pedido" title="Agregar pedido">
                 <i class="bi bi-plus-circle"></i> Nuevo Pedido
             </a>
         </div>
     </div>
 
-    <div class="card bg-dark border-0 shadow-sm p-3 mb-4 mx-4">
-        <div class="row g-2 align-items-center">
+    <div class="card border-0 shadow-sm p-3 mb-4 mx-4 filter-bar-card" data-aos="fade-down">
+        <div class="row g-3 align-items-center">
             <div class="col-auto">
                 <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
             </div>
             <div class="col-md-3">
-                <input type="text" id="filter-id-cli" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="ID Pedido">
+                <input type="text" id="filter-id-cli"
+                    class="form-control form-control-sm bg-surface text-white filter-input" placeholder="ID Pedido">
             </div>
             <div class="col-md-3">
-                <input type="text" id="filter-destino-cli" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Destino">
+                <input type="text" id="filter-destino-cli"
+                    class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Destino">
             </div>
             <div class="col-md-3">
-                <select id="filter-estado-cli" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+                <select id="filter-estado-cli" class="form-select form-select-sm bg-surface text-white filter-select">
                     <option value="">Estado (Todos)</option>
                     <option value="pendiente">Pendiente</option>
                     <option value="en_ruta">En Ruta</option>
@@ -43,7 +48,8 @@
                 </select>
             </div>
             <div class="col-auto ms-auto">
-                <button class="btn btn-sm btn-outline-secondary" id="clear-filters-cli" type="button" title="Limpiar filtros">
+                <button class="btn btn-sm btn-outline-secondary" id="clear-filters-cli" type="button"
+                    title="Limpiar filtros">
                     <i class="bi bi-x-circle"></i>
                 </button>
             </div>
@@ -82,28 +88,33 @@
                     </td>
                     <td class="text-center">
                         <div class="d-flex justify-content-center gap-2">
-                            <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
+                            <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action"
+                                title="Ver Detalles">
                                 <i class="bi bi-eye"></i>
                             </a>
                             {% if pedido.factura and pedido.factura.estado == 'pendiente' %}
-                            <button class="btn-action text-accent btn-abrir-modal-pago" 
-                                    data-id="{{ pedido.factura.id_factura }}"
-                                    data-numero="{{ pedido.factura.numero|default:'Pedido '|add:pedido.id }}"
-                                    data-total="{{ pedido.factura.saldo_pendiente }}"
-                                    title="Pagar Factura">
+                            <button class="btn-action text-accent btn-abrir-modal-pago"
+                                data-id="{{ pedido.factura.id_factura }}"
+                                data-numero="{{ pedido.factura.numero|default:'Pedido '|add:pedido.id }}"
+                                data-total="{{ pedido.factura.saldo_pendiente }}" title="Pagar Factura">
                                 <i class="bi bi-credit-card"></i>
                             </button>
                             {% endif %}
                             {% if pedido.estado == 'entregado' %}
-                            <a href="{% url 'ordenes:descargar_factura' pedido.id %}" class="btn-action text-info" title="Descargar Factura">
+                            <a href="{% url 'ordenes:descargar_factura' pedido.id %}" class="btn-action text-info"
+                                title="Descargar Factura">
                                 <i class="bi bi-file-earmark-pdf"></i>
                             </a>
                             {% endif %}
                             {% if pedido.estado == 'pendiente' %}
-                            <a href="{% url 'clientes:editar_pedido' pedido.id %}" class="btn-action text-warning" title="Editar">
+                            <a href="{% url 'clientes:editar_pedido' pedido.id %}" class="btn-action text-warning"
+                                title="Editar">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <a href="{% url 'clientes:cancelar_pedido' pedido.id %}" class="btn-action text-danger confirm-delete" title="Cancelar" data-title="¿Cancelar pedido?" data-text="¿Estás seguro de que deseas cancelar el pedido #CT-{{ pedido.id }}?">
+                            <a href="{% url 'clientes:cancelar_pedido' pedido.id %}"
+                                class="btn-action text-danger confirm-delete" title="Cancelar"
+                                data-title="¿Cancelar pedido?"
+                                data-text="¿Estás seguro de que deseas cancelar el pedido #CT-{{ pedido.id }}?">
                                 <i class="bi bi-x-circle"></i>
                             </a>
                             {% endif %}
@@ -128,7 +139,8 @@
                 <h5 class="modal-title text-white fw-bold">
                     <i class="bi bi-cash-stack text-accent me-2"></i>Realizar Pago - <span id="modalFacturaNum"></span>
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <form id="formPago" action="{% url 'facturacion:registrar_pago' %}" method="POST">
                 {% csrf_token %}
@@ -139,15 +151,19 @@
                         <h2 class="text-accent fw-bold" id="displayMonto"></h2>
                         <input type="hidden" name="monto" id="modalMonto">
                     </div>
-                    
+
                     <div class="mb-4">
                         <label class="form-label text-white-50 small text-uppercase fw-bold">Método de Pago</label>
                         <div class="row g-2">
                             {% for mp in metodos_pago %}
                             <div class="col-6">
-                                <input type="radio" class="btn-check" name="metodo" id="metodo_{{ mp.codigo_metodo_pago }}" value="{{ mp.codigo_metodo_pago }}" required>
-                                <label class="btn btn-outline-light w-100 py-3 rounded-4" for="metodo_{{ mp.codigo_metodo_pago }}">
-                                    <i class="bi bi-{% if mp.metodo == 'Efectivo' %}cash{% elif mp.metodo == 'Transferencia' %}bank{% elif mp.metodo == 'Tarjeta' %}credit-card{% else %}phone{% endif %} d-block mb-1 fs-4"></i>
+                                <input type="radio" class="btn-check" name="metodo"
+                                    id="metodo_{{ mp.codigo_metodo_pago }}" value="{{ mp.codigo_metodo_pago }}"
+                                    required>
+                                <label class="btn btn-outline-light w-100 py-3 rounded-4"
+                                    for="metodo_{{ mp.codigo_metodo_pago }}">
+                                    <i
+                                        class="bi bi-{% if mp.metodo == 'Efectivo' %}cash{% elif mp.metodo == 'Transferencia' %}bank{% elif mp.metodo == 'Tarjeta' %}credit-card{% else %}phone{% endif %} d-block mb-1 fs-4"></i>
                                     {{ mp.metodo }}
                                 </label>
                             </div>
@@ -156,17 +172,23 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label text-white-50 small text-uppercase fw-bold">Referencia (Opcional)</label>
-                        <input type="text" name="referencia" class="form-control bg-dark border-white-10 text-white rounded-4" placeholder="Ej: Nº de transferencia, recibo, etc.">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold">Referencia
+                            (Opcional)</label>
+                        <input type="text" name="referencia"
+                            class="form-control bg-dark border-white-10 text-white rounded-4"
+                            placeholder="Ej: Nº de transferencia, recibo, etc.">
                     </div>
-                    
+
                     <div class="alert alert-info bg-info-subtle border-0 text-info small rounded-4 mb-0">
-                        <i class="bi bi-info-circle me-2"></i> Al confirmar, el administrador recibirá una notificación de tu pago.
+                        <i class="bi bi-info-circle me-2"></i> Al confirmar, el administrador recibirá una notificación
+                        de tu pago.
                     </div>
                 </div>
                 <div class="modal-footer border-white-10 p-4">
-                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-premium btn-premium-gold px-4" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Confirmar y Pagar</button>
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4"
+                        data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-premium btn-premium-gold px-4" aria-label="Enviar formulario"
+                        data-tooltip="Enviar formulario" title="Enviar formulario">Confirmar y Pagar</button>
                 </div>
             </form>
         </div>
@@ -176,82 +198,82 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Botones de abrir modal de pago
-    document.querySelectorAll('.btn-abrir-modal-pago').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const numero = this.dataset.numero;
-            const total = this.dataset.total;
-            
-            document.getElementById('modalFacturaId').value = id;
-            document.getElementById('modalFacturaNum').textContent = numero;
-            document.getElementById('modalMonto').value = total;
-            document.getElementById('displayMonto').textContent = `$${parseFloat(total).toFixed(2)}`;
-            
-            const modal = new bootstrap.Modal(document.getElementById('modalPago'));
-            modal.show();
-        });
-    });
+    document.addEventListener('DOMContentLoaded', function () {
+        // Botones de abrir modal de pago
+        document.querySelectorAll('.btn-abrir-modal-pago').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.dataset.id;
+                const numero = this.dataset.numero;
+                const total = this.dataset.total;
 
-    // Formulario de pago
-    document.getElementById('formPago').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const form = e.target;
-        const formData = new FormData(form);
-        
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'ok') {
-                alert(data.mensaje);
-                window.location.reload();
-            } else {
-                alert(data.error || 'Error al realizar el pago');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al realizar el pago');
-        });
-    });
+                document.getElementById('modalFacturaId').value = id;
+                document.getElementById('modalFacturaNum').textContent = numero;
+                document.getElementById('modalMonto').value = total;
+                document.getElementById('displayMonto').textContent = `$${parseFloat(total).toFixed(2)}`;
 
-    // Filtros DataTables
-    setTimeout(function() {
-        var tableEl = document.querySelector('.table-responsive .table');
-        if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
-            var table = $(tableEl).DataTable();
-            
-            // 0: ID
-            // 1: Destino
-            // 2: Fecha
-            // 3: Total
-            // 4: Estado
-            // 5: Acciones
-            
-            $('#filter-id-cli').on('keyup change', function() {
-                table.column(0).search(this.value).draw();
+                const modal = new bootstrap.Modal(document.getElementById('modalPago'));
+                modal.show();
             });
-            $('#filter-destino-cli').on('keyup change', function() {
-                table.column(1).search(this.value).draw();
-            });
-            $('#filter-estado-cli').on('change', function() {
-                table.column(4).search(this.value).draw();
-            });
-            
-            $('#clear-filters-cli').on('click', function() {
-                $('#filter-id-cli, #filter-destino-cli').val('');
-                $('#filter-estado-cli').val('');
-                table.columns().search('').draw();
-            });
-        }
-    }, 150);
-});
+        });
+
+        // Formulario de pago
+        document.getElementById('formPago').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        alert(data.mensaje);
+                        window.location.reload();
+                    } else {
+                        alert(data.error || 'Error al realizar el pago');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al realizar el pago');
+                });
+        });
+
+        // Filtros DataTables
+        setTimeout(function () {
+            var tableEl = document.querySelector('.table-responsive .table');
+            if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
+                var table = $(tableEl).DataTable();
+
+                // 0: ID
+                // 1: Destino
+                // 2: Fecha
+                // 3: Total
+                // 4: Estado
+                // 5: Acciones
+
+                $('#filter-id-cli').on('keyup change', function () {
+                    table.column(0).search(this.value).draw();
+                });
+                $('#filter-destino-cli').on('keyup change', function () {
+                    table.column(1).search(this.value).draw();
+                });
+                $('#filter-estado-cli').on('change', function () {
+                    table.column(4).search(this.value).draw();
+                });
+
+                $('#clear-filters-cli').on('click', function () {
+                    $('#filter-id-cli, #filter-destino-cli').val('');
+                    $('#filter-estado-cli').val('');
+                    table.columns().search('').draw();
+                });
+            }
+        }, 150);
+    });
 </script>
 {% endblock %}
