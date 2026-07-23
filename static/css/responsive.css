@@ -1,0 +1,300 @@
+/*
+ * Base responsive shared by every public and dashboard layout.
+ * This file is deliberately loaded after each view's CSS so module styles
+ * cannot reintroduce horizontal overflow or the desktop sidebar offset.
+ */
+:root {
+  --app-sidebar-width: 280px;
+  --page-gutter: 1rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* These protections apply to application screens only.  The landing page
+   controls its logo dimensions through the HTML height attribute, which a
+   global `img { height: auto }` would override. */
+.app-main :is(img, svg, video, canvas, iframe),
+.main-content :is(img, svg, video, canvas, iframe) {
+  max-width: 100%;
+}
+
+.app-main :is(img, video, canvas),
+.main-content :is(img, video, canvas) {
+  height: auto;
+}
+
+/* Flex children need this to shrink instead of pushing the viewport wider. */
+.main-content,
+.app-main,
+.card,
+.modal-content,
+.table-responsive,
+.dataTables_wrapper,
+.input-group,
+.navbar-premium > *,
+.app-navbar > * {
+  min-width: 0;
+}
+
+/* Prevent long labels, IDs and email addresses from creating a page-wide scroll. */
+.main-content :is(p, span, small, td, th, label, a, button),
+.modal :is(p, span, small, td, th, label) {
+  overflow-wrap: anywhere;
+}
+
+/* The dashboard scrolls inside main-content.  Keep the fixed header clear of
+   the initial content at every viewport size. */
+.main-content.app-main,
+.main-content {
+  padding: 6.25rem var(--page-gutter) 1.25rem !important;
+  margin-left: 0 !important;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sticky footer: it occupies the bottom of the viewport when a page has
+   little content, and remains after the content instead of overlapping it. */
+.main-content > .footer {
+  width: 100%;
+  margin-top: auto !important;
+  flex-shrink: 0;
+}
+
+.app-navbar,
+.app-topbar {
+  left: var(--page-gutter) !important;
+  right: var(--page-gutter) !important;
+  max-width: none;
+}
+
+/* Do not give every anchor a 44px minimum width: text links inside table rows,
+   filters and nav groups otherwise force horizontal overflow on phones. */
+@media (max-width: 767.98px) {
+  a,
+  input,
+  select,
+  textarea {
+    min-width: 0;
+  }
+
+  .btn,
+  button,
+  .navbar-icon-btn,
+  .chat-widget-toggle,
+  .chat-widget-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .app-navbar,
+  .app-topbar {
+    top: 0.5rem;
+    padding: 0.65rem 0.75rem !important;
+    margin-bottom: 0 !important;
+  }
+
+  .app-navbar .navbar-title {
+    font-size: clamp(0.95rem, 4vw, 1.15rem) !important;
+  }
+
+  /* The actions in the topbar must keep their size; the title is the part
+     allowed to truncate. */
+  .app-navbar > .d-flex:last-child {
+    flex-shrink: 0;
+  }
+
+  .row {
+    --bs-gutter-x: 1rem;
+  }
+
+  /* Page headings, search boxes and tab bars must use the available width
+     instead of keeping their desktop inline layout. */
+  .main-content > .d-flex.justify-content-between {
+    flex-wrap: wrap;
+    gap: 0.875rem;
+  }
+
+  .main-content > .d-flex.justify-content-between > .d-flex {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.75rem !important;
+  }
+
+  .main-content > .d-flex.justify-content-between form {
+    flex: 1 1 12rem;
+    min-width: 0;
+  }
+
+  .usuario-search-input,
+  .main-content input[type="search"],
+  .main-content input[name="q"] {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .nav-pills {
+    flex-wrap: nowrap !important;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-pills .nav-item {
+    flex: 0 0 auto;
+  }
+
+  .table-responsive,
+  .dataTables_wrapper {
+    max-width: 100%;
+  }
+
+  /* Do not squeeze desktop table columns into a phone-width card.  Lists keep
+     their readable column widths and can be swiped horizontally instead. */
+  .table-container {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .table-container > table.table,
+  .table-responsive > table.table {
+    min-width: 42rem;
+  }
+
+  .table-container > table.table th,
+  .table-container > table.table td {
+    padding: 0.875rem !important;
+    vertical-align: middle;
+  }
+
+  .table-container .d-flex.gap-2 {
+    flex-wrap: nowrap;
+  }
+
+  div.dataTables_wrapper div.dataTables_length,
+  div.dataTables_wrapper div.dataTables_filter,
+  div.dataTables_wrapper div.dataTables_info,
+  div.dataTables_wrapper div.dataTables_paginate {
+    float: none;
+    text-align: left;
+    margin: 0.75rem 0;
+  }
+
+  div.dataTables_wrapper div.dataTables_filter input {
+    width: min(100%, 16rem);
+    margin-left: 0;
+  }
+
+  div.dataTables_wrapper div.dataTables_paginate {
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .modal-dialog {
+    margin: 0.75rem;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* On narrow phones the database switch uses an icon-only control.  Keeping
+   its label in a 44px button was what made “Nube activa” render vertically. */
+@media (max-width: 575.98px) {
+  .bd-mode-widget--navbar {
+    width: 44px;
+    min-width: 44px;
+    max-width: 44px;
+    flex: 0 0 44px;
+  }
+
+  .bd-mode-widget--navbar .bd-mode-switch,
+  .bd-mode-widget--navbar .bd-mode-switch__body {
+    width: 44px;
+    min-width: 44px;
+  }
+
+  .bd-mode-widget--navbar .bd-mode-switch__body {
+    justify-content: center;
+    padding: 0.35rem;
+  }
+
+  .bd-mode-widget--navbar .bd-mode-switch__text,
+  .bd-mode-widget--navbar .bd-mode-switch__track {
+    display: none;
+  }
+}
+
+@media (min-width: 576px) {
+  :root {
+    --page-gutter: 1.5rem;
+  }
+
+  .main-content.app-main,
+  .main-content {
+    padding-bottom: 1.5rem !important;
+  }
+}
+
+/* The sidebar is fixed, so reserve exactly its width for main content on
+   desktop.  This removes the extra hidden margin that caused misalignment. */
+@media (min-width: 992px) {
+  :root {
+    --page-gutter: 2rem;
+  }
+
+  .main-content.app-main,
+  .main-content {
+    flex: 0 0 calc(100% - var(--app-sidebar-width));
+    width: calc(100% - var(--app-sidebar-width));
+    max-width: calc(100% - var(--app-sidebar-width));
+    margin-left: var(--app-sidebar-width) !important;
+    padding: 6.75rem var(--page-gutter) 2rem !important;
+  }
+
+  .app-navbar,
+  .app-topbar {
+    left: calc(var(--app-sidebar-width) + var(--page-gutter)) !important;
+    right: var(--page-gutter) !important;
+  }
+}
+
+@media (max-width: 399.98px) {
+  :root {
+    --page-gutter: 0.75rem;
+  }
+
+  .sidebar-custom {
+    width: min(85vw, var(--app-sidebar-width));
+    left: min(-85vw, calc(-1 * var(--app-sidebar-width)));
+  }
+
+  .sidebar-custom.active {
+    left: 0;
+  }
+
+  .app-navbar,
+  .app-topbar {
+    padding: 0.55rem 0.6rem !important;
+  }
+}
