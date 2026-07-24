@@ -6,6 +6,10 @@
   --radius-md: 14px;
   --radius-sm: 10px;
 
+  /* Tipografía base unificada */
+  --font-main: 'Plus Jakarta Sans', sans-serif;
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+
   /* Tipografía responsiva con escalado fluido */
   --font-size-xs: clamp(0.65rem, 1vw, 0.75rem);
   --font-size-sm: clamp(0.8rem, 1.2vw, 0.875rem);
@@ -22,9 +26,31 @@
    conservando sólo avatares e iconos como círculos. */
 
 /* Tipografía responsiva base */
+body,
+button,
+input,
+select,
+textarea,
+.btn,
+.form-control,
+.form-select,
+.table,
+.badge,
+.pagination,
+.dataTables_wrapper,
+.dataTables_wrapper * {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
 body {
+  font-family: var(--font-main);
   font-size: var(--font-size-base);
   line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
 }
 
 h1 { font-size: var(--font-size-5xl); line-height: 1.2; }
@@ -46,6 +72,20 @@ small { font-size: var(--font-size-sm); }
 /* Ajustes para títulos de secciones */
 .fw-bold { letter-spacing: 0.3px; }
 .text-muted { font-size: var(--font-size-sm); }
+
+.page-subtitle,
+.text-soft,
+.table-meta {
+  color: var(--color-muted) !important;
+}
+
+.text-main {
+  color: var(--color-text) !important;
+}
+
+.table thead th {
+  color: var(--color-accent) !important;
+}
 
 /* Contenedor de iconos con fondo suave */
 .icon-box-wrapper {
@@ -373,9 +413,10 @@ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-i
 
 .standard-filter-layout {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
 }
 
 .standard-filter-label,
@@ -386,11 +427,13 @@ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-i
 }
 
 .standard-filter-field {
-  flex: 1 1 150px;
+  flex: 1 1 220px;
+  min-width: 180px;
 }
 
 .standard-filter-search {
-  flex: 1.25 1 220px;
+  flex: 2 1 320px;
+  min-width: 240px;
 }
 
 .standard-filter-label {
@@ -425,6 +468,7 @@ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-i
 
 .standard-filter-actions {
   flex: 0 0 auto;
+  margin-left: auto;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -444,6 +488,18 @@ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-i
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.btn-main-action {
+  min-height: 48px;
+  padding: 0.75rem 1.25rem !important;
+  border-radius: 14px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  white-space: nowrap;
 }
 
 .add-action-btn {
