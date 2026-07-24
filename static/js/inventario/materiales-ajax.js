@@ -3,20 +3,21 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    const inputId = document.getElementById('filtroId');
-    const inputMaterial = document.getElementById('filtroMaterial');
-    const filtroTipo = document.getElementById('filtroTipoMaterial');
-    const formFiltros = document.getElementById('filtrosMaterialesForm');
-    const btnLimpiar = document.getElementById('btnLimpiarFiltros');
+    const form = document.querySelector('.standard-filter-bar form');
+    const tipo = form?.querySelector('[name="tipo"]');
+    const query = form?.querySelector('[name="q"]');
+    const clearBtn = form?.querySelector('.filter-clear-btn');
+    const tableEl = document.getElementById('tablaMateriales');
+
+    if (!form || !tableEl) return;
 
     const table = AppAjaxTable.init({
         selector: '#tablaMateriales',
-        url: document.getElementById('tablaMateriales').dataset.apiUrl,
+        url: tableEl.dataset.apiUrl,
         countSelector: '#materiales-count',
         filters: {
-            tipo: () => filtroTipo ? filtroTipo.value : '',
-            material: () => inputMaterial ? inputMaterial.value.trim() : '',
-            id: () => inputId ? inputId.value.trim() : ''
+            tipo: () => tipo ? tipo.value : '',
+            q: () => query ? query.value.trim() : ''
         },
         columns: [
             {
@@ -56,41 +57,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!table) return;
 
-    if (!table) return;
+    const reload = AppHTTP.debounce(() => table.ajax.reload(), 300);
 
-    function checkActiveFilters() {
-        if (btnLimpiar) {
-            const hasFilters = (inputId && inputId.value.trim()) || 
-                               (inputMaterial && inputMaterial.value.trim()) || 
-                               (filtroTipo && filtroTipo.value);
-            btnLimpiar.style.display = hasFilters ? 'inline-block' : 'none';
-        }
-    }
+    tipo?.addEventListener('change', reload);
+    query?.addEventListener('input', reload);
 
-    const reloadTable = AppHTTP.debounce(() => {
+    clearBtn?.addEventListener('click', function (event) {
+        event.preventDefault();
+        if (tipo) tipo.value = '';
+        if (query) query.value = '';
         table.ajax.reload();
-        checkActiveFilters();
-    }, 300);
-
-    if (inputId) inputId.addEventListener('input', reloadTable);
-    if (inputMaterial) inputMaterial.addEventListener('input', reloadTable);
-    if (filtroTipo) filtroTipo.addEventListener('change', reloadTable);
-
-    if (formFiltros) {
-        formFiltros.addEventListener('submit', function (event) {
-            event.preventDefault();
-            table.ajax.reload();
-            checkActiveFilters();
-        });
-    }
-
-    if (btnLimpiar) {
-        btnLimpiar.addEventListener('click', function() {
-            if (inputId) inputId.value = '';
-            if (inputMaterial) inputMaterial.value = '';
-            if (filtroTipo) filtroTipo.value = '';
-            table.ajax.reload();
-            checkActiveFilters();
-        });
-    }
+    });
 });
