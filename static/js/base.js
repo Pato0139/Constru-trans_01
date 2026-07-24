@@ -253,25 +253,20 @@ $(document).on('click', '.confirm-delete-btn', function(e) {
  * y añade una clase para indicar al usuario que puede desplazarse
  */
 function initTableScrollability() {
-    const isSmallScreen = window.innerWidth <= 576;
-    
-    if (isSmallScreen) {
-        const tableResponsives = document.querySelectorAll('.table-responsive');
-        
-        tableResponsives.forEach(container => {
-            const checkScroll = () => {
-                // Detectar scroll horizontal
-                if (container.scrollWidth > container.clientWidth) {
-                    container.classList.add('is-scrollable');
-                } else {
-                    container.classList.remove('is-scrollable');
-                }
-            };
-            
-            checkScroll();
-            window.addEventListener('resize', checkScroll);
-        });
-    }
+    const tableResponsives = document.querySelectorAll('.table-responsive');
+
+    tableResponsives.forEach(container => {
+        const checkScroll = () => {
+            if (container.scrollWidth > container.clientWidth) {
+                container.classList.add('is-scrollable');
+            } else {
+                container.classList.remove('is-scrollable');
+            }
+        };
+
+        checkScroll();
+        window.addEventListener('resize', checkScroll, { passive: true });
+    });
 }
 
 // Inicializar al cargar la página
