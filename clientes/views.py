@@ -13,6 +13,7 @@ from ordenes.models import DetallePedido, Pedido
 from pagos.models import Pago
 from usuarios.models import Catalogo, MetodoPago, Stock, UnidadMedida, Usuario
 from usuarios.models import MaterialConstruccion as Material
+from usuarios.utils import get_account_switch_options
 from core.db_preference import debe_usar_bd_remota
 from core.db_utils import select_for_update_if_supported
 from core.despacho import (
@@ -312,6 +313,7 @@ def perfil_cliente(request):
         "pedidos_pendientes": pedidos.filter(estado="pendiente").count(),
         "en_ruta": pedidos.filter(estado="en_ruta").count(),
         "total_invertido": pedidos.aggregate(total=Sum("total"))["total"] or 0,
+        "account_switch_options": get_account_switch_options(usuario),
     }
 
     return render(request, "clientes/detalle.html", context)
