@@ -77,6 +77,13 @@ class UsuarioViewsTests(TestCase):
             ConductorVehiculo.objects.filter(conductor=self.conductor_profile).count(), 1
         )
 
+    def test_cambiar_cuenta_redirige_al_panel_correspondiente(self):
+        self.client.login(username="admin@test.com", password="password123")
+        response = self.client.post(reverse("usuarios:cambiar_cuenta", args=["cliente"]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("clientes:panel_cliente"))
+
     def test_lista_conductores_muestra_datos(self):
         self.client.login(username="admin@test.com", password="password123")
         response = self.client.get(reverse("usuarios:lista_conductores"))
