@@ -544,10 +544,16 @@ def perfil_admin(request):
         logout(request)
         return redirect("usuarios:login")
 
+    try:
+        materiales_count = Material.objects.count()
+    except Exception as exc:
+        logger.warning("No se pudo contar MaterialConstruccion: %s", exc)
+        materiales_count = 0
+
     context = {
         "usuario": usuario,
         "usuarios_count": Usuario.objects.count(),
-        "materiales_count": Material.objects.count(),
+        "materiales_count": materiales_count,
         "ordenes_count": Pedido.objects.count(),
         "total_ventas": Pedido.objects.aggregate(total=Sum("total"))["total"] or 0,
         "entregados_count": Pedido.objects.filter(estado="entregado").count(),
