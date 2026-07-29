@@ -64,7 +64,7 @@ def _obtener_usuario_local(usuario):
 def _obtener_cliente_local(usuario_local):
     cliente_local, _ = Cliente.objects.get_or_create(
         usuario=usuario_local,
-        defaults={"direccion_principal": "Por definir"},
+        defaults={"direccion": "Por definir"},
     )
     return cliente_local
 
