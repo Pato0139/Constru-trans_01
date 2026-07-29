@@ -65,7 +65,7 @@ def _obtener_cliente_local(usuario_local, using="default"):
     cliente_local, _ = Cliente.ensure_for_user(
         usuario_local,
         using=using,
-        defaults={"direccion_principal": "Por definir"},
+        defaults={"direccion": "Por definir"},
     )
     return cliente_local
 

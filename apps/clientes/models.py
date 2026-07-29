@@ -19,7 +19,7 @@ class Cliente(models.Model):
         primary_key=True,
         related_name="perfil_cliente",
     )
-    direccion_principal = models.CharField(max_length=200, default="Por definir")
+    direccion = models.CharField(max_length=200, default="Por definir")
     tipo_cliente = models.CharField(max_length=20, choices=TIPOS_CLIENTE, default="persona")
     nombre_empresa = models.CharField(max_length=200, default="", blank=True)
     nit = models.CharField(max_length=20, default="", blank=True)
@@ -43,5 +43,5 @@ def crear_perfil_cliente(sender, instance, created, **kwargs):
         using = kwargs.get("using") or instance._state.db or "default"
         Cliente.objects.using(using).get_or_create(
             usuario=instance,
-            defaults={"direccion_principal": "Por definir"},
+            defaults={"direccion": "Por definir"},
         )
