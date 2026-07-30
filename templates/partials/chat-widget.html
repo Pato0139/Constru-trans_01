@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="{% static 'css/ia/chat-widget.css' %}">
 
 <div class="chat-widget-container">
-  <button id="chat-widget-toggle" class="chat-widget-toggle">
+  <button id="chat-widget-toggle" class="chat-widget-toggle" aria-label="Abrir asistente virtual" data-tooltip="Abrir asistente virtual" title="Abrir asistente virtual">
     <i class="bi bi-chat-dots"></i>
   </button>
 
@@ -18,7 +18,7 @@
           <div class="chat-widget-subtitle">¡Listo para ayudarte!</div>
         </div>
       </div>
-      <button id="chat-widget-close" class="chat-widget-close">
+      <button id="chat-widget-close" class="chat-widget-close" aria-label="Cerrar asistente virtual" data-tooltip="Cerrar asistente virtual" title="Cerrar asistente virtual">
         <i class="bi bi-x"></i>
       </button>
     </div>
@@ -40,7 +40,7 @@
     
     <div class="chat-widget-input-container">
       <input type="text" id="chat-widget-input" class="chat-widget-input" placeholder="Escribe tu mensaje...">
-      <button id="chat-widget-send" class="chat-widget-send">
+      <button id="chat-widget-send" class="chat-widget-send" aria-label="Enviar mensaje" data-tooltip="Enviar mensaje" title="Enviar mensaje">
         <i class="bi bi-send"></i>
       </button>
     </div>

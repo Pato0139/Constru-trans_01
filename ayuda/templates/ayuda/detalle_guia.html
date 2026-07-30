@@ -16,7 +16,7 @@
                     <h5 class="fw-bold m-0 text-white">
                         <i class="bi bi-file-text text-primary me-2"></i> {{ guia.titulo }}
                     </h5>
-                    <a href="{% url 'ayuda:lista_guias_categoria' guia.categoria.id %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2">
+                    <a href="{% url 'ayuda:lista_guias_categoria' guia.categoria.id %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2" aria-label="Volver" data-tooltip="Volver" title="Volver">
                         <i class="bi bi-arrow-left"></i> Volver
                     </a>
                 </div>

@@ -2,10 +2,18 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.utils.timezone import now
+from pathlib import Path
+import uuid
 
 numeric_and_space_validator = RegexValidator(
     regex=r"^[0-9\s]*$", message="Solo se admiten números y espacios.", code="invalid_numeric_space"
 )
+
+
+def foto_perfil_upload_path(instance, filename):
+    extension = Path(filename or "avatar.jpg").suffix.lower() or ".jpg"
+    user_segment = instance.pk if instance and instance.pk is not None else "nuevo"
+    return f"perfiles/usuarios/usuario_{user_segment}/{uuid.uuid4().hex}{extension}"
 
 
 # =====================================================================
@@ -42,7 +50,7 @@ class Usuario(AbstractUser):
     # NO se toca
     tipo_documento = models.CharField(max_length=5, choices=TIPOS_DOCUMENTO)
     estado = models.CharField(max_length=15, choices=ESTADO_USUARIO, default="activo")
-    foto_perfil = models.ImageField(upload_to="perfiles/", null=True, blank=True)
+    foto_perfil = models.FileField(upload_to=foto_perfil_upload_path, null=True, blank=True)
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
@@ -289,10 +297,15 @@ class Proveedor(models.Model):
     codigo_proveedor = models.AutoField(primary_key=True)
     nombre_empresa = models.CharField(max_length=150)
     nit = models.CharField(max_length=20, unique=True, validators=[numeric_and_space_validator])
+    contacto_nombre = models.CharField(max_length=150, blank=True)
     telefono = models.CharField(max_length=20, validators=[numeric_and_space_validator])
-    correo = models.EmailField()
+    correo = models.EmailField(blank=True)
+    direccion = models.CharField(max_length=255, blank=True)
+    ciudad = models.CharField(max_length=100, blank=True)
+    categoria = models.CharField(max_length=100, blank=True, default="General")
     descripcion = models.TextField(blank=True)
-    # NO se toca
+    activo = models.BooleanField(default=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
@@ -310,13 +323,24 @@ class Proveedor(models.Model):
     def email(self):
         return self.correo
 
+    @email.setter
+    def email(self, value):
+        self.correo = value
+
     @property
-    def contacto_nombre(self):
+    def nombre(self):
         return self.nombre_empresa
 
     @property
-    def categoria(self):
-        return "General"
+    def contacto(self):
+        return self.contacto_nombre
+
+    def save(self, *args, **kwargs):
+        if not self.contacto_nombre:
+            self.contacto_nombre = self.nombre_empresa
+        if not self.categoria:
+            self.categoria = "General"
+        super().save(*args, **kwargs)
 
 
 # =====================================================================

@@ -8,6 +8,7 @@ html {
     font-size: 16px; /* Tamaño de fuente consistente */
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    height: 100%;
 }
 
 body {
@@ -15,7 +16,8 @@ body {
     color: var(--color-text);
     font-family: var(--font-main);
     letter-spacing: -0.01em;
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow: hidden; /* el scroll vive en .main-content, no en body */
+    height: 100%;
 }
 
 /* --- ÁREA PRINCIPAL (contraste con sidebar) --- */
@@ -23,6 +25,7 @@ body {
     min-height: 100vh;
     background: var(--main-bg);
     position: relative;
+    padding-top: 6.75rem !important;
 }
 
 .app-main::before {
@@ -42,7 +45,8 @@ body {
     z-index: 1;
 }
 
-.app-navbar {
+.app-navbar,
+.app-topbar {
     background: var(--navbar-bg) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -51,9 +55,26 @@ body {
     margin-bottom: 1.25rem !important;
     padding: 0.85rem 1rem !important;
     box-shadow: var(--shadow-panel);
-    position: sticky;
-    top: 0.75rem;
-    z-index: 900;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    z-index: 1040;
+}
+
+.app-topbar {
+    isolation: isolate;
+}
+
+.app-topbar::before {
+    content: "";
+    position: absolute;
+    inset: -0.75rem -0.75rem auto;
+    height: calc(100% + 1.5rem);
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.58), rgba(15, 23, 42, 0));
+    pointer-events: none;
+    z-index: -1;
 }
 
 /* --- SIDEBAR RESPONSIVE --- */
@@ -239,21 +260,40 @@ body {
 }
 
 /* --- MAIN CONTENT --- */
+.container-fluid.p-0 > .d-flex {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
 .main-content {
     padding: 1rem !important;
     transition: all 0.3s ease;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 @media (min-width: 768px) {
     .main-content {
-        padding: 1.5rem !important;
+        padding: 6.75rem 1.5rem 1.5rem !important;
     }
 }
 
 @media (min-width: 992px) {
     .main-content {
         margin-left: 280px;
-        padding: 2rem !important;
+        padding: 6.75rem 2rem 2rem !important;
+    }
+
+    .app-topbar {
+        left: calc(280px + 2rem);
+        right: 2rem;
     }
 }
 
@@ -1338,8 +1378,8 @@ button.nav-link-premium:focus {
    margin: 0 !important; 
    padding: 0.75rem 1rem !important; 
    border-radius: 9999px !important; 
-   background: #ffffff !important; 
-   border: 1px solid rgba(15, 23, 42, 0.12) !important; 
+   background: var(--color-surface) !important; 
+   border: 1px solid var(--color-border) !important; 
    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08) !important; 
    backdrop-filter: blur(12px) !important; 
    -webkit-backdrop-filter: blur(12px) !important;
@@ -1358,7 +1398,7 @@ button.nav-link-premium:focus {
    border: 1px solid transparent !important; 
    background-color: transparent !important; 
    background: transparent !important;
-   color: #475569 !important; 
+   color: var(--color-text) !important; 
    display: inline-flex !important; 
    align-items: center !important; 
    justify-content: center !important; 
@@ -1379,10 +1419,10 @@ button.nav-link-premium:focus {
 
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link:hover,
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link:hover { 
-   background-color: #e2e8f0 !important; 
-   background: #e2e8f0 !important;
-   border-color: rgba(15, 23, 42, 0.1) !important; 
-   color: #0f172a !important; 
+   background-color: rgba(255, 255, 255, 0.08) !important; 
+   background: rgba(255, 255, 255, 0.08) !important;
+   border-color: rgba(255, 255, 255, 0.12) !important; 
+   color: var(--color-text) !important; 
    transform: translateY(-2px) !important; 
  } 
 
@@ -1397,25 +1437,25 @@ button.nav-link-premium:focus {
 
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled a.page-link,
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled span.page-link { 
-   background-color: #f1f5f9 !important; 
-   background: #f1f5f9 !important;
-   color: #94a3b8 !important; 
+   background-color: rgba(255, 255, 255, 0.05) !important; 
+   background: rgba(255, 255, 255, 0.05) !important;
+   color: var(--color-muted) !important; 
    border-color: transparent !important; 
-   opacity: 0.5 !important; 
+   opacity: 0.75 !important; 
    cursor: not-allowed !important; 
  } 
 
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled a.page-link:hover,
  html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled span.page-link:hover { 
    transform: none !important; 
-   background-color: #f1f5f9 !important; 
-   background: #f1f5f9 !important;
-   color: #94a3b8 !important; 
+   background-color: rgba(255, 255, 255, 0.05) !important; 
+   background: rgba(255, 255, 255, 0.05) !important;
+   color: var(--color-muted) !important; 
  } 
 
  /* DataTables info text */
  html body div.dataTables_wrapper div.dataTables_info { 
-   color: #64748b !important; 
+   color: var(--color-muted) !important; 
    font-size: 0.9rem !important; 
    font-weight: 500 !important; 
    padding-top: 0.25rem !important; 
@@ -1424,22 +1464,22 @@ button.nav-link-premium:focus {
  /* DataTables length and filter */
  html body div.dataTables_wrapper div.dataTables_length label, 
  html body div.dataTables_wrapper div.dataTables_filter label { 
-   color: #64748b !important; 
+   color: var(--color-muted) !important; 
    font-weight: 500 !important; 
  } 
 
  html body div.dataTables_wrapper div.dataTables_length select, 
  html body div.dataTables_wrapper div.dataTables_filter input { 
-   background-color: #ffffff !important; 
-   color: #0f172a !important; 
-   border: 1px solid rgba(15, 23, 42, 0.12) !important; 
+   background-color: var(--color-surface) !important; 
+   color: var(--color-text) !important; 
+   border: 1px solid var(--color-border) !important; 
    border-radius: 12px !important; 
  } 
 
  html body div.dataTables_wrapper div.dataTables_filter input:focus, 
  html body div.dataTables_wrapper div.dataTables_length select:focus { 
-   border-color: #1e40af !important; 
-   box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.15) !important; 
+   border-color: var(--color-primary) !important; 
+   box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.15) !important; 
  } 
 
  /* Responsive for mobile */

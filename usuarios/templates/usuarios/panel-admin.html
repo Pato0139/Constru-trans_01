@@ -105,13 +105,8 @@
                         <td class="py-3 px-4">
                             {% with comprador=orden.cliente_usuario %}
                             <div class="d-flex align-items-center gap-2">
-                                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 u-inline-ef76745f35"
-                                    >
-                                    {% if comprador.foto_perfil %}
-                                        <img src="{{ comprador.foto_perfil.url }}" alt="" class="u-inline-4a466668db">
-                                    {% else %}
-                                        {{ comprador.iniciales }}
-                                    {% endif %}
+                                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 u-inline-ef76745f35">
+                                    {{ comprador.iniciales }}
                                 </div>
                                 <div class="min-w-0">
                                     <p class="fw-semibold mb-0 text-truncate u-inline-6e24079678">
@@ -142,7 +137,7 @@
                             {% endif %}
                         </td>
                         <td class="py-3 px-4 text-center">
-                            <a href="{% url 'ordenes:ver_pedido_admin' orden.id %}" class="btn btn-sm btn-outline-secondary border-0 u-inline-6e24079678">
+                            <a href="{% url 'ordenes:ver_pedido_admin' orden.id %}" class="btn btn-sm btn-outline-secondary border-0 u-inline-6e24079678" aria-label="Ver detalle" data-tooltip="Ver detalle" title="Ver detalle">
                                 <i class="bi bi-eye"></i>
                             </a>
                         </td>

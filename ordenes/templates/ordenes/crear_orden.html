@@ -57,7 +57,7 @@
     {% endif %}
 
     <div class="mt-4">
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
             {% if orden %}Guardar Cambios{% else %}Crear Orden{% endif %}
         </button>
         <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="btn btn-secondary">Cancelar</a>

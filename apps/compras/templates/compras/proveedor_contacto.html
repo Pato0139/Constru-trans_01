@@ -8,15 +8,15 @@
 
 <div class="row justify-content-center">
     <div class="col-lg-7">
-        <div class="table-container p-4 p-md-5 border-0 shadow-lg" style="background: rgba(255,255,255,0.02); border-radius: 32px;">
+        <div class="table-container p-4 p-md-5 border-0 shadow-lg u-inline-9e2d1903e2">
             <div class="text-center mb-5">
-                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 70px; height: 70px;">
+                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow u-inline-945c5873b3">
                     <i class="bi bi-envelope-paper-fill text-dark fs-2"></i>
                 </div>
                 <h3 class="fw-900 text-white mb-2">
                     Enviar Mensaje a {{ proveedor.nombre_empresa }}
                 </h3>
-                <p class="text-muted small text-uppercase fw-700" style="letter-spacing: 2px;">
+                <p class="text-muted small text-uppercase fw-700 u-inline-1ddabe40c2">
                     Persona de contacto: {{ proveedor.contacto_nombre }}
                 </p>
             </div>
@@ -25,23 +25,23 @@
                 {% csrf_token %}
                 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Asunto del Mensaje</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Asunto del Mensaje</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-chat-left-dots"></i></span>
-                        <input type="text" name="asunto" class="form-control rounded-pill border-0 px-4 py-2" style="background: rgba(255,255,255,0.05) !important;" placeholder="Ej: Pedido de Materiales - #ORD-2026" required>
+                        <span class="input-group-text border-0 u-inline-9a26a8af25"><i class="bi bi-chat-left-dots"></i></span>
+                        <input type="text" name="asunto" class="form-control rounded-pill border-0 px-4 py-2 u-inline-882d487185" placeholder="Ej: Pedido de Materiales - #ORD-2026" required>
                     </div>
                 </div>
 
                 <div class="mb-5">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Contenido del Mensaje</label>
-                    <textarea name="mensaje" class="form-control rounded-4 border-0 px-4 py-3" style="background: rgba(255,255,255,0.05) !important; min-height: 200px;" placeholder="Escribe aquí tu solicitud detallada..." required></textarea>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Contenido del Mensaje</label>
+                    <textarea name="mensaje" class="form-control rounded-4 border-0 px-4 py-3 u-inline-26a377e95b" placeholder="Escribe aquí tu solicitud detallada..." required></textarea>
                 </div>
 
                 <div class="d-grid gap-3">
-                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase u-inline-2ecb5783f5" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                         <i class="bi bi-send-fill me-2"></i> Enviar Mensaje Directo
                     </button>
-                    <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light rounded-pill py-2 opacity-75 hover-opacity-100">
+                    <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light rounded-pill py-2 opacity-75 hover-opacity-100" aria-label="Volver" data-tooltip="Volver" title="Volver">
                         <i class="bi bi-arrow-left me-2"></i> Volver a la Lista
                     </a>
                 </div>
@@ -49,7 +49,7 @@
         </div>
         
         <!-- Tarjeta de Información Adicional del Proveedor -->
-        <div class="mt-4 p-4 rounded-4" style="background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.1);">
+        <div class="mt-4 p-4 rounded-4 u-inline-85f617c572">
             <div class="row text-center">
                 <div class="col-md-6 mb-3 mb-md-0">
                     <p class="text-muted small mb-1">Teléfono Directo</p>

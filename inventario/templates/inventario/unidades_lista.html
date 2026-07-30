@@ -31,17 +31,17 @@
 
                 <div class="d-flex gap-2 align-items-center">
                     <button type="submit" class="btn rounded-pill px-4 py-2 d-flex align-items-center justify-content-center gap-2 u-inline-77a8f99a4b"
-                           >
+                            aria-label="Agregar unidad de medida" data-tooltip="Agregar unidad de medida" title="Agregar unidad de medida">
                         <i class="bi bi-funnel"></i> Buscar
                     </button>
 
                     <a href="{% url 'inventario:crear_unidad_medida' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg u-inline-357f30ec21"
-                      >
+                       aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
                         <i class="bi bi-plus-lg fs-5"></i>
                     </a>
 
                     <a href="{% url 'inventario:crear_material' %}" class="btn rounded-pill px-4 py-2 d-flex align-items-center justify-content-center gap-2 u-inline-c7b6446a34"
-                      >
+                       aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
                         <i class="bi bi-arrow-left"></i> Volver
                     </a>
                 </div>
@@ -84,13 +84,13 @@
                                title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="{% url 'inventario:eliminar_unidad_medida' unidad.pk %}"
-                               class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--delete confirm-delete"
-                               title="Eliminar"
-                               data-title="¿Eliminar unidad?"
-                               data-text="¿Estás seguro de que deseas eliminar «{{ unidad.nombre }}»?">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                            <form method="post" action="{% url 'inventario:cambiar_estado_unidad_medida' unidad.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm rounded-pill px-3 {% if unidad.activa %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                                        title="{% if unidad.activa %}Inhabilitar{% else %}Habilitar{% endif %}">
+                                    <i class="bi {% if unidad.activa %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>

@@ -63,7 +63,7 @@
             <i class="bi bi-search text-muted fs-1 mb-3 d-block"></i>
             <h5 class="text-white">No tienes pedidos activos</h5>
             <p class="text-muted">Cuando realices un pedido, aparecerá aquí para su seguimiento.</p>
-            <a href="{% url 'clientes:crear_pedido' %}" class="btn btn-gold px-4 mt-3">Solicitar mi primer pedido</a>
+            <a href="{% url 'clientes:crear_pedido' %}" class="btn btn-gold px-4 mt-3" aria-label="Agregar pedido" data-tooltip="Agregar pedido" title="Agregar pedido">Solicitar mi primer pedido</a>
         </div>
     </div>
     {% endfor %}

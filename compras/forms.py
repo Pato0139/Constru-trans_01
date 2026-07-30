@@ -16,6 +16,8 @@ class ProveedorPerfilForm(forms.ModelForm):
             "telefono",
             "correo",
             "direccion",
+            "ciudad",
+            "activo",
             "categoria",
             "descripcion",
         ]
@@ -24,7 +26,7 @@ class ProveedorPerfilForm(forms.ModelForm):
 class ProveedorMaterialForm(forms.ModelForm):
     class Meta:
         model = ProveedorMaterial
-        fields = ["material", "precio_proveedor", "referencia_proveedor", "observaciones", "activo"]
+        fields = ["material", "precio_actual", "referencia_proveedor", "observaciones", "activo"]
 
 
 ProveedorMaterialFormSet = inlineformset_factory(
@@ -60,7 +62,7 @@ class DetalleCompraForm(forms.ModelForm):
             "material": forms.Select(attrs={"class": "form-control select2 material-select"}),
             "cantidad": forms.NumberInput(attrs={"class": "form-control cantidad-input", "min": 1}),
             "precio_unitario": forms.NumberInput(
-                attrs={"class": "form-control precio-input", "step": "0.01", "min": 0}
+                attrs={"class": "form-control precio-input", "step": "0.01", "min": 0, "readonly": True}
             ),
         }
 

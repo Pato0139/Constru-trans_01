@@ -108,7 +108,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="upload_new_proof">
                 <input type="file" class="form-control mb-3" name="proof" accept=".pdf,.jpg,.jpeg,.png">
-                <button class="btn btn-success" type="submit">Enviar nuevo comprobante</button>
+                <button class="btn btn-success" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Enviar nuevo comprobante</button>
             </form>
         </div>
     </div>

@@ -2,6 +2,10 @@
 {% load static %}
 {% load currency_tags %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/inventario/lista.css' %}?v=1.4">
+{% endblock %}
+
 {% block title %}Catálogo - ConstruTrans{% endblock %}
 
 {% block content %}
@@ -35,12 +39,12 @@
                         {% endfor %}
                     </select>
                     
-                    <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9">
+                    <button type="submit" class="btn btn-outline-secondary rounded-pill px-4 py-2 d-flex align-items-center gap-2 u-inline-e60c74fbc9" aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
                         <i class="bi bi-funnel"></i> Filtrar
                     </button>
 
                     <a href="{% url 'inventario:crear_material' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg ms-2 u-inline-602188a7ef" 
-                           >
+                            aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
                         <i class="bi bi-plus-lg fs-5"></i>
                     </a>
                 </div>
@@ -49,9 +53,9 @@
     </div>
 </div>
 
-<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8" data-aos="fade-up">
+<div class="table-container inventory-materials-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8" data-aos="fade-up">
     <div class="table-responsive">
-        <table id="tablaMateriales" class="table table-dark table-hover align-middle mb-0 no-datatable u-inline-16fd8a5fe1" data-api-url="{% url 'inventario:api_materiales_listado' %}">
+        <table id="tablaMateriales" class="table table-dark table-hover align-middle mb-0 no-datatable inventory-materials-table u-inline-16fd8a5fe1" data-api-url="{% url 'inventario:api_materiales_listado' %}">
             <thead>
                 <tr class="clientes__table-head-row u-inline-0d59a3f53c">
                     <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2c34455993">ID</th>
@@ -63,7 +67,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td colspan="7" class="text-center py-5 text-muted">
+                    <td colspan="5" class="text-center py-5 text-muted">
                         <div class="py-4">
                             <div class="spinner-border spinner-border-sm text-warning mb-3" role="status"></div>
                             <p class="mb-0">Cargando materiales...</p>
@@ -90,5 +94,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/inventario/materiales-ajax.js' %}"></script>
+<script src="{% static 'js/inventario/materiales-ajax.js' %}?v=1.2"></script>
 {% endblock %}

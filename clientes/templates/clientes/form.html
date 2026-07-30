@@ -54,10 +54,18 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <input type="number" id="input-cantidad" class="form-control rounded-pill border-0 px-4 py-2 pedido-input-bg" placeholder="Cant." min="1" value="1">
+                            <div class="quantity-stepper pedido-quantity-stepper" data-min="1">
+                                <button type="button" class="quantity-stepper__btn quantity-stepper__btn--minus" aria-label="Disminuir cantidad" data-tooltip="Disminuir cantidad" title="Disminuir cantidad">
+                                    <i class="bi bi-dash-lg"></i>
+                                </button>
+                                <input type="number" id="input-cantidad" class="quantity-stepper__input" aria-label="Cantidad de material" min="1" value="1">
+                                <button type="button" class="quantity-stepper__btn quantity-stepper__btn--plus" aria-label="Aumentar cantidad" data-tooltip="Aumentar cantidad" title="Aumentar cantidad">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="col-md-2">
-                            <button type="button" id="btn-agregar-material" class="btn btn-gold rounded-pill w-100 py-2 h-100">
+                            <button type="button" id="btn-agregar-material" class="btn btn-gold rounded-pill w-100 py-2 h-100" aria-label="Agregar material al pedido" data-tooltip="Agregar material al pedido" title="Agregar material al pedido">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
                         </div>
@@ -87,7 +95,7 @@
                                         </td>
                                         <td class="text-end text-accent fw-800 py-3">{{ detalle.subtotal|currency }}</td>
                                         <td class="text-end pe-0 py-3">
-                                            <button type="button" class="btn btn-link text-danger p-0 btn-eliminar-material" data-subtotal="{{ detalle.subtotal|unlocalize }}">
+                                            <button type="button" class="btn btn-link text-danger p-0 btn-eliminar-material" data-subtotal="{{ detalle.subtotal|unlocalize }}" aria-label="Eliminar material" data-tooltip="Eliminar material" title="Eliminar material">
                                                 <i class="bi bi-trash3-fill"></i>
                                             </button>
                                         </td>
@@ -133,7 +141,7 @@
                         <div class="col-md-12">
                             <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase pedido-input-label">Fecha y Hora Programada</label>
                             <div class="input-group pedido-picker-wrapper">
-                                <button id="btn-fecha-entrega" type="button" class="input-group-text border-0 pedido-input-icon">
+                                <button id="btn-fecha-entrega" type="button" class="input-group-text border-0 pedido-input-icon" aria-label="Seleccionar fecha de entrega" data-tooltip="Seleccionar fecha de entrega" title="Seleccionar fecha de entrega">
                                     <i class="bi bi-calendar-event"></i>
                                 </button>
                                 <input id="fecha_entrega_text" type="text" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2 pedido-input-bg" inputmode="numeric" placeholder="DD/MM/YYYY HH:MM" value="{% if fecha_entrega %}{{ fecha_entrega }}{% elif orden and orden.fecha_entrega_programada %}{{ orden.fecha_entrega_programada|date:'d/m/Y H:i' }}{% endif %}">
@@ -145,10 +153,10 @@
                 </div>
 
                 <div class="d-grid gap-3 mt-4">
-                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase pedido-submit-btn">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase pedido-submit-btn" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                         <i class="bi bi-check2-all me-2"></i> {% if action == 'crear' %}Confirmar y Enviar Pedido{% else %}Guardar Cambios{% endif %}
                     </button>
-                    <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-secondary-cta rounded-pill py-2">
+                    <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-secondary-cta rounded-pill py-2" aria-label="Volver" data-tooltip="Volver" title="Volver">
                         <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
                     </a>
                 </div>

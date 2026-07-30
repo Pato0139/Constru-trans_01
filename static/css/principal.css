@@ -77,15 +77,80 @@ h1, h2, h3, h4, h5, h6 {
 .navbar-premium {
     background: transparent;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 25px 0;
+    padding: 18px 0;
     border-bottom: 1px solid transparent;
 }
 
 .navbar-premium.scrolled {
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.92);
     backdrop-filter: blur(20px);
-    padding: 15px 0;
+    -webkit-backdrop-filter: blur(20px);
+    padding: 10px 0;
     border-color: var(--color-border);
+}
+
+/* Menú colapsado en móvil */
+.navbar-premium .navbar-collapse {
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1rem 1.25rem;
+    margin-top: 0.5rem;
+}
+
+@media (min-width: 992px) {
+    .navbar-premium .navbar-collapse {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        margin-top: 0;
+        backdrop-filter: none;
+    }
+}
+
+/* Icono hamburguesa visible */
+.navbar-premium .navbar-toggler:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+/* Nav links en el menú */
+.navbar-premium .navbar-nav .nav-link-premium {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: block;
+}
+
+.navbar-premium .navbar-nav .nav-link-premium:hover {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+@media (min-width: 992px) {
+    .navbar-premium .navbar-nav .nav-link-premium::after {
+        content: '';
+        display: block;
+        width: 0;
+        height: 2px;
+        background: var(--color-primary);
+        transition: width 0.3s ease;
+        margin-top: 2px;
+    }
+    .navbar-premium .navbar-nav .nav-link-premium:hover::after {
+        width: 100%;
+    }
+    .navbar-premium .navbar-nav .nav-link-premium:hover {
+        background: transparent;
+    }
 }
 
 .nav-link-premium {
@@ -97,6 +162,7 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 0.3s ease;
     position: relative;
     padding: 5px 0 !important;
+    text-decoration: none;
 }
 
 .nav-link-premium::after {
