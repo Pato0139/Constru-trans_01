@@ -7,9 +7,9 @@
 <div class="dashboard-content" data-aos="fade-up">
     <div class="row g-4">
         <div class="col-12">
-            <div class="table-container p-4 rounded-4 shadow-sm" style="background: var(--card-bg); border: 1px solid var(--color-border);">
+            <div class="table-container p-4 rounded-4 shadow-sm u-inline-54085855f8">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold m-0" style="color: var(--color-text);">
+                    <h5 class="fw-bold m-0 u-inline-6e24079678">
                         <i class="bi bi-gear-fill text-accent me-2"></i>
                         <span data-i18n="settings.title">Configuraciones Avanzadas</span>
                     </h5>
@@ -17,8 +17,8 @@
 
                 <div class="row g-4">
                     <div class="col-lg-6">
-                        <div class="p-4 rounded-3" style="background: var(--item-bg);">
-                            <h6 class="fw-bold mb-3" style="color: var(--color-text);">
+                        <div class="p-4 rounded-3 u-inline-2286cd84e7">
+                            <h6 class="fw-bold mb-3 u-inline-6e24079678">
                                 <i class="bi bi-fonts me-2"></i>
                                 <span data-i18n="settings.font">Tamaño de Fuente</span>
                             </h6>
@@ -40,8 +40,8 @@
                     </div>
 
                     <div class="col-lg-6">
-                        <div class="p-4 rounded-3" style="background: var(--item-bg);">
-                            <h6 class="fw-bold mb-3" style="color: var(--color-text);">
+                        <div class="p-4 rounded-3 u-inline-2286cd84e7">
+                            <h6 class="fw-bold mb-3 u-inline-6e24079678">
                                 <i class="bi bi-translate me-2"></i>
                                 <span data-i18n="settings.lang">Idioma</span>
                             </h6>
@@ -57,8 +57,8 @@
                     </div>
 
                     <div class="col-lg-6">
-                        <div class="p-4 rounded-3" style="background: var(--item-bg);">
-                            <h6 class="fw-bold mb-3" style="color: var(--color-text);">
+                        <div class="p-4 rounded-3 u-inline-2286cd84e7">
+                            <h6 class="fw-bold mb-3 u-inline-6e24079678">
                                 <i class="bi bi-palette me-2"></i>
                                 <span data-i18n="settings.theme">Tema Visual</span>
                             </h6>
@@ -80,8 +80,8 @@
                     </div>
 
                     <div class="col-lg-6">
-                        <div class="p-4 rounded-3" style="background: var(--item-bg);">
-                            <h6 class="fw-bold mb-3" style="color: var(--color-text);">
+                        <div class="p-4 rounded-3 u-inline-2286cd84e7">
+                            <h6 class="fw-bold mb-3 u-inline-6e24079678">
                                 <i class="bi bi-eye-fill me-2"></i>
                                 <span data-i18n="settings.daltonism">Filtros para Daltonismo</span>
                             </h6>
@@ -106,27 +106,27 @@
                     </div>
 
                     <div class="col-12">
-                        <div class="p-4 rounded-3" style="background: var(--item-bg);">
-                            <h6 class="fw-bold mb-3" style="color: var(--color-text);">
+                        <div class="p-4 rounded-3 u-inline-2286cd84e7">
+                            <h6 class="fw-bold mb-3 u-inline-6e24079678">
                                 <i class="bi bi-person-badge me-2"></i>
                                 <span data-i18n="settings.profile">Información de Perfil</span>
                             </h6>
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label class="text-muted small fw-bold" data-i18n="settings.profile.name">Nombre</label>
-                                    <p class="mb-0" style="color: var(--color-text);">{{ usuario.nombres }} {{ usuario.apellidos }}</p>
+                                    <p class="mb-0 u-inline-6e24079678">{{ usuario.nombres }} {{ usuario.apellidos }}</p>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="text-muted small fw-bold" data-i18n="settings.profile.role">Rol</label>
-                                    <p class="mb-0" style="color: var(--color-text);">{{ usuario.get_rol_display }}</p>
+                                    <p class="mb-0 u-inline-6e24079678">{{ usuario.get_rol_display }}</p>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="text-muted small fw-bold" data-i18n="settings.profile.doc">Documento</label>
-                                    <p class="mb-0" style="color: var(--color-text);">{{ usuario.get_tipo_documento_display }} {{ usuario.documento }}</p>
+                                    <p class="mb-0 u-inline-6e24079678">{{ usuario.get_tipo_documento_display }} {{ usuario.documento }}</p>
                                 </div>
                             </div>
                             <div class="mt-3">
-                                <a href="{% url 'usuarios:editar_perfil' %}" class="btn btn-premium d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-sm" style="background: var(--color-primary); color: white; border: none;">
+                                <a href="{% url 'usuarios:editar_perfil' %}" class="btn btn-premium d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-sm u-inline-47ad96ef0d" aria-label="Editar" data-tooltip="Editar" title="Editar">
                                     <i class="bi bi-pencil-square"></i>
                                     <span data-i18n="settings.profile.edit">Editar Perfil</span>
                                 </a>

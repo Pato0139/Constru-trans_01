@@ -1,5 +1,5 @@
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator, FileExtensionValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models.signals import post_save
@@ -13,8 +13,8 @@ from pathlib import Path
 
 def foto_perfil_upload_path(instance, filename):
     extension = Path(filename or "avatar.jpg").suffix.lower() or ".jpg"
-    user_segment = instance.pk or "nuevo"
-    return f"perfiles/usuario_{user_segment}/{uuid.uuid4().hex}{extension}"
+    user_segment = instance.pk if instance and instance.pk is not None else "nuevo"
+    return f"perfiles/usuarios/usuario_{user_segment}/{uuid.uuid4().hex}{extension}"
 
 def validar_fecha_no_pasada(value):
     today = now().date()
@@ -63,11 +63,10 @@ class Usuario(AbstractUser):
     # NO se toca
     tipo_documento = models.CharField(max_length=5, choices=TIPOS_DOCUMENTO)
     estado = models.CharField(max_length=15, choices=ESTADO_USUARIO, default="activo")
-    foto_perfil = models.ImageField(
+    foto_perfil = models.FileField(
         upload_to=foto_perfil_upload_path,
         null=True,
         blank=True,
-        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"])],
     )
     sincronizado = models.BooleanField(default=False)
     
@@ -492,8 +491,11 @@ class Proveedor(models.Model):
     telefono = models.CharField(max_length=20, validators=[numeric_and_space_validator])
     correo = models.EmailField(blank=True)
     direccion = models.CharField(max_length=255, blank=True)
+    ciudad = models.CharField(max_length=100, blank=True)
     categoria = models.CharField(max_length=100, blank=True, default="General")
     descripcion = models.TextField(blank=True)
+    activo = models.BooleanField(default=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
@@ -510,6 +512,18 @@ class Proveedor(models.Model):
     @property
     def email(self):
         return self.correo
+
+    @email.setter
+    def email(self, value):
+        self.correo = value
+
+    @property
+    def nombre(self):
+        return self.nombre_empresa
+
+    @property
+    def contacto(self):
+        return self.contacto_nombre
 
     def save(self, *args, **kwargs):
         if not self.contacto_nombre:

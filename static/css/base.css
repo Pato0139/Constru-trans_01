@@ -1,9 +1,99 @@
 /* Variables CSS base (no theme-specific) */
 :root {
-    --radius-xl: 24px;
-    --radius-lg: 18px;
-    --radius-md: 12px;
-    --radius-sm: 8px;
+    /* Radio común: suave y ligeramente ovalado para superficies y controles. */
+    --radius-xl: 20px;
+    --radius-lg: 16px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+}
+
+/* Lenguaje visual compartido: superficies redondeadas y botones ovalados,
+   conservando sólo avatares e iconos como círculos. */
+.card,
+.panel-card,
+.stat-card,
+.stat-card-ultra,
+.table-container,
+.modal-content,
+.card-form,
+.sidebar-brand-card,
+.sidebar-section {
+  border-radius: var(--radius-lg) !important;
+}
+
+.btn:not(.rounded-circle),
+.form-control,
+.form-select,
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  border-radius: var(--radius-md) !important;
+}
+
+/* DataTables: los controles nunca deben conservar fondos claros del tema base. */
+html body div.dataTables_wrapper div.dataTables_length select,
+html body div.dataTables_wrapper div.dataTables_filter input {
+  background: var(--card-bg) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+html body div.dataTables_wrapper div.dataTables_length label,
+html body div.dataTables_wrapper div.dataTables_filter label,
+html body div.dataTables_wrapper div.dataTables_info {
+  color: var(--color-muted) !important;
+}
+
+html body div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+  background: var(--card-bg) !important;
+  border-color: var(--color-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-panel) !important;
+}
+
+html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link,
+html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link {
+  background: var(--item-bg) !important;
+  color: var(--color-text) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link:hover,
+html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link:hover {
+  background: var(--item-bg-hover) !important;
+  color: var(--color-text) !important;
+}
+
+html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled a.page-link,
+html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled span.page-link {
+  background: transparent !important;
+  color: var(--color-muted) !important;
+}
+
+/* Los iconos de búsqueda heredados no deben quedar blancos en el tema oscuro. */
+[data-theme="dark"] .app-main .bg-white {
+  background-color: var(--item-bg) !important;
+  color: var(--color-text) !important;
+}
+
+[data-theme="dark"] .app-main .bg-white .text-dark {
+  color: var(--color-text) !important;
+}
+
+/* En tema claro priorizamos nitidez: sin capas translúcidas que mezclen los paneles. */
+[data-theme="light"] .app-navbar,
+[data-theme="light"] .app-topbar,
+[data-theme="light"] .filter-bar-card,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .stat-card-ultra,
+[data-theme="light"] .table-container {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-theme="light"] .app-topbar::before {
+  display: none;
 }
 
 /* Filter Bar Styles */
