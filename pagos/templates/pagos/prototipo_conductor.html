@@ -38,8 +38,8 @@
                     <input type="hidden" name="action" value="mark_delivery">
                     <input type="hidden" name="order_id" value="{{ order.id }}">
                     <div class="d-flex gap-2 mb-2">
-                        <button class="btn btn-success btn-sm" name="delivery_result" value="yes" type="submit">Sí, recibió el pago</button>
-                        <button class="btn btn-outline-light btn-sm" name="delivery_result" value="no" type="submit">No recibió el pago</button>
+                        <button class="btn btn-success btn-sm" name="delivery_result" value="yes" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Sí, recibió el pago</button>
+                        <button class="btn btn-outline-light btn-sm" name="delivery_result" value="no" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">No recibió el pago</button>
                     </div>
                 </form>
                 {% else %}

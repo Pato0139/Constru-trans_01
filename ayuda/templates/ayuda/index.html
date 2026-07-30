@@ -94,7 +94,7 @@
                                 <td class="py-3 px-4 text-muted">{{ guia.categoria.nombre }}</td>
                                 <td class="py-3 px-4 text-muted">{{ guia.fecha_actualizacion|date:"d/m/Y" }}</td>
                                 <td class="py-3 px-4 text-center">
-                                    <a href="{% url 'ayuda:detalle_guia' guia.id %}" class="btn btn-sm btn-outline-secondary border-0 text-white">
+                                    <a href="{% url 'ayuda:detalle_guia' guia.id %}" class="btn btn-sm btn-outline-secondary border-0 text-white" aria-label="Ver detalle" data-tooltip="Ver detalle" title="Ver detalle">
                                         <i class="bi bi-eye"></i> Ver
                                     </a>
                                 </td>
@@ -169,7 +169,7 @@
                 <div class="text-center">
                     <h5 class="fw-bold mb-3 text-white"><i class="bi bi-lightbulb text-warning me-2"></i> ¿Tienes una sugerencia?</h5>
                     <p class="text-muted mb-4">Ayúdanos a mejorar el sistema compartiendo tus ideas</p>
-                    <a href="{% url 'ayuda:crear_sugerencia' %}" class="btn-ayuda btn-ayuda--primary">
+                    <a href="{% url 'ayuda:crear_sugerencia' %}" class="btn-ayuda btn-ayuda--primary" aria-label="Agregar" data-tooltip="Agregar" title="Agregar">
                         <i class="bi bi-plus-circle"></i> Enviar Sugerencia
                     </a>
                 </div>

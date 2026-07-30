@@ -463,6 +463,7 @@
     </style>
     
     <link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=1.0">
+{% block extra_head %}{% endblock %}
 {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -513,8 +514,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/loader.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="{% static 'js/loader.js' %}" defer></script>
     {% block extra_js %}{% endblock %}
     
     <!-- Particles.js -->

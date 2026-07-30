@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
         <div>
             <h2 class="fw-bold text-white mb-1">
                 <i class="bi bi-bag-check-fill text-accent me-2"></i>Órdenes de Compra
@@ -23,7 +23,7 @@
                 </div>
             </form>
 
-            <a href="{% url 'compras:crear_compra' %}" class="btn btn-warning fw-bold rounded-pill px-4 shadow-sm">
+            <a href="{% url 'compras:crear_compra' %}" class="btn btn-warning fw-bold rounded-pill px-4 shadow-sm" aria-label="Agregar compra" data-tooltip="Agregar compra" title="Agregar compra">
                 <i class="bi bi-plus-circle me-1"></i>Nueva Orden
             </a>
         </div>
@@ -118,21 +118,76 @@
 
 <style>
     .table-container {
-        backdrop-filter: blur(10px);
-        background: rgba(255, 255, 255, 0.02) !important;
+        backdrop-filter: none;
+        background: var(--card-bg) !important;
+        overflow-x: auto !important;
+        border-radius: 24px !important;
+    }
+    .table-responsive {
+        overflow-x: auto !important;
+        border-radius: 24px;
+        overflow: hidden !important;
+    }
+    .table-responsive > .table {
+        min-width: 42rem;
+        border-collapse: separate !important;
+        border-radius: 24px;
+    }
+    .table thead th:first-child {
+        border-top-left-radius: 24px;
+    }
+    .table thead th:last-child {
+        border-top-right-radius: 24px;
+    }
+    .table tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 24px;
+    }
+    .table tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 24px;
     }
     .table thead th {
         letter-spacing: 1px;
-        background: rgba(0, 0, 0, 0.2);
+        background: var(--item-bg) !important;
+    }
+    .table tbody td,
+    .table tfoot td {
+        white-space: nowrap;
+    }
+    .table-container .table {
+        border-collapse: separate;
+        border-spacing: 0;
     }
     .text-accent {
         color: #f59e0b !important;
     }
     .border-white-10 {
-        border-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: var(--color-border) !important;
     }
     .table-hover tbody tr:hover {
-        background-color: rgba(255, 255, 255, 0.05) !important;
+        background-color: var(--item-bg-hover) !important;
+    }
+    .input-group {
+        min-width: 0;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+    .input-group .form-control {
+        border: none;
+        background: transparent;
+    }
+    .input-group .input-group-text {
+        border: none;
+        background: transparent;
+    }
+    @media (max-width: 575.98px) {
+        .btn-warning.text-nowrap {
+            white-space: nowrap;
+        }
+        .table-responsive > .table {
+            min-width: 32rem;
+        }
     }
 </style>
 {% endblock %}

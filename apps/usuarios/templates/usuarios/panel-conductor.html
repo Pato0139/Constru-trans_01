@@ -8,7 +8,7 @@
 
 <div class="row g-4 mb-5">
     <div class="col-md-4">
-        <div class="stat-card" style="border-left: 4px solid var(--color-accent);">
+        <div class="stat-card u-inline-806d4e75c1">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="text-muted fw-700 m-0 text-uppercase small">Entregas Pendientes</h6>
                 <i class="bi bi-truck text-warning fs-4"></i>
@@ -18,7 +18,7 @@
     </div>
 
     <div class="col-md-4">
-        <div class="stat-card" style="border-left: 4px solid #22c55e;">
+        <div class="stat-card u-inline-857e10e91e">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="text-muted fw-700 m-0 text-uppercase small">Total Completadas</h6>
                 <i class="bi bi-check-circle-fill text-success fs-4"></i>
@@ -28,12 +28,12 @@
     </div>
 
     <div class="col-md-4">
-        <div class="stat-card" style="border-left: 4px solid #3b82f6;">
+        <div class="stat-card u-inline-471a0ac46a">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="text-muted fw-700 m-0 text-uppercase small">Última Entrega</h6>
                 <i class="bi bi-calendar-check text-info fs-4"></i>
             </div>
-            <h2 class="fw-900 mb-0" style="font-size: 1.2rem;">{% if ultima_entrega %}{{ ultima_entrega.fecha|date:"d M" }}{% else %}N/A{% endif %}</h2>
+            <h2 class="fw-900 mb-0 u-inline-199b90cae3">{% if ultima_entrega %}{{ ultima_entrega.fecha|date:"d M" }}{% else %}N/A{% endif %}</h2>
         </div>
     </div>
 </div>
@@ -82,7 +82,7 @@
                     <td class="fw-600 text-color">{{ pedido.direccion_destino }}</td>
                     <td class="text-muted small">{{ pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}</td>
                     <td>
-                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">{{ pedido.estado|title }}</span>
+                        <span class="badge-tipo u-inline-503ec04587">{{ pedido.estado|title }}</span>
                     </td>
                     <td class="text-center">
                         <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalle">

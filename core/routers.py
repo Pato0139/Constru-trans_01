@@ -9,6 +9,7 @@ class EnrutadorInventario:
         'usuarios',
         'historial',
         'clientes',
+        'compras',
     ]
 
     def db_for_read(self, model, **hints):

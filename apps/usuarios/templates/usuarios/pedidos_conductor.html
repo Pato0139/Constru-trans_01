@@ -11,7 +11,7 @@
 <div class="table-container p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 px-2">
         <h5 class="fw-800 m-0 text-white">Entregas por Realizar</h5>
-        <span class="badge-tipo" style="background: rgba(202, 160, 48, 0.1); color: var(--color-accent); border-color: rgba(202, 160, 48, 0.2);">
+        <span class="badge-tipo u-inline-611ca6a6fa">
             {{ pedidos|length }} Pedidos Asignados
         </span>
     </div>
@@ -40,11 +40,11 @@
                     </td>
                     <td>
                         {% if pedido.estado == "pendiente" %}
-                        <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                        <span class="badge-tipo u-inline-2167e5ffe5">Pendiente</span>
                         {% elif pedido.estado == "en_ruta" %}
-                        <span class="badge-tipo" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">En ruta</span>
+                        <span class="badge-tipo u-inline-503ec04587">En ruta</span>
                         {% elif pedido.estado == "entregado" %}
-                        <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Entregado</span>
+                        <span class="badge-tipo u-inline-a9b2e7691f">Entregado</span>
                         {% endif %}
                     </td>
                     <td class="price-tag">{{ pedido.precio|currency }}</td>

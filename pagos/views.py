@@ -4,14 +4,25 @@ from datetime import datetime
 from django.contrib import messages
 from django.db.models import Q
 from django.http import Http404
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 
+
+from django.contrib import messages
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect, render
+
+from ordenes.models import Pedido
 from usuarios.models import MetodoPago
 from usuarios.views import admin_required
 
 from .models import Pago, PagoPedido
 from ordenes.models import Pedido
 from .prototype import (
+    append_history_entry,
+    assign_transport,
+    calculate_order_totals,
+    generate_order_code,
+
     assign_transport,
     calculate_order_totals,
     generate_order_code,
@@ -19,6 +30,8 @@ from .prototype import (
     seed_demo_state,
     update_payment_and_order_status,
 )
+from .services import registrar_estado_pago
+
 
 
 @admin_required
@@ -90,88 +103,131 @@ def lista_pagos(request):
     return render(request, "pagos/lista.html", context)
 
 
-def get_prototype_state(request):
-    state = request.session.get("pagos_prototype_state", {})
-    if not state:
-        state = seed_demo_state({})
-        request.session["pagos_prototype_state"] = state
-        request.session.modified = True
-    return state
+# =====================================================================
+# GESTIÓN DE PAGOS (admin)
+# =====================================================================
+@admin_required
+def gestion_pagos(request):
+    """Vista de administración: revisar comprobantes y aprobar/rechazar pagos."""
+    from django.db import OperationalError
+
+    db_missing = False
+    pedidos = []
+    try:
+        pedidos = (
+            Pedido.objects.select_related("cliente__usuario")
+            .prefetch_related("pagos_pedido")
+            .order_by("-fecha_solicitud")
+        )
+        if request.method == "POST":
+            pago_id = request.POST.get("pago_id")
+            accion = request.POST.get("accion")
+            pago = get_object_or_404(PagoPedido, pk=pago_id)
+            pedido = pago.pedido
+            if accion == "aprobar":
+                registrar_estado_pago(pago, pedido, "pago aprobado")
+                pago.save()
+                pedido.save()
+                messages.success(request, "Pago aprobado correctamente.")
+            elif accion == "rechazar":
+                motivo = request.POST.get("motivo_rechazo", "")
+                registrar_estado_pago(pago, pedido, "pago rechazado", motivo_rechazo=motivo)
+                pago.save()
+                pedido.save()
+                messages.warning(request, "Pago rechazado.")
+            return redirect("pagos:gestion_pagos")
+    except OperationalError:
+        db_missing = True
+
+    return render(request, "pagos/gestion_pagos.html", {
+        "pedidos": pedidos,
+        "db_missing_pagos_table": db_missing,
+    })
 
 
-def save_prototype_state(request, state):
-    request.session["pagos_prototype_state"] = state
+# =====================================================================
+# PROTOTIPO — helpers de sesión
+# =====================================================================
+def _get_proto_state(request):
+    state = request.session.get("proto_state", {})
+    return seed_demo_state(state)
+
+
+def _save_proto_state(request, state):
+    request.session["proto_state"] = state
     request.session.modified = True
 
 
-def find_order(state, order_id):
-    for order in state.get("orders", []):
-        if str(order.get("id")) == str(order_id):
-            return order
-    return None
+def _get_order(state, order_id):
+    return next((o for o in state.get("orders", []) if o["id"] == order_id), None)
 
 
+# =====================================================================
+# PROTOTIPO — vista general
+# =====================================================================
 def prototype_home(request):
-    state = get_prototype_state(request)
+    state = _get_proto_state(request)
+    _save_proto_state(request, state)
     return render(request, "pagos/prototipo_home.html", {"state": state})
 
 
-def prototype_switch_role(request, role):
-    state = get_prototype_state(request)
-    if role not in ["cliente", "administrador", "conductor"]:
-        messages.warning(request, "Rol no válido. Se mantiene el rol actual.")
-        return redirect("pagos:prototype_home")
-    state["role"] = role
-    save_prototype_state(request, state)
-    return redirect("pagos:prototype_home")
+# =====================================================================
+# PROTOTIPO — crear pedido
+# =====================================================================
+MATERIALS_CATALOG = [
+    {"name": "Cemento", "unit_price": 45000},
+    {"name": "Arena", "unit_price": 18000},
+    {"name": "Grava", "unit_price": 22000},
+    {"name": "Varilla", "unit_price": 120000},
+    {"name": "Ladrillo", "unit_price": 800},
+    {"name": "Bloque", "unit_price": 2500},
+    {"name": "Puntilla", "unit_price": 5000},
+    {"name": "Pintura", "unit_price": 75000},
+    {"name": "Madera", "unit_price": 35000},
+    {"name": "Tubería PVC", "unit_price": 28000},
+]
+
+PRICE_MAP = {m["name"]: m["unit_price"] for m in MATERIALS_CATALOG}
 
 
 def prototype_order_form(request):
-    state = get_prototype_state(request)
-    materials_catalog = [
-        {"name": "Cemento"},
-        {"name": "Arena"},
-        {"name": "Varilla"},
-        {"name": "Bloques"},
-    ]
+    state = _get_proto_state(request)
 
     if request.method == "POST":
-        materials_json = request.POST.get("materials_json", "[]")
-        try:
-            materials = json.loads(materials_json) if materials_json else []
-        except ValueError:
-            materials = []
+        names = request.POST.getlist("material_name")
+        quantities = request.POST.getlist("material_quantity")
+        units = request.POST.getlist("material_unit")
 
-        if not materials:
-            material_names = request.POST.getlist("material_name")
-            material_quantities = request.POST.getlist("material_quantity")
-            material_units = request.POST.getlist("material_unit")
-            for name, qty, unit in zip(material_names, material_quantities, material_units):
-                materials.append(
-                    {
-                        "name": name,
-                        "quantity": int(qty or 0),
-                        "unit": unit,
-                        "unit_price": 50000,
-                    }
-                )
+        materials = []
+        for name, qty, unit in zip(names, quantities, units):
+            try:
+                qty_int = int(qty)
+            except (ValueError, TypeError):
+                qty_int = 0
+            unit_price = PRICE_MAP.get(name, 0)
+            if qty_int > 0:
+                materials.append({
+                    "name": name,
+                    "quantity": qty_int,
+                    "unit": unit,
+                    "unit_price": unit_price,
+                })
 
-        if not materials:
-            messages.error(request, "Debe agregar al menos un material al pedido.")
-            return render(request, "pagos/prototipo_pedido.html", {"materials_catalog": materials_catalog, "state": state})
-
-        order = {
+        totals = calculate_order_totals(materials)
+        new_order = {
             "id": generate_order_code(state.get("orders", [])),
-            "customer": request.POST.get("customer", "Cliente Demo"),
-            "phone": request.POST.get("phone", "3000000000"),
+            "customer": request.POST.get("customer", ""),
+            "phone": request.POST.get("phone", ""),
+
             "delivery_address": request.POST.get("delivery_address", ""),
             "delivery_date": request.POST.get("delivery_date", ""),
             "observations": request.POST.get("observations", ""),
             "materials": materials,
-            "subtotal": 0,
-            "iva": 0,
-            "total": 0,
-            "payment_method": "",
+            "subtotal": totals["subtotal"],
+            "iva": totals["iva"],
+            "total": totals["total"],
+            "payment_method": None,
+
             "payment_status": "Pendiente",
             "order_status": "Pendiente de pago",
             "proof": None,
@@ -181,150 +237,180 @@ def prototype_order_form(request):
             "transport_date": None,
             "transport_time": None,
             "transport_notes": None,
-            "history": [
-                {"timestamp": datetime.now().strftime("%d/%m/%Y %H:%M"), "text": "Pedido creado."}
-            ],
+            "history": [],
         }
-        totals = calculate_order_totals(order["materials"])
-        order.update(totals)
-        order["total"] = totals["total"]
+        append_history_entry(new_order, "Pedido creado.")
+        orders = state.setdefault("orders", [])
+        orders.append(new_order)
+        state["active_order_id"] = new_order["id"]
+        _save_proto_state(request, state)
+        return redirect("pagos:prototype_payment_method", order_id=new_order["id"])
 
-        state["orders"] = state.get("orders", []) + [order]
-        state["active_order_id"] = order["id"]
-        save_prototype_state(request, state)
+    return render(request, "pagos/prototipo_pedido.html", {
+        "state": state,
+        "materials_catalog": MATERIALS_CATALOG,
+    })
 
-        messages.success(request, "Pedido creado correctamente.")
-        return redirect("pagos:prototype_payment_method", order_id=order["id"])
 
-    return render(request, "pagos/prototipo_pedido.html", {"materials_catalog": materials_catalog, "state": state})
+# =====================================================================
+# PROTOTIPO — método de pago
+# =====================================================================
+PAYMENT_METHODS = [
+    "Transferencia Bancolombia",
+    "Nequi",
+    "Daviplata",
+    "Contra entrega",
+]
 
 
 def prototype_payment_method(request, order_id):
-    state = get_prototype_state(request)
-    order = find_order(state, order_id)
-    if not order:
-        messages.error(request, "Pedido no encontrado.")
+    state = _get_proto_state(request)
+    order = _get_order(state, order_id)
+    if order is None:
         return redirect("pagos:prototype_home")
-
-    payment_methods = ["Nequi", "Daviplata", "Transferencia Bancolombia", "Contra entrega"]
 
     if request.method == "POST":
-        payment_method = request.POST.get("payment_method", "")
-        if payment_method:
-            order["payment_method"] = payment_method
-            if payment_method == "Contra entrega":
-                order["payment_status"] = "Contra entrega"
-                order["order_status"] = "Pendiente de pago"
-                order["proof"] = None
-                order["history"].append({"timestamp": datetime.now().strftime("%d/%m/%Y %H:%M"), "text": "Pago contra entrega seleccionado."})
-            else:
-                if request.FILES.get("proof"):
-                    file = request.FILES["proof"]
-                    order["proof"] = {
-                        "name": file.name,
-                        "size": f"{file.size / (1024 * 1024):.2f} MB",
-                        "content_type": file.content_type,
-                    }
-                    order["payment_status"] = "Comprobante enviado"
-                    order["order_status"] = "Pendiente de revisión"
-                    order["history"].append({"timestamp": datetime.now().strftime("%d/%m/%Y %H:%M"), "text": "Comprobante enviado."})
-                else:
-                    order["payment_status"] = "Pendiente"
-                    order["history"].append({"timestamp": datetime.now().strftime("%d/%m/%Y %H:%M"), "text": "Método de pago seleccionado."})
-            save_prototype_state(request, state)
-            messages.success(request, "Método de pago actualizado.")
+        method = request.POST.get("payment_method")
+        if method:
+            order["payment_method"] = method
+            append_history_entry(order, "Método de pago seleccionado.")
+
+            proof_file = request.FILES.get("proof")
+            if proof_file:
+                order["proof"] = {"name": proof_file.name, "size": f"{proof_file.size / 1024:.1f} KB", "type": proof_file.content_type}
+                update_payment_and_order_status(order, "Comprobante enviado")
+                append_history_entry(order, "Comprobante cargado.")
+            elif method == "Contra entrega":
+                update_payment_and_order_status(order, "Contra entrega")
+
+            _save_proto_state(request, state)
             return redirect("pagos:prototype_payment_method", order_id=order_id)
 
-    return render(request, "pagos/prototipo_metodo_pago.html", {"order": order, "payment_methods": payment_methods, "state": state})
+    return render(request, "pagos/prototipo_metodo_pago.html", {
+        "state": state,
+        "order": order,
+        "payment_methods": PAYMENT_METHODS,
+    })
 
 
+# =====================================================================
+# PROTOTIPO — mis pedidos (cliente)
+# =====================================================================
 def prototype_customer_orders(request):
-    state = get_prototype_state(request)
-    return render(request, "pagos/prototipo_mis_pedidos.html", {"state": state, "orders": state.get("orders", [])})
-
-
-def prototype_order_detail(request, order_id):
-    state = get_prototype_state(request)
-    order = find_order(state, order_id)
-    if not order:
-        messages.error(request, "Pedido no encontrado.")
-        return redirect("pagos:prototype_home")
+    state = _get_proto_state(request)
+    orders = state.get("orders", [])
+    selected_order_id = request.GET.get("order_id")
+    selected_order = _get_order(state, selected_order_id) if selected_order_id else None
 
     if request.method == "POST":
         action = request.POST.get("action")
+        o_id = request.POST.get("order_id", state.get("active_order_id"))
+        order = _get_order(state, o_id)
+        if order and action == "upload_new_proof":
+            proof_file = request.FILES.get("proof")
+            if proof_file:
+                order["proof"] = {"name": proof_file.name, "size": f"{proof_file.size / 1024:.1f} KB", "type": proof_file.content_type}
+                update_payment_and_order_status(order, "Comprobante enviado")
+        _save_proto_state(request, state)
+        return redirect("pagos:prototype_customer_orders")
+
+    return render(request, "pagos/prototipo_mis_pedidos.html", {
+        "state": state,
+        "orders": orders,
+        "selected_order": selected_order,
+    })
+
+
+# =====================================================================
+# PROTOTIPO — detalle de pedido
+# =====================================================================
+def prototype_order_detail(request, order_id):
+    state = _get_proto_state(request)
+    order = _get_order(state, order_id)
+    if order is None:
+        return redirect("pagos:prototype_home")
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+
         if action == "approve_payment":
             update_payment_and_order_status(order, "Pago aprobado")
-            messages.success(request, "Pago aprobado.")
+
         elif action == "reject_payment":
-            order["payment_status"] = "Pago rechazado"
-            order["rejection_reason"] = request.POST.get("rejection_reason", "")
+            reason = request.POST.get("rejection_reason", "Sin motivo")
+            order["rejection_reason"] = reason
             update_payment_and_order_status(order, "Pago rechazado")
-            messages.warning(request, "Pago rechazado.")
+
         elif action == "authorize_dispatch":
-            order["order_status"] = "Autorizado para despacho"
-            messages.success(request, "Despacho autorizado.")
+            update_payment_and_order_status(order, "Pago aprobado")
+
         elif action == "assign_transport":
-            vehicle = request.POST.get("vehicle", "")
-            driver = request.POST.get("driver", "")
-            transport_date = request.POST.get("transport_date", "")
-            transport_time = request.POST.get("transport_time", "")
-            notes = request.POST.get("transport_notes", "")
-            assign_transport(order, vehicle, driver, transport_date, transport_time, notes)
-            messages.success(request, "Transporte asignado.")
-        save_prototype_state(request, state)
+            assign_transport(
+                order,
+                vehicle=request.POST.get("vehicle", ""),
+                driver=request.POST.get("driver", ""),
+                transport_date=request.POST.get("transport_date", ""),
+                transport_time=request.POST.get("transport_time", ""),
+                notes=request.POST.get("transport_notes", ""),
+            )
+
+        elif action == "upload_new_proof":
+            proof_file = request.FILES.get("proof")
+            if proof_file:
+                order["proof"] = {"name": proof_file.name, "size": f"{proof_file.size / 1024:.1f} KB", "type": proof_file.content_type}
+                update_payment_and_order_status(order, "Comprobante enviado")
+
+        _save_proto_state(request, state)
         return redirect("pagos:prototype_order_detail", order_id=order_id)
 
-    return render(request, "pagos/prototipo_detalle.html", {"order": order, "state": state})
+    return render(request, "pagos/prototipo_detalle.html", {
+        "state": state,
+        "order": order,
+    })
 
 
+# =====================================================================
+# PROTOTIPO — panel admin
+# =====================================================================
 def prototype_admin_orders(request):
-    state = get_prototype_state(request)
-    return render(request, "pagos/prototipo_admin.html", {"orders": state.get("orders", []), "state": state})
+    state = _get_proto_state(request)
+    return render(request, "pagos/prototipo_admin.html", {
+        "state": state,
+        "orders": state.get("orders", []),
+    })
 
 
+# =====================================================================
+# PROTOTIPO — panel conductor
+# =====================================================================
 def prototype_conductor(request):
-    state = get_prototype_state(request)
+    state = _get_proto_state(request)
+
     orders = state.get("orders", [])
 
     if request.method == "POST":
         action = request.POST.get("action")
-        order_id = request.POST.get("order_id")
-        order = find_order(state, order_id)
+        o_id = request.POST.get("order_id")
+        order = _get_order(state, o_id)
         if order and action == "mark_delivery":
-            payment_collected = request.POST.get("delivery_result") == "yes"
-            mark_delivery(order, payment_collected)
-            save_prototype_state(request, state)
-            messages.success(request, "Estado de entrega actualizado.")
-            return redirect("pagos:prototype_conductor")
+            collected = request.POST.get("delivery_result") == "yes"
+            mark_delivery(order, collected)
+            _save_proto_state(request, state)
+        return redirect("pagos:prototype_conductor")
 
-    return render(request, "pagos/prototipo_conductor.html", {"orders": orders, "state": state})
+    assigned = [o for o in orders if o.get("assigned_driver")]
+    return render(request, "pagos/prototipo_conductor.html", {
+        "state": state,
+        "orders": assigned,
+    })
 
 
-def gestion_pagos(request):
-    pedidos = Pedido.objects.select_related("cliente__usuario").prefetch_related("pagos_pedido").all()
+# =====================================================================
+# PROTOTIPO — cambio de rol
+# =====================================================================
+def prototype_switch_role(request, role):
+    state = _get_proto_state(request)
+    state["role"] = role
+    _save_proto_state(request, state)
+    return redirect("pagos:prototype_home")
 
-    if request.method == "POST":
-        pago_id = request.POST.get("pago_id")
-        accion = request.POST.get("accion")
-        pago = PagoPedido.objects.filter(id_pago_pedido=pago_id).first()
-        if pago and accion in ["aprobar", "rechazar"]:
-            if accion == "aprobar":
-                pago.estado_pago = "pago aprobado"
-                pago.save(update_fields=["estado_pago"])
-                messages.success(request, "Pago aprobado correctamente.")
-            else:
-                pago.estado_pago = "pago rechazado"
-                pago.motivo_rechazo = request.POST.get("motivo_rechazo", "")
-                pago.save(update_fields=["estado_pago", "motivo_rechazo"])
-                messages.warning(request, "Pago rechazado.")
-        return redirect("pagos:gestion_pagos")
-
-    db_missing_pagos_table = False
-    try:
-        for _ in pedidos[:1]:
-            break
-    except Exception:
-        db_missing_pagos_table = True
-        pedidos = []
-
-    return render(request, "pagos/gestion_pagos.html", {"pedidos": pedidos, "db_missing_pagos_table": db_missing_pagos_table})

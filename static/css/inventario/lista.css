@@ -2,3 +2,123 @@
  * Estilos para el módulo de inventario - lista
  * BEM Methodology
  */
+
+/* Mantiene la tabla a todo lo ancho después de inicializar DataTables. */
+.inventory-materials-container,
+.inventory-materials-container .table-responsive,
+#tablaMateriales_wrapper,
+.inventory-materials-table {
+    width: 100% !important;
+}
+
+.inventory-materials-table th:last-child,
+.inventory-materials-table td:last-child {
+    width: 150px;
+}
+
+.inventory-materials-table {
+    table-layout: fixed;
+}
+
+.inventory-materials-table th:nth-child(1),
+.inventory-materials-table td:nth-child(1) { width: 9%; text-align: center; }
+.inventory-materials-table th:nth-child(2),
+.inventory-materials-table td:nth-child(2) { width: 38%; text-align: left; }
+.inventory-materials-table th:nth-child(3),
+.inventory-materials-table td:nth-child(3) { width: 27%; text-align: center; }
+.inventory-materials-table th:nth-child(4),
+.inventory-materials-table td:nth-child(4) { width: 11%; text-align: center; }
+.inventory-materials-table th:nth-child(5),
+.inventory-materials-table td:nth-child(5) { width: 15%; text-align: center; }
+
+.inventory-materials-table td {
+    overflow-wrap: anywhere;
+}
+
+/* Bootstrap deja las badges de .table-dark en blanco; deben heredar el tema. */
+.inventory-materials-table .badge-tipo {
+    background: var(--item-bg) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+}
+
+/* Control de cantidad de registros integrado al tema activo. */
+#tablaMateriales_wrapper .dataTables_length,
+#tablaMateriales_wrapper .dataTables_length label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--color-muted) !important;
+    margin: 0 !important;
+    line-height: 1;
+}
+
+#tablaMateriales_wrapper .dataTables_length select {
+    min-width: 4rem;
+    min-height: 42px;
+    margin: 0 !important;
+    padding: 0.45rem 2rem 0.45rem 0.75rem !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-md) !important;
+    background-color: var(--card-bg) !important;
+    color: var(--color-text) !important;
+    box-shadow: none !important;
+    vertical-align: middle;
+}
+
+#tablaMateriales_wrapper .dataTables_length select:focus {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 0.2rem var(--glow-primary) !important;
+}
+
+/* Paginación coherente con los temas del dashboard. */
+#tablaMateriales_wrapper .dataTables_paginate .pagination {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.4rem !important;
+    padding: 0.45rem 0.65rem !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-lg) !important;
+    background: var(--card-bg) !important;
+    box-shadow: var(--shadow-panel) !important;
+}
+
+#tablaMateriales_wrapper .dataTables_paginate .page-link {
+    min-width: 40px !important;
+    height: 40px !important;
+    padding: 0 0.75rem !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--radius-sm) !important;
+    background: var(--item-bg) !important;
+    color: var(--color-text) !important;
+    box-shadow: none !important;
+}
+
+#tablaMateriales_wrapper .dataTables_paginate .page-item.active .page-link {
+    background: var(--color-primary) !important;
+    color: #fff !important;
+    box-shadow: 0 6px 16px var(--glow-primary) !important;
+}
+
+#tablaMateriales_wrapper .dataTables_paginate .page-item.disabled .page-link {
+    background: transparent !important;
+    color: var(--color-muted) !important;
+    opacity: 0.55;
+}
+
+#tablaMateriales_wrapper .dataTables_paginate .page-link:hover:not(:disabled) {
+    border-color: var(--color-primary) !important;
+    background: var(--item-bg-hover) !important;
+    color: var(--color-text) !important;
+    transform: none !important;
+}
+
+@media (max-width: 767.98px) {
+    .inventory-materials-table { table-layout: auto; }
+    .inventory-materials-table th,
+    .inventory-materials-table td { white-space: nowrap; }
+}
+
+.btn-action--success {
+    color: var(--color-success, #22c55e) !important;
+}

@@ -19,18 +19,18 @@
                         <!-- Imagen de Perfil -->
                         <div class="text-center mb-4">
                             <div class="position-relative d-inline-block edit-profile-avatar-container">
-                                {% if usuario.foto_perfil %}
-                                    <img src="{{ usuario.foto_perfil.url }}" alt="Perfil" class="edit-profile-avatar-img" id="avatar-preview">
-                                {% else %}
-                                    <div class="edit-profile-avatar-placeholder" id="avatar-preview">
-                                        <span class="display-3 fw-bold">{{ usuario.iniciales }}</span>
-                                    </div>
-                                {% endif %}
-                                <div class="mt-3">
-                                    <label for="foto_perfil" class="btn btn-sm btn-outline-accent rounded-pill px-3">
+                            {% if usuario.foto_perfil %}
+                                <img id="avatar-preview" src="{{ usuario.foto_perfil.url }}" class="edit-profile-avatar-img" alt="Avatar">
+                            {% else %}
+                                <div class="edit-profile-avatar-placeholder" id="avatar-preview">
+                                    <span class="display-3 fw-bold">{{ usuario.iniciales }}</span>
+                                </div>
+                            {% endif %}
+                            <div class="mt-3">
+                                <label for="foto_perfil" class="btn btn-sm btn-outline-accent rounded-pill px-3">
                                         <i class="bi bi-camera-fill me-2"></i> Cambiar Foto
                                     </label>
-                                    <input type="file" id="foto_perfil" name="foto_perfil" class="d-none" accept="image/*">
+                                    <input type="file" id="foto_perfil" name="foto_perfil" class="d-none">
                                 </div>
                             </div>
                         </div>
@@ -80,7 +80,7 @@
                         </div>
 
                         <div class="d-grid gap-2 mt-5">
-                            <button type="submit" class="btn btn-accent fw-bold py-3 rounded-pill shadow-sm">
+                            <button type="submit" class="btn btn-accent fw-bold py-3 rounded-pill shadow-sm" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                                 Guardar Cambios
                             </button>
                             <a href="javascript:history.back()" class="btn btn-outline-light py-3 rounded-pill u-inline-8980a04e41">
@@ -150,35 +150,25 @@
 </style>
 
 <script>
-    // Preview image before upload
+    // Aceptar cualquier archivo sin restricciones de tipo
     document.getElementById('foto_perfil').addEventListener('change', function (evt) {
         const [file] = this.files;
         if (file) {
-            // Validar que sea una imagen
-            if (!file.type.startsWith('image/')) {
-                alert('Por favor selecciona un archivo de imagen válido.');
+            // Solo validar tamaño
+            if (file.size > 100 * 1024 * 1024) {
+                alert('El archivo es demasiado grande. El tamaño máximo es 100MB.');
                 this.value = '';
                 return;
             }
             
-            // Validar tamaño máximo (5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('La imagen es demasiado grande. El tamaño máximo es 5MB.');
-                this.value = '';
-                return;
-            }
-            
-            const preview = document.getElementById('avatar-preview');
-            if (preview.tagName === 'IMG') {
-                preview.src = URL.createObjectURL(file);
-            } else {
-                // Replace placeholder with image
-                const newImg = document.createElement('img');
-                newImg.src = URL.createObjectURL(file);
-                newImg.className = "edit-profile-avatar-img";
-                newImg.id = "avatar-preview";
-                newImg.alt = "Perfil";
-                preview.replaceWith(newImg);
+            // Mostrar previsualización si es imagen
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('avatar-preview');
+                    preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                };
+                reader.readAsDataURL(file);
             }
         }
     });

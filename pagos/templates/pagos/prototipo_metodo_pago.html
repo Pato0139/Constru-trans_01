@@ -19,7 +19,7 @@
                     <form method="post" enctype="multipart/form-data" class="mb-0">
                         {% csrf_token %}
                         <input type="hidden" name="payment_method" value="{{ method }}">
-                        <button class="btn btn-outline-light w-100 text-start" type="submit">
+                        <button class="btn btn-outline-light w-100 text-start" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                             <i class="bi bi-wallet2 me-2"></i>{{ method }}
                         </button>
                     </form>
@@ -49,7 +49,7 @@
                         <p class="h4 fw-bold text-success mb-0">${{ order.total|floatformat:0 }}</p>
                     </div>
                     <div class="col-12">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Nequi%20Constru-Trans" alt="QR Nequi" class="img-fluid rounded-4" style="max-width: 180px;">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Nequi%20Constru-Trans" alt="QR Nequi" class="img-fluid rounded-4 u-inline-036b317a5e">
                     </div>
                 </div>
                 {% elif order.payment_method == "Daviplata" %}
@@ -71,7 +71,7 @@
                         <p class="h4 fw-bold text-success mb-0">${{ order.total|floatformat:0 }}</p>
                     </div>
                     <div class="col-12">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Daviplata%20Constru-Trans" alt="QR Daviplata" class="img-fluid rounded-4" style="max-width: 180px;">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Daviplata%20Constru-Trans" alt="QR Daviplata" class="img-fluid rounded-4 u-inline-036b317a5e">
                     </div>
                 </div>
                 {% elif order.payment_method == "Transferencia Bancolombia" %}
@@ -95,7 +95,7 @@
                     <form method="post">
                         {% csrf_token %}
                         <input type="hidden" name="payment_method" value="Contra entrega">
-                        <button class="btn btn-warning text-dark" type="submit">Confirmar método de pago</button>
+                        <button class="btn btn-warning text-dark" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Confirmar método de pago</button>
                     </form>
                 </div>
                 {% endif %}
@@ -123,7 +123,7 @@
                             <p class="small mb-0 text-muted" id="preview-name"></p>
                             <p class="small mb-0 text-muted" id="preview-size"></p>
                         </div>
-                        <button class="btn btn-success" type="submit">Enviar comprobante</button>
+                        <button class="btn btn-success" type="submit" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Enviar comprobante</button>
                     </div>
                 </form>
                 {% endif %}

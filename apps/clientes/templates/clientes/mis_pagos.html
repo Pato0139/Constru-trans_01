@@ -102,13 +102,13 @@
                         <td class="fw-600 text-white">{{ pago.codigo_metodo_pago.metodo }}</td>
                         <td>
                             {% if pago.estado == "completado" %}
-                            <span class="badge-tipo" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);">Completado</span>
+                            <span class="badge-tipo u-inline-a9b2e7691f">Completado</span>
                             {% elif pago.estado == "pendiente" %}
-                            <span class="badge-tipo" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.2);">Pendiente</span>
+                            <span class="badge-tipo u-inline-2167e5ffe5">Pendiente</span>
                             {% elif pago.estado == "fallido" %}
-                            <span class="badge-tipo" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">Fallido</span>
+                            <span class="badge-tipo u-inline-ebad2c140e">Fallido</span>
                             {% else %}
-                            <span class="badge-tipo" style="background: rgba(107, 114, 128, 0.1); color: #6b7280; border-color: rgba(107, 114, 128, 0.2);">{{ pago.estado|title }}</span>
+                            <span class="badge-tipo u-inline-9103ab5d51">{{ pago.estado|title }}</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -170,7 +170,7 @@
                 </div>
                 <div class="modal-footer border-white-10 p-4">
                     <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-premium btn-premium-gold px-4">Confirmar y Pagar</button>
+                    <button type="submit" class="btn btn-premium btn-premium-gold px-4" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">Confirmar y Pagar</button>
                 </div>
             </form>
         </div>

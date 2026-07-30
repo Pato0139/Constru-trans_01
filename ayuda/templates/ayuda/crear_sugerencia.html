@@ -16,7 +16,7 @@
                     <h5 class="fw-bold m-0 text-white">
                         <i class="bi bi-lightbulb text-warning me-2"></i> Enviar Sugerencia o Recomendación
                     </h5>
-                    <a href="{% url 'ayuda:index' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2">
+                    <a href="{% url 'ayuda:index' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2" aria-label="Volver" data-tooltip="Volver" title="Volver">
                         <i class="bi bi-arrow-left"></i> Volver
                     </a>
                 </div>
@@ -37,7 +37,7 @@
                         <div class="form-text text-muted">Describe detalladamente tu sugerencia o reporte</div>
                     </div>
                     <div class="d-flex gap-3">
-                        <button type="submit" class="btn-ayuda btn-ayuda--primary">
+                        <button type="submit" class="btn-ayuda btn-ayuda--primary" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                             <i class="bi bi-send"></i> Enviar
                         </button>
                         <a href="{% url 'ayuda:index' %}" class="btn-ayuda btn-ayuda--secondary">

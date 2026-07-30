@@ -15,7 +15,7 @@
         
         <div class="d-flex gap-2 align-items-center">
             <form method="GET" class="d-flex gap-2">
-                <div class="input-group" style="width: 300px;">
+                <div class="input-group u-inline-e74a373e7f">
                     <span class="input-group-text bg-dark border-white-10 text-white-50">
                         <i class="bi bi-search"></i>
                     </span>
@@ -24,18 +24,18 @@
                 </div>
             </form>
 
-            <a href="{% url 'compras:crear_proveedor' %}" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm">
+            <a href="{% url 'compras:crear_proveedor' %}" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" aria-label="Agregar" data-tooltip="Agregar" title="Agregar">
                 <i class="bi bi-plus-circle me-1"></i>NUEVO PROVEEDOR
             </a>
         </div>
     </div>
 
     <!-- Tabla con Glassmorphism -->
-    <div class="table-container p-0 overflow-hidden" style="background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--color-border);" data-aos="fade-up">
+    <div class="table-container p-0 overflow-hidden u-inline-e91809ca27" data-aos="fade-up">
         <div class="table-responsive">
             <table class="table table-dark table-hover align-middle mb-0">
                 <thead>
-                    <tr style="border-bottom: 1px solid var(--color-border);">
+                    <tr class="u-inline-e91738c112">
                         <th class="ps-4 py-4 text-muted small fw-bold text-uppercase">Empresa / NIT</th>
                         <th class="py-4 text-muted small fw-bold text-uppercase">Contacto</th>
                         <th class="py-4 text-muted small fw-bold text-uppercase">Categoría</th>
@@ -45,14 +45,14 @@
                 </thead>
                 <tbody>
                     {% for p in proveedores %}
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <tr class="u-inline-dd0d9e7c89">
                         <td class="ps-4">
                             <div class="fw-bold text-white">{{ p.nombre_empresa }}</div>
-                            <div class="text-muted small" style="font-size: 0.7rem;">NIT: {{ p.nit }}</div>
+                            <div class="text-muted small u-inline-cb8a8ef79f">NIT: {{ p.nit }}</div>
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <div class="bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                <div class="bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center u-inline-7a3b56f7ab">
                                     <i class="bi bi-person text-primary"></i>
                                 </div>
                                 <span class="text-white">{{ p.contacto_nombre }}</span>
@@ -79,7 +79,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="5" class="text-center py-5 text-muted">
-                            <i class="bi bi-briefcase mb-3 d-block" style="font-size: 3rem; opacity: 0.2;"></i>
+                            <i class="bi bi-briefcase mb-3 d-block u-inline-a1dd7c987c"></i>
                             No hay proveedores registrados en el sistema
                         </td>
                     </tr>

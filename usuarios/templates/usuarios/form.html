@@ -50,23 +50,14 @@
                         </label>
 
                         <div class="profile-preview-container mb-3 usuario-profile-preview">
-
-                            {% if usuario.foto_perfil %}
-                                <img id="preview-image" src="{{ usuario.foto_perfil.url }}"
-                                     alt="Foto de perfil"
-                                     class="usuario-preview-image">
-                            {% else %}
-                                <div id="preview-initials" class="usuario-preview-initials">
-                                    {{ usuario.nombres|slice:":1" }}{{ usuario.apellidos|slice:":1" }}
-                                </div>
-                                <img id="preview-image" class="usuario-preview-image u-inline-f2892a2e8a" alt="Preview">
-                            {% endif %}
-
+                            <div id="preview-initials" class="usuario-preview-initials">
+                                {{ usuario.iniciales }}
+                            </div>
                         </div>
                         <label for="foto_perfil_input" class="btn btn-sm btn-outline-accent rounded-pill px-3">
-                            <i class="bi bi-camera-fill me-2"></i> Seleccionar Imagen
+                            <i class="bi bi-camera-fill me-2"></i> Cambiar Foto
                         </label>
-                        <input type="file" id="foto_perfil_input" name="foto_perfil" class="d-none" accept="image/*">
+                        <input type="file" id="foto_perfil_input" name="foto_perfil" class="d-none">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Nombres</label>
@@ -154,11 +145,11 @@
                 {% endif %}
 
                 <div class="d-grid gap-3 mt-4">
-                    <button type="submit" class="btn usuario-submit-btn">
+                    <button type="submit" class="btn usuario-submit-btn" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                         <i class="bi {% if action == 'crear' %}bi-person-check{% else %}bi-save{% endif %} me-2"></i> 
                         {% if action == 'crear' %}Registrar Usuario{% else %}Guardar Cambios{% endif %}
                     </button>
-                    <a href="{% url 'usuarios:lista_usuarios' %}" class="btn rounded-pill py-3 usuario-cancel-btn">
+                    <a href="{% url 'usuarios:lista_usuarios' %}" class="btn rounded-pill py-3 usuario-cancel-btn" aria-label="Volver" data-tooltip="Volver" title="Volver">
                         <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
                     </a>
                 </div>

@@ -8,15 +8,15 @@
 
 <div class="row justify-content-center">
     <div class="col-lg-6">
-        <div class="table-container p-4 p-md-5 border-0 shadow-lg" style="background: rgba(255,255,255,0.02); border-radius: 32px;">
+        <div class="table-container p-4 p-md-5 border-0 shadow-lg u-inline-9e2d1903e2">
             <div class="text-center mb-5">
-                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 70px; height: 70px;">
+                <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow u-inline-945c5873b3">
                     <i class="bi bi-truck text-dark fs-2"></i>
                 </div>
                 <h3 class="fw-900 text-white mb-2">
                     {% if action == 'crear' %}Registrar Vehículo{% else %}Editar Vehículo{% endif %}
                 </h3>
-                <p class="text-muted small text-uppercase fw-700" style="letter-spacing: 2px;">
+                <p class="text-muted small text-uppercase fw-700 u-inline-1ddabe40c2">
                     Gestión de flota y transporte logístico
                 </p>
             </div>
@@ -25,15 +25,15 @@
                 {% csrf_token %}
                 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Placa del Vehículo</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Placa del Vehículo</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-hash"></i></span>
+                        <span class="input-group-text border-0 u-inline-9a26a8af25"><i class="bi bi-hash"></i></span>
                         <input type="text" name="placa" class="form-control plate-only" placeholder="Ej: ABC123" value="{{ vehiculo.placa|default:'' }}" required>
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Tipo de Vehículo</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Tipo de Vehículo</label>
                     <select name="tipo" class="form-select" required>
                         <option value="">Seleccione tipo...</option>
                         <option value="Bolqueta" {% if vehiculo.tipo == 'Bolqueta' %}selected{% endif %}>Bolqueta</option>
@@ -46,32 +46,32 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Marca del Vehículo</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Marca del Vehículo</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-award"></i></span>
+                        <span class="input-group-text border-0 u-inline-9a26a8af25"><i class="bi bi-award"></i></span>
                         <input type="text" name="marca" class="form-control" placeholder="Ej: Toyota" value="{{ vehiculo.marca|default:'' }}">
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Modelo del Vehículo</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Modelo del Vehículo</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-tag"></i></span>
+                        <span class="input-group-text border-0 u-inline-9a26a8af25"><i class="bi bi-tag"></i></span>
                         <input type="text" name="modelo" class="form-control" placeholder="Ej: Hilux" value="{{ vehiculo.modelo|default:'' }}">
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Capacidad de Carga (Ton)</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Capacidad de Carga (Ton)</label>
                     <div class="input-group">
-                        <span class="input-group-text border-0" style="background: rgba(255,255,255,0.05); color: var(--color-accent);"><i class="bi bi-speedometer2"></i></span>
+                        <span class="input-group-text border-0 u-inline-9a26a8af25"><i class="bi bi-speedometer2"></i></span>
                         <input type="number" step="0.01" name="capacidad" class="form-control numeric-only" placeholder="Ej: 5" value="{{ vehiculo.capacidad|default:'' }}" required>
                     </div>
                 </div>
 
                 {% if action == 'editar' %}
                 <div class="mb-5">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Estado Operativo</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Estado Operativo</label>
                     <select name="estado" class="form-select" required>
                         <option value="disponible" {% if vehiculo.estado == 'disponible' %}selected{% endif %}>Disponible</option>
                         <option value="en_ruta" {% if vehiculo.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
@@ -81,7 +81,7 @@
                 {% endif %}
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase" style="letter-spacing: 1px;">Conductor Asignado</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Conductor Asignado</label>
                     <select name="conductor" class="form-select">
                         <option value="">Sin asignar (Disponible)</option>
                         {% for cond in conductores %}
@@ -96,10 +96,10 @@
                 </div>
 
                 <div class="d-grid gap-3 mt-4">
-                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" style="letter-spacing: 1px;">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase u-inline-2ecb5783f5" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                         <i class="bi bi-check2-circle me-2"></i> {% if action == 'crear' %}Registrar Vehículo{% else %}Actualizar Vehículo{% endif %}
                     </button>
-                    <a href="{% url 'transporte:lista_vehiculos' %}" class="btn btn-outline-light rounded-pill py-2 opacity-75 hover-opacity-100">
+                    <a href="{% url 'transporte:lista_vehiculos' %}" class="btn btn-outline-light rounded-pill py-2 opacity-75 hover-opacity-100" aria-label="Volver" data-tooltip="Volver" title="Volver">
                         <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
                     </a>
                 </div>
