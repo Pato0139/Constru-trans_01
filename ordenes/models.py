@@ -39,7 +39,7 @@ class Pedido(models.Model):
         null=True,
         blank=True,
         related_name="pedidos",
-        db_column="codigo_catalogo",
+        db_column="pedido_codigo_catalogo",
     )
     usuario = models.ForeignKey(
         "usuarios.Usuario", on_delete=models.CASCADE, related_name="pedidos"
@@ -207,7 +207,7 @@ class Entrega(models.Model):
         null=True,
         blank=True,
         limit_choices_to={"rol": "conductor"},
-        db_column="conductor_usuario_id_legacy",
+        db_column="entrega_conductor_usuario_id",
     )
     sincronizado = models.BooleanField(default=False)
 
