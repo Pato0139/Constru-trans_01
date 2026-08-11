@@ -15,6 +15,7 @@ def lista_vehiculos(request):
     tipo = request.GET.get("tipo")
     estado = request.GET.get("estado")
     conductor = request.GET.get("conductor")
+    query = request.GET.get("q", "")
 
     vehiculos = Vehiculo.objects.all()
 
@@ -33,6 +34,28 @@ def lista_vehiculos(request):
                 models.Q(asignaciones_conductor__conductor__usuario__apellidos__icontains=conductor)
             )
         ).distinct()
+    if query:
+        vehiculos = vehiculos.filter(
+            models.Q(placa__icontains=query)
+            | models.Q(tipo_vehiculo__icontains=query)
+        )
+
+    filter_fields = [
+        {"type": "text", "name": "placa", "placeholder": "Placa", "value": placa or "", "size": "3"},
+        {"type": "text", "name": "tipo", "placeholder": "Tipo de vehículo", "value": tipo or "", "size": "3"},
+        {
+            "type": "select",
+            "name": "estado",
+            "placeholder": "Estado (Todos)",
+            "value": estado or "",
+            "size": "3",
+            "options": [
+                {"value": "disponible", "label": "Disponible", "selected": estado == "disponible"},
+                {"value": "en_ruta", "label": "En Ruta", "selected": estado == "en_ruta"},
+                {"value": "mantenimiento", "label": "Mantenimiento", "selected": estado == "mantenimiento"},
+            ],
+        },
+    ]
 
     # Pre-cargar property conductor_actual y related models optimiza el acceso en plantilla
     # No eliminamos el paginador nativo aquí para dejar que DataTables lo haga
@@ -48,6 +71,9 @@ def lista_vehiculos(request):
         "tipo": tipo,
         "estado_actual": estado,
         "conductor": conductor,
+        "query": query,
+        "filter_fields": filter_fields,
+        "has_filters": any([id_vehiculo, placa, tipo, estado, conductor, query]),
     }
 
     return render(request, "transporte/lista.html", context)

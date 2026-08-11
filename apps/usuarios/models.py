@@ -59,6 +59,39 @@ class Usuario(AbstractUser):
     def __str__(self):
         return f"{self.nombres} {self.apellidos} ({self.rol})"
 
+    def save(self, *args, **kwargs):
+        """Sincronizar nombres con first_name/last_name y rol con usuario_rol."""
+        # Sincronizar nombres/apellidos ↔ first_name/last_name
+        if self.nombres and not self.first_name:
+            self.first_name = self.nombres[:30]  # Django limit
+        if self.apellidos and not self.last_name:
+            self.last_name = self.apellidos[:30]  # Django limit
+        
+        # Mantener sincronizados en ambas direcciones
+        if self.first_name and self.first_name != self.nombres[:30]:
+            self.nombres = self.first_name
+        if self.last_name and self.last_name != self.apellidos[:30]:
+            self.apellidos = self.last_name
+            
+        super().save(*args, **kwargs)
+        
+        # Sincronizar rol con UsuarioRol si existe el rol
+        if self.rol:
+            try:
+                from apps.usuarios.models import Rol, UsuarioRol
+                rol_obj, _ = Rol.objects.get_or_create(
+                    nombre_rol=self.rol,
+                    defaults={'activo': True}
+                )
+                UsuarioRol.objects.get_or_create(
+                    usuario=self,
+                    rol=rol_obj,
+                    defaults={'activo': True}
+                )
+            except Exception:
+                # Si falla la sincronización, continuar sin error
+                pass
+
     @property
     def contraseña(self):
         return self.password
@@ -131,6 +164,49 @@ class Usuario(AbstractUser):
     @property
     def vehiculo_asignado(self):
         return self.vehiculo_actual
+
+
+# =====================================================================
+# ROL - Normalización 3FN
+# =====================================================================
+class Rol(models.Model):
+    """Tabla de roles normalizados para eliminar dependencia transitiva."""
+    id_rol = models.AutoField(primary_key=True)
+    nombre_rol = models.CharField(max_length=50, unique=True)
+    descripcion = models.TextField(blank=True, null=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "rol"
+        verbose_name = "Rol"
+        verbose_name_plural = "Roles"
+
+    def __str__(self):
+        return self.nombre_rol
+
+
+# =====================================================================
+# USUARIO_ROL - Relación N:M para soportar múltiples roles
+# =====================================================================
+class UsuarioRol(models.Model):
+    """Permite que un usuario tenga múltiples roles."""
+    id_usuario_rol = models.AutoField(primary_key=True)
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.CASCADE, related_name="usuario_roles"
+    )
+    rol = models.ForeignKey(Rol, on_delete=models.CASCADE, related_name="usuarios")
+    fecha_asignacion = models.DateTimeField(auto_now_add=True)
+    fecha_revocacion = models.DateTimeField(null=True, blank=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "usuario_rol"
+        unique_together = ("usuario", "rol")
+        verbose_name = "Usuario Rol"
+        verbose_name_plural = "Usuario Roles"
+
+    def __str__(self):
+        return f"{self.usuario.nombres} - {self.rol.nombre_rol}"
 
 
 # =====================================================================
@@ -212,7 +288,9 @@ class Vehiculo(models.Model):
     marca = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50)
     tipo_vehiculo = models.CharField(max_length=50)
-    capacidad_carga = models.DecimalField(max_digits=10, decimal_places=2)
+    capacidad_carga = models.DecimalField(
+        max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)]
+    )
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     ESTADOS_VEHICULO = [
@@ -227,6 +305,12 @@ class Vehiculo(models.Model):
 
     class Meta:
         db_table = "vehiculo"
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(capacidad_carga__gt=0),
+                name="chk_vehiculo_capacidad_carga_gt_0"
+            ),
+        ]
 
     def __str__(self):
         return f"{self.placa} ({self.marca} {self.modelo})"
@@ -403,6 +487,12 @@ class MaterialConstruccion(models.Model):
         db_table = "material_construccion"
         verbose_name = "Material de Construcción"
         verbose_name_plural = "Materiales de Construcción"
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(precio_referencia__gte=0),
+                name="chk_material_precio_referencia_gte_0"
+            ),
+        ]
 
     def __str__(self):
         return self.nombre
@@ -447,6 +537,16 @@ class Stock(models.Model):
 
     class Meta:
         db_table = "stock"
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(cantidad_actual__gte=0),
+                name="chk_stock_cantidad_actual_gte_0"
+            ),
+            models.CheckConstraint(
+                check=models.Q(stock_minimo__gte=0),
+                name="chk_stock_minimo_gte_0"
+            ),
+        ]
 
     def __str__(self):
         return f"Stock {self.material.nombre}: {self.cantidad_actual}"
