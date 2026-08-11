@@ -233,8 +233,11 @@
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.05);
         border-radius: 20px;
-        backdrop-filter: blur(10px);
         transition: transform 0.3s ease;
+    }
+    [data-theme="dark"] .stats-card,
+    [data-theme="accessibility"] .stats-card {
+        backdrop-filter: blur(10px);
     }
     .stats-card:hover {
         transform: translateY(-5px);
@@ -277,8 +280,11 @@
     /* Estilo Premium para los dropdowns de reportes */
     .dropdown-menu {
         background: rgba(20, 20, 20, 0.95) !important;
-        backdrop-filter: blur(20px) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    [data-theme="dark"] .dropdown-menu,
+    [data-theme="accessibility"] .dropdown-menu {
+        backdrop-filter: blur(20px) !important;
     }
     
     .stats-card {

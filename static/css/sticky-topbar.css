@@ -1,7 +1,7 @@
 /**
  * sticky-topbar.css
  * Navbar sticky con reducción suave al hacer scroll > 50px.
- * El scroll ocurre en .main-content (ver dashboard.css).
+ * Requiere que el scroll ocurra en el body/html (NO en el main).
  */
 
 /* =====================================================================
@@ -44,6 +44,9 @@
     border-radius: 10px !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
     background: rgba(15, 23, 42, 0.97) !important;
+}
+[data-theme="dark"] .app-navbar.navbar-scrolled,
+[data-theme="accessibility"] .app-navbar.navbar-scrolled {
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
 }
@@ -72,7 +75,7 @@
    TEMA CLARO
    ===================================================================== */
 [data-theme="light"] .app-navbar.navbar-scrolled {
-    background: rgba(255, 255, 255, 0.97) !important;
+    background: #ffffff !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
 }
 

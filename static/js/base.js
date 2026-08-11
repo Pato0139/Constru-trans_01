@@ -69,7 +69,7 @@ $(document).ready(function() {
         },
         pageLength: 10,
         responsive: true,
-        dom: '<"d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3"lf>rt<"d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4"ip>'
+        dom: '<"d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3"l>rt<"d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4"ip>'
     });
 
     /**
@@ -242,4 +242,37 @@ $(document).on('click', '.confirm-delete-btn', function(e) {
         background: '#1a1a1a', color: '#ffffff',
         customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
     }).then(result => { if (result.isConfirmed) form.submit(); });
+});
+
+/* =====================================================================
+   Detección de Tablas Desplazables en Móviles
+   ===================================================================== */
+
+/**
+ * Detecta si una tabla es desplazable horizontalmente en móviles
+ * y añade una clase para indicar al usuario que puede desplazarse
+ */
+function initTableScrollability() {
+    const tableResponsives = document.querySelectorAll('.table-responsive');
+
+    tableResponsives.forEach(container => {
+        const checkScroll = () => {
+            if (container.scrollWidth > container.clientWidth) {
+                container.classList.add('is-scrollable');
+            } else {
+                container.classList.remove('is-scrollable');
+            }
+        };
+
+        checkScroll();
+        window.addEventListener('resize', checkScroll, { passive: true });
+    });
+}
+
+// Inicializar al cargar la página
+document.addEventListener('DOMContentLoaded', initTableScrollability);
+
+// Reinicializar después de que DataTables redibuje las tablas
+$(document).on('draw.dt', function() {
+    initTableScrollability();
 });

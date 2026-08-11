@@ -7,14 +7,22 @@
 
 {% block content %}
 <div class="table-container p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4 standard-page-header" data-aos="fade-down">
         <div>
-            <h4 class="fw-800 text-white mb-1">Revisión de pagos</h4>
-            <p class="text-muted small mb-0">Aprobación y seguimiento de comprobantes por pedido.</p>
+            <h2 class="fw-bold mb-0 text-white">
+                <i class="bi bi-credit-card-2-front text-accent me-2"></i>Revisión de pagos
+            </h2>
+            <p class="page-subtitle small mb-0">Aprobación y seguimiento de comprobantes por pedido</p>
         </div>
-        <a href="{% url 'pagos:lista_pagos' %}" class="btn btn-outline-light btn-sm rounded-pill">
-            <i class="bi bi-journal-bookmark me-2"></i>Historial de pagos
-        </a>
+
+        <div class="d-flex gap-2 align-items-center w-100">
+            <div class="flex-grow-1">
+                {% include "partials/filter_bar.html" %}
+            </div>
+            <a href="{% url 'pagos:lista_pagos' %}" class="btn btn-premium btn-premium-gold btn-main-action">
+                <i class="bi bi-journal-bookmark"></i> Historial de pagos
+            </a>
+        </div>
     </div>
 
     {% if db_missing_pagos_table %}

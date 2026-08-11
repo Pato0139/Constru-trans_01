@@ -4,26 +4,31 @@
 
 {% block content %}
 
-<div class="mb-4">
-    <h2 class="fw-bold text-white mb-1">{{ titulo_panel|default:"Control de Pedidos" }}</h2>
+<div class="mb-4" data-sticky-header data-aos="fade-down">
+    <h2 class="fw-bold text-white mb-1">
+        <i class="bi bi-cart-check text-accent me-2"></i>{{ titulo_panel|default:"Control de Pedidos" }}
+    </h2>
 </div>
 
-<div class="card bg-dark border-0 shadow-sm p-3 mb-4">
-    <div class="row g-2 align-items-center">
+<div class="card border-0 shadow-sm p-3 mb-4 filter-bar-card" data-aos="fade-down">
+    <div class="row g-3 align-items-center">
         <div class="col-auto">
             <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
         </div>
         <div class="col-md-2">
-            <input type="text" id="filter-id" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="ID">
+            <input type="text" id="filter-id" class="form-control form-control-sm bg-surface text-white filter-input"
+                placeholder="ID">
         </div>
         <div class="col-md-3">
-            <input type="text" id="filter-cliente" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Cliente">
+            <input type="text" id="filter-cliente"
+                class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Cliente">
         </div>
         <div class="col-md-3">
-            <input type="text" id="filter-destino" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Destino">
+            <input type="text" id="filter-destino"
+                class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Destino">
         </div>
         <div class="col-md-2">
-            <select id="filter-estado" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+            <select id="filter-estado" class="form-select form-select-sm bg-surface text-white filter-select">
                 <option value="">Estado (Todos)</option>
                 <option value="pendiente">Pendiente</option>
                 <option value="en_ruta">En Ruta</option>
@@ -62,26 +67,30 @@
                     <td class="p-4 text-muted small">{{ p.direccion_destino|truncatechars:40 }}</td>
                     <td class="p-4">
                         {% if p.estado == 'pendiente' %}
-                            <span class="badge bg-warning-subtle text-warning px-3">Pendiente</span>
+                        <span class="badge bg-warning-subtle text-warning px-3">Pendiente</span>
                         {% elif p.estado == 'en_ruta' %}
-                            <span class="badge bg-primary-subtle text-primary px-3">En Ruta</span>
+                        <span class="badge bg-primary-subtle text-primary px-3">En Ruta</span>
                         {% elif p.estado == 'entregado' %}
-                            <span class="badge bg-success-subtle text-success px-3">Entregado</span>
+                        <span class="badge bg-success-subtle text-success px-3">Entregado</span>
                         {% else %}
-                            <span class="badge bg-danger-subtle text-danger px-3">{{ p.estado|title }}</span>
+                        <span class="badge bg-danger-subtle text-danger px-3">{{ p.estado|title }}</span>
                         {% endif %}
                     </td>
                     <td class="p-4 text-muted small">{{ p.fecha_solicitud|date:"d/m/Y H:i" }}</td>
                     <td class="p-4">
                         <div class="d-flex gap-2">
-                            <a href="{% url 'ordenes:ver_pedido_admin' p.codigo_pedido %}" class="btn btn-sm btn-outline-info rounded-pill px-3" title="Ver Detalles">
+                            <a href="{% url 'ordenes:ver_pedido_admin' p.codigo_pedido %}"
+                                class="btn btn-sm btn-outline-info rounded-pill px-3" title="Ver Detalles">
                                 <i class="bi bi-eye"></i>
                             </a>
                             {% if p.estado == 'pendiente' %}
-                            <a href="{% url 'ordenes:crear_entrega' p.codigo_pedido %}" class="btn btn-sm btn-outline-warning rounded-pill px-3" title="Asignar Entrega">
+                            <a href="{% url 'ordenes:crear_entrega' p.codigo_pedido %}"
+                                class="btn btn-sm btn-outline-warning rounded-pill px-3" title="Asignar Entrega">
                                 <i class="bi bi-truck"></i>
                             </a>
-                            <a href="{% url 'clientes:cancelar_pedido' p.codigo_pedido %}" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Cancelar" onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
+                            <a href="{% url 'clientes:cancelar_pedido' p.codigo_pedido %}"
+                                class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Cancelar"
+                                onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
                                 <i class="bi bi-x-circle"></i>
                             </a>
                             {% endif %}
@@ -106,40 +115,40 @@
 {% block extra_js %}
 {{ block.super }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-        var tableEl = document.querySelector('.table-container .table');
-        if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
-            var table = $(tableEl).DataTable();
-            
-            // Índices de columnas:
-            // 0: ID
-            // 1: Cliente
-            // 2: Destino
-            // 3: Estado
-            // 4: Fecha
-            // 5: Acciones
-            
-            $('#filter-id').on('keyup change', function() {
-                table.column(0).search(this.value).draw();
-            });
-            $('#filter-cliente').on('keyup change', function() {
-                table.column(1).search(this.value).draw();
-            });
-            $('#filter-destino').on('keyup change', function() {
-                table.column(2).search(this.value).draw();
-            });
-            $('#filter-estado').on('change', function() {
-                table.column(3).search(this.value).draw();
-            });
-            
-            $('#clear-filters').on('click', function() {
-                $('#filter-id, #filter-cliente, #filter-destino').val('');
-                $('#filter-estado').val('');
-                table.columns().search('').draw();
-            });
-        }
-    }, 150);
-});
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+            var tableEl = document.querySelector('.table-container .table');
+            if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
+                var table = $(tableEl).DataTable();
+
+                // Índices de columnas:
+                // 0: ID
+                // 1: Cliente
+                // 2: Destino
+                // 3: Estado
+                // 4: Fecha
+                // 5: Acciones
+
+                $('#filter-id').on('keyup change', function () {
+                    table.column(0).search(this.value).draw();
+                });
+                $('#filter-cliente').on('keyup change', function () {
+                    table.column(1).search(this.value).draw();
+                });
+                $('#filter-destino').on('keyup change', function () {
+                    table.column(2).search(this.value).draw();
+                });
+                $('#filter-estado').on('change', function () {
+                    table.column(3).search(this.value).draw();
+                });
+
+                $('#clear-filters').on('click', function () {
+                    $('#filter-id, #filter-cliente, #filter-destino').val('');
+                    $('#filter-estado').val('');
+                    table.columns().search('').draw();
+                });
+            }
+        }, 150);
+    });
 </script>
 {% endblock %}

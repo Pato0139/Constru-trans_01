@@ -157,7 +157,7 @@ def seed_database_instance(db_alias):
     for idx, u_cl in enumerate(usuarios_clientes):
         c, created = Cliente.objects.using(db_alias).get_or_create(usuario=u_cl)
         c.nombre_empresa = f"Empresa Constructora {idx+1} SAS"
-        c.direccion_principal = f"Avenida Carrera 15 # {idx+10} - {idx+20}"
+        c.direccion = f"Avenida Carrera 15 # {idx+10} - {idx+20}"
         c.tipo_cliente = "empresa" if idx % 2 == 0 else "persona"
         c.save(using=db_alias)
         clientes.append(c)
@@ -179,7 +179,7 @@ def seed_database_instance(db_alias):
 
         c, created = Cliente.objects.using(db_alias).get_or_create(usuario=u_temp)
         c.nombre_empresa = f"Ferretería Extra {idx}"
-        c.direccion_principal = f"Calle {idx*5} # {idx+2} - 10"
+        c.direccion = f"Calle {idx*5} # {idx+2} - 10"
         c.tipo_cliente = "persona"
         c.save(using=db_alias)
         clientes.append(c)

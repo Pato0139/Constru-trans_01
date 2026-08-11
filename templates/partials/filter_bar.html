@@ -1,45 +1,47 @@
-<div class="card bg-surface border-0 shadow-sm p-3 mb-4 filter-bar-card" data-aos="fade-down">
-    <form {% if form_id %}id="{{ form_id }}"{% endif %} action="." method="GET">
-        <div class="row g-3 align-items-center">
-            <div class="col-auto">
+<div class="card bg-surface border-0 shadow-sm p-3 mb-4 filter-bar-card standard-filter-bar" data-aos="fade-down">
+    <form action="." method="GET" class="w-100">
+        <div class="standard-filter-layout">
+            <div class="standard-filter-label">
                 <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
             </div>
-            
+
             {% if filter_fields %}
-                {% for field in filter_fields %}
-                    <div class="col-md-{{ field.size|default:'2' }}">
-                        {% if field.type == 'text' %}
-                            <input type="text" name="{{ field.name }}" class="form-control form-control-sm bg-surface text-white filter-input" placeholder="{{ field.placeholder }}" value="{{ field.value|default:'' }}">
-                        {% elif field.type == 'date' %}
-                            <input type="date" name="{{ field.name }}" class="form-control form-control-sm bg-surface text-white filter-input" value="{{ field.value|default:'' }}">
-                        {% elif field.type == 'select' %}
-                            <select name="{{ field.name }}" class="form-select form-select-sm bg-surface text-white filter-select">
-                                <option value="">{{ field.placeholder|default:'Todos' }}</option>
-                                {% for option in field.options %}
-                                    <option value="{{ option.value }}" {% if field.value == option.value %}selected{% endif %}>{{ option.label }}</option>
-                                {% endfor %}
-                            </select>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+            {% for field in filter_fields %}
+            <div class="standard-filter-field">
+                {% if field.type == 'text' %}
+                <input type="text" name="{{ field.name }}"
+                    class="form-control form-control-sm bg-surface text-main filter-input"
+                    placeholder="{{ field.placeholder }}" value="{{ field.value|default:'' }}">
+                {% elif field.type == 'date' %}
+                <input type="date" name="{{ field.name }}"
+                    class="form-control form-control-sm bg-surface text-main filter-input"
+                    value="{{ field.value|default:'' }}">
+                {% elif field.type == 'select' %}
+                <select name="{{ field.name }}" class="form-select form-select-sm bg-surface text-main filter-select">
+                    <option value="">{{ field.placeholder|default:'Todos' }}</option>
+                    {% for option in field.options %}
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+            </div>
+            {% endfor %}
             {% endif %}
-            
-            <div class="col-md-3 ms-auto">
+
+            <div class="standard-filter-search">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-surface border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                    <input type="text" name="q" id="globalSearchInput" class="form-control bg-surface text-white border-start-0" placeholder="Buscar..." value="{{ q|default:'' }}">
+                    <span class="input-group-text bg-surface border-end-0 text-muted"><i
+                            class="bi bi-search"></i></span>
+                    <input type="text" name="q" id="globalSearchInput"
+                        class="form-control bg-surface text-main border-start-0" placeholder="Escribe para filtrar..."
+                        value="{% firstof q query %}">
                 </div>
             </div>
-            
-            <div class="col-auto d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-primary px-3" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
-                    <i class="bi bi-search me-1"></i> Buscar
-                </button>
-                {% if has_filters %}
-                    <a href="." class="btn btn-sm btn-outline-secondary" title="Limpiar filtros">
-                        <i class="bi bi-x-circle"></i>
-                    </a>
-                {% endif %}
+
+            <div class="standard-filter-actions">
+                <a href="." class="btn btn-sm btn-outline-secondary filter-clear-btn" title="Limpiar filtros" aria-label="Limpiar filtros">
+                    <i class="bi bi-x-circle fs-5"></i>
+                </a>
             </div>
         </div>
     </form>

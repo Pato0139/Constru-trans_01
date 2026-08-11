@@ -17,6 +17,7 @@ from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
 @admin_required
 def lista_compras(request):
+    query = request.GET.get("q", "")
     orden = request.GET.get("orden", "")
     proveedor = request.GET.get("proveedor", "")
     fecha = request.GET.get("fecha", "")
@@ -24,6 +25,14 @@ def lista_compras(request):
     estado = request.GET.get("estado", "")
 
     compras = Compra.objects.select_related("proveedor", "usuario").prefetch_related("detalles")
+
+    if query:
+        compras = compras.filter(
+            Q(id_compra__icontains=query)
+            | Q(proveedor__nombre_empresa__icontains=query)
+            | Q(proveedor__nit__icontains=query)
+            | Q(estado__icontains=query)
+        )
 
     if orden:
         compras = compras.filter(id_compra__icontains=orden)
@@ -48,6 +57,7 @@ def lista_compras(request):
         "compras/lista.html",
         {
             "compras": compras,
+            "query": query,
             "orden": orden,
             "proveedor": proveedor,
             "fecha": fecha,
@@ -312,6 +322,25 @@ def lista_proveedores(request):
     if categoria:
         proveedores = proveedores.filter(categoria__icontains=categoria)
 
+    filter_fields = [
+        {"type": "text", "name": "nombre", "placeholder": "Nombre / empresa", "value": nombre, "size": "2"},
+        {"type": "text", "name": "nit", "placeholder": "NIT / DNI", "value": nit, "size": "2"},
+        {"type": "text", "name": "contacto", "placeholder": "Contacto", "value": contacto, "size": "2"},
+        {"type": "text", "name": "ciudad", "placeholder": "Ciudad", "value": ciudad, "size": "2"},
+        {"type": "text", "name": "categoria", "placeholder": "Categoría", "value": categoria, "size": "2"},
+        {
+            "type": "select",
+            "name": "estado",
+            "placeholder": "Estado (Todos)",
+            "value": estado,
+            "size": "2",
+            "options": [
+                {"value": "activo", "label": "Activos", "selected": estado == "activo"},
+                {"value": "inactivo", "label": "Inactivos", "selected": estado == "inactivo"},
+            ],
+        },
+    ]
+
     return render(
         request,
         "compras/proveedores_lista.html",
@@ -324,6 +353,7 @@ def lista_proveedores(request):
             "ciudad": ciudad,
             "estado_actual": estado,
             "categoria": categoria,
+            "filter_fields": filter_fields,
         },
     )
 
