@@ -75,24 +75,31 @@ En la pantalla de login → "¿Olvidaste tu contraseña?" → ingresa tu correo 
 
 ---
 
-## 🗂️ Estructura REAL (Actualizada — v1.2.0)
+## 🗂️ Estructura REAL (Actualizada — v1.2.0 · 12 Módulos)
 
 ```
 core/settings/         Configuración modular (base/dev/prod)
 core/routers.py        Router de BD (decide local vs nube)
-usuarios/              App: Usuarios, Conductores, Vehículos
-clientes/              App: Clientes
-inventario/            App: Materiales, Stock, Movimientos (Kardex)
-compras/               App: Proveedores, Compras
-gestion_pedidos/       App: Pedidos de clientes y DetallesPedido
-ordenes/               App: Órdenes de entrega asignadas a conductores
-facturacion/           App: Facturas
-pagos/                 App: Pagos (con services y prototype)
-reportes/              App: Reportes PDF/Excel
-ia/                    App: Asistente IA (OpenAI + services + training)
+
+usuarios/              Módulo 1 — Usuarios, Conductores, Vehículos, Roles, MétodosPago
+                       |-- Auth, recuperación de contraseña, foto de perfil, signals
+clientes/              Módulo 2 — Clientes (registro, edición, listado, historial pedidos)
+inventario/            Módulo 3 — Materiales, Stock, Movimientos · Kardex (services/)
+                       |-- models/ (lotes, conteos, movimientos), views/ subdivididas
+compras/               Módulo 4 — Proveedores, Compras · forms.py, signals.py
+gestion_pedidos/       Módulo 5 — Pedidos + DetallePedido · calcular_total() automático
+ordenes/               Módulo 6 — Órdenes/Entregas · Asigna conductor + vehículo
+                       |-- signals.py, utils.py
+facturacion/           Módulo 7 — Facturas · Estado auto-actualiza a "pagada"
+pagos/                 Módulo 8 — Pagos vinculados a facturas · services.py + prototype.py
+reportes/              Módulo 9 — Reportes PDF (ReportLab) y Excel (openpyxl)
+ia/                    Módulo 10 — Asistente IA (OpenAI) · services/, forms/, training/
+historial/             Módulo 11 — Auditoría del sistema · utils.py de registro
+licensing/             Módulo 12 — Licencias · middleware.py + services.py + tasks.py
+
 inicio/                App: Página de inicio
-historial/             App: Auditoría del sistema
-licensing/             App: Licencias (middleware + services + tasks)
+ayuda/                 App: Guías y sugerencias de ayuda
+transporte/            App: Transporte (plantillas)
 media/                 Archivos subidos (perfiles, etc.)
 docs/                  Documentación formal
 .github/workflows/     CI/CD Pipeline
@@ -116,12 +123,13 @@ Ver la carpeta `docs/`:
 python manage.py runserver       # Servidor desarrollo
 python manage.py createsuperuser # Crear admin
 python manage.py migrate         # Aplicar migraciones
-python manage.py seed_mer        # Datos iniciales
+python manage.py seed_mer        # Datos iniciales (Rol, MetodoPago)
 python manage.py sincronizar     # Sincronizar local ↔ nube (si aplica)
 pytest                           # Todos los tests
 pytest --cov=usuarios --cov=clientes --cov=inventario \
-       --cov=compras --cov=ordenes --cov=gestion_pedidos \
-       --cov=facturacion --cov=pagos --cov=ia    # Tests + coverage completo
+       --cov=compras --cov=gestion_pedidos --cov=ordenes \
+       --cov=facturacion --cov=pagos --cov=reportes \
+       --cov=ia --cov=historial --cov=licensing      # Coverage · 12 módulos
 ruff check .                     # Linting
 ```
 
