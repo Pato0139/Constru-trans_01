@@ -19,6 +19,7 @@ def lista_facturas(request):
     estado = request.GET.get("estado", "")
     cliente = request.GET.get("cliente", "")
     factura = request.GET.get("factura", "")
+    q = request.GET.get("q", "")
 
     qs = Factura.objects.select_related("cliente", "pedido").prefetch_related("pagos")
 
@@ -31,12 +32,38 @@ def lista_facturas(request):
         )
     if factura:
         qs = qs.filter(numero__icontains=factura)
+    if q:
+        qs = qs.filter(
+            Q(numero__icontains=q)
+            | Q(cliente__nombres__icontains=q)
+            | Q(cliente__apellidos__icontains=q)
+        )
+
+    filter_fields = [
+        {"type": "text", "name": "cliente", "placeholder": "Cliente", "value": cliente, "size": "3"},
+        {"type": "text", "name": "factura", "placeholder": "N° Factura", "value": factura, "size": "3"},
+        {
+            "type": "select",
+            "name": "estado",
+            "placeholder": "Estado (Todos)",
+            "value": estado,
+            "size": "3",
+            "options": [
+                {"value": "pendiente", "label": "Pendiente", "selected": estado == "pendiente"},
+                {"value": "pagada", "label": "Pagada", "selected": estado == "pagada"},
+                {"value": "anulada", "label": "Anulada", "selected": estado == "anulada"},
+            ],
+        },
+    ]
 
     context = {
         "facturas": qs,
         "estado": estado,
         "cliente": cliente,
         "factura": factura,
+        "q": q,
+        "filter_fields": filter_fields,
+        "has_filters": any([estado, cliente, factura, q]),
         "metodos_pago": MetodoPago.objects.all(),
     }
 

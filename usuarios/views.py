@@ -32,7 +32,7 @@ from .models import (
 from .models import (
     MaterialConstruccion as Material,
 )
-from .utils import limpiar_telefono
+from .utils import get_account_switch_options, limpiar_telefono
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +58,28 @@ def admin_required(view_func):
         raise PermissionDenied
 
     return _wrapped_view
+
+
+def cambiar_cuenta(request, rol):
+    """Permite cambiar entre las vistas de cuenta disponibles desde el perfil."""
+    if not request.user.is_authenticated:
+        return redirect("usuarios:login")
+
+    role_targets = {
+        "admin": {"panel": "usuarios:panel", "label": "Administrador"},
+        "cliente": {"panel": "clientes:panel_cliente", "label": "Cliente"},
+        "conductor": {"panel": "usuarios:panel_conductor", "label": "Conductor"},
+    }
+
+    target = role_targets.get(rol)
+    if not target:
+        messages.error(request, "No es posible cambiar a esa cuenta.")
+        return redirect("usuarios:panel")
+
+    request.session["active_account_role"] = rol
+    request.session.modified = True
+    messages.success(request, f"Ahora estás en la cuenta de {target['label']}.")
+    return redirect(target["panel"])
 
 
 def buscar_usuarios_generales(query=None):
@@ -522,13 +544,20 @@ def perfil_admin(request):
         logout(request)
         return redirect("usuarios:login")
 
+    try:
+        materiales_count = Material.objects.count()
+    except Exception as exc:
+        logger.warning("No se pudo contar MaterialConstruccion: %s", exc)
+        materiales_count = 0
+
     context = {
         "usuario": usuario,
         "usuarios_count": Usuario.objects.count(),
-        "materiales_count": Material.objects.count(),
+        "materiales_count": materiales_count,
         "ordenes_count": Pedido.objects.count(),
         "total_ventas": Pedido.objects.aggregate(total=Sum("total"))["total"] or 0,
         "entregados_count": Pedido.objects.filter(estado="entregado").count(),
+        "account_switch_options": get_account_switch_options(usuario),
     }
     return render(request, "usuarios/detalle.html", context)
 
@@ -915,7 +944,12 @@ def perfil_conductor(request):
     except Exception:
         vehiculo = None
 
-    context = {"conductor": conductor, "pedidos": pedidos, "vehiculo": vehiculo}
+    context = {
+        "conductor": conductor,
+        "pedidos": pedidos,
+        "vehiculo": vehiculo,
+        "account_switch_options": get_account_switch_options(conductor),
+    }
 
     return render(request, "usuarios/perfil-conductor.html", context)
 

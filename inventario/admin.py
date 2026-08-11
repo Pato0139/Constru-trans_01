@@ -5,10 +5,10 @@ from .models import ConteoItem, LoteMaterial, MovimientoInventario, SesionConteo
 
 @admin.register(MovimientoInventario)
 class MovimientoInventarioAdmin(admin.ModelAdmin):
-    list_display = ("id_movimiento", "material", "tipo_movimiento", "cantidad", "fecha", "usuario")
-    list_filter = ("tipo_movimiento", "fecha", "material")
+    list_display = ("id_movimiento", "material", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario")
+    list_filter = ("tipo_movimiento", "fecha_movimiento", "material")
     search_fields = ("material__nombre", "observacion")
-    readonly_fields = ("fecha",)
+    readonly_fields = ("fecha_movimiento",)
 
 
 @admin.register(LoteMaterial)

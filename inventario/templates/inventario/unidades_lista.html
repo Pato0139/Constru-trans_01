@@ -4,7 +4,8 @@
 {% block title %}Unidades de Medida - ConstruTrans{% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4" data-aos="fade-down">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4 standard-page-header"
+    data-aos="fade-down">
     <div>
         <h2 class="fw-bold mb-0 u-inline-6e24079678">
             <i class="bi bi-rulers text-accent me-2"></i>Unidades de Medida
@@ -15,37 +16,18 @@
         </div>
     </div>
 
-    <div class="w-100 u-inline-ffa089e03c">
-        <div class="d-flex flex-column gap-2" data-aos="fade-left">
-            <form action="{% url 'inventario:unidades_medida_lista' %}" method="GET" class="d-flex flex-column gap-2">
-                <div class="d-flex align-items-center rounded-pill p-1 shadow-sm u-inline-54085855f8"
-                    >
-                    <div class="rounded-circle ms-1 d-flex align-items-center justify-content-center flex-shrink-0 u-inline-4e8ee8eaff"
-                        >
-                        <i class="bi bi-search u-inline-d9687fa28f"></i>
-                    </div>
-                    <input type="text" name="q" class="form-control bg-transparent border-0 shadow-none ps-3 u-inline-6e24079678"
-                          
-                           placeholder="Buscar código, nombre o abreviatura..." value="{{ query|default:'' }}">
-                </div>
-
-                <div class="d-flex gap-2 align-items-center">
-                    <button type="submit" class="btn rounded-pill px-4 py-2 d-flex align-items-center justify-content-center gap-2 u-inline-77a8f99a4b"
-                            aria-label="Agregar unidad de medida" data-tooltip="Agregar unidad de medida" title="Agregar unidad de medida">
-                        <i class="bi bi-funnel"></i> Buscar
-                    </button>
-
-                    <a href="{% url 'inventario:crear_unidad_medida' %}" class="btn btn-premium rounded-circle p-0 d-flex align-items-center justify-content-center shadow-lg u-inline-357f30ec21"
-                       aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
-                        <i class="bi bi-plus-lg fs-5"></i>
-                    </a>
-
-                    <a href="{% url 'inventario:crear_material' %}" class="btn rounded-pill px-4 py-2 d-flex align-items-center justify-content-center gap-2 u-inline-c7b6446a34"
-                       aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
-                        <i class="bi bi-arrow-left"></i> Volver
-                    </a>
-                </div>
-            </form>
+    <div class="d-flex flex-column flex-md-row align-items-stretch gap-2 w-100">
+        {% include "partials/filter_bar.html" %}
+        <div class="d-flex gap-2 align-self-md-center">
+            <a href="{% url 'inventario:crear_unidad_medida' %}" class="btn btn-premium"
+                aria-label="Agregar unidad de medida" data-tooltip="Agregar unidad de medida"
+                title="Agregar unidad de medida">
+                <i class="bi bi-plus-lg"></i>
+            </a>
+            <a href="{% url 'inventario:crear_material' %}" class="btn btn-outline-secondary"
+                aria-label="Volver a materiales" data-tooltip="Volver a materiales" title="Volver a materiales">
+                <i class="bi bi-arrow-left"></i>
+            </a>
         </div>
     </div>
 </div>
@@ -55,12 +37,17 @@
         <table class="table table-hover align-middle mb-0 no-datatable u-inline-3e7cad1772">
             <thead>
                 <tr class="u-inline-0d59a3f53c">
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-9c77c1e711">Código</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-9c77c1e711">Código
+                    </th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Unidad</th>
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-c8421d9914">Abreviatura</th>
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-c341e3a2e2">Activa</th>
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-e1986338af">Materiales</th>
-                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-e1986338af">Acciones</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-c8421d9914">
+                        Abreviatura</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-c341e3a2e2">Activa
+                    </th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-e1986338af">
+                        Materiales</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-e1986338af">
+                        Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -71,24 +58,27 @@
                     <td class="py-3 px-4 text-center">{{ unidad.abreviatura }}</td>
                     <td class="py-3 px-4 text-center">
                         {% if unidad.activa %}
-                            <span class="badge rounded-pill px-3 u-inline-76bb199fc9">Sí</span>
+                        <span class="badge rounded-pill px-3 u-inline-76bb199fc9">Sí</span>
                         {% else %}
-                            <span class="badge rounded-pill px-3 u-inline-3f4cb36460">No</span>
+                        <span class="badge rounded-pill px-3 u-inline-3f4cb36460">No</span>
                         {% endif %}
                     </td>
                     <td class="py-3 px-4 text-center">{{ unidad.num_materiales }}</td>
                     <td class="py-3 px-4 text-center">
                         <div class="d-flex justify-content-center gap-2">
                             <a href="{% url 'inventario:editar_unidad_medida' unidad.pk %}"
-                               class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--edit"
-                               title="Editar">
+                                class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--edit"
+                                title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form method="post" action="{% url 'inventario:cambiar_estado_unidad_medida' unidad.pk %}" class="d-inline">
+                            <form method="post" action="{% url 'inventario:cambiar_estado_unidad_medida' unidad.pk %}"
+                                class="d-inline">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm rounded-pill px-3 {% if unidad.activa %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
-                                        title="{% if unidad.activa %}Inhabilitar{% else %}Habilitar{% endif %}">
-                                    <i class="bi {% if unidad.activa %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                                <button type="submit"
+                                    class="btn btn-sm rounded-pill px-3 {% if unidad.activa %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                                    title="{% if unidad.activa %}Inhabilitar{% else %}Habilitar{% endif %}">
+                                    <i
+                                        class="bi {% if unidad.activa %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
                                 </button>
                             </form>
                         </div>
@@ -111,29 +101,37 @@
 </div>
 
 <style>
-    .text-accent { color: var(--color-accent) !important; }
+    .text-accent {
+        color: var(--color-accent) !important;
+    }
+
     .btn-table-action {
         background: var(--item-bg) !important;
         border: 1px solid var(--color-border) !important;
         min-width: 38px;
         transition: all 0.2s ease;
     }
+
     .btn-table-action--edit {
         color: var(--color-primary) !important;
     }
+
     .btn-table-action--edit:hover {
         background: var(--item-bg-hover) !important;
         border-color: var(--color-primary) !important;
         color: var(--color-primary) !important;
     }
+
     .btn-table-action--delete {
         color: var(--color-danger) !important;
     }
+
     .btn-table-action--delete:hover {
         background: rgba(239, 68, 68, 0.12) !important;
         border-color: var(--color-danger) !important;
         color: var(--color-danger) !important;
     }
+
     .btn-premium:hover {
         opacity: 0.9;
         transform: scale(1.05);
