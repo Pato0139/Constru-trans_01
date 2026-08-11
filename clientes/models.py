@@ -6,7 +6,7 @@ from usuarios.models import Usuario
 
 
 # =====================================================================
-# CLIENTE
+# CLIENTE (MER: ClienteVIP — alias mantenido por compatibilidad)
 # =====================================================================
 class Cliente(models.Model):
     TIPOS_CLIENTE = [
@@ -21,9 +21,16 @@ class Cliente(models.Model):
         primary_key=True,
         related_name="perfil_cliente",
     )
+
+    # Campos del MER (ClienteVIP)
+    nombre_empresa = models.CharField(max_length=200, default="", blank=True)
+    direccion_principal = models.CharField(max_length=200, default="Por definir")
+    es_vip = models.BooleanField(default=False)
+    fecha_vip = models.DateField(null=True, blank=True)
+
+    # Campos legacy / adicionales
     direccion = models.CharField(max_length=200, default="Por definir")
     tipo_cliente = models.CharField(max_length=20, choices=TIPOS_CLIENTE, default="persona")
-    nombre_empresa = models.CharField(max_length=200, default="", blank=True)
     nit = models.CharField(max_length=20, default="", blank=True)
     contacto_alternativo = models.CharField(max_length=100, default="", blank=True)
     observaciones = models.TextField(default="", blank=True)
@@ -32,7 +39,9 @@ class Cliente(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "cliente"
+        db_table = "cliente_vip"
+        verbose_name = "Cliente VIP"
+        verbose_name_plural = "Clientes VIP"
 
     def __str__(self):
         return self.usuario.nombres
@@ -54,7 +63,7 @@ class Cliente(models.Model):
         if user_for_profile is None:
             raise ValueError("No fue posible resolver un usuario válido para el perfil de cliente.")
 
-        profile_defaults = {"direccion": "Por definir"}
+        profile_defaults = {"direccion": "Por definir", "direccion_principal": "Por definir"}
         if defaults:
             profile_defaults.update(defaults)
 
@@ -107,10 +116,19 @@ class Cliente(models.Model):
         )
         return mirrored_user
 
+    def save(self, *args, **kwargs):
+        if not self.direccion_principal and self.direccion:
+            self.direccion_principal = self.direccion
+        super().save(*args, **kwargs)
+
+
+# Alias del MER: Cliente → ClienteVIP
+ClienteVIP = Cliente
+
 
 @receiver(post_save, sender="usuarios.Usuario")
 def crear_perfil_cliente(sender, instance, created, **kwargs):
     """Auto-crea perfil Cliente si el usuario tiene rol 'cliente'."""
     if created and instance.rol == "cliente":
         using = kwargs.get("using") or instance._state.db or "default"
-        Cliente.ensure_for_user(instance, using=using, defaults={"direccion": "Por definir"})
+        Cliente.ensure_for_user(instance, using=using, defaults={"direccion": "Por definir", "direccion_principal": "Por definir"})
