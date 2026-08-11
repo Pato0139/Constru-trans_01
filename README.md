@@ -1,6 +1,6 @@
 # 🚛 CONSTRU-TRANS
 ### Sistema Integral de Gestión para Transporte y Materiales de Construcción
-**Versión 1.0**
+**Versión 1.2.0**
 
 ---
 
@@ -75,7 +75,7 @@ En la pantalla de login → "¿Olvidaste tu contraseña?" → ingresa tu correo 
 
 ---
 
-## 🗂️ Estructura REAL (Actualizada — v1.0)
+## 🗂️ Estructura REAL (Actualizada — v1.2.0)
 
 ```
 core/settings/         Configuración modular (base/dev/prod)
