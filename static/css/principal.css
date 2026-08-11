@@ -68,9 +68,9 @@ body {
 
 /* Typography Refinement */
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 900;
-    letter-spacing: -1px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
 /* Premium Navbar */

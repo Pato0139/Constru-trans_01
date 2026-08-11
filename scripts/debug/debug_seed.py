@@ -56,7 +56,7 @@ try:
         usuario=p_cl,
         defaults={
             "nombre_empresa": "Test Company",
-            "direccion_principal": "Test Street",
+            "direccion": "Test Street",
             "tipo_cliente": "empresa",
         },
     )
