@@ -15,7 +15,7 @@
         <h2 class="fw-bold mb-0 text-white"><i class="bi bi-box-seam-fill text-accent me-2"></i>Catálogo de Materiales
         </h2>
         <div class="d-flex align-items-center gap-2 mt-1">
-            <p class="text-white-50 small mb-0">Gestión de productos y precios base</p>
+            <p class="page-subtitle small mb-0">Gestión de productos y precios base</p>
             <span id="materiales-count" class="badge rounded-pill px-3 u-inline-b2204c9e00">
                 {{ total }} registros
             </span>
@@ -24,9 +24,9 @@
 
     <div class="d-flex flex-column flex-md-row align-items-stretch gap-2 w-100">
         {% include "partials/filter_bar.html" %}
-        <a href="{% url 'inventario:crear_material' %}" class="btn btn-premium align-self-md-center"
-            aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
-            <i class="bi bi-plus-lg"></i>
+<a href="{% url 'inventario:crear_material' %}" class="btn btn-premium btn-premium-gold btn-main-action align-self-md-center" aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
+    <i class="bi bi-plus-lg"></i> Agregar material
+
         </a>
     </div>
 </div>
