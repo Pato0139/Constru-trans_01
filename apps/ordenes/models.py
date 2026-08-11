@@ -37,12 +37,11 @@ class Pedido(models.Model):
     fecha = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     precio = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
     conductor = models.ForeignKey(
-        "usuarios.Usuario",
+        "usuarios.Conductor",
         on_delete=models.SET_NULL,
-        related_name="pedidos_conductor",
+        related_name="pedidos_asignados",
         null=True,
         blank=True,
-        limit_choices_to={"rol": "conductor"},
     )
     fecha_toma_entrega = models.DateTimeField(null=True, blank=True)
     fecha_entrega_real = models.DateTimeField(null=True, blank=True)
@@ -51,9 +50,33 @@ class Pedido(models.Model):
     class Meta:
         ordering = ["-fecha_solicitud"]
         db_table = "pedido"
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(total__gte=0),
+                name="chk_pedido_total_gte_0"
+            ),
+            models.CheckConstraint(
+                check=models.Q(precio__gte=0),
+                name="chk_pedido_precio_gte_0"
+            ),
+        ]
 
     def __str__(self):
         return f"Pedido {self.codigo_pedido} - {self.estado}"
+
+    @property
+    def cliente_usuario(self):
+        """Usuario que realizó el pedido (perfil cliente o usuario directo)."""
+        if self.cliente_id and self.cliente:
+            return self.cliente.usuario
+        return self.usuario
+
+    @property
+    def conductor_usuario(self):
+        """Obtener el Usuario del Conductor asignado."""
+        if self.conductor:
+            return self.conductor.usuario
+        return None
 
     def calcular_total(self, using=None):
         if using is None:
@@ -66,13 +89,6 @@ class Pedido(models.Model):
     @property
     def id(self):
         return self.codigo_pedido
-
-    @property
-    def cliente_usuario(self):
-        """Usuario que realizó el pedido (perfil cliente o usuario directo)."""
-        if self.cliente_id and self.cliente:
-            return self.cliente.usuario
-        return self.usuario
 
 
 # =====================================================================
@@ -89,6 +105,20 @@ class DetallePedido(models.Model):
 
     class Meta:
         db_table = "detalle_pedido"
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(cantidad__gt=0),
+                name="chk_detalle_pedido_cantidad_gt_0"
+            ),
+            models.CheckConstraint(
+                check=models.Q(precio_unitario__gte=0),
+                name="chk_detalle_pedido_precio_unitario_gte_0"
+            ),
+            models.UniqueConstraint(
+                fields=["pedido", "material"],
+                name="uq_detalle_pedido_pedido_material"
+            ),
+        ]
 
     def __str__(self):
         return f"{self.cantidad} x {self.material.nombre}"
@@ -112,7 +142,7 @@ class Entrega(models.Model):
     id_entrega = models.AutoField(primary_key=True)
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="entregas")
     conductor = models.ForeignKey(
-        "usuarios.Usuario", on_delete=models.PROTECT, limit_choices_to={"rol": "conductor"}
+        "usuarios.Conductor", on_delete=models.PROTECT, related_name="entregas_asignadas"
     )
     vehiculo = models.ForeignKey(
         "usuarios.Vehiculo", on_delete=models.SET_NULL, null=True, blank=True

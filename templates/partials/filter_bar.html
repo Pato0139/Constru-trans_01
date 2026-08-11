@@ -1,5 +1,6 @@
 <div class="card bg-surface border-0 shadow-sm p-3 mb-4 filter-bar-card standard-filter-bar" data-aos="fade-down">
-    <form action="." method="GET">
+    <form action="." method="GET" class="w-100">
+
         <div class="standard-filter-layout">
             <div class="standard-filter-label">
                 <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
@@ -10,14 +11,15 @@
             <div class="standard-filter-field">
                 {% if field.type == 'text' %}
                 <input type="text" name="{{ field.name }}"
-                    class="form-control form-control-sm bg-surface text-white filter-input"
+                    class="form-control form-control-sm bg-surface text-main filter-input"
                     placeholder="{{ field.placeholder }}" value="{{ field.value|default:'' }}">
                 {% elif field.type == 'date' %}
                 <input type="date" name="{{ field.name }}"
-                    class="form-control form-control-sm bg-surface text-white filter-input"
+                    class="form-control form-control-sm bg-surface text-main filter-input"
                     value="{{ field.value|default:'' }}">
                 {% elif field.type == 'select' %}
-                <select name="{{ field.name }}" class="form-select form-select-sm bg-surface text-white filter-select">
+                <select name="{{ field.name }}" class="form-select form-select-sm bg-surface text-main filter-select">
+
                     <option value="">{{ field.placeholder|default:'Todos' }}</option>
                     {% for option in field.options %}
                     <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
@@ -33,7 +35,8 @@
                     <span class="input-group-text bg-surface border-end-0 text-muted"><i
                             class="bi bi-search"></i></span>
                     <input type="text" name="q" id="globalSearchInput"
-                        class="form-control bg-surface text-white border-start-0" placeholder="Escribe para filtrar..."
+                        class="form-control bg-surface text-main border-start-0" placeholder="Escribe para filtrar..."
+
                         value="{% firstof q query %}">
                 </div>
             </div>

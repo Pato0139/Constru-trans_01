@@ -9,10 +9,20 @@
     <!-- Perfil Principal -->
     <div class="col-md-5">
         <div class="table-container p-4 h-100 border-0 u-inline-11d9ca5a15">
-            <div class="text-end mb-2">
+            <div class="text-end mb-2 d-flex justify-content-end flex-wrap gap-2">
                 <a href="{% url 'usuarios:editar_perfil' %}" class="btn btn-outline-accent btn-sm rounded-pill px-3" aria-label="Editar" data-tooltip="Editar" title="Editar">
                     <i class="bi bi-pencil-square me-1"></i> Editar Perfil
                 </a>
+                {% if account_switch_options %}
+                    {% for option in account_switch_options %}
+                        <form method="post" action="{% url 'usuarios:cambiar_cuenta' option.role %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                                <i class="bi bi-arrow-repeat me-1"></i> {{ option.label }}
+                            </button>
+                        </form>
+                    {% endfor %}
+                {% endif %}
             </div>
             <div class="text-center mb-5">
                 <div class="position-relative d-inline-block mb-3 profile-avatar-container">

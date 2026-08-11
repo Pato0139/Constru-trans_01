@@ -136,10 +136,10 @@ class Command(BaseCommand):
         clientes = []
         for i in range(1, cantidad + 1):
             user = self.crear_usuario_base(idx=i, rol="cliente")
-            perfil, _ = Cliente.ensure_for_user(
+                perfil, _ = Cliente.ensure_for_user(
                 user,
                 defaults={
-                    "direccion_principal": f"Calle {i} # {10+i}-{20+i}",
+                    "direccion": f"Calle {i} # {10+i}-{20+i}",
                     "tipo_cliente": random.choice(["persona", "empresa"]),
                     "nombre_empresa": f"Cliente Empresa {i}" if i % 3 == 0 else "",
                     "nit": str(900000000 + i) if i % 3 == 0 else "",

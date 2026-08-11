@@ -13,12 +13,12 @@ class Compra(models.Model):
     ESTADOS = [("pendiente", "Pendiente"), ("recibida", "Recibida"), ("cancelada", "Cancelada")]
 
     id_compra = models.AutoField(primary_key=True)
-    proveedor = models.ForeignKey(Proveedor, on_delete=models.PROTECT)
+    proveedor = models.ForeignKey(Proveedor, on_delete=models.PROTECT, db_column="codigo_proveedor")
     fecha_compra = models.DateTimeField(auto_now_add=True)
     total_compra = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
     usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="compras"
     )
 
     # Fuera del MER pero útil — NO se toca
@@ -28,6 +28,12 @@ class Compra(models.Model):
     class Meta:
         ordering = ["-fecha_compra"]
         db_table = "compra"
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(total_compra__gte=0),
+                name="chk_compra_total_compra_gte_0",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.numero_orden} - {self.proveedor.nombre_empresa}"
@@ -89,13 +95,27 @@ class ProveedorMaterial(models.Model):
 # =====================================================================
 class DetalleCompra(models.Model):
     id_detalle_compra = models.AutoField(primary_key=True)
-    compra = models.ForeignKey(Compra, on_delete=models.CASCADE, related_name="detalles")
-    material = models.ForeignKey(MaterialConstruccion, on_delete=models.PROTECT)
+    compra = models.ForeignKey(Compra, on_delete=models.CASCADE, related_name="detalles", db_column="id_compra")
+    material = models.ForeignKey(MaterialConstruccion, on_delete=models.PROTECT, db_column="cod_material")
     cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
 
     class Meta:
         db_table = "detalle_compra"
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(cantidad__gt=0),
+                name="chk_detalle_compra_cantidad_gt_0",
+            ),
+            models.CheckConstraint(
+                check=models.Q(precio_unitario__gte=0),
+                name="chk_detalle_compra_precio_unitario_gte_0",
+            ),
+            models.UniqueConstraint(
+                fields=["compra", "material"],
+                name="uq_detalle_compra_compra_material",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.cantidad} x {self.material.nombre}"

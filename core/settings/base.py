@@ -1,8 +1,7 @@
 """
 Configuración base de Django para Constru-Trans.
 
-Modo híbrido: SQLite local (default) + Neon PostgreSQL (remota).
-El router EnrutadorInventario decide dónde leer/escribir cada modelo.
+Proyecto con una única base de datos local SQLite.
 """
 
 import os
@@ -112,7 +111,6 @@ MIDDLEWARE = [
     "django.middleware.gzip.GZipMiddleware",
     "django.middleware.http.ConditionalGetMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "core.middleware.DatabasePreferenceMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -150,33 +148,37 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 # ============================================================
-# BASES DE DATOS — Modo híbrido: SQLite local + Neon remota
+# BASE DE DATOS — remota PostgreSQL (Neon) por defecto,
+# con SQLite local como respaldo explícito.
 # ============================================================
 
-DATABASE_URL = env("DATABASE_URL", default="")
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-        "OPTIONS": {
-            "timeout": 30,
-            "check_same_thread": False,
-        },
-    }
+LOCAL_DATABASE = {
+    "ENGINE": "django.db.backends.sqlite3",
+    "NAME": BASE_DIR / "db.sqlite3",
+    "OPTIONS": {
+        "timeout": 30,
+        "check_same_thread": False,
+    },
 }
-if DATABASE_URL:
-    postgres_config = dj_database_url.parse(
-        DATABASE_URL,
+
+database_url = env("DATABASE_URL", default="")
+remote_database = None
+if database_url:
+    remote_database = dj_database_url.parse(
+        database_url,
         conn_max_age=600,
         conn_health_checks=True,
-        ssl_require=True,
     )
-    postgres_config["OPTIONS"] = postgres_config.get("OPTIONS", {})
-    postgres_config["OPTIONS"]["connect_timeout"] = 3
-    DATABASES["remota"] = postgres_config.copy()
 
-# Configuracion de el router para el modo híbrido
-DATABASE_ROUTERS = ["core.routers.EnrutadorInventario"]
+DATABASES = {
+    "default": remote_database or LOCAL_DATABASE,
+    "local": LOCAL_DATABASE,
+}
+
+if remote_database:
+    DATABASES["remota"] = remote_database
+
+DATABASE_ROUTERS = []
 
 # ============================================================
 # CACHÉ — Para precargar datos de paneles y optimizar velocidad

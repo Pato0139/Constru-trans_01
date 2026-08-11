@@ -27,6 +27,12 @@ class Compra(models.Model):
     class Meta:
         ordering = ["-fecha_compra"]
         db_table = "compra"
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(total_compra__gte=0),
+                name="chk_compra_total_compra_gte_0"
+            ),
+        ]
 
     def __str__(self):
         return f"{self.numero_orden} - {self.proveedor.nombre_empresa}"
@@ -92,6 +98,20 @@ class DetalleCompra(models.Model):
 
     class Meta:
         db_table = "detalle_compra"
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(cantidad__gt=0),
+                name="chk_detalle_compra_cantidad_gt_0"
+            ),
+            models.CheckConstraint(
+                check=models.Q(precio_unitario__gte=0),
+                name="chk_detalle_compra_precio_unitario_gte_0"
+            ),
+            models.UniqueConstraint(
+                fields=["compra", "material"],
+                name="uq_detalle_compra_compra_material"
+            ),
+        ]
 
     def __str__(self):
         return f"{self.cantidad} x {self.material.nombre}"
