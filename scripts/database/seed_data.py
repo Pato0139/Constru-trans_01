@@ -307,12 +307,12 @@ def setup_data():
                 usuario=p_cl,
                 defaults={
                     "nombre_empresa": cl_data["empresa"],
-                    "direccion_principal": "Av Siempre Viva 123",
+                    "direccion": "Av Siempre Viva 123",
                     "tipo_cliente": "empresa",
                 },
             )
             cliente_perfil.nombre_empresa = cl_data["empresa"]
-            cliente_perfil.direccion_principal = "Av Siempre Viva 123"
+            cliente_perfil.direccion = "Av Siempre Viva 123"
             cliente_perfil.tipo_cliente = "empresa"
             cliente_perfil.save()
 

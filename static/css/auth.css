@@ -74,8 +74,8 @@ body.auth-body {
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 900;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
     font-size: 1rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;

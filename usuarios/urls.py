@@ -22,6 +22,7 @@ urlpatterns = [
     ),
     path("usuarios/editar/<int:id>/", views.editar_usuario, name="editar_usuario"),
     path("perfil/admin/", views.perfil_admin, name="perfil_admin"),
+    path("perfil/cambiar-cuenta/<str:rol>/", views.cambiar_cuenta, name="cambiar_cuenta"),
     path("perfil/editar/", views.editar_perfil, name="editar_perfil"),
     path("conductores/", views.lista_conductores, name="lista_conductores"),
     path(
