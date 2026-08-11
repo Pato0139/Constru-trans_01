@@ -11,27 +11,31 @@
         <h2 class="fw-bold mb-0">Control de Órdenes</h2>
         <p class="text-muted small mb-0">Administración global de entregas y servicios</p>
     </div>
-    <a href="{% url 'clientes:crear_pedido' %}" class="btn btn-gold rounded-pill px-4 shadow-sm" aria-label="Agregar pedido" data-tooltip="Agregar pedido" title="Agregar pedido">
+    <a href="{% url 'clientes:crear_pedido' %}" class="btn btn-gold rounded-pill px-4 shadow-sm"
+        aria-label="Agregar pedido" data-tooltip="Agregar pedido" title="Agregar pedido">
         <i class="bi bi-plus-circle me-2"></i> Nueva Orden
     </a>
 </div>
 
-<div class="card bg-dark border-0 shadow-sm p-3 mb-4">
-    <div class="row g-2 align-items-center">
+<div class="card border-0 shadow-sm p-3 mb-4 filter-bar-card" data-aos="fade-down">
+    <div class="row g-3 align-items-center">
         <div class="col-auto">
             <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
         </div>
         <div class="col-md-2">
-            <input type="text" id="filter-id" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="ID Orden">
+            <input type="text" id="filter-id" class="form-control form-control-sm bg-surface text-white filter-input"
+                placeholder="ID Orden">
         </div>
         <div class="col-md-3">
-            <input type="text" id="filter-cliente" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Cliente">
+            <input type="text" id="filter-cliente"
+                class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Cliente">
         </div>
         <div class="col-md-3">
-            <input type="text" id="filter-destino" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Destino">
+            <input type="text" id="filter-destino"
+                class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Destino">
         </div>
         <div class="col-md-2">
-            <select id="filter-estado" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+            <select id="filter-estado" class="form-select form-select-sm bg-surface text-white filter-select">
                 <option value="">Estado (Todos)</option>
                 <option value="pendiente">Pendiente</option>
                 <option value="en_ruta">En ruta</option>
@@ -67,27 +71,32 @@
                     <td class="text-center text-muted fw-bold">#{{ orden.id }}</td>
                     <td>
                         <div class="d-flex align-items-center gap-3">
-                            <div class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark u-inline-befea9ac15">
+                            <div
+                                class="bg-accent rounded-circle d-flex align-items-center justify-content-center fw-bold text-dark u-inline-befea9ac15">
                                 {% if orden.cliente.usuario.foto_perfil %}
-                                    <img src="{{ orden.cliente.usuario.foto_perfil.url }}" alt="Avatar" class="u-inline-4a466668db">
+                                <img src="{{ orden.cliente.usuario.foto_perfil.url }}" alt="Avatar"
+                                    class="u-inline-4a466668db">
                                 {% else %}
-                                    {{ orden.cliente.usuario.nombres|slice:":1"|default:"C" }}{{ orden.cliente.usuario.apellidos|slice:":1"|default:"L" }}
+                                {{ orden.cliente.usuario.nombres|slice:":1"|default:"C" }}{{
+                                orden.cliente.usuario.apellidos|slice:":1"|default:"L" }}
                                 {% endif %}
                             </div>
                             <div>
-                                <p class="fw-700 text-white mb-0 u-inline-27895aa49c">{{ orden.cliente.usuario.nombres|default:"Cliente" }} {{ orden.cliente.usuario.apellidos }}</p>
+                                <p class="fw-700 text-white mb-0 u-inline-27895aa49c">{{
+                                    orden.cliente.usuario.nombres|default:"Cliente" }} {{
+                                    orden.cliente.usuario.apellidos }}</p>
                                 <p class="text-muted small mb-0">{{ orden.cliente.usuario.user.email }}</p>
                             </div>
                         </div>
                     </td>
                     <td>
                         {% if orden.conductor %}
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="bi bi-truck text-accent"></i>
-                                <span class="text-white small fw-600">{{ orden.conductor.nombres }}</span>
-                            </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-truck text-accent"></i>
+                            <span class="text-white small fw-600">{{ orden.conductor.nombres }}</span>
+                        </div>
                         {% else %}
-                            <span class="text-muted small italic">Sin asignar</span>
+                        <span class="text-muted small italic">Sin asignar</span>
                         {% endif %}
                     </td>
                     <td class="text-muted small">{{ orden.direccion_destino|truncatechars:30 }}</td>
@@ -107,23 +116,27 @@
                     </td>
                     <td class="text-center">
                         <div class="d-flex justify-content-center gap-2">
-                            <a href="{% url 'ordenes:ver_pedido_admin' orden.id %}" class="btn-action" title="Ver Detalles">
+                            <a href="{% url 'ordenes:ver_pedido_admin' orden.id %}" class="btn-action"
+                                title="Ver Detalles">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="{% url 'clientes:editar_pedido' orden.id %}" class="btn-action text-warning" title="Modificar">
+                            <a href="{% url 'clientes:editar_pedido' orden.id %}" class="btn-action text-warning"
+                                title="Modificar">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
                             {% if not orden.conductor %}
-                            <a href="{% url 'ordenes:crear_entrega' orden.id %}" class="btn-action text-success" title="Asignar Entrega">
+                            <a href="{% url 'ordenes:crear_entrega' orden.id %}" class="btn-action text-success"
+                                title="Asignar Entrega">
                                 <i class="bi bi-person-plus"></i>
                             </a>
                             {% endif %}
-                            <form action="{% url 'ordenes:eliminar_orden' orden.id %}" method="POST" class="d-inline delete-form">
+                            <form action="{% url 'ordenes:eliminar_orden' orden.id %}" method="POST"
+                                class="d-inline delete-form">
                                 {% csrf_token %}
-                                <button type="button" class="btn-action text-danger confirm-delete-form" 
-                                        data-title="¿Cancelar orden?" 
-                                        data-text="¿Estás seguro de que deseas cancelar la orden #{{ orden.id }}? Esta acción no se puede deshacer."
-                                        title="Cancelar">
+                                <button type="button" class="btn-action text-danger confirm-delete-form"
+                                    data-title="¿Cancelar orden?"
+                                    data-text="¿Estás seguro de que deseas cancelar la orden #{{ orden.id }}? Esta acción no se puede deshacer."
+                                    title="Cancelar">
                                     <i class="bi bi-x-circle"></i>
                                 </button>
                             </form>
@@ -144,10 +157,21 @@
 </div>
 
 <style>
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
-    .fw-600 { font-weight: 600; }
-    .text-accent { color: var(--color-accent) !important; }
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
+    .fw-600 {
+        font-weight: 600;
+    }
+
+    .text-accent {
+        color: var(--color-accent) !important;
+    }
 </style>
 
 {% endblock %}
@@ -155,42 +179,42 @@
 {% block extra_js %}
 {{ block.super }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Esperar a que DataTables se inicialice en base.js
-    setTimeout(function() {
-        var tableEl = document.querySelector('.table-container .table');
-        if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
-            var table = $(tableEl).DataTable();
-            
-            // Índices de columnas (según thead en lista_ordenes.html):
-            // 0: ID
-            // 1: Cliente
-            // 2: Conductor
-            // 3: Destino
-            // 4: Estado
-            // 5: Fecha
-            // 6: Acciones
-            
-            $('#filter-id').on('keyup change', function() {
-                table.column(0).search(this.value).draw();
-            });
-            $('#filter-cliente').on('keyup change', function() {
-                table.column(1).search(this.value).draw();
-            });
-            $('#filter-destino').on('keyup change', function() {
-                table.column(3).search(this.value).draw();
-            });
-            $('#filter-estado').on('change', function() {
-                table.column(4).search(this.value).draw();
-            });
-            
-            $('#clear-filters').on('click', function() {
-                $('#filter-id, #filter-cliente, #filter-destino').val('');
-                $('#filter-estado').val('');
-                table.columns().search('').draw();
-            });
-        }
-    }, 150);
-});
+    document.addEventListener('DOMContentLoaded', function () {
+        // Esperar a que DataTables se inicialice en base.js
+        setTimeout(function () {
+            var tableEl = document.querySelector('.table-container .table');
+            if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
+                var table = $(tableEl).DataTable();
+
+                // Índices de columnas (según thead en lista_ordenes.html):
+                // 0: ID
+                // 1: Cliente
+                // 2: Conductor
+                // 3: Destino
+                // 4: Estado
+                // 5: Fecha
+                // 6: Acciones
+
+                $('#filter-id').on('keyup change', function () {
+                    table.column(0).search(this.value).draw();
+                });
+                $('#filter-cliente').on('keyup change', function () {
+                    table.column(1).search(this.value).draw();
+                });
+                $('#filter-destino').on('keyup change', function () {
+                    table.column(3).search(this.value).draw();
+                });
+                $('#filter-estado').on('change', function () {
+                    table.column(4).search(this.value).draw();
+                });
+
+                $('#clear-filters').on('click', function () {
+                    $('#filter-id, #filter-cliente, #filter-destino').val('');
+                    $('#filter-estado').val('');
+                    table.columns().search('').draw();
+                });
+            }
+        }, 150);
+    });
 </script>
 {% endblock %}

@@ -21,11 +21,29 @@ def materiales_lista(request):
     tipos = Catalogo.objects.all().order_by("nombre_empresa")
     total = Material.objects.count()
 
+    filter_fields = [
+        {
+            "name": "tipo",
+            "type": "select",
+            "placeholder": "Todos los tipos",
+            "value": tipo,
+            "options": [
+                {
+                    "value": t.codigo_catalogo,
+                    "label": t.nombre_empresa,
+                    "selected": t.codigo_catalogo == tipo,
+                }
+                for t in tipos
+            ],
+        }
+    ]
+
     context = {
         "query": query,
         "tipo_actual": tipo,
         "tipos": tipos,
         "total": total,
+        "filter_fields": filter_fields,
     }
 
     return render(request, "inventario/lista.html", context)
@@ -132,7 +150,8 @@ def stock_lista(request):
     material = request.GET.get("material", "")
     ubicacion = request.GET.get("ubicacion", "")
     stock_actual = request.GET.get("stock_actual", "")
-    
+    q = request.GET.get("q", "")
+
     stocks = Stock.objects.all().select_related("material")
 
     if material:
@@ -141,12 +160,24 @@ def stock_lista(request):
         stocks = stocks.filter(ubicacion__icontains=ubicacion)
     if stock_actual and stock_actual.isdigit():
         stocks = stocks.filter(cantidad_actual=int(stock_actual))
+    if q:
+        stocks = stocks.filter(
+            Q(material__nombre__icontains=q) | Q(ubicacion__icontains=q)
+        )
+
+    filter_fields = [
+        {"type": "text", "name": "material", "placeholder": "Material", "value": material},
+        {"type": "text", "name": "ubicacion", "placeholder": "Ubicación", "value": ubicacion},
+        {"type": "text", "name": "stock_actual", "placeholder": "Stock exacto", "value": stock_actual},
+    ]
 
     context = {
         "stocks": stocks,
         "material": material,
         "ubicacion": ubicacion,
         "stock_actual": stock_actual,
+        "q": q,
+        "filter_fields": filter_fields,
     }
 
     return render(request, "inventario/stock.html", context)

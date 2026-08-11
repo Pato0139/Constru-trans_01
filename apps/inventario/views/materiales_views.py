@@ -33,6 +33,16 @@ def materiales_lista(request):
     total = materiales.count()
     materiales = materiales[(page - 1) * per_page : page * per_page]
 
+    filter_fields = [
+        {
+            "name": "tipo",
+            "type": "select",
+            "placeholder": "Todos los tipos",
+            "value": tipo,
+            "options": [{"value": t.codigo_catalogo, "label": t.nombre_empresa} for t in tipos],
+        }
+    ]
+
     context = {
         "materiales": materiales,
         "query": query,
@@ -41,6 +51,7 @@ def materiales_lista(request):
         "page": page,
         "per_page": per_page,
         "total": total,
+        "filter_fields": filter_fields,
     }
 
     return render(request, "inventario/lista.html", context)
@@ -139,12 +150,14 @@ def stock_lista(request):
     total = stocks.count()
     stocks = stocks[(page - 1) * per_page : page * per_page]
 
+    filter_fields = []
     context = {
         "stocks": stocks,
         "query": q,
         "page": page,
         "per_page": per_page,
         "total": total,
+        "filter_fields": filter_fields,
     }
 
     return render(request, "inventario/stock.html", context)
