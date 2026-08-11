@@ -1,4 +1,11 @@
 import json
+from datetime import datetime
+
+from django.contrib import messages
+from django.db.models import Q
+from django.http import Http404
+from django.shortcuts import redirect, render, get_object_or_404
+
 
 from django.contrib import messages
 from django.db.models import Q
@@ -9,8 +16,13 @@ from usuarios.models import MetodoPago
 from usuarios.views import admin_required
 
 from .models import Pago, PagoPedido
+from ordenes.models import Pedido
 from .prototype import (
     append_history_entry,
+    assign_transport,
+    calculate_order_totals,
+    generate_order_code,
+
     assign_transport,
     calculate_order_totals,
     generate_order_code,
@@ -19,6 +31,7 @@ from .prototype import (
     update_payment_and_order_status,
 )
 from .services import registrar_estado_pago
+
 
 
 @admin_required
@@ -205,6 +218,7 @@ def prototype_order_form(request):
             "id": generate_order_code(state.get("orders", [])),
             "customer": request.POST.get("customer", ""),
             "phone": request.POST.get("phone", ""),
+
             "delivery_address": request.POST.get("delivery_address", ""),
             "delivery_date": request.POST.get("delivery_date", ""),
             "observations": request.POST.get("observations", ""),
@@ -213,6 +227,7 @@ def prototype_order_form(request):
             "iva": totals["iva"],
             "total": totals["total"],
             "payment_method": None,
+
             "payment_status": "Pendiente",
             "order_status": "Pendiente de pago",
             "proof": None,
@@ -370,6 +385,7 @@ def prototype_admin_orders(request):
 # =====================================================================
 def prototype_conductor(request):
     state = _get_proto_state(request)
+
     orders = state.get("orders", [])
 
     if request.method == "POST":
@@ -397,3 +413,4 @@ def prototype_switch_role(request, role):
     state["role"] = role
     _save_proto_state(request, state)
     return redirect("pagos:prototype_home")
+

@@ -28,6 +28,7 @@
                 <tr class="u-inline-0d59a3f53c">
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Material</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Stock Actual</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Precio Unitario</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Ubicación</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Última
                         Actualización</th>
@@ -55,6 +56,9 @@
                             class="badge {% if s.cantidad > 100 %}bg-success-subtle text-success{% elif s.cantidad > 0 %}bg-warning-subtle text-warning{% else %}bg-danger-subtle text-danger{% endif %} px-3">
                             {{ s.cantidad }} unidades
                         </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="text-white-70">${{ s.material.precio|floatformat:0 }}</span>
                     </td>
                     <td class="py-3 px-4 u-inline-6e24079678">{{ s.ubicacion }}</td>
                     <td class="py-3 px-4 text-muted small">{{ s.ultima_actualizacion|date:"d/m/Y H:i" }}</td>
