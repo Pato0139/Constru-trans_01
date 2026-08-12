@@ -3,7 +3,6 @@
 **Versión 1.2.0**
 
 Sistema integral de gestión para transporte y materiales de construcción para una ferretería
-
 ---
 
 ## ✅ Cumple 12 Criterios sin Excepciones
