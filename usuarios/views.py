@@ -208,15 +208,23 @@ def login_usuario(request):
     if request.user.is_authenticated:
         try:
             usuario = request.user.usuario
-            if usuario.rol == "admin":
+            if usuario.rol in {"admin", "empleado"}:
                 return redirect("usuarios:panel")
             elif usuario.rol == "cliente":
                 return redirect("clientes:panel_cliente")
             elif usuario.rol == "conductor":
                 return redirect("usuarios:panel_conductor")
-        except Exception:
-            pass
-        return redirect("usuarios:panel")
+        except (Usuario.DoesNotExist, AttributeError):
+            logout(request)
+            return redirect("usuarios:login")
+
+        # Usuario autenticado con rol no soportado; limpiar sesión para evitar bucles
+        logout(request)
+        messages.error(
+            request,
+            "No se puede acceder con este tipo de usuario. Por favor inicia sesión con una cuenta válida."
+        )
+        return redirect("usuarios:login")
 
     # Desactivado para optimizar rendimiento - sincronización se hará en background
     # if conexion_remota_disponible():
@@ -302,7 +310,7 @@ def login_usuario(request):
                     allowed_hosts={request.get_host()},
                     require_https=request.is_secure(),
                 ) else (
-                    "usuarios:panel" if user.rol == "admin" else
+                    "usuarios:panel" if user.rol in {"admin", "empleado"} else
                     "clientes:panel_cliente" if user.rol == "cliente" else
                     "usuarios:panel_conductor" if user.rol == "conductor" else
                     "usuarios:panel"
@@ -392,7 +400,7 @@ def panel(request):
         if usuario.rol in {"cliente", "conductor"}:
             usuario.ensure_profile_for_role()
 
-    if usuario.rol == "admin":
+    if usuario.rol in {"admin", "empleado"}:
         from django.core.cache import cache
 
         from core.utils import get_cache_key
@@ -419,8 +427,13 @@ def panel(request):
     elif usuario.rol == "cliente":
         return redirect("clientes:panel_cliente")
     elif usuario.rol == "conductor":
-        return panel_conductor(request)
+        return redirect("usuarios:panel_conductor")
 
+    messages.error(
+        request,
+        "No se encontró un panel para tu tipo de usuario. Por favor inicia sesión con otra cuenta."
+    )
+    logout(request)
     return redirect("usuarios:login")
 
 
@@ -432,18 +445,26 @@ def panel(request):
 @login_required
 def panel_conductor(request):
     try:
-        conductor = request.user.usuario
+        usuario = request.user.usuario
     except Usuario.DoesNotExist:
         logout(request)
         return redirect("usuarios:login")
 
+    if usuario.rol != "conductor":
+        messages.error(request, "No tienes permisos para acceder al panel de conductor.")
+        return redirect("usuarios:panel")
+
+    conductor_perfil = usuario.conductor_profile
+    if conductor_perfil is None:
+        conductor_perfil, _ = Conductor.ensure_for_user(usuario)
+
     pedidos_asignados = (
-        Pedido.objects.filter(conductor=conductor)
+        Pedido.objects.filter(conductor=conductor_perfil)
         .select_related("usuario", "cliente__usuario")
         .exclude(estado="entregado")
     )
     entregas_completadas = Pedido.objects.filter(
-        conductor=conductor, estado="entregado"
+        conductor=conductor_perfil, estado="entregado"
     ).select_related("usuario", "cliente__usuario")
 
     context = {
@@ -457,8 +478,14 @@ def panel_conductor(request):
 
 @login_required
 def pedidos_conductor(request):
-    conductor = request.user.usuario
-    pedidos = Pedido.objects.filter(conductor=conductor).exclude(estado="entregado").select_related("usuario", "cliente__usuario")
+    usuario = request.user.usuario
+    if usuario.rol != "conductor":
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect("usuarios:panel")
+    conductor_perfil = usuario.conductor_profile
+    if conductor_perfil is None:
+        conductor_perfil, _ = Conductor.ensure_for_user(usuario)
+    pedidos = Pedido.objects.filter(conductor=conductor_perfil).exclude(estado="entregado").select_related("usuario", "cliente__usuario")
 
     # Apply filters
     id_pedido = request.GET.get("id_pedido")
@@ -493,8 +520,14 @@ def pedidos_conductor(request):
 
 @login_required
 def mis_entregas(request):
-    conductor = request.user.usuario
-    entregas = Pedido.objects.filter(conductor=conductor).select_related("usuario", "cliente__usuario").order_by(
+    usuario = request.user.usuario
+    if usuario.rol != "conductor":
+        messages.error(request, "No tienes permisos para acceder a esta sección.")
+        return redirect("usuarios:panel")
+    conductor_perfil = usuario.conductor_profile
+    if conductor_perfil is None:
+        conductor_perfil, _ = Conductor.ensure_for_user(usuario)
+    entregas = Pedido.objects.filter(conductor=conductor_perfil).select_related("usuario", "cliente__usuario").order_by(
         "-fecha_solicitud"
     )
 
@@ -922,16 +955,21 @@ def perfil_conductor(request):
             logout(request)
             return redirect("usuarios:login")
 
-    pedidos = Pedido.objects.filter(conductor=conductor).select_related("usuario", "cliente__usuario")
+        if conductor.rol != "conductor":
+            messages.error(request, "No tienes permisos para acceder a este perfil.")
+            return redirect("usuarios:panel")
+
+    conductor_perfil = conductor.conductor_profile
+    if conductor_perfil is None:
+        conductor_perfil, _ = Conductor.ensure_for_user(conductor)
+
+    pedidos = Pedido.objects.filter(conductor=conductor_perfil).select_related("usuario", "cliente__usuario")
 
     from ordenes.models import Entrega
 
     try:
-        from usuarios.models import Conductor as ConductorPerfil
-
-        conductor_perfil = ConductorPerfil.objects.get(usuario=conductor)
         ultima_entrega = (
-            Entrega.objects.filter(conductor=conductor).select_related("vehiculo", "pedido").order_by("-fecha_salida").first()
+            Entrega.objects.filter(conductor=conductor_perfil).select_related("vehiculo", "pedido").order_by("-fecha_salida").first()
         )
         vehiculo = ultima_entrega.vehiculo if ultima_entrega else None
     except Exception:
