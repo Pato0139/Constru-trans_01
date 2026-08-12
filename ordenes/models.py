@@ -2,7 +2,11 @@ from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.db.utils import OperationalError
 import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 def validar_fecha_no_pasada(value):
     today = timezone.now().date()
@@ -39,7 +43,7 @@ class Pedido(models.Model):
         null=True,
         blank=True,
         related_name="pedidos",
-        db_column="codigo_catalogo",
+        db_column="pedido_codigo_catalogo",
     )
     usuario = models.ForeignKey(
         "usuarios.Usuario", on_delete=models.CASCADE, related_name="pedidos"
@@ -130,8 +134,16 @@ class Pedido(models.Model):
         if self.conductor_id and not self.conductor_usuario_legacy_id:
             try:
                 self.conductor_usuario_legacy = self.conductor.usuario
-            except Exception:
-                pass
+            except AttributeError as exc:
+                logger.warning(
+                    "No se pudo resolver usuario legacy del conductor en pedido %s: %s",
+                    getattr(self, "codigo_pedido", "?"), exc,
+                )
+            except OperationalError as exc:
+                logger.error(
+                    "Error operativo resolviendo conductor_usuario_legacy en pedido %s: %s",
+                    getattr(self, "codigo_pedido", "?"), exc,
+                )
         super().save(*args, **kwargs)
 
 
@@ -200,14 +212,13 @@ class Entrega(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
     direccion_entrega = models.CharField(max_length=200)
 
-    # Campos legacy / compatibilidad
     conductor_usuario = models.ForeignKey(
         "usuarios.Usuario",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         limit_choices_to={"rol": "conductor"},
-        db_column="conductor_usuario_id_legacy",
+        db_column="entrega_conductor_usuario_id",
     )
     sincronizado = models.BooleanField(default=False)
 
@@ -227,11 +238,13 @@ class Entrega(models.Model):
         if self.conductor_id and not self.conductor_usuario_id:
             try:
                 self.conductor_usuario = self.conductor.usuario
-            except Exception:
-                pass
+            except AttributeError as exc:
+                logger.warning(
+                    "No se pudo resolver usuario de entrega en pedido %s: %s",
+                    getattr(self.pedido, "codigo_pedido", "?"), exc,
+                )
         super().save(*args, **kwargs)
 
 
-# Alias para compatibilidad
 Orden = Pedido
 DetalleOrden = DetallePedido

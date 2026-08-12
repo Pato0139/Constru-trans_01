@@ -1,6 +1,6 @@
 # 🚛 CONSTRU-TRANS
 ### Sistema Integral de Gestión para Transporte y Materiales de Construcción
-**Versión 1.0**
+**Versión 1.2.0**
 
 ---
 
@@ -75,24 +75,51 @@ En la pantalla de login → "¿Olvidaste tu contraseña?" → ingresa tu correo 
 
 ---
 
-## 🗂️ Estructura REAL (Actualizada — v1.0)
+## 🗂️ Estructura REAL (Actualizada — v1.2.0)
+
+### 📱 9 Módulos visibles en el Dashboard (UI)
+
+Estos son los que aparecen como tarjetas en la pantalla principal:
+
+```
+1. Clientes              Gestión completa · datos, historial pedidos, preferencias
+2. Inventario            Control materiales, stock, movimientos y disponibilidad
+3. Pedidos               Creación, seguimiento y gestión de pedidos (clientes + transporte)
+4. Compras               Proveedores y compras de materiales · inventario óptimo
+5. Transporte            Coordinación vehículos, conductores, seguimiento entregas
+6. Facturación           Generación y seguimiento de facturas electrónicas/tradicionales
+7. Pagos                 Registro y seguimiento de pagos a clientes y proveedores
+8. Reportes              Analíticas rendimiento, ventas, inventario y operaciones
+9. Historial             Registro completo de operaciones · auditoría y seguimiento
+```
+
+### 🧩 12 Módulos Técnicos (Apps Django · Plan de Pruebas)
+
+A los 9 de la UI se suman 3 módulos internos/admin, y `Pedidos`+`Transporte` se desglosan en apps:
 
 ```
 core/settings/         Configuración modular (base/dev/prod)
 core/routers.py        Router de BD (decide local vs nube)
-usuarios/              App: Usuarios, Conductores, Vehículos
-clientes/              App: Clientes
-inventario/            App: Materiales, Stock, Movimientos (Kardex)
-compras/               App: Proveedores, Compras
-gestion_pedidos/       App: Pedidos de clientes y DetallesPedido
-ordenes/               App: Órdenes de entrega asignadas a conductores
-facturacion/           App: Facturas
-pagos/                 App: Pagos (con services y prototype)
-reportes/              App: Reportes PDF/Excel
-ia/                    App: Asistente IA (OpenAI + services + training)
+
+usuarios/              App 1 — Usuarios, Conductores, Vehículos, Roles, MétodosPago
+                       |-- Auth, recuperación de contraseña, foto de perfil, signals
+clientes/              App 2 — Clientes (registro, edición, listado, historial pedidos)
+inventario/            App 3 — Materiales, Stock, Movimientos · Kardex (services/)
+                       |-- models/ (lotes, conteos, movimientos), views/ subdivididas
+compras/               App 4 — Proveedores, Compras · forms.py, signals.py
+gestion_pedidos/       App 5 — Pedidos + DetallePedido · calcular_total() automático
+ordenes/               App 6 — Órdenes/Entregas · Asigna conductor + vehículo
+                       |-- signals.py, utils.py
+facturacion/           App 7 — Facturas · Estado auto-actualiza a "pagada"
+pagos/                 App 8 — Pagos vinculados a facturas · services.py + prototype.py
+reportes/              App 9 — Reportes PDF (ReportLab) y Excel (openpyxl)
+ia/                    App 10 — Asistente IA (OpenAI) · services/, forms/, training/
+historial/             App 11 — Auditoría del sistema · utils.py de registro
+licensing/             App 12 — Licencias · middleware.py + services.py + tasks.py
+
 inicio/                App: Página de inicio
-historial/             App: Auditoría del sistema
-licensing/             App: Licencias (middleware + services + tasks)
+ayuda/                 App: Guías y sugerencias de ayuda
+transporte/            App: Transporte (plantillas UI)
 media/                 Archivos subidos (perfiles, etc.)
 docs/                  Documentación formal
 .github/workflows/     CI/CD Pipeline
@@ -116,12 +143,13 @@ Ver la carpeta `docs/`:
 python manage.py runserver       # Servidor desarrollo
 python manage.py createsuperuser # Crear admin
 python manage.py migrate         # Aplicar migraciones
-python manage.py seed_mer        # Datos iniciales
+python manage.py seed_mer        # Datos iniciales (Rol, MetodoPago)
 python manage.py sincronizar     # Sincronizar local ↔ nube (si aplica)
 pytest                           # Todos los tests
 pytest --cov=usuarios --cov=clientes --cov=inventario \
-       --cov=compras --cov=ordenes --cov=gestion_pedidos \
-       --cov=facturacion --cov=pagos --cov=ia    # Tests + coverage completo
+       --cov=compras --cov=gestion_pedidos --cov=ordenes \
+       --cov=facturacion --cov=pagos --cov=reportes \
+       --cov=ia --cov=historial --cov=licensing      # Coverage · 12 módulos
 ruff check .                     # Linting
 ```
 
