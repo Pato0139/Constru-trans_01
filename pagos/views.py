@@ -4,6 +4,9 @@ from django.contrib import messages
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+
+from django.contrib import messages
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from ordenes.models import Pedido
@@ -14,6 +17,9 @@ from .models import Pago, PagoPedido
 from ordenes.models import Pedido
 from .prototype import (
     append_history_entry,
+    assign_transport,
+    calculate_order_totals,
+    generate_order_code,
     assign_transport,
     calculate_order_totals,
     generate_order_code,

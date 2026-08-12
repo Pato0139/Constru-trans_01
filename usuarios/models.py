@@ -95,29 +95,6 @@ class Usuario(AbstractUser):
     def iniciales(self):
         partes = self.nombres.split()
         return "".join([p[0].upper() for p in partes[:2]]) or "?"
-        
-    @property
-    def nombre_completo(self):
-        return f"{self.nombres} {self.apellidos}".strip()
-        
-    @property
-    def nombre_mostrar(self):
-        return self.nombre_completo or self.email or self.username or f"Usuario #{self.pk}"
-        
-    @property
-    def documento_mostrar(self):
-        return self.documento or "Sin documento"
-        
-    @property
-    def avatar_url(self):
-        if not self.foto_perfil or not self.foto_perfil.name:
-            return None
-        try:
-            if default_storage.exists(self.foto_perfil.name):
-                return self.foto_perfil.url
-        except Exception:
-            return None
-        return None
 
     @property
     def nombre_completo(self):
