@@ -1,10 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
+from django.db import transaction, DatabaseError
 from django.db.models import F, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+import logging
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
@@ -14,13 +16,15 @@ from historial.utils import registrar_actividad
 from inventario.models import MovimientoInventario
 from pagos.models import PagoPedido
 from pagos.services import registrar_estado_pago
-from usuarios.models import MaterialConstruccion, MetodoPago, Stock, Usuario
+from usuarios.models import Conductor, MaterialConstruccion, MetodoPago, Stock, Usuario
 from usuarios.views import admin_required
 from core.db_preference import debe_usar_bd_remota
 from core.db_utils import select_for_update_if_supported
 
 from .models import DetalleOrden, Entrega, Orden
 from .utils import liberar_vehiculo_pedido, revertir_stock_pedido
+
+logger = logging.getLogger(__name__)
 
 
 @admin_required
@@ -70,15 +74,22 @@ def agregar_materiales(request, id):
 
     if request.method == "POST":
         material_id = request.POST.get("material")
-        cantidad = float(request.POST.get("cantidad", 0))
+        try:
+            cantidad = int(request.POST.get("cantidad", 0) or 0)
+        except (TypeError, ValueError):
+            messages.error(request, "La cantidad debe ser un entero.")
+            return redirect("ordenes:agregar_materiales", id=orden.codigo_pedido)
 
-        if material_id and cantidad > 0:
+        if cantidad < 1:
+            messages.error(request, "La cantidad mínima es 1.")
+            return redirect("ordenes:agregar_materiales", id=orden.codigo_pedido)
+
+        if material_id:
             material = get_object_or_404(MaterialConstruccion, pk=material_id)
             stock_obj = Stock.objects.get(material=material)
 
             if stock_obj.cantidad_actual >= cantidad:
                 with transaction.atomic():
-                    # Crear o actualizar detalle
                     detalle, created = DetalleOrden.objects.get_or_create(
                         pedido=orden,
                         material=material,
@@ -91,11 +102,9 @@ def agregar_materiales(request, id):
                         detalle.cantidad += cantidad
                         detalle.save()
 
-                    # Descontar stock
                     stock_obj.cantidad_actual = F("cantidad_actual") - cantidad
                     stock_obj.save()
 
-                    # Registrar movimiento
                     MovimientoInventario.objects.create(
                         material=material,
                         tipo_movimiento="salida",
@@ -113,20 +122,14 @@ def agregar_materiales(request, id):
         return redirect("ordenes:agregar_materiales", id=orden.codigo_pedido)
 
     context = {"orden": orden, "materiales": materiales, "detalles": detalles}
-
     return render(request, "ordenes/agregar_materiales.html", context)
 
-
 def buscar_pedidos_admin(cliente_query=None, fecha_query=None):
-    """
-    Lógica unificada para buscar pedidos por cliente o fecha.
-    Optimizado con select_related para evitar N+1.
-    """
     pedidos = (
         Orden.objects.all()
         .select_related("usuario", "cliente", "conductor")
         .prefetch_related("detalles__material", "entregas")
-        .order_by("-fecha")
+        .order_by("-fecha_solicitud")
     )
 
     if cliente_query:
@@ -136,57 +139,42 @@ def buscar_pedidos_admin(cliente_query=None, fecha_query=None):
         )
 
     if fecha_query:
-        pedidos = pedidos.filter(fecha__date=fecha_query)
+        pedidos = pedidos.filter(fecha_solicitud__date=fecha_query)
 
     return pedidos
+
+@admin_required
+def _render_lista_por_estado(request, estado, titulo):
+    cliente_query = request.GET.get("cliente")
+    fecha_query = request.GET.get("fecha")
+    pedidos = buscar_pedidos_admin(cliente_query, fecha_query).filter(estado=estado)
+    context = {
+        "pedidos": pedidos,
+        "cliente_query": cliente_query,
+        "fecha_query": fecha_query,
+        "titulo_panel": titulo,
+    }
+    return render(request, "ordenes/lista.html", context)
 
 
 @admin_required
 def lista_pedidos_admin(request):
-    cliente_query = request.GET.get("cliente")
-    fecha_query = request.GET.get("fecha")
-
-    # Filtramos para mostrar solo pedidos pendientes (ventas por despachar)
-    pedidos = buscar_pedidos_admin(cliente_query, fecha_query).filter(estado=Orden.PENDIENTE)
-
-    context = {
-        "pedidos": pedidos,
-        "cliente_query": cliente_query,
-        "fecha_query": fecha_query,
-        "titulo_panel": "Ventas Pendientes",
-    }
-
-    return render(request, "ordenes/lista.html", context)
+    return _render_lista_por_estado(request, Orden.PENDIENTE, "Ventas Pendientes")
 
 
 @admin_required
 def lista_entregas_admin(request):
-    cliente_query = request.GET.get("cliente")
-    fecha_query = request.GET.get("fecha")
-
-    # Filtro para mostrar solo pedidos
-    pedidos = buscar_pedidos_admin(cliente_query, fecha_query).filter(estado=Orden.EN_RUTA)
-
-    context = {
-        "pedidos": pedidos,
-        "cliente_query": cliente_query,
-        "fecha_query": fecha_query,
-        "titulo_panel": "Control de Entregas",
-    }
-
-    return render(request, "ordenes/lista.html", context)
-
+    return _render_lista_por_estado(request, Orden.EN_RUTA, "Control de Entregas")
 
 @login_required
 def ver_pedido_admin(request, id):
     orden = get_object_or_404(Orden, codigo_pedido=id)
-    if request.user.usuario.rol == "cliente" and (
-        orden.cliente is None or orden.cliente.usuario_id != request.user.usuario.id
-    ):
-        messages.error(request, "No tienes permiso para ver este pedido.")
-        return redirect("clientes:mis_pedidos")
+     usuario_actual = request.user
+    if usuario_actual.rol == "cliente":
+        if orden.cliente is None or orden.cliente.usuario_id != usuario_actual.id:
+            messages.error(request, "No tienes permiso para ver este pedido.")
+            return redirect("clientes:mis_pedidos")
 
-    # Manejo de acciones
     if request.method == "POST":
         if request.POST.get("accion_pago") == "registrar":
             metodo = request.POST.get("metodo_pago", "").strip()
@@ -245,25 +233,23 @@ def ver_pedido_admin(request, id):
                     return redirect(f"{request.path}?tab=pagos")
                 pago_pedido.estado_pago = "pago rechazado"
                 pago_pedido.motivo_rechazo = motivo
-                pago_pedido.pedido.estado = "pendiente"
+                pago_pedido.pedido.estado = Orden.CANCELADO
                 pago_pedido.pedido.save(update_fields=["estado"])
                 pago_pedido.agregar_historial(f"Pago rechazado por {request.user.username}: {motivo}")
                 pago_pedido.save(update_fields=["estado_pago", "motivo_rechazo", "fecha_actualizacion"])
                 messages.warning(request, "Pago rechazado y cliente notificado.")
             return redirect(f"{request.path}?tab=pagos")
 
-        if request.user.usuario.rol == "conductor":
+        if usuario_actual.rol == "conductor":
             accion = request.POST.get("accion")
             if accion == "confirmar":
                 if orden.estado != Orden.ENTREGADO:
                     with transaction.atomic():
-                        # Cambiar estado de la entrega
-                        entrega = orden.entregas.filter(conductor=request.user.usuario).first()
+                        entrega = orden.entregas.filter(conductor=usuario_actual).first()
                         if entrega:
                             entrega.estado = "entregado"
                             entrega.save()
 
-                            # Liberar el vehículo
                             if entrega.vehiculo:
                                 entrega.vehiculo.estado = "disponible"
                                 entrega.vehiculo.save()
@@ -286,14 +272,11 @@ def ver_pedido_admin(request, id):
                 return redirect("usuarios:panel")
 
             elif accion == "cancelar":
-                if orden.estado != Orden.ENTREGADO and orden.estado != Orden.CANCELADO:
+                if orden.estado not in (Orden.ENTREGADO, Orden.CANCELADO):
                     db_alias = "remota" if debe_usar_bd_remota() else "default"
                     with transaction.atomic():
                         with transaction.atomic(using=db_alias):
-                            # Liberar el vehículo
                             liberar_vehiculo_pedido(orden)
-
-                            # Revertir stock usando utilidad
                             revertir_stock_pedido(
                                 orden, request.user, "Cancelación (Conductor)", using=db_alias
                             )
@@ -313,7 +296,7 @@ def ver_pedido_admin(request, id):
                         )
                 return redirect("usuarios:panel")
 
-        elif request.user.usuario.rol == "admin":
+        elif usuario_actual.rol == "admin":
             if orden.estado == Orden.CANCELADO:
                 messages.info(request, "El pedido está cancelado. Solo se permite su consulta.")
                 return redirect("ordenes:ver_pedido_admin", id=orden.codigo_pedido)
@@ -321,17 +304,23 @@ def ver_pedido_admin(request, id):
             nuevo_estado = request.POST.get("estado")
             if nuevo_estado:
                 with transaction.atomic():
-                    if nuevo_estado == "entregado" and orden.estado != "entregado":
+                    if nuevo_estado == Orden.ENTREGADO and orden.estado != Orden.ENTREGADO:
                         entrega = orden.entregas.first()
                         if entrega:
                             entrega.estado = "entregado"
+                            if not entrega.fecha_entrega:
+                                entrega.fecha_entrega = timezone.now()
                             entrega.save()
-                        else:
-                            orden.estado = "entregado"
+                            orden.estado = Orden.ENTREGADO
                             orden.fecha_entrega_real = timezone.now()
                             orden.save()
+                        else:
+                            messages.error(
+                                request, "Para marcar como entregado primero asigna una entrega."
+                            )
+                            return redirect("ordenes:ver_pedido_admin", id=orden.codigo_pedido)
                     else:
-                        if nuevo_estado == "cancelado" and orden.estado != "cancelado":
+                        if nuevo_estado == Orden.CANCELADO and orden.estado != Orden.CANCELADO:
                             with transaction.atomic(using=db_alias):
                                 liberar_vehiculo_pedido(orden)
                                 revertir_stock_pedido(
@@ -339,7 +328,7 @@ def ver_pedido_admin(request, id):
                                 )
 
                         orden.estado = nuevo_estado
-                        if nuevo_estado == "en_ruta" and not orden.fecha_toma_entrega:
+                        if nuevo_estado == Orden.EN_RUTA and not orden.fecha_toma_entrega:
                             orden.fecha_toma_entrega = timezone.now()
                         orden.save()
 
@@ -385,7 +374,6 @@ def ver_pedido_admin(request, id):
             },
         },
     }
-
     return render(request, "ordenes/detalle.html", context)
 
 
@@ -412,13 +400,10 @@ def crear_entrega(request, orden_id):
                 if not vehiculo:
                     messages.error(
                         request,
-                        f"El conductor {conductor.nombres} no tiene un vehículo asignado. Por favor, asígnale uno en la gestión de usuarios.",
+                        f"El conductor {conductor.nombres} no tiene un vehículo asignado. "
+                        "Por favor, asígnale uno en la gestión de usuarios.",
                     )
-                    context = {
-                        "orden": orden,
-                        "conductores": conductores,
-                    }
-
+                    context = {"orden": orden, "conductores": conductores}
                     return render(request, "ordenes/asignar_entrega.html", context)
 
                 if orden.conductor and orden.conductor != conductor:
@@ -438,13 +423,22 @@ def crear_entrega(request, orden_id):
                 )
 
                 if not created:
+                    # CORRECCIÓN #4: nunca pisar una entrega ya completada.
+                    if entrega.estado == "entregado":
+                        messages.warning(
+                            request,
+                            f"La entrega del pedido #{orden.codigo_pedido} ya fue marcada como entregada. "
+                            "No se puede reasignar automáticamente.",
+                        )
+                        return redirect("ordenes:lista_pedidos_admin")
+
                     entrega.conductor = conductor
                     entrega.vehiculo = vehiculo
                     entrega.estado = "en_ruta"
                     entrega.direccion_entrega = orden.direccion_destino
                     entrega.save()
 
-                orden.estado = "en_ruta"
+                orden.estado = Orden.EN_RUTA
                 orden.conductor = conductor
                 if not orden.fecha_toma_entrega:
                     orden.fecha_toma_entrega = timezone.now()
@@ -465,30 +459,25 @@ def crear_entrega(request, orden_id):
                     request,
                     f"Pedido #{orden.codigo_pedido} {accion} con éxito a {conductor.nombres}.",
                 )
-
                 return redirect("ordenes:lista_pedidos_admin")
         else:
             messages.error(request, "Por favor selecciona un conductor con vehículo asignado.")
-            context = {
-                "orden": orden,
-                "conductores": conductores,
-            }
-
+            context = {"orden": orden, "conductores": conductores}
             return render(request, "ordenes/asignar_entrega.html", context)
 
-    context = {
-        "orden": orden,
-        "conductores": conductores,
-    }
-
+    context = {"orden": orden, "conductores": conductores}
     return render(request, "ordenes/asignar_entrega.html", context)
 
 
 @login_required
 def descargar_factura(request, id):
     orden = get_object_or_404(Orden, codigo_pedido=id)
-    if request.user.usuario.rol != "admin" and orden.cliente.usuario != request.user.usuario:
-        return HttpResponse("No autorizado", status=403)
+    usuario_actual = request.user
+
+
+    if usuario_actual.rol != "admin":
+        if orden.cliente is None or orden.cliente.usuario_id != usuario_actual.id:
+            return HttpResponse("No autorizado", status=403)
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="factura_{orden.codigo_pedido}.pdf"'
@@ -497,18 +486,17 @@ def descargar_factura(request, id):
     elements = []
     styles = getSampleStyleSheet()
 
-    color_gold = colors.Color(0.95, 0.61, 0.07)  # #F39C12
-    color_dark = colors.Color(0.07, 0.07, 0.07)  # #121212
-    color_accent = colors.Color(0.0, 0.34, 0.7)  # #0056B3
+    color_gold = colors.Color(0.95, 0.61, 0.07)
+    color_dark = colors.Color(0.07, 0.07, 0.07)
+    color_accent = colors.Color(0.0, 0.34, 0.7)
 
     styles["Title"].fontSize = 22
     styles["Title"].textColor = color_accent
-    styles["Title"].alignment = 0  # Left
+    styles["Title"].alignment = 0
 
     elements.append(Paragraph("CONSTRU-TRANS", styles["Title"]))
     elements.append(Paragraph("Suministros y Transporte de Construcción", styles["Italic"]))
     elements.append(Spacer(1, 10))
-
     elements.append(
         Table(
             [[""]],
@@ -519,13 +507,15 @@ def descargar_factura(request, id):
     )
     elements.append(Spacer(1, 20))
 
+
+    cliente_nombre = "N/A"
+    if orden.cliente is not None and getattr(orden.cliente, "usuario", None):
+        cliente_nombre = f"{orden.cliente.usuario.nombres} {orden.cliente.usuario.apellidos}"
+
     info_data = [
         [
             Paragraph(f"<b>FACTURA:</b> #{orden.codigo_pedido}", styles["Normal"]),
-            Paragraph(
-                f"<b>CLIENTE:</b> {orden.cliente.usuario.nombres} {orden.cliente.usuario.apellidos}",
-                styles["Normal"],
-            ),
+            Paragraph(f"<b>CLIENTE:</b> {cliente_nombre}", styles["Normal"]),
         ],
         [
             Paragraph(f"<b>FECHA:</b> {orden.fecha.strftime('%d/%m/%Y %H:%M')}", styles["Normal"]),
@@ -554,43 +544,43 @@ def descargar_factura(request, id):
                 parts.append(s[-3:])
                 s = s[:-3]
             return ".".join(reversed(parts))
-        except Exception:
+        except (TypeError, ValueError):
             return "0"
 
-    # Detalle de Materiales
     data = [["MATERIAL", "CANTIDAD", "PRECIO UNIT.", "SUBTOTAL"]]
-
     detalles = orden.detalles.all()
     if detalles.exists():
         for detalle in detalles:
             subtotal = detalle.cantidad * detalle.precio_unitario
-            precio_u_f = format_money(detalle.precio_unitario)
-            subtotal_f = format_money(subtotal)
             data.append(
-                [detalle.material.nombre.upper(), str(detalle.cantidad), precio_u_f, subtotal_f]
+                [
+                    detalle.material.nombre.upper(),
+                    str(detalle.cantidad),
+                    format_money(detalle.precio_unitario),
+                    format_money(subtotal),
+                ]
             )
     else:
-        precio_formateado = format_money(orden.precio)
-        data.append(["SERVICIO GENERAL", "1", precio_formateado, precio_formateado])
+        data.append(["SERVICIO GENERAL", "1", format_money(orden.precio), format_money(orden.precio)])
 
-    # Filas de Totales
     total_f = format_money(orden.precio)
+
 
     try:
         factura = orden.factura
         total_pagado = format_money(factura.total_pagado)
         por_pagar = format_money(factura.saldo_pendiente)
-    except Exception:
-        total_pagado = "0"
+        nota_pago = ""
+    except (AttributeError, Exception):
+        total_pagado = "—"
         por_pagar = total_f
+        nota_pago = " (factura aún no emitida)"
 
     data.append(["", "", "TOTAL:", total_f])
     data.append(["", "", "PAGADO:", total_pagado])
-    data.append(["", "", "POR PAGAR:", por_pagar])
+    data.append(["", "", f"POR PAGAR:{nota_pago}", por_pagar])
 
     t = Table(data, colWidths=[240, 80, 110, 110])
-
-    # Estilo de la Tabla Detalle
     table_style = [
         ("BACKGROUND", (0, 0), (-1, 0), color_dark),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
@@ -603,32 +593,19 @@ def descargar_factura(request, id):
         ("TOPPADDING", (0, 0), (-1, 0), 12),
         ("GRID", (0, 0), (-1, -4) if len(data) > 5 else (-1, -2), 0.5, colors.grey),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        # Estilo para las filas de totales
         ("FONTNAME", (2, -3), (3, -1), "Helvetica-Bold"),
         ("ALIGN", (2, -3), (3, -1), "RIGHT"),
         ("TEXTCOLOR", (2, -1), (3, -1), color_accent),
         ("FONTSIZE", (2, -1), (3, -1), 12),
     ]
-
     t.setStyle(TableStyle(table_style))
     elements.append(t)
 
     elements.append(Spacer(1, 50))
-
-    # Pie de página / Notas
     notes_data = [
         [Paragraph("<b>NOTAS:</b>", styles["Normal"])],
-        [
-            Paragraph(
-                "1. Esta factura es un soporte legal de la transacción realizada.", styles["Normal"]
-            )
-        ],
-        [
-            Paragraph(
-                "2. Los materiales entregados han sido verificados en calidad y cantidad.",
-                styles["Normal"],
-            )
-        ],
+        [Paragraph("1. Soporte legal de la transacción.", styles["Normal"])],
+        [Paragraph("2. Materiales verificados en calidad y cantidad.", styles["Normal"])],
         [
             Paragraph(
                 f"3. Estado actual del pedido: <b>{orden.get_estado_display().upper()}</b>",
@@ -654,13 +631,9 @@ def descargar_factura(request, id):
     doc.build(elements)
 
     registrar_actividad(
-        request,
-        "otro",
-        "pedidos",
-        orden.codigo_pedido,
+        request, "otro", "pedidos", orden.codigo_pedido,
         f"Factura descargada por {request.user.username}",
     )
-
     return response
 
 
@@ -668,21 +641,26 @@ def descargar_factura(request, id):
 def eliminar_orden(request, id):
     orden = get_object_or_404(Orden, codigo_pedido=id)
     order_id = orden.codigo_pedido
+    db_alias = "remota" if debe_usar_bd_remota() else "default"
 
-    if orden.estado not in ["entregado", "cancelado"]:
-        db_alias = "remota" if debe_usar_bd_remota() else "default"
-        try:
-            with transaction.atomic(using=db_alias):
+    try:
+        with transaction.atomic(using=db_alias):
+
+            # Liberar vehículo SIEMPRE (idempotente).
+            if orden.estado not in (Orden.ENTREGADO, Orden.CANCELADO):
                 revertir_stock_pedido(orden, request.user, "Eliminación", using=db_alias)
-        except Exception as e:
-            messages.error(request, f"Error al devolver stock: {e}")
-            return redirect("ordenes:lista_pedidos_admin")
+            liberar_vehiculo_pedido(orden)
+    except DatabaseError as exc:
+        logger.error("Error BD al limpiar pedido %s: %s", order_id, exc)
+        messages.error(request, f"Error de base de datos: {exc}")
+        return redirect("ordenes:lista_pedidos_admin")
+    except Exception as exc:
+        logger.error("Error limpiando pedido %s: %s", order_id, exc, exc_info=True)
+        messages.error(request, f"Error al limpiar antes de eliminar: {exc}")
+        return redirect("ordenes:lista_pedidos_admin")
 
     registrar_actividad(
-        request,
-        "eliminar",
-        "pedidos",
-        order_id,
+        request, "eliminar", "pedidos", order_id,
         f"Pedido #{order_id} eliminado definitivamente por admin",
     )
     orden.delete()
