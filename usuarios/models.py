@@ -2,14 +2,15 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import now
 from django.core.files.storage import default_storage
 import datetime
 import uuid
 from pathlib import Path
+import logging
 
+logger = logging.getLogger(__name__)
 
 def foto_perfil_upload_path(instance, filename):
     extension = Path(filename or "avatar.jpg").suffix.lower() or ".jpg"
@@ -86,10 +87,6 @@ class Usuario(AbstractUser):
         return self.password
 
     @property
-    def usuario(self):
-        return self
-
-    @property
     def user(self):
         return self
 
@@ -97,19 +94,19 @@ class Usuario(AbstractUser):
     def iniciales(self):
         partes = self.nombres.split()
         return "".join([p[0].upper() for p in partes[:2]]) or "?"
-        
+
     @property
     def nombre_completo(self):
         return f"{self.nombres} {self.apellidos}".strip()
-        
+
     @property
     def nombre_mostrar(self):
         return self.nombre_completo or self.email or self.username or f"Usuario #{self.pk}"
-        
+
     @property
     def documento_mostrar(self):
         return self.documento or "Sin documento"
-        
+
     @property
     def avatar_url(self):
         if not self.foto_perfil or not self.foto_perfil.name:
@@ -117,23 +114,16 @@ class Usuario(AbstractUser):
         try:
             if default_storage.exists(self.foto_perfil.name):
                 return self.foto_perfil.url
-        except Exception:
+        except Exception as exc:
+            logger.warning("No fue posible resolver avatar_url para usuario %s: %s", self.pk, exc)
             return None
         return None
 
     @property
     def color_avatar(self):
         colores = [
-            "#3B82F6",
-            "#EF4444",
-            "#10B981",
-            "#F59E0B",
-            "#8B5CF6",
-            "#EC4899",
-            "#06B6D4",
-            "#84CC16",
-            "#F97316",
-            "#6366F1",
+            "#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6",
+            "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1",
         ]
         return colores[self.id % len(colores)] if self.id else colores[0]
 
@@ -141,12 +131,9 @@ class Usuario(AbstractUser):
         """Crea o devuelve el perfil asociado al rol del usuario."""
         if self.rol == "cliente":
             from clientes.models import Cliente
-
             return Cliente.ensure_for_user(self, using=using)
-
         if self.rol == "conductor":
             return Conductor.ensure_for_user(self, using=using)
-
         return None
 
     @property
@@ -164,6 +151,10 @@ class Usuario(AbstractUser):
     @property
     def es_empleado(self):
         return self.rol == "empleado"
+
+    @property
+    def es_superadmin(self):
+        return bool(getattr(self, "is_superuser", False)) or self.pk == 1
 
     @property
     def conductor_profile(self):
@@ -190,14 +181,12 @@ class Usuario(AbstractUser):
         return self.vehiculo_actual
 
     def esta_bloqueado(self):
-        """Verifica si el usuario está bloqueado actualmente."""
         from django.utils import timezone
         if self.bloqueado_hasta and timezone.now() < self.bloqueado_hasta:
             return True
         return False
 
     def registrar_intento_fallido(self):
-        """Registra un intento fallido y bloquea el usuario si es necesario."""
         from django.utils import timezone
         self.intentos_fallidos += 1
         if self.intentos_fallidos >= 3 and self.nivel_bloqueo < 1:
@@ -209,14 +198,12 @@ class Usuario(AbstractUser):
         self.save()
 
     def reiniciar_intentos(self):
-        """Reinicia los intentos fallidos después de un inicio de sesión exitoso."""
         self.intentos_fallidos = 0
         self.bloqueado_hasta = None
         self.nivel_bloqueo = 0
         self.save()
 
     def obtener_tiempo_restante_bloqueo(self):
-        """Devuelve el tiempo restante de bloqueo en un formato legible."""
         from django.utils import timezone
         if not self.esta_bloqueado():
             return None
@@ -230,15 +217,18 @@ class Usuario(AbstractUser):
         return f"{minutos} minuto(s)"
 
     def save(self, *args, **kwargs):
-        """Sincronizar nombres con first_name/last_name y rol con usuario_rol."""
-        if self.nombres and not self.first_name:
-            self.first_name = self.nombres[:30]
-        if self.apellidos and not self.last_name:
-            self.last_name = self.apellidos[:30]
+        first_name_max = self._meta.get_field("first_name").max_length
+        last_name_max = self._meta.get_field("last_name").max_length
 
-        if self.first_name and self.first_name != (self.nombres or "")[:30]:
+        if self.nombres and not self.first_name:
+            self.first_name = self.nombres[:first_name_max]
+        elif not self.nombres and self.first_name:
+            # sólo copiamos si el lado legacy estaba vacío
             self.nombres = self.first_name
-        if self.last_name and self.last_name != (self.apellidos or "")[:30]:
+
+        if self.apellidos and not self.last_name:
+            self.last_name = self.apellidos[:last_name_max]
+        elif not self.apellidos and self.last_name:
             self.apellidos = self.last_name
 
         super().save(*args, **kwargs)
@@ -246,25 +236,26 @@ class Usuario(AbstractUser):
         if self.rol:
             try:
                 db_alias = kwargs.get("using") or self._state.db or "default"
-                rol_obj, _ = Rol.objects.using(db_alias).get_or_create(
-                    nombre_rol=self.rol,
-                    defaults={"activo": True},
-                )
-                UsuarioRol.objects.using(db_alias).get_or_create(
-                    usuario=self,
-                    rol=rol_obj,
-                    defaults={"activo": True},
-                )
-            except Exception:
-                pass
+                with transaction.atomic(using=db_alias):
+                    rol_obj, _ = Rol.objects.using(db_alias).get_or_create(
+                        nombre_rol=self.rol,
+                        defaults={"activo": True},
+                    )
+                    UsuarioRol.objects.using(db_alias).get_or_create(
+                        usuario=self,
+                        rol=rol_obj,
+                        defaults={"activo": True},
+                    )
+            except IntegrityError as exc:
+                logger.warning("Conflicto de integridad sincronizando rol de usuario %s: %s", self.pk, exc)
+            except DatabaseError as exc:
+                logger.error("Fallo de BD sincronizando rol de usuario %s: %s", self.pk, exc)
 
 
 # =====================================================================
-# ROL - Normalización 3FN
+# ROL
 # =====================================================================
 class Rol(models.Model):
-    """Tabla de roles normalizados para eliminar dependencia transitiva."""
-
     id_rol = models.AutoField(primary_key=True)
     nombre_rol = models.CharField(max_length=50, unique=True)
     descripcion = models.TextField(blank=True, null=True)
@@ -279,16 +270,9 @@ class Rol(models.Model):
         return self.nombre_rol
 
 
-# =====================================================================
-# USUARIO_ROL - Relación N:M para soportar múltiples roles
-# =====================================================================
 class UsuarioRol(models.Model):
-    """Permite que un usuario tenga múltiples roles."""
-
     id_usuario_rol = models.AutoField(primary_key=True)
-    usuario = models.ForeignKey(
-        Usuario, on_delete=models.CASCADE, related_name="usuario_roles"
-    )
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="usuario_roles")
     rol = models.ForeignKey(Rol, on_delete=models.CASCADE, related_name="usuarios")
     fecha_asignacion = models.DateTimeField(auto_now_add=True)
     fecha_revocacion = models.DateTimeField(null=True, blank=True)
@@ -304,9 +288,6 @@ class UsuarioRol(models.Model):
         return f"{self.usuario.nombres} - {self.rol.nombre_rol}"
 
 
-# =====================================================================
-# EPS
-# =====================================================================
 class EPS(models.Model):
     codigo_eps = models.CharField(max_length=20, primary_key=True)
     numero_seguro = models.CharField(max_length=50)
@@ -323,9 +304,6 @@ class EPS(models.Model):
         return f"EPS {self.codigo_eps}"
 
 
-# =====================================================================
-# CONDUCTOR
-# =====================================================================
 class Conductor(models.Model):
     usuario = models.OneToOneField(
         Usuario, on_delete=models.CASCADE, primary_key=True, related_name="perfil_conductor"
@@ -348,18 +326,13 @@ class Conductor(models.Model):
 
     @classmethod
     def ensure_for_user(cls, user, using=None, defaults=None):
-        """Crea o devuelve el perfil de conductor para un usuario persistido."""
         if user is None:
             raise ValueError("Se requiere un usuario válido para crear el perfil de conductor.")
-
         if not getattr(user, "pk", None):
-            raise ValueError(
-                "El usuario debe existir en base de datos antes de crear el perfil de conductor."
-            )
+            raise ValueError("El usuario debe existir en base de datos antes de crear el perfil de conductor.")
 
         db_alias = using or getattr(getattr(user, "_state", None), "db", None) or "default"
         user_for_profile = cls._resolve_user_for_db(user, db_alias)
-
         if user_for_profile is None:
             raise ValueError("No fue posible resolver un usuario válido para el perfil de conductor.")
 
@@ -382,17 +355,14 @@ class Conductor(models.Model):
     def _resolve_user_for_db(user, db_alias):
         if getattr(getattr(user, "_state", None), "db", None) == db_alias:
             return user
-
         try:
             return Usuario.objects.using(db_alias).get(pk=user.pk)
         except Usuario.DoesNotExist:
             pass
-
         try:
             return Usuario.objects.using(db_alias).get(username=user.username)
         except Usuario.DoesNotExist:
             pass
-
         mirrored_user, _ = Usuario.objects.using(db_alias).update_or_create(
             username=user.username,
             defaults={
@@ -440,34 +410,11 @@ class Conductor(models.Model):
     def asignar_vehiculo(self, vehiculo):
         if vehiculo is None:
             raise ValueError("El vehículo no puede ser None para la asignación.")
-
         if self.vehiculo_actual and self.vehiculo_actual.id_vehiculo == vehiculo.id_vehiculo:
             return self.vehiculo_actual
-
         self.asignaciones_vehiculo.filter(fecha_fin__isnull=True).update(fecha_fin=now())
         nueva_asignacion = ConductorVehiculo.objects.create(conductor=self, vehiculo=vehiculo)
         return nueva_asignacion
-
-
-# =====================================================================
-# VEHICULO
-# =====================================================================
-# Desactivado temporalmente para evitar bloqueos en creación de usuarios
-# @receiver(post_save, sender="usuarios.Usuario")
-# def crear_perfil_conductor(sender, instance, created, **kwargs):
-#     """Auto-crea perfil de conductor cuando un usuario pasa a ser conductor."""
-#     if instance.rol != "conductor":
-#         return
-#
-#     using = kwargs.get("using") or instance._state.db or "default"
-#     if created:
-#         Conductor.ensure_for_user(instance, using=using)
-#         return
-#
-#     try:
-#         instance.perfil_conductor
-#     except Conductor.DoesNotExist:
-#         Conductor.ensure_for_user(instance, using=using)
 
 
 class Vehiculo(models.Model):
@@ -534,9 +481,6 @@ class Vehiculo(models.Model):
         return asignacion.conductor.usuario if asignacion else None
 
 
-# =====================================================================
-# CONDUCTOR_VEHICULO
-# =====================================================================
 class ConductorVehiculo(models.Model):
     conductor = models.ForeignKey(
         Conductor, on_delete=models.CASCADE, related_name="asignaciones_vehiculo"
@@ -556,9 +500,6 @@ class ConductorVehiculo(models.Model):
         return f"{self.conductor} - {self.vehiculo.placa}"
 
 
-# =====================================================================
-# CATALOGO
-# =====================================================================
 class Catalogo(models.Model):
     codigo_catalogo = models.CharField(max_length=20, primary_key=True)
     nombre_empresa = models.CharField(max_length=150)
@@ -570,9 +511,6 @@ class Catalogo(models.Model):
         return self.nombre_empresa
 
 
-# =====================================================================
-# PROVEEDOR
-# =====================================================================
 class Proveedor(models.Model):
     codigo_proveedor = models.AutoField(primary_key=True)
     nombre_empresa = models.CharField(max_length=150)
@@ -623,15 +561,7 @@ class Proveedor(models.Model):
         super().save(*args, **kwargs)
 
 
-# =====================================================================
-# UNIDAD_MEDIDA
-# =====================================================================
 class UnidadMedida(models.Model):
-    """
-    Tabla de referencia para unidades de medida estandarizadas.
-    Garantiza consistencia en toda la aplicación.
-    """
-
     id_unidad = models.AutoField(primary_key=True)
     codigo = models.CharField(max_length=10, unique=True, db_index=True)
     nombre = models.CharField(max_length=50, unique=True)
@@ -656,9 +586,6 @@ class UnidadMedida(models.Model):
         return self.id_unidad
 
 
-# =====================================================================
-# MATERIAL_CONSTRUCCION
-# =====================================================================
 class MaterialConstruccion(models.Model):
     cod_material = models.AutoField(primary_key=True)
     catalogo = models.ForeignKey(
@@ -718,9 +645,6 @@ class MaterialConstruccion(models.Model):
         return self.catalogo.nombre_empresa if self.catalogo else ""
 
 
-# =====================================================================
-# HISTORIAL PRECIO MATERIAL
-# =====================================================================
 class HistorialPrecioMaterial(models.Model):
     material = models.ForeignKey(MaterialConstruccion, on_delete=models.CASCADE, related_name="historial_precios")
     precio_anterior = models.DecimalField(max_digits=12, decimal_places=2)
@@ -748,9 +672,6 @@ class HistorialPrecioMaterial(models.Model):
         super().save(*args, **kwargs)
 
 
-# =====================================================================
-# STOCK
-# =====================================================================
 class Stock(models.Model):
     material = models.OneToOneField(
         MaterialConstruccion, on_delete=models.CASCADE, primary_key=True, related_name="stock_info"
@@ -791,9 +712,6 @@ class Stock(models.Model):
         return self.fecha_actualizacion
 
 
-# =====================================================================
-# METODO_PAGO
-# =====================================================================
 class MetodoPago(models.Model):
     codigo_metodo_pago = models.CharField(max_length=20, primary_key=True)
     metodo = models.CharField(max_length=50, unique=True)
@@ -807,9 +725,6 @@ class MetodoPago(models.Model):
         return self.metodo
 
 
-# =====================================================================
-# NOTIFICACION - No tocar
-# =====================================================================
 class Notificacion(models.Model):
     TIPOS = [
         ("info", "Información"),
@@ -834,3 +749,7 @@ class Notificacion(models.Model):
 
 
 Material = MaterialConstruccion
+
+
+# Imports que requiere el nuevo save() lazy en el bloque condicional.
+from django.db import IntegrityError, DatabaseError  # noqa: E402
