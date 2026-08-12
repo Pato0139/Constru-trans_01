@@ -1,4 +1,5 @@
 import logging
+import re
 from functools import wraps
 
 from django.conf import settings
@@ -32,7 +33,7 @@ from .models import (
 from .models import (
     MaterialConstruccion as Material,
 )
-from .utils import get_account_switch_options, limpiar_telefono
+from .utils import get_account_switch_options, limpiar_documento, limpiar_telefono
 
 logger = logging.getLogger(__name__)
 
@@ -41,27 +42,15 @@ def admin_required(view_func):
     @wraps(view_func)
     @login_required
     def _wrapped_view(request, *args, **kwargs):
-        try:
-            if request.user.usuario.rol == "admin":
-                return view_func(request, *args, **kwargs)
-        except Usuario.DoesNotExist:
-            if request.user.is_superuser:
-                Usuario.objects.create(
-                    user=request.user,
-                    rol="admin",
-                    nombres=request.user.first_name or "Admin",
-                    apellidos=request.user.last_name or "Principal",
-                    tipo_documento="CC",
-                    documento="12345678",
-                )
-                return view_func(request, *args, **kwargs)
-        raise PermissionDenied
+        usuario = request.user  # CORRECCIÓN #2: ya es un Usuario.
+        if usuario.rol != "admin":
+            raise PermissionDenied
+        return view_func(request, *args, **kwargs)
 
     return _wrapped_view
 
 
 def cambiar_cuenta(request, rol):
-    """Permite cambiar entre las vistas de cuenta disponibles desde el perfil."""
     if not request.user.is_authenticated:
         return redirect("usuarios:login")
 
@@ -81,7 +70,6 @@ def cambiar_cuenta(request, rol):
     messages.success(request, f"Ahora estás en la cuenta de {target['label']}.")
     return redirect(target["panel"])
 
-
 def buscar_usuarios_generales(query=None):
     """
     Lógica unificada para buscar usuarios por nombre, email o documento.
@@ -95,11 +83,16 @@ def buscar_usuarios_generales(query=None):
     return usuarios
 
 
+def buscar_usuarios_generales(query=None):
+    usuarios = Usuario.objects.all().select_related("perfil_cliente").order_by("-id")
+    if query:
+        usuarios = usuarios.filter(
+            Q(nombres__icontains=query) | Q(email__icontains=query) | Q(documento__icontains=query)
+        )
+    return usuarios
+
+
 def buscar_conductores(query=None):
-    """
-    Lógica unificada para buscar conductores por múltiples campos.
-    Optimizado con select_related para evitar N+1.
-    """
     conductores = Usuario.objects.filter(rol="conductor")
     if query:
         conductores = conductores.filter(
@@ -126,7 +119,7 @@ def registro(request):
         confirmar_contrasena = request.POST.get("confirmar_contrasena")
         telefono = limpiar_telefono(request.POST.get("telefono"))
         tipo_documento = request.POST.get("tipo_documento")
-        documento = limpiar_telefono(request.POST.get("documento"))
+        documento = limpiar_documento(request.POST.get("documento"))
         pais_codigo = request.POST.get("pais_codigo", "+57")
 
         logger.info(f"Intentando registro: {correo}")
