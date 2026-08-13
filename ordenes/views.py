@@ -169,7 +169,7 @@ def lista_entregas_admin(request):
 @login_required
 def ver_pedido_admin(request, id):
     orden = get_object_or_404(Orden, codigo_pedido=id)
-     usuario_actual = request.user
+    usuario_actual = request.user
     if usuario_actual.rol == "cliente":
         if orden.cliente is None or orden.cliente.usuario_id != usuario_actual.id:
             messages.error(request, "No tienes permiso para ver este pedido.")
