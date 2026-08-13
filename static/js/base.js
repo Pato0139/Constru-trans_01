@@ -267,6 +267,7 @@ function initTableScrollability() {
         checkScroll();
         window.addEventListener('resize', checkScroll, { passive: true });
     });
+
 }
 
 // Inicializar al cargar la página

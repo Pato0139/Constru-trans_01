@@ -92,6 +92,11 @@ class Usuario(AbstractUser):
         return self
 
     @property
+    def usuario(self):
+        """Compatibilidad con vistas antiguas que usan request.user.usuario."""
+        return self
+
+    @property
     def iniciales(self):
         partes = self.nombres.split()
         return "".join([p[0].upper() for p in partes[:2]]) or "?"
