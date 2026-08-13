@@ -25,6 +25,23 @@ from core.despacho import (
 from .models import Cliente
 
 
+def pedidos_visibles_para_cliente(usuario_local, usuario_remoto):
+    ids = [u.id for u in [usuario_local, usuario_remoto] if u]
+    usernames = [u.username for u in [usuario_local, usuario_remoto] if u and u.username]
+
+    return (
+        Pedido.objects.filter(
+            Q(usuario_id__in=ids)
+            | Q(cliente__usuario_id__in=ids)
+            | Q(usuario__username__in=usernames)
+            | Q(cliente__usuario__username__in=usernames)
+        )
+        .select_related("cliente__usuario", "conductor")
+        .prefetch_related("detalles", "entregas")
+        .distinct()
+        .order_by("-fecha_solicitud")
+    )
+
 def _contexto_formulario_pedido(**extra):
     return {"ciudades_despacho": CIUDADES_DESPACHO, **extra}
 
@@ -70,23 +87,20 @@ def _obtener_cliente_local(usuario_local, using="default"):
     return cliente_local
 
 
-def pedidos_visibles_para_cliente(usuario_local, usuario_remoto):
-    ids = [u.id for u in [usuario_local, usuario_remoto] if u]
-    usernames = [u.username for u in [usuario_local, usuario_remoto] if u and u.username]
+def mis_facturas(request):
+    try:
+        cliente = request.user.cliente  # si el related_name es "cliente"
+    except Cliente.DoesNotExist:
+        cliente = None
 
-    return (
-        Pedido.objects.filter(
-            Q(usuario_id__in=ids)
-            | Q(cliente__usuario_id__in=ids)
-            | Q(usuario__username__in=usernames)
-            | Q(cliente__usuario__username__in=usernames)
+    if cliente is None:
+        facturas = Factura.objects.none()
+    else:
+        facturas = (
+            Factura.objects.filter(cliente=cliente)
+            .select_related("pedido")
+            .prefetch_related("pagos")
         )
-        .select_related("cliente__usuario", "conductor")
-        .prefetch_related("detalles", "entregas")
-        .distinct()
-        .order_by("-fecha_solicitud")
-    )
-
 
 def _obtener_catalogo_local(catalogo):
     if not catalogo:
@@ -228,7 +242,10 @@ def panel_cliente(request):
         return redirect("usuarios:login")
 
     pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto)
-    pagos = Pago.objects.filter(factura__cliente__in=[usuario, usuario_remoto])
+    pagos = Pago.objects.filter(
+        Q(factura__cliente__usuario__in=[usuario, usuario_remoto])
+        | Q(factura__cliente_usuario__in=[usuario, usuario_remoto])
+    )
     context = {
         "pedidos_activos": pedidos.filter(estado="pendiente").count(),
         "entregas": pedidos.filter(estado="entregado").count(),
@@ -774,14 +791,21 @@ def mis_pagos(request):
 
     # Facturas pendientes (para pagar)
     facturas_pendientes = (
-        Factura.objects.filter(cliente__in=[usuario, usuario_remoto], estado="pendiente")
+        Factura.objects.filter(
+            Q(cliente__usuario__in=[usuario, usuario_remoto])
+            | Q(cliente_usuario__in=[usuario, usuario_remoto]),
+            estado="pendiente",
+        )
         .select_related("pedido")
         .prefetch_related("pagos")
     )
 
     # Historial de pagos
     pagos = (
-        Pago.objects.filter(factura__cliente__in=[usuario, usuario_remoto])
+        Pago.objects.filter(
+            Q(factura__cliente__usuario__in=[usuario, usuario_remoto])
+            | Q(factura__cliente_usuario__in=[usuario, usuario_remoto])
+        )
         .select_related("factura", "factura__pedido", "codigo_metodo_pago")
         .order_by("-fecha")
     )
