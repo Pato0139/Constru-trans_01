@@ -42,12 +42,98 @@ def admin_required(view_func):
     @wraps(view_func)
     @login_required
     def _wrapped_view(request, *args, **kwargs):
-        usuario = request.user  # CORRECCIÓN #2: ya es un Usuario.
+        usuario = request.user 
         if usuario.rol != "admin":
             raise PermissionDenied
         return view_func(request, *args, **kwargs)
 
     return _wrapped_view
+
+def _buscar_qs_por_rol(rol, query=None):
+    qs = Usuario.objects.select_related("perfil_cliente").order_by("-id")
+    if rol is not None:
+        qs = qs.filter(rol=rol)
+    if query:
+            qs = qs.filter(
+                Q(nombres__icontains=query)
+                | Q(email__icontains=query)
+                | Q(documento__icontains=query)
+            )
+    return qs
+
+
+def _fusionar_listas_usuarios(qs_local, qs_remota):
+    """Fusiona dos querysets/listas de usuarios evitando duplicados por id."""
+    seen = set()
+    merged = []
+    for obj in list(qs_local) + list(qs_remota):
+        if obj.id in seen:
+            continue
+        seen.add(obj.id)
+        merged.append(obj)
+    merged.sort(key=lambda u: u.id, reverse=True)
+    return merged
+
+
+def _lista_usuarios_unificada_por_rol(rol, query=None):
+    """
+    Devuelve la lista de usuarios unificada (local + remota si está disponible).
+
+    Optimización anti-hang:
+      - Si el usuario ya eligió PREF_LOCAL, NO consultamos remota (ya se salió de la nube).
+      - Solo consultamos remota si NO hay PREF_LOCAL y hay caché positiva (para no
+        disparar un TCP connect de 2s+ en cada request cuando la nube está offline).
+    """
+    from django.conf import settings
+    from django.core.cache import cache
+
+    qs_local = _buscar_qs_por_rol(rol, query).using("default")
+    qs_remota = []
+
+    preferencia_actual = get_db_preference()
+    if preferencia_actual == PREF_LOCAL:
+        return list(qs_local)
+
+    remota_ok_cache = cache.get("core:conexion_remota_disponible")
+    if remota_ok_cache is False:
+        return list(qs_local)
+
+    if "remota" not in settings.DATABASES:
+        return list(qs_local)
+
+    if remota_ok_cache is None:
+        remota_disponible = conexion_remota_disponible()
+    else:
+        remota_disponible = remota_ok_cache
+
+    if remota_disponible:
+        try:
+            qs_remota = list(_buscar_qs_por_rol(rol, query).using("remota"))
+        except Exception:
+            qs_remota = []
+
+    return _fusionar_listas_usuarios(qs_local, qs_remota)
+
+
+@admin_required
+def lista_usuarios(request):
+    query = request.GET.get("q")
+    active_tab = request.GET.get("tab", "general")
+
+    usuarios_todos = _lista_usuarios_unificada_por_rol(None, query)
+    clientes = _lista_usuarios_unificada_por_rol("cliente", query)
+    conductores = _lista_usuarios_unificada_por_rol("conductor", query)
+    admins = _lista_usuarios_unificada_por_rol("admin", query)
+
+    context = {
+        "usuarios_todos": usuarios_todos,
+        "clientes": clientes,
+        "conductores": conductores,
+        "admins": admins,
+        "query": query,
+        "active_tab": active_tab,
+    }
+    return render(request, "usuarios/lista.html", context)
 
 
 def cambiar_cuenta(request, rol):
@@ -70,26 +156,14 @@ def cambiar_cuenta(request, rol):
     messages.success(request, f"Ahora estás en la cuenta de {target['label']}.")
     return redirect(target["panel"])
 
+
 def buscar_usuarios_generales(query=None):
     """
     Lógica unificada para buscar usuarios por nombre, email o documento.
     Optimizado con select_related para evitar N+1 en plantillas.
+    Versión unificada (local + remota) para vistas que aún la usen.
     """
-    usuarios = Usuario.objects.all().select_related("perfil_cliente").order_by("-id")
-    if query:
-        usuarios = usuarios.filter(
-            Q(nombres__icontains=query) | Q(email__icontains=query) | Q(documento__icontains=query)
-        )
-    return usuarios
-
-
-def buscar_usuarios_generales(query=None):
-    usuarios = Usuario.objects.all().select_related("perfil_cliente").order_by("-id")
-    if query:
-        usuarios = usuarios.filter(
-            Q(nombres__icontains=query) | Q(email__icontains=query) | Q(documento__icontains=query)
-        )
-    return usuarios
+    return _lista_usuarios_unificada_por_rol(None, query)
 
 
 def buscar_conductores(query=None):
@@ -178,7 +252,6 @@ def registro(request):
                     "message": "¡Listo! Ya quedó registrado. Ahora puede entrar.",
                     "redirect_url": reverse("usuarios:login")
                 })
-
             messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
             return redirect("usuarios:login")
 
@@ -186,10 +259,7 @@ def registro(request):
             logger.error(f"Error en registro {correo}: {str(e)}", exc_info=True)
             error_msg = f"Error al crear el usuario: {str(e)}"
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                return JsonResponse({
-                    "status": "error",
-                    "message": error_msg
-                }, status=400)
+                return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
             return render(request, "usuarios/registro.html", {"form": RegistroForm()})
 
@@ -204,34 +274,31 @@ def registro(request):
 
 
 def login_usuario(request):
-    # Si el usuario ya está autenticado, redirigir al panel correspondiente
     if request.user.is_authenticated:
-        try:
-            usuario = request.user.usuario
-            if usuario.rol in {"admin", "empleado"}:
-                return redirect("usuarios:panel")
-            elif usuario.rol == "cliente":
-                return redirect("clientes:panel_cliente")
-            elif usuario.rol == "conductor":
-                return redirect("usuarios:panel_conductor")
-        except (Usuario.DoesNotExist, AttributeError):
-            logout(request)
-            return redirect("usuarios:login")
+    try:
+        usuario = request.user.usuario
+    except (Usuario.DoesNotExist, AttributeError):
+        usuario = request.user
 
-        # Usuario autenticado con rol no soportado; limpiar sesión para evitar bucles
+    rol = getattr(usuario, "rol", None)
+    if rol in {"admin", "empleado"}:
+        return redirect("usuarios:panel")
+    elif rol == "cliente":
+        return redirect("clientes:panel_cliente")
+    elif rol == "conductor":
+        return redirect("usuarios:panel_conductor")
+
+    # Si no se pudo determinar el rol o es no soportado, cerrar sesión y redirigir
+    if rol is None:
         logout(request)
-        messages.error(
-            request,
-            "No se puede acceder con este tipo de usuario. Por favor inicia sesión con una cuenta válida."
-        )
         return redirect("usuarios:login")
 
-    # Desactivado para optimizar rendimiento - sincronización se hará en background
-    # if conexion_remota_disponible():
-    #     try:
-    #         sync_all_usuarios()
-    #     except Exception as e:
-    #         logger.error(f"Error sincronizando en login: {e}")
+    logout(request)
+    messages.error(
+        request,
+        "No se puede acceder con este tipo de usuario. Por favor inicia sesión con una cuenta válida."
+    )
+    return redirect("usuarios:login")
 
     modo_local = not conexion_remota_disponible()
 
@@ -241,7 +308,6 @@ def login_usuario(request):
             identifier = form.cleaned_data.get("username")
             password = form.cleaned_data.get("password")
 
-            # Primero, intentamos obtener el usuario para verificar si está bloqueado
             user_obj = None
             try:
                 user_obj = User.objects.get(username=identifier)
@@ -251,7 +317,6 @@ def login_usuario(request):
                 except User.DoesNotExist:
                     pass
 
-            # Verificamos si el usuario está bloqueado
             if user_obj:
                 if user_obj.esta_bloqueado():
                     tiempo_restante = user_obj.obtener_tiempo_restante_bloqueo()
@@ -263,7 +328,6 @@ def login_usuario(request):
                     context = {"form": form, "modo_local": modo_local}
                     return render(request, "usuarios/login.html", context)
 
-            # Ahora intentamos autenticar
             user = authenticate(request, username=identifier, password=password)
 
             if user is None:
@@ -274,9 +338,7 @@ def login_usuario(request):
                     user = None
 
             if user is not None:
-                # Inicio de sesión exitoso: reiniciamos intentos
                 user.reiniciar_intentos()
-
                 if user.rol in {"cliente", "conductor"}:
                     user.ensure_profile_for_role()
 
@@ -290,15 +352,16 @@ def login_usuario(request):
                     request.session.set_expiry(1209600)
                 else:
                     request.session.set_expiry(0)
-
                 request.session.save()
 
                 try:
                     registrar_actividad(
                         request, "login", "usuarios", user.id, f"Inicio de sesión: {user.username}"
                     )
-                except Exception:
-                    pass
+                except IntegrityError as exc:
+                    logger.warning("Conflicto historial en login de %s: %s", user.username, exc)
+                except Exception as exc:
+                    logger.error("Fallo registrando actividad de login: %s", exc)
 
                 messages.success(request, f"¡Bienvenido de nuevo, {user.nombres}!")
 
@@ -316,7 +379,6 @@ def login_usuario(request):
                     "usuarios:panel"
                 )
 
-                # Check if request is AJAX
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
                     return JsonResponse({
                         "status": "success",
@@ -326,7 +388,6 @@ def login_usuario(request):
 
                 return redirect(redirect_target)
             else:
-                # Inicio de sesión fallido: registramos intento
                 error_message = "Usuario o contraseña incorrectos."
                 if user_obj:
                     user_obj.registrar_intento_fallido()
@@ -343,22 +404,16 @@ def login_usuario(request):
                             messages.error(request, error_message)
                 else:
                     messages.error(request, error_message)
-                
-                # Check if request is AJAX
+
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                    return JsonResponse({
-                        "status": "error",
-                        "message": error_message
-                    }, status=400)
+                    return JsonResponse({"status": "error", "message": error_message}, status=400)
         else:
-            # Form validation errors
             error_message = "Por favor corrige los errores en el formulario."
             for field, errors in form.errors.items():
                 for error in errors:
                     error_message = f"{field}: {error}"
                     messages.error(request, error_message)
-            
-            # Check if request is AJAX
+
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 errors_dict = {}
                 for field, error_list in form.errors.items():
@@ -366,15 +421,13 @@ def login_usuario(request):
                 return JsonResponse({
                     "status": "error",
                     "message": error_message,
-                    "errors": errors_dict
+                    "errors": errors_dict,
                 }, status=400)
-            pass
 
     else:
         form = LoginForm()
 
     context = {"form": form, "modo_local": modo_local}
-
     return render(request, "usuarios/login.html", context)
 
 
@@ -385,38 +438,23 @@ def login_usuario(request):
 
 @login_required
 def panel(request):
-    try:
-        usuario = request.user.usuario
-    except Usuario.DoesNotExist:
-        usuario = Usuario.objects.create(
-            user=request.user,
-            nombres=request.user.username.split("@")[0],
-            apellidos="Admin" if request.user.is_staff else "Usuario",
-            rol="admin" if request.user.is_staff else "cliente",
-            tipo_documento="CC",
-            documento="00000000",
-            estado="activo",
-        )
-        if usuario.rol in {"cliente", "conductor"}:
-            usuario.ensure_profile_for_role()
+    usuario = request.user
 
     if usuario.rol in {"admin", "empleado"}:
         from django.core.cache import cache
-
         from core.utils import get_cache_key
 
-        cache_key = get_cache_key("panel_admin_v2", request.user.id)
-
+        cache_key = get_cache_key("panel_admin_v2", usuario.id)
         context = cache.get(cache_key)
 
         if not context:
             context = {
                 "pedidos_pendientes": Pedido.objects.filter(estado="pendiente").count(),
-                "conductores": Usuario.objects.filter(rol="conductor").select_related('user').count(),
+                "conductores": Usuario.objects.filter(rol="conductor").count(),
                 "entregas_hoy": Pedido.objects.filter(
                     estado="entregado", fecha_solicitud__date=now().date()
                 ).count(),
-                "clientes": Usuario.objects.filter(rol="cliente").select_related('user').count(),
+                "clientes": Usuario.objects.filter(rol="cliente").count(),
                 "pedidos_recientes": Pedido.objects.select_related(
                     "usuario", "cliente__usuario"
                 ).order_by("-fecha_solicitud")[:5],
@@ -436,7 +474,6 @@ def panel(request):
     logout(request)
     return redirect("usuarios:login")
 
-
 # =====================================================================
 # CONDUCTOR
 # =====================================================================
@@ -445,19 +482,21 @@ def panel(request):
 @login_required
 def panel_conductor(request):
     try:
-        usuario = request.user.usuario
-    except Usuario.DoesNotExist:
+        try:
+            usuario = request.user.usuario
+        except (Usuario.DoesNotExist, AttributeError):
+            usuario = request.user
+    except Exception:
         logout(request)
         return redirect("usuarios:login")
 
-    if usuario.rol != "conductor":
+    if getattr(usuario, "rol", None) != "conductor":
         messages.error(request, "No tienes permisos para acceder al panel de conductor.")
         return redirect("usuarios:panel")
 
-    conductor_perfil = usuario.conductor_profile
+    conductor_perfil = getattr(usuario, "conductor_profile", None)
     if conductor_perfil is None:
         conductor_perfil, _ = Conductor.ensure_for_user(usuario)
-
     pedidos_asignados = (
         Pedido.objects.filter(conductor=conductor_perfil)
         .select_related("usuario", "cliente__usuario")
@@ -471,23 +510,28 @@ def panel_conductor(request):
         "pedidos": pedidos_asignados,
         "entregas_totales": entregas_completadas.count(),
         "pedidos_pendientes": pedidos_asignados.count(),
-        "ultima_entrega": entregas_completadas.order_by("-fecha").first(),
+        "ultima_entrega": entregas_completadas.order_by("-fecha_solicitud").first(),
     }
     return render(request, "usuarios/panel-conductor.html", context)
 
 
 @login_required
 def pedidos_conductor(request):
-    usuario = request.user.usuario
+    try:
+        usuario = request.user.usuario
+    except (Usuario.DoesNotExist, AttributeError):
+        usuario = request.user
+
     if usuario.rol != "conductor":
         messages.error(request, "No tienes permisos para acceder a esta sección.")
         return redirect("usuarios:panel")
-    conductor_perfil = usuario.conductor_profile
+
+    conductor_perfil = getattr(usuario, "conductor_profile", None)
     if conductor_perfil is None:
         conductor_perfil, _ = Conductor.ensure_for_user(usuario)
+
     pedidos = Pedido.objects.filter(conductor=conductor_perfil).exclude(estado="entregado").select_related("usuario", "cliente__usuario")
 
-    # Apply filters
     id_pedido = request.GET.get("id_pedido")
     origen = request.GET.get("origen")
     destino = request.GET.get("destino")
@@ -514,24 +558,28 @@ def pedidos_conductor(request):
         "fecha": fecha,
         "estado": estado,
     }
-
     return render(request, "usuarios/pedidos_conductor.html", context)
 
 
 @login_required
 def mis_entregas(request):
-    usuario = request.user.usuario
+    try:
+        usuario = request.user.usuario
+    except (Usuario.DoesNotExist, AttributeError):
+        usuario = request.user
+
     if usuario.rol != "conductor":
         messages.error(request, "No tienes permisos para acceder a esta sección.")
         return redirect("usuarios:panel")
-    conductor_perfil = usuario.conductor_profile
+
+    conductor_perfil = getattr(usuario, "conductor_profile", None)
     if conductor_perfil is None:
         conductor_perfil, _ = Conductor.ensure_for_user(usuario)
-    entregas = Pedido.objects.filter(conductor=conductor_perfil).select_related("usuario", "cliente__usuario").order_by(
-        "-fecha_solicitud"
-    )
 
-    # Apply filters
+    entregas = Pedido.objects.filter(conductor=conductor_perfil).select_related(
+        "usuario", "cliente__usuario"
+    ).order_by("-fecha_solicitud")
+
     id_pedido = request.GET.get("id_pedido")
     origen = request.GET.get("origen")
     destino = request.GET.get("destino")
@@ -558,17 +606,12 @@ def mis_entregas(request):
         "fecha": fecha,
         "estado": estado,
     }
-
     return render(request, "usuarios/mis-entregas.html", context)
 
 
 @login_required
 def perfil_admin(request):
-    try:
-        usuario = request.user.usuario
-    except Usuario.DoesNotExist:
-        logout(request)
-        return redirect("usuarios:login")
+    usuario = request.user  
 
     try:
         materiales_count = Material.objects.count()
@@ -590,11 +633,7 @@ def perfil_admin(request):
 
 @login_required
 def editar_perfil(request):
-    try:
-        usuario = request.user.usuario
-    except Usuario.DoesNotExist:
-        logout(request)
-        return redirect("usuarios:login")
+    usuario = request.user 
 
     if request.method == "POST":
         nombres = request.POST.get("nombres")
@@ -603,12 +642,11 @@ def editar_perfil(request):
         email = request.POST.get("email")
 
         if "foto_perfil" in request.FILES:
-            # Eliminar foto anterior si existe
             if usuario.foto_perfil:
                 try:
                     usuario.foto_perfil.delete(save=False)
-                except Exception:
-                    pass
+                except OSError as exc:
+                    logger.warning("No se pudo borrar foto anterior: %s", exc)
             usuario.foto_perfil = request.FILES["foto_perfil"]
 
         usuario.nombres = nombres
@@ -618,7 +656,7 @@ def editar_perfil(request):
 
         if email:
             usuario.email = email
-            usuario.username = email  # Sincronizar username con email
+            usuario.username = email
 
         try:
             usuario.save()
@@ -635,7 +673,6 @@ def editar_perfil(request):
             return redirect("clientes:perfil_cliente")
 
     context = {"usuario": usuario}
-
     return render(request, "usuarios/editar_perfil.html", context)
 
 
@@ -646,7 +683,7 @@ def editar_perfil(request):
 
 @login_required
 def crear_usuario(request):
-    if request.user.usuario.rol != "admin":
+    if request.user.rol != "admin":
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
             return JsonResponse({"status": "error", "message": "No tienes permisos."}, status=403)
         messages.error(request, "No tienes permisos para realizar esta acción.")
@@ -660,14 +697,14 @@ def crear_usuario(request):
         telefono = limpiar_telefono(request.POST.get("telefono"))
         rol = request.POST.get("rol")
         tipo_doc = request.POST.get("tipo_doc")
-        documento = limpiar_telefono(request.POST.get("documento"))
+        documento = limpiar_documento(request.POST.get("documento"))
 
         logger.info(f"Intentando crear usuario: {email}, rol: {rol}")
 
         # Validación básica simplificada
         if not all([nombres, apellidos, email, password, telefono, rol, tipo_doc, documento]):
             error_msg = "Todos los campos son obligatorios."
-            logger.warning(f"Campos incompletos")
+            logger.warning("Campos incompletos")
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
@@ -677,7 +714,6 @@ def crear_usuario(request):
         try:
             # Creación directa de usuario - MÁS SIMPLE POSIBLE
             logger.info(f"Creando usuario directamente: {email}")
-            # Forzar uso de base de datos local para evitar latencia
             user = User.objects.db_manager('default').create_user(
                 username=email,
                 email=email,
@@ -704,9 +740,9 @@ def crear_usuario(request):
                         fecha_vencimiento_licencia=now().date(),
                         estado="activo",
                     )
-                    logger.info(f"Perfil de conductor creado")
-                except Exception as e:
-                    logger.warning(f"Error creando perfil conductor (no crítico): {str(e)}")
+                    logger.info("Perfil de conductor creado")
+                except IntegrityError as exc:
+                    logger.warning("Perfil conductor no creado por conflicto: %s", exc)
 
             # Foto de perfil si existe
             if "foto_perfil" in request.FILES:
@@ -716,20 +752,26 @@ def crear_usuario(request):
             # RESPUESTA INMEDIATA sin registrar actividad
             success_msg = f"Usuario {nombres} creado correctamente."
             logger.info(f"Proceso completado exitosamente para: {email}")
-            
+
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "success", "message": success_msg})
 
             messages.success(request, success_msg)
             return redirect("usuarios:lista_usuarios")
 
+        except IntegrityError as exc:
+            logger.warning("Conflicto creando usuario %s: %s", email, exc)
+            error_msg = f"Ya existe un usuario con esos datos."
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"status": "error", "message": error_msg}, status=400)
+            messages.error(request, error_msg)
+            context = {"error": error_msg, "form_data": request.POST, "action": "crear"}
+            return render(request, "usuarios/form.html", context)
         except Exception as e:
             logger.error(f"Error creando usuario {email}: {str(e)}", exc_info=True)
             error_msg = f"Error al crear usuario: {str(e)}"
-            
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=500)
-
             messages.error(request, error_msg)
             context = {"error": error_msg, "form_data": request.POST, "action": "crear"}
             return render(request, "usuarios/form.html", context)
@@ -739,37 +781,14 @@ def crear_usuario(request):
 
 
 @login_required
-def lista_usuarios(request):
-    query = request.GET.get("q")
-    active_tab = request.GET.get("tab", "general")
-
-    usuarios_list = buscar_usuarios_generales(query)
-
-    admins = usuarios_list.filter(rol="admin")
-    clientes = usuarios_list.filter(rol="cliente")
-    conductores = usuarios_list.filter(rol="conductor")
-
-    context = {
-        "usuarios_todos": usuarios_list,
-        "admins": admins,
-        "clientes": clientes,
-        "conductores": conductores,
-        "query": query,
-        "active_tab": active_tab,
-    }
-
-    return render(request, "usuarios/lista.html", context)
-
-
-@login_required
 def toggle_estado_usuario(request, id):
-    if request.user.usuario.rol != "admin":
+    if request.user.rol != "admin":
         messages.error(request, "No tienes permisos para realizar esta acción.")
         return redirect("usuarios:panel")
 
     usuario_obj = get_object_or_404(Usuario, id=id)
 
-    if usuario_obj.user.username == "Edward_Fonseca":
+    if usuario_obj.es_superadmin:
         messages.error(request, "El Administrador Global no puede ser desactivado.")
         return redirect("usuarios:lista_usuarios")
 
@@ -792,8 +811,12 @@ def toggle_estado_usuario(request, id):
 def eliminar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
 
-    if request.user.usuario.rol != "admin":
+    if request.user.rol != "admin":
         messages.error(request, "No tienes permiso para realizar esta acción.")
+        return redirect("usuarios:lista_usuarios")
+
+    if usuario.es_superadmin:
+        messages.error(request, "El Administrador Global no puede eliminarse desde aquí.")
         return redirect("usuarios:lista_usuarios")
 
     usuario.delete()
@@ -805,11 +828,11 @@ def eliminar_usuario(request, id):
 def editar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
 
-    if request.user.usuario.rol != "admin" and request.user.usuario != usuario:
+    if request.user.rol != "admin" and request.user.id != usuario.user.id:
         messages.error(request, "No tienes permisos para editar este perfil.")
         return redirect("usuarios:panel")
 
-    if usuario.user.username == "Edward_Fonseca" and request.user.username != "Edward_Fonseca":
+    if usuario.es_superadmin and request.user.id != usuario.user.id:
         messages.error(request, "Solo el Administrador Global puede modificar su propia cuenta.")
         return redirect("usuarios:lista_usuarios")
 
@@ -822,7 +845,6 @@ def editar_usuario(request, id):
         if not all([nombres, apellidos, telefono]):
             messages.error(request, "Los campos nombres, apellidos y teléfono son obligatorios.")
             context = {"usuario": usuario, "form_data": request.POST, "action": "editar"}
-
             return render(request, "usuarios/form.html", context)
 
         try:
@@ -831,15 +853,14 @@ def editar_usuario(request, id):
             usuario.telefono = telefono
 
             if "foto_perfil" in request.FILES:
-                # Eliminar foto anterior si existe
                 if usuario.foto_perfil:
                     try:
                         usuario.foto_perfil.delete(save=False)
-                    except Exception:
-                        pass
+                    except OSError as exc:
+                        logger.warning("No se pudo borrar foto anterior: %s", exc)
                 usuario.foto_perfil = request.FILES["foto_perfil"]
 
-            if request.user.usuario.rol == "admin" and rol:
+            if request.user.rol == "admin" and rol:
                 usuario.rol = rol
 
             usuario.sincronizado = False
@@ -855,14 +876,18 @@ def editar_usuario(request, id):
             )
             messages.success(request, "Cambios guardados exitosamente.")
             return redirect("usuarios:lista_usuarios")
+        except IntegrityError as exc:
+            logger.warning("Conflicto editando usuario %s: %s", usuario.user.username, exc)
+            messages.error(request, "Conflicto al guardar: revisa los datos únicos.")
+            context = {"usuario": usuario, "form_data": request.POST, "action": "editar"}
+            return render(request, "usuarios/form.html", context)
         except Exception as e:
+            logger.error("Error editando usuario %s: %s", usuario.user.username, e, exc_info=True)
             messages.error(request, f"Error al guardar los cambios: {str(e)}")
             context = {"usuario": usuario, "form_data": request.POST, "action": "editar"}
-
             return render(request, "usuarios/form.html", context)
 
     context = {"usuario": usuario, "form_data": {}, "action": "editar"}
-
     return render(request, "usuarios/form.html", context)
 
 
@@ -882,7 +907,6 @@ def lista_conductores(request):
         )
     )
     context = {"conductores": conductores}
-
     return render(request, "usuarios/conductores_lista.html", context)
 
 
@@ -924,6 +948,7 @@ def asignar_vehiculo_conductor(request, conductor_id):
                         )
                 return redirect("usuarios:lista_conductores")
             except Exception as e:
+                logger.error("Error asignando vehículo: %s", e, exc_info=True)
                 messages.error(request, f"No fue posible guardar la asignación: {str(e)}")
     else:
         form = AsignarVehiculoForm(conductor=conductor, initial=default_initial)
@@ -938,7 +963,6 @@ def asignar_vehiculo_conductor(request, conductor_id):
         "form": form,
         "historial": historial,
     }
-
     return render(request, "usuarios/asignar_vehiculo_conductor.html", context)
 
 
@@ -946,14 +970,10 @@ def asignar_vehiculo_conductor(request, conductor_id):
 def perfil_conductor(request):
     conductor_id = request.GET.get("id")
 
-    if conductor_id and request.user.usuario.rol == "admin":
+    if conductor_id and request.user.rol == "admin":
         conductor = get_object_or_404(Usuario, id=conductor_id)
     else:
-        try:
-            conductor = request.user.usuario
-        except Usuario.DoesNotExist:
-            logout(request)
-            return redirect("usuarios:login")
+        conductor = request.user  # CORRECCIÓN #2
 
         if conductor.rol != "conductor":
             messages.error(request, "No tienes permisos para acceder a este perfil.")
@@ -966,13 +986,29 @@ def perfil_conductor(request):
     pedidos = Pedido.objects.filter(conductor=conductor_perfil).select_related("usuario", "cliente__usuario")
 
     from ordenes.models import Entrega
-
     try:
-        ultima_entrega = (
-            Entrega.objects.filter(conductor=conductor_perfil).select_related("vehiculo", "pedido").order_by("-fecha_salida").first()
+        # Asegurar que exista conductor_perfil; derivar usuario de request si es necesario
+        try:
+            try:
+                usuario = request.user.usuario
+            except (Usuario.DoesNotExist, AttributeError):
+                usuario = request.user
+            conductor_perfil = Conductor.objects.get(usuario=usuario)
+            ultima_entrega = (
+                Entrega.objects.filter(conductor=conductor_perfil)
+                .select_related("vehiculo", "pedido")
+                .order_by("-fecha_salida")
+                .first()
+            )
+            vehiculo = ultima_entrega.vehiculo if ultima_entrega else None
+        except Conductor.DoesNotExist:
+
         )
         vehiculo = ultima_entrega.vehiculo if ultima_entrega else None
-    except Exception:
+    except Conductor.DoesNotExist:
+        vehiculo = None
+    except Exception as exc:
+        logger.warning("Fallo cargando perfil de conductor: %s", exc)
         vehiculo = None
 
     context = {
@@ -981,15 +1017,12 @@ def perfil_conductor(request):
         "vehiculo": vehiculo,
         "account_switch_options": get_account_switch_options(conductor),
     }
-
     return render(request, "usuarios/perfil-conductor.html", context)
 
 
 # =====================================================================
 # RECUPERAR CONTRASEÑA
 # =====================================================================
-
-
 class CustomPasswordResetView(PasswordResetView):
     template_name = "usuarios/recuperar_password.html"
     email_template_name = "registration/password_reset_email.txt"
@@ -1011,14 +1044,11 @@ class CustomPasswordResetView(PasswordResetView):
 
 
 # =====================================================================
-# CERRAR SECCION
+# CERRAR SESIÓN
 # =====================================================================
-
-
 def cerrar_sesion(request):
     if request.user.is_authenticated:
         from core.utils import clear_user_cache
-
         clear_user_cache(request.user.id)
 
         try:
@@ -1029,30 +1059,11 @@ def cerrar_sesion(request):
                 request.user.id,
                 f"Cierre de sesión del usuario: {request.user.username}",
             )
+        except IntegrityError as exc:
+            logger.warning("Conflicto historial logout: %s", exc)
         except Exception as e:
-            if (
-                "duplicate key" in str(e).lower()
-                and "historial" in str(e).lower()
-                and conexion_remota_disponible()
-            ):
-                try:
-                    from django.db import connections
+            logger.error("Fallo registrando logout: %s", e)
 
-                    with connections["remota"].cursor() as cursor:
-                        cursor.execute(
-                            "SELECT setval('historial_actividad_id_seq', (SELECT MAX(id) FROM historial_actividad));"
-                        )
-                    registrar_actividad(
-                        request,
-                        "logout",
-                        "usuarios",
-                        request.user.id,
-                        f"Cierre de sesión del usuario: {request.user.username}",
-                    )
-                except Exception:
-                    pass
-            else:
-                pass
     logout(request)
     return redirect("usuarios:login")
 
@@ -1060,25 +1071,18 @@ def cerrar_sesion(request):
 # =====================================================================
 # NOTIFICACIONES
 # =====================================================================
-
-
 @login_required
 def lista_notificaciones(request):
-    try:
-        notificaciones = request.user.usuario.notificaciones.all().order_by("-fecha")
-    except Usuario.DoesNotExist:
-        notificaciones = []
+    notificaciones = request.user.notificaciones.all().order_by("-fecha")
     context = {"notificaciones": notificaciones}
-
     return render(request, "usuarios/notificaciones.html", context)
 
 
 @login_required
 def marcar_notificacion_leida(request, id):
     from django.utils.http import url_has_allowed_host_and_scheme
-
     try:
-        notificacion = get_object_or_404(request.user.usuario.notificaciones, id=id)
+        notificacion = get_object_or_404(request.user.notificaciones, id=id)
         notificacion.leida = True
         notificacion.save(update_fields=["leida"])
 
@@ -1088,34 +1092,33 @@ def marcar_notificacion_leida(request, id):
             require_https=request.is_secure(),
         ):
             return redirect(notificacion.link)
-    except Usuario.DoesNotExist:
-        pass
+    except Exception as exc:
+        logger.warning("No se pudo marcar notificación: %s", exc)
     return redirect("usuarios:notificaciones")
 
 
 @login_required
 def configuraciones_usuario(request):
-    try:
-        usuario = request.user.usuario
-    except Usuario.DoesNotExist:
-        logout(request)
-        return redirect("usuarios:login")
-
+    usuario = request.user
     if request.method == "POST":
         messages.success(request, "Configuraciones actualizadas correctamente.")
         return redirect("usuarios:configuraciones")
-
     context = {"usuario": usuario}
-
     return render(request, "usuarios/configuraciones.html", context)
 
 
 @require_POST
 def cambiar_modo_bd(request):
-    """Alterna entre base de datos local (SQLite) y remota (Neon)."""
+    """Alterna entre base de datos local (SQLite) y remota (Neon).
+
+    NOTA: La sincronización completa NO ocurre dentro del request HTTP (para no
+    bloquear 30s+). El usuario debe correr: `python manage.py sincronizar` o
+    `python manage.py sync_all_usuarios` después de cambiar de modo.
+    """
     modo = request.POST.get("modo", "").strip().lower()
     nuevo_modo = None
     mensaje_ok = None
+    sincronizacion_pendiente = False
 
     if modo not in (PREF_LOCAL, PREF_REMOTA):
         messages.error(request, "Modo de base de datos no válido.")
@@ -1132,24 +1135,31 @@ def cambiar_modo_bd(request):
             )
         else:
             nuevo_modo = PREF_REMOTA
-            mensaje_ok = "Remoto"
+            mensaje_ok = "Cambiado a modo Remoto (Neon)."
     else:
-        if conexion_remota_disponible():
-            try:
-                sync_all_usuarios()
-            except Exception as e:
-                logger.error(f"Error sincronizando al cambiar a local: {e}")
-
         nuevo_modo = PREF_LOCAL
-        mensaje_ok = "Local"
+        mensaje_ok = "Cambiado a modo Local (SQLite)."
+        if "remota" in settings.DATABASES and conexion_remota_disponible():
+            sincronizacion_pendiente = True
 
     if nuevo_modo:
         invalidate_connection_cache()
+        try:
+            cache.clear()
+        except Exception:
+            pass
+
         if request.user.is_authenticated:
             logout(request)
         request.session["bd_preferida"] = nuevo_modo
         request.session.modified = True
         messages.success(request, mensaje_ok)
+        if sincronizacion_pendiente:
+            messages.warning(
+                request,
+                "Sincronización sugerida: ejecuta `python manage.py sincronizar` "
+                "para llevar los datos de la nube a la base local.",
+            )
         response = redirect("usuarios:login")
         response.set_cookie(
             "bd_preferida", nuevo_modo, max_age=31536000, httponly=True, samesite="Lax"
