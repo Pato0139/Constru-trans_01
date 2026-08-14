@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 from pagos.models import Pago
 from usuarios.models import MetodoPago
 from usuarios.views import admin_required
+from clientes.models import Cliente
 
 from .models import Factura
 
@@ -72,7 +73,7 @@ def lista_facturas(request):
 
 @login_required
 def mis_facturas(request):
-    cliente = request.user.usuario
+    cliente = get_object_or_404(Cliente, usuario=request.user)
     facturas = (
         Factura.objects.filter(cliente=cliente).select_related("pedido").prefetch_related("pagos")
     )
