@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
 
+from core.db_preference import PREF_LOCAL, clear_db_preference, set_db_preference
 from clientes.models import Cliente
 from compras.models import Compra, DetalleCompra, ProveedorMaterial
 from facturacion.models import Factura
@@ -24,6 +25,8 @@ class Command(BaseCommand):
     help = "Crea un lote demo coherente para que las pantallas principales no queden vacías."
 
     def _reset_sequence(self, table_name, column_name):
+        if connection.vendor != "postgresql":
+            return
         with connection.cursor() as cursor:
             cursor.execute(
                 f"""
@@ -35,8 +38,15 @@ class Command(BaseCommand):
                 """
             )
 
-    @transaction.atomic
     def handle(self, *args, **options):
+        set_db_preference(PREF_LOCAL)
+        try:
+            with transaction.atomic(using="default"):
+                self._inner_handle(*args, **options)
+        finally:
+            clear_db_preference()
+
+    def _inner_handle(self, *args, **options):
         self.stdout.write("Creando lote demo coherente...")
         for table_name, column_name in [
             ("material_construccion", "cod_material"),
