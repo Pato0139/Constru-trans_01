@@ -14,4 +14,9 @@ urlpatterns = [
     path("seguimiento/", views.seguimiento_pedidos, name="seguimiento_pedidos"),
     path("historial/", views.historial_pedidos, name="historial_pedidos"),
     path("orden/cancelar/<int:id>/", views.cancelar_pedido, name="cancelar_pedido"),
+    
+    # Rutas de administración
+    path("admin/lista/", views.lista_clientes, name="lista_clientes"),
+    path("admin/detalle/<int:id>/", views.detalle_cliente, name="detalle_cliente"),
+    path("admin/editar/<int:id>/", views.editar_cliente, name="editar_cliente"),
 ]

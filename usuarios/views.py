@@ -336,7 +336,6 @@ def login_usuario(request):
                     request.session.set_expiry(1209600)
                 else:
                     request.session.set_expiry(0)
-                request.session.save()
 
                 try:
                     registrar_actividad(

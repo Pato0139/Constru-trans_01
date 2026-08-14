@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load humanize currency_tags %}
+{% load static %}
+
+{% block title %}Detalle de Cliente - Constru-trans{% endblock %}
+
+{% block header_title %}Perfil de Cliente: {{ usuario_cliente.nombres }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'clientes:lista_clientes' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i> Volver al listado
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Perfil Principal -->
+    <div class="col-md-4">
+        <div class="table-container p-4 h-100 border-0">
+            <div class="text-end mb-2">
+                <a href="{% url 'clientes:editar_cliente' usuario_cliente.id %}" class="btn btn-outline-warning btn-sm rounded-pill px-3" title="Editar">
+                    <i class="bi bi-pencil-square me-1"></i> Editar Cliente
+                </a>
+            </div>
+            <div class="text-center mb-5">
+                <div class="position-relative d-inline-block mb-3">
+                    {% if usuario_cliente.foto_perfil %}
+                        <img src="{{ usuario_cliente.foto_perfil.url }}" alt="Perfil" class="rounded-circle shadow-lg border border-4 border-dark" style="width: 120px; height: 120px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-900 shadow-lg bg-secondary text-white" style="width: 120px; height: 120px; font-size: 3rem;">
+                            {{ usuario_cliente.nombres|slice:":1" }}{{ usuario_cliente.apellidos|slice:":1" }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h3 class="fw-900 text-white mb-1">{{ usuario_cliente.nombres }} {{ usuario_cliente.apellidos }}</h3>
+                <span class="badge bg-primary text-white mb-2">{{ cliente.get_tipo_cliente_display }}</span>
+                {% if cliente.es_vip %}
+                    <span class="badge bg-warning text-dark mb-2 ms-1"><i class="bi bi-star-fill"></i> VIP</span>
+                {% endif %}
+            </div>
+            
+            <div class="space-y-3">
+                <div class="p-3 rounded-4 bg-dark border border-white-10 mb-2">
+                    <p class="text-muted small mb-0">Correo Electrónico</p>
+                    <p class="fw-700 text-white mb-0">{{ usuario_cliente.email }}</p>
+                </div>
+                <div class="p-3 rounded-4 bg-dark border border-white-10 mb-2">
+                    <p class="text-muted small mb-0">Teléfono</p>
+                    <p class="fw-700 text-white mb-0">{{ usuario_cliente.telefono|default:"N/A" }}</p>
+                </div>
+                <div class="p-3 rounded-4 bg-dark border border-white-10 mb-2">
+                    <p class="text-muted small mb-0">Identificación</p>
+                    <p class="fw-700 text-white mb-0">{{ usuario_cliente.tipo_documento }}: {{ usuario_cliente.documento }}</p>
+                </div>
+                <div class="p-3 rounded-4 bg-dark border border-white-10 mb-2">
+                    <p class="text-muted small mb-0">NIT</p>
+                    <p class="fw-700 text-white mb-0">{{ cliente.nit|default:"N/A" }}</p>
+                </div>
+                <div class="p-3 rounded-4 bg-dark border border-white-10 mb-2">
+                    <p class="text-muted small mb-0">Empresa</p>
+                    <p class="fw-700 text-white mb-0">{{ cliente.nombre_empresa|default:"N/A" }}</p>
+                </div>
+                <div class="p-3 rounded-4 bg-dark border border-white-10 mb-2">
+                    <p class="text-muted small mb-0">Dirección Principal</p>
+                    <p class="fw-700 text-white mb-0">{{ cliente.direccion_principal }}</p>
+                </div>
+                {% if cliente.contacto_alternativo %}
+                <div class="p-3 rounded-4 bg-dark border border-white-10 mb-2">
+                    <p class="text-muted small mb-0">Contacto Alternativo</p>
+                    <p class="fw-700 text-white mb-0">{{ cliente.contacto_alternativo }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <!-- Resumen de Compras -->
+        <div class="table-container p-4 mb-4 border-0">
+            <h5 class="fw-800 text-white mb-4">Resumen de Actividad</h5>
+            
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="text-center p-4 rounded-4 bg-dark border border-white-10 h-100">
+                        <i class="bi bi-cart-check fs-2 text-info mb-2 d-block"></i>
+                        <h2 class="fw-900 text-white mb-0">{{ pedidos|length }}</h2>
+                        <span class="small text-muted text-uppercase fw-800">Total Pedidos</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center p-4 rounded-4 bg-dark border border-white-10 h-100">
+                        <i class="bi bi-box-seam fs-2 text-success mb-2 d-block"></i>
+                        <h2 class="fw-900 text-white mb-0">{{ pedidos_entregados }}</h2>
+                        <span class="small text-muted text-uppercase fw-800">Entregados</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center p-4 rounded-4 bg-dark border border-white-10 h-100">
+                        <i class="bi bi-cash-coin fs-2 text-warning mb-2 d-block"></i>
+                        <h2 class="fw-900 text-warning mb-0">{{ total_gastado|currency }}</h2>
+                        <span class="small text-muted text-uppercase fw-800">Total Invertido</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Últimos Pedidos -->
+        <div class="table-container p-4 border-0">
+            <h5 class="fw-800 text-white mb-4">Historial de Pedidos</h5>
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th class="py-3 px-3 text-muted small text-uppercase fw-bold">ID Pedido</th>
+                            <th class="py-3 px-3 text-muted small text-uppercase fw-bold">Fecha</th>
+                            <th class="py-3 px-3 text-muted small text-uppercase fw-bold">Estado</th>
+                            <th class="py-3 px-3 text-muted small text-uppercase fw-bold">Total</th>
+                            <th class="py-3 px-3 text-muted small text-uppercase fw-bold text-center">Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td class="py-3 px-3 fw-bold text-warning">#CT-{{ pedido.id }}</td>
+                            <td class="py-3 px-3 text-muted">{{ pedido.fecha_solicitud|date:"d M, Y" }}</td>
+                            <td class="py-3 px-3">
+                                {% if pedido.estado == "pendiente" %}
+                                <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Pendiente</span>
+                                {% elif pedido.estado == "en_ruta" %}
+                                <span class="badge bg-info-subtle text-info rounded-pill px-3">En ruta</span>
+                                {% elif pedido.estado == "entregado" %}
+                                <span class="badge bg-success-subtle text-success rounded-pill px-3">Entregado</span>
+                                {% else %}
+                                <span class="badge bg-secondary-subtle text-muted rounded-pill px-3">{{ pedido.estado|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 px-3 fw-bold text-white">{{ pedido.total|currency }}</td>
+                            <td class="py-3 px-3 text-center">
+                                <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn btn-sm btn-outline-secondary border-0 text-white" title="Ver Detalles">
+                                    <i class="bi bi-eye fs-5"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="py-4">
+                                    <p class="text-muted fw-medium mb-0">El cliente no ha realizado pedidos.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
