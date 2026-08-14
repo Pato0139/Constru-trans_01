@@ -45,10 +45,10 @@
                 <tr class="u-inline-e91738c112">
                     <td class="p-4 fw-bold text-accent">{{ f.numero }}</td>
                     <td class="p-4">
-                        <div class="fw-medium text-white">{{ f.cliente.nombres }} {{ f.cliente.apellidos }}</div>
-                        <div class="text-muted small">ID: {{ f.cliente.id }}</div>
+                        <div class="fw-medium text-white">{{ f.cliente.usuario.nombres }} {{ f.cliente.usuario.apellidos }}</div>
+                        <div class="text-muted small">{{ f.cliente.usuario.tipo_documento }}: {{ f.cliente.usuario.documento }}</div>
                     </td>
-                    <td class="p-4 text-muted small">{{ f.fecha_emision|date:"d/m/Y H:i" }}</td>
+                    <td class="p-4 text-muted small">{{ f.fecha|date:"d/m/Y H:i" }}</td>
                     <td class="p-4 text-end text-white-50">{{ f.total|currency }}</td>
                     <td class="p-4 text-end text-success-emphasis">{{ f.total_pagado|currency }}</td>
                     <td class="p-4 text-end fw-bold text-accent">{{ f.saldo_pendiente|currency }}</td>
@@ -66,7 +66,7 @@
                     </td>
                     <td class="p-4 text-center">
                         <button class="btn btn-sm btn-outline-info rounded-pill px-3 btn-ver-historial" type="button"
-                            data-numero="{{ f.numero }}" data-id="{{ f.id }}" title="Ver historial">
+                            data-numero="{{ f.numero }}" data-id="{{ f.pk }}" title="Ver historial">
                             <i class="bi bi-list-check"></i>
                         </button>
                     </td>
@@ -74,21 +74,21 @@
                         <div class="d-flex justify-content-center gap-2">
                             {% if f.estado == 'pendiente' %}
                             <button class="btn btn-premium btn-premium-gold btn-sm px-3 btn-abrir-modal-pago"
-                                type="button" data-id="{{ f.id }}" data-numero="{{ f.numero }}"
+                                type="button" data-id="{{ f.pk }}" data-numero="{{ f.numero }}"
                                 data-saldo="{{ f.saldo_pendiente }}" title="Pagar">
                                 <i class="bi bi-cash-stack"></i>
                             </button>
                             <button class="btn btn-sm btn-outline-primary rounded-pill px-3 btn-abrir-modal-editar"
-                                type="button" data-id="{{ f.id }}" data-numero="{{ f.numero }}"
+                                type="button" data-id="{{ f.pk }}" data-numero="{{ f.numero }}"
                                 data-total="{{ f.total }}" title="Editar Monto">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button class="btn btn-sm btn-outline-danger rounded-pill px-3 btn-anular-factura"
-                                type="button" data-id="{{ f.id }}" data-numero="{{ f.numero }}" title="Anular/Cancelar">
+                                type="button" data-id="{{ f.pk }}" data-numero="{{ f.numero }}" title="Anular/Cancelar">
                                 <i class="bi bi-x-circle"></i>
                             </button>
                             {% endif %}
-                            <a href="{% url 'ordenes:descargar_factura' f.orden.id %}"
+                            <a href="{% url 'ordenes:descargar_factura' f.orden.pk %}"
                                 class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3"
                                 title="Descargar PDF" target="_blank">
                                 <i class="bi bi-file-pdf"></i>

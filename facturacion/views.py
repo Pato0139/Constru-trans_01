@@ -22,22 +22,24 @@ def lista_facturas(request):
     factura = request.GET.get("factura", "")
     q = request.GET.get("q", "")
 
-    qs = Factura.objects.select_related("cliente", "pedido").prefetch_related("pagos")
+    qs = Factura.objects.select_related("cliente", "cliente__usuario", "pedido").prefetch_related("pagos")
 
     if estado in ["pendiente", "pagada", "anulada"]:
         qs = qs.filter(estado=estado)
     if cliente:
         qs = qs.filter(
-            Q(cliente__nombres__icontains=cliente)
-            | Q(cliente__apellidos__icontains=cliente)
+            Q(cliente__usuario__nombres__icontains=cliente)
+            | Q(cliente__usuario__apellidos__icontains=cliente)
+            | Q(cliente__usuario__documento__icontains=cliente)
         )
     if factura:
         qs = qs.filter(numero__icontains=factura)
     if q:
         qs = qs.filter(
             Q(numero__icontains=q)
-            | Q(cliente__nombres__icontains=q)
-            | Q(cliente__apellidos__icontains=q)
+            | Q(cliente__usuario__nombres__icontains=q)
+            | Q(cliente__usuario__apellidos__icontains=q)
+            | Q(cliente__usuario__documento__icontains=q)
         )
 
     filter_fields = [
@@ -109,9 +111,9 @@ def registrar_pago(request):
     try:
         # TRANSACCIÓN ATÓMICA
         with transaction.atomic():
-            factura = Factura.objects.select_for_update().get(id=factura_id)
+            factura = Factura.objects.select_for_update().get(pk=factura_id)
 
-            if request.user.usuario.rol != "admin" and factura.cliente != request.user.usuario:
+            if request.user.rol != "admin" and factura.cliente.usuario_id != request.user.pk:
                 return JsonResponse({"error": "No autorizado"}, status=403)
 
             if factura.estado == "anulada":
@@ -135,7 +137,7 @@ def registrar_pago(request):
                 codigo_metodo_pago=metodo_pago,
                 referencia=request.POST.get(
                     "referencia",
-                    "Pago realizado por cliente" if request.user.usuario.rol != "admin" else "",
+                    "Pago realizado por cliente" if request.user.rol != "admin" else "",
                 ),
                 registrado_por=request.user,
             )
@@ -164,7 +166,7 @@ def registrar_pago(request):
 
 @admin_required
 def anular_factura(request, id):
-    factura = get_object_or_404(Factura, id=id)
+    factura = get_object_or_404(Factura, pk=id)
     if factura.estado == "pagada":
         return JsonResponse({"error": "No se puede anular una factura ya pagada"}, status=400)
 
@@ -175,7 +177,7 @@ def anular_factura(request, id):
 
 @admin_required
 def editar_factura_monto(request, id):
-    factura = get_object_or_404(Factura, id=id)
+    factura = get_object_or_404(Factura, pk=id)
     if factura.estado != "pendiente":
         return JsonResponse(
             {"error": "Solo se pueden editar facturas en estado pendiente"}, status=400
