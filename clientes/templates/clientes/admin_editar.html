@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar Cliente - Constru-trans{% endblock %}
+
+{% block header_title %}Editar Cliente: {{ usuario_cliente.nombres }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'clientes:detalle_cliente' usuario_cliente.id %}" class="btn btn-outline-light btn-sm rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i> Volver al detalle
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="table-container p-4 border-0 shadow-lg rounded-4">
+            <h5 class="fw-800 text-white mb-4"><i class="bi bi-pencil-square text-warning me-2"></i> Actualizar Información Comercial</h5>
+            
+            <form method="POST" action="{% url 'clientes:editar_cliente' usuario_cliente.id %}">
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                    <!-- Información Básica de Usuario -->
+                    <div class="col-md-6">
+                        <label for="telefono" class="form-label text-muted small text-uppercase fw-bold">Teléfono de Contacto</label>
+                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="telefono" name="telefono" value="{{ usuario_cliente.telefono }}">
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="estado" class="form-label text-muted small text-uppercase fw-bold">Estado del Usuario</label>
+                        <select class="form-select bg-dark border-white-10 text-white" id="estado" name="estado">
+                            <option value="activo" {% if usuario_cliente.estado == 'activo' %}selected{% endif %}>Activo</option>
+                            <option value="inactivo" {% if usuario_cliente.estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <hr class="border-secondary">
+                        <h6 class="fw-bold text-white mb-3">Datos del Perfil Cliente</h6>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="tipo_cliente" class="form-label text-muted small text-uppercase fw-bold">Tipo de Cliente</label>
+                        <select class="form-select bg-dark border-white-10 text-white" id="tipo_cliente" name="tipo_cliente">
+                            {% for key, value in tipos_cliente %}
+                                <option value="{{ key }}" {% if cliente.tipo_cliente == key %}selected{% endif %}>{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="nit" class="form-label text-muted small text-uppercase fw-bold">NIT / RUT (Opcional)</label>
+                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="nit" name="nit" value="{{ cliente.nit }}">
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="nombre_empresa" class="form-label text-muted small text-uppercase fw-bold">Nombre de la Empresa (Opcional)</label>
+                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="nombre_empresa" name="nombre_empresa" value="{{ cliente.nombre_empresa }}">
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="direccion_principal" class="form-label text-muted small text-uppercase fw-bold">Dirección Principal</label>
+                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="direccion_principal" name="direccion_principal" value="{{ cliente.direccion_principal }}" required>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="direccion" class="form-label text-muted small text-uppercase fw-bold">Dirección de Despacho Alterna</label>
+                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="direccion" name="direccion" value="{{ cliente.direccion }}">
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="contacto_alternativo" class="form-label text-muted small text-uppercase fw-bold">Contacto Alternativo (Opcional)</label>
+                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="contacto_alternativo" name="contacto_alternativo" value="{{ cliente.contacto_alternativo }}" placeholder="Nombre y teléfono de alguien más">
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="observaciones" class="form-label text-muted small text-uppercase fw-bold">Observaciones Internas</label>
+                        <textarea class="form-control bg-dark border-white-10 text-white" id="observaciones" name="observaciones" rows="3">{{ cliente.observaciones }}</textarea>
+                    </div>
+
+                    <div class="col-md-12 mt-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="es_vip" name="es_vip" {% if cliente.es_vip %}checked{% endif %}>
+                            <label class="form-check-label text-warning fw-bold" for="es_vip">
+                                <i class="bi bi-star-fill"></i> Marcar como Cliente VIP
+                            </label>
+                        </div>
+                        <div class="form-text text-muted">Los clientes VIP pueden tener acceso a beneficios o prioridad en entregas.</div>
+                    </div>
+
+                    <div class="col-12 text-end mt-4">
+                        <a href="{% url 'clientes:detalle_cliente' usuario_cliente.id %}" class="btn btn-outline-light rounded-pill px-4 me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-premium btn-premium-gold px-4">
+                            <i class="bi bi-save me-1"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

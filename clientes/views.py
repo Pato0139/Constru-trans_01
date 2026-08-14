@@ -87,21 +87,6 @@ def _obtener_cliente_local(usuario_local, using="default"):
     return cliente_local
 
 
-def mis_facturas(request):
-    try:
-        cliente = request.user.cliente  # si el related_name es "cliente"
-    except Cliente.DoesNotExist:
-        cliente = None
-
-    if cliente is None:
-        facturas = Factura.objects.none()
-    else:
-        facturas = (
-            Factura.objects.filter(cliente=cliente)
-            .select_related("pedido")
-            .prefetch_related("pagos")
-        )
-
 def _obtener_catalogo_local(catalogo):
     if not catalogo:
         return None
@@ -820,3 +805,101 @@ def mis_pagos(request):
     }
 
     return render(request, "clientes/mis_pagos.html", context)
+
+
+# =====================================================================
+# VISTAS DE ADMINISTRACIÓN DE CLIENTES
+# =====================================================================
+
+@login_required
+def lista_clientes(request):
+    if request.user.rol != "admin":
+        messages.error(request, "No tienes permisos para ver el listado de clientes.")
+        return redirect("usuarios:panel")
+        
+    clientes = Usuario.objects.filter(rol="cliente").select_related("perfil_cliente").order_by("-date_joined")
+    
+    q = request.GET.get("q", "")
+    estado = request.GET.get("estado", "")
+    
+    if q:
+        clientes = clientes.filter(
+            Q(nombres__icontains=q) | 
+            Q(apellidos__icontains=q) | 
+            Q(documento__icontains=q) | 
+            Q(email__icontains=q)
+        )
+    if estado:
+        clientes = clientes.filter(estado=estado)
+        
+    context = {"clientes": clientes, "q": q, "estado": estado}
+    return render(request, "clientes/admin_lista.html", context)
+
+
+@login_required
+def detalle_cliente(request, id):
+    if request.user.rol != "admin":
+        messages.error(request, "No tienes permisos para ver este perfil.")
+        return redirect("usuarios:panel")
+        
+    usuario = get_object_or_404(Usuario, id=id, rol="cliente")
+    cliente, _ = Cliente.ensure_for_user(usuario)
+    pedidos = Pedido.objects.filter(usuario=usuario).order_by("-fecha_solicitud")
+    
+    context = {
+        "usuario_cliente": usuario,
+        "cliente": cliente,
+        "pedidos": pedidos,
+        "total_gastado": pedidos.aggregate(total=Sum("total"))["total"] or 0,
+        "pedidos_entregados": pedidos.filter(estado="entregado").count()
+    }
+    return render(request, "clientes/admin_detalle.html", context)
+
+
+@login_required
+def editar_cliente(request, id):
+    if request.user.rol != "admin":
+        messages.error(request, "No tienes permisos para editar este cliente.")
+        return redirect("usuarios:panel")
+        
+    usuario = get_object_or_404(Usuario, id=id, rol="cliente")
+    cliente, _ = Cliente.ensure_for_user(usuario)
+    
+    if request.method == "POST":
+        cliente.direccion_principal = request.POST.get("direccion_principal", cliente.direccion_principal)
+        cliente.direccion = request.POST.get("direccion", cliente.direccion)
+        cliente.tipo_cliente = request.POST.get("tipo_cliente", cliente.tipo_cliente)
+        cliente.nit = request.POST.get("nit", cliente.nit)
+        cliente.nombre_empresa = request.POST.get("nombre_empresa", cliente.nombre_empresa)
+        cliente.contacto_alternativo = request.POST.get("contacto_alternativo", cliente.contacto_alternativo)
+        cliente.observaciones = request.POST.get("observaciones", cliente.observaciones)
+        cliente.es_vip = request.POST.get("es_vip") == "on"
+        
+        try:
+            with transaction.atomic():
+                cliente.save()
+                
+                telefono = request.POST.get("telefono")
+                estado = request.POST.get("estado")
+                
+                if telefono:
+                    usuario.telefono = telefono
+                if estado:
+                    usuario.estado = estado
+                    usuario.user.is_active = (estado == "activo")
+                    usuario.user.save()
+                    
+                usuario.save()
+                
+            messages.success(request, f"Datos del cliente {usuario.nombres} actualizados exitosamente.")
+            return redirect("clientes:detalle_cliente", id=usuario.id)
+            
+        except Exception as e:
+            messages.error(request, f"Error al guardar: {e}")
+            
+    context = {
+        "usuario_cliente": usuario,
+        "cliente": cliente,
+        "tipos_cliente": Cliente.TIPOS_CLIENTE
+    }
+    return render(request, "clientes/admin_editar.html", context)
