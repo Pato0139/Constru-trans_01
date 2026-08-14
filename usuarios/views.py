@@ -137,6 +137,7 @@ def lista_usuarios(request):
 
 
 def cambiar_cuenta(request, rol):
+    """Permite cambiar entre las vistas de cuenta disponibles desde el perfil."""
     if not request.user.is_authenticated:
         return redirect("usuarios:login")
 

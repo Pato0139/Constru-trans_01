@@ -5,26 +5,20 @@
  */
 
 /* =====================================================================
-   ESTADO BASE - navbar normal (antes del scroll)
+   ESTADO BASE - navbar normal (ALTURA FIJA)
    ===================================================================== */
 .app-navbar {
-    transition:
-        padding         0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        border-radius   0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        box-shadow      0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        background      0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: box-shadow 0.3s ease, background 0.3s ease !important;
 }
 
 /* Título */
 .app-navbar .navbar-title {
-    transition: font-size 0.3s ease !important;
     font-size: 1.35rem;
 }
 
 /* Subtítulo */
 .app-navbar .navbar-title + p,
 .app-navbar p.text-muted {
-    transition: opacity 0.3s ease, max-height 0.3s ease;
     max-height: 2rem;
     opacity: 1;
     overflow: hidden;
@@ -32,16 +26,16 @@
 
 /* Botones icono */
 .app-navbar .navbar-icon-btn {
-    transition: width 0.3s ease, height 0.3s ease,
-                min-width 0.3s ease, min-height 0.3s ease !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
 }
 
 /* =====================================================================
-   ESTADO SCROLLED - navbar reducido (scroll > 50px)
+   ESTADO SCROLLED - navbar (MISMO TAMAÑO)
    ===================================================================== */
 .app-navbar.navbar-scrolled {
-    padding: 0.45rem 1rem !important;
-    border-radius: 10px !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
     background: rgba(15, 23, 42, 0.97) !important;
 }
@@ -63,14 +57,6 @@
     max-height: 0 !important;
 }
 
-/* Botones un poco más pequeños */
-.app-navbar.navbar-scrolled .navbar-icon-btn {
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    min-height: 34px !important;
-}
-
 /* =====================================================================
    TEMA CLARO
    ===================================================================== */
@@ -88,9 +74,6 @@
     }
     .app-navbar.navbar-scrolled .navbar-title {
         font-size: 1rem !important;
-    }
-    .app-navbar.navbar-scrolled {
-        padding: 0.4rem 0.75rem !important;
     }
 }
 
