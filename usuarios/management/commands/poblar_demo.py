@@ -6,6 +6,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
+from core.db_preference import PREF_LOCAL, clear_db_preference, set_db_preference
 from usuarios.models import (
     Usuario,
     EPS,
@@ -44,29 +45,33 @@ class Command(BaseCommand):
         parser.add_argument("--pedidos", type=int, default=10)
 
     def handle(self, *args, **options):
-        with transaction.atomic():
-            admins = self.crear_usuarios_admin(options["admins"])
-            clientes = self.crear_clientes(options["clientes"])
-            conductores = self.crear_conductores(options["conductores"])
-            empleados = self.crear_empleados(options["empleados"])
+        set_db_preference(PREF_LOCAL)
+        try:
+            with transaction.atomic(using="default"):
+                admins = self.crear_usuarios_admin(options["admins"])
+                clientes = self.crear_clientes(options["clientes"])
+                conductores = self.crear_conductores(options["conductores"])
+                empleados = self.crear_empleados(options["empleados"])
 
-            eps_list = self.crear_eps()
-            vehiculos = self.crear_vehiculos()
-            self.asignar_vehiculos(conductores, vehiculos)
+                eps_list = self.crear_eps()
+                vehiculos = self.crear_vehiculos()
+                self.asignar_vehiculos(conductores, vehiculos)
 
-            catalogos = self.crear_catalogos()
-            unidades = self.crear_unidades()
-            proveedores = self.crear_proveedores()
-            materiales = self.crear_materiales(catalogos, unidades)
-            self.crear_stock(materiales)
-            metodos = self.crear_metodos_pago()
+                catalogos = self.crear_catalogos()
+                unidades = self.crear_unidades()
+                proveedores = self.crear_proveedores()
+                materiales = self.crear_materiales(catalogos, unidades)
+                self.crear_stock(materiales)
+                metodos = self.crear_metodos_pago()
 
-            self.crear_compras(options["compras"], proveedores, materiales, admins + empleados)
-            self.crear_solicitudes(options["solicitudes"], clientes, materiales)
-            pedidos = self.crear_pedidos(options["pedidos"], clientes, conductores, materiales)
-            self.crear_facturas_y_pagos(pedidos, metodos, admins + empleados)
-            self.crear_reportes(admins + empleados)
-            self.crear_notificaciones(clientes, conductores, admins + empleados)
+                self.crear_compras(options["compras"], proveedores, materiales, admins + empleados)
+                self.crear_solicitudes(options["solicitudes"], clientes, materiales)
+                pedidos = self.crear_pedidos(options["pedidos"], clientes, conductores, materiales)
+                self.crear_facturas_y_pagos(pedidos, metodos, admins + empleados)
+                self.crear_reportes(admins + empleados)
+                self.crear_notificaciones(clientes, conductores, admins + empleados)
+        finally:
+            clear_db_preference()
 
         self.stdout.write(self.style.SUCCESS("✅ Base de datos poblada correctamente."))
 
