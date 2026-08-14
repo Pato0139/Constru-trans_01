@@ -82,6 +82,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "core.apps.CoreConfig",
     "usuarios",
     "clientes",
     "inventario",
@@ -114,6 +115,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "core.middleware.DatabasePreferenceMiddleware",
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -169,16 +171,20 @@ if database_url:
         conn_max_age=600,
         conn_health_checks=True,
     )
+    if "OPTIONS" not in remote_database:
+        remote_database["OPTIONS"] = {}
+    remote_database["OPTIONS"].setdefault("connect_timeout", 5)
+    remote_database["OPTIONS"].pop("options", None)
 
 DATABASES = {
-    "default": remote_database or LOCAL_DATABASE,
+    "default": LOCAL_DATABASE,
     "local": LOCAL_DATABASE,
 }
 
 if remote_database:
     DATABASES["remota"] = remote_database
 
-DATABASE_ROUTERS = []
+DATABASE_ROUTERS = ["core.routers.EnrutadorInventario"]
 
 # ============================================================
 # CACHÉ — Para precargar datos de paneles y optimizar velocidad
