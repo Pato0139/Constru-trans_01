@@ -35,9 +35,9 @@ class Command(BaseCommand):
         return _router.db_for_write(model, **{}) or "default"
 
     def _databases_to_seed(self):
-        """Pobla remota (Neon) si hay conexión; siempre incluye SQLite local."""
+        """Pobla local primero (default=SQLite) y, si hay conexión, también remota."""
         if "remota" in settings.DATABASES and conexion_remota_disponible():
-            return ["remota", "default"]
+            return ["default", "remota"]
         return ["default"]
 
     def _ensure_usuario(

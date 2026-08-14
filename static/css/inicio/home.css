@@ -1,27 +1,275 @@
 /**
  * Estilos para el módulo de inicio
- * BEM Methodology
+ * Paleta: White Smoke / Silver / Gray / Onyx / Night + azul como acento vivo.
+ * El home va POR SECCIONES: cada sección tiene un tono distinto de la paleta
+ * (oscuro -> oscuro más claro -> CLARO -> oscuro -> acento) para crear ritmo
+ * visual, en vez de un solo negro plano de arriba a abajo.
  */
 
+:root {
+  --inicio-white-smoke: #F3F3F3;
+  --inicio-silver: #B5B5B5;
+  --inicio-gray: #646464;
+  --inicio-onyx: #3C3C3C;
+  --inicio-night: #131313;
+
+  --inicio-white-soft: rgba(243, 243, 243, 0.08);
+  --inicio-white-strong: rgba(243, 243, 243, 0.22);
+  --inicio-silver-soft: rgba(181, 181, 181, 0.14);
+  --inicio-silver-strong: rgba(181, 181, 181, 0.32);
+  --inicio-gray-soft: rgba(100, 100, 100, 0.28);
+  --inicio-onyx-soft: rgba(60, 60, 60, 0.55);
+
+  --inicio-blue: #3b82f6;
+  --inicio-blue-light: #7dd3fc;
+  --inicio-blue-soft: rgba(59, 130, 246, 0.22);
+  --inicio-blue-strong: rgba(59, 130, 246, 0.42);
+
+  --inicio-surface: rgba(243, 243, 243, 0.045);
+  --inicio-surface-strong: rgba(243, 243, 243, 0.08);
+  --inicio-border: rgba(243, 243, 243, 0.1);
+  --inicio-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
 .inicio-badge-primary {
-  background-color: var(--color-primary) !important;
+  background: linear-gradient(135deg, var(--inicio-blue), #1d4ed8) !important;
+  color: var(--inicio-night) !important;
 }
 
 .inicio-text-primary {
-  color: var(--color-primary);
+  color: var(--inicio-blue-light);
 }
 
 .inicio-subtitle {
   max-width: 600px;
 }
 
-.inicio-hero-image {
-  filter: drop-shadow(0 20px 50px rgba(0,0,0,0.8));
+/* Botones dorados globales (.btn-premium-gold) reescritos a azul SOLO dentro
+   del home (hero, CTA final, formulario de contacto). El botón "Registrarse"
+   del navbar es global al sitio y no se toca aquí. */
+#inicio .btn-premium-gold,
+.inicio-cta-section .btn-premium-gold,
+.inicio-contact-form-side .btn-premium-gold {
+  background: linear-gradient(135deg, var(--inicio-blue), #1d4ed8) !important;
+  color: var(--inicio-white-smoke) !important;
+  border: none !important;
 }
 
+/* ===================== HERO — Night ===================== */
+
+.inicio-hero-section {
+  isolation: isolate;
+}
+
+.inicio-hero-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 22%, var(--inicio-blue-soft), transparent 30%),
+    radial-gradient(circle at 82% 24%, var(--inicio-silver-soft), transparent 28%),
+    linear-gradient(135deg, rgba(19, 19, 19, 0.5), rgba(19, 19, 19, 0.9));
+  z-index: 0;
+}
+
+.inicio-hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(243, 243, 243, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(243, 243, 243, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent 85%);
+  opacity: 0.22;
+  z-index: 0;
+}
+
+.inicio-hero-blob {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(40px);
+  z-index: 0;
+  opacity: 0.55;
+}
+
+.inicio-hero-blob--gold {
+  width: 180px;
+  height: 180px;
+  left: -40px;
+  bottom: 90px;
+  background: rgba(181, 181, 181, 0.18);
+}
+
+.inicio-hero-blob--blue {
+  width: 220px;
+  height: 220px;
+  right: 8%;
+  top: 18%;
+  background: var(--inicio-blue-soft);
+}
+
+.inicio-hero-pill {
+  border: 1px solid var(--inicio-border);
+  background: var(--inicio-surface-strong);
+}
+
+.inicio-hero-pill-text {
+  color: rgba(243, 243, 243, 0.86);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.inicio-hero-visual-wrap {
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inicio-hero-ring {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  border: 1px solid var(--inicio-border);
+  box-shadow:
+    0 0 0 18px rgba(243, 243, 243, 0.02),
+    0 0 0 42px var(--inicio-blue-soft);
+}
+
+.inicio-hero-image {
+  position: relative;
+  max-width: 480px;
+  filter: drop-shadow(0 24px 60px rgba(0, 0, 0, 0.8));
+  z-index: 2;
+}
+
+/* ===================== STATS — Onyx (más claro que el hero) ===================== */
+
+.inicio-stats-section {
+  position: relative;
+  background:
+    linear-gradient(180deg, var(--inicio-onyx) 0%, var(--inicio-night) 100%),
+    radial-gradient(circle at top, var(--inicio-blue-soft), transparent 32%);
+}
+
+.inicio-stat-card {
+  position: relative;
+  padding: 1.6rem 1.2rem;
+  border-radius: 24px;
+  border: 1px solid var(--inicio-border);
+  background: linear-gradient(180deg, rgba(243, 243, 243, 0.09), rgba(243, 243, 243, 0.03));
+  box-shadow: var(--inicio-shadow);
+  overflow: hidden;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.inicio-stat-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--inicio-silver-strong);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+}
+
+.inicio-stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--inicio-silver), transparent);
+}
+
+.inicio-stat-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -45% auto;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(243, 243, 243, 0.05);
+}
+
+.inicio-stats-section .col-md-3:nth-child(2) .inicio-stat-card::before,
+.inicio-stats-section .col-md-3:nth-child(4) .inicio-stat-card::before {
+  background: linear-gradient(90deg, transparent, var(--inicio-blue), transparent);
+}
+
+.inicio-stats-section .col-md-3:nth-child(2) .inicio-stat-card:hover,
+.inicio-stats-section .col-md-3:nth-child(4) .inicio-stat-card:hover {
+  border-color: var(--inicio-blue-strong);
+}
+
+.inicio-stats-section .stat-number-premium {
+  color: var(--inicio-white-smoke) !important;
+  background: transparent !important;
+}
+
+#nosotros .inicio-mini-stat .stat-number-premium {
+  color: var(--inicio-white-smoke) !important;
+  background: transparent !important;
+}
+
+/* ===================== NOSOTROS + MÓDULOS — Night (fundidos, mismo tono) ===================== */
+
 .inicio-modules-section {
+  position: relative;
   padding: 120px 0;
-  background: linear-gradient(180deg, #0a0d14 0%, var(--color-bg) 100%);
+  background: linear-gradient(180deg, var(--inicio-night) 0%, #0a0a0a 100%);
+}
+
+/* Overrides de clases globales (icon-box-premium, stat-number-premium, text-primary)
+   que traían dorado/ámbar del CSS base del sitio. Se fuerzan solo dentro de #inicio,
+   #nosotros y #modulos para no afectar otras páginas. */
+#inicio .text-primary,
+#nosotros .text-primary,
+#modulos .text-primary {
+  color: var(--inicio-blue-light) !important;
+}
+
+.inicio-section-band {
+  position: relative;
+  z-index: 1;
+  /* asegura que quede por encima de los cubitos/canvas */
+}
+
+.inicio-section-band::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+      transparent,
+      var(--inicio-blue-light) 35%,
+      var(--inicio-white-smoke) 50%,
+      var(--inicio-blue-light) 65%,
+      transparent);
+  box-shadow: 0 0 12px rgba(125, 211, 252, 0.6);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.inicio-section-band--top::before {
+  top: 0;
+}
+
+.inicio-section-band--bottom::before {
+  top: 14px;
+}
+
+.inicio-section-heading {
+  position: relative;
+}
+
+.inicio-section-heading::after {
+  content: "";
+  display: block;
+  width: 140px;
+  height: 3px;
+  margin: 1.25rem auto 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0), var(--inicio-blue), var(--inicio-silver), rgba(181, 181, 181, 0));
 }
 
 .inicio-modules-text {
@@ -29,13 +277,212 @@
   margin: 0 auto;
 }
 
+.inicio-info-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(243, 243, 243, 0.05), rgba(243, 243, 243, 0.015));
+  border: 1px solid var(--inicio-border);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.inicio-info-card:hover {
+  transform: translateY(-4px);
+}
+
+.inicio-info-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  border-radius: 4px;
+}
+
+.inicio-info-card--gold::before {
+  background: linear-gradient(180deg, var(--inicio-silver), var(--inicio-gray));
+}
+
+.inicio-info-card--gold:hover {
+  border-color: var(--inicio-silver-strong);
+}
+
+.inicio-info-card--blue::before {
+  background: linear-gradient(180deg, var(--inicio-blue-light), var(--inicio-blue));
+}
+
+.inicio-info-card--blue:hover {
+  border-color: var(--inicio-blue-strong);
+}
+
+.inicio-values-list {
+  padding-left: 0;
+  list-style: none;
+}
+
+.inicio-mini-stats {
+  gap: 1rem;
+}
+
+.inicio-mini-stat {
+  min-width: 170px;
+  padding: 1rem 1.15rem;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(243, 243, 243, 0.08), rgba(243, 243, 243, 0.03));
+  border: 1px solid var(--inicio-border);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.inicio-mini-stat:hover {
+  transform: translateY(-4px);
+  border-color: var(--inicio-silver-strong);
+}
+
+.inicio-module-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(243, 243, 243, 0.08), rgba(243, 243, 243, 0.03));
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.inicio-module-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.55);
+}
+
+.inicio-module-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+  pointer-events: none;
+  background: radial-gradient(circle at top right, rgba(243, 243, 243, 0.06), transparent 30%);
+}
+
+#modulos .col-md-4:nth-child(3n + 1) .inicio-module-card {
+  border-color: var(--inicio-silver-soft) !important;
+  box-shadow: inset 0 1px 0 rgba(181, 181, 181, 0.1);
+}
+
+#modulos .col-md-4:nth-child(3n + 2) .inicio-module-card {
+  border-color: rgba(59, 130, 246, 0.2) !important;
+  box-shadow: inset 0 1px 0 rgba(59, 130, 246, 0.1);
+}
+
+#modulos .col-md-4:nth-child(3n) .inicio-module-card {
+  border-color: rgba(100, 100, 100, 0.35) !important;
+  box-shadow: inset 0 1px 0 rgba(181, 181, 181, 0.06);
+}
+
+#modulos .col-md-4:nth-child(3n + 1) .inicio-module-card:hover {
+  border-color: var(--inicio-white-strong) !important;
+}
+
+#modulos .col-md-4:nth-child(3n + 2) .inicio-module-card:hover {
+  border-color: var(--inicio-blue-strong) !important;
+}
+
+#modulos .col-md-4:nth-child(3n) .inicio-module-card:hover {
+  border-color: var(--inicio-silver-strong) !important;
+}
+
+#modulos .icon-box-premium {
+  transition: all 0.3s ease;
+}
+
+#modulos .col-md-4:nth-child(3n + 1) .icon-box-premium,
+#modulos .col-md-4:nth-child(3n + 1) .inicio-module-card .icon-box-premium {
+  background: linear-gradient(135deg, rgba(243, 243, 243, 0.28), rgba(243, 243, 243, 0.05)) !important;
+  color: var(--inicio-white-smoke) !important;
+}
+
+#modulos .col-md-4:nth-child(3n + 2) .icon-box-premium,
+#modulos .col-md-4:nth-child(3n + 2) .inicio-module-card .icon-box-premium {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(59, 130, 246, 0.05)) !important;
+  color: var(--inicio-blue-light) !important;
+}
+
+#modulos .col-md-4:nth-child(3n) .icon-box-premium,
+#modulos .col-md-4:nth-child(3n) .inicio-module-card .icon-box-premium {
+  background: linear-gradient(135deg, rgba(181, 181, 181, 0.24), rgba(181, 181, 181, 0.05)) !important;
+  color: var(--inicio-silver) !important;
+}
+
+#modulos .col-md-4:nth-child(3n + 1) .inicio-module-card:hover .icon-box-premium {
+  background: var(--inicio-white-smoke) !important;
+  color: var(--inicio-night) !important;
+}
+
+#modulos .col-md-4:nth-child(3n + 2) .inicio-module-card:hover .icon-box-premium {
+  background: var(--inicio-blue) !important;
+  color: var(--inicio-night) !important;
+}
+
+#modulos .col-md-4:nth-child(3n) .inicio-module-card:hover .icon-box-premium {
+  background: var(--inicio-silver) !important;
+  color: var(--inicio-night) !important;
+}
+
+/* ===================== CTA — Onyx + azul vivo (el punto más "vivo" de la página) ===================== */
+
 .inicio-cta-section {
   padding: 120px 0;
+  background: linear-gradient(180deg, var(--inicio-night) 0%, var(--inicio-onyx) 100%);
+}
+
+/* La sección de Contacto reutiliza la misma clase .inicio-cta-section; se invierte
+   el degradado (onyx -> night) para que continúe sin corte donde termina el CTA final. */
+#contacto.inicio-cta-section {
+  background: linear-gradient(180deg, var(--inicio-onyx) 0%, var(--inicio-night) 100%);
 }
 
 .inicio-cta-box {
-  background: linear-gradient(135deg, var(--color-primary), #d35400);
+  position: relative;
   padding: 80px;
+  background: linear-gradient(135deg, var(--inicio-onyx), #222222 65%, var(--inicio-night) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.inicio-cta-box__glow {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  filter: blur(35px);
+  opacity: 0.22;
+}
+
+.inicio-cta-box__glow--gold {
+  top: -20px;
+  left: -10px;
+  background: rgba(181, 181, 181, 0.28);
+}
+
+.inicio-cta-box__glow--blue {
+  bottom: -30px;
+  right: 30px;
+  background: var(--inicio-blue-strong);
+}
+
+.cta-decoration {
+  border: 1px solid var(--inicio-border);
+  background: var(--inicio-surface);
+}
+
+/* ===================== CONTACTO — Night ===================== */
+
+.inicio-contact-shell {
+  border: 1px solid var(--inicio-border);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+
+.inicio-contact-side {
+  background:
+    linear-gradient(180deg, rgba(243, 243, 243, 0.05), rgba(243, 243, 243, 0.02)),
+    radial-gradient(circle at top left, var(--inicio-blue-soft), transparent 40%);
+}
+
+.inicio-contact-form-side {
+  background: linear-gradient(180deg, rgba(19, 19, 19, 0.92), rgba(5, 5, 5, 0.98));
 }
 
 .inicio-contact-icon {
@@ -44,8 +491,20 @@
   font-size: 1.2rem;
 }
 
+.inicio-form-control {
+  background: var(--inicio-surface);
+  border: 1px solid var(--inicio-border);
+  transition: all 0.28s ease;
+}
+
+.inicio-form-control:hover,
+.inicio-form-control:focus {
+  background: var(--inicio-surface-strong);
+  box-shadow: 0 0 0 4px var(--inicio-blue-soft);
+}
+
 .inicio-whatsapp-btn {
-  background-color: #25d366;
+  background: linear-gradient(135deg, #25d366, #18a94d);
   font-weight: 800;
   text-transform: uppercase;
   font-size: 0.85rem;
@@ -55,7 +514,186 @@
 }
 
 .inicio-whatsapp-btn:hover {
-  background-color: #20ba5a;
   transform: translateY(-3px);
-  box-shadow: 0 15px 30px rgba(37, 211, 102, 0.4);
+  box-shadow: 0 15px 30px rgba(37, 211, 102, 0.38) !important;
+}
+
+@media (max-width: 1199px) {
+  .inicio-hero-ring {
+    width: 360px;
+    height: 360px;
+  }
+}
+
+@media (max-width: 991px) {
+
+  .inicio-modules-section,
+  .inicio-cta-section {
+    padding: 88px 0;
+  }
+
+  .inicio-cta-box {
+    padding: 42px 28px;
+  }
+
+  .inicio-section-heading::after {
+    width: 110px;
+  }
+}
+
+@media (max-width: 767px) {
+  .inicio-hero-pill-text {
+    display: none;
+  }
+
+  .inicio-stat-card,
+  .inicio-mini-stat,
+  .inicio-module-card {
+    border-radius: 20px;
+  }
+
+  .inicio-contact-side,
+  .inicio-contact-form-side {
+    padding: 2rem !important;
+  }
+}
+
+/* ===================== CTA FINAL — puente Night → Onyx + vida ===================== */
+
+.inicio-final-cta-section {
+  position: relative;
+  overflow: hidden;
+  padding: 110px 0 90px;
+  /* <- reemplaza el py-5 (48px) para dar espacio visible al degradado */
+  background: linear-gradient(180deg, var(--inicio-night) 0%, var(--inicio-onyx) 100%);
+}
+
+.inicio-final-cta-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--inicio-blue-soft), transparent 70%);
+  filter: blur(40px);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.inicio-final-cta-section .container {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ===================== ZONA OSCURA CONTINUA — un solo difuminado diagonal ===================== */
+
+.inicio-dark-zone {
+  position: relative;
+  background: linear-gradient(170deg,
+      var(--inicio-night) 0%,
+      var(--inicio-night) 45%,
+      var(--inicio-onyx) 75%,
+      #4a4a4a 100%);
+}
+
+/* Las secciones internas ya no ponen su propio fondo: dejan ver el degradado del wrapper */
+.inicio-dark-zone .inicio-modules-section,
+.inicio-dark-zone .inicio-final-cta-section,
+.inicio-dark-zone .inicio-cta-section,
+.inicio-dark-zone #contacto.inicio-cta-section {
+  background: transparent !important;
+}
+
+/* ===================== ZONA OSCURA — isolation ===================== */
+
+.inicio-dark-zone {
+  isolation: isolate;
+}
+
+/* ===================== BLUEPRINT GRID — identidad "construcción" (ESTÁTICO) ===================== */
+
+.inicio-blueprint-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(125, 211, 252, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125, 211, 252, 0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 85% 70% at 50% 0%, black 35%, transparent 100%);
+  opacity: 0.45;
+}
+
+/* ===================== ICONOS SVG DE FONDO — temáticos construcción/transporte ===================== */
+
+.inicio-icons-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.inicio-bg-icon {
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  opacity: 0.40;
+  will-change: opacity;
+}
+
+.inicio-bg-icon--silver { color: var(--inicio-silver); }
+.inicio-bg-icon--blue   { color: var(--inicio-blue-light); }
+.inicio-bg-icon--gray   { color: var(--inicio-gray); }
+
+/* Posicionamiento distribuido por la zona oscura */
+.inicio-bg-icon--1  { top: 5%;   left: 3%;   transform: rotate(-14deg); width: 108px; height: 108px; }
+.inicio-bg-icon--2  { top: 7%;   left: 22%;  transform: rotate(10deg);  width: 118px; height: 118px; }
+.inicio-bg-icon--3  { top: 2%;   right: 16%; transform: rotate(-8deg);  width: 96px;  height: 96px; }
+.inicio-bg-icon--4  { top: 10%;  right: 2%;  transform: rotate(16deg);  width: 104px; height: 104px; }
+.inicio-bg-icon--5  { top: 26%;  left: 1%;   transform: rotate(6deg);   width: 124px; height: 124px; opacity: 0.42; }
+.inicio-bg-icon--6  { top: 22%;  left: 34%;  transform: rotate(-22deg); width: 86px;  height: 86px; }
+.inicio-bg-icon--7  { top: 30%;  right: 30%; transform: rotate(0deg);   width: 94px;  height: 94px; }
+.inicio-bg-icon--8  { top: 24%;  right: 1%;  transform: rotate(20deg);  width: 114px; height: 114px; opacity: 0.45; }
+.inicio-bg-icon--9  { top: 52%;  left: 4%;   transform: rotate(-10deg); width: 100px; height: 100px; }
+.inicio-bg-icon--10 { top: 54%;  left: 28%;  transform: rotate(12deg);  width: 110px; height: 110px; }
+.inicio-bg-icon--11 { top: 44%;  right: 8%;  transform: rotate(-16deg); width: 116px; height: 116px; opacity: 0.44; }
+.inicio-bg-icon--12 { top: 62%;  right: 2%;  transform: rotate(8deg);   width: 102px; height: 102px; }
+
+/* Animación MUY LIGERA: solo pulsación de opacidad lenta */
+.inicio-bg-icon {
+  animation: inicio-icon-breathe 9s ease-in-out infinite;
+}
+
+.inicio-bg-icon--2  { animation-delay: 0.7s;  animation-duration: 10s; }
+.inicio-bg-icon--3  { animation-delay: 1.4s;  animation-duration: 8s;  }
+.inicio-bg-icon--4  { animation-delay: 2.1s;  animation-duration: 11s; }
+.inicio-bg-icon--5  { animation-delay: 0.3s;  animation-duration: 9s;  }
+.inicio-bg-icon--6  { animation-delay: 3.0s;  animation-duration: 12s; }
+.inicio-bg-icon--7  { animation-delay: 1.8s;  animation-duration: 8.5s;}
+.inicio-bg-icon--8  { animation-delay: 2.5s;  animation-duration: 10.5s;}
+.inicio-bg-icon--9  { animation-delay: 4.0s;  animation-duration: 9.5s; }
+.inicio-bg-icon--10 { animation-delay: 0.9s;  animation-duration: 11.5s;}
+.inicio-bg-icon--11 { animation-delay: 3.4s;  animation-duration: 10s;  }
+.inicio-bg-icon--12 { animation-delay: 1.1s;  animation-duration: 8s;   }
+
+@keyframes inicio-icon-breathe {
+  0%, 100% { opacity: 0.30; }
+  50%      { opacity: 0.55; }
+}
+
+@media (max-width: 767px) {
+  .inicio-blueprint-grid { display: none; }
+  .inicio-bg-icon--1,
+  .inicio-bg-icon--3,
+  .inicio-bg-icon--6,
+  .inicio-bg-icon--9,
+  .inicio-bg-icon--12 { display: none; }
+  .inicio-bg-icon { opacity: 0.34; width: 72px; height: 72px; }
 }
