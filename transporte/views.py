@@ -8,6 +8,41 @@ from usuarios.models import Conductor, ConductorVehiculo, Usuario, Vehiculo
 from usuarios.views import admin_required
 
 
+def _vehiculos_con_fallback_seguro():
+    """
+    Devuelve un QuerySet de Vehiculo que no explote si la BD remota (Neon)
+    todavía no tiene la columna `codigo_catalogo` (migration 0007 no aplicada).
+
+    En ese escenario, diferimos la columna `catalogo` y evitamos el SELECT que
+    la pide; solo la cargamos lazy si alguien accede al atributo.
+    """
+    from django.db.utils import ProgrammingError
+
+    base_qs = Vehiculo.objects.all().defer("catalogo")
+
+    try:
+        from django.db import connections
+        for alias in ("default", "remota"):
+            if alias not in connections.databases:
+                continue
+            try:
+                with connections[alias].cursor() as cursor:
+                    cursor.execute(
+                        "SELECT 1 FROM information_schema.columns "
+                        "WHERE table_name = %s AND column_name = %s",
+                        ["vehiculo", "codigo_catalogo"],
+                    )
+                    has_column = cursor.fetchone() is not None
+            except Exception:
+                has_column = False
+            if alias == "default" and not has_column:
+                return base_qs
+    except (ProgrammingError, Exception):
+        return base_qs
+
+    return Vehiculo.objects.all()
+
+
 @admin_required
 def lista_vehiculos(request):
     id_vehiculo = request.GET.get("id_vehiculo")
@@ -17,7 +52,7 @@ def lista_vehiculos(request):
     conductor = request.GET.get("conductor")
     query = request.GET.get("q", "")
 
-    vehiculos = Vehiculo.objects.all()
+    vehiculos = _vehiculos_con_fallback_seguro()
 
     if id_vehiculo and id_vehiculo.isdigit():
         vehiculos = vehiculos.filter(id_vehiculo=int(id_vehiculo))
@@ -59,7 +94,15 @@ def lista_vehiculos(request):
 
     # Pre-cargar property conductor_actual y related models optimiza el acceso en plantilla
     # No eliminamos el paginador nativo aquí para dejar que DataTables lo haga
-    vehiculos = list(vehiculos) # Ejecutar la query para inyectar al contexto y evitar slice
+    from django.db.utils import ProgrammingError as _PgError
+
+    try:
+        vehiculos = list(vehiculos)
+    except _PgError as exc:
+        if "codigo_catalogo" in str(exc):
+            vehiculos = list(Vehiculo.objects.all().defer("catalogo"))
+        else:
+            raise
     for v in vehiculos:
         # Pre-cachamos el conductor_actual
         v.conductor = v.conductor_actual
