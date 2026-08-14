@@ -1,4 +1,5 @@
 from django.test import TestCase
+from usuarios.forms import MaterialForm
 from usuarios.models import UnidadMedida, MaterialConstruccion, Stock
 
 
@@ -52,3 +53,28 @@ class InventarioModelsTests(TestCase):
         self.assertEqual(stock.material, material)
         self.assertEqual(stock.cantidad_actual, 100)
         self.assertEqual(stock.id, material.cod_material)
+
+    def test_formulario_material_crea_stock_y_ubicacion(self):
+        """El formulario del catálogo crea el material y su stock inicial."""
+        unidad = UnidadMedida.objects.create(
+            codigo="UND",
+            nombre="Unidad",
+            abreviatura="u",
+        )
+
+        form = MaterialForm(
+            data={
+                "nombre": "Piedra triturada",
+                "unidad_medida": unidad.pk,
+                "descripcion": "Material de prueba",
+                "precio_referencia": "25000.00",
+                "stock": 7,
+                "ubicacion": "Bodega QA",
+            }
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        material = form.save()
+
+        self.assertEqual(material.stock_info.cantidad_actual, 7)
+        self.assertEqual(material.stock_info.ubicacion, "Bodega QA")
