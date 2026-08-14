@@ -73,7 +73,7 @@
                     {% for factura in facturas %}
                     <tr>
                         <td class="ps-4 fw-bold text-accent">{{ factura.numero }}</td>
-                        <td class="text-white-50 small">{{ factura.fecha_emision|date:"d/m/Y H:i" }}</td>
+                        <td class="text-white-50 small">{{ factura.fecha|date:"d/m/Y H:i" }}</td>
                         <td class="text-end text-white-50">{{ factura.total|currency }}</td>
                         <td class="text-end text-success-emphasis">{{ factura.total_pagado|currency }}</td>
                         <td class="text-end fw-bold text-accent">{{ factura.saldo_pendiente|currency }}</td>
@@ -91,7 +91,7 @@
                         </td>
                         <td class="text-center">
                             <button class="btn btn-sm btn-outline-info rounded-pill px-3 btn-ver-historial-mis-facturas"
-                                data-numero="{{ factura.numero }}" data-id="{{ factura.id }}">
+                                data-numero="{{ factura.numero }}" data-id="{{ factura.pk }}">
                                 <i class="bi bi-list-check me-1"></i> Ver Pagos
                             </button>
                         </td>
@@ -100,13 +100,15 @@
                                 {% if factura.estado == 'pendiente' %}
                                 <button
                                     class="btn btn-premium btn-premium-gold btn-sm px-3 btn-abrir-modal-pago-mis-facturas"
-                                    data-id="{{ factura.id }}" data-numero="{{ factura.numero }}"
+                                    data-id="{{ factura.pk }}" data-numero="{{ factura.numero }}"
                                     data-total="{{ factura.saldo_pendiente }}">
                                     <i class="bi bi-credit-card me-1"></i> Pagar Ahora
                                 </button>
                                 {% endif %}
-                                <a href="{% url 'ordenes:descargar_factura' factura.orden.id %}" class="btn-action"
-                                    title="Ver PDF" target="_blank">
+                                <a href="{% url 'ordenes:descargar_factura' factura.orden.pk %}"
+                                class="btn-action"
+                                title="Ver PDF"
+                                target="_blank">
                                     <i class="bi bi-file-pdf"></i>
                                 </a>
                             </div>
@@ -226,7 +228,7 @@
     // Datos de pagos en formato JSON para el historial
     pagosData = {
     {% for factura in facturas %}
-    "{{ factura.id }}": [
+    "{{ factura.pk }}": [
         {% for pago in factura.pagos.all %}
     {
         "fecha": "{{ pago.fecha|date:'d/m/Y H:i' }}",
