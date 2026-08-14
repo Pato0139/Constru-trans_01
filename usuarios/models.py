@@ -78,6 +78,12 @@ class Usuario(AbstractUser):
 
     class Meta:
         db_table = "usuario"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tipo_documento", "documento"],
+                name="uq_usuario_tipo_documento_documento",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.nombres} {self.apellidos} ({self.rol})"
