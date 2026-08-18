@@ -4,8 +4,9 @@
 
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('.standard-filter-bar form');
+    const idInput = form?.querySelector('[name="id"]');
+    const materialInput = form?.querySelector('[name="material"]');
     const tipo = form?.querySelector('[name="tipo"]');
-    const query = form?.querySelector('[name="q"]');
     const clearBtn = form?.querySelector('.filter-clear-btn');
     const tableEl = document.getElementById('tablaMateriales');
 
@@ -16,8 +17,9 @@ document.addEventListener('DOMContentLoaded', function () {
         url: tableEl.dataset.apiUrl,
         countSelector: '#materiales-count',
         filters: {
-            tipo: () => tipo ? tipo.value : '',
-            q: () => query ? query.value.trim() : ''
+            id: () => idInput ? idInput.value.trim() : '',
+            material: () => materialInput ? materialInput.value.trim() : '',
+            tipo: () => tipo ? tipo.value : ''
         },
         columns: [
             {
@@ -59,13 +61,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const reload = AppHTTP.debounce(() => table.ajax.reload(), 300);
 
+    idInput?.addEventListener('input', reload);
+    materialInput?.addEventListener('input', reload);
     tipo?.addEventListener('change', reload);
-    query?.addEventListener('input', reload);
 
     clearBtn?.addEventListener('click', function (event) {
         event.preventDefault();
+        if (idInput) idInput.value = '';
+        if (materialInput) materialInput.value = '';
         if (tipo) tipo.value = '';
-        if (query) query.value = '';
         table.ajax.reload();
     });
 });
