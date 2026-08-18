@@ -66,10 +66,14 @@ body {
     padding: 0.85rem 1rem !important;
     box-shadow: var(--shadow-panel);
     position: fixed;
-    top: 1rem;
+    top: 0;
     left: 1rem;
     right: 1rem;
     z-index: 1040;
+    height: 70px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
 }
 [data-theme="dark"] .app-navbar,
 [data-theme="dark"] .app-topbar,
@@ -288,6 +292,7 @@ body {
 
 .main-content {
     padding: 1rem !important;
+    padding-top: 6.75rem !important;
     transition: all 0.3s ease;
     flex: 1 1 auto;
     min-width: 0;

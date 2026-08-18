@@ -8,6 +8,13 @@ from django.db import transaction
 from django.db.models import F, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
+from core.security import (
+    _respuesta_no_autorizada,
+    obtener_ip,
+    registrar_evento,
+    registrar_warning,
+    role_required,
+)
 from facturacion.models import Factura
 from ordenes.models import DetallePedido, Pedido
 from pagos.models import Pago
@@ -86,21 +93,6 @@ def _obtener_cliente_local(usuario_local, using="default"):
     )
     return cliente_local
 
-
-def mis_facturas(request):
-    try:
-        cliente = request.user.cliente  # si el related_name es "cliente"
-    except Cliente.DoesNotExist:
-        cliente = None
-
-    if cliente is None:
-        facturas = Factura.objects.none()
-    else:
-        facturas = (
-            Factura.objects.filter(cliente=cliente)
-            .select_related("pedido")
-            .prefetch_related("pagos")
-        )
 
 def _obtener_catalogo_local(catalogo):
     if not catalogo:
@@ -225,7 +217,7 @@ def parse_fecha_entrega(value):
     return None
 
 
-@login_required
+@role_required(["cliente"])
 def panel_cliente(request):
     try:
         usuario_remoto = request.user.usuario
@@ -256,10 +248,10 @@ def panel_cliente(request):
     return render(request, "clientes/lista.html", context)
 
 
-@login_required
+@role_required(["cliente"])
 def mis_pedidos(request):
     try:
-        usuario_remoto = request.user.usuario
+        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
@@ -313,10 +305,10 @@ def mis_pedidos(request):
     return render(request, "clientes/mis_pedidos.html", context)
 
 
-@login_required
+@role_required(["cliente"])
 def perfil_cliente(request):
     try:
-        usuario_remoto = request.user.usuario
+        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except (Usuario.DoesNotExist, AttributeError):
         logout(request)
@@ -336,10 +328,10 @@ def perfil_cliente(request):
     return render(request, "clientes/detalle.html", context)
 
 
-@login_required
+@role_required(["cliente"])
 def seguimiento_pedidos(request):
     try:
-        usuario_remoto = request.user.usuario
+        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
@@ -351,10 +343,10 @@ def seguimiento_pedidos(request):
     return render(request, "clientes/seguimiento.html", context)
 
 
-@login_required
+@role_required(["cliente"])
 def historial_pedidos(request):
     try:
-        usuario_remoto = request.user.usuario
+        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
@@ -366,13 +358,10 @@ def historial_pedidos(request):
     return render(request, "clientes/historial.html", context)
 
 
-@login_required
+@role_required(["cliente"])
 def crear_pedido(request):
-    usuario_remoto = request.user.usuario
+    usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
     usuario_local = _obtener_usuario_local(usuario_remoto)
-    if usuario_remoto.rol != "cliente":
-        messages.error(request, "Solo los clientes pueden solicitar nuevos pedidos.")
-        return redirect("usuarios:panel")
 
     cliente_local = _obtener_cliente_local(usuario_local)
     materiales = Material.objects.all()
@@ -552,7 +541,6 @@ def editar_pedido(request, id):
     db_alias = _obtener_alias_db()
     pedido = get_object_or_404(Pedido.objects.using(db_alias), codigo_pedido=id)
 
-    # Aseguramos que el precio del pedido refleje el total real de sus detalles antes de mostrar el formulario.
     detalle_total = sum(d.subtotal for d in pedido.detalles.using(db_alias).all())
     if pedido.total != detalle_total or pedido.precio != detalle_total:
         pedido.total = detalle_total
@@ -561,14 +549,38 @@ def editar_pedido(request, id):
 
     materiales = Material.objects.all()
 
-    es_admin = usuario_remoto.rol == "admin"
+    is_super = getattr(request.user, "is_superuser", False) or getattr(request.user, "es_superadmin", False)
+    es_admin = is_super or usuario_remoto.rol == "admin"
     usuario = _obtener_usuario_local(usuario_remoto)
     es_dueno = _es_dueno_pedido(pedido, usuario_remoto, usuario)
 
-    if not (es_admin or es_dueno) or pedido.estado != "pendiente":
+    if not (es_admin or es_dueno):
+        ip = obtener_ip(request)
+        registrar_warning(ip)
+        registrar_evento(
+            request,
+            "role_violation",
+            gravedad="high",
+            detalles={
+                "causa": "editar_pedido_ajeno",
+                "codigo_pedido": pedido.codigo_pedido,
+                "cliente_pedido_id": pedido.cliente_id,
+                "operacion": "editar",
+            },
+        )
+        return _respuesta_no_autorizada(
+            request,
+            detalles={
+                "rol_requerido": ["admin"],
+                "permiso_alternativo": "propietario del pedido",
+                "codigo_pedido": pedido.codigo_pedido,
+            },
+        )
+
+    if pedido.estado != "pendiente":
         messages.error(
             request,
-            "No tienes permiso para editar este pedido o el pedido ya no se puede modificar.",
+            "El pedido ya no se puede modificar (estado actual: {}).".format(pedido.estado),
         )
         if es_admin:
             return redirect("ordenes:lista_pedidos_admin")
@@ -717,15 +729,33 @@ def cancelar_pedido(request, id):
     pedido = get_object_or_404(Pedido, codigo_pedido=id)
 
     usuario_remoto = request.user.usuario
-    es_admin = usuario_remoto.rol == "admin"
+    is_super = getattr(request.user, "is_superuser", False) or getattr(request.user, "es_superadmin", False)
+    es_admin = is_super or usuario_remoto.rol == "admin"
     usuario = _obtener_usuario_local(usuario_remoto)
     es_dueno = _es_dueno_pedido(pedido, usuario_remoto, usuario)
 
     if not (es_admin or es_dueno):
-        messages.error(request, "No tienes permiso para cancelar este pedido.")
-        if es_admin:
-            return redirect("ordenes:lista_pedidos_admin")
-        return redirect("clientes:mis_pedidos")
+        ip = obtener_ip(request)
+        registrar_warning(ip)
+        registrar_evento(
+            request,
+            "role_violation",
+            gravedad="high",
+            detalles={
+                "causa": "cancelar_pedido_ajeno",
+                "codigo_pedido": pedido.codigo_pedido,
+                "cliente_pedido_id": pedido.cliente_id,
+                "operacion": "cancelar",
+            },
+        )
+        return _respuesta_no_autorizada(
+            request,
+            detalles={
+                "rol_requerido": ["admin"],
+                "permiso_alternativo": "propietario del pedido",
+                "codigo_pedido": pedido.codigo_pedido,
+            },
+        )
 
     if pedido.estado != "pendiente":
         messages.error(request, "Solo se pueden cancelar pedidos en estado pendiente.")
@@ -820,3 +850,101 @@ def mis_pagos(request):
     }
 
     return render(request, "clientes/mis_pagos.html", context)
+
+
+# =====================================================================
+# VISTAS DE ADMINISTRACIÓN DE CLIENTES
+# =====================================================================
+
+@login_required
+def lista_clientes(request):
+    if request.user.rol != "admin":
+        messages.error(request, "No tienes permisos para ver el listado de clientes.")
+        return redirect("usuarios:panel")
+        
+    clientes = Usuario.objects.filter(rol="cliente").select_related("perfil_cliente").order_by("-date_joined")
+    
+    q = request.GET.get("q", "")
+    estado = request.GET.get("estado", "")
+    
+    if q:
+        clientes = clientes.filter(
+            Q(nombres__icontains=q) | 
+            Q(apellidos__icontains=q) | 
+            Q(documento__icontains=q) | 
+            Q(email__icontains=q)
+        )
+    if estado:
+        clientes = clientes.filter(estado=estado)
+        
+    context = {"clientes": clientes, "q": q, "estado": estado}
+    return render(request, "clientes/admin_lista.html", context)
+
+
+@login_required
+def detalle_cliente(request, id):
+    if request.user.rol != "admin":
+        messages.error(request, "No tienes permisos para ver este perfil.")
+        return redirect("usuarios:panel")
+        
+    usuario = get_object_or_404(Usuario, id=id, rol="cliente")
+    cliente, _ = Cliente.ensure_for_user(usuario)
+    pedidos = Pedido.objects.filter(usuario=usuario).order_by("-fecha_solicitud")
+    
+    context = {
+        "usuario_cliente": usuario,
+        "cliente": cliente,
+        "pedidos": pedidos,
+        "total_gastado": pedidos.aggregate(total=Sum("total"))["total"] or 0,
+        "pedidos_entregados": pedidos.filter(estado="entregado").count()
+    }
+    return render(request, "clientes/admin_detalle.html", context)
+
+
+@login_required
+def editar_cliente(request, id):
+    if request.user.rol != "admin":
+        messages.error(request, "No tienes permisos para editar este cliente.")
+        return redirect("usuarios:panel")
+        
+    usuario = get_object_or_404(Usuario, id=id, rol="cliente")
+    cliente, _ = Cliente.ensure_for_user(usuario)
+    
+    if request.method == "POST":
+        cliente.direccion_principal = request.POST.get("direccion_principal", cliente.direccion_principal)
+        cliente.direccion = request.POST.get("direccion", cliente.direccion)
+        cliente.tipo_cliente = request.POST.get("tipo_cliente", cliente.tipo_cliente)
+        cliente.nit = request.POST.get("nit", cliente.nit)
+        cliente.nombre_empresa = request.POST.get("nombre_empresa", cliente.nombre_empresa)
+        cliente.contacto_alternativo = request.POST.get("contacto_alternativo", cliente.contacto_alternativo)
+        cliente.observaciones = request.POST.get("observaciones", cliente.observaciones)
+        cliente.es_vip = request.POST.get("es_vip") == "on"
+        
+        try:
+            with transaction.atomic():
+                cliente.save()
+                
+                telefono = request.POST.get("telefono")
+                estado = request.POST.get("estado")
+                
+                if telefono:
+                    usuario.telefono = telefono
+                if estado:
+                    usuario.estado = estado
+                    usuario.user.is_active = (estado == "activo")
+                    usuario.user.save()
+                    
+                usuario.save()
+                
+            messages.success(request, f"Datos del cliente {usuario.nombres} actualizados exitosamente.")
+            return redirect("clientes:detalle_cliente", id=usuario.id)
+            
+        except Exception as e:
+            messages.error(request, f"Error al guardar: {e}")
+            
+    context = {
+        "usuario_cliente": usuario,
+        "cliente": cliente,
+        "tipos_cliente": Cliente.TIPOS_CLIENTE
+    }
+    return render(request, "clientes/admin_editar.html", context)

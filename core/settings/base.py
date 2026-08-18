@@ -115,13 +115,26 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Seguridad propia: bloqueo de IP y warnings tras auth (para saber user)
+    "core.middleware.SecurityMiddleware",
+    # Seguridad propia: validación a nivel de URL namespace / url_name ANTES de la vista
+    "core.middleware.RoleNamespaceMiddleware",
     "core.middleware.DatabasePreferenceMiddleware",
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
-    # "licensing.middleware.LicenseEnforcementMiddleware",  # Desactivado temporalmente para resolver problema de creación de usuarios
+    # Licencia: último paso antes de servir la app
+    "licensing.middleware.LicenseEnforcementMiddleware",
 ]
+
+# ============================================================
+# SEGURIDAD — Control de acceso + Bloqueo IP
+# ============================================================
+
+SECURITY_MAX_WARNINGS = 5          # Intentos no autorizados antes de bloquear
+SECURITY_BLOCK_HOURS = 24          # Duración bloqueo IP (horas)
+SECURITY_WARNING_WINDOW = 60       # Ventana de gracia para contar warnings (minutos)
 
 ROOT_URLCONF = "core.urls"
 

@@ -18,9 +18,17 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 
+from core.security import (
+    _respuesta_no_autorizada,
+    admin_required,
+    obtener_ip,
+    registrar_evento,
+    registrar_warning,
+    role_required,
+)
 from historial.utils import registrar_actividad
 from ordenes.models import Pedido
-from core.db_preference import PREF_LOCAL, PREF_REMOTA, invalidate_connection_cache
+from core.db_preference import PREF_LOCAL, PREF_REMOTA, get_db_preference, invalidate_connection_cache
 from core.sync import sync_all_usuarios
 from core.utils import conexion_remota_disponible
 
@@ -36,18 +44,6 @@ from .models import (
 from .utils import get_account_switch_options, limpiar_documento, limpiar_telefono
 
 logger = logging.getLogger(__name__)
-
-
-def admin_required(view_func):
-    @wraps(view_func)
-    @login_required
-    def _wrapped_view(request, *args, **kwargs):
-        usuario = request.user 
-        if usuario.rol != "admin":
-            raise PermissionDenied
-        return view_func(request, *args, **kwargs)
-
-    return _wrapped_view
 
 def _buscar_qs_por_rol(rol, query=None):
     qs = Usuario.objects.select_related("perfil_cliente").order_by("-id")
@@ -137,8 +133,17 @@ def lista_usuarios(request):
 
 
 def cambiar_cuenta(request, rol):
+    """Permite cambiar entre las vistas de cuenta disponibles desde el perfil."""
     if not request.user.is_authenticated:
         return redirect("usuarios:login")
+
+    is_super = getattr(request.user, "is_superuser", False) or getattr(
+        request.user, "es_superadmin", False
+    )
+    if not is_super:
+        registrar_evento(request, "role_violation", gravedad="high", detalles={"target_role": rol})
+        messages.error(request, "Solo el Administrador Global puede cambiar de panel.")
+        return redirect("usuarios:panel")
 
     role_targets = {
         "admin": {"panel": "usuarios:panel", "label": "Administrador"},
@@ -153,7 +158,16 @@ def cambiar_cuenta(request, rol):
 
     request.session["active_account_role"] = rol
     request.session.modified = True
-    messages.success(request, f"Ahora estás en la cuenta de {target['label']}.")
+    registrar_evento(
+        request,
+        "admin_switch",
+        gravedad="info",
+        detalles={"cambio_de": request.user.rol, "cambio_a": rol},
+    )
+    messages.success(
+        request,
+        f"Modo de vista cambiado a: {target['label']}. (Modo Administrador Global — solo lectura de pruebas).",
+    )
     return redirect(target["panel"])
 
 
@@ -352,7 +366,6 @@ def login_usuario(request):
                     request.session.set_expiry(1209600)
                 else:
                     request.session.set_expiry(0)
-                request.session.save()
 
                 try:
                     registrar_actividad(
@@ -479,7 +492,7 @@ def panel(request):
 # =====================================================================
 
 
-@login_required
+@role_required(["conductor"])
 def panel_conductor(request):
     try:
         try:
@@ -515,7 +528,7 @@ def panel_conductor(request):
     return render(request, "usuarios/panel-conductor.html", context)
 
 
-@login_required
+@role_required(["conductor"])
 def pedidos_conductor(request):
     try:
         usuario = request.user.usuario
@@ -561,7 +574,7 @@ def pedidos_conductor(request):
     return render(request, "usuarios/pedidos_conductor.html", context)
 
 
-@login_required
+@role_required(["conductor"])
 def mis_entregas(request):
     try:
         usuario = request.user.usuario
@@ -681,14 +694,8 @@ def editar_perfil(request):
 # =====================================================================
 
 
-@login_required
+@admin_required
 def crear_usuario(request):
-    if request.user.rol != "admin":
-        if request.headers.get("x-requested-with") == "XMLHttpRequest":
-            return JsonResponse({"status": "error", "message": "No tienes permisos."}, status=403)
-        messages.error(request, "No tienes permisos para realizar esta acción.")
-        return redirect("usuarios:panel")
-
     if request.method == "POST":
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
@@ -780,12 +787,8 @@ def crear_usuario(request):
     return render(request, "usuarios/form.html", context)
 
 
-@login_required
+@admin_required
 def toggle_estado_usuario(request, id):
-    if request.user.rol != "admin":
-        messages.error(request, "No tienes permisos para realizar esta acción.")
-        return redirect("usuarios:panel")
-
     usuario_obj = get_object_or_404(Usuario, id=id)
 
     if usuario_obj.es_superadmin:
@@ -807,13 +810,9 @@ def toggle_estado_usuario(request, id):
     return redirect("usuarios:lista_usuarios")
 
 
-@login_required
+@admin_required
 def eliminar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
-
-    if request.user.rol != "admin":
-        messages.error(request, "No tienes permiso para realizar esta acción.")
-        return redirect("usuarios:lista_usuarios")
 
     if usuario.es_superadmin:
         messages.error(request, "El Administrador Global no puede eliminarse desde aquí.")
@@ -827,14 +826,47 @@ def eliminar_usuario(request, id):
 @login_required
 def editar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
+    user = request.user
 
-    if request.user.rol != "admin" and request.user.id != usuario.user.id:
-        messages.error(request, "No tienes permisos para editar este perfil.")
-        return redirect("usuarios:panel")
+    is_super = getattr(user, "is_superuser", False) or getattr(user, "es_superadmin", False)
+    es_admin = is_super or user.rol == "admin"
+    es_propio = user.id == usuario.user.id or user.pk == usuario.pk
 
-    if usuario.es_superadmin and request.user.id != usuario.user.id:
-        messages.error(request, "Solo el Administrador Global puede modificar su propia cuenta.")
-        return redirect("usuarios:lista_usuarios")
+    if not is_super:
+        if usuario.es_superadmin and not es_propio:
+            registrar_warning(obtener_ip(request))
+            registrar_evento(
+                request,
+                "role_violation",
+                gravedad="high",
+                detalles={"target_user_id": usuario.id, "operacion": "editar_superadmin"},
+            )
+            return _respuesta_no_autorizada(
+                request,
+                detalles={
+                    "operacion": "editar_usuario",
+                    "target": usuario.id,
+                    "motivo": "Solo el Administrador Global puede modificar su propia cuenta.",
+                },
+            )
+
+    if not (es_admin or es_propio):
+        registrar_warning(obtener_ip(request))
+        registrar_evento(
+            request,
+            "role_violation",
+            gravedad="high",
+            detalles={"target_user_id": usuario.id, "operacion": "editar_ajeno"},
+        )
+        return _respuesta_no_autorizada(
+            request,
+            detalles={
+                "rol_requerido": ["admin"],
+                "rol_usuario": user.rol,
+                "operacion": "editar_usuario",
+                "permiso_alternativo": "propietario del perfil",
+            },
+        )
 
     if request.method == "POST":
         nombres = request.POST.get("nombres")
@@ -860,7 +892,7 @@ def editar_usuario(request, id):
                         logger.warning("No se pudo borrar foto anterior: %s", exc)
                 usuario.foto_perfil = request.FILES["foto_perfil"]
 
-            if request.user.rol == "admin" and rol:
+            if es_admin and rol:
                 usuario.rol = rol
 
             usuario.sincronizado = False

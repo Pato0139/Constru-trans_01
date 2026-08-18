@@ -1,6 +1,10 @@
 from core.db_preference import get_db_preference, PREF_LOCAL, PREF_REMOTA
 from core.utils import conexion_remota_disponible
 
+# Apps de Django que SIEMPRE deben vivir en la BD default (local)
+# para evitar conflictos de sesión entre bases de datos.
+_APPS_LOCALES = {"sessions", "auth", "contenttypes", "admin"}
+
 
 class EnrutadorInventario:
     def _elegir_bd(self):
@@ -18,9 +22,13 @@ class EnrutadorInventario:
         return "local"
 
     def db_for_read(self, model, **hints):
+        if model._meta.app_label in _APPS_LOCALES:
+            return "default"
         return self._elegir_bd()
 
     def db_for_write(self, model, **hints):
+        if model._meta.app_label in _APPS_LOCALES:
+            return "default"
         return self._elegir_bd()
 
     def allow_relation(self, obj1, obj2, **hints):
@@ -33,4 +41,4 @@ class EnrutadorInventario:
             return False
         if db == "remota":
             return True
-        return False
+        return False
