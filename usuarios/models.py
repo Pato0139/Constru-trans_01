@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import now
 from django.core.files.storage import default_storage
@@ -192,12 +193,14 @@ class Usuario(AbstractUser):
         return self.vehiculo_actual
 
     def esta_bloqueado(self):
+        """Verifica si el usuario está bloqueado actualmente."""
         from django.utils import timezone
         if self.bloqueado_hasta and timezone.now() < self.bloqueado_hasta:
             return True
         return False
 
     def registrar_intento_fallido(self):
+        """Registra un intento fallido y bloquea el usuario si es necesario."""
         from django.utils import timezone
         self.intentos_fallidos += 1
         if self.intentos_fallidos >= 3 and self.nivel_bloqueo < 1:
@@ -209,12 +212,14 @@ class Usuario(AbstractUser):
         self.save()
 
     def reiniciar_intentos(self):
+        """Reinicia los intentos fallidos después de un inicio de sesión exitoso."""
         self.intentos_fallidos = 0
         self.bloqueado_hasta = None
         self.nivel_bloqueo = 0
         self.save()
 
     def obtener_tiempo_restante_bloqueo(self):
+        """Devuelve el tiempo restante de bloqueo en un formato legible."""
         from django.utils import timezone
         if not self.esta_bloqueado():
             return None
@@ -240,6 +245,7 @@ class Usuario(AbstractUser):
         if self.apellidos and not self.last_name:
             self.last_name = self.apellidos[:last_name_max]
         elif not self.apellidos and self.last_name:
+            self.apellidos = self.last_name
             self.apellidos = self.last_name
 
         super().save(*args, **kwargs)
@@ -337,10 +343,14 @@ class Conductor(models.Model):
 
     @classmethod
     def ensure_for_user(cls, user, using=None, defaults=None):
+        """Crea o devuelve el perfil de conductor para un usuario persistido."""
         if user is None:
             raise ValueError("Se requiere un usuario válido para crear el perfil de conductor.")
+
         if not getattr(user, "pk", None):
-            raise ValueError("El usuario debe existir en base de datos antes de crear el perfil de conductor.")
+            raise ValueError(
+                "El usuario debe existir en base de datos antes de crear el perfil de conductor."
+            )
 
         db_alias = using or getattr(getattr(user, "_state", None), "db", None) or "default"
         user_for_profile = cls._resolve_user_for_db(user, db_alias)
@@ -428,6 +438,25 @@ class Conductor(models.Model):
         return nueva_asignacion
 
 
+# =====================================================================
+# VEHICULO
+# =====================================================================
+# Desactivado temporalmente para evitar bloqueos en creación de usuarios
+# @receiver(post_save, sender="usuarios.Usuario")
+# def crear_perfil_conductor(sender, instance, created, **kwargs):
+#     """Auto-crea perfil de conductor cuando un usuario pasa a ser conductor."""
+#     if instance.rol != "conductor":
+#         return
+#
+#     using = kwargs.get("using") or instance._state.db or "default"
+#     if created:
+#         Conductor.ensure_for_user(instance, using=using)
+#         return
+#
+#     try:
+#         instance.perfil_conductor
+#     except Conductor.DoesNotExist:
+#         Conductor.ensure_for_user(instance, using=using)
 class Vehiculo(models.Model):
     id_vehiculo = models.AutoField(primary_key=True)
     catalogo = models.ForeignKey(
@@ -656,6 +685,9 @@ class MaterialConstruccion(models.Model):
         return self.catalogo.nombre_empresa if self.catalogo else ""
 
 
+# =====================================================================
+# HISTORIAL PRECIO MATERIAL
+# =====================================================================
 class HistorialPrecioMaterial(models.Model):
     material = models.ForeignKey(MaterialConstruccion, on_delete=models.CASCADE, related_name="historial_precios")
     precio_anterior = models.DecimalField(max_digits=12, decimal_places=2)
@@ -683,6 +715,9 @@ class HistorialPrecioMaterial(models.Model):
         super().save(*args, **kwargs)
 
 
+# =====================================================================
+# STOCK
+# =====================================================================
 class Stock(models.Model):
     material = models.OneToOneField(
         MaterialConstruccion, on_delete=models.CASCADE, primary_key=True, related_name="stock_info"
