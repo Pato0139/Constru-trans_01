@@ -15,13 +15,35 @@ from usuarios.views import admin_required
 
 @admin_required
 def materiales_lista(request):
-    query = request.GET.get("q", "")
-    tipo = request.GET.get("tipo", "")
+    material = request.GET.get("material", "").strip()
+    tipo = request.GET.get("tipo", "").strip()
+    material_id = request.GET.get("id", "").strip()
 
     tipos = Catalogo.objects.all().order_by("nombre_empresa")
+    tipos_unicos = []
+    vistos = set()
+    for tipo_item in tipos:
+        clave = (tipo_item.nombre_empresa or "").strip().lower()
+        if not clave or clave in vistos:
+            continue
+        vistos.add(clave)
+        tipos_unicos.append(tipo_item)
+
     total = Material.objects.count()
 
     filter_fields = [
+        {
+            "name": "id",
+            "type": "text",
+            "placeholder": "ID",
+            "value": material_id,
+        },
+        {
+            "name": "material",
+            "type": "text",
+            "placeholder": "Material",
+            "value": material,
+        },
         {
             "name": "tipo",
             "type": "select",
@@ -33,15 +55,16 @@ def materiales_lista(request):
                     "label": t.nombre_empresa,
                     "selected": t.codigo_catalogo == tipo,
                 }
-                for t in tipos
+                for t in tipos_unicos
             ],
-        }
+        },
     ]
 
     context = {
-        "query": query,
+        "material": material,
+        "material_id": material_id,
         "tipo_actual": tipo,
-        "tipos": tipos,
+        "tipos": tipos_unicos,
         "total": total,
         "filter_fields": filter_fields,
     }

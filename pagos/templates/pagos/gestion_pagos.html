@@ -17,7 +17,7 @@
 
         <div class="d-flex gap-2 align-items-center w-100">
             <div class="flex-grow-1">
-                {% include "partials/filter_bar.html" %}
+                {% include "partials/filter_bar.html" with filter_fields=filter_fields has_filters=has_filters %}
             </div>
             <a href="{% url 'pagos:lista_pagos' %}" class="btn btn-premium btn-premium-gold btn-main-action">
                 <i class="bi bi-journal-bookmark"></i> Historial de pagos

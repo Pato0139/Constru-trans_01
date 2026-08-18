@@ -11,23 +11,13 @@
             </h2>
             <p class="text-white-50 small mb-0">Gestión de compras a proveedores y reposición de inventario</p>
         </div>
-        
-        <div class="d-flex gap-2 align-items-center">
-            <form method="get" class="d-flex gap-2">
-                <div class="input-group u-inline-ceafc34d25">
-                    <span class="input-group-text bg-dark border-white-10 text-white-50">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="text" name="q" class="form-control bg-dark border-white-10 text-white py-2" 
-                           placeholder="Buscar por proveedor, número de orden o estado..." value="{{ query }}">
-                </div>
-            </form>
 
-            <a href="{% url 'compras:crear_compra' %}" class="btn btn-warning fw-bold rounded-pill px-4 shadow-sm" aria-label="Agregar compra" data-tooltip="Agregar compra" title="Agregar compra">
-                <i class="bi bi-plus-circle me-1"></i>Nueva Orden
-            </a>
-        </div>
+        <a href="{% url 'compras:crear_compra' %}" class="btn btn-warning fw-bold rounded-pill px-4 shadow-sm" aria-label="Agregar compra" data-tooltip="Agregar compra" title="Agregar compra">
+            <i class="bi bi-plus-circle me-1"></i>Nueva Orden
+        </a>
     </div>
+
+    {% include "partials/filter_bar.html" with filter_fields=filter_fields has_filters=has_filters %}
 
     <!-- Tabla con Glassmorphism -->
     <div class="table-container p-0 overflow-hidden u-inline-6b0d9e24ec" data-aos="fade-up">

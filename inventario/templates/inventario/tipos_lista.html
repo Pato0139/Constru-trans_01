@@ -20,7 +20,7 @@
         <div class="d-flex flex-column gap-2">
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <div class="search-filters-card flex-grow-1 min-width-0">
-                    {% include "partials/filter_bar.html" %}
+                    {% include "partials/filter_bar.html" with filter_fields=filter_fields has_filters=has_filters %}
                 </div>
                 <a href="{% url 'inventario:crear_tipo_material' %}" class="btn add-action-btn shadow-sm flex-shrink-0"
                     aria-label="Agregar tipo de material" data-tooltip="Agregar tipo de material"
