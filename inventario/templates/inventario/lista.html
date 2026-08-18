@@ -24,10 +24,9 @@
     </div>
 
     <div class="d-flex flex-column flex-md-row align-items-stretch gap-2 w-100">
-        {% include "partials/filter_bar.html" %}
-<a href="{% url 'inventario:crear_material' %}" class="btn btn-premium btn-premium-gold btn-main-action align-self-md-center" aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
-    <i class="bi bi-plus-lg"></i> Agregar material
-
+        {% include "partials/filter_bar.html" with filter_fields=filter_fields form_data_ajax=True %}
+        <a href="{% url 'inventario:crear_material' %}" class="btn btn-premium btn-premium-gold btn-main-action align-self-md-center" aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
+            <i class="bi bi-plus-lg"></i> Agregar material
         </a>
     </div>
 </div>

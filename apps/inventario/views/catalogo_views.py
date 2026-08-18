@@ -14,9 +14,23 @@ from apps.usuarios.views import admin_required
 
 @admin_required
 def tipos_material_lista(request):
-    query = request.GET.get("q")
+    codigo = request.GET.get("codigo", "").strip()
+    nombre = request.GET.get("nombre", "").strip()
+    materiales_asociados = request.GET.get("materiales_asociados", "").strip()
+    query = request.GET.get("q", "").strip()
+
     tipos = Catalogo.objects.annotate(num_materiales=Count("materiales"))
 
+    if codigo:
+        tipos = tipos.filter(codigo_catalogo__icontains=codigo)
+    if nombre:
+        tipos = tipos.filter(nombre_empresa__icontains=nombre)
+    if materiales_asociados:
+        try:
+            numero = int(materiales_asociados)
+            tipos = tipos.filter(num_materiales=numero)
+        except ValueError:
+            tipos = tipos.none()
     if query:
         tipos = tipos.filter(
             Q(codigo_catalogo__icontains=query) | Q(nombre_empresa__icontains=query)
@@ -24,9 +38,38 @@ def tipos_material_lista(request):
 
     tipos = tipos.order_by("codigo_catalogo")
 
+    filter_fields = [
+        {
+            "type": "text",
+            "name": "codigo",
+            "placeholder": "Código",
+            "value": codigo,
+            "size": "3",
+        },
+        {
+            "type": "text",
+            "name": "nombre",
+            "placeholder": "Nombre del material",
+            "value": nombre,
+            "size": "3",
+        },
+        {
+            "type": "text",
+            "name": "materiales_asociados",
+            "placeholder": "Materiales asociados",
+            "value": materiales_asociados,
+            "size": "3",
+        },
+    ]
+
     context = {
         "tipos": tipos,
         "query": query,
+        "codigo": codigo,
+        "nombre": nombre,
+        "materiales_asociados": materiales_asociados,
+        "filter_fields": filter_fields,
+        "has_filters": any([codigo, nombre, materiales_asociados, query]),
     }
 
     return render(request, "inventario/tipos_lista.html", context)

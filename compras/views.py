@@ -17,52 +17,53 @@ from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
 @admin_required
 def lista_compras(request):
-    query = request.GET.get("q", "")
-    orden = request.GET.get("orden", "")
-    proveedor = request.GET.get("proveedor", "")
-    fecha = request.GET.get("fecha", "")
-    usuario = request.GET.get("usuario", "")
-    estado = request.GET.get("estado", "")
+    proveedor = request.GET.get("proveedor", "").strip()
+    fecha_compra = request.GET.get("fecha_compra", "").strip()
+    material = request.GET.get("material", "").strip()
 
     compras = Compra.objects.select_related("proveedor", "usuario").prefetch_related("detalles")
 
-    if query:
-        compras = compras.filter(
-            Q(id_compra__icontains=query)
-            | Q(proveedor__nombre_empresa__icontains=query)
-            | Q(proveedor__nit__icontains=query)
-            | Q(estado__icontains=query)
-        )
-
-    if orden:
-        compras = compras.filter(id_compra__icontains=orden)
     if proveedor:
-        compras = compras.filter(
-            Q(proveedor__nombre_empresa__icontains=proveedor)
-            | Q(proveedor__nit__icontains=proveedor)
-        )
-    if fecha:
-        compras = compras.filter(fecha_compra__date=fecha)
-    if usuario:
-        compras = compras.filter(
-            Q(usuario__username__icontains=usuario)
-            | Q(usuario__nombres__icontains=usuario)
-            | Q(usuario__apellidos__icontains=usuario)
-        )
-    if estado:
-        compras = compras.filter(estado=estado)
+        compras = compras.filter(proveedor__nombre_empresa__icontains=proveedor)
+    if fecha_compra:
+        compras = compras.filter(fecha_compra__date=fecha_compra)
+    if material:
+        compras = compras.filter(detalles__material__nombre__icontains=material).distinct()
+
+    filter_fields = [
+        {
+            "type": "text",
+            "name": "proveedor",
+            "placeholder": "Proveedor",
+            "value": proveedor,
+            "size": "3",
+        },
+        {
+            "type": "date",
+            "name": "fecha_compra",
+            "placeholder": "Fecha",
+            "value": fecha_compra,
+            "size": "3",
+        },
+        {
+            "type": "text",
+            "name": "material",
+            "placeholder": "Material",
+            "value": material,
+            "size": "3",
+        },
+    ]
 
     return render(
         request,
         "compras/lista.html",
         {
             "compras": compras,
-            "query": query,
-            "orden": orden,
             "proveedor": proveedor,
-            "fecha": fecha,
-            "usuario": usuario,
-            "estado_actual": estado,
+            "fecha_compra": fecha_compra,
+            "material": material,
+            "filter_fields": filter_fields,
+            "has_filters": any([proveedor, fecha_compra, material]),
         },
     )
 

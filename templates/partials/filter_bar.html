@@ -1,5 +1,5 @@
 <div class="card bg-surface border-0 shadow-sm p-3 mb-4 filter-bar-card standard-filter-bar" data-aos="fade-down">
-    <form action="." method="GET" class="w-100">
+    <form id="filterForm" action="." method="GET" class="w-100" {% if form_data_ajax %}data-ajax-filter-form="true"{% endif %}>
 
         <div class="standard-filter-layout">
             <div class="standard-filter-label">
@@ -30,17 +30,6 @@
             {% endfor %}
             {% endif %}
 
-            <div class="standard-filter-search">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-surface border-end-0 text-muted"><i
-                            class="bi bi-search"></i></span>
-                    <input type="text" name="q" id="globalSearchInput"
-                        class="form-control bg-surface text-main border-start-0" placeholder="Escribe para filtrar..."
-
-                        value="{% firstof q query %}">
-                </div>
-            </div>
-
             <div class="standard-filter-actions">
                 <a href="." class="btn btn-sm btn-outline-secondary filter-clear-btn" title="Limpiar filtros" aria-label="Limpiar filtros">
                     <i class="bi bi-x-circle fs-5"></i>
@@ -49,3 +38,34 @@
         </div>
     </form>
 </div>
+
+<script>
+(function () {
+    function bindAutoFilters() {
+        const form = document.getElementById('filterForm');
+        if (!form || form.dataset.ajaxFilterForm === 'true') return;
+
+        const fields = form.querySelectorAll('input.filter-input, select.filter-select');
+        if (!fields.length) return;
+
+        let timeoutId = null;
+        const submitFilters = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                form.requestSubmit ? form.requestSubmit() : form.submit();
+            }, 300);
+        };
+
+        fields.forEach((field) => {
+            const eventName = field.tagName === 'SELECT' ? 'change' : 'input';
+            field.addEventListener(eventName, submitFilters);
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindAutoFilters);
+    } else {
+        bindAutoFilters();
+    }
+})();
+</script>
