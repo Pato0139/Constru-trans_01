@@ -1,0 +1,114 @@
+/* Componentes visuales compartidos por Catálogo, Stock y Movimientos. */
+.inventory-page .table-container,
+.inventory-entry-modal .modal-content {
+  background: var(--card-bg) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+.inventory-page .table,
+.inventory-page .table > :not(caption) > * > * {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--color-text);
+  --bs-table-hover-color: var(--color-text);
+  --bs-table-hover-bg: var(--item-bg-hover);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.inventory-page .table thead th {
+  background: var(--item-bg) !important;
+  color: var(--color-accent) !important;
+  border-color: var(--color-border) !important;
+}
+
+.inventory-page .inventory-avatar,
+.inventory-page .inventory-icon {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.inventory-form .inventory-icon {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.inventory-page .inventory-price,
+.inventory-page .inventory-value {
+  color: var(--color-text) !important;
+}
+
+.inventory-page .inventory-status {
+  border: 1px solid currentColor;
+  font-weight: 700;
+}
+
+.inventory-page .inventory-status--success { background: color-mix(in srgb, #10b981 16%, transparent); color: #047857; }
+.inventory-page .inventory-status--warning { background: color-mix(in srgb, #f59e0b 18%, transparent); color: #b45309; }
+.inventory-page .inventory-status--danger { background: color-mix(in srgb, #ef4444 16%, transparent); color: #b91c1c; }
+.inventory-page .inventory-status--entry { background: color-mix(in srgb, #10b981 16%, transparent); color: #047857; }
+.inventory-page .inventory-status--exit { background: color-mix(in srgb, #ef4444 16%, transparent); color: #b91c1c; }
+
+.inventory-entry-modal .modal-header,
+.inventory-entry-modal .modal-footer {
+  border-color: var(--color-border) !important;
+}
+
+.inventory-entry-modal .modal-title,
+.inventory-entry-modal .form-label {
+  color: var(--color-text) !important;
+}
+
+.inventory-entry-modal .form-control,
+.inventory-entry-modal .form-select,
+.inventory-form .form-control,
+.inventory-form .form-select {
+  background: var(--item-bg) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+.inventory-form .input-group-text {
+  background: var(--item-bg);
+  color: var(--color-accent);
+  border-color: var(--color-border);
+}
+
+.inventory-form .form-text,
+.inventory-form .form-text a {
+  color: var(--color-muted) !important;
+}
+
+.inventory-form .form-text a:hover {
+  color: var(--color-accent) !important;
+}
+
+.inventory-entry-modal .form-control:focus,
+.inventory-entry-modal .form-select:focus,
+.inventory-form .form-control:focus,
+.inventory-form .form-select:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 .2rem var(--glow-primary) !important;
+}
+
+.inventory-entry-modal .btn-close {
+  filter: var(--modal-close-filter, none);
+}
+
+[data-theme="dark"] { --modal-close-filter: invert(1) grayscale(100%) brightness(200%); }
+
+[data-theme="dark"] .inventory-page .inventory-status--success,
+[data-theme="dark"] .inventory-page .inventory-status--entry { color: #6ee7b7; }
+[data-theme="dark"] .inventory-page .inventory-status--warning { color: #fcd34d; }
+[data-theme="dark"] .inventory-page .inventory-status--danger,
+[data-theme="dark"] .inventory-page .inventory-status--exit { color: #fca5a5; }
+
+[data-theme="accessibility"] .inventory-page .inventory-status {
+  background: #000;
+  color: #fff;
+  border-color: #fff;
+}
+
+[data-theme="accessibility"] .inventory-entry-modal .modal-content {
+  border: 2px solid #fff !important;
+}

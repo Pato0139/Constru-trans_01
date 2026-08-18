@@ -12,6 +12,12 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from core.security import (
+    _respuesta_no_autorizada,
+    obtener_ip,
+    registrar_evento,
+    registrar_warning,
+)
 from historial.utils import registrar_actividad
 from inventario.models import MovimientoInventario
 from pagos.models import PagoPedido
@@ -170,13 +176,107 @@ def lista_entregas_admin(request):
 def ver_pedido_admin(request, id):
     orden = get_object_or_404(Orden, codigo_pedido=id)
     usuario_actual = request.user
-    if usuario_actual.rol == "cliente":
-        if orden.cliente is None or orden.cliente.usuario_id != usuario_actual.id:
-            messages.error(request, "No tienes permiso para ver este pedido.")
-            return redirect("clientes:mis_pedidos")
+    is_super = getattr(usuario_actual, "is_superuser", False) or getattr(usuario_actual, "es_superadmin", False)
+    es_admin = is_super or usuario_actual.rol == "admin"
+
+    cliente_dueno = (
+        orden.cliente is not None
+        and orden.cliente.usuario_id is not None
+        and orden.cliente.usuario_id == usuario_actual.pk
+    )
+    conductor_asignado = bool(
+        orden.entregas.filter(conductor_id=getattr(usuario_actual, "pk", None)).exists()
+    )
+
+    if not es_admin:
+        if usuario_actual.rol == "cliente" and not cliente_dueno:
+            ip = obtener_ip(request)
+            registrar_warning(ip)
+            registrar_evento(
+                request,
+                "role_violation",
+                gravedad="high",
+                detalles={
+                    "causa": "ver_pedido_ajeno",
+                    "codigo_pedido": orden.codigo_pedido,
+                    "rol_usuario": "cliente",
+                    "cliente_pedido_id": orden.cliente_id,
+                },
+            )
+            return _respuesta_no_autorizada(
+                request,
+                detalles={
+                    "rol_requerido": ["admin"],
+                    "permiso_alternativo": "propietario del pedido",
+                    "codigo_pedido": orden.codigo_pedido,
+                },
+            )
+        if usuario_actual.rol == "conductor" and not conductor_asignado:
+            ip = obtener_ip(request)
+            registrar_warning(ip)
+            registrar_evento(
+                request,
+                "role_violation",
+                gravedad="high",
+                detalles={
+                    "causa": "conductor_ver_pedido_no_asignado",
+                    "codigo_pedido": orden.codigo_pedido,
+                    "rol_usuario": "conductor",
+                },
+            )
+            return _respuesta_no_autorizada(
+                request,
+                detalles={
+                    "rol_requerido": ["admin"],
+                    "permiso_alternativo": "conductor asignado al pedido",
+                    "codigo_pedido": orden.codigo_pedido,
+                },
+            )
+        if usuario_actual.rol not in ("admin", "cliente", "conductor"):
+            ip = obtener_ip(request)
+            registrar_warning(ip)
+            registrar_evento(
+                request,
+                "role_violation",
+                gravedad="high",
+                detalles={
+                    "causa": "rol_no_autorizado_ver_pedido",
+                    "codigo_pedido": orden.codigo_pedido,
+                    "rol_usuario": usuario_actual.rol,
+                },
+            )
+            return _respuesta_no_autorizada(
+                request,
+                detalles={
+                    "rol_requerido": ["admin", "cliente", "conductor"],
+                    "rol_usuario": usuario_actual.rol,
+                },
+            )
 
     if request.method == "POST":
-        if request.POST.get("accion_pago") == "registrar":
+        accion_pago = request.POST.get("accion_pago")
+        accion = request.POST.get("accion")
+        nuevo_estado = request.POST.get("estado")
+
+        if accion_pago == "registrar":
+            if not (es_admin or (usuario_actual.rol == "cliente" and cliente_dueno)):
+                ip = obtener_ip(request)
+                registrar_warning(ip)
+                registrar_evento(
+                    request,
+                    "role_violation",
+                    gravedad="high",
+                    detalles={
+                        "causa": "registrar_pago_sin_permiso",
+                        "codigo_pedido": orden.codigo_pedido,
+                        "rol_usuario": usuario_actual.rol,
+                    },
+                )
+                return _respuesta_no_autorizada(
+                    request,
+                    detalles={"rol_requerido": ["admin"], "permiso_alternativo": "cliente propietario"},
+                )
+
             metodo = request.POST.get("metodo_pago", "").strip()
             referencia = request.POST.get("referencia", "").strip()
             comprobante = request.FILES.get("comprobante")
@@ -215,13 +315,32 @@ def ver_pedido_admin(request, id):
             messages.success(request, "Tu solicitud de pago quedó registrada. En breve será revisada.")
             return redirect(f"{request.path}?tab=pagos")
 
-        if request.POST.get("accion_pago") in {"aprobar", "rechazar"}:
+        if accion_pago in {"aprobar", "rechazar"}:
+            if not es_admin:
+                ip = obtener_ip(request)
+                registrar_warning(ip)
+                registrar_evento(
+                    request,
+                    "role_violation",
+                    gravedad="critical",
+                    detalles={
+                        "causa": "intento_aprobacion_rechazo_pago",
+                        "codigo_pedido": orden.codigo_pedido,
+                        "rol_usuario": usuario_actual.rol,
+                        "accion": accion_pago,
+                    },
+                )
+                return _respuesta_no_autorizada(
+                    request,
+                    detalles={"rol_requerido": ["admin"], "operacion": "aprobar/rechazar pagos"},
+                )
+
             pago_pedido = orden.pagos_pedido.order_by("-fecha_creacion").first()
             if not pago_pedido:
                 messages.error(request, "Aún no existe un registro de pago para esta orden.")
                 return redirect(f"{request.path}?tab=pagos")
 
-            if request.POST.get("accion_pago") == "aprobar":
+            if accion_pago == "aprobar":
                 registrar_estado_pago(pago_pedido, orden, "pago aprobado")
                 pago_pedido.agregar_historial(f"Pago aprobado por {request.user.username}")
                 pago_pedido.save(update_fields=["estado_pago", "motivo_rechazo", "fecha_actualizacion"])
@@ -240,8 +359,28 @@ def ver_pedido_admin(request, id):
                 messages.warning(request, "Pago rechazado y cliente notificado.")
             return redirect(f"{request.path}?tab=pagos")
 
-        if usuario_actual.rol == "conductor":
-            accion = request.POST.get("accion")
+        if usuario_actual.rol == "conductor" and not es_admin:
+            if accion in ("confirmar", "cancelar") and not conductor_asignado:
+                ip = obtener_ip(request)
+                registrar_warning(ip)
+                registrar_evento(
+                    request,
+                    "role_violation",
+                    gravedad="high",
+                    detalles={
+                        "causa": "conductor_modificar_pedido_no_asignado",
+                        "codigo_pedido": orden.codigo_pedido,
+                        "accion": accion,
+                    },
+                )
+                return _respuesta_no_autorizada(
+                    request,
+                    detalles={
+                        "rol_requerido": ["admin"],
+                        "permiso_alternativo": "conductor asignado",
+                        "codigo_pedido": orden.codigo_pedido,
+                    },
+                )
             if accion == "confirmar":
                 if orden.estado != Orden.ENTREGADO:
                     with transaction.atomic():
@@ -296,12 +435,11 @@ def ver_pedido_admin(request, id):
                         )
                 return redirect("usuarios:panel")
 
-        elif usuario_actual.rol == "admin":
-            if orden.estado == Orden.CANCELADO:
+        elif es_admin:
+            if orden.estado == Orden.CANCELADO and nuevo_estado and nuevo_estado != Orden.CANCELADO:
                 messages.info(request, "El pedido está cancelado. Solo se permite su consulta.")
                 return redirect("ordenes:ver_pedido_admin", id=orden.codigo_pedido)
             db_alias = "remota" if debe_usar_bd_remota() else "default"
-            nuevo_estado = request.POST.get("estado")
             if nuevo_estado:
                 with transaction.atomic():
                     if nuevo_estado == Orden.ENTREGADO and orden.estado != Orden.ENTREGADO:

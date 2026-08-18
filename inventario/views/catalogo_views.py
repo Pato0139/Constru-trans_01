@@ -113,7 +113,7 @@ def eliminar_tipo_material(request, codigo):
 def unidades_medida_lista(request):
     query = request.GET.get("q")
     
-    unidades = UnidadMedida.objects.using("remota").all()
+    unidades = UnidadMedida.objects.all()
 
     if query:
         unidades = unidades.filter(

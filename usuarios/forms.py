@@ -209,7 +209,6 @@ class MaterialForm(forms.ModelForm):
         widget=forms.Select(
             attrs={
                 "class": "form-select",
-                "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
             }
         ),
     )
@@ -221,7 +220,6 @@ class MaterialForm(forms.ModelForm):
             attrs={
                 "class": "form-control numeric-only",
                 "placeholder": "0",
-                "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
             }
         ),
     )
@@ -232,7 +230,6 @@ class MaterialForm(forms.ModelForm):
             attrs={
                 "class": "form-control",
                 "placeholder": "Ej: Almacén 1",
-                "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
             }
         ),
     )
@@ -245,13 +242,11 @@ class MaterialForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "placeholder": "Ej: Cemento Gris",
-                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
                 }
             ),
             "unidad_medida": forms.Select(
                 attrs={
                     "class": "form-select",
-                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
                 }
             ),
             "descripcion": forms.Textarea(
@@ -259,7 +254,6 @@ class MaterialForm(forms.ModelForm):
                     "class": "form-control",
                     "rows": 3,
                     "placeholder": "Descripción detallada...",
-                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
                 }
             ),
             "precio_referencia": forms.TextInput(
@@ -267,7 +261,6 @@ class MaterialForm(forms.ModelForm):
                     "class": "form-control decimal-only",
                     "inputmode": "decimal",
                     "placeholder": "0.00",
-                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
                 }
             ),
         }
@@ -275,7 +268,7 @@ class MaterialForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields["unidad_medida"].queryset = UnidadMedida.objects.using("remota").filter(activa=True).order_by(
+        self.fields["unidad_medida"].queryset = UnidadMedida.objects.filter(activa=True).order_by(
             "orden", "nombre"
         )
         self.fields["unidad_medida"].empty_label = "-- Seleccione una unidad --"
