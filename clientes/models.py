@@ -6,7 +6,7 @@ from usuarios.models import Usuario
 
 
 # =====================================================================
-# CLIENTE (MER: ClienteVIP — alias mantenido por compatibilidad)
+# CLIENTE
 # =====================================================================
 class Cliente(models.Model):
     TIPOS_CLIENTE = [
@@ -27,6 +27,12 @@ class Cliente(models.Model):
     direccion_principal = models.CharField(max_length=200, default="Por definir")
     es_vip = models.BooleanField(default=False)
     fecha_vip = models.DateField(null=True, blank=True)
+    gasto_acumulado = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name="Gasto acumulado",
+    )
 
     # Campos legacy / adicionales
     direccion = models.CharField(max_length=200, default="Por definir")
@@ -63,7 +69,11 @@ class Cliente(models.Model):
         if user_for_profile is None:
             raise ValueError("No fue posible resolver un usuario válido para el perfil de cliente.")
 
-        profile_defaults = {"direccion": "Por definir", "direccion_principal": "Por definir"}
+        profile_defaults = {
+            "direccion": "Por definir",
+            "direccion_principal": "Por definir",
+            "gasto_acumulado": 0,
+        }
         if defaults:
             profile_defaults.update(defaults)
 
@@ -131,4 +141,12 @@ def crear_perfil_cliente(sender, instance, created, **kwargs):
     """Auto-crea perfil Cliente si el usuario tiene rol 'cliente'."""
     if created and instance.rol == "cliente":
         using = kwargs.get("using") or instance._state.db or "default"
-        Cliente.ensure_for_user(instance, using=using, defaults={"direccion": "Por definir", "direccion_principal": "Por definir"})
+        Cliente.ensure_for_user(
+            instance,
+            using=using,
+            defaults={
+                "direccion": "Por definir",
+                "direccion_principal": "Por definir",
+                "gasto_acumulado": 0,
+            },
+        )

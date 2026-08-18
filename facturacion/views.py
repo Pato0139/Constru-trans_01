@@ -4,9 +4,16 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse
 from django.db.models import Q
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from core.security import (
+    _respuesta_no_autorizada,
+    obtener_ip,
+    registrar_evento,
+    registrar_warning,
+    role_required,
+)
 from pagos.models import Pago
 from usuarios.models import MetodoPago
 from usuarios.views import admin_required
@@ -75,7 +82,26 @@ def lista_facturas(request):
 
 @login_required
 def mis_facturas(request):
-    cliente = get_object_or_404(Cliente, usuario=request.user)
+    user = request.user
+    is_super = getattr(user, "is_superuser", False) or getattr(user, "es_superadmin", False)
+    if is_super or user.rol == "admin":
+        return redirect("facturacion:lista_facturas")
+
+    if user.rol != "cliente":
+        ip = obtener_ip(request)
+        registrar_warning(ip)
+        registrar_evento(
+            request,
+            "role_violation",
+            gravedad="high",
+            detalles={"causa": "mis_facturas_rol_invalido", "rol_usuario": user.rol},
+        )
+        return _respuesta_no_autorizada(
+            request,
+            detalles={"rol_requerido": ["cliente"], "rol_usuario": user.rol},
+        )
+
+    cliente = get_object_or_404(Cliente, usuario=user)
     facturas = (
         Factura.objects.filter(cliente=cliente).select_related("pedido").prefetch_related("pagos")
     )
@@ -92,29 +118,58 @@ def registrar_pago(request):
     monto_str = request.POST.get("monto", "0")
     metodo_codigo = request.POST.get("metodo")
 
-    # VALIDACIÓN
     try:
         monto = Decimal(monto_str)
     except Exception:
         return JsonResponse({"error": "Monto inválido"}, status=400)
 
-    # VALIDACIÓN
     if monto <= 0:
         return JsonResponse({"error": "El monto debe ser mayor a cero"}, status=400)
 
-    # Método de pago
     try:
         metodo_pago = MetodoPago.objects.get(codigo_metodo_pago=metodo_codigo)
     except MetodoPago.DoesNotExist:
         return JsonResponse({"error": "Método de pago inválido"}, status=400)
 
     try:
-        # TRANSACCIÓN ATÓMICA
         with transaction.atomic():
             factura = Factura.objects.select_for_update().get(pk=factura_id)
 
-            if request.user.rol != "admin" and factura.cliente.usuario_id != request.user.pk:
-                return JsonResponse({"error": "No autorizado"}, status=403)
+            user = request.user
+            is_super = getattr(user, "is_superuser", False) or getattr(user, "es_superadmin", False)
+            es_admin = is_super or user.rol == "admin"
+            es_propietario = factura.cliente_id and factura.cliente.usuario_id == user.pk
+
+            if not (es_admin or es_propietario):
+                ip = obtener_ip(request)
+                registrar_warning(ip)
+                registrar_evento(
+                    request,
+                    "role_violation",
+                    gravedad="high",
+                    detalles={
+                        "causa": "registrar_pago_factura_ajena",
+                        "factura_id": factura.pk,
+                        "factura_numero": factura.numero,
+                        "cliente_factura_id": factura.cliente_id,
+                    },
+                )
+                if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                    return JsonResponse(
+                        {
+                            "error": "No autorizado — intento registrado en sistema de seguridad.",
+                            "security_warning": True,
+                        },
+                        status=403,
+                    )
+                return _respuesta_no_autorizada(
+                    request,
+                    detalles={
+                        "rol_requerido": ["admin"],
+                        "permiso_alternativo": "propietario de la factura",
+                        "factura": factura.numero,
+                    },
+                )
 
             if factura.estado == "anulada":
                 return JsonResponse({"error": "La factura está anulada"}, status=400)
@@ -123,26 +178,23 @@ def registrar_pago(request):
                     {"error": "La factura ya ha sido pagada totalmente"}, status=400
                 )
 
-            # VALIDACIÓN
             if monto > factura.saldo_pendiente:
                 return JsonResponse(
                     {"error": f"El monto excede el saldo pendiente (${factura.saldo_pendiente})"},
                     status=400,
                 )
 
-            # REGISTRAR PAGO
             Pago.objects.create(
                 factura=factura,
                 monto=monto,
                 codigo_metodo_pago=metodo_pago,
                 referencia=request.POST.get(
                     "referencia",
-                    "Pago realizado por cliente" if request.user.rol != "admin" else "",
+                    "Pago realizado por cliente" if not es_admin else "",
                 ),
                 registrado_por=request.user,
             )
 
-            # ACTUALIZAR ESTADO SI SE COMPLETA EL PAGO
             if factura.saldo_pendiente <= 0:
                 factura.estado = "pagada"
                 factura.save()

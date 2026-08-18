@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Acceso Restringido — Seguridad{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-7">
+            <div class="card border-0 shadow-lg overflow-hidden rounded-4 bg-dark text-light">
+                <div class="card-header bg-gradient-to-r
+                    {% if security_blocked %}bg-danger{% else %}bg-warning{% endif %}
+                     text-white p-4 d-flex align-items-center gap-3">
+                    <div class="icono-redondo
+                        {% if security_blocked %}bg-danger-subtle text-danger{% else %}bg-warning-subtle text-warning{% endif %}
+                        rounded-circle d-flex align-items-center justify-content-center"
+                         style="width:56px;height:56px;">
+                        <i class="bi {% if security_blocked %}bi-shield-lock-fill{% else %}bi-shield-exclamation{% endif %} fs-2"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold">
+                            {% if security_blocked %}
+                                Acceso Denegado — IP Bloqueada
+                            {% else %}
+                                Acceso No Autorizado
+                            {% endif %}
+                        </h3>
+                        <p class="mb-0 opacity-75 small">
+                            Sistema de Seguridad ConstruTrans · Evento registrado
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-body p-5">
+                    {% if security_blocked %}
+                        <div class="alert alert-danger border-danger-subtle bg-danger-subtle text-danger mb-4">
+                            <div class="d-flex gap-3">
+                                <i class="bi bi-ban fs-4 flex-shrink-0"></i>
+                                <div>
+                                    <h5 class="fw-bold mb-1">Tu dirección IP ha sido bloqueada temporalmente.</h5>
+                                    <p class="mb-0">
+                                        Has alcanzado el máximo de {{ security_warnings_limit }} intentos
+                                        no autorizados en los últimos {{ security_window_minutes }} minutos.
+                                        El bloqueo durará {{ security_block_hours }} horas.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <p class="text-muted mb-2">Motivo frecuente:</p>
+                            <ul class="list-group list-group-flush bg-transparent">
+                                <li class="list-group-item bg-transparent text-light opacity-85 border-white-10">
+                                    <i class="bi bi-arrow-right-short me-2 text-warning"></i>
+                                    Intentos repetidos de acceder a paneles de otro rol
+                                </li>
+                                <li class="list-group-item bg-transparent text-light opacity-85 border-white-10">
+                                    <i class="bi bi-arrow-right-short me-2 text-warning"></i>
+                                    Uso compartido de credenciales o fuerza bruta
+                                </li>
+                                <li class="list-group-item bg-transparent text-light opacity-85 border-white-10">
+                                    <i class="bi bi-arrow-right-short me-2 text-warning"></i>
+                                    Manipulación de URLs para saltar restricciones
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-black-30 rounded-3 p-4 mb-4">
+                            <p class="small text-uppercase text-muted mb-2">
+                                Si crees que esto es un error
+                            </p>
+                            <p class="mb-0">
+                                Contacta al <strong>Administrador Global</strong> y proporciona esta información:
+                            </p>
+                            <div class="mt-3 p-3 bg-dark rounded-2 font-monospace small text-warning"
+                                 style="border:1px dashed #ffc107;">
+                                · Ventana: último {{ security_window_minutes }} min<br>
+                                · Intentos: {{ security_warnings_count }} / {{ security_warnings_limit }}<br>
+                                · Duración bloqueo: {{ security_block_hours }} horas
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 justify-content-center">
+                            <a href="{% url 'usuarios:logout' %}" class="btn btn-outline-light px-4">
+                                <i class="bi bi-power me-2"></i>Cerrar Sesión
+                            </a>
+                            <a href="mailto:soporte@construtrans.local" class="btn btn-warning px-4">
+                                <i class="bi bi-envelope me-2"></i>Contactar Soporte
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning border-warning-subtle bg-warning-subtle text-warning-emphasis mb-4">
+                            <div class="d-flex gap-3">
+                                <i class="bi bi-exclamation-triangle-fill fs-4 flex-shrink-0"></i>
+                                <div>
+                                    <h5 class="fw-bold mb-1">No tienes permisos para ver esta página.</h5>
+                                    <p class="mb-0">
+                                        Este panel está reservado para usuarios con un rol específico.
+                                        Tu rol actual no tiene acceso.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if security_detalles and security_detalles.rol_requerido %}
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <div class="card bg-white-5 border-white-10 rounded-3 h-100">
+                                    <div class="card-body p-4">
+                                        <div class="text-uppercase small text-muted mb-2">Rol(es) permitidos</div>
+                                        <div class="fs-5 fw-bold text-success">
+                                            {% for r in security_detalles.rol_requerido %}
+                                                <span class="badge rounded-pill bg-success-subtle text-success me-1 mb-1 px-3 py-2 fs-6">
+                                                    {{ r }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card bg-white-5 border-white-10 rounded-3 h-100">
+                                    <div class="card-body p-4">
+                                        <div class="text-uppercase small text-muted mb-2">Tu rol</div>
+                                        <div class="fs-5 fw-bold text-danger">
+                                            <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2 fs-6">
+                                                {{ security_detalles.rol_usuario|default:'desconocido' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="bg-black-30 rounded-3 p-4 mb-4 border
+                            {% if security_warnings_remaining <= 2 %}border-danger{% else %}border-white-10{% endif %}">
+                            <p class="text-uppercase small text-muted mb-2 fw-semibold">
+                                <i class="bi bi-shield-fill me-1"></i>Estado de seguridad
+                            </p>
+                            <div class="progress mb-3" style="height: 12px;">
+                                <div class="progress-bar
+                                    {% if security_warnings_count <= 1 %}bg-success
+                                    {% elif security_warnings_count <= 3 %}bg-warning
+                                    {% else %}bg-danger{% endif %}
+                                    progress-bar-striped progress-bar-animated"
+                                     role="progressbar"
+                                     style="width: {% widthratio security_warnings_count security_warnings_limit 100 %}%">
+                                </div>
+                            </div>
+                            <p class="mb-1 small {% if security_warnings_remaining <= 2 %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                Intentos en ventana:
+                                <strong>{{ security_warnings_count }} / {{ security_warnings_limit }}</strong>
+                                · Restantes: <strong>{{ security_warnings_remaining }}</strong>
+                            </p>
+                            <p class="mb-0 small opacity-75">
+                                ⚠️ Si realizas <strong>{{ security_warnings_remaining }} intento(s)</strong> más en los
+                                próximos {{ security_window_minutes }} minutos, <strong>tu IP quedará BLOQUEADA
+                                {{ security_block_hours }} horas</strong>.
+                            </p>
+                        </div>
+
+                        <div class="d-flex gap-3 justify-content-center flex-wrap">
+                            <a href="{% url 'usuarios:panel' %}" class="btn btn-premium btn-premium-gold px-4">
+                                <i class="bi bi-house-door me-2"></i>Volver a mi panel
+                            </a>
+                            <a href="{% url 'usuarios:logout' %}" class="btn btn-outline-light px-4">
+                                <i class="bi bi-power me-2"></i>Cerrar Sesión
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
