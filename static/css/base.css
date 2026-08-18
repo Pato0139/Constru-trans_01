@@ -517,6 +517,23 @@ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-i
   white-space: nowrap;
 }
 
+/* Acción principal reutilizable: el color y el contraste dependen del tema. */
+.btn-premium-gold {
+  background-color: var(--color-accent) !important;
+  border: 1px solid var(--color-accent) !important;
+  color: var(--color-on-accent) !important;
+  box-shadow: 0 8px 18px var(--glow-accent) !important;
+}
+
+.btn-premium-gold:hover,
+.btn-premium-gold:focus-visible {
+  background-color: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: var(--color-on-accent) !important;
+  filter: brightness(0.92);
+  transform: translateY(-1px);
+}
+
 .add-action-btn {
   width: 2.75rem !important;
   height: 2.75rem !important;
@@ -642,6 +659,7 @@ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-i
   --color-surface: #ffffff;
   --color-primary: #1e40af;
   --color-accent: #d97706;
+  --color-on-accent: #ffffff;
   --color-text: #0f172a;
   --color-muted: #64748b;
   --color-border: rgba(15, 23, 42, 0.1);
@@ -697,6 +715,7 @@ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-i
   --color-surface: #12151c;
   --color-primary: #2563eb;
   --color-accent: #f59e0b;
+  --color-on-accent: #000000;
   --color-text: #e2e8f0;
   --color-muted: #94a3b8;
   --color-border: rgba(148, 163, 184, 0.18);
@@ -733,6 +752,7 @@ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-i
   --color-surface: #0f0f0f;
   --color-primary: #ffd600;
   --color-accent: #ffffff;
+  --color-on-accent: #000000;
   --color-text: #ffffff;
   --color-muted: #e5e7eb;
   --color-border: #ffffff;
@@ -951,7 +971,6 @@ option {
 
 [data-theme="light"] .btn-primary,
 [data-theme="light"] .btn-gold,
-[data-theme="light"] .btn-premium-gold,
 [data-theme="light"] .btn-premium-shape {
   color: #ffffff !important;
 }

@@ -43,7 +43,6 @@ class KardexService:
         return "remota" if debe_usar_bd_remota() else "default"
 
     @classmethod
-    @transaction.atomic
     def registrar_movimiento(
         cls,
         *,
@@ -62,40 +61,41 @@ class KardexService:
 
         db_alias = cls.get_db_alias()
 
-        material = Material.objects.select_for_update().using(db_alias).get(pk=material_id)
-        stock, _ = (
-            Stock.objects.select_for_update()
-            .using(db_alias)
-            .get_or_create(material=material, defaults={"cantidad_actual": 0})
-        )
+        with transaction.atomic(using=db_alias):
+            material = Material.objects.select_for_update().using(db_alias).get(pk=material_id)
+            stock, _ = (
+                Stock.objects.select_for_update()
+                .using(db_alias)
+                .get_or_create(material=material, defaults={"cantidad_actual": 0})
+            )
 
-        if tipo == "entrada":
-            stock.cantidad_actual = F("cantidad_actual") + cantidad
-        elif tipo == "salida":
-            if stock.cantidad_actual < cantidad:
-                raise ValueError(
-                    f"Stock insuficiente para {material.nombre}: "
-                    f"disponible={stock.cantidad_actual}, requerido={cantidad}"
-                )
-            stock.cantidad_actual = F("cantidad_actual") - cantidad
-        else:  # ajuste
-            stock.cantidad_actual = cantidad
+            if tipo == "entrada":
+                stock.cantidad_actual = F("cantidad_actual") + cantidad
+            elif tipo == "salida":
+                if stock.cantidad_actual < cantidad:
+                    raise ValueError(
+                        f"Stock insuficiente para {material.nombre}: "
+                        f"disponible={stock.cantidad_actual}, requerido={cantidad}"
+                    )
+                stock.cantidad_actual = F("cantidad_actual") - cantidad
+            else:  # ajuste
+                stock.cantidad_actual = cantidad
 
-        stock.save(using=db_alias)
-        stock.refresh_from_db(using=db_alias)
+            stock.save(using=db_alias)
+            stock.refresh_from_db(using=db_alias)
 
-        # Para 'ajuste' guardamos como 'entrada' para mantener choices del modelo.
-        tipo_a_guardar = "entrada" if tipo == "ajuste" else tipo
+            # Para 'ajuste' guardamos como 'entrada' para mantener choices del modelo.
+            tipo_a_guardar = "entrada" if tipo == "ajuste" else tipo
 
-        return MovimientoInventario.objects.create(
-            material=material,
-            tipo_movimiento=tipo_a_guardar,
-            cantidad=cantidad,
-            observacion=observacion,
-            usuario=usuario,
-            compra_id=compra_id,
-            pedido_id=pedido_id,
-        )
+            return MovimientoInventario.objects.using(db_alias).create(
+                material=material,
+                tipo_movimiento=tipo_a_guardar,
+                cantidad=cantidad,
+                observacion=observacion,
+                usuario=usuario,
+                compra_id=compra_id,
+                pedido_id=pedido_id,
+            )
 
     @classmethod
     def resumen_periodo(
