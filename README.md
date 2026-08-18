@@ -2,6 +2,7 @@
 ### Sistema Integral de Gestión para Transporte y Materiales de Construcción
 **Versión 1.2.0**
 
+Sistema integral de gestión para transporte y materiales de construcción para una ferretería
 ---
 
 ## ✅ Cumple 12 Criterios sin Excepciones
@@ -58,7 +59,6 @@ En la pantalla de login → "¿Olvidaste tu contraseña?" → ingresa tu correo 
 ---
 
 ## 📦 Tecnologías
-
 | Componente | Detalle |
 |---|---|
 | Backend | Django 5.1 + Python 3.12 |
@@ -136,7 +136,6 @@ Ver la carpeta `docs/`:
 - `docs/calidad/`: Estándares de codificación, dependencias, criterios de aceptación, plan de pruebas
 
 ---
-
 ## 🧪 Comandos útiles
 
 ```bash
@@ -151,7 +150,6 @@ pytest --cov=usuarios --cov=clientes --cov=inventario \
        --cov=facturacion --cov=pagos --cov=reportes \
        --cov=ia --cov=historial --cov=licensing      # Coverage · 12 módulos
 ruff check .                     # Linting
-```
 
 ---
 
