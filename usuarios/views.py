@@ -133,6 +133,7 @@ def lista_usuarios(request):
 
 
 def cambiar_cuenta(request, rol):
+    """Permite cambiar entre las vistas de cuenta disponibles desde el perfil."""
     if not request.user.is_authenticated:
         return redirect("usuarios:login")
 
@@ -349,7 +350,6 @@ def login_usuario(request):
                     request.session.set_expiry(1209600)
                 else:
                     request.session.set_expiry(0)
-                request.session.save()
 
                 try:
                     registrar_actividad(

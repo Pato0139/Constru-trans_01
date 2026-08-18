@@ -212,6 +212,7 @@ class Entrega(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
     direccion_entrega = models.CharField(max_length=200)
 
+    # Campos legacy / compatibilidad
     conductor_usuario = models.ForeignKey(
         "usuarios.Usuario",
         on_delete=models.SET_NULL,
