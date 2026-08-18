@@ -13,15 +13,53 @@ from .models import Compra, Proveedor
 
 @admin_required
 def lista_compras(request):
-    q = request.GET.get("q", "")
+    proveedor = request.GET.get("proveedor", "").strip()
+    fecha_compra = request.GET.get("fecha_compra", "").strip()
+    material = request.GET.get("material", "").strip()
+
     compras = (
         Compra.objects.select_related("proveedor", "usuario").prefetch_related("detalles").all()
     )
-    if q:
-        compras = compras.filter(
-            Q(proveedor__nombre__icontains=q) | Q(id__icontains=q) | Q(estado__icontains=q)
-        )
-    context = {"compras": compras, "query": q}
+
+    if proveedor:
+        compras = compras.filter(proveedor__nombre_empresa__icontains=proveedor)
+    if fecha_compra:
+        compras = compras.filter(fecha_compra__date=fecha_compra)
+    if material:
+        compras = compras.filter(detalles__material__nombre__icontains=material).distinct()
+
+    filter_fields = [
+        {
+            "type": "text",
+            "name": "proveedor",
+            "placeholder": "Proveedor",
+            "value": proveedor,
+            "size": "3",
+        },
+        {
+            "type": "date",
+            "name": "fecha_compra",
+            "placeholder": "Fecha",
+            "value": fecha_compra,
+            "size": "3",
+        },
+        {
+            "type": "text",
+            "name": "material",
+            "placeholder": "Material",
+            "value": material,
+            "size": "3",
+        },
+    ]
+
+    context = {
+        "compras": compras,
+        "proveedor": proveedor,
+        "fecha_compra": fecha_compra,
+        "material": material,
+        "filter_fields": filter_fields,
+        "has_filters": any([proveedor, fecha_compra, material]),
+    }
 
     return render(request, "compras/lista.html", context)
 
