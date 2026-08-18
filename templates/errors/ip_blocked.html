@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}IP Bloqueada — Seguridad{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card border-0 shadow-lg overflow-hidden rounded-4 bg-dark text-light">
+                <div class="card-header bg-danger text-white p-5 text-center">
+                    <div class="icono-redondo bg-danger-subtle text-danger rounded-circle
+                         d-flex align-items-center justify-content-center mx-auto mb-4"
+                         style="width:96px;height:96px;">
+                        <i class="bi bi-shield-lock-fill fs-1"></i>
+                    </div>
+                    <h1 class="fw-bold mb-2">DIRECCIÓN IP BLOQUEADA</h1>
+                    <p class="mb-0 opacity-85">Medida preventiva del sistema de seguridad</p>
+                </div>
+
+                <div class="card-body p-5">
+                    <div class="alert alert-danger border-danger-subtle bg-danger-subtle text-danger mb-5">
+                        <div class="d-flex gap-3 align-items-start">
+                            <i class="bi bi-exclamation-octagon-fill fs-3 flex-shrink-0"></i>
+                            <div>
+                                <h4 class="fw-bold mb-1">Tu acceso a ConstruTrans ha sido suspendido temporalmente.</h4>
+                                <p class="mb-0">
+                                    Se han detectado múltiples intentos de acceso no autorizado desde tu dirección IP.
+                                    Para proteger la integridad del sistema, el acceso ha sido bloqueado.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-5">
+                        <div class="col-12 col-md-6">
+                            <div class="card bg-white-5 border-white-10 rounded-3 h-100">
+                                <div class="card-body p-4">
+                                    <div class="text-uppercase small text-muted mb-2">Dirección IP</div>
+                                    <div class="fs-3 fw-bold text-warning font-monospace break-all">{{ ip }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="card bg-white-5 border-white-10 rounded-3 h-100">
+                                <div class="card-body p-4">
+                                    <div class="text-uppercase small text-muted mb-2">Tiempo restante</div>
+                                    <div class="fs-3 fw-bold text-danger">
+                                        {% if horas_restantes %}
+                                            {{ horas_restantes }}
+                                            <span class="fs-5 text-muted fw-normal ms-1">
+                                                {% if horas_restantes == '< 1' %}hora{% else %}horas{% endif %}
+                                            </span>
+                                        {% else %}
+                                            Permanente
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if bloqueo %}
+                    <div class="bg-black-30 rounded-3 p-4 mb-4 border border-white-10">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <div class="text-uppercase small text-muted mb-1">Tipo de bloqueo</div>
+                                <div class="fw-semibold">{{ bloqueo.get_tipo_display }}</div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="text-uppercase small text-muted mb-1">Fecha / Hora</div>
+                                <div class="fw-semibold">{{ bloqueo.creado_en|date:"d/m/Y H:i" }}</div>
+                            </div>
+                            {% if bloqueo.motivo %}
+                            <div class="col-12">
+                                <div class="text-uppercase small text-muted mb-1">Motivo registrado</div>
+                                <div class="fw-semibold small">{{ bloqueo.motivo }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="bg-dark border border-white-10 rounded-3 p-4 mb-5">
+                        <div class="text-uppercase small text-muted mb-2">¿Qué hacer ahora?</div>
+                        <ol class="mb-0 small ps-3">
+                            <li class="mb-2">
+                                <strong>NO intentes acceder nuevamente desde esta IP.</strong>
+                                Cada intento puede extender el período de bloqueo.
+                            </li>
+                            <li class="mb-2">
+                                Si estás usando una red compartida (oficina, casa, Wi-Fi público),
+                                el bloqueo aplica a todos los dispositivos de esa red.
+                            </li>
+                            <li>
+                                Contacta <strong>inmediatamente al Administrador Global</strong>
+                                y proporciona la IP y los detalles de arriba para solicitar
+                                el desbloqueo.
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="mailto:soporte@construtrans.local?subject=Solicitud%20de%20desbloqueo%20IP%20{{ ip }}"
+                           class="btn btn-premium btn-premium-gold px-4">
+                            <i class="bi bi-envelope me-2"></i>Solicitar Desbloqueo
+                        </a>
+                        <button type="button" class="btn btn-outline-light px-4"
+                                onclick="navigator.clipboard.writeText('{{ ip }}'); this.innerHTML='<i class=\'bi bi-check2\'></i> IP copiada';">
+                            <i class="bi bi-clipboard me-2"></i>Copiar IP
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
