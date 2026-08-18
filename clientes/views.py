@@ -8,6 +8,13 @@ from django.db import transaction
 from django.db.models import F, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
+from core.security import (
+    _respuesta_no_autorizada,
+    obtener_ip,
+    registrar_evento,
+    registrar_warning,
+    role_required,
+)
 from facturacion.models import Factura
 from ordenes.models import DetallePedido, Pedido
 from pagos.models import Pago
@@ -225,7 +232,7 @@ def parse_fecha_entrega(value):
     return None
 
 
-@login_required
+@role_required(["cliente"])
 def panel_cliente(request):
     try:
         usuario_remoto = request.user.usuario
@@ -256,10 +263,10 @@ def panel_cliente(request):
     return render(request, "clientes/lista.html", context)
 
 
-@login_required
+@role_required(["cliente"])
 def mis_pedidos(request):
     try:
-        usuario_remoto = request.user.usuario
+        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
@@ -313,10 +320,10 @@ def mis_pedidos(request):
     return render(request, "clientes/mis_pedidos.html", context)
 
 
-@login_required
+@role_required(["cliente"])
 def perfil_cliente(request):
     try:
-        usuario_remoto = request.user.usuario
+        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except (Usuario.DoesNotExist, AttributeError):
         logout(request)
@@ -336,10 +343,10 @@ def perfil_cliente(request):
     return render(request, "clientes/detalle.html", context)
 
 
-@login_required
+@role_required(["cliente"])
 def seguimiento_pedidos(request):
     try:
-        usuario_remoto = request.user.usuario
+        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
@@ -351,10 +358,10 @@ def seguimiento_pedidos(request):
     return render(request, "clientes/seguimiento.html", context)
 
 
-@login_required
+@role_required(["cliente"])
 def historial_pedidos(request):
     try:
-        usuario_remoto = request.user.usuario
+        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
@@ -366,13 +373,10 @@ def historial_pedidos(request):
     return render(request, "clientes/historial.html", context)
 
 
-@login_required
+@role_required(["cliente"])
 def crear_pedido(request):
-    usuario_remoto = request.user.usuario
+    usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
     usuario_local = _obtener_usuario_local(usuario_remoto)
-    if usuario_remoto.rol != "cliente":
-        messages.error(request, "Solo los clientes pueden solicitar nuevos pedidos.")
-        return redirect("usuarios:panel")
 
     cliente_local = _obtener_cliente_local(usuario_local)
     materiales = Material.objects.all()
@@ -552,7 +556,6 @@ def editar_pedido(request, id):
     db_alias = _obtener_alias_db()
     pedido = get_object_or_404(Pedido.objects.using(db_alias), codigo_pedido=id)
 
-    # Aseguramos que el precio del pedido refleje el total real de sus detalles antes de mostrar el formulario.
     detalle_total = sum(d.subtotal for d in pedido.detalles.using(db_alias).all())
     if pedido.total != detalle_total or pedido.precio != detalle_total:
         pedido.total = detalle_total
@@ -561,14 +564,38 @@ def editar_pedido(request, id):
 
     materiales = Material.objects.all()
 
-    es_admin = usuario_remoto.rol == "admin"
+    is_super = getattr(request.user, "is_superuser", False) or getattr(request.user, "es_superadmin", False)
+    es_admin = is_super or usuario_remoto.rol == "admin"
     usuario = _obtener_usuario_local(usuario_remoto)
     es_dueno = _es_dueno_pedido(pedido, usuario_remoto, usuario)
 
-    if not (es_admin or es_dueno) or pedido.estado != "pendiente":
+    if not (es_admin or es_dueno):
+        ip = obtener_ip(request)
+        registrar_warning(ip)
+        registrar_evento(
+            request,
+            "role_violation",
+            gravedad="high",
+            detalles={
+                "causa": "editar_pedido_ajeno",
+                "codigo_pedido": pedido.codigo_pedido,
+                "cliente_pedido_id": pedido.cliente_id,
+                "operacion": "editar",
+            },
+        )
+        return _respuesta_no_autorizada(
+            request,
+            detalles={
+                "rol_requerido": ["admin"],
+                "permiso_alternativo": "propietario del pedido",
+                "codigo_pedido": pedido.codigo_pedido,
+            },
+        )
+
+    if pedido.estado != "pendiente":
         messages.error(
             request,
-            "No tienes permiso para editar este pedido o el pedido ya no se puede modificar.",
+            "El pedido ya no se puede modificar (estado actual: {}).".format(pedido.estado),
         )
         if es_admin:
             return redirect("ordenes:lista_pedidos_admin")
@@ -717,15 +744,33 @@ def cancelar_pedido(request, id):
     pedido = get_object_or_404(Pedido, codigo_pedido=id)
 
     usuario_remoto = request.user.usuario
-    es_admin = usuario_remoto.rol == "admin"
+    is_super = getattr(request.user, "is_superuser", False) or getattr(request.user, "es_superadmin", False)
+    es_admin = is_super or usuario_remoto.rol == "admin"
     usuario = _obtener_usuario_local(usuario_remoto)
     es_dueno = _es_dueno_pedido(pedido, usuario_remoto, usuario)
 
     if not (es_admin or es_dueno):
-        messages.error(request, "No tienes permiso para cancelar este pedido.")
-        if es_admin:
-            return redirect("ordenes:lista_pedidos_admin")
-        return redirect("clientes:mis_pedidos")
+        ip = obtener_ip(request)
+        registrar_warning(ip)
+        registrar_evento(
+            request,
+            "role_violation",
+            gravedad="high",
+            detalles={
+                "causa": "cancelar_pedido_ajeno",
+                "codigo_pedido": pedido.codigo_pedido,
+                "cliente_pedido_id": pedido.cliente_id,
+                "operacion": "cancelar",
+            },
+        )
+        return _respuesta_no_autorizada(
+            request,
+            detalles={
+                "rol_requerido": ["admin"],
+                "permiso_alternativo": "propietario del pedido",
+                "codigo_pedido": pedido.codigo_pedido,
+            },
+        )
 
     if pedido.estado != "pendiente":
         messages.error(request, "Solo se pueden cancelar pedidos en estado pendiente.")
