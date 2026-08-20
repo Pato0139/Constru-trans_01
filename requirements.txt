@@ -77,3 +77,6 @@ django-debug-toolbar==4.4.6
 
 # IA
 openai==1.51.2
+
+# Seguridad adicional para archivos de licencia
+cryptography==43.0.1

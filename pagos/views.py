@@ -49,8 +49,9 @@ def lista_pagos(request):
 
     if cliente:
         pagos = pagos.filter(
-            Q(factura__cliente__nombres__icontains=cliente)
-            | Q(factura__cliente__apellidos__icontains=cliente)
+            Q(factura__cliente__usuario__nombres__icontains=cliente)
+            | Q(factura__cliente__usuario__apellidos__icontains=cliente)
+            | Q(factura__cliente__usuario__documento__icontains=cliente)
         )
     if factura:
         pagos = pagos.filter(factura__numero__icontains=factura)
@@ -65,8 +66,9 @@ def lista_pagos(request):
     
     if q:
         pagos = pagos.filter(
-            Q(factura__cliente__nombres__icontains=q)
-            | Q(factura__cliente__apellidos__icontains=q)
+            Q(factura__cliente__usuario__nombres__icontains=q)
+            | Q(factura__cliente__usuario__apellidos__icontains=q)
+            | Q(factura__cliente__usuario__documento__icontains=q)
             | Q(factura__numero__icontains=q)
             | Q(referencia__icontains=q)
         )
@@ -107,6 +109,10 @@ def gestion_pagos(request):
     """Vista de administración: revisar comprobantes y aprobar/rechazar pagos."""
     from django.db import OperationalError
 
+    cliente = request.GET.get("cliente", "").strip()
+    pedido = request.GET.get("pedido", "").strip()
+    estado = request.GET.get("estado", "").strip()
+
     db_missing = False
     pedidos = []
     try:
@@ -115,29 +121,65 @@ def gestion_pagos(request):
             .prefetch_related("pagos_pedido")
             .order_by("-fecha_solicitud")
         )
+
+        if cliente:
+            pedidos = pedidos.filter(
+                Q(cliente__usuario__nombres__icontains=cliente)
+                | Q(cliente__usuario__apellidos__icontains=cliente)
+                | Q(cliente__usuario__documento__icontains=cliente)
+                | Q(usuario__nombres__icontains=cliente)
+                | Q(usuario__apellidos__icontains=cliente)
+                | Q(usuario__documento__icontains=cliente)
+            )
+        if pedido:
+            pedidos = pedidos.filter(codigo_pedido__icontains=pedido)
+        if estado:
+            pedidos = pedidos.filter(estado=estado)
+
         if request.method == "POST":
             pago_id = request.POST.get("pago_id")
             accion = request.POST.get("accion")
             pago = get_object_or_404(PagoPedido, pk=pago_id)
-            pedido = pago.pedido
+            pedido_obj = pago.pedido
             if accion == "aprobar":
-                registrar_estado_pago(pago, pedido, "pago aprobado")
+                registrar_estado_pago(pago, pedido_obj, "pago aprobado")
                 pago.save()
-                pedido.save()
+                pedido_obj.save()
                 messages.success(request, "Pago aprobado correctamente.")
             elif accion == "rechazar":
                 motivo = request.POST.get("motivo_rechazo", "")
-                registrar_estado_pago(pago, pedido, "pago rechazado", motivo_rechazo=motivo)
+                registrar_estado_pago(pago, pedido_obj, "pago rechazado", motivo_rechazo=motivo)
                 pago.save()
-                pedido.save()
+                pedido_obj.save()
                 messages.warning(request, "Pago rechazado.")
             return redirect("pagos:gestion_pagos")
     except OperationalError:
         db_missing = True
 
+    filter_fields = [
+        {"type": "text", "name": "cliente", "placeholder": "Cliente", "value": cliente, "size": "3"},
+        {"type": "text", "name": "pedido", "placeholder": "Pedido", "value": pedido, "size": "3"},
+        {
+            "type": "select",
+            "name": "estado",
+            "placeholder": "Estado (Todos)",
+            "value": estado,
+            "size": "3",
+            "options": [
+                {"value": "pendiente", "label": "Sin pagar", "selected": estado == "pendiente"},
+                {"value": "en_revision", "label": "En revisión", "selected": estado == "en_revision"},
+            ],
+        },
+    ]
+
     return render(request, "pagos/gestion_pagos.html", {
         "pedidos": pedidos,
         "db_missing_pagos_table": db_missing,
+        "filter_fields": filter_fields,
+        "cliente": cliente,
+        "pedido": pedido,
+        "estado": estado,
+        "has_filters": any([cliente, pedido, estado]),
     })
 
 
