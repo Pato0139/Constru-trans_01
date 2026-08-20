@@ -40,15 +40,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Filter form submit on select change
+    // Filter form submit automatically on any filter change
     const filterForm = document.getElementById('filterForm');
     if (filterForm) {
-        const estadoSelect = filterForm.querySelector('select[name="estado"]');
-        if (estadoSelect) {
-            estadoSelect.addEventListener('change', function() {
-                filterForm.submit();
-            });
-        }
+        const filterFields = filterForm.querySelectorAll('input.filter-input, select.filter-select');
+
+        let submitTimer = null;
+        const submitFilters = () => {
+            clearTimeout(submitTimer);
+            submitTimer = setTimeout(() => {
+                filterForm.requestSubmit ? filterForm.requestSubmit() : filterForm.submit();
+            }, 250);
+        };
+
+        filterFields.forEach(field => {
+            const eventName = field.tagName === 'SELECT' ? 'change' : 'input';
+            field.addEventListener(eventName, submitFilters);
+        });
     }
 
     // Inicializar DataTables sin búsqueda ni menú de cantidad para la tabla de facturas

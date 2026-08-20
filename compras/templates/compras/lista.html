@@ -13,15 +13,12 @@
             <p class="page-subtitle small mb-0">Gestión de compras a proveedores y reposición de inventario</p>
         </div>
 
-        <div class="d-flex gap-2 align-items-center">
-<a href="{% url 'compras:crear_compra' %}" class="btn btn-premium btn-premium-gold btn-main-action fw-bold rounded-pill px-4 shadow-sm" aria-label="Agregar compra" data-tooltip="Agregar compra" title="Agregar compra">
-    <i class="bi bi-plus-circle me-1"></i> Nueva Orden
-
-            </a>
-        </div>
+        <a href="{% url 'compras:crear_compra' %}" class="btn btn-premium btn-premium-gold btn-main-action fw-bold rounded-pill px-4 shadow-sm" aria-label="Agregar compra" data-tooltip="Agregar compra" title="Agregar compra">
+            <i class="bi bi-plus-circle me-1"></i> Nueva Orden
+        </a>
     </div>
 
-    {% include "partials/filter_bar.html" %}
+    {% include "partials/filter_bar.html" with filter_fields=filter_fields has_filters=has_filters %}
 
     <!-- Tabla con Glassmorphism -->
     <div class="table-container p-0 overflow-hidden u-inline-6b0d9e24ec" data-aos="fade-up">
