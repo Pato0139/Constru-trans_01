@@ -3,78 +3,9 @@
 
 {% block title %}Iniciar Sesión - Constru-trans{% endblock %}
 
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/usuarios/auth-modals.css' %}">
-<style>
-    /* ── reCAPTCHA mock ── */
-    .recaptcha-mock {
-        background: #f9f9f9;
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
-        padding: 12px 14px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: min(304px, 100%);
-        min-height: 78px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.18);
-        cursor: pointer;
-        user-select: none;
-        transition: all 0.2s ease;
-    }
-    .recaptcha-mock:hover,
-    .recaptcha-mock:focus-visible {
-        border-color: #9ca3af;
-        box-shadow: 0 0 0 3px rgba(242,162,27,0.18);
-        outline: none;
-    }
-    .recaptcha-left  { display: flex; align-items: center; gap: 12px; }
-    .recaptcha-checkbox {
-        width: 28px; height: 28px;
-        border: 2px solid #a3a3a3;
-        border-radius: 2px;
-        flex: 0 0 28px;
-        background: #fff;
-        display: flex; align-items: center; justify-content: center;
-        transition: all 0.2s;
-    }
-    .recaptcha-mock:hover .recaptcha-checkbox { border-color: #737373; }
-    .recaptcha-checkbox.checked { border: none; background: transparent; }
-    .recaptcha-checkbox.checked i { color: #009688; font-size: 34px; font-weight: bold; }
-    .recaptcha-text {
-        color: #1f2937; font-size: 14px; font-weight: 500;
-        font-family: 'Roboto','Inter',sans-serif;
-    }
-    .recaptcha-right {
-        display: flex; flex-direction: column;
-        align-items: center; opacity: 0.8;
-    }
-    .recaptcha-right img { width: 32px; height: 32px; margin-bottom: 2px; }
-    .recaptcha-privacy {
-        font-size: 9px; color: #4b5563;
-        text-align: center; line-height: 1.2;
-    }
-
-    /* ── Fila recordarme / olvidé clave ── */
-    .login-options-row { gap: 14px; }
-    .login-options-row .form-check { min-width: 0; }
-    .login-options-row .form-check-label { line-height: 1.35; }
-    .link-gold { color: var(--primary-gold); white-space: nowrap; }
-
-    /* ── Alerta modo local ── */
-    .alert-modo-local {
-        background: rgba(243,156,18,0.2);
-        border: 1px solid #F39C12;
-        color: #fff; border-radius: 10px;
-        padding: 10px; margin-bottom: 20px;
-    }
-    .icon-warning { color: #F39C12; }
-
-    @media (max-width: 576px) {
-        .login-options-row { align-items: flex-start !important; flex-direction: column; }
-        .link-gold { white-space: normal; }
-    }
-</style>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/usuarios/auth-modals.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/usuarios/login.css' %}?v=1.0">
 {% endblock %}
 
 {% block content %}
@@ -284,92 +215,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-<script>
-/**
- * Abre el modal de Términos y Condiciones en el login
- */
-function abrirTerminosLogin() {
-    document.getElementById('terminosModalLogin').classList.remove('d-none');
-    document.body.style.overflow = 'hidden';
-}
-
-/**
- * Cierra el modal de Términos y Condiciones en el login
- */
-function cerrarTerminosLogin() {
-    document.getElementById('terminosModalLogin').classList.add('d-none');
-    document.body.style.overflow = '';
-}
-
-/**
- * Abre el modal de Política de Privacidad en el login
- */
-function abrirPrivacidadLogin() {
-    document.getElementById('privacidadModalLogin').classList.remove('d-none');
-    document.body.style.overflow = 'hidden';
-}
-
-/**
- * Cierra el modal de Política de Privacidad en el login
- */
-function cerrarPrivacidadLogin() {
-    document.getElementById('privacidadModalLogin').classList.add('d-none');
-    document.body.style.overflow = '';
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('terminosBackdropLogin').addEventListener('click', cerrarTerminosLogin);
-    document.getElementById('privacidadBackdropLogin').addEventListener('click', cerrarPrivacidadLogin);
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            cerrarTerminosLogin();
-            cerrarPrivacidadLogin();
-        }
-    });
-});
-
-/**
- * Alterna la visibilidad del campo de contraseña en el login
- */
-function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const toggleIcon = document.getElementById('toggleIcon');
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        toggleIcon.classList.replace('bi-eye-slash', 'bi-eye');
-    } else {
-        passwordInput.type = 'password';
-        toggleIcon.classList.replace('bi-eye', 'bi-eye-slash');
-    }
-}
-
-/**
- * Alterna el estado del checkbox mock de reCAPTCHA
- */
-function toggleCaptcha() {
-    const box   = document.getElementById('captcha-box');
-    const input = document.getElementById('id_captcha');
-    const icon  = document.getElementById('captcha-icon');
-    const widget = box.closest('.recaptcha-mock');
-    if (!input.checked) {
-        box.classList.add('checked');
-        icon.classList.remove('d-none');
-        input.checked = true;
-        widget.setAttribute('aria-checked', 'true');
-    } else {
-        box.classList.remove('checked');
-        icon.classList.add('d-none');
-        input.checked = false;
-        widget.setAttribute('aria-checked', 'false');
-    }
-}
-
-function handleCaptchaKeydown(event) {
-    if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        toggleCaptcha();
-    }
-}
-</script>
+{% block extra_js %}
+<script src="{% static 'js/usuarios/login.js' %}?v=1.0"></script>
 {% endblock %}

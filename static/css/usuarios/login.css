@@ -1,0 +1,68 @@
+    /* ── reCAPTCHA mock ── */
+    .recaptcha-mock {
+        background: #f9f9f9;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: min(304px, 100%);
+        min-height: 78px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s ease;
+    }
+    .recaptcha-mock:hover,
+    .recaptcha-mock:focus-visible {
+        border-color: #9ca3af;
+        box-shadow: 0 0 0 3px rgba(242,162,27,0.18);
+        outline: none;
+    }
+    .recaptcha-left  { display: flex; align-items: center; gap: 12px; }
+    .recaptcha-checkbox {
+        width: 28px; height: 28px;
+        border: 2px solid #a3a3a3;
+        border-radius: 2px;
+        flex: 0 0 28px;
+        background: #fff;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s;
+    }
+    .recaptcha-mock:hover .recaptcha-checkbox { border-color: #737373; }
+    .recaptcha-checkbox.checked { border: none; background: transparent; }
+    .recaptcha-checkbox.checked i { color: #009688; font-size: 34px; font-weight: bold; }
+    .recaptcha-text {
+        color: #1f2937; font-size: 14px; font-weight: 500;
+        font-family: 'Roboto','Inter',sans-serif;
+    }
+    .recaptcha-right {
+        display: flex; flex-direction: column;
+        align-items: center; opacity: 0.8;
+    }
+    .recaptcha-right img { width: 32px; height: 32px; margin-bottom: 2px; }
+    .recaptcha-privacy {
+        font-size: 9px; color: #4b5563;
+        text-align: center; line-height: 1.2;
+    }
+
+    /* ── Fila recordarme / olvidé clave ── */
+    .login-options-row { gap: 14px; }
+    .login-options-row .form-check { min-width: 0; }
+    .login-options-row .form-check-label { line-height: 1.35; }
+    .link-gold { color: var(--primary-gold); white-space: nowrap; }
+
+    /* ── Alerta modo local ── */
+    .alert-modo-local {
+        background: rgba(243,156,18,0.2);
+        border: 1px solid #F39C12;
+        color: #fff; border-radius: 10px;
+        padding: 10px; margin-bottom: 20px;
+    }
+    .icon-warning { color: #F39C12; }
+
+    @media (max-width: 576px) {
+        .login-options-row { align-items: flex-start !important; flex-direction: column; }
+        .link-gold { white-space: normal; }
+    }

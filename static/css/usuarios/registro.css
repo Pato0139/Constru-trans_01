@@ -1,0 +1,58 @@
+    /* Para registro (formulario largo) el scroll debe estar en el body, no en la tarjeta */
+    body {
+        align-items: flex-start !important;
+        padding-top: 40px !important;
+        padding-bottom: 40px !important;
+    }
+    .auth-master-card {
+        max-height: none !important;
+        overflow-y: visible !important;
+    }
+    /* Estilo "No soy un robot" mejorado */
+    .recaptcha-mock {
+        background: #2d2d2d;
+        border: 1px solid #444;
+        border-radius: 4px;
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .recaptcha-left { display: flex; align-items: center; gap: 15px; }
+    .recaptcha-checkbox {
+        width: 24px; height: 24px; border: 2px solid #555; border-radius: 2px;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        background: #333; transition: all 0.2s; flex-shrink: 0;
+    }
+    .recaptcha-checkbox.checked { border-color: #F39C12; background: #F39C12; }
+    .recaptcha-checkbox.checked i { display: block !important; color: white; font-size: 16px; }
+    .recaptcha-text { color: #fff; font-size: 14px; font-weight: 500; user-select: none; }
+    .recaptcha-right { text-align: center; opacity: 0.8; flex-shrink: 0; }
+    .recaptcha-logo { width: 30px; height: 30px; margin-bottom: 2px; }
+    .recaptcha-privacy { font-size: 8px; color: #888; display: block; text-decoration: none; }
+    .captcha-challenge-box {
+        display: none; background: #333; border: 1px solid #444; border-radius: 8px;
+        padding: 20px; margin-top: -10px; margin-bottom: 20px; animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .captcha-container img { border-radius: 8px; margin-bottom: 15px; display: block; border: 2px solid #444; max-width: 100%; }
+    .captcha-container input {
+        background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.2) !important;
+        color: white !important; padding: 10px 15px !important; border-radius: 8px !important;
+        width: 100% !important; text-align: center !important; font-weight: bold !important;
+        letter-spacing: 2px !important; box-sizing: border-box !important;
+    }
+    select.input-custom option { background-color: #333333 !important; color: white !important; }
+    @media (max-width: 576px) {
+        .recaptcha-mock { flex-direction: column; gap: 10px; align-items: flex-start; }
+        .recaptcha-right { width: 100%; text-align: left; }
+        .row.g-3 { gap: 12px !important; }
+        .row.g-3 > div { margin-bottom: 8px; }
+    }
+    .btn-main { width: 100%; margin-top: 8px; }
+    form { width: 100%; }
