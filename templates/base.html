@@ -36,6 +36,7 @@
 <link rel="stylesheet" href="{% static 'css/utilities.css' %}?v=1.2">
 <link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=1.2">
 <link rel="stylesheet" href="{% static 'css/sticky-topbar.css' %}?v=1.2">
+<link rel="stylesheet" href="{% static 'css/admin-layout.css' %}?v=1.0">
 
 <script src="{% static 'js/user-preferences.js' %}?v=1.1"></script>
 
@@ -53,24 +54,26 @@
 
 {% include "partials/sidebar.html" %}
 
-<main class="main-content app-main flex-grow-1 p-3">
+<main class="main-content app-main flex-grow-1 p-3 d-flex flex-column">
 
 {% include "partials/navbar.html" %}
 
 {% if messages %}
 <div id="django-messages-data" class="d-none">
-    {% for message in messages %}
-    <div
-        class="django-message-item"
-        data-tags="{{ message.tags|default:"info"|escapejs }}"
-        data-text="{{ message|escapejs }}">
-    </div>
-    {% endfor %}
+  {% for message in messages %}
+  <div
+    class="django-message-item"
+    data-tags="{{ message.tags|default:"info"|escapejs }}"
+    data-text="{{ message|escapejs }}">
+  </div>
+  {% endfor %}
 </div>
 {% endif %}
 
-{% block content %}
-{% endblock %}
+<section class="page-content">
+  {% block content %}
+  {% endblock %}
+</section>
 
 {% include "partials/footer.html" %}
 
