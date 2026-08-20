@@ -1,9 +1,3 @@
-"""
-Configuración base de Django para Constru-Trans.
-
-Proyecto con una única base de datos local SQLite.
-"""
-
 import os
 from pathlib import Path
 
@@ -372,16 +366,11 @@ AUTH_USER_MODEL = "usuarios.Usuario"
 APPEND_SLASH = False
 
 # ============================================================
-# RECAPTCHA
+# Captcha
 # ============================================================
 
-RECAPTCHA_PUBLIC_KEY = env(
-    "RECAPTCHA_PUBLIC_KEY", default="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-)
-RECAPTCHA_PRIVATE_KEY = env(
-    "RECAPTCHA_PRIVATE_KEY", default="6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
-)
-SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]
+RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY")
+RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY")
 
 # ============================================================
 # LICENCIAMIENTO
@@ -392,3 +381,4 @@ LICENSE_SERVER_URL = env("LICENSE_SERVER_URL")
 LICENSE_PUBLIC_KEY = env("LICENSE_PUBLIC_KEY")
 LICENSE_HEARTBEAT_MINUTES = env("LICENSE_HEARTBEAT_MINUTES")
 LICENSE_MAX_AGE_DAYS = env("LICENSE_MAX_AGE_DAYS")
+
