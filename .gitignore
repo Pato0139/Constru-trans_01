@@ -74,3 +74,4 @@ backups/*.json
 test_db.py
 list_tables.py
 
+cache/

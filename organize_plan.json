@@ -1,0 +1,107 @@
+{
+  "generated_at": "2026-08-21T19:37:26",
+  "files_to_delete": [
+    "CAMBIOS_NORMALIZACION_BD.md",
+    "CHECKLIST_IMPLEMENTACION.md",
+    "GUIA_TRANSACCIONES_ATOMICIDAD.md",
+    "INDICE_DOCUMENTACION.md",
+    "RESUMEN_VISUAL_NORMALIZACION.md",
+    "MER.drawio 3.drawio (1).pdf",
+    "agregar_metodos_pago.py",
+    "check_db.py",
+    "check_settings.py",
+    "reporte_rubrica.html",
+    "reporte_rubrica.pdf",
+    "script_verificaccion_LC3.py",
+    "scratch_pagos_diff.txt",
+    "push_to_github.ps1",
+    "tablas_default.txt"
+  ],
+  "moves": [
+    {
+      "from": "fix_neon_columnas_faltantes.sql",
+      "to": "docs/sql-migration-notes/fix_neon_columnas_faltantes.sql"
+    },
+    {
+      "from": "fix_neon_tables.sql",
+      "to": "docs/sql-migration-notes/fix_neon_tables.sql"
+    },
+    {
+      "from": "sqlmigrate_ayuda.sql",
+      "to": "docs/sql-migration-notes/sqlmigrate_ayuda.sql"
+    },
+    {
+      "from": "sql_compras_0005.txt",
+      "to": "docs/sql-migration-notes/sql_compras_0005.txt"
+    },
+    {
+      "from": "sql_gestion_pedidos_0001.txt",
+      "to": "docs/sql-migration-notes/sql_gestion_pedidos_0001.txt"
+    },
+    {
+      "from": "sql_historial_0001.txt",
+      "to": "docs/sql-migration-notes/sql_historial_0001.txt"
+    },
+    {
+      "from": "sql_historial_0002.txt",
+      "to": "docs/sql-migration-notes/sql_historial_0002.txt"
+    },
+    {
+      "from": "sql_historial_0003.txt",
+      "to": "docs/sql-migration-notes/sql_historial_0003.txt"
+    },
+    {
+      "from": "sql_inventario_0003.txt",
+      "to": "docs/sql-migration-notes/sql_inventario_0003.txt"
+    },
+    {
+      "from": "sql_reportes_0001.txt",
+      "to": "docs/sql-migration-notes/sql_reportes_0001.txt"
+    },
+    {
+      "from": "sql_reportes_0002.txt",
+      "to": "docs/sql-migration-notes/sql_reportes_0002.txt"
+    },
+    {
+      "from": "sql_usuarios_0001.txt",
+      "to": "docs/sql-migration-notes/sql_usuarios_0001.txt"
+    },
+    {
+      "from": "sql_usuarios_0007.txt",
+      "to": "docs/sql-migration-notes/sql_usuarios_0007.txt"
+    },
+    {
+      "from": "MIGRACIONES_FINALES_3FN.md",
+      "to": "docs/rubrica/MIGRACIONES_FINALES_3FN.md"
+    },
+    {
+      "from": "analizar_regresion.py",
+      "to": "scripts/regresion/analizar_regresion.py"
+    }
+  ],
+  "dirs_to_delete": [
+    "cache"
+  ],
+  "gitignore_additions": [
+    "cache/",
+    "*.djcache"
+  ],
+  "protected": [
+    ".env",
+    ".github/",
+    "Dockerfile",
+    "ai_platform/",
+    "alembic/",
+    "apps/",
+    "core/settings/",
+    "core/wsgi.py",
+    "docker-compose.yml",
+    "docs/",
+    "manage.py",
+    "migrations/",
+    "requirements.txt",
+    "scripts/",
+    "static/",
+    "templates/"
+  ]
+}
