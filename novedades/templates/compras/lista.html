@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load static %}
+{% load currency_tags %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4"
+        data-aos="fade-down">
+        <div>
+            <h2 class="fw-bold text-white mb-1">
+                <i class="bi bi-bag-check-fill text-accent me-2"></i>Órdenes de Compra
+            </h2>
+            <p class="page-subtitle small mb-0">Gestión de compras a proveedores y reposición de inventario</p>
+        </div>
+
+        <a href="{% url 'compras:crear_compra' %}" class="btn btn-premium btn-premium-gold btn-main-action fw-bold rounded-pill px-4 shadow-sm" aria-label="Agregar compra" data-tooltip="Agregar compra" title="Agregar compra">
+            <i class="bi bi-plus-circle me-1"></i> Nueva Orden
+        </a>
+    </div>
+
+    {% include "partials/filter_bar.html" with filter_fields=filter_fields has_filters=has_filters %}
+
+    <!-- Tabla con Glassmorphism -->
+    <div class="table-container p-0 overflow-hidden u-inline-6b0d9e24ec" data-aos="fade-up">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                    <tr class="u-inline-e91738c112">
+                        <th class="ps-4 py-4 text-muted small fw-bold text-uppercase">Orden</th>
+                        <th class="py-4 text-muted small fw-bold text-uppercase">Proveedor</th>
+                        <th class="py-4 text-muted small fw-bold text-uppercase">Fecha</th>
+                        <th class="py-4 text-muted small fw-bold text-uppercase text-center">Materiales</th>
+                        <th class="py-4 text-muted small fw-bold text-uppercase text-end">Total</th>
+                        <th class="py-4 text-muted small fw-bold text-uppercase text-center">Registrado Por</th>
+                        <th class="py-4 text-muted small fw-bold text-uppercase text-center">Estado</th>
+                        <th class="py-4 text-muted small fw-bold text-uppercase text-center pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for compra in compras %}
+                    <tr class="u-inline-dd0d9e7c89">
+                        <td class="ps-4">
+                            <span class="text-white fw-bold">{{ compra.numero_orden }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div
+                                    class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3 u-inline-7a3b56f7ab">
+                                    <i class="bi bi-truck text-primary small"></i>
+                                </div>
+                                <div>
+                                    <div class="text-white fw-medium">{{ compra.proveedor.nombre_empresa }}</div>
+                                    <div class="table-meta small">NIT: {{ compra.proveedor.nit }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="table-meta">
+                            {{ compra.fecha_compra|date:"d M, Y" }}
+                            <div class="small">{{ compra.fecha_compra|date:"H:i" }}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-dark border border-white-10 text-info px-3">{{ compra.detalles.count
+                                }}</span>
+                        </td>
+                        <td class="text-end fw-bold text-success">
+                            {{ compra.total_compra|currency }}
+                        </td>
+                        <td class="text-center">
+                            {% if compra.usuario %}
+                            <span class="badge bg-dark border border-white-10 text-info px-3">
+                                <i class="bi bi-person-circle me-1"></i> {{ compra.usuario.username }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted small">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill px-3 py-2 
+                                {% if compra.estado == 'pendiente' %}bg-warning text-dark
+                                {% elif compra.estado == 'recibida' %}bg-success
+                                {% else %}bg-danger{% endif %}">
+                                {{ compra.get_estado_display }}
+                            </span>
+                        </td>
+                        <td class="text-center pe-4">
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a href="{% url 'compras:detalle_compra' compra.id_compra %}"
+                                    class="btn btn-sm btn-outline-info border-white-10" title="Ver Detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if compra.estado == 'pendiente' %}
+                                <a href="{% url 'compras:editar_compra' compra.id_compra %}"
+                                    class="btn btn-sm btn-outline-warning border-white-10" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-bag-x mb-3 d-block u-inline-a1dd7c987c"></i>
+                            No se encontraron órdenes de compra.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-container {
+        backdrop-filter: none;
+        background: var(--card-bg) !important;
+        overflow-x: auto !important;
+        border-radius: 24px !important;
+    }
+
+    .table-responsive {
+        overflow-x: auto !important;
+        border-radius: 24px;
+        overflow: hidden !important;
+    }
+
+    .table-responsive>.table {
+        min-width: 42rem;
+        border-collapse: separate !important;
+        border-radius: 24px;
+    }
+
+    .table thead th:first-child {
+        border-top-left-radius: 24px;
+    }
+
+    .table thead th:last-child {
+        border-top-right-radius: 24px;
+    }
+
+    .table tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 24px;
+    }
+
+    .table tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 24px;
+    }
+
+    .table thead th {
+        letter-spacing: 1px;
+        background: var(--item-bg) !important;
+    }
+
+    .table tbody td,
+    .table tfoot td {
+        white-space: nowrap;
+    }
+
+    .table-container .table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .text-accent {
+        color: #f59e0b !important;
+    }
+
+    .border-white-10 {
+        border-color: var(--color-border) !important;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: var(--item-bg-hover) !important;
+    }
+
+    .input-group {
+        min-width: 0;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .input-group .form-control {
+        border: none;
+        background: transparent;
+    }
+
+    .input-group .input-group-text {
+        border: none;
+        background: transparent;
+    }
+
+    @media (max-width: 575.98px) {
+        .btn-warning.text-nowrap {
+            white-space: nowrap;
+        }
+
+        .table-responsive>.table {
+            min-width: 32rem;
+        }
+    }
+</style>
+{% endblock %}

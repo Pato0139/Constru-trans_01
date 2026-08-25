@@ -28,6 +28,10 @@ class Compra(models.Model):
     class Meta:
         ordering = ["-fecha_compra"]
         db_table = "compra"
+        permissions = (
+            ("aprobar_compra", "Puede aprobar compras"),
+            ("gestionar_proveedor", "Puede gestionar proveedores"),
+        )
         constraints = [
             models.CheckConstraint(
                 check=models.Q(total_compra__gte=0),
@@ -90,8 +94,7 @@ class ProveedorMaterial(models.Model):
 
 
 # =====================================================================
-# DETALLE_COMPRA  (MER: #id_detalle_compra *id_compra *cod_material
-#                  -cantidad -precio_unitario -subtotal)
+# DETALLE_COMPRA 
 # =====================================================================
 class DetalleCompra(models.Model):
     id_detalle_compra = models.AutoField(primary_key=True)
