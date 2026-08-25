@@ -41,6 +41,7 @@ urlpatterns = [
         lambda r: redirect("usuarios:password_reset_complete"),
         name="password_reset_complete",
     ),
+    path("novedades/", include("novedades.urls")),
 ]
 
 if settings.DEBUG:

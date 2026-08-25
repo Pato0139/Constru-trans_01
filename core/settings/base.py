@@ -92,6 +92,7 @@ LOCAL_APPS = [
     "licensing",
     "ia",
     "ayuda",
+    "novedades",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
