@@ -37,6 +37,10 @@ class Factura(models.Model):
     class Meta:
         ordering = ["-fecha"]
         db_table = "factura"
+        permissions = (
+            ("anular_factura", "Puede anular facturas"),
+            ("ver_facturas_todas", "Puede ver todas las facturas"),
+        )
         constraints = [
             models.CheckConstraint(
                 check=models.Q(subtotal__gte=0) | models.Q(subtotal__isnull=True),
