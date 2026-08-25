@@ -86,6 +86,11 @@ class Pedido(models.Model):
     class Meta:
         ordering = ["-fecha_solicitud"]
         db_table = "pedido"
+        permissions = (
+            ("aprobar_pedido", "Puede aprobar pedidos"),
+            ("autorizar_despacho", "Puede autorizar despacho"),
+            ("asignar_vehiculo", "Puede asignar vehículo a entrega"),
+        )
         constraints = [
             models.CheckConstraint(
                 check=models.Q(total__gte=0),
@@ -192,6 +197,11 @@ class DetallePedido(models.Model):
     def subtotal(self):
         return self.cantidad * self.precio_unitario
 
+    @property
+    def cliente(self):
+        """Acceso por camino natural: Pedido -> Cliente (siguiendo MER)."""
+        return self.pedido.cliente if self.pedido_id else None
+
 
 # =====================================================================
 # ENTREGA
@@ -226,6 +236,10 @@ class Entrega(models.Model):
     class Meta:
         ordering = ["-fecha_salida"]
         db_table = "entrega"
+        permissions = (
+            ("registrar_entrega", "Puede registrar entregas"),
+            ("confirmar_entrega", "Puede confirmar entregas"),
+        )
 
     def __str__(self):
         ref = self.pedido.codigo_pedido_ref

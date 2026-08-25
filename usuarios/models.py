@@ -441,22 +441,6 @@ class Conductor(models.Model):
 # =====================================================================
 # VEHICULO
 # =====================================================================
-# Desactivado temporalmente para evitar bloqueos en creación de usuarios
-# @receiver(post_save, sender="usuarios.Usuario")
-# def crear_perfil_conductor(sender, instance, created, **kwargs):
-#     """Auto-crea perfil de conductor cuando un usuario pasa a ser conductor."""
-#     if instance.rol != "conductor":
-#         return
-#
-#     using = kwargs.get("using") or instance._state.db or "default"
-#     if created:
-#         Conductor.ensure_for_user(instance, using=using)
-#         return
-#
-#     try:
-#         instance.perfil_conductor
-#     except Conductor.DoesNotExist:
-#         Conductor.ensure_for_user(instance, using=using)
 class Vehiculo(models.Model):
     id_vehiculo = models.AutoField(primary_key=True)
     catalogo = models.ForeignKey(
@@ -651,6 +635,9 @@ class MaterialConstruccion(models.Model):
         db_table = "material_construccion"
         verbose_name = "Material de Construcción"
         verbose_name_plural = "Materiales de Construcción"
+        permissions = (
+            ("gestionar_inventario", "Puede gestionar inventario"),
+        )
         constraints = [
             models.CheckConstraint(
                 check=models.Q(precio_referencia__gte=0),

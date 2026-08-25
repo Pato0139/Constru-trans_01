@@ -9,8 +9,7 @@ from ordenes.models import Pedido
 
 
 # =====================================================================
-# PAGO  (MER: #id_pago *id_factura -monto -fecha *codigo_metodo_pago
-#        -referencia *registrado_por_id sincronizado)
+# PAGO
 # =====================================================================
 class Pago(models.Model):
     id_pago = models.AutoField(primary_key=True)
@@ -34,6 +33,10 @@ class Pago(models.Model):
 
     class Meta:
         db_table = "pago"
+        permissions = (
+            ("registrar_pago", "Puede registrar pagos"),
+            ("reversar_pago", "Puede reversar pagos"),
+        )
         constraints = [
             models.CheckConstraint(
                 check=models.Q(monto__gt=0),
