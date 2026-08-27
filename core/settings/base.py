@@ -39,18 +39,36 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 
 def get_secret_key():
-    try:
-        return env("SECRET_KEY")
-    except Exception:
-        import secrets
+    secret_key = env("SECRET_KEY", default="").strip()
+    default_secret_placeholders = {
+        "cambia-esto-por-una-clave-aleatoria-de-50-caracteres",
+        "change-me",
+        "changeme",
+        "secret-key",
+        "example-secret-key",
+    }
 
-        return secrets.token_hex(50)
+    if secret_key and secret_key.lower() not in {value.lower() for value in default_secret_placeholders}:
+        return secret_key
+
+    if DJANGO_ENV == "production":
+        raise RuntimeError(
+            "SECRET_KEY no configurada o con valor por defecto. Define una clave segura en el archivo .env antes de ejecutar la app en producción."
+        )
+
+    import secrets
+
+    return secrets.token_hex(50)
 
 
 SECRET_KEY = get_secret_key()
 
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+if DJANGO_ENV == "production" and not ALLOWED_HOSTS:
+    raise RuntimeError(
+        "ALLOWED_HOSTS no configurado. Define hosts válidos en .env para producción."
+    )
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
 
 # ============================================================
