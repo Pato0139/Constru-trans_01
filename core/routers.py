@@ -3,7 +3,7 @@ from core.utils import conexion_remota_disponible
 
 # Apps de Django que SIEMPRE deben vivir en la BD default (local)
 # para evitar conflictos de sesión entre bases de datos.
-_APPS_LOCALES = {"sessions", "auth", "contenttypes", "admin"}
+_APPS_LOCALES = {"sessions", "auth", "usuarios", "contenttypes", "admin"}
 
 
 class EnrutadorInventario:
@@ -41,4 +41,4 @@ class EnrutadorInventario:
             return False
         if db == "remota":
             return True
-        return False
+        return False
