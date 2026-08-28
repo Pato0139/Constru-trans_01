@@ -7,6 +7,11 @@
 <div class="table-container p-4">
     <div class="d-flex justify-content-between align-items-center mb-4 px-2 flex-wrap gap-3">
         <h5 class="fw-800 m-0 text-white"><i class="bi bi-people-fill text-accent me-2"></i> Gestión de Clientes</h5>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                <i class="bi bi-person-check me-1"></i> Total: {{ total_resultados|default:clientes.count }} clientes
+            </span>
+        </div>
     </div>
 
     <!-- Filtros -->
@@ -16,7 +21,7 @@
                 <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
             </div>
             <div class="col-md-4">
-                <input type="text" name="q" class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Buscar por nombre, documento o email..." value="{{ q }}">
+                <input type="text" name="q" class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Buscar por nombre, documento, email o teléfono..." value="{{ q }}">
             </div>
             <div class="col-md-3">
                 <select name="estado" class="form-select form-select-sm bg-surface text-white filter-select">
@@ -25,15 +30,27 @@
                     <option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
                 </select>
             </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-sm btn-premium btn-premium-gold"><i class="bi bi-search"></i> Buscar</button>
-            </div>
-            <div class="col-auto">
-                <a href="{% url 'clientes:lista_clientes' %}" class="btn btn-sm btn-outline-secondary" title="Limpiar filtros">
-                    <i class="bi bi-x-circle"></i> Limpiar
-                </a>
+            <div class="col-auto d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-premium btn-premium-gold"><i class="bi bi-search me-1"></i> Filtrar</button>
+                {% if has_filters %}
+                    <a href="{% url 'clientes:lista_clientes' %}" class="btn btn-sm btn-outline-danger" title="Limpiar filtros">
+                        <i class="bi bi-x-circle me-1"></i> Limpiar Filtros
+                    </a>
+                {% endif %}
             </div>
         </form>
+
+        {% if has_filters %}
+        <div class="d-flex align-items-center gap-2 mt-2 pt-2 border-top border-secondary-subtle">
+            <span class="small text-muted">Filtros activos:</span>
+            {% if q %}
+                <span class="badge bg-dark border text-light">Búsqueda: "{{ q }}"</span>
+            {% endif %}
+            {% if estado %}
+                <span class="badge bg-dark border text-light">Estado: {{ estado|capfirst }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 
     <!-- Tabla -->
@@ -54,13 +71,13 @@
                 <tr>
                     <td class="py-3 px-3">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary text-white fw-bold" style="width: 40px; height: 40px;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-secondary text-white fw-bold avatar-circle-sm">
                                 {{ cliente.nombres|slice:":1" }}{{ cliente.apellidos|slice:":1" }}
                             </div>
                             <div>
                                 <div class="fw-bold text-white">{{ cliente.nombres }} {{ cliente.apellidos }}</div>
                                 {% if cliente.perfil_cliente.es_vip %}
-                                    <span class="badge bg-warning text-dark px-2 py-1" style="font-size: 0.6rem;">VIP</span>
+                                    <span class="badge bg-warning text-dark px-2 py-1 badge-micro">VIP</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -95,8 +112,13 @@
                 <tr>
                     <td colspan="6" class="text-center py-5">
                         <div class="py-4">
-                            <i class="bi bi-people text-muted mb-3 d-block" style="font-size: 3rem;"></i>
-                            <p class="text-muted fw-medium mb-0">No se encontraron clientes.</p>
+                            <i class="bi bi-people text-muted mb-3 d-block icon-display-md"></i>
+                            <p class="text-muted fw-medium mb-2">No se encontraron clientes con los filtros aplicados.</p>
+                            {% if has_filters %}
+                                <a href="{% url 'clientes:lista_clientes' %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i> Restablecer búsqueda
+                                </a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
