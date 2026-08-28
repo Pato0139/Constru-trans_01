@@ -373,6 +373,11 @@ APPEND_SLASH = False
 RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY")
 RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY")
 
+# Silenciar el check de Django cuando se usan las claves de prueba de Google
+# en entornos de desarrollo. IMPORTANTE: usar claves reales antes de producción.
+if DJANGO_ENV != "production":
+    SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]
+
 # ============================================================
 # LICENCIAMIENTO
 # ============================================================
@@ -382,4 +387,3 @@ LICENSE_SERVER_URL = env("LICENSE_SERVER_URL")
 LICENSE_PUBLIC_KEY = env("LICENSE_PUBLIC_KEY")
 LICENSE_HEARTBEAT_MINUTES = env("LICENSE_HEARTBEAT_MINUTES")
 LICENSE_MAX_AGE_DAYS = env("LICENSE_MAX_AGE_DAYS")
-
