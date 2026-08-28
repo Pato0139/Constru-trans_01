@@ -5,3 +5,6 @@ class NovedadesConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "novedades"
     verbose_name = "Novedades"
+
+    def ready(self):
+        import novedades.signals
