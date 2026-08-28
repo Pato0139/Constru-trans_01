@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Responder Seguimiento{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-gradient-to-r from-primary to-indigo-500 text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-reply-all-fill me-2"></i>
+                        Responder Seguimiento
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+
+                    <div class="mb-4 p-4 bg-light rounded-3 border-start border-4 border-primary">
+                        <h6 class="text-primary fw-bold mb-2">Seguimiento #{{ seguimiento.id_seguimiento }}</h6>
+                        <p class="mb-1">
+                            <small class="text-muted">
+                                {% if seguimiento.atendido_por %}
+                                    Atendido por: <strong>{{ seguimiento.atendido_por.nombres }} {{ seguimiento.atendido_por.apellidos }}</strong>
+                                {% endif %}
+                                &middot; {{ seguimiento.fecha_seguimiento|date:"d/m/Y H:i" }}
+                            </small>
+                        </p>
+                        <p class="mb-0 fw-medium">{{ seguimiento.comentario }}</p>
+                    </div>
+
+                    <div class="mb-4 p-4 border rounded-3">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Informacion de la novedad
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <small class="text-muted text-uppercase fw-semibold">Novedad</small>
+                                <p class="mb-0 mt-1 fw-bold">{{ seguimiento.novedad }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted text-uppercase fw-semibold">Estado Novedad</small>
+                                <p class="mb-0 mt-1">
+                                    {% if seguimiento.novedad.estado == 'abierta' %}
+                                        <span class="badge bg-danger">{{ seguimiento.novedad.get_estado_display }}</span>
+                                    {% elif seguimiento.novedad.estado == 'en_atencion' %}
+                                        <span class="badge bg-warning text-dark">{{ seguimiento.novedad.get_estado_display }}</span>
+                                    {% elif seguimiento.novedad.estado == 'cerrada' %}
+                                        <span class="badge bg-success">{{ seguimiento.novedad.get_estado_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ seguimiento.novedad.get_estado_display }}</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-12">
+                                <small class="text-muted text-uppercase fw-semibold">Pedido / Entrega</small>
+                                <p class="mb-0 mt-1">
+                                    Pedido #{{ seguimiento.novedad.entrega.pedido.codigo_pedido }}
+                                    &middot; Entrega #{{ seguimiento.novedad.entrega.id_entrega }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="estado" class="form-label fw-semibold">
+                                Estado de la respuesta
+                            </label>
+                            <select name="estado" id="estado" class="form-select form-select-lg">
+                                <option value="aceptada" selected>Aceptada</option>
+                                <option value="en_gestion">En gestion</option>
+                                <option value="rechazada">Rechazada</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="texto" class="form-label fw-semibold">
+                                Respuesta / Solucion <span class="text-danger">*</span>
+                            </label>
+                            <textarea
+                                name="texto"
+                                id="texto"
+                                class="form-control"
+                                rows="5"
+                                placeholder="Explique la solucion, respuesta o decision tomada respecto al seguimiento..."
+                                required
+                            ></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <a href="{% url 'novedades:seguimiento' seguimiento.novedad_id %}"
+                               class="btn btn-outline-secondary px-4 rounded-pill">
+                                <i class="bi bi-arrow-left me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5 rounded-pill fw-semibold shadow-sm">
+                                <i class="bi bi-check2-circle me-2"></i>Enviar Respuesta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
