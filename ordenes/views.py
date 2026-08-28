@@ -130,7 +130,7 @@ def agregar_materiales(request, id):
     context = {"orden": orden, "materiales": materiales, "detalles": detalles}
     return render(request, "ordenes/agregar_materiales.html", context)
 
-def buscar_pedidos_admin(cliente_query=None, fecha_query=None):
+def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=None):
     pedidos = (
         Orden.objects.all()
         .select_related("usuario", "cliente", "conductor")
@@ -142,23 +142,51 @@ def buscar_pedidos_admin(cliente_query=None, fecha_query=None):
         pedidos = pedidos.filter(
             Q(cliente__nombres__icontains=cliente_query)
             | Q(cliente__apellidos__icontains=cliente_query)
+            | Q(usuario__nombres__icontains=cliente_query)
+            | Q(usuario__apellidos__icontains=cliente_query)
         )
 
     if fecha_query:
         pedidos = pedidos.filter(fecha_solicitud__date=fecha_query)
 
+    if q:
+        pedidos = pedidos.filter(
+            Q(codigo_pedido__icontains=q)
+            | Q(direccion_destino__icontains=q)
+            | Q(cliente__nombres__icontains=q)
+            | Q(cliente__apellidos__icontains=q)
+            | Q(usuario__nombres__icontains=q)
+            | Q(usuario__apellidos__icontains=q)
+        )
+
+    if estado:
+        pedidos = pedidos.filter(estado=estado)
+
     return pedidos
+
 
 @admin_required
 def _render_lista_por_estado(request, estado, titulo):
-    cliente_query = request.GET.get("cliente")
-    fecha_query = request.GET.get("fecha")
-    pedidos = buscar_pedidos_admin(cliente_query, fecha_query).filter(estado=estado)
+    cliente_query = request.GET.get("cliente", "").strip()
+    fecha_query = request.GET.get("fecha", "").strip()
+    q = request.GET.get("q", "").strip()
+
+    pedidos = buscar_pedidos_admin(cliente_query=cliente_query, fecha_query=fecha_query, q=q)
+    if estado:
+        pedidos = pedidos.filter(estado=estado)
+
+    has_filters = bool(cliente_query or fecha_query or q)
+    total_resultados = pedidos.count()
+
     context = {
         "pedidos": pedidos,
         "cliente_query": cliente_query,
         "fecha_query": fecha_query,
+        "q": q,
         "titulo_panel": titulo,
+        "has_filters": has_filters,
+        "total_resultados": total_resultados,
+        "estado_actual": estado,
     }
     return render(request, "ordenes/lista.html", context)
 

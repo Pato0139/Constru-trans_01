@@ -415,3 +415,21 @@ class CatalogoForm(forms.ModelForm):
             if not self.instance.pk and Catalogo.objects.filter(codigo_catalogo=codigo).exists():
                 raise forms.ValidationError("Ya existe un tipo de material con este código.")
         return codigo
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+    email = forms.CharField(
+        label="Usuario o Correo Electrónico",
+        max_length=254,
+        widget=forms.TextInput(attrs={
+            "class": "input-custom",
+            "placeholder": "Ingresa tu usuario o correo electrónico",
+            "autofocus": True
+        })
+    )
+
+    def get_users(self, email):
+        active_users = User.objects.filter(email__iexact=email, is_active=True)
+        if not active_users.exists():
+            active_users = User.objects.filter(username__iexact=email, is_active=True)
+        return (u for u in active_users if u.has_usable_password())
