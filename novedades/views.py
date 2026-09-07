@@ -2,24 +2,31 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from core.permissions import requiere_funcion
-from ordenes.models import Pedido
+from ordenes.models import Entrega
 from .models import Novedad, Seguimiento, RespuestaSeguimiento
 
 
 @login_required
 @requiere_funcion("registrar_novedad")
-def crear_novedad(request, pedido_id):
-    pedido = get_object_or_404(Pedido, pk=pedido_id)
+def crear_novedad(request, entrega_id):
+    entrega = get_object_or_404(
+        Entrega.objects.select_related("pedido"),
+        pk=entrega_id,
+    )
     if request.method == "POST":
         Novedad.objects.create(
-            pedido=pedido,
+            entrega=entrega,
             tipo=request.POST.get("tipo"),
             descripcion=request.POST.get("descripcion"),
             reportado_por=request.user,
         )
         messages.success(request, "Novedad registrada.")
-        return redirect("ordenes:detalle", pk=pedido.pk)
-    return render(request, "novedades/crear.html", {"pedido": pedido})
+        return redirect("ordenes:ver_pedido_admin", id=entrega.pedido_id)
+    return render(
+        request,
+        "novedades/crear.html",
+        {"entrega": entrega, "pedido": entrega.pedido},
+    )
 
 
 @login_required
@@ -34,7 +41,7 @@ def agregar_seguimiento(request, novedad_id):
         if novedad.estado == "abierta":
             novedad.estado = "en_atencion"
             novedad.save(update_fields=["estado"])
-        return redirect("novedades:crear", pedido_id=novedad.pedido_id)
+        return redirect("novedades:crear", entrega_id=novedad.entrega_id)
     return render(request, "novedades/seguimiento.html", {"novedad": novedad})
 
 
@@ -54,5 +61,5 @@ def responder_seguimiento(request, seguimiento_id):
         if seg.novedad.estado == "en_atencion":
             seg.novedad.estado = "cerrada"
             seg.novedad.save(update_fields=["estado"])
-        return redirect("ordenes:detalle", pk=seg.novedad.pedido_id)
+        return redirect("ordenes:ver_pedido_admin", id=seg.novedad.entrega.pedido_id)
     return render(request, "novedades/responder.html", {"seguimiento": seg})

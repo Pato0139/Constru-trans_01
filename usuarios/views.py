@@ -32,7 +32,7 @@ from core.db_preference import PREF_LOCAL, PREF_REMOTA, get_db_preference, inval
 from core.sync import sync_all_usuarios
 from core.utils import conexion_remota_disponible
 
-from .forms import AsignarVehiculoForm, LoginForm, RegistroForm
+from .forms import AsignarVehiculoForm, LoginForm, RegistroForm, CustomPasswordResetForm
 from .models import (
     Conductor,
     ConductorVehiculo,
@@ -978,18 +978,13 @@ def perfil_conductor(request):
 # RECUPERAR CONTRASEÑA
 # =====================================================================
 class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomPasswordResetForm
     template_name = "usuarios/recuperar_password.html"
     email_template_name = "registration/password_reset_email.txt"
     html_email_template_name = "registration/password_reset_email.html"
     subject_template_name = "registration/password_reset_subject.txt"
     success_url = reverse_lazy("usuarios:password_reset_done")
     from_email = None
-
-    def get_users(self, email):
-        users = User.objects.filter(email__iexact=email, is_active=True)
-        if not users:
-            users = User.objects.filter(username__iexact=email, is_active=True)
-        return users
 
     def form_valid(self, form):
         email = form.cleaned_data["email"]

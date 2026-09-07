@@ -864,20 +864,31 @@ def lista_clientes(request):
         
     clientes = Usuario.objects.filter(rol="cliente").select_related("perfil_cliente").order_by("-date_joined")
     
-    q = request.GET.get("q", "")
-    estado = request.GET.get("estado", "")
+    q = request.GET.get("q", "").strip()
+    estado = request.GET.get("estado", "").strip()
     
     if q:
         clientes = clientes.filter(
             Q(nombres__icontains=q) | 
             Q(apellidos__icontains=q) | 
             Q(documento__icontains=q) | 
-            Q(email__icontains=q)
+            Q(email__icontains=q) |
+            Q(telefono__icontains=q) |
+            Q(username__icontains=q)
         )
     if estado:
         clientes = clientes.filter(estado=estado)
         
-    context = {"clientes": clientes, "q": q, "estado": estado}
+    has_filters = bool(q or estado)
+    total_resultados = clientes.count()
+    
+    context = {
+        "clientes": clientes,
+        "q": q,
+        "estado": estado,
+        "has_filters": has_filters,
+        "total_resultados": total_resultados,
+    }
     return render(request, "clientes/admin_lista.html", context)
 
 

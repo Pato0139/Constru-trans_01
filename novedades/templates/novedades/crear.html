@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registrar Novedad{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-gradient-to-r from-warning to-orange-500 text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Registrar Novedad
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <small class="text-muted text-uppercase fw-semibold">Pedido</small>
+                                <p class="fw-bold mb-0 mt-1">
+                                    #{{ pedido.codigo_pedido }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <small class="text-muted text-uppercase fw-semibold">Envio / Entrega</small>
+                                <p class="fw-bold mb-0 mt-1">
+                                    #{{ entrega.id_entrega }}
+                                    <span class="badge bg-secondary ms-2">{{ entrega.estado }}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <small class="text-muted text-uppercase fw-semibold">Conductor</small>
+                                <p class="mb-0 mt-1">
+                                    {% if entrega.conductor %}
+                                        {{ entrega.conductor.usuario.nombres }} {{ entrega.conductor.usuario.apellidos }}
+                                    {% else %}
+                                        <em>No asignado</em>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <small class="text-muted text-uppercase fw-semibold">Vehiculo</small>
+                                <p class="mb-0 mt-1">
+                                    {% if entrega.vehiculo %}
+                                        {{ entrega.vehiculo.placa }} - {{ entrega.vehiculo.marca }} {{ entrega.vehiculo.modelo }}
+                                    {% else %}
+                                        <em>No asignado</em>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="tipo" class="form-label fw-semibold">
+                                Tipo de novedad <span class="text-danger">*</span>
+                            </label>
+                            <select name="tipo" id="tipo" class="form-select form-select-lg" required>
+                                <option value="" selected disabled>-- Seleccione el tipo --</option>
+                                <option value="demora">Demora en entrega</option>
+                                <option value="producto_danado">Producto danado</option>
+                                <option value="cantidad_incorrecta">Cantidad incorrecta</option>
+                                <option value="devolucion">Devolucion</option>
+                                <option value="observacion">Observacion</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="descripcion" class="form-label fw-semibold">
+                                Descripcion de la novedad <span class="text-danger">*</span>
+                            </label>
+                            <textarea
+                                name="descripcion"
+                                id="descripcion"
+                                class="form-control"
+                                rows="5"
+                                placeholder="Describa detalladamente la novedad presentada..."
+                                required
+                            ></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <a href="{% url 'ordenes:ver_pedido_admin' pedido.codigo_pedido %}"
+                               class="btn btn-outline-secondary px-4 rounded-pill">
+                                <i class="bi bi-arrow-left me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning text-white px-5 rounded-pill fw-semibold shadow-sm">
+                                <i class="bi bi-send-fill me-2"></i>Guardar Novedad
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

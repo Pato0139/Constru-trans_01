@@ -18,9 +18,14 @@ class Novedad(models.Model):
         ("rechazada",   "Rechazada"),
     ]
     id_novedad = models.BigAutoField(primary_key=True)
-    pedido = models.ForeignKey(
-        "ordenes.Pedido", on_delete=models.CASCADE, related_name="novedades"
+
+    # ANTES: pedido = models.ForeignKey("ordenes.Pedido", on_delete=models.CASCADE, related_name="novedades")
+    # AHORA: la novedad pertenece a un envío/entrega concreto, no al pedido general.
+    # El pedido se obtiene mediante novedad.entrega.pedido
+    entrega = models.ForeignKey(
+        "ordenes.Entrega", on_delete=models.PROTECT, related_name="novedades"
     )
+
     tipo = models.CharField(max_length=30, choices=TIPOS)
     descripcion = models.TextField()
     estado = models.CharField(max_length=15, choices=ESTADOS, default="abierta")
@@ -36,6 +41,12 @@ class Novedad(models.Model):
         indexes = [models.Index(fields=["estado"]), models.Index(fields=["tipo"])]
     def __str__(self):
         return f"Novedad #{self.id_novedad} - {self.tipo} ({self.estado})"
+
+    @property
+    def pedido(self):
+        """Acceso de conveniencia: novedad.pedido -> novedad.entrega.pedido"""
+        return self.entrega.pedido
+
     def cerrar(self):
         self.estado = "cerrada"
         self.fecha_cierre = timezone.now()
