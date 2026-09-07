@@ -1,3 +1,5 @@
+import sys
+
 from core.db_preference import get_db_preference, PREF_LOCAL, PREF_REMOTA
 from core.utils import conexion_remota_disponible
 
@@ -8,6 +10,9 @@ _APPS_LOCALES = {"sessions", "auth", "usuarios", "contenttypes", "admin"}
 
 class EnrutadorInventario:
     def _elegir_bd(self):
+        if "test" in sys.argv:
+            return "default"
+
         pref = get_db_preference()
 
         if pref == PREF_LOCAL:
