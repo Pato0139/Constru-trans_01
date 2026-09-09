@@ -1,7 +1,7 @@
-import json
+﻿import json
 from pathlib import Path
 
-base_path = Path("apps/ia/training")
+base_path = Path("ia/training")
 
 with open(base_path / "ia_knowledge_base.json", "r", encoding="utf-8") as f:
     kb = json.load(f)
@@ -12,3 +12,4 @@ print("Intenciones:", len(kb["intent_examples"]))
 
 for faq in kb["faq_entries"]:
     print(faq["id"], "->", faq["best_response"])
+
