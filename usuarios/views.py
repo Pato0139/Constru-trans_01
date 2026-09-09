@@ -986,9 +986,34 @@ class CustomPasswordResetView(PasswordResetView):
     success_url = reverse_lazy("usuarios:password_reset_done")
     from_email = None
 
+    def dispatch(self, *args, **kwargs):
+        try:
+            if conexion_remota_disponible():
+                sync_all_usuarios()
+        except Exception as exc:
+            logger.warning(
+                "[Password Reset] No se pudo sincronizar usuarios antes de reset: %s",
+                exc,
+            )
+        return super().dispatch(*args, **kwargs)
+
     def form_valid(self, form):
         email = form.cleaned_data["email"]
-        logger.info(f"[Password Reset] Solicitud para: {email}")
+        usuarios_encontrados = list(form.get_users(email))
+        logger.info(
+            "[Password Reset] Solicitud para: %s | Usuarios coincidentes: %d",
+            email,
+            len(usuarios_encontrados),
+        )
+        for u in usuarios_encontrados:
+            logger.info(
+                "  -> usuario_id=%s username=%s email=%s is_active=%s has_pwd=%s",
+                u.pk,
+                u.username,
+                u.email,
+                getattr(u, "is_active", None),
+                u.has_usable_password(),
+            )
         return super().form_valid(form)
 
 
