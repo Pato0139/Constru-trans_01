@@ -1,9 +1,9 @@
-# Módulo de Inteligencia Artificial de Constru-Trans
+﻿# Módulo de Inteligencia Artificial de Constru-Trans
 
 ## Estructura
 
 ```
-apps/ai/
+ai_platform/
 ├── __init__.py          # Archivo principal del módulo
 ├── README.md            # Este archivo
 ├── django/              # Integración con Django (ERP)
@@ -59,3 +59,4 @@ apps/ai/
 ## Uso
 
 Para más detalles, revisa los READMEs de cada subcarpeta.
+
