@@ -1,4 +1,5 @@
 from django.test import TestCase
+from clientes.models import Cliente
 from usuarios.models import Usuario
 from facturacion.models import Factura
 
@@ -16,8 +17,9 @@ class FacturaModelTests(TestCase):
             tipo_documento="CC",
             rol="admin"
         )
+        cliente, _ = Cliente.ensure_for_user(usuario)
         factura = Factura.objects.create(
-            cliente=usuario,
+            cliente=cliente,
             numero="FAC-001",
             subtotal=100000,
             iva=19000,

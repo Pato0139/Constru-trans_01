@@ -34,12 +34,14 @@ class UsuarioViewsTests(TestCase):
             documento="1003",
             tipo_documento="CC",
         )
-        self.conductor_profile = Conductor.objects.create(
-            usuario=self.conductor_user,
-            numero_licencia="LIC-1003",
-            categoria_licencia="C2",
-            fecha_vencimiento_licencia=date.today() + timedelta(days=365),
-            estado="activo",
+        self.conductor_profile, _ = Conductor.ensure_for_user(
+            self.conductor_user,
+            defaults={
+                "numero_licencia": "LIC-1003",
+                "categoria_licencia": "C2",
+                "fecha_vencimiento_licencia": date.today() + timedelta(days=365),
+                "estado": "activo",
+            },
         )
         self.vehiculo = Vehiculo.objects.create(
             placa="ABC123",
@@ -54,7 +56,7 @@ class UsuarioViewsTests(TestCase):
         """Prueba de login y restricción de admin_required"""
         self.client.login(username="admin@test.com", password="password123")
         # No tenemos reportes en todas las instalaciones, probamos acceso básico
-        response = self.client.get(reverse("inicio:home"))
+        response = self.client.get(reverse("inicio:inicio"))
         self.assertEqual(response.status_code, 200)
 
     def test_asignar_vehiculo_a_conductor(self):
