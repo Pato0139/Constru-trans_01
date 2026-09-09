@@ -4,11 +4,46 @@
  */
 
 /* Mantiene la tabla a todo lo ancho después de inicializar DataTables. */
+.inventory-materials-page {
+    position: relative;
+}
+
+.inventory-materials-page .standard-page-header,
+.inventory-types-page .standard-page-header {
+    position: relative;
+    z-index: 20;
+    overflow: visible;
+}
+
+.inventory-materials-page .dropdown,
+.inventory-types-page .dropdown {
+    position: relative;
+    z-index: 30;
+}
+
+.inventory-materials-page .dropdown-menu,
+.inventory-types-page .dropdown-menu {
+    z-index: 2000;
+}
+
 .inventory-materials-container,
 .inventory-materials-container .table-responsive,
 #tablaMateriales_wrapper,
 .inventory-materials-table {
     width: 100% !important;
+}
+
+.inventory-materials-container {
+    position: relative;
+    z-index: 1;
+    min-height: 0;
+    overflow: visible !important;
+}
+
+.inventory-materials-container .table-responsive {
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: visible;
 }
 
 .inventory-materials-table th:last-child,
@@ -18,6 +53,7 @@
 
 .inventory-materials-table {
     table-layout: fixed;
+    min-width: 48rem;
 }
 
 .inventory-materials-table th:nth-child(1),
@@ -114,6 +150,8 @@
 }
 
 @media (max-width: 767.98px) {
+    .inventory-materials-container { min-height: 0; }
+    .inventory-materials-container .table-responsive { min-height: 0; }
     .inventory-materials-table { table-layout: auto; }
     .inventory-materials-table th,
     .inventory-materials-table td { white-space: nowrap; }

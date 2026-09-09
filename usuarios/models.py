@@ -610,10 +610,30 @@ class UnidadMedida(models.Model):
         return self.id_unidad
 
 
+class Marca(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        db_table = "marca"
+        ordering = ["nombre"]
+        verbose_name = "Marca"
+        verbose_name_plural = "Marcas"
+
+    def __str__(self):
+        return self.nombre
+
+
 class MaterialConstruccion(models.Model):
     cod_material = models.AutoField(primary_key=True)
     catalogo = models.ForeignKey(
         Catalogo, on_delete=models.SET_NULL, null=True, blank=True, related_name="materiales"
+    )
+    marca = models.ForeignKey(
+        Marca,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="materiales",
     )
     nombre = models.CharField(max_length=100)
     unidad_medida = models.ForeignKey(
