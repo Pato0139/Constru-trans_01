@@ -78,3 +78,11 @@ def impedir_desactivar_admin_global(sender, instance, **kwargs):
         if instance.rol != anterior.rol:
             raise PermissionDenied("❌ No se puede cambiar el rol del admin global.")
 
+
+@receiver(post_save, sender=Usuario)
+def crear_perfil_conductor(sender, instance, created, using=None, **kwargs):
+    if created and instance.rol == "conductor":
+        from .models import Conductor
+
+        Conductor.ensure_for_user(instance, using=using or instance._state.db or "default")
+

@@ -141,7 +141,7 @@ class Command(BaseCommand):
         clientes = []
         for i in range(1, cantidad + 1):
             user = self.crear_usuario_base(idx=i, rol="cliente")
-                perfil, _ = Cliente.ensure_for_user(
+            perfil, _ = Cliente.ensure_for_user(
                 user,
                 defaults={
                     "direccion": f"Calle {i} # {10+i}-{20+i}",

@@ -26,6 +26,7 @@ class OrdenesModelsTests(TestCase):
             tipo_documento="CC",
             rol="conductor",
         )
+        self.conductor = self.conductor.perfil_conductor
         self.unidad = UnidadMedida.objects.create(
             codigo="M3",
             nombre="Metro cúbico",
