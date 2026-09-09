@@ -32,6 +32,11 @@ BLOCKED_PATH_WHITELIST = (
     "/admin/",
 )
 
+AUTH_DB_PATHS = (
+    "/usuarios/login/",
+    "/usuarios/recuperar/",
+)
+
 
 def _namespace_from_path(path):
     """Determina el app_namespace / nombre de módulo a partir del path de URL."""
@@ -251,9 +256,14 @@ class DatabasePreferenceMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        pref = request.COOKIES.get("bd_preferida")
-        if not pref:
-            pref = request.session.get("bd_preferida", PREF_AUTO)
+        # Authentication must use the same user store regardless of a stale
+        # local/remote preference cookie from a previous browser session.
+        if any(request.path_info.startswith(path) for path in AUTH_DB_PATHS):
+            pref = PREF_AUTO
+        else:
+            pref = request.COOKIES.get("bd_preferida")
+            if not pref:
+                pref = request.session.get("bd_preferida", PREF_AUTO)
 
         if pref == PREF_AUTO and conexion_remota_disponible():
             pref = PREF_REMOTA
