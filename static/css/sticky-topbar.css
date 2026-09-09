@@ -4,13 +4,7 @@
  */
 
 .app-navbar {
-    transition:
-        padding 0.28s ease,
-        border-radius 0.28s ease,
-        box-shadow 0.28s ease,
-        top 0.28s ease,
-        background 0.28s ease,
-        transform 0.28s ease !important;
+    transition: none !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
@@ -20,83 +14,29 @@
 }
 
 .app-navbar .navbar-title {
-    transition: font-size 0.28s ease, opacity 0.28s ease !important;
+    transition: none !important;
     font-size: 1.35rem;
 }
 
 .app-navbar .navbar-title + p,
 .app-navbar p.text-muted {
-    transition: opacity 0.28s ease, max-height 0.28s ease;
     max-height: 2rem;
     opacity: 1;
     overflow: hidden;
 }
 
 .app-navbar .navbar-icon-btn {
-    transition: width 0.28s ease, height 0.28s ease,
-                min-width 0.28s ease, min-height 0.28s ease,
-                opacity 0.28s ease !important;
-}
-
-.app-navbar.navbar-scrolled {
-    top: 0.75rem !important;
-    padding: 0.65rem 1rem !important;
-    border-radius: 14px !important;
-    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.28) !important;
-    background: rgba(15, 23, 42, 0.85) !important;
-    border: 1px solid rgba(148, 163, 184, 0.18) !important;
-    backdrop-filter: blur(18px) !important;
-    -webkit-backdrop-filter: blur(18px) !important;
-    transform: translateY(0) !important;
-}
-
-[data-theme="dark"] .app-navbar.navbar-scrolled,
-[data-theme="accessibility"] .app-navbar.navbar-scrolled {
-    background: rgba(15, 23, 42, 0.9) !important;
-}
-
-.app-navbar.navbar-scrolled .navbar-title {
-    font-size: 1.12rem !important;
-}
-
-.app-navbar.navbar-scrolled .navbar-title + p,
-.app-navbar.navbar-scrolled p.text-muted {
-    opacity: 0 !important;
-    max-height: 0 !important;
-    margin: 0 !important;
-}
-
-.app-navbar.navbar-scrolled .navbar-icon-btn {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
-    min-height: 36px !important;
-}
-
-[data-theme="light"] .app-navbar.navbar-scrolled {
-    background: rgba(255, 255, 255, 0.88) !important;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08) !important;
-    border-color: rgba(15, 23, 42, 0.08) !important;
 }
 
 @media (max-width: 768px) {
     .app-navbar .navbar-title {
         font-size: 1.15rem;
     }
-    .app-navbar.navbar-scrolled .navbar-title {
-        font-size: 1rem !important;
-    }
-    .app-navbar.navbar-scrolled {
-        padding: 0.55rem 0.8rem !important;
-    }
 }
 
 @media (max-width: 480px) {
     .app-navbar .navbar-title {
         font-size: 1rem;
-    }
-    .app-navbar.navbar-scrolled .navbar-title {
-        font-size: 0.9rem !important;
     }
 }
 
