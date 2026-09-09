@@ -18,7 +18,6 @@ from pagos.models import Pago
 from usuarios.models import MetodoPago
 from usuarios.views import admin_required
 from clientes.models import Cliente
-
 from .models import Factura
 
 
@@ -29,18 +28,25 @@ def lista_facturas(request):
     factura = request.GET.get("factura", "")
     q = request.GET.get("q", "")
 
-    qs = Factura.objects.select_related("cliente", "cliente__usuario", "pedido").prefetch_related("pagos")
+    qs = (
+        Factura.objects
+        .select_related("cliente", "cliente__usuario", "pedido")
+        .prefetch_related("pagos")
+    )
 
     if estado in ["pendiente", "pagada", "anulada"]:
         qs = qs.filter(estado=estado)
+
     if cliente:
         qs = qs.filter(
             Q(cliente__usuario__nombres__icontains=cliente)
             | Q(cliente__usuario__apellidos__icontains=cliente)
             | Q(cliente__usuario__documento__icontains=cliente)
         )
+
     if factura:
         qs = qs.filter(numero__icontains=factura)
+
     if q:
         qs = qs.filter(
             Q(numero__icontains=q)
@@ -50,8 +56,20 @@ def lista_facturas(request):
         )
 
     filter_fields = [
-        {"type": "text", "name": "cliente", "placeholder": "Cliente", "value": cliente, "size": "3"},
-        {"type": "text", "name": "factura", "placeholder": "N° Factura", "value": factura, "size": "3"},
+        {
+            "type": "text",
+            "name": "cliente",
+            "placeholder": "Cliente",
+            "value": cliente,
+            "size": "3",
+        },
+        {
+            "type": "text",
+            "name": "factura",
+            "placeholder": "N° Factura",
+            "value": factura,
+            "size": "3",
+        },
         {
             "type": "select",
             "name": "estado",
@@ -59,9 +77,21 @@ def lista_facturas(request):
             "value": estado,
             "size": "3",
             "options": [
-                {"value": "pendiente", "label": "Pendiente", "selected": estado == "pendiente"},
-                {"value": "pagada", "label": "Pagada", "selected": estado == "pagada"},
-                {"value": "anulada", "label": "Anulada", "selected": estado == "anulada"},
+                {
+                    "value": "pendiente",
+                    "label": "Pendiente",
+                    "selected": estado == "pendiente",
+                },
+                {
+                    "value": "pagada",
+                    "label": "Pagada",
+                    "selected": estado == "pagada",
+                },
+                {
+                    "value": "anulada",
+                    "label": "Anulada",
+                    "selected": estado == "anulada",
+                },
             ],
         },
     ]
@@ -83,7 +113,12 @@ def lista_facturas(request):
 @login_required
 def mis_facturas(request):
     user = request.user
-    is_super = getattr(user, "is_superuser", False) or getattr(user, "es_superadmin", False)
+
+    is_super = (
+        getattr(user, "is_superuser", False)
+        or getattr(user, "es_superadmin", False)
+    )
+
     if is_super or user.rol == "admin":
         return redirect("facturacion:lista_facturas")
 
@@ -94,21 +129,81 @@ def mis_facturas(request):
             request,
             "role_violation",
             gravedad="high",
-            detalles={"causa": "mis_facturas_rol_invalido", "rol_usuario": user.rol},
+            detalles={
+                "causa": "mis_facturas_rol_invalido",
+                "rol_usuario": user.rol,
+            },
         )
+
         return _respuesta_no_autorizada(
             request,
-            detalles={"rol_requerido": ["cliente"], "rol_usuario": user.rol},
+            detalles={
+                "rol_requerido": ["cliente"],
+                "rol_usuario": user.rol,
+            },
         )
 
     cliente = get_object_or_404(Cliente, usuario=user)
+
+    # ============================================================
+    # HU-F02 — FILTROS DE FACTURAS DEL CLIENTE
+    # ============================================================
+
+    numero = request.GET.get("numero", "").strip()
+    fecha = request.GET.get("fecha", "").strip()
+    estado = request.GET.get("estado", "").strip()
+
+    # IMPORTANTE:
+    # El cliente solamente puede consultar sus propias facturas.
+    # Este filtro se mantiene siempre como condición principal.
     facturas = (
-        Factura.objects.filter(cliente=cliente).select_related("pedido").prefetch_related("pagos")
+        Factura.objects
+        .filter(cliente=cliente)
+        .select_related("pedido")
+        .prefetch_related("pagos")
     )
 
-    context = {"facturas": facturas, "metodos_pago": MetodoPago.objects.all()}
+    # Filtro por número de factura
+    if numero:
+        facturas = facturas.filter(
+            numero__icontains=numero
+        )
 
-    return render(request, "facturacion/mis_facturas.html", context)
+    # Filtro por fecha de emisión
+    if fecha:
+        facturas = facturas.filter(
+            fecha__date=fecha
+        )
+
+    # Filtro por estado
+    if estado in ["pendiente", "pagada", "anulada"]:
+        facturas = facturas.filter(
+            estado=estado
+        )
+
+    context = {
+        "facturas": facturas,
+        "metodos_pago": MetodoPago.objects.all(),
+
+        # Valores actuales de los filtros
+        # para conservarlos después de enviar el formulario.
+        "numero": numero,
+        "fecha": fecha,
+        "estado": estado,
+
+        # Indica si existe algún filtro activo.
+        "has_filters": any([
+            numero,
+            fecha,
+            estado,
+        ]),
+    }
+
+    return render(
+        request,
+        "facturacion/mis_facturas.html",
+        context,
+    )
 
 
 @login_required
@@ -121,28 +216,53 @@ def registrar_pago(request):
     try:
         monto = Decimal(monto_str)
     except Exception:
-        return JsonResponse({"error": "Monto inválido"}, status=400)
+        return JsonResponse(
+            {"error": "Monto inválido"},
+            status=400,
+        )
 
     if monto <= 0:
-        return JsonResponse({"error": "El monto debe ser mayor a cero"}, status=400)
+        return JsonResponse(
+            {"error": "El monto debe ser mayor a cero"},
+            status=400,
+        )
 
     try:
-        metodo_pago = MetodoPago.objects.get(codigo_metodo_pago=metodo_codigo)
+        metodo_pago = MetodoPago.objects.get(
+            codigo_metodo_pago=metodo_codigo
+        )
     except MetodoPago.DoesNotExist:
-        return JsonResponse({"error": "Método de pago inválido"}, status=400)
+        return JsonResponse(
+            {"error": "Método de pago inválido"},
+            status=400,
+        )
 
     try:
         with transaction.atomic():
-            factura = Factura.objects.select_for_update().get(pk=factura_id)
+            factura = (
+                Factura.objects
+                .select_for_update()
+                .get(pk=factura_id)
+            )
 
             user = request.user
-            is_super = getattr(user, "is_superuser", False) or getattr(user, "es_superadmin", False)
+
+            is_super = (
+                getattr(user, "is_superuser", False)
+                or getattr(user, "es_superadmin", False)
+            )
+
             es_admin = is_super or user.rol == "admin"
-            es_propietario = factura.cliente_id and factura.cliente.usuario_id == user.pk
+
+            es_propietario = (
+                factura.cliente_id
+                and factura.cliente.usuario_id == user.pk
+            )
 
             if not (es_admin or es_propietario):
                 ip = obtener_ip(request)
                 registrar_warning(ip)
+
                 registrar_evento(
                     request,
                     "role_violation",
@@ -154,14 +274,19 @@ def registrar_pago(request):
                         "cliente_factura_id": factura.cliente_id,
                     },
                 )
+
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
                     return JsonResponse(
                         {
-                            "error": "No autorizado — intento registrado en sistema de seguridad.",
+                            "error": (
+                                "No autorizado — intento registrado "
+                                "en sistema de seguridad."
+                            ),
                             "security_warning": True,
                         },
                         status=403,
                     )
+
                 return _respuesta_no_autorizada(
                     request,
                     detalles={
@@ -172,15 +297,29 @@ def registrar_pago(request):
                 )
 
             if factura.estado == "anulada":
-                return JsonResponse({"error": "La factura está anulada"}, status=400)
+                return JsonResponse(
+                    {"error": "La factura está anulada"},
+                    status=400,
+                )
+
             if factura.estado == "pagada":
                 return JsonResponse(
-                    {"error": "La factura ya ha sido pagada totalmente"}, status=400
+                    {
+                        "error": (
+                            "La factura ya ha sido pagada totalmente"
+                        )
+                    },
+                    status=400,
                 )
 
             if monto > factura.saldo_pendiente:
                 return JsonResponse(
-                    {"error": f"El monto excede el saldo pendiente (${factura.saldo_pendiente})"},
+                    {
+                        "error": (
+                            "El monto excede el saldo pendiente "
+                            f"(${factura.saldo_pendiente})"
+                        )
+                    },
                     status=400,
                 )
 
@@ -190,7 +329,9 @@ def registrar_pago(request):
                 codigo_metodo_pago=metodo_pago,
                 referencia=request.POST.get(
                     "referencia",
-                    "Pago realizado por cliente" if not es_admin else "",
+                    "Pago realizado por cliente"
+                    if not es_admin
+                    else "",
                 ),
                 registrado_por=request.user,
             )
@@ -198,10 +339,14 @@ def registrar_pago(request):
             if factura.saldo_pendiente <= 0:
                 factura.estado = "pagada"
                 factura.save()
-                mensaje_adicional = "Factura pagada por completo."
+
+                mensaje_adicional = (
+                    "Factura pagada por completo."
+                )
             else:
                 mensaje_adicional = (
-                    f"Pago parcial registrado. Monto por pagar: ${factura.saldo_pendiente}"
+                    "Pago parcial registrado. "
+                    f"Monto por pagar: ${factura.saldo_pendiente}"
                 )
 
         return JsonResponse(
@@ -212,36 +357,76 @@ def registrar_pago(request):
                 "saldo": float(factura.saldo_pendiente),
             }
         )
+
     except Factura.DoesNotExist:
-        return JsonResponse({"error": "Factura no encontrada"}, status=404)
+        return JsonResponse(
+            {"error": "Factura no encontrada"},
+            status=404,
+        )
 
 
 @admin_required
 def anular_factura(request, id):
-    factura = get_object_or_404(Factura, pk=id)
+    factura = get_object_or_404(
+        Factura,
+        pk=id,
+    )
+
     if factura.estado == "pagada":
-        return JsonResponse({"error": "No se puede anular una factura ya pagada"}, status=400)
+        return JsonResponse(
+            {
+                "error": (
+                    "No se puede anular una factura ya pagada"
+                )
+            },
+            status=400,
+        )
 
     factura.estado = "anulada"
     factura.save()
-    return JsonResponse({"status": "ok", "mensaje": "Factura anulada correctamente"})
+
+    return JsonResponse(
+        {
+            "status": "ok",
+            "mensaje": "Factura anulada correctamente",
+        }
+    )
 
 
 @admin_required
 def editar_factura_monto(request, id):
-    factura = get_object_or_404(Factura, pk=id)
+    factura = get_object_or_404(
+        Factura,
+        pk=id,
+    )
+
     if factura.estado != "pendiente":
         return JsonResponse(
-            {"error": "Solo se pueden editar facturas en estado pendiente"}, status=400
+            {
+                "error": (
+                    "Solo se pueden editar facturas "
+                    "en estado pendiente"
+                )
+            },
+            status=400,
         )
 
     try:
-        nuevo_monto = Decimal(request.POST.get("monto"))
+        nuevo_monto = Decimal(
+            request.POST.get("monto")
+        )
+
         if nuevo_monto <= 0:
             raise ValueError
 
-        factura.subtotal = nuevo_monto / Decimal("1.19")
-        factura.iva = nuevo_monto - factura.subtotal
+        factura.subtotal = (
+            nuevo_monto / Decimal("1.19")
+        )
+
+        factura.iva = (
+            nuevo_monto - factura.subtotal
+        )
+
         factura.total = nuevo_monto
         factura.save()
 
@@ -249,6 +434,15 @@ def editar_factura_monto(request, id):
             factura.orden.precio = nuevo_monto
             factura.orden.save()
 
-        return JsonResponse({"status": "ok", "mensaje": "Monto de factura actualizado"})
+        return JsonResponse(
+            {
+                "status": "ok",
+                "mensaje": "Monto de factura actualizado",
+            }
+        )
+
     except Exception:
-        return JsonResponse({"error": "Monto inválido"}, status=400)
+        return JsonResponse(
+            {"error": "Monto inválido"},
+            status=400,
+        )
