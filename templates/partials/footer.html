@@ -1,25 +1,47 @@
 {% load static %}
-<footer class="footer mt-auto py-4 u-inline-dcf50088c4">
-    <div class="container text-center">
-        <p class="text-muted small fw-bold mb-3">
-            © 2026 ConstruTrans. Elevando estándares en logistica.
+<footer class="footer mt-auto compact-footer">
+    <div class="container text-center px-2">
+        <p class="compact-footer__text">
+            © 2026 ConstruTrans. Elevando estándares en logística.
         </p>
-        <div class="d-flex justify-content-center gap-4">
-            <a href="#" class="social-icon"><i class="bi bi-facebook"></i></a>
-            <a href="#" class="social-icon"><i class="bi bi-instagram"></i></a>
-            <a href="#" class="social-icon"><i class="bi bi-linkedin"></i></a>
+        <div class="d-flex justify-content-center align-items-center compact-footer__socials">
+            <a href="#" class="social-icon" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="social-icon" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="social-icon" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
         </div>
     </div>
 </footer>
 
 <style>
+    .compact-footer {
+        padding: 0.4rem 0 0.35rem;
+        width: 100%;
+    }
+
+    .compact-footer__text {
+        margin: 0 0 0.25rem;
+        color: var(--color-muted);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        line-height: 1.3;
+    }
+
+    .compact-footer__socials {
+        gap: 0.8rem;
+    }
+
     .social-icon {
         color: var(--color-muted);
-        font-size: 1.25rem;
-        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        line-height: 1;
+        transition: all 0.25s ease;
+        opacity: 0.9;
     }
+
     .social-icon:hover {
         color: var(--color-accent) !important;
-        transform: translateY(-2px);
+        transform: translateY(-1px);
+        opacity: 1;
     }
 </style>
