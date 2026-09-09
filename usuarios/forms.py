@@ -422,15 +422,6 @@ class ProveedorForm(forms.ModelForm):
         return limpiar_telefono(telefono)
 
 
-class CustomPasswordResetForm(PasswordResetForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["email"].widget.attrs.update(
-            {"class": "form-control", "placeholder": "tu_correo@ejemplo.com"}
-        )
-        self.fields["email"].label = "Correo Electrónico"
-
-
 class CustomSetPasswordForm(SetPasswordForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -492,7 +483,26 @@ class CustomPasswordResetForm(PasswordResetForm):
     )
 
     def get_users(self, email):
-        active_users = User.objects.filter(email__iexact=email, is_active=True)
-        if not active_users.exists():
-            active_users = User.objects.filter(username__iexact=email, is_active=True)
-        return (u for u in active_users if u.has_usable_password())
+        from django.conf import settings
+        from core.utils import conexion_remota_disponible
+        seen = set()
+        merged = []
+        criterio = Q(email__iexact=email) | Q(username__iexact=email)
+        qs_local = list(User.objects.filter(criterio, is_active=True).using("default"))
+        qs_remota = []
+        if "remota" in settings.DATABASES and conexion_remota_disponible():
+            try:
+                qs_remota = list(User.objects.filter(criterio, is_active=True).using("remota"))
+            except Exception:
+                qs_remota = []
+        for obj in qs_local + qs_remota:
+            dedup_key = (
+                (obj.email or "").lower(),
+                (obj.username or "").lower(),
+            )
+            if dedup_key in seen:
+                continue
+            seen.add(dedup_key)
+            if obj.has_usable_password():
+                merged.append(obj)
+        return iter(merged)

@@ -75,6 +75,7 @@ body {
 
 .app-navbar,
 .app-topbar {
+  top: 1rem !important;
   left: var(--page-gutter) !important;
   right: var(--page-gutter) !important;
   max-width: none;
