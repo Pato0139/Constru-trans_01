@@ -70,6 +70,7 @@ body {
 .main-content > .footer {
   width: 100%;
   margin-top: auto !important;
+  margin-bottom: 0 !important;
   flex-shrink: 0;
 }
 
@@ -271,6 +272,10 @@ body {
     max-width: calc(100% - var(--app-sidebar-width));
     margin-left: var(--app-sidebar-width) !important;
     padding: 6.75rem var(--page-gutter) 2rem !important;
+  }
+
+  .main-content > .footer {
+    margin-bottom: 0 !important;
   }
 
   .app-navbar,

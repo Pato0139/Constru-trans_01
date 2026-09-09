@@ -2,12 +2,15 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.db.models import Q
+import re
+import unicodedata
 
 User = get_user_model()
 
 from .models import (
     Catalogo,
     ConductorVehiculo,
+    Marca,
     MaterialConstruccion,
     Proveedor,
     Stock,
@@ -201,6 +204,23 @@ class AsignarVehiculoForm(forms.Form):
 
 
 class MaterialForm(forms.ModelForm):
+    _MARCA_PALABRAS_PROHIBIDAS = {
+        "cabron",
+        "cojones",
+        "cono",
+        "estupido",
+        "gonorrea",
+        "hijueputa",
+        "imbecil",
+        "joder",
+        "marica",
+        "mierda",
+        "pendejo",
+        "puta",
+        "puto",
+        "verga",
+    }
+
     tipo = forms.ModelChoiceField(
         queryset=Catalogo.objects.all().order_by("nombre_empresa"),
         required=False,
@@ -209,6 +229,16 @@ class MaterialForm(forms.ModelForm):
         widget=forms.Select(
             attrs={
                 "class": "form-select",
+            }
+        ),
+    )
+    marca_nombre = forms.CharField(
+        required=False,
+        label="Marca",
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Ej: Argos",
             }
         ),
     )
@@ -275,6 +305,8 @@ class MaterialForm(forms.ModelForm):
 
         if self.instance and self.instance.pk and self.instance.catalogo:
             self.fields["tipo"].initial = self.instance.catalogo
+        if self.instance and self.instance.pk and self.instance.marca:
+            self.fields["marca_nombre"].initial = self.instance.marca.nombre
         if self.instance and self.instance.pk:
             try:
                 stock = self.instance.stock_info
@@ -283,10 +315,33 @@ class MaterialForm(forms.ModelForm):
             except Stock.DoesNotExist:
                 self.fields["stock"].initial = 0
 
+    def clean_marca_nombre(self):
+        marca_nombre = self.cleaned_data.get("marca_nombre", "").strip()
+        if not marca_nombre:
+            return "N/A"
+
+        normalizado = unicodedata.normalize("NFKD", marca_nombre)
+        normalizado = "".join(
+            caracter for caracter in normalizado if not unicodedata.combining(caracter)
+        ).lower()
+        palabras = set(re.findall(r"[a-z0-9]+", normalizado))
+        frases_prohibidas = {"hijo de puta", "la concha de tu madre"}
+
+        if palabras & self._MARCA_PALABRAS_PROHIBIDAS or any(
+            frase in normalizado for frase in frases_prohibidas
+        ):
+            raise forms.ValidationError("El nombre de la marca contiene lenguaje no permitido.")
+
+        return marca_nombre
+
     def save(self, commit=True):
         material = super().save(commit=False)
         tipo = self.cleaned_data.get("tipo")
         material.catalogo = tipo
+
+        marca_nombre = self.cleaned_data["marca_nombre"]
+        marca = Marca.objects.filter(nombre__iexact=marca_nombre).first()
+        material.marca = marca or Marca.objects.create(nombre=marca_nombre)
 
         if commit:
             material.save()
@@ -313,14 +368,12 @@ class MaterialForm(forms.ModelForm):
 class UnidadMedidaForm(forms.ModelForm):
     class Meta:
         model = UnidadMedida
-        fields = ["codigo", "nombre", "abreviatura", "descripcion", "activa", "orden"]
+        fields = ["codigo", "nombre", "abreviatura", "activa"]
         labels = {
             "codigo": "Código de Unidad",
             "nombre": "Nombre de la Unidad",
             "abreviatura": "Abreviatura",
-            "descripcion": "Descripción",
             "activa": "Activa",
-            "orden": "Orden",
         }
         widgets = {
             "codigo": forms.TextInput(
@@ -344,23 +397,8 @@ class UnidadMedidaForm(forms.ModelForm):
                     "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
                 }
             ),
-            "descripcion": forms.Textarea(
-                attrs={
-                    "class": "form-control",
-                    "rows": 3,
-                    "placeholder": "Descripción de la unidad...",
-                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
-                }
-            ),
             "activa": forms.CheckboxInput(
                 attrs={"class": "form-check-input"}
-            ),
-            "orden": forms.NumberInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "0",
-                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
-                }
             ),
         }
 
