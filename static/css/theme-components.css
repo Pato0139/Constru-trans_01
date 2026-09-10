@@ -1,0 +1,417 @@
+/* Theme-safe overrides for components with their own legacy styles. */
+:root {
+    --theme-control-bg: var(--item-bg, var(--color-surface));
+    --theme-control-border: var(--color-border);
+    --theme-control-text: var(--color-text);
+    --theme-panel-bg: var(--card-bg, var(--color-surface));
+    --theme-panel-border: var(--color-border-strong, var(--color-border));
+    --theme-subtle-bg: var(--item-bg-hover, var(--color-surface));
+    --theme-focus: var(--color-primary);
+    --theme-on-accent: var(--color-on-accent, #000000);
+    --theme-danger-bg: color-mix(in srgb, var(--color-danger) 14%, var(--color-surface));
+    --theme-info-bg: color-mix(in srgb, var(--color-info) 12%, var(--color-surface));
+    --theme-warning-bg: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface));
+}
+
+/* Shared controls used by vehicle, inventory and customer forms. */
+.main-content .form-control,
+.main-content .form-select,
+.main-content input,
+.main-content select,
+.main-content textarea {
+    background: var(--theme-control-bg) !important;
+    border-color: var(--theme-control-border) !important;
+    color: var(--theme-control-text) !important;
+}
+
+.main-content .form-control::placeholder,
+.main-content input::placeholder,
+.main-content textarea::placeholder {
+    color: var(--color-muted) !important;
+    opacity: 1;
+}
+
+.main-content .form-control:focus,
+.main-content .form-select:focus,
+.main-content input:focus,
+.main-content select:focus,
+.main-content textarea:focus {
+    border-color: var(--theme-focus) !important;
+    box-shadow: 0 0 0 0.2rem var(--glow-primary, transparent) !important;
+}
+
+.main-content option {
+    background: var(--theme-control-bg) !important;
+    color: var(--theme-control-text) !important;
+}
+
+/* Inventory material form controls. */
+.inventory-form .input-group-text,
+.inventory-form .form-control,
+.inventory-form .form-select {
+    background: var(--theme-control-bg) !important;
+    border-color: var(--theme-control-border) !important;
+    color: var(--theme-control-text) !important;
+}
+
+.inventory-form .form-check-input {
+    accent-color: var(--color-primary);
+    border-color: var(--theme-control-border) !important;
+    background-color: var(--theme-control-bg) !important;
+}
+
+.inventory-form .form-check-label,
+.inventory-form .form-text {
+    color: var(--color-muted) !important;
+}
+
+.inventory-form .btn-premium-gold {
+    background: var(--color-accent) !important;
+    color: var(--color-on-accent, #000000) !important;
+    border-color: var(--color-accent) !important;
+}
+
+/* Purchase order panels and their tables. */
+.purchase-header,
+.purchase-panel,
+.purchase-summary {
+    background: var(--theme-panel-bg) !important;
+    border-color: var(--theme-panel-border) !important;
+    box-shadow: var(--shadow-panel) !important;
+}
+
+.purchase-panel__header,
+.purchase-summary__header {
+    border-color: var(--theme-panel-border) !important;
+    color: var(--color-text) !important;
+}
+
+.purchase-eyebrow,
+.purchase-table th {
+    color: var(--color-accent) !important;
+}
+
+.purchase-header h2,
+.purchase-summary dd {
+    color: var(--color-text) !important;
+}
+
+.purchase-header p,
+.purchase-grid label,
+.purchase-table td,
+.purchase-table .counter,
+.purchase-table .unit-cell,
+.purchase-table .updated-cell,
+.purchase-summary dt {
+    color: var(--color-muted) !important;
+}
+
+.purchase-grid select,
+.purchase-grid input,
+.purchase-grid textarea,
+.purchase-table select,
+.purchase-table input {
+    background: var(--theme-control-bg) !important;
+    border-color: var(--theme-control-border) !important;
+    color: var(--theme-control-text) !important;
+}
+
+.purchase-table th,
+.purchase-table td {
+    border-color: var(--theme-panel-border) !important;
+}
+
+.purchase-catalog-hint {
+    background: var(--theme-info-bg) !important;
+    border-color: var(--color-info) !important;
+    color: var(--color-info) !important;
+}
+
+/* Customer order creation, including its inline legacy styles. */
+.glass-card,
+.pedido-form-card,
+.pedido-section {
+    background: var(--theme-panel-bg) !important;
+    border-color: var(--theme-panel-border) !important;
+    color: var(--color-text) !important;
+}
+
+.glass-card .text-white,
+.pedido-form-card .text-white,
+.pedido-section .text-white,
+.table-dark-custom {
+    color: var(--color-text) !important;
+}
+
+.glass-card .text-white-50,
+.pedido-form-card .text-white-50,
+.pedido-section .text-white-50 {
+    color: var(--color-muted) !important;
+}
+
+.btn-glass {
+    background: var(--theme-subtle-bg) !important;
+    border-color: var(--theme-panel-border) !important;
+    color: var(--color-text) !important;
+}
+
+.btn-glass:hover,
+.btn-glass:focus-visible {
+    background: var(--item-bg-hover) !important;
+    border-color: var(--theme-focus) !important;
+    color: var(--color-text) !important;
+}
+
+.quantity-stepper {
+    background: var(--theme-control-bg) !important;
+    border-color: var(--theme-control-border) !important;
+}
+
+.quantity-stepper__input {
+    border-color: var(--theme-control-border) !important;
+    color: var(--color-text) !important;
+}
+
+.material-badge {
+    background: var(--color-accent) !important;
+    color: var(--theme-on-accent) !important;
+}
+
+/* Reports and dropdowns. */
+.stats-card {
+    background: var(--theme-panel-bg) !important;
+    border-color: var(--theme-panel-border) !important;
+}
+
+.stats-card:hover,
+.btn-dark-premium:hover {
+    background: var(--item-bg-hover) !important;
+}
+
+.btn-dark-premium {
+    background: var(--theme-control-bg) !important;
+    border-color: var(--theme-control-border) !important;
+    color: var(--color-text) !important;
+}
+
+.dropdown-menu,
+.navbar-dropdown,
+.navbar-dropdown-small,
+.navbar-dropdown-xs {
+    background: var(--theme-panel-bg) !important;
+    border-color: var(--theme-panel-border) !important;
+    color: var(--color-text) !important;
+}
+
+.dropdown-menu .dropdown-item,
+.dropdown-menu .dropdown-header {
+    color: var(--color-text) !important;
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
+    background: var(--item-bg-hover) !important;
+    color: var(--color-text) !important;
+}
+
+/* Pagination used by payment history and other server-rendered lists. */
+.pagination .page-link {
+    background: var(--theme-control-bg) !important;
+    border-color: var(--theme-control-border) !important;
+    color: var(--color-text) !important;
+}
+
+.pagination .page-link:hover,
+.pagination .page-link:focus-visible {
+    background: var(--item-bg-hover) !important;
+    border-color: var(--theme-focus) !important;
+    color: var(--color-text) !important;
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+    color: var(--color-on-primary, #ffffff) !important;
+}
+
+.pagination .page-item.disabled .page-link {
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-muted) !important;
+    opacity: 1 !important;
+}
+
+/* Maximum contrast: no translucent surfaces or low-contrast shadows. */
+[data-theme="accessibility"] {
+    --theme-control-bg: #000000;
+    --theme-control-border: #ffffff;
+    --theme-control-text: #ffffff;
+    --theme-panel-bg: #000000;
+    --theme-panel-border: #ffffff;
+    --theme-subtle-bg: #111111;
+    --theme-focus: #ffd600;
+    --theme-on-accent: #000000;
+    --theme-danger-bg: #000000;
+    --theme-info-bg: #000000;
+    --theme-warning-bg: #000000;
+}
+
+[data-theme="accessibility"] .purchase-header,
+[data-theme="accessibility"] .purchase-panel,
+[data-theme="accessibility"] .purchase-summary,
+[data-theme="accessibility"] .glass-card,
+[data-theme="accessibility"] .pedido-form-card,
+[data-theme="accessibility"] .pedido-section,
+[data-theme="accessibility"] .stats-card,
+[data-theme="accessibility"] .dropdown-menu {
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: none !important;
+}
+
+[data-theme="accessibility"] .purchase-grid select,
+[data-theme="accessibility"] .purchase-grid input,
+[data-theme="accessibility"] .purchase-grid textarea,
+[data-theme="accessibility"] .purchase-table select,
+[data-theme="accessibility"] .purchase-table input,
+[data-theme="accessibility"] .glass-card input,
+[data-theme="accessibility"] .glass-card select,
+[data-theme="accessibility"] .glass-card textarea,
+[data-theme="accessibility"] .pedido-form-card input,
+[data-theme="accessibility"] .pedido-form-card select,
+[data-theme="accessibility"] .pedido-form-card textarea {
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .inventory-form .input-group-text,
+[data-theme="accessibility"] .inventory-form .form-control,
+[data-theme="accessibility"] .inventory-form .form-select {
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .inventory-form .form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: #ffd600;
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+}
+
+[data-theme="accessibility"] .inventory-form .form-check-input:checked {
+    background-color: #ffd600 !important;
+    border-color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .inventory-form .form-check-label,
+[data-theme="accessibility"] .inventory-form .form-text {
+    color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .inventory-form .btn-premium-gold {
+    background: #ffd600 !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
+}
+
+/* Primary actions across material, stock and vehicle screens. */
+[data-theme="accessibility"] .btn-gold,
+[data-theme="accessibility"] .btn-premium-gold,
+[data-theme="accessibility"] .u-inline-37b2cef266,
+[data-theme="accessibility"] .u-inline-142d515f24,
+[data-theme="accessibility"] .u-inline-39e73822ed,
+[data-theme="accessibility"] .u-inline-300bde8981 {
+    background: #ffd600 !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: none !important;
+}
+
+[data-theme="accessibility"] .btn-gold:hover,
+[data-theme="accessibility"] .btn-premium-gold:hover,
+[data-theme="accessibility"] .u-inline-300bde8981:hover {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffd600 !important;
+}
+
+[data-theme="accessibility"] .btn-outline-light,
+[data-theme="accessibility"] .btn-outline-secondary,
+[data-theme="accessibility"] .btn-secondary {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+}
+
+[data-theme="accessibility"] .purchase-table th,
+[data-theme="accessibility"] .purchase-table td,
+[data-theme="accessibility"] .purchase-panel__header,
+[data-theme="accessibility"] .purchase-summary__header {
+    border-color: #ffffff !important;
+    color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .btn-glass,
+[data-theme="accessibility"] .btn-dark-premium {
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .btn-glass:hover,
+[data-theme="accessibility"] .btn-glass:focus-visible,
+[data-theme="accessibility"] .btn-dark-premium:hover,
+[data-theme="accessibility"] .btn-dark-premium:focus-visible,
+[data-theme="accessibility"] .dropdown-menu .dropdown-item:hover,
+[data-theme="accessibility"] .dropdown-menu .dropdown-item:focus {
+    background: #ffd600 !important;
+    color: #000000 !important;
+}
+
+[data-theme="accessibility"] .pagination .page-link {
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .pagination .page-link:hover,
+[data-theme="accessibility"] .pagination .page-link:focus-visible {
+    background: #ffd600 !important;
+    border-color: #ffd600 !important;
+    color: #000000 !important;
+}
+
+[data-theme="accessibility"] .pagination .page-item.active .page-link {
+    background: #ffd600 !important;
+    border-color: #ffd600 !important;
+    color: #000000 !important;
+}
+
+[data-theme="accessibility"] .pagination .page-item.disabled .page-link {
+    background: #111111 !important;
+    border: 2px solid #ffffff !important;
+    color: #ffffff !important;
+    opacity: 0.7 !important;
+}
+
+[data-theme="accessibility"] .purchase-eyebrow,
+[data-theme="accessibility"] .purchase-table th,
+[data-theme="accessibility"] .pedido-input-icon,
+[data-theme="accessibility"] .text-accent {
+    color: #ffd600 !important;
+}
+
+[data-theme="accessibility"] .purchase-catalog-hint,
+[data-theme="accessibility"] .pedido-total-box {
+    background: #000000 !important;
+    border: 2px solid #ffd600 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .material-badge {
+    background: #ffd600 !important;
+    color: var(--theme-on-accent) !important;
+}

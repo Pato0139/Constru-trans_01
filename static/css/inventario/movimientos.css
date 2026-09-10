@@ -17,10 +17,32 @@
 
 .modal-backdrop {
     z-index: 1290;
+    background-color: #000 !important;
+    opacity: 0.86 !important;
 }
 
 .inventory-entry-modal .modal-content {
     box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+    background: var(--card-bg) !important;
+}
+
+[data-theme="accessibility"] .modal-backdrop {
+    background-color: #000 !important;
+    opacity: 0.92 !important;
+}
+
+[data-theme="accessibility"] .inventory-entry-modal,
+[data-theme="accessibility"] .inventory-entry-modal .modal-dialog,
+[data-theme="accessibility"] .inventory-entry-modal .modal-content {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+[data-theme="accessibility"] .inventory-entry-modal .modal-content {
+    background: #000 !important;
+    border: 2px solid #fff !important;
+    box-shadow: none !important;
 }
 
 .inventory-entry-modal .form-control,
