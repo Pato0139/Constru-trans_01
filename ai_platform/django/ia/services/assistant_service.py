@@ -11,6 +11,8 @@ from .context_service import obtener_contexto_datos
 from .conversation_service import add_message_to_conversation, get_conversation
 from .kb_service import check_knowledge_base, update_knowledge_base
 from .math_service import evaluar_expresion_matematica
+from .orm_query_service import consultar_datos
+from .rag_service import buscar_contexto
 from .semantic_memory_service import guardar_interaccion
 
 logger = logging.getLogger(__name__)
@@ -327,6 +329,22 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
                 response_time=time.time() - start_time,
             )
             return respuesta_especifica, bot_message.id if bot_message else None
+
+        respuesta_orm = consultar_datos(mensaje, usuario)
+        if respuesta_orm:
+            bot_message = add_message_to_conversation(
+                conversation,
+                "assistant",
+                respuesta_orm,
+                prompt_used="ORM-Query",
+                model_used="Django ORM",
+                response_time=time.time() - start_time,
+            )
+            return respuesta_orm, bot_message.id if bot_message else None
+
+        contexto_rag = buscar_contexto(mensaje, k=3)
+        if contexto_rag:
+            datos = {**datos, "rag_context": contexto_rag}
 
         # Enviar al AI Service
         ai_result = enviar_a_ai_service(
