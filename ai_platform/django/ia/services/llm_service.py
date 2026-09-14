@@ -2,17 +2,28 @@ import logging
 import os
 
 from openai import OpenAI
+from httpx import Client
 
 logger = logging.getLogger(__name__)
 
-LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
-LLM_API_KEY = os.getenv("LLM_API_KEY", "local-key")
-LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2:latest")
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
 
-client = OpenAI(base_url=LLM_BASE_URL, api_key=LLM_API_KEY)
+client = (
+    OpenAI(
+        base_url=LLM_BASE_URL,
+        api_key=LLM_API_KEY,
+        http_client=Client(timeout=30.0),
+    )
+    if LLM_API_KEY
+    else None
+)
 
 
 def verificar_conexion_llm():
+    if client is None:
+        return False
     try:
         client.models.list()
         return True
@@ -21,8 +32,9 @@ def verificar_conexion_llm():
         return False
 
 
-def construir_prompt_sistema(contexto, nombre_usuario):
+def construir_prompt_sistema(contexto, nombre_usuario, contexto_rag=""):
     contexto_texto = "\n".join(f"- {k}: {v}" for k, v in contexto.items() if k != "generated_at")
+    rag_texto = f"\nDocumentos relevantes:\n{contexto_rag}" if contexto_rag else ""
     return f"""
 Eres el asistente virtual oficial de Constru-Trans.
 
@@ -32,22 +44,28 @@ Reglas:
 3. No inventes datos del sistema.
 4. Si faltan datos, dilo claramente.
 5. Usa el contexto del sistema cuando aplique.
+6. No inventes datos internos; si no aparecen en el contexto, dilo claramente.
 
 Usuario actual: {nombre_usuario or "No identificado"}
 
 Datos actuales del sistema:
 {contexto_texto}
+{rag_texto}
 """.strip()
 
 
-def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
-    system_prompt = construir_prompt_sistema(contexto, nombre_usuario)
+def preguntar_llm(mensaje, contexto, nombre_usuario, historial, contexto_rag=""):
+    if client is None:
+        logger.error("Cliente LLM no disponible: falta LLM_API_KEY")
+        return None
+
+    system_prompt = construir_prompt_sistema(contexto, nombre_usuario, contexto_rag)
 
     messages = [{"role": "system", "content": system_prompt}]
 
     for msg in (historial or [])[-12:]:
-        role = "user" if msg.get("sender") == "user" else "assistant"
-        text = (msg.get("text") or "").strip()
+        role = "user" if msg.get("sender") == "user" or msg.get("role") == "user" else "assistant"
+        text = (msg.get("text") or msg.get("content") or "").strip()
         if text:
             messages.append({"role": role, "content": text[:1200]})
 
