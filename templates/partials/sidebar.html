@@ -43,7 +43,7 @@
     <!-- Navegación principal -->
     <div class="nav-container flex-grow-1 overflow-y-auto">
         <nav class="nav flex-column sidebar-nav">
-            {% if is_super or active_role == 'admin' %}
+            {% if active_role == 'admin' %}
             <p class="sidebar-nav-label"><i class="bi bi-stars"></i> <span
                     data-i18n="sidebar.label.principal">Principal</span></p>
             <a href="{% url 'usuarios:panel' %}"
@@ -316,7 +316,7 @@
                 </a>
                 <!-- Enlace Mi Cuenta según rol -->
                 {% with ''|center:1 as dummy %}
-                {% if is_super or active_role == 'admin' %}
+                {% if active_role == 'admin' %}
                 <a href="{% url 'usuarios:perfil_admin' %}"
                     class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_admin' %}active{% endif %}">
                     {% elif active_role == 'conductor' %}
@@ -368,3 +368,8 @@
         });
     });
 </script>
+
+
+
+
+
