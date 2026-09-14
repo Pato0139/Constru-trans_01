@@ -36,8 +36,10 @@ def verificar_modelo(modelo="llama3.2"):
                 return True
             print(f"⚠️ Modelo {modelo} no está descargado.")
             return False
+        print(f"❌ Ollama devolvió el estado HTTP {response.status_code}.")
         return False
-    except:
+    except Exception as e:
+        print(f"❌ Error al verificar el modelo {modelo}: {str(e)}")
         return False
 
 
@@ -73,18 +75,19 @@ def main():
     # Paso 1: Verificar Ollama
     print("\n📋 Paso 1: Verificando Ollama...")
     if not verificar_ollama():
+        print("\n❌ No se pudo configurar Ollama.")
         print("\n⚠️ Por favor:")
         print("1. Instala Ollama desde https://ollama.com")
         print("2. Abre la aplicación Ollama (debe estar corriendo en segundo plano)")
         print("3. Vuelve a ejecutar este script")
-        return
+        return 1
 
     # Paso 2: Verificar modelo
     print("\n📋 Paso 2: Verificando modelo...")
     if not verificar_modelo():
         if not descargar_modelo():
             print("\n❌ No se pudo configurar Ollama. Por favor, verifica la instalación.")
-            return
+            return 1
 
     # Paso 3: Prueba simple
     print("\n📋 Paso 3: Probando la conexión...")
@@ -101,11 +104,14 @@ def main():
         if response.status_code == 200:
             print("✅ ¡Prueba exitosa! Ollama está respondiendo perfectamente.")
             print("\n🎉 ¡Todo listo! Ahora puedes usar el asistente virtual en Constru-Trans.")
+            return 0
         else:
             print(f"❌ Error en la prueba: {response.status_code}")
+            return 1
     except Exception as e:
         print(f"❌ Error en la prueba: {str(e)}")
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
