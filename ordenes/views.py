@@ -646,7 +646,7 @@ def descargar_factura(request, id):
             return HttpResponse("No autorizado", status=403)
 
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="factura_{orden.codigo_pedido}.pdf"'
+    response["Content-Disposition"] = 'attachment; filename="detalle_pago.pdf"'
 
     doc = SimpleDocTemplate(response, pagesize=letter, topMargin=30)
     elements = []
@@ -675,8 +675,17 @@ def descargar_factura(request, id):
 
 
     cliente_nombre = "N/A"
-    if orden.cliente is not None and getattr(orden.cliente, "usuario", None):
-        cliente_nombre = f"{orden.cliente.usuario.nombres} {orden.cliente.usuario.apellidos}"
+    try:
+        cliente_usuario = orden.usuario
+        cliente_nombre = f"{cliente_usuario.nombres} {cliente_usuario.apellidos}".strip()
+    except Exception:
+        try:
+            cliente = orden.cliente
+            cliente_usuario = cliente.usuario if cliente else None
+            if cliente_usuario:
+                cliente_nombre = f"{cliente_usuario.nombres} {cliente_usuario.apellidos}".strip()
+        except Exception:
+            pass
 
     info_data = [
         [
@@ -713,14 +722,23 @@ def descargar_factura(request, id):
         except (TypeError, ValueError):
             return "0"
 
+    try:
+        factura = orden.factura
+    except Exception:
+        factura = None
+
     data = [["MATERIAL", "CANTIDAD", "PRECIO UNIT.", "SUBTOTAL"]]
     detalles = orden.detalles.all()
     if detalles.exists():
         for detalle in detalles:
             subtotal = detalle.cantidad * detalle.precio_unitario
+            try:
+                material_nombre = detalle.material.nombre
+            except Exception:
+                material_nombre = f"Material #{detalle.material_id}"
             data.append(
                 [
-                    detalle.material.nombre.upper(),
+                    material_nombre.upper(),
                     str(detalle.cantidad),
                     format_money(detalle.precio_unitario),
                     format_money(subtotal),
@@ -729,19 +747,21 @@ def descargar_factura(request, id):
     else:
         data.append(["SERVICIO GENERAL", "1", format_money(orden.precio), format_money(orden.precio)])
 
-    total_f = format_money(orden.precio)
-
+    subtotal_f = format_money(factura.subtotal if factura else orden.precio)
+    iva_f = format_money(factura.iva if factura else 0)
+    total_f = format_money(factura.total if factura else orden.precio)
 
     try:
-        factura = orden.factura
         total_pagado = format_money(factura.total_pagado)
         por_pagar = format_money(factura.saldo_pendiente)
         nota_pago = ""
-    except (AttributeError, Exception):
+    except Exception:
         total_pagado = "—"
         por_pagar = total_f
         nota_pago = " (factura aún no emitida)"
 
+    data.append(["", "", "SUBTOTAL:", subtotal_f])
+    data.append(["", "", "IVA (19%):", iva_f])
     data.append(["", "", "TOTAL:", total_f])
     data.append(["", "", "PAGADO:", total_pagado])
     data.append(["", "", f"POR PAGAR:{nota_pago}", por_pagar])
