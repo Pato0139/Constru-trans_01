@@ -239,14 +239,20 @@ class Usuario(AbstractUser):
         if self.nombres and not self.first_name:
             self.first_name = self.nombres[:first_name_max]
         elif not self.nombres and self.first_name:
-            # sólo copiamos si el lado legacy estaba vacío
             self.nombres = self.first_name
 
         if self.apellidos and not self.last_name:
             self.last_name = self.apellidos[:last_name_max]
         elif not self.apellidos and self.last_name:
             self.apellidos = self.last_name
-            self.apellidos = self.last_name
+
+        # SINCRONIZACIÓN CRÍTICA: ModelBackend usa self.is_active para autenticar.
+        # El campo custom `estado` es el fuente de verdad para el proyecto.
+        if self.estado in {"activo", "inactivo", "suspendido"}:
+            self.is_active = self.estado == "activo"
+        elif self.is_active is not None:
+            # Si sólo se tocó is_active, retro-alimenta estado (compatibilidad)
+            self.estado = "activo" if self.is_active else "inactivo"
 
         super().save(*args, **kwargs)
 
