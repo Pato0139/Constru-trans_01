@@ -5,7 +5,7 @@
 {% block title %}Facturación - ConstruTrans{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/facturacion/lista.css' %}">
+<link rel="stylesheet" href="{% static 'css/facturacion/lista.css' %}?v=1.4">
 {% endblock %}
 
 {% block content %}
@@ -76,24 +76,17 @@
                             {% if f.estado == 'pendiente' %}
                             <button class="btn btn-premium btn-premium-gold btn-sm px-3 btn-abrir-modal-pago"
                                 type="button" data-id="{{ f.pk }}" data-numero="{{ f.numero }}"
-                                data-saldo="{{ f.saldo_pendiente }}" title="Pagar">
+                                data-saldo="{{ f.saldo_pendiente|stringformat:'f' }}" title="Pagar">
                                 <i class="bi bi-cash-stack"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 btn-abrir-modal-editar"
-                                type="button" data-id="{{ f.pk }}" data-numero="{{ f.numero }}"
-                                data-total="{{ f.total }}" title="Editar Monto">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3 btn-anular-factura"
-                                type="button" data-id="{{ f.pk }}" data-numero="{{ f.numero }}" title="Anular/Cancelar">
-                                <i class="bi bi-x-circle"></i>
-                            </button>
                             {% endif %}
-                            <a href="{% url 'ordenes:descargar_factura' f.orden.pk %}"
+                            {% if f.pedido %}
+                            <a href="{% url 'ordenes:descargar_factura' f.pedido.pk %}"
                                 class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3"
                                 title="Descargar PDF" target="_blank">
                                 <i class="bi bi-file-pdf"></i>
                             </a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
@@ -117,6 +110,7 @@
 {% block extra_js %}
 <script>
     const csrfToken = '{{ csrf_token }}';
+    const pagosHistorialUrl = '{% url "pagos:lista_pagos" %}';
 </script>
-<script src="{% static 'js/facturacion/lista.js' %}"></script>
+<script src="{% static 'js/facturacion/lista.js' %}?v=1.2"></script>
 {% endblock %}
