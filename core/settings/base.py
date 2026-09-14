@@ -253,6 +253,7 @@ PASSWORD_HASHERS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
+    "usuarios.backends.EmailOrUsernameBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
