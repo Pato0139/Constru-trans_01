@@ -118,7 +118,7 @@ if command -v git >/dev/null 2>&1; then
     if [ -d "$TEMP_DIR" ]; then
         rm -rf "$TEMP_DIR"
     fi
-    if git clone --depth 1 "$NEON_REPO_URL" "$TEMP_DIR" 2>/dev/null; then
+    if git clone --depth 1 "$NEON_REPO_URL" "$TEMP_DIR"; then
         echo -e "${GREEN}[OK] Repositorio clonado"
 
         echo -e "${BLUE}[2/3] Copiando archivo de configuración..."
@@ -190,6 +190,7 @@ DATABASE_URL=""
 if [ -f ".env" ]; then
     DATABASE_URL=$(grep -E '^DATABASE_URL=' .env | cut -d'=' -f2-)
 fi
+APPLY_REMOTE_MIGRATIONS="${APPLY_REMOTE_MIGRATIONS:-false}"
 
 echo -e ""
 if [ -n "$DATABASE_URL" ]; then
@@ -200,21 +201,24 @@ fi
 
 echo -e ""
 echo -e "${BLUE}[5/5] Aplicando migraciones..."
-"$VENV_PYTHON" manage.py migrate --run-syncdb || {
-    echo -e "${YELLOW}[AVISO] Migraciones fallaron. Verificando configuración..."
-    "$VENV_PYTHON" manage.py check
-    echo -e "${GREEN}[OK] Configuración verificada"
-}
+if ! "$VENV_PYTHON" manage.py migrate --run-syncdb; then
+    echo -e "${RED}[ERROR] Las migraciones locales fallaron. El setup no puede continuar."
+    exit 1
+fi
 
 echo -e "${GREEN}[OK] Migraciones completadas en base local"
 
-if [ -n "$DATABASE_URL" ]; then
+if [ -n "$DATABASE_URL" ] && [ "$APPLY_REMOTE_MIGRATIONS" = "true" ]; then
     echo -e ""
     echo -e "${YELLOW}[INFO] Aplicando migraciones en base remota..."
-    "$VENV_PYTHON" manage.py migrate --database=remota || {
-        echo -e "${YELLOW}[AVISO] Problema al migrar base remota"
-    }
+    if ! "$VENV_PYTHON" manage.py migrate --database=remota; then
+        echo -e "${RED}[ERROR] Las migraciones remotas fallaron. No se marcarán como completadas."
+        exit 1
+    fi
     echo -e "${GREEN}[OK] Migraciones completadas en base remota"
+elif [ -n "$DATABASE_URL" ]; then
+    echo -e "${YELLOW}[AVISO] DATABASE_URL está configurada, pero las migraciones remotas están desactivadas."
+    echo -e "${YELLOW}[INFO] Para ejecutarlas explícitamente: APPLY_REMOTE_MIGRATIONS=true ./setup_project.sh"
 fi
 
 echo -e ""
