@@ -13,7 +13,6 @@ chromadb==0.5.15
 
 # LLM & Embeddings
 sentence-transformers==3.2.1
-ollama==0.3.3
 openai==1.51.2
 
 # Tools
