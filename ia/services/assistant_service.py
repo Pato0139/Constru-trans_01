@@ -9,12 +9,23 @@ from .context_service import obtener_contexto_datos
 from .conversation_service import add_message_to_conversation, get_conversation
 from .formatting_service import format_number_es
 from .kb_service import check_knowledge_base, update_knowledge_base
-from .llm_service import preguntar_llm
+from .llm_service import LLM_MODEL, LLM_PROVIDER, client, preguntar_llm
 from .math_service import evaluar_expresion_matematica
+from .orm_query_service import consultar_datos
+from .rag_service import buscar_contexto
+from .web_search_service import buscar_web_si_aplica
 from .semantic_memory_service import buscar_memoria, guardar_interaccion
 from .time_service import responder_hora
 
 logger = logging.getLogger(__name__)
+
+
+def _respuesta_de_memoria(documento):
+    """Extrae la respuesta guardada en un documento de memoria Q/A."""
+    if "Asistente:" not in documento:
+        return None
+    respuesta = documento.split("Asistente:", 1)[1].strip()
+    return respuesta or None
 
 
 def expandir_mensaje_contextual(mensaje: str, historial: list) -> str:
@@ -1085,22 +1096,61 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
             )
             return respuesta_especifica, bot_message.id if bot_message else None
 
+        respuesta_orm = consultar_datos(mensaje, usuario)
+        if respuesta_orm:
+            bot_message = add_message_to_conversation(
+                conversation,
+                "assistant",
+                respuesta_orm,
+                prompt_used="ORM-Query",
+                model_used="Django ORM",
+                response_time=time.time() - start_time,
+            )
+            return respuesta_orm, bot_message.id if bot_message else None
+
         # Buscar memoria semántica
         memorias = buscar_memoria(mensaje, n_results=3)
         memoria_txt = "\n".join(memorias) if memorias else "Sin memoria relevante."
+        contexto_rag = buscar_contexto(mensaje, k=3)
+        contexto_web = buscar_web_si_aplica(mensaje)
+
+        # Ollama puede ser un profesor temporal: si luego queda apagado,
+        # reutilizamos una respuesta Q/A previamente guardada en RAG.
+        if client is None and memorias:
+            respuesta_aprendida = _respuesta_de_memoria(memorias[0])
+            if respuesta_aprendida:
+                bot_message = add_message_to_conversation(
+                    conversation,
+                    "assistant",
+                    respuesta_aprendida,
+                    prompt_used="RAG-Memory",
+                    model_used="learned-memory",
+                    response_time=time.time() - start_time,
+                )
+                return respuesta_aprendida, bot_message.id if bot_message else None
+
+        if contexto_rag:
+            datos = {**datos, "rag_context": contexto_rag}
         mensaje_enriquecido = (
             f"Memoria relevante:\n{memoria_txt}\n\nPregunta del usuario:\n{mensaje}"
         )
 
         # Intentar LLM directamente
-        respuesta_llm = preguntar_llm(mensaje_enriquecido, datos, nombre_usuario, historial_db)
+        respuesta_llm = preguntar_llm(
+            mensaje_enriquecido,
+            datos,
+            nombre_usuario,
+            historial_db,
+            contexto_rag=contexto_rag,
+            contexto_web=contexto_web,
+        )
         if respuesta_llm:
             bot_message = add_message_to_conversation(
                 conversation,
                 "assistant",
                 respuesta_llm,
-                prompt_used="OpenAI-Compatible Chat",
-                model_used="generic-local-llm",
+                prompt_used=f"{LLM_PROVIDER} Chat",
+                model_used=f"{LLM_PROVIDER}:{LLM_MODEL}",
                 response_time=time.time() - start_time,
             )
 

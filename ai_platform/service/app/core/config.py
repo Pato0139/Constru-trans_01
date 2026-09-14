@@ -24,16 +24,17 @@ class Settings(BaseSettings):
     CHROMA_PORT: int = 8000
 
     # LLM Settings
-    LLM_PROVIDER: str = "ollama"  # ollama, openai, llamacpp, vllm
-
-    # Ollama
-    OLLAMA_BASE_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "llama3.2:latest"
+    LLM_PROVIDER: str = "openai"
 
     # OpenAI-compatible
-    OPENAI_COMPAT_BASE_URL: str = "http://localhost:8000/v1"
-    OPENAI_COMPAT_API_KEY: str = "local-key"
-    OPENAI_COMPAT_MODEL: str = "llama3.2:latest"
+    LLM_BASE_URL: str = ""
+    LLM_API_KEY: str = ""
+    LLM_MODEL: str = ""
+
+    # Nombres anteriores, conservados para instalaciones existentes.
+    OPENAI_COMPAT_BASE_URL: str = ""
+    OPENAI_COMPAT_API_KEY: str = ""
+    OPENAI_COMPAT_MODEL: str = ""
 
     # Embeddings Settings
     EMBEDDINGS_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"

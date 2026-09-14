@@ -16,6 +16,7 @@ from django.db.models import Prefetch, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.timezone import now
 
 from core.security import (
@@ -44,6 +45,9 @@ from .models import (
 from .utils import get_account_switch_options, limpiar_documento, limpiar_telefono
 
 logger = logging.getLogger(__name__)
+
+LOGIN_REMEMBER_COOKIE = "constru_trans_login"
+LOGIN_REMEMBER_SECONDS = 1209600
 
 def _buscar_qs_por_rol(rol, query=None):
     qs = Usuario.objects.select_related("perfil_cliente").order_by("-id")
@@ -378,7 +382,7 @@ def login_usuario(request):
 
                 remember_me = form.cleaned_data.get("remember_me")
                 if remember_me:
-                    request.session.set_expiry(1209600)
+                    request.session.set_expiry(LOGIN_REMEMBER_SECONDS)
                 else:
                     request.session.set_expiry(0)
 
@@ -393,8 +397,6 @@ def login_usuario(request):
 
                 messages.success(request, f"¡Bienvenido de nuevo, {user.nombres}!")
 
-                from django.utils.http import url_has_allowed_host_and_scheme
-
                 next_url = request.GET.get("next")
                 redirect_target = next_url if next_url and url_has_allowed_host_and_scheme(
                     url=next_url,
@@ -408,13 +410,27 @@ def login_usuario(request):
                 )
 
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                    return JsonResponse({
+                    response = JsonResponse({
                         "status": "success",
                         "message": f"¡Bienvenido de nuevo, {user.nombres}!",
                         "redirect_url": reverse(redirect_target)
                     })
+                else:
+                    response = redirect(redirect_target)
 
-                return redirect(redirect_target)
+                if remember_me:
+                    response.set_cookie(
+                        LOGIN_REMEMBER_COOKIE,
+                        identifier,
+                        max_age=LOGIN_REMEMBER_SECONDS,
+                        secure=request.is_secure(),
+                        httponly=True,
+                        samesite="Lax",
+                    )
+                else:
+                    response.delete_cookie(LOGIN_REMEMBER_COOKIE, samesite="Lax")
+
+                return response
             else:
                 error_message = "Usuario o contraseña incorrectos."
                 if user_obj:
@@ -453,7 +469,9 @@ def login_usuario(request):
                 }, status=400)
 
     else:
-        form = LoginForm()
+        form = LoginForm(
+            initial={"username": request.COOKIES.get(LOGIN_REMEMBER_COOKIE, "")}
+        )
 
     context = {"form": form, "modo_local": modo_local}
     return render(request, "usuarios/login.html", context)
