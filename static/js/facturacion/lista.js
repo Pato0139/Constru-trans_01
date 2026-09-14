@@ -2,6 +2,12 @@
  * Inicializa los eventos de la página de facturación
  */
 document.addEventListener('DOMContentLoaded', function() {
+    // Bootstrap modals must not remain inside scrolling/animated page containers.
+    const modalPago = document.getElementById('modalPago');
+    if (modalPago && modalPago.parentElement !== document.body) {
+        document.body.appendChild(modalPago);
+    }
+
     // Botones ver historial
     document.querySelectorAll('.btn-ver-historial').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -140,15 +146,13 @@ document.addEventListener('DOMContentLoaded', function() {
  * @returns {string} Valor formateado con separadores de miles
  */
 function formatCurrency(value) {
-    let val = parseFloat(value);
-    let rounded = Math.round(val);
-    let s = String(rounded);
-    let parts = [];
-    while (s.length > 0) {
-        parts.unshift(s.slice(-3));
-        s = s.slice(0, -3);
+    const val = Number(String(value).replace(',', '.'));
+    if (!Number.isFinite(val)) {
+        return '0';
     }
-    return parts.join('.');
+    return new Intl.NumberFormat('es-CO', {
+        maximumFractionDigits: 2,
+    }).format(val);
 }
 
 /**
@@ -162,7 +166,8 @@ function abrirModalPago(id, numero, saldo) {
     document.getElementById('modalFacturaNum').innerText = numero;
 
     document.getElementById('displayMonto').innerText = formatCurrency(saldo);
-    document.getElementById('modalMonto').value = parseFloat(saldo);
+    const monto = Number(String(saldo).replace(',', '.'));
+    document.getElementById('modalMonto').value = Number.isFinite(monto) ? monto.toFixed(2) : '';
 
     const modalElement = document.getElementById('modalPago');
     let modal = bootstrap.Modal.getInstance(modalElement);

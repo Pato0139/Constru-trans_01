@@ -1,6 +1,6 @@
 <!-- Modal Registrar Pago -->
 <div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable facturacion-pago-dialog">
         <div class="modal-content bg-dark border-white-10 shadow-lg u-inline-10748ae058">
             <div class="modal-header border-white-5 p-4">
                 <h5 class="modal-title text-white fw-bold">
@@ -8,7 +8,7 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formPago" action="{% url 'facturacion:registrar_pago' %}" method="POST">
+            <form id="formPago" action="{% url 'facturacion:registrar_pago' %}" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="factura_id" id="modalFacturaId">
                 <div class="modal-body p-4 text-white">
@@ -34,6 +34,11 @@
                     <div class="mb-3">
                         <label class="form-label small text-muted">Referencia (Opcional)</label>
                         <input type="text" name="referencia" class="form-control bg-dark-premium border-white-10 text-white" placeholder="N° comprobante, transferencia, etc.">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted" for="evidenciaFotografica">Evidencia fotográfica (Opcional)</label>
+                        <input type="file" name="evidencia_fotografica" id="evidenciaFotografica" class="form-control bg-dark-premium border-white-10 text-white" accept="image/jpeg,image/png,image/webp">
+                        <div class="form-text text-white-50">Puedes adjuntar una foto del comprobante.</div>
                     </div>
                 </div>
                 <div class="modal-footer border-white-5 p-4">
