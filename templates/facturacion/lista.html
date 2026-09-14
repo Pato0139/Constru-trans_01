@@ -32,7 +32,6 @@
                 <tr class="u-inline-e91738c112">
                     <th class="p-4 text-muted small fw-bold">N° Factura</th>
                     <th class="p-4 text-muted small fw-bold">Cliente</th>
-                    <th class="p-4 text-muted small fw-bold">Fecha Emisión</th>
                     <th class="p-4 text-muted small fw-bold text-end">Total</th>
                     <th class="p-4 text-muted small fw-bold text-end">Pagado</th>
                     <th class="p-4 text-muted small fw-bold text-end">Por Pagar</th>
@@ -49,7 +48,6 @@
                         <div class="fw-medium text-white">{{ f.cliente.usuario.nombres }} {{ f.cliente.usuario.apellidos }}</div>
                         <div class="text-muted small">{{ f.cliente.usuario.tipo_documento }}: {{ f.cliente.usuario.documento }}</div>
                     </td>
-                    <td class="p-4 text-muted small">{{ f.fecha|date:"d/m/Y H:i" }}</td>
                     <td class="p-4 text-end text-white-50">{{ f.total|currency }}</td>
                     <td class="p-4 text-end text-success-emphasis">{{ f.total_pagado|currency }}</td>
                     <td class="p-4 text-end fw-bold text-accent">{{ f.saldo_pendiente|currency }}</td>
@@ -92,7 +90,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="9" class="text-center py-5 text-muted">
+                    <td colspan="8" class="text-center py-5 text-muted">
                         <i class="bi bi-receipt mb-3 d-block u-inline-208090be59"></i>
                         No hay facturas registradas en el sistema
                     </td>
