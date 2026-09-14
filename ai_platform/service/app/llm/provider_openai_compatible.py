@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
 
 from app.core.logging import logger
 from app.llm.base import BaseLLMProvider
@@ -10,7 +10,10 @@ class OpenAICompatibleProvider(BaseLLMProvider):
     name = "openai_compatible"
 
     def __init__(self, base_url: str, api_key: str, model: str):
+        if not api_key:
+            raise ValueError("OPENAI_COMPAT_API_KEY no está configurada")
         self.client = OpenAI(base_url=base_url, api_key=api_key)
+        self.async_client = AsyncOpenAI(base_url=base_url, api_key=api_key)
         self.model = model
         logger.info(f"OpenAICompatibleProvider initialized with model: {self.model}")
 
@@ -38,7 +41,7 @@ class OpenAICompatibleProvider(BaseLLMProvider):
         **kwargs,
     ) -> str:
         try:
-            response = await self.client.chat.completions.create(
+            response = await self.async_client.chat.completions.create(
                 model=self.model, messages=messages, temperature=temperature, max_tokens=max_tokens
             )
             return response.choices[0].message.content or ""
