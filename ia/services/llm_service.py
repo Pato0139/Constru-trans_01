@@ -7,18 +7,28 @@ try:
     from openai import OpenAI
     from httpx import Client
 
-    LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
-    LLM_API_KEY = os.getenv("LLM_API_KEY", "local-key")
-    LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2:latest")
+    LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").lower()
+    if LLM_PROVIDER == "ollama":
+        LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
+        LLM_API_KEY = os.getenv("LLM_API_KEY", "ollama")
+        LLM_MODEL = os.getenv("LLM_MODEL", "llama3.2")
+    else:
+        LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
+        LLM_API_KEY = os.getenv("LLM_API_KEY", "")
+        LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
     
     # Crear cliente HTTP personalizado con timeout corto (5 segundos) para no colgar el servidor
     http_client = Client(timeout=5.0)
     client = OpenAI(
-        base_url=LLM_BASE_URL, 
+        base_url=LLM_BASE_URL,
         api_key=LLM_API_KEY,
-        http_client=http_client
-    )
+        http_client=http_client,
+    ) if LLM_API_KEY else None
 except ImportError:
+    LLM_PROVIDER = "none"
+    LLM_BASE_URL = ""
+    LLM_API_KEY = ""
+    LLM_MODEL = ""
     client = None
 
 
@@ -29,13 +39,19 @@ def verificar_conexion_llm():
         client.models.list()
         return True
     except Exception:
-        logger.warning("No se pudo conectar al servidor LLM local (Ollama no iniciado).")
+        logger.warning(
+            "No se pudo conectar al proveedor LLM %s (%s).",
+            LLM_PROVIDER,
+            LLM_BASE_URL,
+        )
         return False
 
 
 
-def construir_prompt_sistema(contexto, nombre_usuario):
+def construir_prompt_sistema(contexto, nombre_usuario, contexto_rag="", contexto_web=""):
     contexto_texto = "\n".join(f"- {k}: {v}" for k, v in contexto.items() if k != "generated_at")
+    rag_texto = f"\nDocumentos relevantes:\n{contexto_rag}" if contexto_rag else ""
+    web_texto = f"\nInformación web actualizada:\n{contexto_web}" if contexto_web else ""
     return f"""Eres el asistente virtual oficial de Constru-Trans.
 
 Puedes responder dos tipos de preguntas:
@@ -46,15 +62,22 @@ Reglas:
 - Responde siempre en español.
 - Si la pregunta usa datos del sistema, utiliza el contexto disponible.
 - Si la pregunta NO usa datos del sistema, responde como un asistente general útil y natural.
+- Para historia, política, fechas, personas o eventos concretos, no completes los datos por intuición: si no tienes una fuente o contexto verificable, dilo claramente.
+- No inventes guerras, presidentes, fechas, lugares ni nombres. Es preferible reconocer incertidumbre que dar una respuesta falsa.
+- Si recibes información web, úsala como fuente principal y menciona cuando no sea concluyente.
 - Si el usuario hace una continuación corta como "y en Bogotá", entiende que se refiere al tema anterior.
 - No inventes datos internos del sistema.
 - Para números grandes, usa punto como separador de miles y coma para decimales.
 - Si algo no está claro, pide precisión sin responder de forma genérica vacía.
+- No inventes datos internos; si no aparecen en el contexto, dilo claramente.
+- Puedes responder preguntas generales de ciencia, historia, cultura, tecnología, traducción y redacción.
 
 Usuario actual: {nombre_usuario or "No identificado"}
 
 Datos actuales del sistema:
 {contexto_texto}
+{rag_texto}
+{web_texto}
 """.strip()
 
 
@@ -64,7 +87,7 @@ def responder_fallback(mensaje, contexto, nombre_usuario):
     # Saludos (incluidos "hi", "hello", "hey", "como estas", etc.)
     if any(greet in mensaje_lower for greet in ["hola", "buenas", "buenos dias", "buenas tardes", "buenas noches", "saludos", "hi", "hello", "hey", "como estas", "cómo estás", "que tal", "qué tal"]):
         saludo = f"¡Hola {nombre_usuario or ''}! " if nombre_usuario else "¡Hola! "
-        return saludo + "Soy el asistente virtual de Constru-Trans. En este momento el servidor de Inteligencia Artificial local (Ollama) no está activo, pero puedo darte datos en tiempo real del sistema. ¿En qué te puedo ayudar hoy?"
+        return saludo + "Soy el asistente virtual de Constru-Trans. En este momento el servicio de IA no está disponible, pero puedo darte datos en tiempo real del sistema. ¿En qué te puedo ayudar hoy?"
         
     # Preguntas sobre usuarios (verificando palabras completas o patrones para evitar falsos positivos con saludos cortos)
     if any(word in mensaje_lower for word in ["usuario", "conductor", "cliente", "admin", "empleado", "rol"]):
@@ -119,10 +142,10 @@ def responder_fallback(mensaje, contexto, nombre_usuario):
     if any(word in mensaje_lower for word in ["ayuda", "que haces", "ayudame", "opciones", "saber"]):
         return "Puedo brindarte información en tiempo real de los siguientes módulos:\n1. **Usuarios y Personal** (roles, activos)\n2. **Pedidos y Facturación** (estados de pedidos, ventas totales)\n3. **Inventario** (materiales, stock crítico)\n4. **Compras y Proveedores**\n5. **Flota de Vehículos** (disponibles, asignaciones)\n\nEscribe sobre cualquiera de estos temas para consultarme directamente."
 
-    return "En este momento el servidor de Inteligencia Artificial local (Ollama) está desconectado. Por favor, asegúrate de iniciar Ollama en tu computadora y descargar el modelo `llama3.2` para habilitar el chat general interactivo. Mientras tanto, puedes consultarme datos en tiempo real sobre usuarios, pedidos, inventario, compras o vehículos del sistema."
+    return "En este momento el servicio de IA está desconectado. Mientras tanto, puedes consultarme datos en tiempo real sobre usuarios, pedidos, inventario, compras o vehículos del sistema."
 
 
-def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
+def preguntar_llm(mensaje, contexto, nombre_usuario, historial, contexto_rag="", contexto_web=""):
     # Extraer el mensaje real del usuario si viene con memoria semántica enriquecida
     mensaje_real = mensaje
     if "Pregunta del usuario:" in mensaje:
@@ -131,10 +154,10 @@ def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
             mensaje_real = parts[1].strip()
 
     if client is None:
-        logger.error("Cliente LLM no está disponible (openai no instalado)")
+        logger.error("Cliente LLM no está disponible: falta LLM_API_KEY")
         return responder_fallback(mensaje_real, contexto, nombre_usuario)
 
-    system_prompt = construir_prompt_sistema(contexto, nombre_usuario)
+    system_prompt = construir_prompt_sistema(contexto, nombre_usuario, contexto_rag, contexto_web)
 
     messages = [{"role": "system", "content": system_prompt}]
 
@@ -152,7 +175,7 @@ def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
         )
         return (response.choices[0].message.content or "").strip() or None
     except Exception:
-        logger.warning("Servidor LLM local (Ollama) desconectado o inaccesible. Activando fallback local.")
+        logger.warning("API del LLM desconectada o inaccesible. Activando fallback local.")
         return responder_fallback(mensaje_real, contexto, nombre_usuario)
 
 
