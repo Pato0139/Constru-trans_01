@@ -92,7 +92,10 @@ try {
     if (Test-Path $tempDir) {
         Remove-Item -Recurse -Force $tempDir
     }
-    git clone --depth 1 $neonRepoUrl $tempDir 2>&1 | Out-Null
+    git clone --depth 1 $neonRepoUrl $tempDir
+    if ($LASTEXITCODE -ne 0) {
+        throw "git clone fallo con codigo de salida $LASTEXITCODE"
+    }
     Write-Host "[OK] Repositorio clonado" -ForegroundColor Green
 
     Write-Host "[2/3] Copiando archivo de configuración..." -ForegroundColor blue
@@ -109,7 +112,7 @@ try {
     Remove-Item -Recurse -Force $tempDir
     Write-Host "[OK] Repositorio temporal eliminado" -ForegroundColor Green
 } catch {
-    Write-Host "[AVISO] No se pudo clonar el repositorio" -ForegroundColor Yellow
+    Write-Host "[AVISO] No se pudo obtener el repositorio de credenciales: $($_.Exception.Message)" -ForegroundColor Yellow
     if (Test-Path $tempDir) {
         Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
     }
@@ -178,26 +181,25 @@ Write-Host ""
 Write-Host "[5/5] Aplicando migraciones..." -ForegroundColor blue
 & .\venv\Scripts\python.exe manage.py migrate --run-syncdb
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[AVISO] Verificando configuracion..." -ForegroundColor Yellow
-    & .\venv\Scripts\python.exe manage.py check
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "[ERROR] Problema con la configuracion" -ForegroundColor Red
-    } else {
-        Write-Host "[OK] Configuracion verificada" -ForegroundColor Green
-    }
-} else {
-    Write-Host "[OK] Migraciones aplicadas en base local" -ForegroundColor Green
+    Write-Host "[ERROR] Las migraciones locales fallaron. El setup no puede continuar." -ForegroundColor Red
+    Read-Host "Presiona cualquier tecla para salir"
+    exit 1
 }
+Write-Host "[OK] Migraciones aplicadas en base local" -ForegroundColor Green
 
-if ($databaseUrl) {
+if ($databaseUrl -and $env:APPLY_REMOTE_MIGRATIONS -eq "true") {
     Write-Host ""
     Write-Host "[INFO] Aplicando migraciones en base remota..." -ForegroundColor Yellow
     & .\venv\Scripts\python.exe manage.py migrate --database=remota
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "[AVISO] Problema al migrar base remota" -ForegroundColor Yellow
-    } else {
-        Write-Host "[OK] Migraciones aplicadas en base remota" -ForegroundColor Green
+        Write-Host "[ERROR] Las migraciones remotas fallaron. No se marcaran como completadas." -ForegroundColor Red
+        Read-Host "Presiona cualquier tecla para salir"
+        exit 1
     }
+    Write-Host "[OK] Migraciones aplicadas en base remota" -ForegroundColor Green
+} elseif ($databaseUrl) {
+    Write-Host "[AVISO] DATABASE_URL esta configurada, pero las migraciones remotas estan desactivadas." -ForegroundColor Yellow
+    Write-Host "[INFO] Para ejecutarlas explicitamente: `$env:APPLY_REMOTE_MIGRATIONS='true'; .\setup\setup_windows.ps1" -ForegroundColor Yellow
 }
 
 # Final
