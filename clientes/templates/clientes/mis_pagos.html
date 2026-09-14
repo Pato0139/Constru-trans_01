@@ -200,7 +200,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
             </div>
-            <form id="formPago" action="{% url 'facturacion:registrar_pago' %}" method="POST">
+            <form id="formPago" action="{% url 'facturacion:registrar_pago' %}" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="factura_id" id="modalFacturaId">
                 <div class="modal-body p-4">
@@ -235,6 +235,16 @@
                         <input type="text" name="referencia"
                             class="form-control bg-dark border-white-10 text-white rounded-4"
                             placeholder="Ej: Nº de transferencia, recibo, etc.">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-white-50 small text-uppercase fw-bold" for="evidenciaFotograficaCliente">
+                            Evidencia fotográfica (Opcional)
+                        </label>
+                        <input type="file" name="evidencia_fotografica" id="evidenciaFotograficaCliente"
+                            class="form-control bg-dark border-white-10 text-white rounded-4"
+                            accept="image/jpeg,image/png,image/webp">
+                        <div class="form-text text-white-50">Puedes adjuntar una foto del comprobante.</div>
                     </div>
 
                     <div class="alert alert-info bg-info-subtle border-0 text-info small rounded-4 mb-0">

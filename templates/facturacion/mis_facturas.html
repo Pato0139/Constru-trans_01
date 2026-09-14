@@ -309,8 +309,9 @@
 
                                 {% endif %}
 
+                                {% if factura.pedido %}
                                 <a
-                                    href="{% url 'ordenes:descargar_factura' factura.orden.pk %}"
+                                    href="{% url 'ordenes:descargar_factura' factura.pedido.pk %}"
                                     class="btn-action"
                                     title="Ver PDF"
                                     target="_blank"
@@ -319,6 +320,7 @@
                                     <i class="bi bi-file-pdf"></i>
 
                                 </a>
+                                {% endif %}
 
                             </div>
 

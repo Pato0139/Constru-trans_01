@@ -26,6 +26,11 @@ class Pago(models.Model):
 
     # NO se toca
     referencia = models.CharField(max_length=100, blank=True)
+    evidencia_fotografica = models.ImageField(
+        upload_to="evidencias_pagos/%Y/%m/%d/",
+        blank=True,
+        null=True,
+    )
     registrado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="pagos_registrados", db_column="registrado_por_id"
     )
