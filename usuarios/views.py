@@ -311,29 +311,60 @@ def login_usuario(request):
                 user_obj = User.objects.get(username=identifier)
             except User.DoesNotExist:
                 try:
-                    user_obj = User.objects.get(email=identifier)
+                    user_obj = User.objects.get(email__iexact=identifier)
                 except User.DoesNotExist:
                     pass
 
             if user_obj:
                 if user_obj.esta_bloqueado():
                     tiempo_restante = user_obj.obtener_tiempo_restante_bloqueo()
-                    messages.error(
-                        request,
-                        f"Tu cuenta está bloqueada. Por favor, inténtalo de nuevo en {tiempo_restante}. "
-                        f"Si necesitas ayuda urgentemente, contacta a soporte."
+                    error_message = (
+                        f"Tu cuenta está bloqueada por {tiempo_restante}. "
+                        "Intenta más tarde o contacta a soporte."
                     )
+                    messages.error(request, error_message)
+                    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                        return JsonResponse({"status": "error", "message": error_message}, status=403)
                     context = {"form": form, "modo_local": modo_local}
                     return render(request, "usuarios/login.html", context)
 
+            # Usa EmailOrUsernameBackend primero (username O email); fallback por email luego.
             user = authenticate(request, username=identifier, password=password)
 
-            if user is None:
-                try:
-                    user_obj = User.objects.get(email=identifier)
+            if user is None and user_obj is not None:
+                # Usuario existía pero authenticate devolvió None.
+                # Determinamos la causa real para no penalizar (no contar intento fallido
+                # si la contraseña SÍ era correcta y el problema es estado/is_active).
+                password_correcto = user_obj.check_password(password)
+                if password_correcto:
+                    # Contraseña correcta, pero el usuario no pudo pasar por estado.
+                    estado = getattr(user_obj, "estado", "activo")
+                    is_active = getattr(user_obj, "is_active", True)
+                    if estado != "activo" or not is_active:
+                        if estado == "suspendido":
+                            error_message = (
+                                "Tu cuenta se encuentra suspendida. "
+                                "Por favor contacta a soporte para más información."
+                            )
+                        elif estado == "inactivo" or not is_active:
+                            error_message = (
+                                "Tu cuenta está desactivada. "
+                                "Por favor contacta a soporte para reactivarla."
+                            )
+                        else:
+                            error_message = (
+                                "Tu cuenta no está disponible actualmente. "
+                                "Por favor contacta a soporte."
+                            )
+                        messages.error(request, error_message)
+                        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                            return JsonResponse({"status": "error", "message": error_message}, status=403)
+                        context = {"form": form, "modo_local": modo_local}
+                        return render(request, "usuarios/login.html", context)
+                else:
+                    # Fallback: autenticar usando username del user_obj por si identifier
+                    # fue email y backend fallback ModelBackend no acepta email directo.
                     user = authenticate(request, username=user_obj.username, password=password)
-                except User.DoesNotExist:
-                    user = None
 
             if user is not None:
                 user.reiniciar_intentos()
@@ -341,7 +372,7 @@ def login_usuario(request):
                     user.ensure_profile_for_role()
 
                 if not hasattr(user, "backend"):
-                    user.backend = "django.contrib.auth.backends.ModelBackend"
+                    user.backend = "usuarios.backends.EmailOrUsernameBackend"
 
                 login(request, user)
 
