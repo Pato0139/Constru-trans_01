@@ -385,10 +385,14 @@ class Command(BaseCommand):
             ("FAC-2026-005", 105, "cliente2", Decimal("1890756"), Decimal("359244"), Decimal("2250000"), "pendiente"),
         ]
         for numero, pedido_id, cliente_username, subtotal, iva, total, estado in facturas_seed:
+            pedido = Pedido.objects.get(codigo_pedido=pedido_id)
+            subtotal = pedido.total
+            iva = (subtotal * Decimal("0.19")).quantize(Decimal("0.01"))
+            total = (subtotal + iva).quantize(Decimal("0.01"))
             factura, _ = Factura.objects.update_or_create(
                 numero=numero,
                 defaults={
-                    "pedido": Pedido.objects.get(codigo_pedido=pedido_id),
+                    "pedido": pedido,
                     "cliente": Usuario.objects.get(username=cliente_username),
                     "subtotal": subtotal,
                     "iva": iva,
