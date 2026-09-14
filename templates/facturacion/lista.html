@@ -5,7 +5,7 @@
 {% block title %}Facturación - ConstruTrans{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/facturacion/lista.css' %}?v=1.1">
+<link rel="stylesheet" href="{% static 'css/facturacion/lista.css' %}?v=1.4">
 {% endblock %}
 
 {% block content %}
@@ -76,7 +76,7 @@
                             {% if f.estado == 'pendiente' %}
                             <button class="btn btn-premium btn-premium-gold btn-sm px-3 btn-abrir-modal-pago"
                                 type="button" data-id="{{ f.pk }}" data-numero="{{ f.numero }}"
-                                data-saldo="{{ f.saldo_pendiente }}" title="Pagar">
+                                data-saldo="{{ f.saldo_pendiente|stringformat:'f' }}" title="Pagar">
                                 <i class="bi bi-cash-stack"></i>
                             </button>
                             {% endif %}
@@ -112,5 +112,5 @@
     const csrfToken = '{{ csrf_token }}';
     const pagosHistorialUrl = '{% url "pagos:lista_pagos" %}';
 </script>
-<script src="{% static 'js/facturacion/lista.js' %}"></script>
+<script src="{% static 'js/facturacion/lista.js' %}?v=1.2"></script>
 {% endblock %}

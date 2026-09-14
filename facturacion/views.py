@@ -327,6 +327,7 @@ def registrar_pago(request):
                 factura=factura,
                 monto=monto,
                 codigo_metodo_pago=metodo_pago,
+                evidencia_fotografica=request.FILES.get("evidencia_fotografica"),
                 referencia=request.POST.get(
                     "referencia",
                     "Pago realizado por cliente"
