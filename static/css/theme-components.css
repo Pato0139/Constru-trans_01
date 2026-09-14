@@ -241,6 +241,115 @@
     opacity: 1 !important;
 }
 
+/* Billing actions, statuses and modal controls. */
+.billing-table,
+#tablaFacturas {
+    --bs-table-color: var(--color-text);
+    --bs-table-bg: transparent;
+    --bs-table-hover-color: var(--color-text);
+    --bs-table-hover-bg: var(--item-bg-hover);
+    color: var(--color-text) !important;
+}
+
+#tablaFacturas thead th {
+    background: var(--item-bg) !important;
+    color: var(--color-accent) !important;
+    border-color: var(--color-border) !important;
+}
+
+#tablaFacturas tbody td {
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
+}
+
+#tablaFacturas .text-white-50,
+#tablaFacturas .table-meta {
+    color: var(--color-muted) !important;
+}
+
+#tablaFacturas .bg-dark,
+#tablaFacturas .bg-dark-premium,
+#modalPago .bg-dark-premium {
+    background: var(--theme-control-bg) !important;
+    color: var(--theme-control-text) !important;
+    border-color: var(--theme-control-border) !important;
+}
+
+#tablaFacturas .btn-outline-info,
+#tablaFacturas .btn-outline-primary,
+#tablaFacturas .btn-outline-danger,
+#tablaFacturas .btn-outline-light,
+#modalPago .btn-outline-light {
+    color: var(--color-text) !important;
+    border-color: var(--color-border-strong, var(--color-border)) !important;
+}
+
+#tablaFacturas .btn-outline-info:hover,
+#tablaFacturas .btn-outline-primary:hover,
+#tablaFacturas .btn-outline-danger:hover,
+#tablaFacturas .btn-outline-light:hover,
+#modalPago .btn-outline-light:hover {
+    background: var(--item-bg-hover) !important;
+    color: var(--color-text) !important;
+    border-color: var(--theme-focus) !important;
+}
+
+#modalPago .modal-content {
+    background: var(--theme-panel-bg) !important;
+    color: var(--color-text) !important;
+    border-color: var(--theme-panel-border) !important;
+}
+
+#modalPago .modal-header,
+#modalPago .modal-footer,
+#modalPago .modal-footer {
+    border-color: var(--color-border) !important;
+}
+
+#modalPago .form-control,
+#modalPago .form-select {
+    background: var(--theme-control-bg) !important;
+    color: var(--theme-control-text) !important;
+    border-color: var(--theme-control-border) !important;
+}
+
+[data-theme="accessibility"] #tablaFacturas .badge,
+[data-theme="accessibility"] #modalPago .badge {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+}
+
+[data-theme="accessibility"] #tablaFacturas .bg-warning-subtle,
+[data-theme="accessibility"] #tablaFacturas .bg-success-subtle,
+[data-theme="accessibility"] #tablaFacturas .bg-danger-subtle {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+}
+
+[data-theme="accessibility"] #tablaFacturas .text-success,
+[data-theme="accessibility"] #tablaFacturas .text-success-emphasis {
+    color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .modal-backdrop {
+    background: #000000 !important;
+    opacity: 0.92 !important;
+}
+
+[data-theme="accessibility"] #tablaFacturas .btn,
+[data-theme="accessibility"] #modalPago .btn {
+    border-width: 2px !important;
+}
+
+[data-theme="accessibility"] #tablaFacturas .btn-premium-gold,
+[data-theme="accessibility"] #modalPago .btn-premium-gold {
+    background: #ffd600 !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+
 /* Maximum contrast: no translucent surfaces or low-contrast shadows. */
 [data-theme="accessibility"] {
     --theme-control-bg: #000000;

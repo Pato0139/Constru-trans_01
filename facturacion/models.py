@@ -38,7 +38,6 @@ class Factura(models.Model):
         ordering = ["-fecha"]
         db_table = "factura"
         permissions = (
-            ("anular_factura", "Puede anular facturas"),
             ("ver_facturas_todas", "Puede ver todas las facturas"),
         )
         constraints = [

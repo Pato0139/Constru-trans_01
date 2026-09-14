@@ -91,8 +91,6 @@ _ORDENES_URLNAMES_ROLES = {
 _URLNAMES_BY_ROLE_EXTRA = {
     "facturacion": {
         "lista_facturas": {"admin"},
-        "anular_factura": {"admin"},
-        "editar_factura_monto": {"admin"},
         "mis_facturas": {"cliente"},
     },
     "pagos": {
