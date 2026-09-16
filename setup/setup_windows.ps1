@@ -187,7 +187,13 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "[OK] Migraciones aplicadas en base local" -ForegroundColor Green
 
-if ($databaseUrl -and $env:APPLY_REMOTE_MIGRATIONS -eq "true") {
+$applyRemoteMigrations = if ($env:APPLY_REMOTE_MIGRATIONS) {
+    $env:APPLY_REMOTE_MIGRATIONS.ToLowerInvariant() -eq "true"
+} else {
+    $true
+}
+
+if ($databaseUrl -and $applyRemoteMigrations) {
     Write-Host ""
     Write-Host "[INFO] Aplicando migraciones en base remota..." -ForegroundColor Yellow
     & .\venv\Scripts\python.exe manage.py migrate --database=remota
