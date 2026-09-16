@@ -128,8 +128,8 @@
       ], 
       "best_response": "Puedes contactar con soporte desde el Centro de Ayuda, donde se muestran opciones de correo y teléfono." 
     }, 
-    { 
-      "id": "faq_008", 
+    {
+      "id": "faq_008",
       "question_patterns": [ 
         "funciona sin internet", 
         "trabaja sin internet", 
@@ -137,7 +137,127 @@
         "qué significa offline-first", 
         "que significa offline-first" 
       ], 
-      "best_response": "Sí. Constru-Trans está planteado con una arquitectura híbrida para operar de forma offline y sincronizar cuando haya conexión." 
+      "best_response": "Sí. Constru-Trans está planteado con una arquitectura híbrida para operar de forma offline y sincronizar cuando haya conexión."
+    },
+    {
+      "id": "faq_009",
+      "question_patterns": ["qué módulos tiene constru-trans", "módulos de la plataforma", "qué secciones tiene el sistema"],
+      "best_response": "Constru-Trans incluye Clientes, Inventario, Pedidos, Compras, Transporte, Facturación, Pagos, Reportes, Historial y el Asistente IA."
+    },
+    {
+      "id": "faq_010",
+      "question_patterns": ["cómo registro un cliente", "cómo crear un cliente", "registrar cliente"],
+      "best_response": "Ve al módulo Clientes, crea un nuevo registro y completa nombre, dirección y datos de contacto. Luego guarda para usarlo en pedidos y facturación."
+    },
+    {
+      "id": "faq_011",
+      "question_patterns": ["cómo registrar un pedido", "nuevo pedido", "cómo crear un pedido"],
+      "best_response": "Selecciona el cliente, añade los materiales y cantidades, define destino y fecha de entrega y guarda. El pedido queda pendiente de autorización."
+    },
+    {
+      "id": "faq_012",
+      "question_patterns": ["estados de un pedido", "ciclo de vida del pedido", "estados del pedido"],
+      "best_response": "El ciclo habitual es: Pendiente, Autorizado, Vehículo asignado, En ruta y Entregado; también puede cancelarse."
+    },
+    {
+      "id": "faq_013",
+      "question_patterns": ["cómo se registra un pago", "registrar pago de factura", "registrar pago de pedido"],
+      "best_response": "En Pagos selecciona la factura o pedido, registra monto y método de pago y adjunta el comprobante si está disponible."
+    },
+    {
+      "id": "faq_014",
+      "question_patterns": ["cómo asigno un conductor", "asignar vehículo a pedido", "asignar conductor"],
+      "best_response": "Selecciona el pedido autorizado y asígnale un conductor con su vehículo desde Transporte u Órdenes."
+    },
+    {
+      "id": "faq_015",
+      "question_patterns": ["qué es el stock mínimo", "stock crítico", "inventario bajo mínimo"],
+      "best_response": "Es el umbral bajo el cual un material se considera crítico y debe reabastecerse."
+    },
+    {
+      "id": "faq_020",
+      "question_patterns": ["qué es el cemento", "para qué sirve el cemento"],
+      "best_response": "El cemento es un aglomerante hidráulico que fragua con agua y une arena, grava y otros agregados para formar mortero y concreto."
+    },
+    {
+      "id": "faq_021",
+      "question_patterns": ["diferencia entre concreto y hormigón", "qué es el concreto", "qué es el hormigón"],
+      "best_response": "Concreto y hormigón son nombres regionales para la mezcla de cemento, agua, arena y grava que forma un material resistente."
+    },
+    {
+      "id": "faq_022",
+      "question_patterns": ["qué es el acero corrugado", "varilla corrugada", "qué es la ferralla"],
+      "best_response": "Es una barra de acero con resaltes que refuerza el concreto y absorbe esfuerzos de tracción."
+    },
+    {
+      "id": "faq_023",
+      "question_patterns": ["qué es la varilla", "medidas de varilla", "qué es una bagueta"],
+      "best_response": "La varilla es una barra de acero corrugado usada como refuerzo del concreto; se especifica por diámetro y longitud."
+    },
+    {
+      "id": "faq_024",
+      "question_patterns": ["qué es el block de concreto", "qué es el bloque", "bloque de hormigón"],
+      "best_response": "Es una unidad prefabricada de cemento y agregados usada para construir muros y mampostería."
+    },
+    {
+      "id": "faq_025",
+      "question_patterns": ["qué es la arena de construcción", "tipos de arena", "arena gruesa y fina"],
+      "best_response": "La arena es el agregado fino del concreto y mortero; la gruesa se usa en concretos y la fina en revoques y morteros."
+    },
+    {
+      "id": "faq_026",
+      "question_patterns": ["qué es la grava", "qué es el agregado grueso"],
+      "best_response": "La grava es el agregado grueso del concreto, formado por piedras trituradas o de río mayores que la arena."
+    },
+    {
+      "id": "faq_030",
+      "question_patterns": ["qué es un flete", "cómo se cobra un flete"],
+      "best_response": "El flete es el precio de transportar mercancía y puede cobrarse por tonelada, viaje o distancia, incluyendo cargue y descargue."
+    },
+    {
+      "id": "faq_031",
+      "question_patterns": ["qué es el tonelaje", "cómo se calcula el peso de carga"],
+      "best_response": "El tonelaje es el peso de la carga en toneladas. Por ejemplo, 50 sacos de 50 kg equivalen a 2,5 toneladas."
+    },
+    {
+      "id": "faq_032",
+      "question_patterns": ["cuánto carga un camión", "capacidad de un camión", "capacidad de carga"],
+      "best_response": "La capacidad depende del vehículo: una camioneta ronda 1 t, un camión rígido entre 3 y 10 t y un tractocamión puede transportar aproximadamente 25 a 30 t según la normativa."
+    },
+    {
+      "id": "faq_033",
+      "question_patterns": ["qué es la carta de porte", "qué es la remesa", "documentos del transporte"],
+      "best_response": "La carta de porte o remesa identifica transportador, remitente, destinatario, mercancía, origen y destino durante el traslado."
+    },
+    {
+      "id": "faq_034",
+      "question_patterns": ["qué es la logística"],
+      "best_response": "La logística gestiona el flujo de materiales desde el origen al destino mediante planificación, transporte, almacenamiento y distribución."
+    },
+    {
+      "id": "faq_035",
+      "question_patterns": ["qué es una bodega", "qué es un almacén"],
+      "best_response": "Una bodega es el espacio donde se recibe, almacena y despacha material, controlando entradas, salidas y existencias."
+    },
+    {
+      "id": "faq_036",
+      "question_patterns": ["qué es la ruta de entrega", "cómo se planea una ruta"],
+      "best_response": "Es el recorrido del vehículo hasta el destino; planificarla ordena entregas para reducir distancia y tiempo respetando capacidad y horarios."
+    },
+    {
+      "id": "faq_040",
+      "question_patterns": ["qué es el NIT", "para qué sirve el NIT", "número de identificación tributaria"],
+      "best_response": "El NIT identifica a una empresa o persona ante la autoridad tributaria y permite facturar correctamente."
+    },
+    {
+      "id": "faq_041",
+      "question_patterns": ["qué es el IVA", "cómo se calcula el IVA"],
+      "best_response": "El IVA es un porcentaje aplicado a bienes y servicios; la tarifa depende del país, por ejemplo 19% en Colombia, 16% en México y 21% en España."
+    },
+    {
+      "id": "faq_042",
+      "question_patterns": ["qué es una factura", "qué datos lleva una factura"],
+      "best_response": "Una factura identifica vendedor y comprador, describe bienes o servicios con cantidades y precios y muestra subtotal, IVA y total."
     } 
   ], 
   "intent_examples": [ 
