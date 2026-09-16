@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('usuarios', '0007_comprehensive_checks'),
+        ('usuarios', '0007_rol_usuariorol_vehiculo_catalogo_and_more'),
     ]
 
     operations = [
