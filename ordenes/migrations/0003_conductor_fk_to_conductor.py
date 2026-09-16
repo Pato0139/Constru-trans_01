@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('ordenes', '0002_normalize_conductor_fk'),
-        ('usuarios', '0006_rol_usuario_rol_sql'),
+        ('usuarios', '0007_rol_usuariorol_vehiculo_catalogo_and_more'),
     ]
 
     operations = [
