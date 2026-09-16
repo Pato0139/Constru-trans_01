@@ -16,20 +16,20 @@ try:
         LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
         LLM_API_KEY = os.getenv("LLM_API_KEY", "")
         LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
-    
-    # Crear cliente HTTP personalizado con timeout corto (5 segundos) para no colgar el servidor
+
     http_client = Client(timeout=5.0)
-    client = OpenAI(
-        base_url=LLM_BASE_URL,
-        api_key=LLM_API_KEY,
-        http_client=http_client,
-    ) if LLM_API_KEY else None
+    client = OpenAI(base_url=LLM_BASE_URL, api_key=LLM_API_KEY, http_client=http_client) if LLM_API_KEY else None
 except ImportError:
     LLM_PROVIDER = "none"
     LLM_BASE_URL = ""
     LLM_API_KEY = ""
     LLM_MODEL = ""
     client = None
+
+try:
+    from . import tools_registry
+except Exception:  # Las herramientas son opcionales y no deben romper el chat.
+    tools_registry = None
 
 
 def verificar_conexion_llm():
@@ -169,14 +169,25 @@ def preguntar_llm(mensaje, contexto, nombre_usuario, historial, contexto_rag="",
 
     messages.append({"role": "user", "content": mensaje[:3000]})
 
-    try:
-        response = client.chat.completions.create(
-            model=LLM_MODEL, messages=messages, temperature=0.3
-        )
-        return (response.choices[0].message.content or "").strip() or None
-    except Exception:
-        logger.warning("API del LLM desconectada o inaccesible. Activando fallback local.")
-        return responder_fallback(mensaje_real, contexto, nombre_usuario)
+    tools = tools_registry._tools_definiciones() if tools_registry and tools_registry.hay_tools() else None
+    for _ in range((tools_registry.MAX_TOOL_ROUNDS if tools_registry else 1) + 1):
+        try:
+            kwargs = {"model": LLM_MODEL, "messages": messages, "temperature": 0.3}
+            if tools:
+                kwargs["tools"] = tools
+            response = client.chat.completions.create(**kwargs)
+            message = response.choices[0].message
+            tool_calls = getattr(message, "tool_calls", None)
+            if tools and tool_calls:
+                messages.append(message)
+                for tool_call in tool_calls:
+                    messages.append({"role": "tool", "tool_call_id": tool_call.id, "content": tools_registry.ejecutar_tool(tool_call.function.name, tool_call.function.arguments)})
+                continue
+            return (message.content or "").strip() or None
+        except Exception:
+            logger.warning("API del LLM desconectada o inaccesible. Activando fallback local.")
+            break
+    return responder_fallback(mensaje_real, contexto, nombre_usuario)
 
 
 
