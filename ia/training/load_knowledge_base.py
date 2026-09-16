@@ -1,4 +1,4 @@
-﻿import json
+import json
 from pathlib import Path
 
 base_path = Path("ia/training")
@@ -12,4 +12,3 @@ print("Intenciones:", len(kb["intent_examples"]))
 
 for faq in kb["faq_entries"]:
     print(faq["id"], "->", faq["best_response"])
-
