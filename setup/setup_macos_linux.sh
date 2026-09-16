@@ -190,7 +190,9 @@ DATABASE_URL=""
 if [ -f ".env" ]; then
     DATABASE_URL=$(grep -E '^DATABASE_URL=' .env | cut -d'=' -f2-)
 fi
-APPLY_REMOTE_MIGRATIONS="${APPLY_REMOTE_MIGRATIONS:-false}"
+# Las credenciales remotas se obtienen durante el setup; aplicar sus migraciones
+# por defecto mantiene la base Neon alineada con la SQLite local.
+APPLY_REMOTE_MIGRATIONS="${APPLY_REMOTE_MIGRATIONS:-true}"
 
 echo -e ""
 if [ -n "$DATABASE_URL" ]; then
