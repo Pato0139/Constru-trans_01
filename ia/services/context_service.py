@@ -174,7 +174,7 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
 
                 conductor_obj = Conductor.objects.filter(usuario=usuario).first()
                 if conductor_obj:
-                    pedidos_conductor = PedidoGestion.objects.filter(conductor=conductor_obj.usuario)
+                    pedidos_conductor = PedidoGestion.objects.filter(conductor=conductor_obj)
                     data["mis_entregas_pendientes"] = pedidos_conductor.filter(
                         estado__in=["pendiente", "en_ruta"]
                     ).count()
