@@ -2,18 +2,25 @@ version: "3.8"
 
 services:
   web:
-    build: .
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     volumes:
-      - .:/app
+      - ..:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - ../.env
+    environment:
+      DATABASE_URL: postgres://constru_trans:constru_trans@db:5432/constru_trans
+    command: sh -c "python manage.py migrate --noinput && gunicorn --bind 0.0.0.0:8000 core.wsgi:application"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   db:
     image: postgres:15-alpine
@@ -23,6 +30,11 @@ services:
       POSTGRES_DB: constru_trans
       POSTGRES_USER: constru_trans
       POSTGRES_PASSWORD: constru_trans
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U constru_trans -d constru_trans"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7-alpine
