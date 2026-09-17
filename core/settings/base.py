@@ -199,7 +199,8 @@ if database_url:
     )
     if "OPTIONS" not in remote_database:
         remote_database["OPTIONS"] = {}
-    remote_database["OPTIONS"].setdefault("connect_timeout", 5)
+    if remote_database.get("ENGINE") == "django.db.backends.postgresql":
+        remote_database["OPTIONS"].setdefault("connect_timeout", 5)
     remote_database["OPTIONS"].pop("options", None)
 
 DATABASES = {
@@ -389,8 +390,8 @@ APPEND_SLASH = False
 # Captcha
 # ============================================================
 
-RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY")
-RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY")
+RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY", default="")
+RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY", default="")
 
 # Silenciar el check de Django cuando se usan las claves de prueba de Google
 # en entornos de desarrollo. IMPORTANTE: usar claves reales antes de producción.

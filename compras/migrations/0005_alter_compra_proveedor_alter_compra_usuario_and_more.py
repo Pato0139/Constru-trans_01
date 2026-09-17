@@ -34,20 +34,4 @@ class Migration(migrations.Migration):
             name='material',
             field=models.ForeignKey(db_column='cod_material', on_delete=django.db.models.deletion.PROTECT, to='usuarios.materialconstruccion'),
         ),
-        migrations.AddConstraint(
-            model_name='compra',
-            constraint=models.CheckConstraint(condition=models.Q(('total_compra__gte', 0)), name='chk_compra_total_compra_gte_0'),
-        ),
-        migrations.AddConstraint(
-            model_name='detallecompra',
-            constraint=models.CheckConstraint(condition=models.Q(('cantidad__gt', 0)), name='chk_detalle_compra_cantidad_gt_0'),
-        ),
-        migrations.AddConstraint(
-            model_name='detallecompra',
-            constraint=models.CheckConstraint(condition=models.Q(('precio_unitario__gte', 0)), name='chk_detalle_compra_precio_unitario_gte_0'),
-        ),
-        migrations.AddConstraint(
-            model_name='detallecompra',
-            constraint=models.UniqueConstraint(fields=('compra', 'material'), name='uq_detalle_compra_compra_material'),
-        ),
     ]

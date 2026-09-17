@@ -10,7 +10,7 @@ _APPS_LOCALES = {"sessions", "auth", "usuarios", "contenttypes", "admin"}
 
 class EnrutadorInventario:
     def _elegir_bd(self):
-        if "test" in sys.argv:
+        if "pytest" in sys.modules or "test" in sys.argv:
             return "default"
 
         pref = get_db_preference()
