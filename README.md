@@ -12,11 +12,96 @@ Constru-Trans es un sistema web desarrollado en Django para gestionar operacione
 
 El sistema actual no es un ERP genérico completo con múltiples módulos de negocio no implementados. La base real del código corresponde a una plataforma de gestión operativa para una empresa de materiales de construcción y transporte, con foco en control interno, facturación y asistencia basada en contexto local.
 
+## 2. Instalación rápida
+
+### Requisitos
+
+- Python 3.11 o superior.
+- Git.
+- Docker y Docker Compose solo si se usará el despliegue en contenedores.
+- Ollama es opcional y solo se necesita para ejecutar el asistente IA localmente.
+
+### Windows (PowerShell)
+
+```powershell
+git clone https://github.com/Pato0139/Constru-trans_01.git
+cd Constru-trans_01
+powershell -ExecutionPolicy Bypass -File setup\setup_windows.ps1
+.\venv\Scripts\python.exe manage.py createsuperuser
+.\venv\Scripts\python.exe manage.py runserver
+```
+
+### macOS/Linux
+
+```bash
+git clone https://github.com/Pato0139/Constru-trans_01.git
+cd Constru-trans_01
+bash setup_project.sh
+source venv/bin/activate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Los scripts crean `venv/`, instalan `requirements.txt`, generan `.env` y aplican las migraciones. Si `DATABASE_URL` está configurada, también pueden aplicar las migraciones en la base remota; para omitirlas usa `APPLY_REMOTE_MIGRATIONS=false` en macOS/Linux o `$env:APPLY_REMOTE_MIGRATIONS='false'` en PowerShell.
+
+Abre `http://127.0.0.1:8000` después de iniciar el servidor.
+
+### Instalación manual
+
+```bash
+python -m venv venv
+# macOS/Linux: source venv/bin/activate
+# Windows PowerShell: .\venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+copy .env.example .env  # Windows; en macOS/Linux usa: cp .env.example .env
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+## 3. Configuración
+
+La configuración se carga desde `.env`. Para desarrollo local, SQLite es la base predeterminada. Define `DATABASE_URL` para habilitar la conexión PostgreSQL remota; esa conexión queda disponible con el alias `remota`.
+
+Variables principales:
+
+| Variable | Uso |
+|---|---|
+| `DJANGO_ENV` | `development` o `production`. |
+| `SECRET_KEY` | Clave secreta; usa una clave propia en producción. |
+| `DEBUG` | Activa/desactiva el modo de depuración. |
+| `ALLOWED_HOSTS` | Hosts permitidos, separados por comas. |
+| `DATABASE_URL` | URL opcional de PostgreSQL. Vacía usa SQLite. |
+| `EMAIL_*` | Configuración de correo; por defecto se muestra en consola. |
+| `USE_S3` y `AWS_*` | Almacenamiento de archivos en S3 compatible. |
+| `LICENSE_*` | Control de licenciamiento, si está habilitado. |
+
+No publiques `.env`, claves de API ni credenciales de base de datos. Usa `.env.example` como plantilla.
+
+## 4. Asistente IA (opcional)
+
+El módulo `ia` admite proveedores compatibles con la API de OpenAI. Para una ejecución local con Ollama:
+
+```bash
+ollama pull llama3.2
+```
+
+Configura en `.env` `LLM_PROVIDER=ollama`, `LLM_BASE_URL=http://localhost:11434/v1`, `LLM_API_KEY=ollama` y `LLM_MODEL=llama3.2`. También están disponibles, de forma opcional, `RAG_ENABLED`, `CHROMA_DIR`, `EMBEDDING_MODEL`, `WEB_SEARCH_ENABLED` y `BRAVE_API_KEY`. Las funciones que dependan de servicios externos requieren que sus credenciales estén configuradas.
+
+## 5. Docker
+
+```bash
+cd docker
+docker compose up --build
+```
+
+El stack levanta la aplicación web, PostgreSQL 15 y Redis 7 en `http://localhost:8000`. Requiere `.env` en la raíz del proyecto.
+
 ---
 
-## 2. Alcance real del sistema
+## 6. Alcance real del sistema
 
-### 2.1 Apps activas en Django
+### 6.1 Apps activas en Django
 
 La configuración activa del proyecto incluye estas apps:
 
@@ -40,7 +125,7 @@ La configuración activa del proyecto incluye estas apps:
 
 Las carpetas bajo `apps/` no se consideran parte del alcance activo del proyecto si no están registradas en la configuración principal de Django.
 
-### 2.2 Funcionalidades realmente implementadas
+### 6.2 Funcionalidades realmente implementadas
 
 - Gestión de usuarios, roles y autenticación.
 - Registro y administración de clientes y perfiles asociados.
@@ -56,25 +141,15 @@ Las carpetas bajo `apps/` no se consideran parte del alcance activo del proyecto
 - Asistente IA interno con acceso a contexto local y datos de negocio.
 - Licenciamiento y control de acceso a la instalación.
 
-### 2.3 Funcionalidades que no forman parte del alcance real verificado
+### 6.3 IA y capacidades opcionales
 
-Se han eliminado del documento referencias a:
-
-- RAG o recuperación aumentada de contexto.
-- Memoria semántica.
-- Embeddings.
-- Vector database.
-- Agentes autónomos con herramientas externas.
-- APIs externas de IA no documentadas en el código.
-- Entidades que no existen como modelos reales activos.
-
-La IA implementada en este proyecto es local, integrada en Django y orientada a consultar contexto del sistema y responder con información del negocio, no un sistema de agentes externos ni un motor vectorial.
+El módulo `ia` integra contexto del negocio y permite configurar capacidades opcionales mediante `.env`, entre ellas RAG local con ChromaDB, embeddings y búsqueda web. Estas capacidades requieren sus dependencias y credenciales correspondientes. El proveedor principal puede ser Ollama local o cualquier servicio compatible con la API de OpenAI.
 
 ---
 
-## 3. Arquitectura técnica
+## 7. Arquitectura técnica
 
-### 3.1 Stack principal
+### 7.1 Stack principal
 
 - Python
 - Django 5.1.5
@@ -87,7 +162,7 @@ La IA implementada en este proyecto es local, integrada en Django y orientada a 
 - Celery + Redis para procesos asíncronos y colas
 - Seguridad con django-axes, django-ratelimit, django-otp, argon2, django-csp
 
-### 3.2 Configuración de entorno y base de datos
+### 7.2 Configuración de entorno y base de datos
 
 El proyecto usa un archivo `.env` para configurar variables de entorno. La configuración actual de `core/settings/base.py` define:
 
@@ -98,7 +173,7 @@ El proyecto usa un archivo `.env` para configurar variables de entorno. La confi
 
 Esto significa que la base local es la opción predeterminada y la remota es una configuración opcional para despliegue o sincronización.
 
-### 3.3 Seguridad implementada
+### 7.3 Seguridad implementada
 
 El proyecto cuenta con una capa de seguridad centralizada en `core/security.py` y `core/middleware.py`:
 
@@ -108,7 +183,7 @@ El proyecto cuenta con una capa de seguridad centralizada en `core/security.py` 
 - `RoleNamespaceMiddleware` para filtrar acceso por namespace y url_name.
 - Protección a vistas administrativas y de cliente según rol.
 
-### 3.4 IA y asistente del proyecto
+### 7.4 IA y asistente del proyecto
 
 La app `ia` contiene servicios y configuración para un asistente interno del negocio. La integración actual se apoya en:
 
@@ -117,15 +192,15 @@ La app `ia` contiene servicios y configuración para un asistente interno del ne
 - Servicios de contexto para reunir datos de pedidos, inventario, facturación y clientes.
 - Plantillas y historial de conversaciones en modelos de Django.
 
-La intención funcional corresponde a un asistente inteligente del negocio integrado en la plataforma, con acceso a contexto del sistema y datos operativos. No se documenta una implementación de RAG, memoria semántica o base vectorial en la lectura actual del código.
+La intención funcional corresponde a un asistente inteligente del negocio integrado en la plataforma, con acceso a contexto del sistema y datos operativos. La configuración de RAG y búsqueda web es opcional y se controla desde las variables del entorno.
 
 ---
 
-## 4. Modelo de dominio real
+## 8. Modelo de dominio real
 
 Los modelos que aparecen en el código actual y se usan como fuente de verdad son los siguientes:
 
-### 4.1 Usuarios y perfiles
+### 8.1 Usuarios y perfiles
 
 - `Usuario`
 - `Rol`
@@ -137,12 +212,12 @@ Los modelos que aparecen en el código actual y se usan como fuente de verdad so
 - `MetodoPago`
 - `Notificacion`
 
-### 4.2 Clientes
+### 8.2 Clientes
 
 - `Cliente`
 - `ClienteVIP`
 
-### 4.3 Compras e inventario
+### 8.3 Compras e inventario
 
 - `Compra`
 - `ProveedorMaterial`
@@ -152,7 +227,7 @@ Los modelos que aparecen en el código actual y se usan como fuente de verdad so
 - `SesionConteo`
 - `ConteoItem`
 
-### 4.4 Pedidos, entregas y gestión
+### 8.4 Pedidos, entregas y gestión
 
 - `Pedido`
 - `DetallePedido`
@@ -160,7 +235,7 @@ Los modelos que aparecen en el código actual y se usan como fuente de verdad so
 - `SolicitudPedido`
 - `DetalleSolicitudPedido`
 
-### 4.5 Facturación y pagos
+### 8.5 Facturación y pagos
 
 - `Factura`
 - `Pago`
@@ -168,7 +243,7 @@ Los modelos que aparecen en el código actual y se usan como fuente de verdad so
 
 La factura es una entidad real del proyecto, con flujo de pagos y estados de facturación. No es un concepto documental inventado sin modelo asociado.
 
-### 4.6 Reportes, historial, novedades e IA
+### 8.6 Reportes, historial, novedades e IA
 
 - `Reporte`
 - `HistorialReporte`
@@ -182,7 +257,7 @@ La factura es una entidad real del proyecto, con flujo de pagos y estados de fac
 - `AIConfiguration`
 - `KnowledgeBase`
 
-### 4.7 Equivalencias de nomenclatura entre documento y código
+### 8.7 Equivalencias de nomenclatura entre documento y código
 
 Durante el desarrollo se produjeron ajustes de terminología normal entre el documento funcional y la implementación final. Estas equivalencias no cambian el alcance del sistema y mantienen la misma intención de negocio:
 
@@ -195,7 +270,7 @@ Durante el desarrollo se produjeron ajustes de terminología normal entre el doc
 
 Estas variantes son de nomenclatura y no implican diferencias funcionales significativas ni pérdida de requerimientos.
 
-### 4.8 Licenciamiento y seguridad
+### 8.8 Licenciamiento y seguridad
 
 - `Installation`
 - `Licencia`
@@ -206,9 +281,9 @@ Estas variantes son de nomenclatura y no implican diferencias funcionales signif
 
 ---
 
-## 5. Requisitos funcionales actuales
+## 9. Requisitos funcionales actuales
 
-### 5.1 Épicas del sistema
+### 9.1 Épicas del sistema
 
 #### Épica 1 – Gestión de usuarios y acceso
 Entidades relacionadas: `Usuario` y `Rol`. Permite administrar los usuarios del sistema y controlar el acceso a las funcionalidades de Constru-Trans mediante autenticación y asignación de roles (`admin`, `cliente`, `conductor`, `empleado`). El sistema permite registrar, consultar y actualizar información de usuarios, además de gestionar inicio y cierre de sesión y recuperación de contraseña.
@@ -234,7 +309,7 @@ Entidades relacionadas: `Historial` y `Novedad`. Permite mantener un registro de
 #### Épica 8 – Asistente inteligente (IA)
 Funcionalidad relacionada: módulo `ia`. Permite a los usuarios consultar información del negocio y recibir respuestas basadas en contexto del sistema. La funcionalidad está integrada dentro de la aplicación y se apoya en servicio de IA local con contexto operativo, sin constituir un modelo independiente o una infraestructura de base vectorial en la implementación revisada.
 
-### 5.2 Historias de usuario clave
+### 9.2 Historias de usuario clave
 
 #### Gestión de materiales e inventario
 - HU-08: Como administrador, quiero registrar materiales de construcción para administrar el inventario disponible en el sistema.
@@ -264,7 +339,7 @@ Funcionalidad relacionada: módulo `ia`. Permite a los usuarios consultar inform
 - HU-40: Como sistema, quiero registrar las acciones relevantes en el historial para la trazabilidad.
 - HU-41: Como administrador, quiero consultar el historial cronológico para realizar auditorías operativas.
 
-### 5.3 Tareas de implementación asociadas
+### 9.3 Tareas de implementación asociadas
 
 #### Materiales e inventario
 - T-11: Crear modelo `MaterialConstruccion`.
@@ -290,7 +365,7 @@ Funcionalidad relacionada: módulo `ia`. Permite a los usuarios consultar inform
 - T-63: Crear módulo de auditoría `Historial`.
 - T-64: Registrar usuario, IP y módulo afectado en cada acción relevante.
 
-### 5.4 Requerimientos funcionales ajustados
+### 9.4 Requerimientos funcionales ajustados
 
 - RF5: El sistema debe permitir registrar materiales ingresando nombre, precio, stock inicial y catálogo.
 - RF6: El sistema debe permitir administrar catálogos y unidades de medida.
@@ -301,18 +376,18 @@ Funcionalidad relacionada: módulo `ia`. Permite a los usuarios consultar inform
 
 ---
 
-## 6. Requisitos no funcionales
+## 10. Requisitos no funcionales
 
 - Arquitectura modular en Django.
 - Seguridad por roles y validación de IP.
 - Gestión de variables de entorno con archivos `.env`.
-- Base local con posibilidad de base remota premium via `DATABASE_URL`.
+- Base local con posibilidad de base remota vía `DATABASE_URL`.
 - Separación de responsabilidades entre apps y servicios.
 - Preparación para despliegue con políticas de seguridad, cache y automatización.
 
 ---
 
-## 7. Estructura del proyecto
+## 11. Estructura del proyecto
 
 La estructura global del repositorio incluye:
 
@@ -336,32 +411,17 @@ La estructura global del repositorio incluye:
 
 ---
 
-## 8. Observaciones importantes
+## 12. Comandos útiles y observaciones
+
+```bash
+python manage.py check
+python manage.py migrate
+pytest
+python manage.py collectstatic --noinput
+```
 
 1. La documentación debe basarse en el código real y no en supuestos legacy.
-2. La app `ia` es un asistente integrado al proyecto y no una infraestructura externa con vector DB.
+2. La app `ia` funciona sin servicios externos básicos, pero Ollama, ChromaDB o la búsqueda web requieren configuración adicional.
 3. La base por defecto es SQLite; la base remota PostgreSQL es opcional y configurable.
 4. La facturación es una entidad real del sistema y su estado se gestiona en la lógica de negocio.
 5. El proyecto cuenta con validaciones de seguridad y control de acceso explícitas en middleware y decoradores.
-
----
-
-## CAMBIOS REALIZADOS EN LA DOCUMENTACIÓN
-
-Se actualizaron los documentos para alinear la documentación con el código real del repositorio y eliminar información no verificada.
-
-### Cambios principales
-
-- Se corrigió la lista de apps activas para que coincida con `INSTALLED_APPS` de Django.
-- Se ajustó la terminología del dominio para reflejar los nombres reales usados en el código: `MaterialConstruccion`, `Catalogo`, `Entrega`, `Historial`, y `Factura`.
-- Se incorporó una sección de equivalencias entre el documento de requisitos y la implementación para evitar contradicciones de nombres en la sustentación.
-- Se actualizó la descripción de IA para reflejar una integración local con contexto del negocio y modelos compatibles con OpenAI/Ollama, sin inventar capacidades no observadas en el código.
-- Se corrigió la descripción de la base de datos para indicar claramente que SQLite es la opción por defecto y PostgreSQL solo es opcional mediante `DATABASE_URL`.
-- Se revisó la parte de facturación para reflejar la entidad `Factura` real y sus estados de negocio.
-- Se eliminaron menciones a módulos heredados o no activos que no forman parte de la configuración actual del proyecto.
-- Se ajustó el alcance funcional para describir únicamente aquellas funciones verificadas en modelos, vistas, servicios y configuraciones reales.
-- Se añadió la sección de “Cambios realizados en la documentación” para dejar constancia del ajuste de contenido realizado sobre la fuente de verdad del proyecto actual.
-
----
-
-Este documento se considera la versión actualizada y coherente con el estado real del repositorio en este momento.
