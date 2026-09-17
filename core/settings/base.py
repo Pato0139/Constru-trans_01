@@ -176,8 +176,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 # ============================================================
-# BASE DE DATOS — remota PostgreSQL (Neon) por defecto,
-# con SQLite local como respaldo explícito.
+# BASE DE DATOS — PostgreSQL (Neon) configurada como default
 # ============================================================
 
 LOCAL_DATABASE = {
@@ -202,8 +201,9 @@ if database_url:
     remote_database["OPTIONS"].setdefault("connect_timeout", 5)
     remote_database["OPTIONS"].pop("options", None)
 
+# Si existe la URL de base de datos remota, se asigna como 'default'
 DATABASES = {
-    "default": LOCAL_DATABASE,
+    "default": remote_database if remote_database else LOCAL_DATABASE,
     "local": LOCAL_DATABASE,
 }
 
