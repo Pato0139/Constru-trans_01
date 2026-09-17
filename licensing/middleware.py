@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import NoReverseMatch, reverse
 
@@ -25,6 +26,9 @@ class LicenseEnforcementMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        if not getattr(settings, "LICENSE_REQUIRED", False):
+            return self.get_response(request)
+
         if request.path.startswith(ALLOWED_PATH_PREFIXES):
             return self.get_response(request)
 
