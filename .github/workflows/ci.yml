@@ -2,8 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop, 'edward/*', 'feature/*']
+    branches: [main, develop, 'GRUPO_7_ADSO/**']
   pull_request:
+    branches: [main, develop, 'GRUPO_7_ADSO/**']
 
 jobs:
   test:
@@ -23,7 +24,30 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
       - run: pip install -r requirements.txt
+      - run: python manage.py check
+      - run: python manage.py makemigrations --check --dry-run
       - run: ruff check .
+      - name: Secret scan
+        run: |
+          python - <<'PY'
+          import pathlib
+          import re
+          root = pathlib.Path('.')
+          offenders = []
+          for path in root.rglob('*'):
+              if not path.is_file() or '.git' in path.parts or path.name == '.env.example':
+                  continue
+              if path.suffix in {'.py', '.txt', '.yml', '.yaml', '.toml', '.ini', '.cfg'}:
+                  text = path.read_text(errors='ignore')
+                  if re.search(r'(SECRET_KEY\s*[:=]|PASSWORD\s*[:=]|API_KEY\s*[:=]|TOKEN\s*[:=])', text, re.I):
+                      offenders.append(str(path))
+          if offenders:
+              print('Potential secrets found:')
+              for item in offenders:
+                  print(item)
+              raise SystemExit(1)
+          print('No obvious secret values found in tracked source files.')
+          PY
       - run: pytest
         env:
           DATABASE_URL: postgresql://postgres:testpass@localhost:5432/testdb
