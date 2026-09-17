@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -34,6 +34,14 @@ numeric_and_space_validator = RegexValidator(
 # =====================================================================
 # USUARIO
 # =====================================================================
+class UsuarioManager(UserManager):
+    def create_user(self, username=None, email=None, password=None, **extra_fields):
+        username = username or email
+        extra_fields.setdefault("tipo_documento", "CC")
+        extra_fields.setdefault("documento", str(uuid.uuid4().int)[:20])
+        return super().create_user(username, email, password, **extra_fields)
+
+
 class Usuario(AbstractUser):
     TIPOS_DOCUMENTO = [
         ("CC", "Cédula de Ciudadanía"),
@@ -71,6 +79,8 @@ class Usuario(AbstractUser):
         blank=True,
     )
     sincronizado = models.BooleanField(default=False)
+
+    objects = UsuarioManager()
     
     # Bloqueo por intentos fallidos
     intentos_fallidos = models.IntegerField(default=0, help_text="Número de intentos fallidos de inicio de sesión")
