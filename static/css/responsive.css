@@ -76,6 +76,55 @@ body {
   padding-bottom: 0.15rem !important;
 }
 
+/* Keep table rows in the page flow; the inner wrapper handles wide tables. */
+.table-container {
+  overflow: visible !important;
+}
+
+/* The orders list shares the viewport with the fixed dashboard chrome. Keep
+   its results independently scrollable so lower rows cannot be covered. */
+.orders-list-table-container {
+  overflow: visible !important;
+  padding-right: 0.25rem !important;
+}
+
+.orders-list-scroll {
+  height: calc(100vh - 23rem);
+  min-height: 15rem;
+  overflow-y: scroll !important;
+  overflow-x: auto !important;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.orders-list-scroll::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.orders-list-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.25rem;
+}
+
+.orders-list-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-accent) 82%, white);
+  border: 1px solid var(--card-bg);
+  border-radius: 0.25rem;
+  transition: background-color 180ms ease;
+}
+
+.orders-list-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+.orders-list-scroll {
+  scrollbar-color: var(--color-accent) rgba(255, 255, 255, 0.05);
+  scrollbar-width: thin;
+}
+
 .app-navbar,
 .app-topbar {
   top: 1rem !important;
@@ -170,8 +219,8 @@ body {
      their readable column widths and can be swiped horizontally instead. */
   .table-container {
     max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
   }

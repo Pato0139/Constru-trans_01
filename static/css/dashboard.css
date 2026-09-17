@@ -517,7 +517,7 @@ body {
     border-top: 3px solid var(--color-primary);
     padding: 1rem !important;
     box-shadow: var(--shadow-panel);
-    overflow: hidden;
+    overflow: visible;
 }
 [data-theme="dark"] .table-container,
 [data-theme="accessibility"] .table-container {
