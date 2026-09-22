@@ -1,6 +1,6 @@
 # Constru-Trans - Dependencies
 # Core
-Django==5.2.7
+Django==5.2.8
 gunicorn==23.0.0
 django-environ==0.11.2
 dj-database-url==2.2.0
