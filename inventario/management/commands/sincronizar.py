@@ -8,11 +8,9 @@ from django.db import OperationalError, connections
 
 from clientes.models import Cliente
 from compras.models import Compra
-from facturacion.models import Factura
 from historial.models import Historial
 from inventario.models import MovimientoInventario
 from ordenes.models import Entrega, Orden
-from pagos.models import Pago
 from usuarios.models import Material, Proveedor, Usuario, Vehiculo
 
 
@@ -77,8 +75,6 @@ class Command(BaseCommand):
                     )  # Sincroniza Compra y DetalleCompra
                     self.sincronizar_modelo(Orden, force=force)  # Sincroniza Orden y DetalleOrden
                     self.sincronizar_modelo(Entrega, force=force)
-                    self.sincronizar_modelo(Factura, force=force)
-                    self.sincronizar_modelo(Pago, force=force)
                     self.sincronizar_modelo(MovimientoInventario, force=force)
                     self.sincronizar_modelo(Historial, force=force)
                     self.sincronizar_log_admin()  # django_admin_log
@@ -374,7 +370,6 @@ class Command(BaseCommand):
                     ("vehiculo", "id_vehiculo"),
                     ("proveedor", "codigo_proveedor"),
                     ("pedido", "codigo_pedido"),
-                    ("factura", "id_factura"),
                     ("historial_actividad", "id_historial"),
                 ]
                 for tabla, columna in tablas:

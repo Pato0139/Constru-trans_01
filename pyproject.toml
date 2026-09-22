@@ -25,8 +25,6 @@ testpaths = [
   "compras",
   "ordenes",
   "gestion_pedidos",
-  "facturacion",
-  "pagos",
   "reportes",
   "inicio",
   "historial",
@@ -36,4 +34,4 @@ testpaths = [
 ]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 norecursedirs = [".venv", "scripts", "htmlcov", "staticfiles"]
-addopts = "--cov=usuarios --cov=clientes --cov=inventario --cov=compras --cov=ordenes --cov=gestion_pedidos --cov=facturacion --cov=pagos --cov=reportes --cov=inicio --cov=historial --cov=transporte --cov=licensing --cov=ia --cov-report=html --cov-report=term"
+addopts = "--cov=usuarios --cov=clientes --cov=inventario --cov=compras --cov=ordenes --cov=gestion_pedidos --cov=reportes --cov=inicio --cov=historial --cov=transporte --cov=licensing --cov=ia --cov-report=html --cov-report=term"

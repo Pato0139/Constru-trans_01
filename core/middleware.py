@@ -45,7 +45,7 @@ def _namespace_from_path(path):
         return "inicio"
     first = parts[0]
     if first in {"usuarios", "clientes", "inventario", "compras", "ordenes",
-                  "facturacion", "pagos", "reportes", "historial", "transporte",
+                  "reportes", "historial", "transporte",
                   "ia", "ayuda", "pedidos", "gestion_pedidos", "licensing", "inicio"}:
         return first
     return None
@@ -94,14 +94,6 @@ _ORDENES_URLNAMES_ROLES = {
 
 
 _URLNAMES_BY_ROLE_EXTRA = {
-    "facturacion": {
-        "lista_facturas": {"admin"},
-        "mis_facturas": {"cliente"},
-    },
-    "pagos": {
-        "gestion_pagos": {"admin"},
-        "lista_pagos": {"admin"},
-    },
     "clientes": {
         "panel_cliente": {"cliente"},
         "mis_pedidos": {"cliente"},
@@ -111,7 +103,6 @@ _URLNAMES_BY_ROLE_EXTRA = {
         "crear_pedido": {"cliente"},
         "editar_pedido": {"cliente", "admin"},
         "cancelar_pedido": {"cliente", "admin"},
-        "mis_pagos": {"cliente"},
         "lista": {"admin"},
         "detalle": {"admin"},
         "form": {"admin"},
