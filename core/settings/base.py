@@ -63,13 +63,34 @@ def get_secret_key():
 
 SECRET_KEY = get_secret_key()
 
-DEBUG = env("DEBUG")
-ALLOWED_HOSTS = env("ALLOWED_HOSTS")
-if DJANGO_ENV == "production" and not ALLOWED_HOSTS:
-    raise RuntimeError(
-        "ALLOWED_HOSTS no configurado. Define hosts válidos en .env para producción."
-    )
-CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
+DEFAULT_LOCAL_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
+DEFAULT_CSRF_ORIGINS = [
+    "http://localhost",
+    "http://localhost:8000",
+    "http://127.0.0.1",
+    "http://127.0.0.1:8000",
+    "https://localhost",
+    "https://localhost:8000",
+    "https://127.0.0.1",
+    "https://127.0.0.1:8000",
+]
+
+
+def as_list(value):
+    if value is None or value == "":
+        return []
+    if isinstance(value, str):
+        return [item.strip() for item in value.split(",") if item.strip()]
+    return list(value)
+
+
+DEBUG = env("DEBUG", default=True)
+ALLOWED_HOSTS = as_list(env("ALLOWED_HOSTS", default=DEFAULT_LOCAL_HOSTS))
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = DEFAULT_LOCAL_HOSTS
+CSRF_TRUSTED_ORIGINS = as_list(env("CSRF_TRUSTED_ORIGINS", default=DEFAULT_CSRF_ORIGINS))
+if not CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = DEFAULT_CSRF_ORIGINS
 
 # ============================================================
 # APLICACIONES
