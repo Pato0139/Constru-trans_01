@@ -14,47 +14,76 @@ Set-Location $projectRoot
 # Paso 1: Verificar Python
 Write-Host "[1/5] Verificando Python..." -ForegroundColor blue
 $pythonCmd = $null
+$pyArgs = @()
+$pythonVersion = ""
 
+# Intentar encontrar Python a traves del lanzador 'py' prefiriendo 3.12, 3.11, 3.13, 3.14
 try {
-    $pyCmd = Get-Command py -ErrorAction Stop
-    $pythonVersion = & py --version 2>&1
-    if ($pythonVersion -match "Python") {
-        Write-Host "[OK] Python encontrado (py): $pythonVersion" -ForegroundColor Green
-        $pythonCmd = "py"
+    $null = Get-Command py -ErrorAction Stop
+    $preferredVersions = @("-3.12", "-3.11", "-3.13", "-3.14")
+    foreach ($ver in $preferredVersions) {
+        $testOutput = & py $ver --version 2>&1
+        if ($LASTEXITCODE -eq 0 -and $testOutput -match "Python\s+3\.") {
+            $pythonCmd = "py"
+            $pyArgs = @($ver)
+            $pythonVersion = $testOutput.Trim()
+            break
+        }
+    }
+    if (-not $pythonCmd) {
+        $testOutput = & py --version 2>&1
+        if ($testOutput -match "Python\s+3\.") {
+            $pythonCmd = "py"
+            $pythonVersion = $testOutput.Trim()
+        }
     }
 } catch {}
 
 if (-not $pythonCmd) {
     try {
-        $pythonVersion = & python --version 2>&1
-        if ($pythonVersion -match "Python") {
-            Write-Host "[OK] Python encontrado: $pythonVersion" -ForegroundColor Green
+        $testOutput = & python --version 2>&1
+        if ($testOutput -match "Python\s+3\.") {
             $pythonCmd = "python"
+            $pythonVersion = $testOutput.Trim()
         }
     } catch {}
 }
 
 if (-not $pythonCmd) {
     Write-Host ""
-    Write-Host "[ERROR] Python no encontrado. Instala Python 3.11+" -ForegroundColor Red
+    Write-Host "[ERROR] Python no encontrado. Instala Python 3.11 o superior (recomendado 3.12)." -ForegroundColor Red
     Write-Host "Descarga: https://www.python.org/downloads/" -ForegroundColor Yellow
     Read-Host "Presiona cualquier tecla para salir"
     exit 1
 }
 
+Write-Host "[OK] Python seleccionado: $pythonVersion" -ForegroundColor Green
+
 # Paso 2: Crear entorno virtual
 Write-Host ""
 Write-Host "[2/5] Creando entorno virtual..." -ForegroundColor blue
+if (Test-Path "venv") {
+    # Verificar si el venv existente esta roto o incompleto
+    if (-not (Test-Path "venv\Scripts\python.exe") -or -not (Test-Path "venv\Scripts\activate.bat")) {
+        Write-Host "[AVISO] Entorno virtual anterior corrupto o incompleto. Recreando..." -ForegroundColor Yellow
+        Remove-Item -Recurse -Force "venv"
+    }
+}
+
 if (-not (Test-Path "venv")) {
-    & $pythonCmd -m venv venv
+    if ($pyArgs.Count -gt 0) {
+        & $pythonCmd $pyArgs -m venv venv
+    } else {
+        & $pythonCmd -m venv venv
+    }
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "[ERROR] Fallo al crear entorno virtual" -ForegroundColor Red
+        Write-Host "[ERROR] Fallo al crear entorno virtual." -ForegroundColor Red
         Read-Host "Presiona cualquier tecla para salir"
         exit 1
     }
-    Write-Host "[OK] Entorno virtual creado" -ForegroundColor Green
+    Write-Host "[OK] Entorno virtual creado exitosamente" -ForegroundColor Green
 } else {
-    Write-Host "[OK] Entorno virtual ya existe" -ForegroundColor Green
+    Write-Host "[OK] Entorno virtual existente verificado" -ForegroundColor Green
 }
 
 # Paso 3: Instalar dependencias
@@ -66,9 +95,12 @@ if ($LASTEXITCODE -ne 0) {
     Read-Host "Presiona cualquier tecla para salir"
     exit 1
 }
-& .\venv\Scripts\python.exe -m pip install -r requirements.txt
+
+# Usar --prefer-binary para priorizar ruedas precompiladas y evitar fallos por compilacion en Windows
+& .\venv\Scripts\python.exe -m pip install --prefer-binary -r requirements.txt
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Fallo al instalar dependencias" -ForegroundColor Red
+    Write-Host "[ERROR] Fallo al instalar dependencias." -ForegroundColor Red
+    Write-Host "Asegurate de que las versiones en requirements.txt cuenten con ruedas (wheels) precompiladas." -ForegroundColor Yellow
     Read-Host "Presiona cualquier tecla para salir"
     exit 1
 }
