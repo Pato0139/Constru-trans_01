@@ -22,21 +22,22 @@ VENV_ACTIVATE="$VENV_DIR/bin/activate"
 VENV_PYTHON="$VENV_DIR/bin/python"
 
 ensure_python() {
-    if command -v python3 >/dev/null 2>&1; then
-        PYTHON_CMD="python3"
-    elif command -v python >/dev/null 2>&1; then
-        PYTHON_CMD="python"
-    else
-        echo -e "${RED}[ERROR] Python 3 no encontrado. Instala Python 3.11+ y vuelve a intentar."
+    PYTHON_CMD=""
+    for cmd in python3.12 python3.11 python3.13 python3.14 python3 python; do
+        if command -v "$cmd" >/dev/null 2>&1; then
+            if "$cmd" -c 'import sys; sys.exit(not (sys.version_info >= (3, 11)))' >/dev/null 2>&1; then
+                PYTHON_CMD="$cmd"
+                break
+            fi
+        fi
+    done
+
+    if [ -z "$PYTHON_CMD" ]; then
+        echo -e "${RED}[ERROR] Python 3.11+ no encontrado. Instala Python (recomendado 3.12) y vuelve a intentar."
         exit 1
     fi
 
-    if ! "$PYTHON_CMD" -c 'import sys; sys.exit(not (sys.version_info >= (3, 11)))' >/dev/null 2>&1; then
-        echo -e "${RED}[ERROR] Python 3.11 o superior es requerido. Encontrado: $($PYTHON_CMD --version)"
-        exit 1
-    fi
-
-    echo -e "${GREEN}[OK] Python encontrado: $($PYTHON_CMD --version)"
+    echo -e "${GREEN}[OK] Python seleccionado: $($PYTHON_CMD --version)"
 }
 
 ensure_venv() {
@@ -94,7 +95,7 @@ source "$VENV_ACTIVATE"
 echo -e ""
 echo -e "${BLUE}[3/5] Instalando dependencias..."
 "$VENV_PYTHON" -m pip install --upgrade pip
-"$VENV_PYTHON" -m pip install -r requirements.txt
+"$VENV_PYTHON" -m pip install --prefer-binary -r requirements.txt
 
 echo -e "${GREEN}[OK] Dependencias instaladas"
 
