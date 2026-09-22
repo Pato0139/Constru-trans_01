@@ -1,58 +1,91 @@
 import hashlib
+import json
+import logging
 import os
+from datetime import timedelta
 from pathlib import Path
-from django.utils import timezone
-from .models import Installation
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
-from datetime import timedelta
-import json, logging
 
-from .crypto import encrypt_license_blob, decrypt_license_blob, KDF_DEFAULTS
-from .models import Licencia, UsuarioLicencia, AuditoriaLicencia
+from .crypto import KDF_DEFAULTS, decrypt_license_blob, encrypt_license_blob
+from .models import AuditoriaLicencia, Installation, Licencia, UsuarioLicencia
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+EXCLUDED_DIR_NAMES = {
+    ".git",
+    ".venv",
+    "venv",
+    "ENV",
+    "__pycache__",
+    "node_modules",
+    "media",
+    "staticfiles",
+    "cache",
+    "logs",
+    ".pytest_cache",
+    "htmlcov",
+    "site-packages",
+}
+
+
+def _iter_project_files() -> list[Path]:
+    files: list[Path] = []
+    for root, dirs, filenames in os.walk(PROJECT_ROOT):
+        dirs[:] = [d for d in sorted(dirs) if d not in EXCLUDED_DIR_NAMES and not d.startswith(".")]
+        for filename in sorted(filenames):
+            path = Path(root) / filename
+            if filename.endswith(".py"):
+                files.append(path)
+    return files
 
 
 def get_current_installation() -> Installation | None:
+    cache_key = "licensing:current_installation"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     try:
-        return Installation.objects.first()
-    except Installation.DoesNotExist:
+        inst = Installation.objects.order_by("id").first()
+    except Exception:
         return None
+
+    cache.set(cache_key, inst, timeout=60)
+    return inst
 
 
 def calculate_build_hash() -> str:
-    base_dir = Path(__file__).resolve().parent.parent.parent
     hash_sha256 = hashlib.sha256()
+    checked_files = [
+        PROJECT_ROOT / "requirements.txt",
+        PROJECT_ROOT / "pyproject.toml",
+        PROJECT_ROOT / "manage.py",
+        PROJECT_ROOT / "core" / "settings" / "base.py",
+    ]
 
-    try:
-        for file in ["requirements.txt", "pyproject.toml", "manage.py", "core/settings/base.py"]:
-            file_path = base_dir / file
-            if file_path.exists():
-                with open(file_path, "rb") as f:
-                    hash_sha256.update(f.read())
-    except Exception:
-        pass
+    for file_path in checked_files:
+        if not file_path.exists():
+            continue
+        with open(file_path, "rb") as file_handle:
+            hash_sha256.update(file_handle.read())
+
     return hash_sha256.hexdigest()
 
 
 def calculate_manifest_hash() -> str:
-    base_dir = Path(__file__).resolve().parent.parent.parent
     hash_sha256 = hashlib.sha256()
-
-    try:
-        apps_dir = base_dir / "apps"
-        for root, _, files in os.walk(apps_dir):
-            for file in files:
-                if file.endswith(".py"):
-                    file_path = Path(root) / file
-                    with open(file_path, "rb") as f:
-                        hash_sha256.update(f.read())
-    except Exception:
-        pass
+    for file_path in _iter_project_files():
+        if file_path.name.endswith(".py"):
+            with open(file_path, "rb") as file_handle:
+                hash_sha256.update(file_path.relative_to(PROJECT_ROOT).as_posix().encode("utf-8"))
+                hash_sha256.update(b"\0")
+                hash_sha256.update(file_handle.read())
     return hash_sha256.hexdigest()
 
 

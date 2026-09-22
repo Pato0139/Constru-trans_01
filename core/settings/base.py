@@ -176,8 +176,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 # ============================================================
-# BASE DE DATOS — remota PostgreSQL (Neon) por defecto,
-# con SQLite local como respaldo explícito.
+# BASE DE DATOS — PostgreSQL (Neon) configurada como default
 # ============================================================
 
 LOCAL_DATABASE = {
@@ -199,11 +198,13 @@ if database_url:
     )
     if "OPTIONS" not in remote_database:
         remote_database["OPTIONS"] = {}
-    remote_database["OPTIONS"].setdefault("connect_timeout", 5)
+    if remote_database.get("ENGINE") == "django.db.backends.postgresql":
+        remote_database["OPTIONS"].setdefault("connect_timeout", 5)
     remote_database["OPTIONS"].pop("options", None)
 
+# Si existe la URL de base de datos remota, se asigna como 'default'
 DATABASES = {
-    "default": LOCAL_DATABASE,
+    "default": remote_database if remote_database else LOCAL_DATABASE,
     "local": LOCAL_DATABASE,
 }
 
@@ -389,8 +390,8 @@ APPEND_SLASH = False
 # Captcha
 # ============================================================
 
-RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY")
-RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY")
+RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY", default="")
+RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY", default="")
 
 # Silenciar el check de Django cuando se usan las claves de prueba de Google
 # en entornos de desarrollo. IMPORTANTE: usar claves reales antes de producción.
