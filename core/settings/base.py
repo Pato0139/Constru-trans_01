@@ -101,8 +101,6 @@ LOCAL_APPS = [
     "compras",
     "ordenes",
     "gestion_pedidos",
-    "facturacion",
-    "pagos",
     "reportes",
     "inicio",
     "historial",
