@@ -9,7 +9,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('compras', '0001_initial'),
-        ('facturacion', '0002_normalize_factura_3fn'),
     ]
 
     operations = [

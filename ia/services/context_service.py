@@ -33,9 +33,7 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
 
             from clientes.models import Cliente
             from compras.models import Compra
-            from facturacion.models import Factura
             from ordenes.models import Pedido as PedidoGestion
-            from pagos.models import Pago
             from usuarios.models import (
                 ConductorVehiculo,
                 MaterialConstruccion,
@@ -114,12 +112,6 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
                     "compras_recibidas": Compra.objects.filter(estado="recibida").count(),
                     "total_compras": Compra.objects.aggregate(total=Sum("total_compra"))["total"]
                     or 0,
-                    "facturas_totales": Factura.objects.count(),
-                    "facturas_pendientes": Factura.objects.filter(estado="pendiente").count(),
-                    "facturas_pagadas": Factura.objects.filter(estado="pagada").count(),
-                    "total_facturado": Factura.objects.aggregate(total=Sum("total"))["total"] or 0,
-                    "pagos_totales": Pago.objects.count(),
-                    "total_pagado": Pago.objects.aggregate(total=Sum("monto"))["total"] or 0,
                     "proveedores_count": Proveedor.objects.count(),
                     "vehiculos_count": Vehiculo.objects.count(),
                     "vehiculos_disponibles": Vehiculo.objects.filter(estado="disponible").count(),
@@ -144,7 +136,6 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
         if rol_usuario == "cliente":
             try:
                 from clientes.models import Cliente
-                from facturacion.models import Factura
                 from ordenes.models import Pedido as PedidoGestion
 
                 cliente_obj = Cliente.objects.filter(usuario=usuario).first()
@@ -158,11 +149,6 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
                         estado="entregado"
                     ).count()
 
-                    facturas_cliente = Factura.objects.filter(cliente=cliente_obj)
-                    data["mis_facturas_pendientes"] = facturas_cliente.filter(
-                        estado="pendiente"
-                    ).count()
-                    data["mis_facturas_pagadas"] = facturas_cliente.filter(estado="pagada").count()
             except Exception:
                 logger.exception("Error obteniendo datos personalizados para cliente")
 

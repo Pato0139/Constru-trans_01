@@ -7,11 +7,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 import logging
 
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-
 from core.security import (
     _respuesta_no_autorizada,
     obtener_ip,
@@ -20,9 +15,7 @@ from core.security import (
 )
 from historial.utils import registrar_actividad
 from inventario.models import MovimientoInventario
-from pagos.models import PagoPedido
-from pagos.services import registrar_estado_pago
-from usuarios.models import Conductor, MaterialConstruccion, MetodoPago, Stock, Usuario
+from usuarios.models import Conductor, MaterialConstruccion, Stock, Usuario
 from usuarios.views import admin_required
 from core.db_preference import debe_usar_bd_remota
 from core.db_utils import select_for_update_if_supported
@@ -282,110 +275,8 @@ def ver_pedido_admin(request, id):
             )
 
     if request.method == "POST":
-        accion_pago = request.POST.get("accion_pago")
         accion = request.POST.get("accion")
         nuevo_estado = request.POST.get("estado")
-
-        if accion_pago == "registrar":
-            if not (es_admin or (usuario_actual.rol == "cliente" and cliente_dueno)):
-                ip = obtener_ip(request)
-                registrar_warning(ip)
-                registrar_evento(
-                    request,
-                    "role_violation",
-                    gravedad="high",
-                    detalles={
-                        "causa": "registrar_pago_sin_permiso",
-                        "codigo_pedido": orden.codigo_pedido,
-                        "rol_usuario": usuario_actual.rol,
-                    },
-                )
-                return _respuesta_no_autorizada(
-                    request,
-                    detalles={"rol_requerido": ["admin"], "permiso_alternativo": "cliente propietario"},
-                )
-
-            metodo = request.POST.get("metodo_pago", "").strip()
-            referencia = request.POST.get("referencia", "").strip()
-            comprobante = request.FILES.get("comprobante")
-
-            if not metodo:
-                messages.error(request, "Selecciona un método de pago para continuar.")
-                return redirect(f"{request.path}?tab=pagos")
-
-            pago_pedido = orden.pagos_pedido.order_by("-fecha_creacion").first()
-            if not pago_pedido:
-                pago_pedido = PagoPedido.objects.create(
-                    pedido=orden,
-                    cliente=orden.cliente,
-                    metodo_pago=metodo,
-                    monto=orden.total or orden.precio or 0,
-                    referencia=referencia,
-                    estado_pago="contra_entrega" if metodo == "Contra entrega" else "pendiente",
-                )
-            else:
-                pago_pedido.metodo_pago = metodo
-                pago_pedido.referencia = referencia
-                pago_pedido.monto = orden.total or orden.precio or 0
-
-            if comprobante:
-                pago_pedido.comprobante = comprobante
-                pago_pedido.estado_pago = "en_revision"
-            elif metodo == "Contra entrega":
-                pago_pedido.estado_pago = "contra_entrega"
-            else:
-                pago_pedido.estado_pago = "pendiente"
-
-            pago_pedido.save()
-            pago_pedido.agregar_historial(
-                f"Registro de pago enviado por {request.user.username} con método {metodo}."
-            )
-            messages.success(request, "Tu solicitud de pago quedó registrada. En breve será revisada.")
-            return redirect(f"{request.path}?tab=pagos")
-
-        if accion_pago in {"aprobar", "rechazar"}:
-            if not es_admin:
-                ip = obtener_ip(request)
-                registrar_warning(ip)
-                registrar_evento(
-                    request,
-                    "role_violation",
-                    gravedad="critical",
-                    detalles={
-                        "causa": "intento_aprobacion_rechazo_pago",
-                        "codigo_pedido": orden.codigo_pedido,
-                        "rol_usuario": usuario_actual.rol,
-                        "accion": accion_pago,
-                    },
-                )
-                return _respuesta_no_autorizada(
-                    request,
-                    detalles={"rol_requerido": ["admin"], "operacion": "aprobar/rechazar pagos"},
-                )
-
-            pago_pedido = orden.pagos_pedido.order_by("-fecha_creacion").first()
-            if not pago_pedido:
-                messages.error(request, "Aún no existe un registro de pago para esta orden.")
-                return redirect(f"{request.path}?tab=pagos")
-
-            if accion_pago == "aprobar":
-                registrar_estado_pago(pago_pedido, orden, "pago aprobado")
-                pago_pedido.agregar_historial(f"Pago aprobado por {request.user.username}")
-                pago_pedido.save(update_fields=["estado_pago", "motivo_rechazo", "fecha_actualizacion"])
-                messages.success(request, f"Pago aprobado para el pedido #{orden.codigo_pedido}.")
-            else:
-                motivo = request.POST.get("motivo_rechazo", "").strip()
-                if not motivo:
-                    messages.error(request, "Escribe un motivo para rechazar el comprobante.")
-                    return redirect(f"{request.path}?tab=pagos")
-                pago_pedido.estado_pago = "pago rechazado"
-                pago_pedido.motivo_rechazo = motivo
-                pago_pedido.pedido.estado = Orden.CANCELADO
-                pago_pedido.pedido.save(update_fields=["estado"])
-                pago_pedido.agregar_historial(f"Pago rechazado por {request.user.username}: {motivo}")
-                pago_pedido.save(update_fields=["estado_pago", "motivo_rechazo", "fecha_actualizacion"])
-                messages.warning(request, "Pago rechazado y cliente notificado.")
-            return redirect(f"{request.path}?tab=pagos")
 
         if usuario_actual.rol == "conductor" and not es_admin:
             if accion in ("confirmar", "cancelar") and not conductor_asignado:
@@ -511,34 +402,8 @@ def ver_pedido_admin(request, id):
                     )
                 return redirect("ordenes:ver_pedido_admin", id=orden.codigo_pedido)
 
-    pago_pedido = orden.pagos_pedido.order_by("-fecha_creacion").first()
     context = {
         "orden": orden,
-        "metodos_pago": MetodoPago.objects.all(),
-        "metodos_disponibles": [
-            "Nequi",
-            "Daviplata",
-            "Bancolombia",
-            "Contra entrega",
-        ],
-        "pago_pedido": pago_pedido,
-        "cuentas_transferencia": {
-            "Nequi": {
-                "telefono": "300 123 4567",
-                "titular": "ConstruTrans SAS",
-                "documento": "900.123.456-1",
-            },
-            "Daviplata": {
-                "telefono": "300 123 4567",
-                "titular": "ConstruTrans SAS",
-                "documento": "900.123.456-1",
-            },
-            "Bancolombia": {
-                "numero": "0134 123 456 789",
-                "titular": "ConstruTrans SAS",
-                "tipo": "Cuenta corriente",
-            },
-        },
     }
     return render(request, "ordenes/detalle.html", context)
 
@@ -633,194 +498,6 @@ def crear_entrega(request, orden_id):
 
     context = {"orden": orden, "conductores": conductores}
     return render(request, "ordenes/asignar_entrega.html", context)
-
-
-@login_required
-def descargar_factura(request, id):
-    orden = get_object_or_404(Orden, codigo_pedido=id)
-    usuario_actual = request.user
-
-
-    if usuario_actual.rol != "admin":
-        if orden.cliente is None or orden.cliente.usuario_id != usuario_actual.id:
-            return HttpResponse("No autorizado", status=403)
-
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = 'attachment; filename="detalle_pago.pdf"'
-
-    doc = SimpleDocTemplate(response, pagesize=letter, topMargin=30)
-    elements = []
-    styles = getSampleStyleSheet()
-
-    color_gold = colors.Color(0.95, 0.61, 0.07)
-    color_dark = colors.Color(0.07, 0.07, 0.07)
-    color_accent = colors.Color(0.0, 0.34, 0.7)
-
-    styles["Title"].fontSize = 22
-    styles["Title"].textColor = color_accent
-    styles["Title"].alignment = 0
-
-    elements.append(Paragraph("CONSTRU-TRANS", styles["Title"]))
-    elements.append(Paragraph("Suministros y Transporte de Construcción", styles["Italic"]))
-    elements.append(Spacer(1, 10))
-    elements.append(
-        Table(
-            [[""]],
-            colWidths=[540],
-            rowHeights=[2],
-            style=[("BACKGROUND", (0, 0), (-1, -1), color_gold)],
-        )
-    )
-    elements.append(Spacer(1, 20))
-
-
-    cliente_nombre = "N/A"
-    try:
-        cliente_usuario = orden.usuario
-        cliente_nombre = f"{cliente_usuario.nombres} {cliente_usuario.apellidos}".strip()
-    except Exception:
-        try:
-            cliente = orden.cliente
-            cliente_usuario = cliente.usuario if cliente else None
-            if cliente_usuario:
-                cliente_nombre = f"{cliente_usuario.nombres} {cliente_usuario.apellidos}".strip()
-        except Exception:
-            pass
-
-    info_data = [
-        [
-            Paragraph(f"<b>FACTURA:</b> #{orden.codigo_pedido}", styles["Normal"]),
-            Paragraph(f"<b>CLIENTE:</b> {cliente_nombre}", styles["Normal"]),
-        ],
-        [
-            Paragraph(f"<b>FECHA:</b> {orden.fecha.strftime('%d/%m/%Y %H:%M')}", styles["Normal"]),
-            Paragraph(f"<b>DIRECCIÓN:</b> {orden.direccion_destino}", styles["Normal"]),
-        ],
-    ]
-    info_table = Table(info_data, colWidths=[270, 270])
-    info_table.setStyle(
-        TableStyle(
-            [
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-            ]
-        )
-    )
-    elements.append(info_table)
-    elements.append(Spacer(1, 30))
-
-    def format_money(val):
-        try:
-            v = float(val)
-            rounded = int(round(v))
-            s = str(rounded)
-            parts = []
-            while s:
-                parts.append(s[-3:])
-                s = s[:-3]
-            return ".".join(reversed(parts))
-        except (TypeError, ValueError):
-            return "0"
-
-    try:
-        factura = orden.factura
-    except Exception:
-        factura = None
-
-    data = [["MATERIAL", "CANTIDAD", "PRECIO UNIT.", "SUBTOTAL"]]
-    detalles = orden.detalles.all()
-    if detalles.exists():
-        for detalle in detalles:
-            subtotal = detalle.cantidad * detalle.precio_unitario
-            try:
-                material_nombre = detalle.material.nombre
-            except Exception:
-                material_nombre = f"Material #{detalle.material_id}"
-            data.append(
-                [
-                    material_nombre.upper(),
-                    str(detalle.cantidad),
-                    format_money(detalle.precio_unitario),
-                    format_money(subtotal),
-                ]
-            )
-    else:
-        data.append(["SERVICIO GENERAL", "1", format_money(orden.precio), format_money(orden.precio)])
-
-    subtotal_f = format_money(factura.subtotal if factura else orden.precio)
-    iva_f = format_money(factura.iva if factura else 0)
-    total_f = format_money(factura.total if factura else orden.precio)
-
-    try:
-        total_pagado = format_money(factura.total_pagado)
-        por_pagar = format_money(factura.saldo_pendiente)
-        nota_pago = ""
-    except Exception:
-        total_pagado = "—"
-        por_pagar = total_f
-        nota_pago = " (factura aún no emitida)"
-
-    data.append(["", "", "SUBTOTAL:", subtotal_f])
-    data.append(["", "", "IVA (19%):", iva_f])
-    data.append(["", "", "TOTAL:", total_f])
-    data.append(["", "", "PAGADO:", total_pagado])
-    data.append(["", "", f"POR PAGAR:{nota_pago}", por_pagar])
-
-    t = Table(data, colWidths=[240, 80, 110, 110])
-    table_style = [
-        ("BACKGROUND", (0, 0), (-1, 0), color_dark),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("ALIGN", (1, 0), (-1, -1), "CENTER"),
-        ("ALIGN", (3, 1), (3, -1), "RIGHT"),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, 0), 10),
-        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-        ("TOPPADDING", (0, 0), (-1, 0), 12),
-        ("GRID", (0, 0), (-1, -4) if len(data) > 5 else (-1, -2), 0.5, colors.grey),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("FONTNAME", (2, -3), (3, -1), "Helvetica-Bold"),
-        ("ALIGN", (2, -3), (3, -1), "RIGHT"),
-        ("TEXTCOLOR", (2, -1), (3, -1), color_accent),
-        ("FONTSIZE", (2, -1), (3, -1), 12),
-    ]
-    t.setStyle(TableStyle(table_style))
-    elements.append(t)
-
-    elements.append(Spacer(1, 50))
-    notes_data = [
-        [Paragraph("<b>NOTAS:</b>", styles["Normal"])],
-        [Paragraph("1. Soporte legal de la transacción.", styles["Normal"])],
-        [Paragraph("2. Materiales verificados en calidad y cantidad.", styles["Normal"])],
-        [
-            Paragraph(
-                f"3. Estado actual del pedido: <b>{orden.get_estado_display().upper()}</b>",
-                styles["Normal"],
-            )
-        ],
-    ]
-    notes_table = Table(notes_data, colWidths=[540])
-    notes_table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
-                ("TOPPADDING", (0, 0), (-1, -1), 2),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
-            ]
-        )
-    )
-    elements.append(notes_table)
-
-    elements.append(Spacer(1, 30))
-    elements.append(Paragraph("¡Gracias por confiar en Constru-Trans!", styles["Italic"]))
-
-    doc.build(elements)
-
-    registrar_actividad(
-        request, "otro", "pedidos", orden.codigo_pedido,
-        f"Factura descargada por {request.user.username}",
-    )
-    return response
 
 
 @admin_required

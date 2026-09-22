@@ -52,19 +52,15 @@ GUIAS = [
         ],
     },
     {
-        "categoria": ("Pagos y facturas", "Consultas de facturación y pagos", 4),
-        "titulo": "Cómo revisar pagos y facturas",
-        "contenido": (
-            "Aprende dónde consultar el historial de pagos, el estado de las facturas "
-            "y los comprobantes asociados."
-        ),
+        "categoria": ("Pedidos y entregas", "Consultas sobre pedidos y entregas", 4),
+        "titulo": "Cómo consultar tus pedidos",
+        "contenido": "Aprende dónde consultar el estado y el historial de tus pedidos.",
         "orden": 1,
         "favorito": False,
         "pasos": [
-            ("Abrir Mis Pagos", "Ve a la sección de pagos desde el menú."),
+            ("Abrir Mis Pedidos", "Ve a la sección de pedidos desde el menú."),
             ("Filtrar resultados", "Usa el buscador o filtros disponibles."),
-            ("Ver factura", "Abre la factura vinculada al pago."),
-            ("Descargar comprobantes", "Si existe PDF, descargalo desde la acción correspondiente."),
+            ("Revisar estado", "Consulta el estado actualizado de cada pedido."),
         ],
     },
 ]

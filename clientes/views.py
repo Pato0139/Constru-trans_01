@@ -15,10 +15,8 @@ from core.security import (
     registrar_warning,
     role_required,
 )
-from facturacion.models import Factura
 from ordenes.models import DetallePedido, Pedido
-from pagos.models import Pago
-from usuarios.models import Catalogo, MetodoPago, Stock, UnidadMedida, Usuario
+from usuarios.models import Catalogo, Stock, UnidadMedida, Usuario
 from usuarios.models import MaterialConstruccion as Material
 from usuarios.utils import get_account_switch_options
 from core.db_preference import debe_usar_bd_remota
@@ -234,15 +232,10 @@ def panel_cliente(request):
         return redirect("usuarios:login")
 
     pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto)
-    pagos = Pago.objects.filter(
-        Q(factura__cliente__usuario__in=[usuario, usuario_remoto])
-        | Q(factura__cliente_usuario__in=[usuario, usuario_remoto])
-    )
     context = {
         "pedidos_activos": pedidos.filter(estado="pendiente").count(),
         "entregas": pedidos.filter(estado="entregado").count(),
         "total_gastado": pedidos.aggregate(total=Sum("total"))["total"] or 0,
-        "total_pagos": pagos.count(),
         "ultimos_pedidos": pedidos[:5],
     }
     return render(request, "clientes/lista.html", context)
@@ -263,7 +256,7 @@ def mis_pedidos(request):
     estado = request.GET.get("estado", "")
     q = request.GET.get("q", "")
 
-    pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto).select_related("factura").prefetch_related("factura__pagos")
+    pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto)
 
     # Apply filters
     if id_pedido:
@@ -293,10 +286,8 @@ def mis_pedidos(request):
     ]
 
     has_filters = any([id_pedido, destino, estado, q])
-    metodos_pago = MetodoPago.objects.all()
     context = {
         "pedidos": pedidos,
-        "metodos_pago": metodos_pago,
         "filter_fields": filter_fields,
         "has_filters": has_filters,
         "q": q,
@@ -808,48 +799,6 @@ def cancelar_pedido(request, id):
     if es_admin:
         return redirect("ordenes:lista_pedidos_admin")
     return redirect("clientes:mis_pedidos")
-
-
-@login_required
-def mis_pagos(request):
-    try:
-        usuario_remoto = request.user.usuario
-        usuario = _obtener_usuario_local(usuario_remoto)
-    except AttributeError:
-        messages.error(request, "No tienes un perfil de cliente asociado.")
-        return redirect("usuarios:panel")
-
-    # Facturas pendientes (para pagar)
-    facturas_pendientes = (
-        Factura.objects.filter(
-            Q(cliente__usuario__in=[usuario, usuario_remoto])
-            | Q(cliente_usuario__in=[usuario, usuario_remoto]),
-            estado="pendiente",
-        )
-        .select_related("pedido")
-        .prefetch_related("pagos")
-    )
-
-    # Historial de pagos
-    pagos = (
-        Pago.objects.filter(
-            Q(factura__cliente__usuario__in=[usuario, usuario_remoto])
-            | Q(factura__cliente_usuario__in=[usuario, usuario_remoto])
-        )
-        .select_related("factura", "factura__pedido", "codigo_metodo_pago")
-        .order_by("-fecha")
-    )
-
-    # Métodos de pago disponibles
-    metodos_pago = MetodoPago.objects.all()
-
-    context = {
-        "facturas_pendientes": facturas_pendientes,
-        "pagos": pagos,
-        "metodos_pago": metodos_pago,
-    }
-
-    return render(request, "clientes/mis_pagos.html", context)
 
 
 # =====================================================================
