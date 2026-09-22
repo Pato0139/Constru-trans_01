@@ -5,7 +5,6 @@ from .models import (
     Conductor,
     ConductorVehiculo,
     MaterialConstruccion,
-    MetodoPago,
     Notificacion,
     Proveedor,
     Stock,
@@ -84,5 +83,4 @@ admin.site.register(ConductorVehiculo)
 admin.site.register(Catalogo)
 admin.site.register(Proveedor)
 admin.site.register(Stock)
-admin.site.register(MetodoPago)
 admin.site.register(Notificacion)

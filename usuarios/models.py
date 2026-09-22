@@ -781,19 +781,6 @@ class Stock(models.Model):
         return self.fecha_actualizacion
 
 
-class MetodoPago(models.Model):
-    codigo_metodo_pago = models.CharField(max_length=20, primary_key=True)
-    metodo = models.CharField(max_length=50, unique=True)
-
-    class Meta:
-        db_table = "metodo_pago"
-        verbose_name = "Método de Pago"
-        verbose_name_plural = "Métodos de Pago"
-
-    def __str__(self):
-        return self.metodo
-
-
 class Notificacion(models.Model):
     TIPOS = [
         ("info", "Información"),

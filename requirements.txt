@@ -78,8 +78,11 @@ django-debug-toolbar==4.4.6
 
 # IA
 openai==1.51.2
-chromadb==0.5.0
 ddgs==9.0.0
 
 # Seguridad adicional para archivos de licencia
 cryptography==43.0.1
+
+# RAG local opcional (requiere entorno compatible con compilación nativa)
+# Instalar manualmente si se usa ChromaDB en Windows:
+# pip install chromadb==0.5.15

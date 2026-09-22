@@ -19,9 +19,7 @@ def obtener_contexto_datos(force_refresh=False):
     try:
         from clientes.models import Cliente
         from compras.models import Compra
-        from facturacion.models import Factura
         from gestion_pedidos.models import Pedido as PedidoGestion
-        from pagos.models import Pago
         from usuarios.models import MaterialConstruccion, Proveedor, Stock, Usuario, Vehiculo
 
         data = {
@@ -45,12 +43,6 @@ def obtener_contexto_datos(force_refresh=False):
             "compras_pendientes": Compra.objects.filter(estado="pendiente").count(),
             "compras_recibidas": Compra.objects.filter(estado="recibida").count(),
             "total_compras": Compra.objects.aggregate(total=Sum("total_compra"))["total"] or 0,
-            "facturas_totales": Factura.objects.count(),
-            "facturas_pendientes": Factura.objects.filter(estado="pendiente").count(),
-            "facturas_pagadas": Factura.objects.filter(estado="pagada").count(),
-            "total_facturado": Factura.objects.aggregate(total=Sum("total"))["total"] or 0,
-            "pagos_totales": Pago.objects.count(),
-            "total_pagado": Pago.objects.aggregate(total=Sum("monto"))["total"] or 0,
             "proveedores_count": Proveedor.objects.count(),
             "vehiculos_count": Vehiculo.objects.count(),
             "vehiculos_disponibles": Vehiculo.objects.filter(estado="disponible").count(),
