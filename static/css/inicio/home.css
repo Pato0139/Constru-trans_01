@@ -6,6 +6,15 @@
  * visual, en vez de un solo negro plano de arriba a abajo.
  */
 
+html, body {
+  background: #0b0d12 !important;
+  color: #f3f3f3 !important;
+}
+
+main {
+  background: transparent !important;
+}
+
 :root {
   --inicio-white-smoke: #F3F3F3;
   --inicio-silver: #B5B5B5;
