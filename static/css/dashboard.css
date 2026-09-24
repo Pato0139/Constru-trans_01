@@ -3,6 +3,77 @@
     --font-main: 'Plus Jakarta Sans', sans-serif;
 }
 
+/* =========================================================
+   GLOBAL BLUR / BACKDROP-FILTER / MASK KILL
+   NUNCA más blur que imite degradados blancos / sombras /
+   halos que el usuario perciba como "degradado feo".
+   Aplica a TODOS los elementos del DOM, sin excepción.
+   ========================================================= */
+*,
+*::before,
+*::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    background-blend-mode: normal !important;
+    mix-blend-mode: normal !important;
+    text-shadow: none !important;
+}
+
+/* =========================================================
+   CORRECCIÓN EXACTA DE POSICIÓN Y ANCHO DEL NAVBAR
+   (navbar tiene position: fixed SIN left/width por defecto)
+   ========================================================= */
+.app-navbar,
+.app-topbar,
+.navbar-premium {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+    background-color: var(--navbar-bg) !important;
+    background: var(--navbar-bg) !important;
+    background-image: none !important;
+    background-blend-mode: normal !important;
+    box-shadow: none !important;
+    border-image: none !important;
+    text-shadow: none !important;
+    outline: none !important;
+}
+
+/* Desktop (>= 992px): navbar a la derecha del sidebar */
+@media (min-width: 992px) {
+    .app-navbar,
+    .app-topbar,
+    .navbar-premium {
+        position: fixed !important;
+        top: 1rem !important;
+        left: calc(280px + 2rem) !important;
+        right: 2rem !important;
+        width: auto !important;
+        z-index: 1040 !important;
+        height: 62px !important;
+    }
+}
+
+/* Mobile (<= 991px): navbar ocupa todo el ancho */
+@media (max-width: 991.98px) {
+    .app-navbar,
+    .app-topbar,
+    .navbar-premium {
+        position: fixed !important;
+        top: 1rem !important;
+        left: 1rem !important;
+        right: 1rem !important;
+        width: auto !important;
+        z-index: 1040 !important;
+        height: 62px !important;
+    }
+}
+
 /* --- MOBILE FIRST BASE STYLES --- */
 html {
     font-size: 14px; /* Tamaño de fuente para móviles */
@@ -35,22 +106,39 @@ body {
 /* --- ÁREA PRINCIPAL (contraste con sidebar) --- */
 .app-main {
     min-height: 100vh;
-    background: var(--main-bg);
+    background: var(--color-bg, #0e1117) !important;
+    background-color: var(--color-bg, #0e1117) !important;
+    background-image: none !important;
     position: relative;
-    padding-top: 5.5rem !important;
+    padding-top: 8rem !important;
     padding-bottom: 0.75rem !important;
+    padding-left: var(--page-gutter, 1rem);
+    padding-right: var(--page-gutter, 1rem);
 }
 
-.app-main::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 55%;
-    height: 45%;
-    background: var(--main-glow);
-    pointer-events: none;
-    z-index: 0;
+@media (min-width: 768px) {
+    .app-main,
+    .main-content.app-main {
+        width: calc(100% - var(--app-sidebar-width, 280px)) !important;
+        max-width: calc(100% - var(--app-sidebar-width, 280px)) !important;
+        margin-left: var(--app-sidebar-width, 280px) !important;
+    }
+}
+
+.app-main::before,
+.app-main::after {
+    display: none !important;
+    content: none !important;
+    background: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.app-topbar::before,
+.app-topbar::after {
+    display: none !important;
+    content: none !important;
+    background: none !important;
 }
 
 .app-main > * {
@@ -80,23 +168,16 @@ body {
 [data-theme="dark"] .app-topbar,
 [data-theme="accessibility"] .app-navbar,
 [data-theme="accessibility"] .app-topbar {
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+    background: var(--navbar-bg) !important;
+    background-image: none !important;
 }
 
 .app-topbar {
     isolation: isolate;
-}
-
-.app-topbar::before {
-    content: "";
-    position: absolute;
-    inset: -0.75rem -0.75rem auto;
-    height: calc(100% + 1.5rem);
-    border-radius: 20px;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.58), rgba(15, 23, 42, 0));
-    pointer-events: none;
-    z-index: -1;
 }
 
 .app-navbar,
@@ -111,11 +192,10 @@ body {
     width: 280px;
     height: 100vh;
     background-color: var(--sidebar-bg);
-    background-image: var(--sidebar-gradient);
-    background-repeat: no-repeat;
-    background-size: cover;
-    border-right: 1px solid var(--sidebar-border);
-    box-shadow: var(--shadow-soft);
+    background-image: none !important;
+    background: var(--sidebar-bg) !important;
+    border-right: none !important;
+    box-shadow: none !important;
     padding: 0;
     display: flex;
     flex-direction: column;
@@ -125,6 +205,9 @@ body {
     z-index: 1100;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
+    filter: none !important;
+    outline: none !important;
+    text-shadow: none !important;
 }
 
 .sidebar-brand-card {
@@ -132,9 +215,9 @@ body {
     padding: 0.9rem 0.8rem 0.7rem;
     margin: 0.6rem 0.55rem 0.35rem;
     border-radius: 16px;
-    background: linear-gradient(145deg, rgba(37, 99, 235, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%);
-    border: 1px solid rgba(245, 158, 11, 0.2);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    background: var(--sidebar-footer-bg);
+    border: 1px solid var(--sidebar-border);
+    box-shadow: none;
 }
 
 .sidebar-logo {
@@ -352,6 +435,8 @@ body {
 /* --- FIX HORIZONTAL SCROLL --- */
 .container-fluid {
     overflow-x: hidden;
+    background: var(--color-bg) !important;
+    background-image: none !important;
 }
 
 /* --- RESPONSIVE NAVBAR --- */

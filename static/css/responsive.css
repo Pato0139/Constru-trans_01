@@ -310,17 +310,18 @@ body {
 }
 
 /* The sidebar is fixed, so reserve exactly its width for main content on
-   desktop.  This removes the extra hidden margin that caused misalignment. */
-@media (min-width: 992px) {
+   desktop and large tablets.  This removes the extra hidden margin that
+   caused misalignment and empty space between sidebar and centered forms. */
+@media (min-width: 768px) {
   :root {
-    --page-gutter: 2rem;
+    --page-gutter: 1.75rem;
   }
 
   .main-content.app-main,
   .main-content {
-    flex: 0 0 calc(100% - var(--app-sidebar-width));
-    width: calc(100% - var(--app-sidebar-width));
-    max-width: calc(100% - var(--app-sidebar-width));
+    flex: 0 0 calc(100% - var(--app-sidebar-width)) !important;
+    width: calc(100% - var(--app-sidebar-width)) !important;
+    max-width: calc(100% - var(--app-sidebar-width)) !important;
     margin-left: var(--app-sidebar-width) !important;
     padding: 6.75rem var(--page-gutter) 2rem !important;
   }
@@ -333,6 +334,12 @@ body {
   .app-topbar {
     left: calc(var(--app-sidebar-width) + var(--page-gutter)) !important;
     right: var(--page-gutter) !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    --page-gutter: 2.25rem;
   }
 }
 

@@ -31,18 +31,18 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 
 <!-- Custom CSS -->
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=3.8">
-<link rel="stylesheet" href="{% static 'css/base.css' %}?v=1.7">
-<link rel="stylesheet" href="{% static 'css/utilities.css' %}?v=1.2">
-<link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=1.3">
-<link rel="stylesheet" href="{% static 'css/sticky-topbar.css' %}?v=1.4">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=6.0">
+<link rel="stylesheet" href="{% static 'css/base.css' %}?v=3.0">
+<link rel="stylesheet" href="{% static 'css/utilities.css' %}?v=3.0">
+<link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=3.0">
+<link rel="stylesheet" href="{% static 'css/sticky-topbar.css' %}?v=3.0">
 
-<script src="{% static 'js/user-preferences.js' %}?v=1.1"></script>
+<script src="{% static 'js/user-preferences.js' %}?v=3.0"></script>
 
-<link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=1.2">
+<link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=3.0">
 {% block extra_css %}{% endblock %}
-<link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=1.3">
-<link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=1.4">
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=4.0">
+<link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=3.0">
 </head>
 
 <body>
@@ -56,7 +56,7 @@
 
 {% include "partials/navbar.html" %}
 
-<main class="main-content app-main flex-grow-1 p-3">
+<main class="main-content app-main flex-grow-1">
 
 {% if messages %}
 <div id="django-messages-data" class="d-none">
@@ -116,6 +116,218 @@
     </filter>
   </defs>
 </svg>
+
+<style>
+/* =============================================================
+   KILL-SWITCH NUCLEAR (ESPECIFICIDAD EXTREMA)
+   Antepuesto :root:root para que GANE SIEMPRE a cualquier CSS
+   externo, !important inline, o estilos inyectados por JS.
+   Elimina TODO degradado, sombra, blur, pseudoelemento visible
+   en el layout base del dashboard.
+   ============================================================= */
+
+:root:root *,
+:root:root *::before,
+:root:root *::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    background-blend-mode: normal !important;
+    mix-blend-mode: normal !important;
+    text-shadow: none !important;
+}
+
+:root:root body,
+:root:root html,
+:root:root body > .container-fluid,
+:root:root body > div.container-fluid,
+:root:root body > .container-fluid.p-0,
+:root:root .container-fluid,
+:root:root .container-fluid.p-0,
+:root:root .container-fluid > .d-flex,
+:root:root .container-fluid.p-0 > .d-flex,
+:root:root main,
+:root:root .app-main,
+:root:root .main-content,
+:root:root .main-content.app-main,
+:root:root aside,
+:root:root #sidebar,
+:root:root .sidebar-custom,
+:root:root .sidebar-overlay,
+:root:root #sidebar.sidebar-custom,
+:root:root [id="sidebar"],
+:root:root [class~="sidebar-custom"],
+:root:root [class~="main-content"],
+:root:root [class~="app-main"],
+:root:root [class~="container-fluid"],
+:root:root .u-inline-fc253a7477,
+:root:root .u-inline-5e38107553,
+:root:root .u-inline-6a732992b6,
+:root:root .app-navbar,
+:root:root .app-topbar,
+:root:root .navbar-premium,
+:root:root header.app-navbar {
+    background-color: var(--color-bg, #0e1117) !important;
+    background: var(--color-bg, #0e1117) !important;
+    background-image: none !important;
+    background-attachment: scroll !important;
+    background-blend-mode: normal !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+    mix-blend-mode: normal !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    outline: none !important;
+    border-image: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    opacity: 1 !important;
+}
+
+/* --- REFUERZO NAVBAR: POSICIÓN Y MEDIDAS EXACTAS (NO PARPADEA) --- */
+@media (min-width: 992px) {
+    :root:root .app-navbar,
+    :root:root .app-topbar,
+    :root:root .navbar-premium,
+    :root:root header.app-navbar {
+        position: fixed !important;
+        top: 1rem !important;
+        left: calc(280px + 2rem) !important;
+        right: 2rem !important;
+        width: auto !important;
+        z-index: 1040 !important;
+        height: 62px !important;
+        transform: none !important;
+    }
+}
+@media (max-width: 991.98px) {
+    :root:root .app-navbar,
+    :root:root .app-topbar,
+    :root:root .navbar-premium,
+    :root:root header.app-navbar {
+        position: fixed !important;
+        top: 1rem !important;
+        left: 1rem !important;
+        right: 1rem !important;
+        width: auto !important;
+        z-index: 1040 !important;
+        height: 62px !important;
+        transform: none !important;
+    }
+}
+
+:root:root .container-fluid > *,
+:root:root .container-fluid > .d-flex > *,
+:root:root main > *,
+:root:root .app-main > *,
+:root:root .main-content > *,
+:root:root #sidebar > *,
+:root:root .sidebar-custom > * {
+    background-image: none !important;
+    background-blend-mode: normal !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    filter: none !important;
+}
+
+:root:root body::before,
+:root:root body::after,
+:root:root html::before,
+:root:root html::after,
+:root:root .container-fluid::before,
+:root:root .container-fluid::after,
+:root:root .container-fluid.p-0::before,
+:root:root .container-fluid.p-0::after,
+:root:root .container-fluid > .d-flex::before,
+:root:root .container-fluid > .d-flex::after,
+:root:root .container-fluid.p-0 > .d-flex::before,
+:root:root .container-fluid.p-0 > .d-flex::after,
+:root:root main::before,
+:root:root main::after,
+:root:root .app-main::before,
+:root:root .app-main::after,
+:root:root .main-content::before,
+:root:root .main-content::after,
+:root:root #sidebar::before,
+:root:root #sidebar::after,
+:root:root aside::before,
+:root:root aside::after,
+:root:root .sidebar-custom::before,
+:root:root .sidebar-custom::after,
+:root:root .sidebar-overlay::before,
+:root:root .sidebar-overlay::after,
+:root:root main > *::before,
+:root:root main > *::after,
+:root:root .app-main > *::before,
+:root:root .app-main > *::after,
+:root:root .main-content > *::before,
+:root:root .main-content > *::after,
+:root:root .u-inline-fc253a7477::before,
+:root:root .u-inline-fc253a7477::after,
+:root:root .u-inline-6a732992b6::before,
+:root:root .u-inline-6a732992b6::after,
+:root:root .u-inline-5e38107553::before,
+:root:root .u-inline-5e38107553::after,
+:root:root [id="sidebar"]::before,
+:root:root [id="sidebar"]::after {
+    display: none !important;
+    content: none !important;
+    background: none !important;
+    background-image: none !important;
+    background-color: transparent !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: 0 !important;
+    max-height: 0 !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    position: static !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    filter: none !important;
+    z-index: -9999 !important;
+}
+
+:root:root[data-theme="dark"] body,
+:root:root[data-theme="dark"] .container-fluid,
+:root:root[data-theme="dark"] .container-fluid > .d-flex,
+:root:root[data-theme="dark"] main,
+:root:root[data-theme="dark"] .app-main,
+:root:root[data-theme="dark"] .main-content,
+:root:root[data-theme="dark"] #sidebar,
+:root:root[data-theme="dark"] .sidebar-custom,
+:root:root[data-theme="accessibility"] body,
+:root:root[data-theme="accessibility"] .container-fluid,
+:root:root[data-theme="accessibility"] .container-fluid > .d-flex,
+:root:root[data-theme="accessibility"] main,
+:root:root[data-theme="accessibility"] .app-main,
+:root:root[data-theme="accessibility"] .main-content,
+:root:root[data-theme="accessibility"] #sidebar,
+:root:root[data-theme="accessibility"] .sidebar-custom {
+    background-color: var(--color-bg) !important;
+    background: var(--color-bg) !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    border-right: none !important;
+    filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+</style>
 
 </body>
 </html>
