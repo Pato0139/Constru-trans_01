@@ -48,7 +48,7 @@ body {
 }
 
 main {
-    background-color: var(--color-bg) !important;
+    background: var(--main-bg, var(--color-bg)) !important;
     min-height: 100vh;
 }
 
