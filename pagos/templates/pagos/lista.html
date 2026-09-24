@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Gestión de Pagos - ConstruTrans{% endblock %}
+
+{% block content %}
+<div class="mb-4" data-aos="fade-down">
+    <h2 class="fw-bold text-white mb-1">
+        <i class="bi bi-credit-card-2-front text-accent me-2"></i>Gestión de Pagos
+    </h2>
+    <p class="text-muted mb-0">Consulta y valida los pagos asociados a los pedidos.</p>
+</div>
+
+<div class="card border-0 shadow-sm p-3 mb-4 filter-bar-card" data-aos="fade-down">
+    <form method="get" class="row g-3 align-items-center">
+        <div class="col-auto">
+            <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+        </div>
+        <div class="col-md-3">
+            <input type="search" name="q" value="{{ query }}" class="form-control form-control-sm bg-surface text-white filter-input"
+                placeholder="Pago, pedido o referencia" aria-label="Buscar pagos">
+        </div>
+        <div class="col-md-2">
+            <select name="estado" class="form-select form-select-sm bg-surface text-white filter-select" aria-label="Filtrar por estado">
+                <option value="">Estado (Todos)</option>
+                {% for value, label in estados %}
+                <option value="{{ value }}" {% if estado_actual == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="metodo" class="form-select form-select-sm bg-surface text-white filter-select" aria-label="Filtrar por método">
+                <option value="">Método (Todos)</option>
+                {% for value, label in metodos %}
+                <option value="{{ value }}" {% if metodo_actual == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto ms-auto d-flex gap-2">
+            <button class="btn btn-sm btn-gold" type="submit" aria-label="Aplicar filtros" data-tooltip="Aplicar filtros">
+                <i class="bi bi-search"></i>
+            </button>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'pagos:lista_pagos' %}"
+                aria-label="Limpiar filtros" data-tooltip="Limpiar filtros">
+                <i class="bi bi-x-circle"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="table-container orders-list-table-container" data-aos="fade-up">
+    <div class="table-responsive orders-list-scroll">
+        <table class="table table-dark mb-0">
+            <thead>
+                <tr>
+                    <th>ID PAGO</th>
+                    <th>PEDIDO</th>
+                    <th>CLIENTE</th>
+                    <th>MONTO</th>
+                    <th>MÉTODO</th>
+                    <th>ESTADO</th>
+                    <th>FECHA</th>
+                    <th>ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos %}
+                <tr>
+                    <td class="fw-bold">#{{ pago.id }}</td>
+                    <td>#{{ pago.pedido.codigo_pedido }}</td>
+                    <td>
+                        {% if pago.pedido.cliente %}
+                            {{ pago.pedido.cliente.nombres }} {{ pago.pedido.cliente.apellidos }}
+                        {% else %}
+                            {{ pago.pedido.usuario.nombres }} {{ pago.pedido.usuario.apellidos }}
+                        {% endif %}
+                    </td>
+                    <td>${{ pago.monto|floatformat:2|intcomma }}</td>
+                    <td>{{ pago.get_metodo_display }}</td>
+                    <td>
+                        {% if pago.estado == 'aprobado' %}
+                        <span class="badge bg-success-subtle text-success">Aprobado</span>
+                        {% elif pago.estado == 'rechazado' %}
+                        <span class="badge bg-danger-subtle text-danger">Rechazado</span>
+                        {% else %}
+                        <span class="badge bg-warning-subtle text-warning">Pendiente</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ pago.fecha_registro|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if pago.estado == 'pendiente' %}
+                        <div class="d-flex gap-2">
+                            <form method="post" action="{% url 'pagos:aprobar_pago' pago.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-success" aria-label="Aprobar pago" data-tooltip="Aprobar pago">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'pagos:rechazar_pago' pago.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Rechazar pago" data-tooltip="Rechazar pago">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                        <span class="text-muted small">Procesado</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-muted">
+                        <i class="bi bi-credit-card d-block fs-2 mb-3"></i>
+                        No hay pagos registrados en el sistema
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
