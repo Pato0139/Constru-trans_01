@@ -1,12 +1,20 @@
 from django.contrib import admin
 
-from .models import Compra, DetalleCompra, ProveedorMaterial
+from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
 
 class DetalleCompraInline(admin.TabularInline):
     model = DetalleCompra
     extra = 1
     readonly_fields = ("subtotal",)
+
+
+@admin.register(Proveedor)
+class ProveedorAdmin(admin.ModelAdmin):
+    list_display = ("codigo_proveedor", "nombre_empresa", "nit", "contacto_nombre", "telefono", "ciudad", "activo")
+    list_filter = ("activo", "ciudad", "categoria")
+    search_fields = ("nombre_empresa", "nit", "contacto_nombre", "correo")
+    readonly_fields = ("fecha_registro", "codigo_proveedor")
 
 
 @admin.register(Compra)

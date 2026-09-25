@@ -44,21 +44,38 @@ def _namespace_from_path(path):
     if not parts:
         return "inicio"
     first = parts[0]
-    if first in {"usuarios", "clientes", "inventario", "compras", "ordenes",
-                  "reportes", "historial", "transporte",
-                  "ia", "ayuda", "pedidos", "gestion_pedidos", "licensing", "inicio"}:
+    if first in {"usuarios", "clientes", "catalogo", "compras", "pedidos",
+                  "reportes", "auditoria", "logistica",
+                  "ia", "ayuda", "licensing", "inicio"}:
         return first
     return None
 
 
+_NAMESPACES_OBSOLETOS = {
+    "inventario": "catalogo",
+    "transporte": "logistica",
+    "gestion_pedidos": "pedidos",
+    "novedades": "logistica",
+    "historial": "auditoria",
+    "ordenes": "pedidos",
+}
+
+_PATH_PREFIXES_OBSOLETOS = {
+    "/inventario": "/catalogo",
+    "/transporte": "/logistica",
+    "/gestion_pedidos": "/pedidos",
+    "/novedades": "/logistica",
+    "/historial": "/auditoria",
+    "/ordenes": "/pedidos",
+}
+
 _NAMESPACE_ROLES = {
-    "inventario": {"admin"},
+    "catalogo": {"admin"},
     "compras": {"admin"},
-    "transporte": {"admin"},
+    "logistica": {"admin", "conductor"},
     "reportes": {"admin"},
-    "historial": {"admin"},
-    "gestion_pedidos": {"admin"},
-    "pedidos": {"admin"},
+    "auditoria": {"admin"},
+    "pedidos": {"admin", "cliente"},
     "inicio": {"admin", "cliente", "conductor", "empleado"},
     "ia": {"admin", "cliente", "conductor", "empleado"},
     "ayuda": {"admin", "cliente", "conductor", "empleado"},
@@ -80,7 +97,7 @@ _USUARIOS_URLNAMES_ROLES = {
 }
 
 
-_ORDENES_URLNAMES_ROLES = {
+_PEDIDOS_URLNAMES_ROLES = {
     "calcular_total": {"admin"},
     "eliminar_detalle": {"admin"},
     "agregar_materiales": {"admin"},
@@ -90,6 +107,22 @@ _ORDENES_URLNAMES_ROLES = {
     "detalle_orden": {"admin"},
     "crear_pedido_admin": {"admin"},
     "asignar_entrega": {"admin"},
+    "crear_pedido": {"cliente", "admin"},
+    "listar_pedidos": {"admin", "cliente"},
+    "detalle_pedido": {"admin", "cliente"},
+}
+
+_LOGISTICA_URLNAMES_ROLES = {
+    "lista_vehiculos": {"admin"},
+    "crear_vehiculo": {"admin"},
+    "editar_vehiculo": {"admin"},
+    "eliminar_vehiculo": {"admin"},
+    "crear_entrega": {"admin"},
+    "lista_entregas": {"admin", "conductor"},
+    "detalle_entrega": {"admin", "conductor"},
+    "registrar_novedad": {"admin", "conductor"},
+    "responder_seguimiento": {"admin"},
+    "seguimiento_novedad": {"admin", "conductor"},
 }
 
 
@@ -106,6 +139,28 @@ _URLNAMES_BY_ROLE_EXTRA = {
         "lista": {"admin"},
         "detalle": {"admin"},
         "form": {"admin"},
+    },
+    "pedidos": _PEDIDOS_URLNAMES_ROLES,
+    "logistica": _LOGISTICA_URLNAMES_ROLES,
+    "catalogo": {
+        "lista_materiales": {"admin"},
+        "crear_material": {"admin"},
+        "editar_material": {"admin"},
+        "eliminar_material": {"admin"},
+        "stock": {"admin"},
+        "movimientos": {"admin"},
+        "tipos_lista": {"admin"},
+        "unidades_lista": {"admin"},
+    },
+    "auditoria": {
+        "lista_auditoria": {"admin"},
+    },
+    "compras": {
+        "lista_compras": {"admin"},
+        "crear_compra": {"admin"},
+        "detalle_compra": {"admin"},
+        "proveedores_lista": {"admin"},
+        "proveedor_form": {"admin"},
     },
 }
 
@@ -169,12 +224,28 @@ class RoleNamespaceMiddleware:
                 url_name = match.url_name
                 app_name = match.app_name or match.namespace or ""
 
+                try:
+                    from django.conf import settings
+
+                    if settings.DEBUG:
+                        for old_prefix, new_prefix in _PATH_PREFIXES_OBSOLETOS.items():
+                            if path.startswith(old_prefix):
+                                logger.error(
+                                    "[MW-DEPRECATED] Path '%s' usa PREFIJO OBSOLETO '%s' — debe migrarse a '%s'. path=%s",
+                                    path, old_prefix, new_prefix, path,
+                                )
+                        if app_name in _NAMESPACES_OBSOLETOS:
+                            logger.error(
+                                "[MW-DEPRECATED] Namespace OBSOLETO '%s' detectado en request — migrar a '%s'. path=%s url=%s:%s",
+                                app_name, _NAMESPACES_OBSOLETOS[app_name], path, app_name, url_name,
+                            )
+                except Exception:
+                    pass
+
                 perms_extra = _URLNAMES_BY_ROLE_EXTRA.get(app_name, {})
                 allowed_roles_url = perms_extra.get(url_name)
                 if not allowed_roles_url and app_name == "usuarios":
                     allowed_roles_url = _USUARIOS_URLNAMES_ROLES.get(url_name)
-                if not allowed_roles_url and app_name == "ordenes":
-                    allowed_roles_url = _ORDENES_URLNAMES_ROLES.get(url_name)
 
                 if allowed_roles_url and user_role not in allowed_roles_url:
                     return self._violacion(

@@ -15,9 +15,9 @@ from core.security import (
     registrar_warning,
     role_required,
 )
-from ordenes.models import DetallePedido, Pedido
-from usuarios.models import Catalogo, Stock, UnidadMedida, Usuario
-from usuarios.models import MaterialConstruccion as Material
+from pedidos.models import DetallePedido, Pedido
+from usuarios.models import Usuario
+from catalogo.models import Catalogo, Stock, UnidadMedida, MaterialConstruccion as Material
 from usuarios.utils import get_account_switch_options
 from core.db_preference import debe_usar_bd_remota
 from core.db_utils import select_for_update_if_supported
@@ -574,7 +574,7 @@ def editar_pedido(request, id):
             "El pedido ya no se puede modificar (estado actual: {}).".format(pedido.estado),
         )
         if es_admin:
-            return redirect("ordenes:lista_pedidos_admin")
+            return redirect("pedidos:lista_pedidos_admin")
         return redirect("clientes:mis_pedidos")
 
     if request.method == "POST":
@@ -695,7 +695,7 @@ def editar_pedido(request, id):
 
             messages.success(request, f"Pedido #{pedido.codigo_pedido} actualizado correctamente.")
             if es_admin:
-                return redirect("ordenes:lista_pedidos_admin")
+                return redirect("pedidos:lista_pedidos_admin")
             return redirect("clientes:mis_pedidos")
 
         except Exception as e:
@@ -751,7 +751,7 @@ def cancelar_pedido(request, id):
     if pedido.estado != "pendiente":
         messages.error(request, "Solo se pueden cancelar pedidos en estado pendiente.")
         if es_admin:
-            return redirect("ordenes:lista_pedidos_admin")
+            return redirect("pedidos:lista_pedidos_admin")
         return redirect("clientes:mis_pedidos")
 
     db_alias = _obtener_alias_db()
@@ -775,7 +775,7 @@ def cancelar_pedido(request, id):
             pedido.estado = "cancelado"
             pedido.save()
 
-            from historial.utils import registrar_actividad
+            from auditoria.utils import registrar_actividad
 
             comentario = (
                 f"Pedido #{pedido.codigo_pedido} cancelado por "
@@ -797,7 +797,7 @@ def cancelar_pedido(request, id):
         messages.error(request, f"Error al cancelar el pedido: {e}")
 
     if es_admin:
-        return redirect("ordenes:lista_pedidos_admin")
+        return redirect("pedidos:lista_pedidos_admin")
     return redirect("clientes:mis_pedidos")
 
 
