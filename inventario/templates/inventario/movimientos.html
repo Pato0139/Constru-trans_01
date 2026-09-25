@@ -22,7 +22,7 @@
     </div>
 
     <div class="d-flex flex-column flex-md-row gap-2 align-items-center">
-        {% include "partials/filter_bar.html" %}
+        {% include "partials/filter_bar.html" with form_data_ajax=True tbody_id="movimientos-tbody" %}
 
 <button class="btn btn-premium btn-premium-gold btn-main-action px-4 fw-bold u-inline-142d515f24" data-bs-toggle="modal" data-bs-target="#modalEntrada" aria-label="Agregar" data-tooltip="Agregar" title="Agregar">
     <i class="bi bi-plus-lg me-2"></i> Registrar Entrada
@@ -44,53 +44,8 @@
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Usuario</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for m in movimientos %}
-                <tr class="u-inline-e91738c112">
-                    <td class="py-3 px-4 text-muted small">{{ m.fecha|date:"d/m/Y H:i" }}</td>
-                    <td class="py-3 px-4">
-                        <div class="d-flex align-items-center gap-3">
-                            <div
-                                class="inventory-icon rounded-circle d-flex align-items-center justify-content-center fw-bold u-inline-f4e11011b6">
-                                {{ m.material.nombre|first }}
-                            </div>
-                            <span class="fw-medium">{{ m.material.nombre }}</span>
-                        </div>
-                    </td>
-                    <td class="py-3 px-4">
-                        {% if m.tipo_movimiento == 'entrada' %}
-                        <span class="badge inventory-status inventory-status--entry px-3">
-                            <i class="bi bi-arrow-down-left me-1"></i>Entrada
-                        </span>
-                        {% else %}
-                        <span class="badge inventory-status inventory-status--exit px-3">
-                            <i class="bi bi-arrow-up-right me-1"></i>Salida
-                        </span>
-                        {% endif %}
-                    </td>
-                    <td
-                        class="py-3 px-4 fw-bold {% if m.tipo_movimiento == 'entrada' %}inventory-status--entry{% else %}inventory-status--exit{% endif %}">
-                        {% if m.tipo_movimiento == 'entrada' %}+{% else %}-{% endif %}{{ m.cantidad }}
-                    </td>
-                    <td class="py-3 px-4 text-muted">{{ m.observacion|default:"Sin observación" }}</td>
-                    <td class="py-3 px-4 small">
-                        {% if m.usuario %}
-                        {{ m.usuario.username }}
-                        {% else %}
-                        <span class="text-muted italic">Sistema</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center py-5">
-                        <div class="py-5">
-                            <i class="bi bi-arrow-left-right text-muted mb-3 d-block u-inline-8ae57e885d"></i>
-                            <p class="text-muted fw-medium mb-0">No hay movimientos registrados en el sistema</p>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
+            <tbody id="movimientos-tbody">
+                {% include "inventario/_movimientos_body.html" %}
             </tbody>
         </table>
     </div>

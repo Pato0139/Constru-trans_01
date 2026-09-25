@@ -14,18 +14,18 @@
 
 <!-- Filtros personalizados DataTables -->
 <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
-    <div class="row g-2 align-items-center">
+    <form method="GET" action="{% url 'usuarios:lista_conductores' %}" class="row g-2 align-items-center standard-filter-form" data-ajax-filter-form="true" data-tbody-id="conductores-tbody">
         <div class="col-auto">
             <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
         </div>
         <div class="col-md-2">
-            <input type="text" id="filter-nombre" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Nombre">
+            <input type="text" id="filter-nombre" name="nombre" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c filter-input" placeholder="Nombre">
         </div>
         <div class="col-md-2">
-            <input type="text" id="filter-licencia" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Licencia">
+            <input type="text" id="filter-licencia" name="licencia" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c filter-input" placeholder="Licencia">
         </div>
         <div class="col-md-2">
-            <select id="filter-categoria" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+            <select id="filter-categoria" name="categoria" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c filter-select">
                 <option value="">Categoría (Todas)</option>
                 <option value="A1">A1</option>
                 <option value="A2">A2</option>
@@ -38,7 +38,7 @@
             </select>
         </div>
         <div class="col-md-2">
-            <select id="filter-estado" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+            <select id="filter-estado" name="estado" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c filter-select">
                 <option value="">Estado (Todos)</option>
                 <option value="Activo">Activo</option>
                 <option value="Inactivo">Inactivo</option>
@@ -47,14 +47,14 @@
             </select>
         </div>
         <div class="col-md-2">
-            <input type="text" id="filter-vehiculo" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Vehículo Actual">
+            <input type="text" id="filter-vehiculo" name="vehiculo" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c filter-input" placeholder="Vehículo Actual">
         </div>
         <div class="col-auto ms-auto">
             <button class="btn btn-sm btn-outline-secondary" id="clear-filters" type="button" title="Limpiar filtros">
                 <i class="bi bi-x-circle"></i>
             </button>
         </div>
-    </div>
+    </form>
 </div>
 
 <div class="card bg-dark border-0 shadow-sm p-3">
@@ -133,39 +133,27 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Esperar un breve momento para asegurar que DataTables se haya inicializado en base.js
     setTimeout(function() {
         if ($.fn.DataTable.isDataTable('.table')) {
             var table = $('.table').DataTable();
-            
-            // Índices de columnas basados en el thead (0-indexed):
-            // 0: ID
-            // 1: Nombre
-            // 2: Licencia
-            // 3: Categoría
-            // 4: Estado
-            // 5: Vehículo actual
-            
-            $('#filter-nombre').on('keyup change', function() {
-                table.column(1).search(this.value).draw();
+            var FP = (window.FocusPreserver || {
+                save: function(){return{el:document.activeElement,start:document.activeElement&&document.activeElement.selectionStart!==undefined?document.activeElement.selectionStart:null,end:document.activeElement&&document.activeElement.selectionEnd!==undefined?document.activeElement.selectionEnd:null};},
+                restore: function(s){if(!s||!s.el)return;try{s.el.focus({preventScroll:true});}catch(_){try{s.el.focus();}catch(__){}}if(s.start!==null&&s.end!==null&&typeof s.el.setSelectionRange==='function'){try{s.el.setSelectionRange(s.start,s.end);}catch(_){}}},
+                wrap: function(fn){var s=this.save();try{return fn();}finally{this.restore(s);}},
+                debounce: function(fn,ms){var t=null;return function(){var c=this,a=arguments;if(t)clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);t=null;},ms||350);};
             });
-            $('#filter-licencia').on('keyup change', function() {
-                table.column(2).search(this.value).draw();
-            });
-            $('#filter-categoria').on('change', function() {
-                table.column(3).search(this.value).draw();
-            });
-            $('#filter-estado').on('change', function() {
-                table.column(4).search(this.value).draw();
-            });
-            $('#filter-vehiculo').on('keyup change', function() {
-                table.column(5).search(this.value).draw();
-            });
-            
-            $('#clear-filters').on('click', function() {
+            var drawSearch = function (colIdx, val) { FP.wrap(function () { table.column(colIdx).search(val).draw(); }); };
+
+            $('#filter-nombre').on('input', FP.debounce(function () { drawSearch(1, this.value); }, 300));
+            $('#filter-licencia').on('input', FP.debounce(function () { drawSearch(2, this.value); }, 300));
+            $('#filter-categoria').on('change', function () { drawSearch(3, this.value); });
+            $('#filter-estado').on('change', function () { drawSearch(4, this.value); });
+            $('#filter-vehiculo').on('input', FP.debounce(function () { drawSearch(5, this.value); }, 300));
+
+            $('#clear-filters').on('click', function () {
                 $('#filter-nombre, #filter-licencia, #filter-vehiculo').val('');
                 $('#filter-categoria, #filter-estado').val('');
-                table.columns().search('').draw();
+                FP.wrap(function () { table.columns().search('').draw(); });
             });
         }
     }, 150);

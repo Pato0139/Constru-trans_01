@@ -831,6 +831,16 @@ def lista_clientes(request):
     has_filters = bool(q or estado)
     total_resultados = clientes.count()
     
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return render(
+            request,
+            "clientes/_admin_lista_body.html",
+            {
+                "clientes": clientes,
+                "has_filters": has_filters,
+            },
+        )
+    
     context = {
         "clientes": clientes,
         "q": q,

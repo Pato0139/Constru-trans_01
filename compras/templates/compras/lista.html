@@ -18,7 +18,7 @@
         </a>
     </div>
 
-    {% include "partials/filter_bar.html" with filter_fields=filter_fields has_filters=has_filters %}
+    {% include "partials/filter_bar.html" with filter_fields=filter_fields has_filters=has_filters form_data_ajax=True tbody_id="compras-tbody" %}
 
     <!-- Tabla con Glassmorphism -->
     <div class="table-container p-0 overflow-hidden u-inline-6b0d9e24ec" data-aos="fade-up">
@@ -36,75 +36,8 @@
                         <th class="py-4 text-muted small fw-bold text-uppercase text-center pe-4">Acciones</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for compra in compras %}
-                    <tr class="u-inline-dd0d9e7c89">
-                        <td class="ps-4">
-                            <span class="text-white fw-bold">{{ compra.numero_orden }}</span>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div
-                                    class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3 u-inline-7a3b56f7ab">
-                                    <i class="bi bi-truck text-primary small"></i>
-                                </div>
-                                <div>
-                                    <div class="text-white fw-medium">{{ compra.proveedor.nombre_empresa }}</div>
-                                    <div class="table-meta small">NIT: {{ compra.proveedor.nit }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="table-meta">
-                            {{ compra.fecha_compra|date:"d M, Y" }}
-                            <div class="small">{{ compra.fecha_compra|date:"H:i" }}</div>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge bg-dark border border-white-10 text-info px-3">{{ compra.detalles.count
-                                }}</span>
-                        </td>
-                        <td class="text-end fw-bold text-success">
-                            {{ compra.total_compra|currency }}
-                        </td>
-                        <td class="text-center">
-                            {% if compra.usuario %}
-                            <span class="badge bg-dark border border-white-10 text-info px-3">
-                                <i class="bi bi-person-circle me-1"></i> {{ compra.usuario.username }}
-                            </span>
-                            {% else %}
-                            <span class="text-muted small">N/A</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <span class="badge rounded-pill px-3 py-2 
-                                {% if compra.estado == 'pendiente' %}bg-warning text-dark
-                                {% elif compra.estado == 'recibida' %}bg-success
-                                {% else %}bg-danger{% endif %}">
-                                {{ compra.get_estado_display }}
-                            </span>
-                        </td>
-                        <td class="text-center pe-4">
-                            <div class="d-flex gap-2 justify-content-center">
-                                <a href="{% url 'compras:detalle_compra' compra.id_compra %}"
-                                    class="btn btn-sm btn-outline-info border-white-10" title="Ver Detalle">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                {% if compra.estado == 'pendiente' %}
-                                <a href="{% url 'compras:editar_compra' compra.id_compra %}"
-                                    class="btn btn-sm btn-outline-warning border-white-10" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
-                            <i class="bi bi-bag-x mb-3 d-block u-inline-a1dd7c987c"></i>
-                            No se encontraron órdenes de compra.
-                        </td>
-                    </tr>
-                    {% endfor %}
+                <tbody id="compras-tbody">
+                    {% include "compras/_compras_body.html" %}
                 </tbody>
             </table>
         </div>

@@ -54,6 +54,13 @@ def lista_compras(request):
         },
     ]
 
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return render(
+            request,
+            "compras/_compras_body.html",
+            {"compras": compras},
+        )
+
     return render(
         request,
         "compras/lista.html",

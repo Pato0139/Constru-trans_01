@@ -1,0 +1,39 @@
+{% for reg in registros %}
+<tr>
+    <td class="fw-bold">{{ reg.id }}</td>
+    <td>
+        {% if reg.usuario %}
+            <span class="badge bg-info text-dark">{{ reg.usuario.username }}</span>
+        {% else %}
+            <span class="badge" style="background-color: rgba(255,255,255,0.2); color: #ffffff;">Sistema/Anónimo</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if reg.accion == 'crear' %}
+        <span class="text-success"><i class="bi bi-plus-circle me-1"></i>Crear</span>
+        {% elif reg.accion == 'editar' %}
+        <span class="text-warning"><i class="bi bi-pencil me-1"></i>Editar</span>
+        {% elif reg.accion == 'eliminar' %}
+        <span class="text-danger"><i class="bi bi-trash me-1"></i>Eliminar</span>
+        {% elif reg.accion == 'login' %}
+        <span class="text-info"><i class="bi bi-box-arrow-in-right me-1"></i>Login</span>
+        {% elif reg.accion == 'logout' %}
+        <span class="text-secondary"><i class="bi bi-box-arrow-right me-1"></i>Logout</span>
+        {% else %}
+            {{ reg.get_accion_display }}
+        {% endif %}
+    </td>
+    <td>{{ reg.modulo|capfirst|default:"-" }}</td>
+    <td>{{ reg.elemento_id|default:"-" }}</td>
+    <td><small>{{ reg.descripcion|default:"-" }}</small></td>
+    <td>{{ reg.fecha_hora|date:"Y-m-d H:i" }}</td>
+    <td><small class="text-muted">{{ reg.ip_address|default:"-" }}</small></td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="8" class="text-center py-5 text-muted">
+        <i class="bi bi-clock-history d-block fs-2 mb-3"></i>
+        No se encontraron registros de actividad con los filtros seleccionados.
+    </td>
+</tr>
+{% endfor %}

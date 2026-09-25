@@ -1,0 +1,394 @@
+<!-- General -->
+<div class="tab-pane fade {% if active_tab == 'general' or not active_tab %}show active{% endif %}" id="general" role="tabpanel">
+    
+    <!-- Filtros personalizados DataTables (General) -->
+    <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            <div class="col-md-3">
+                <input type="text" id="filter-usuario-gen" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Usuario">
+            </div>
+            <div class="col-md-2">
+                <select id="filter-rol-gen" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+                    <option value="">Rol (Todos)</option>
+                    <option value="admin">Admin</option>
+                    <option value="cliente">Cliente</option>
+                    <option value="conductor">Conductor</option>
+                    <option value="empleado">Empleado</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="text" id="filter-email-gen" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Email">
+            </div>
+            <div class="col-md-2">
+                <select id="filter-estado-gen" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+                    <option value="">Estado (Todos)</option>
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                    <option value="suspendido">Suspendido</option>
+                </select>
+            </div>
+            <div class="col-auto ms-auto">
+                <button class="btn btn-sm btn-outline-secondary" id="clear-filters-gen" type="button" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container u-inline-ab87d0b2ff">
+        <table class="table table-dark mb-0">
+            <thead>
+                <tr class="usuario-table-header">
+                    <th class="p-4 text-muted small fw-bold">Usuario</th>
+                    <th class="p-4 text-muted small fw-bold">Rol</th>
+                    <th class="p-4 text-muted small fw-bold">Email</th>
+                    <th class="p-4 text-muted small fw-bold">Estado</th>
+                    <th class="p-4 text-muted small fw-bold">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="usuarios-general-tbody">
+                {% for u in usuarios_todos %}
+                <tr class="usuario-table-row">
+                    <td class="p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3 bg-secondary rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
+                                <span class="fw-bold text-white">{{ u.iniciales }}</span>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-white">
+                                    {{ u.nombres }} {{ u.apellidos }}
+                                    {% if u.user.username == 'Edward_Fonseca' %}
+                                        <span class="badge bg-danger ms-1 u-inline-1ed2f53daf">ADMIN GLOBAL</span>
+                                    {% endif %}
+                                </div>
+                                {% if u.rol == 'cliente' and u.perfil_cliente %}
+                                    <div class="text-info small fw-bold">{{ u.perfil_cliente.razon_social }}</div>
+                                {% endif %}
+                                <div class="text-muted small">Doc: {{ u.documento }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 align-middle">
+                        <span class="badge-tipo {% if u.rol == 'admin' %}badge-tipo-admin{% elif u.rol == 'cliente' %}badge-tipo-cliente{% elif u.rol == 'conductor' %}badge-tipo-conductor{% else %}badge-tipo-empleado{% endif %}">
+                            {{ u.get_rol_display }}
+                        </span>
+                    </td>
+                    <td class="p-4 align-middle text-muted">{{ u.user.email }}</td>
+                    <td class="p-4 align-middle">
+                        <span class="badge {% if u.estado == 'activo' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3">
+                            {{ u.estado|title }}
+                        </span>
+                    </td>
+                    <td class="p-4 align-middle">
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'usuarios:editar_usuario' u.id %}" class="btn btn-sm btn-action btn-action-edit" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if u.user.username != 'Edward_Fonseca' and u.user != request.user %}
+                            <a href="{% url 'usuarios:toggle_estado_usuario' u.id %}" 
+                               class="btn btn-sm btn-action {% if u.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}" 
+                               title="{% if u.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                                <i class="bi {% if u.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="bi bi-people mb-3 d-block fs-1"></i>
+                        No se encontraron usuarios
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Clientes -->
+<div class="tab-pane fade {% if active_tab == 'clientes' %}show active{% endif %}" id="clientes" role="tabpanel">
+
+    <!-- Filtros personalizados DataTables (Clientes) -->
+    <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            <div class="col-md-4">
+                <input type="text" id="filter-usuario-cli" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Usuario / Cliente">
+            </div>
+            <div class="col-md-4">
+                <input type="text" id="filter-email-cli" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Email">
+            </div>
+            <div class="col-md-3">
+                <select id="filter-estado-cli" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+                    <option value="">Estado (Todos)</option>
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                    <option value="suspendido">Suspendido</option>
+                </select>
+            </div>
+            <div class="col-auto ms-auto">
+                <button class="btn btn-sm btn-outline-secondary" id="clear-filters-cli" type="button" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container u-inline-ab87d0b2ff">
+        <table class="table table-dark mb-0">
+            <thead>
+                <tr class="usuario-table-header">
+                    <th class="p-4 text-muted small fw-bold">Usuario</th>
+                    <th class="p-4 text-muted small fw-bold">Email</th>
+                    <th class="p-4 text-muted small fw-bold">Estado</th>
+                    <th class="p-4 text-muted small fw-bold">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="usuarios-clientes-tbody">
+                {% for cliente in clientes %}
+                <tr class="usuario-table-row">
+                    <td class="p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3 bg-primary rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
+                                <span class="fw-bold text-white">{{ cliente.iniciales }}</span>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-white">{{ cliente.nombres }} {{ cliente.apellidos }}</div>
+                                {% if cliente.rol == 'cliente' and cliente.perfil_cliente %}
+                                    <div class="text-info small fw-bold">{{ cliente.perfil_cliente.razon_social }}</div>
+                                    <div class="text-muted small">NIT: {{ cliente.perfil_cliente.nit_rut }}</div>
+                                {% else %}
+                                    <div class="text-muted small">Doc: {{ cliente.documento }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 align-middle text-muted">{{ cliente.user.email }}</td>
+                    <td class="p-4 align-middle">
+                        <span class="badge {% if cliente.estado == 'activo' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3">
+                            {{ cliente.estado|title }}
+                        </span>
+                    </td>
+                    <td class="p-4 align-middle">
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'usuarios:editar_usuario' cliente.id %}" class="btn btn-sm btn-action btn-action-edit" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'usuarios:toggle_estado_usuario' cliente.id %}" 
+                               class="btn btn-sm btn-action {% if cliente.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}" 
+                               title="{% if cliente.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                                <i class="bi {% if cliente.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-5 text-muted">
+                        <i class="bi bi-people mb-3 d-block fs-1"></i>
+                        No hay clientes registrados
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Conductores -->
+<div class="tab-pane fade {% if active_tab == 'conductores' %}show active{% endif %}" id="conductores" role="tabpanel">
+
+    <!-- Filtros personalizados DataTables (Conductores) -->
+    <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            <div class="col-md-4">
+                <input type="text" id="filter-usuario-cond" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Usuario / Conductor">
+            </div>
+            <div class="col-md-4">
+                <input type="text" id="filter-email-cond" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Email">
+            </div>
+            <div class="col-md-3">
+                <select id="filter-estado-cond" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+                    <option value="">Estado (Todos)</option>
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                    <option value="suspendido">Suspendido</option>
+                </select>
+            </div>
+            <div class="col-auto ms-auto">
+                <button class="btn btn-sm btn-outline-secondary" id="clear-filters-cond" type="button" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container u-inline-ab87d0b2ff">
+        <table class="table table-dark mb-0">
+            <thead>
+                <tr class="usuario-table-header">
+                    <th class="p-4 text-muted small fw-bold">Usuario</th>
+                    <th class="p-4 text-muted small fw-bold">Email</th>
+                    <th class="p-4 text-muted small fw-bold">Estado</th>
+                    <th class="p-4 text-muted small fw-bold">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="usuarios-conductores-tbody">
+                {% for conductor in conductores %}
+                <tr class="usuario-table-row">
+                    <td class="p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3 bg-info rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
+                                <span class="fw-bold text-white">{{ conductor.iniciales }}</span>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-white">{{ conductor.nombres }} {{ conductor.apellidos }}</div>
+                                <div class="text-muted small">Cond: {{ conductor.documento }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 align-middle text-muted">{{ conductor.user.email }}</td>
+                    <td class="p-4 align-middle">
+                        <span class="badge {% if conductor.estado == 'activo' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3">
+                            {{ conductor.estado|title }}
+                        </span>
+                    </td>
+                    <td class="p-4 align-middle">
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'usuarios:editar_usuario' conductor.id %}" class="btn btn-sm btn-action btn-action-edit" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'usuarios:toggle_estado_usuario' conductor.id %}" 
+                               class="btn btn-sm btn-action {% if conductor.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}" 
+                               title="{% if conductor.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                                <i class="bi {% if conductor.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-5 text-muted">
+                        <i class="bi bi-truck mb-3 d-block fs-1"></i>
+                        No hay conductores registrados
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Administradores -->
+<div class="tab-pane fade {% if active_tab == 'admin' %}show active{% endif %}" id="admin" role="tabpanel">
+
+    <!-- Filtros personalizados DataTables (Administradores) -->
+    <div class="card bg-dark border-0 shadow-sm p-3 mb-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            <div class="col-md-4">
+                <input type="text" id="filter-usuario-admin" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Usuario / Admin">
+            </div>
+            <div class="col-md-4">
+                <input type="text" id="filter-email-admin" class="form-control form-control-sm bg-dark text-white u-inline-b872edfb4c" placeholder="Email">
+            </div>
+            <div class="col-md-3">
+                <select id="filter-estado-admin" class="form-select form-select-sm bg-dark text-white u-inline-b872edfb4c">
+                    <option value="">Estado (Todos)</option>
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                    <option value="suspendido">Suspendido</option>
+                </select>
+            </div>
+            <div class="col-auto ms-auto">
+                <button class="btn btn-sm btn-outline-secondary" id="clear-filters-admin" type="button" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container u-inline-ab87d0b2ff">
+        <table class="table table-dark mb-0">
+            <thead>
+                <tr class="usuario-table-header">
+                    <th class="p-4 text-muted small fw-bold">Usuario</th>
+                    <th class="p-4 text-muted small fw-bold">Email</th>
+                    <th class="p-4 text-muted small fw-bold">Estado</th>
+                    <th class="p-4 text-muted small fw-bold">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="usuarios-admin-tbody">
+                {% for admin in admins %}
+                <tr class="usuario-table-row">
+                    <td class="p-4">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-3 bg-warning rounded-circle d-flex align-items-center justify-content-center usuario-avatar">
+                                <span class="fw-bold text-white">{{ admin.iniciales }}</span>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-white">
+                                    {{ admin.nombres }} {{ admin.apellidos }}
+                                    {% if admin.user.username == 'Edward_Fonseca' %}
+                                        <span class="badge bg-danger ms-1 u-inline-1ed2f53daf">ADMIN GLOBAL</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-muted small">Admin: {{ admin.documento }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="p-4 align-middle text-muted">{{ admin.user.email }}</td>
+                    <td class="p-4 align-middle">
+                        <span class="badge {% if admin.estado == 'activo' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill px-3">
+                            {{ admin.estado|title }}
+                        </span>
+                    </td>
+                    <td class="p-4 align-middle">
+                        <div class="d-flex gap-2">
+                            {% if admin.user.username == 'Edward_Fonseca' %}
+                                {% if request.user.username == 'Edward_Fonseca' %}
+                                    <a href="{% url 'usuarios:editar_usuario' admin.id %}" class="btn btn-sm btn-action btn-action-edit" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                {% else %}
+                                    <span class="small italic u-inline-9bca4b1fbc">Protegido</span>
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'usuarios:editar_usuario' admin.id %}" class="btn btn-sm btn-action btn-action-edit" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% if admin.user.username != 'Edward_Fonseca' and admin.user != request.user %}
+                                <a href="{% url 'usuarios:toggle_estado_usuario' admin.id %}" 
+                                   class="btn btn-sm btn-action {% if admin.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}" 
+                                   title="{% if admin.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                                    <i class="bi {% if admin.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
+                                </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-5 text-muted">
+                        <i class="bi bi-shield-lock mb-3 d-block fs-1"></i>
+                        No hay administradores registrados
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
