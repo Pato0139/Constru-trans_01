@@ -8,8 +8,8 @@ class Command(BaseCommand):
     help = "Indexa materiales y pedidos en ChromaDB para las consultas RAG"
 
     def handle(self, *args, **options):
-        from ordenes.models import Pedido
-        from usuarios.models import MaterialConstruccion
+        from pedidos.models import Pedido
+        from catalogo.models import MaterialConstruccion
 
         documentos = []
         try:

@@ -20,7 +20,7 @@ def _tools_definiciones():
 
 
 def _estado_pedido(codigo):
-    from ordenes.models import Pedido
+    from pedidos.models import Pedido
 
     pedido = Pedido.objects.filter(codigo_pedido=codigo).first()
     if not pedido:
@@ -29,7 +29,7 @@ def _estado_pedido(codigo):
 
 
 def _materiales(busqueda=None):
-    from usuarios.models import MaterialConstruccion
+    from catalogo.models import MaterialConstruccion
 
     queryset = MaterialConstruccion.objects.filter(activo=True)
     if busqueda:
@@ -39,14 +39,14 @@ def _materiales(busqueda=None):
 
 def _stock_bajo():
     from django.db.models import F
-    from usuarios.models import Stock
+    from catalogo.models import Stock
 
     queryset = Stock.objects.filter(cantidad_actual__lt=F("stock_minimo")).select_related("material")[:15]
     return {"total": len(queryset), "materiales": [{"material": item.material.nombre, "stock_actual": item.cantidad_actual, "stock_minimo": item.stock_minimo} for item in queryset]}
 
 
 def _pedidos_estado(estado):
-    from ordenes.models import Pedido
+    from pedidos.models import Pedido
 
     validos = [choice[0] for choice in Pedido.ESTADOS]
     if estado not in validos:

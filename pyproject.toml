@@ -21,17 +21,16 @@ DJANGO_SETTINGS_MODULE = "core.settings"
 testpaths = [
   "usuarios",
   "clientes",
-  "inventario",
+  "catalogo",
   "compras",
-  "ordenes",
-  "gestion_pedidos",
+  "pedidos",
+  "logistica",
+  "auditoria",
   "reportes",
   "inicio",
-  "historial",
-  "transporte",
   "licensing",
   "ia"
 ]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 norecursedirs = [".venv", "scripts", "htmlcov", "staticfiles"]
-addopts = "--cov=usuarios --cov=clientes --cov=inventario --cov=compras --cov=ordenes --cov=gestion_pedidos --cov=reportes --cov=inicio --cov=historial --cov=transporte --cov=licensing --cov=ia --cov-report=html --cov-report=term"
+addopts = "--cov=usuarios --cov=clientes --cov=catalogo --cov=compras --cov=pedidos --cov=logistica --cov=auditoria --cov=reportes --cov=inicio --cov=licensing --cov=ia --cov-report=html --cov-report=term"

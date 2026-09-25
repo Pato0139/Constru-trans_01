@@ -137,7 +137,7 @@
                             </td>
                             <td class="py-3 px-3 fw-bold text-white">{{ pedido.total|currency }}</td>
                             <td class="py-3 px-3 text-center">
-                                <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn btn-sm btn-outline-secondary border-0 text-white" title="Ver Detalles">
+                                <a href="{% url 'pedidos:ver_pedido_admin' pedido.id %}" class="btn btn-sm btn-outline-secondary border-0 text-white" title="Ver Detalles">
                                     <i class="bi bi-eye fs-5"></i>
                                 </a>
                             </td>

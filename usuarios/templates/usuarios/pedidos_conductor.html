@@ -49,7 +49,7 @@
                     </td>
                     <td class="price-tag">{{ pedido.precio|currency }}</td>
                     <td class="text-center">
-                        <a href="{% url 'ordenes:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
+                        <a href="{% url 'pedidos:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
                             <i class="bi bi-eye"></i>
                         </a>
                     </td>

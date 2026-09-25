@@ -11,9 +11,11 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from historial.utils import registrar_actividad
-from ordenes.models import Orden
-from usuarios.models import Material, Usuario, Vehiculo
+from auditoria.utils import registrar_actividad
+from pedidos.models import Orden
+from usuarios.models import Usuario
+from catalogo.models import MaterialConstruccion as Material
+from logistica.models import Vehiculo
 from usuarios.views import admin_required
 
 

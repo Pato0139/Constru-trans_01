@@ -32,15 +32,18 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
             from django.db.models import Count
 
             from clientes.models import Cliente
-            from compras.models import Compra
-            from ordenes.models import Pedido as PedidoGestion
-            from usuarios.models import (
-                ConductorVehiculo,
+            from compras.models import Compra, Proveedor
+            from pedidos.models import Pedido as PedidoGestion
+            from catalogo.models import (
                 MaterialConstruccion,
-                Proveedor,
                 Stock,
-                Usuario,
+            )
+            from logistica.models import (
+                ConductorVehiculo,
                 Vehiculo,
+            )
+            from usuarios.models import (
+                Usuario,
             )
 
             # --- DATOS GLOBALES ---
@@ -136,7 +139,7 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
         if rol_usuario == "cliente":
             try:
                 from clientes.models import Cliente
-                from ordenes.models import Pedido as PedidoGestion
+                from pedidos.models import Pedido as PedidoGestion
 
                 cliente_obj = Cliente.objects.filter(usuario=usuario).first()
                 if cliente_obj:
@@ -155,8 +158,9 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
         # DATOS PARA CONDUCTORES
         elif rol_usuario == "conductor":
             try:
-                from ordenes.models import Pedido as PedidoGestion
-                from usuarios.models import Conductor, ConductorVehiculo
+                from logistica.models import ConductorVehiculo
+                from pedidos.models import Pedido as PedidoGestion
+                from usuarios.models import Conductor
 
                 conductor_obj = Conductor.objects.filter(usuario=usuario).first()
                 if conductor_obj:

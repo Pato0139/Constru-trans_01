@@ -118,18 +118,16 @@ LOCAL_APPS = [
     "core.apps.CoreConfig",
     "usuarios",
     "clientes",
-    "inventario",
+    "catalogo",
     "compras",
-    "ordenes",
-    "gestion_pedidos",
+    "pedidos",
     "reportes",
     "inicio",
-    "historial",
-    "transporte",
+    "auditoria",
+    "logistica",
     "licensing",
     "ia",
     "ayuda",
-    "novedades",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

@@ -27,21 +27,20 @@ from core.security import (
     registrar_warning,
     role_required,
 )
-from historial.utils import registrar_actividad
-from ordenes.models import Pedido
+from auditoria.utils import registrar_actividad
+from pedidos.models import Pedido
 from core.db_preference import PREF_LOCAL, PREF_REMOTA, get_db_preference, invalidate_connection_cache
 from core.sync import sync_all_usuarios
 from core.utils import conexion_remota_disponible
 
-from .forms import AsignarVehiculoForm, LoginForm, RegistroForm, CustomPasswordResetForm
+from .forms import LoginForm, RegistroForm, CustomPasswordResetForm
+from logistica.forms import AsignarVehiculoForm
 from .models import (
     Conductor,
-    ConductorVehiculo,
     Usuario,
 )
-from .models import (
-    MaterialConstruccion as Material,
-)
+from logistica.models import ConductorVehiculo
+from catalogo.models import MaterialConstruccion as Material
 from .utils import get_account_switch_options, limpiar_documento, limpiar_telefono
 
 logger = logging.getLogger(__name__)
@@ -998,7 +997,7 @@ def perfil_conductor(request):
 
     pedidos = Pedido.objects.filter(conductor=conductor).select_related("usuario", "cliente__usuario")
 
-    from ordenes.models import Entrega
+    from logistica.models import Entrega
     try:
         conductor_perfil = Conductor.objects.get(usuario=conductor)
         ultima_entrega = (

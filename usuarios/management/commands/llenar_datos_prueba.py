@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from gestion_pedidos.models import DetallePedido, Pedido
-from usuarios.models import Catalogo, MaterialConstruccion, UnidadMedida, Usuario
+from catalogo.models import Catalogo, MaterialConstruccion, UnidadMedida
+from pedidos.models import DetallePedido, Pedido
+from usuarios.models import Usuario
 
 
 class Command(BaseCommand):

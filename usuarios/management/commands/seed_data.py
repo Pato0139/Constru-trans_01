@@ -7,18 +7,16 @@ from django.core.management.base import BaseCommand
 from django.db.models.signals import post_save
 from django.utils import timezone
 
+from catalogo.models import MaterialConstruccion, Stock
+from catalogo.models.movimientos import MovimientoInventario
 from clientes.models import Cliente, crear_perfil_cliente
-from inventario.models import MovimientoInventario
-from ordenes.models import DetallePedido, Entrega, Pedido
+from compras.models import Proveedor
+from logistica.models import ConductorVehiculo, Entrega, Vehiculo
+from pedidos.models import DetallePedido, Pedido
 from usuarios.models import (
     EPS,
     Conductor,
-    ConductorVehiculo,
-    MaterialConstruccion,
-    Proveedor,
-    Stock,
     Usuario,
-    Vehiculo,
 )
 from core.routers import EnrutadorInventario
 from core.utils import conexion_remota_disponible
@@ -70,7 +68,7 @@ class Command(BaseCommand):
             return mat, False
 
         # Get or create the UnidadMedida instance dynamically
-        from usuarios.models import UnidadMedida
+        from catalogo.models import UnidadMedida
 
         unidad_str = m_data["unidad_medida"]
         abreviaturas = {

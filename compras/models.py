@@ -1,9 +1,68 @@
 from django.conf import settings
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 
 
-from usuarios.models import MaterialConstruccion, Proveedor
+numeric_and_space_validator = RegexValidator(
+    r"^[0-9 ]+$",
+    message="Este campo solo puede contener números y espacios.",
+)
+
+
+from catalogo.models import MaterialConstruccion
+
+
+# =====================================================================
+# PROVEEDOR
+# =====================================================================
+class Proveedor(models.Model):
+    codigo_proveedor = models.AutoField(primary_key=True)
+    nombre_empresa = models.CharField(max_length=150)
+    nit = models.CharField(max_length=20, unique=True, validators=[numeric_and_space_validator])
+    contacto_nombre = models.CharField(max_length=150, blank=True)
+    telefono = models.CharField(max_length=20, validators=[numeric_and_space_validator])
+    correo = models.EmailField(blank=True)
+    direccion = models.CharField(max_length=255, blank=True)
+    ciudad = models.CharField(max_length=100, blank=True)
+    categoria = models.CharField(max_length=100, blank=True, default="General")
+    descripcion = models.TextField(blank=True)
+    activo = models.BooleanField(default=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    sincronizado = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "proveedor"
+        verbose_name_plural = "Proveedores"
+
+    def __str__(self):
+        return f"{self.nombre_empresa} ({self.nit})"
+
+    @property
+    def id(self):
+        return self.codigo_proveedor
+
+    @property
+    def email(self):
+        return self.correo
+
+    @email.setter
+    def email(self, value):
+        self.correo = value
+
+    @property
+    def nombre(self):
+        return self.nombre_empresa
+
+    @property
+    def contacto(self):
+        return self.contacto_nombre
+
+    def save(self, *args, **kwargs):
+        if not self.contacto_nombre:
+            self.contacto_nombre = self.nombre_empresa
+        if not self.categoria:
+            self.categoria = "General"
+        super().save(*args, **kwargs)
 
 
 # =====================================================================

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load currency_tags %}
+{% load static %}
+
+{% block title %}Movimientos de Inventario - ConstruTrans{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/catalogo/movimientos.css' %}?v=1.2">
+<link rel="stylesheet" href="{% static 'css/catalogo/theme.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<div class="inventory-page d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4 standard-page-header"
+    data-aos="fade-down">
+    <div>
+        <h2 class="fw-bold mb-0 text-white"><i class="bi bi-arrow-left-right text-accent me-2"></i>Movimientos de
+            Inventario</h2>
+        <div class="d-flex align-items-center gap-2 mt-1">
+            <p class="page-subtitle small mb-0">Registro de entradas y salidas de materiales</p>
+            <span class="badge rounded-pill px-3 u-inline-b2204c9e00">{{ movimientos|length }} registros</span>
+        </div>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row gap-2 align-items-center">
+        {% include "partials/filter_bar.html" %}
+
+        <button class="btn btn-premium btn-premium-gold btn-main-action px-4 fw-bold u-inline-142d515f24"
+            data-bs-toggle="modal" data-bs-target="#modalEntrada" aria-label="Agregar" data-tooltip="Agregar"
+            title="Agregar">
+            <i class="bi bi-plus-lg me-2"></i> Registrar Entrada
+
+        </button>
+    </div>
+</div>
+
+<div class="inventory-page table-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8"
+    data-aos="fade-up">
+    <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0 u-inline-16fd8a5fe1">
+            <thead>
+                <tr class="u-inline-0d59a3f53c">
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Fecha</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Material</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Tipo</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Cantidad</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Motivo</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Usuario</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in movimientos %}
+                <tr class="u-inline-e91738c112">
+                    <td class="py-3 px-4 text-muted small">{{ m.fecha|date:"d/m/Y H:i" }}</td>
+                    <td class="py-3 px-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div
+                                class="inventory-icon rounded-circle d-flex align-items-center justify-content-center fw-bold u-inline-f4e11011b6">
+                                {{ m.material.nombre|first }}
+                            </div>
+                            <span class="fw-medium">{{ m.material.nombre }}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">
+                        {% if m.tipo_movimiento == 'entrada' %}
+                        <span class="badge inventory-status inventory-status--entry px-3">
+                            <i class="bi bi-arrow-down-left me-1"></i>Entrada
+                        </span>
+                        {% else %}
+                        <span class="badge inventory-status inventory-status--exit px-3">
+                            <i class="bi bi-arrow-up-right me-1"></i>Salida
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td
+                        class="py-3 px-4 fw-bold {% if m.tipo_movimiento == 'entrada' %}inventory-status--entry{% else %}inventory-status--exit{% endif %}">
+                        {% if m.tipo_movimiento == 'entrada' %}+{% else %}-{% endif %}{{ m.cantidad }}
+                    </td>
+                    <td class="py-3 px-4 text-muted">{{ m.observacion|default:"Sin observación" }}</td>
+                    <td class="py-3 px-4 small">
+                        {% if m.usuario %}
+                        {{ m.usuario.username }}
+                        {% else %}
+                        <span class="text-muted italic">Sistema</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="py-5">
+                            <i class="bi bi-arrow-left-right text-muted mb-3 d-block u-inline-8ae57e885d"></i>
+                            <p class="text-muted fw-medium mb-0">No hay movimientos registrados en el sistema</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Registrar Entrada -->
+<div class="modal fade inventory-entry-modal" id="modalEntrada" tabindex="-1" aria-labelledby="modalEntradaTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modalEntradaTitle">Registrar Entrada de Material</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar formulario"
+                    data-tooltip="Cerrar formulario" title="Cerrar formulario"></button>
+            </div>
+            <form id="formEntrada">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Seleccionar Material</label>
+                        <select name="material_id" class="form-select" required>
+                            <option value="">Elegir material...</option>
+                            {% for mat in materiales %}
+                            <option value="{{ mat.id }}">{{ mat.nombre }} ({{ mat.tipo }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Cantidad</label>
+                        <div class="quantity-stepper inventory-entry-stepper" data-min="1">
+                            <button type="button" class="quantity-stepper__btn quantity-stepper__btn--minus"
+                                aria-label="Restar cantidad" data-tooltip="Restar cantidad" title="Restar cantidad">
+                                <i class="bi bi-dash-lg"></i>
+                            </button>
+                            <input type="number" name="cantidad" class="quantity-stepper__input" min="1" value="1"
+                                required aria-label="Cantidad de entrada">
+                            <button type="button" class="quantity-stepper__btn quantity-stepper__btn--plus"
+                                aria-label="Sumar cantidad" data-tooltip="Sumar cantidad" title="Sumar cantidad">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Motivo / Referencia</label>
+                        <textarea name="motivo" class="form-control" rows="2"
+                            placeholder="Ej: Compra a proveedor X, Devolución..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"
+                        aria-label="Cancelar registro de entrada" data-tooltip="Cancelar registro de entrada"
+                        title="Cancelar registro de entrada">Cancelar</button>
+                    <button type="submit" class="btn btn-premium-gold px-4 fw-bold u-inline-39e73822ed"
+                        aria-label="Guardar entrada de material" data-tooltip="Guardar entrada de material"
+                        title="Guardar entrada de material">
+                        GUARDAR ENTRADA
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.urlRegistrarEntrada = "{% url 'catalogo:registrar_entrada' %}";
+</script>
+<script src="{% static 'js/catalogo/movimientos.js' %}?v=1.1"></script>
+{% endblock %}

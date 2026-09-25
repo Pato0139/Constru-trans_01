@@ -56,22 +56,22 @@
                     data-i18n="sidebar.label.operaciones">Operaciones</span></p>
             <div class="sidebar-section sidebar-section--ventas">
                 <button
-                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'ordenes' %}{% else %}collapsed{% endif %}"
+                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'pedidos' %}{% else %}collapsed{% endif %}"
                     type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse"
-                    aria-expanded="{% if request.resolver_match.app_name == 'ordenes' %}true{% else %}false{% endif %}"
+                    aria-expanded="{% if request.resolver_match.app_name == 'pedidos' %}true{% else %}false{% endif %}"
                     aria-controls="ventasCollapse">
                     <span class="d-flex align-items-center gap-2">
                         <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-cart-fill"></i></span>
                         <span data-i18n="sidebar.ventasCobros">Ventas y Cobros</span>
                     </span>
                     <i
-                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'ordenes' %}rotated{% endif %}"></i>
+                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'pedidos' %}rotated{% endif %}"></i>
                 </button>
-                <div class="collapse {% if request.resolver_match.app_name == 'ordenes' %}show{% endif %}"
+                <div class="collapse {% if request.resolver_match.app_name == 'pedidos' %}show{% endif %}"
                     id="ventasCollapse">
                     <div class="nav-submenu">
-                        <a href="{% url 'ordenes:lista_pedidos_admin' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_pedidos_admin' %}active{% endif %}">
+                        <a href="{% url 'pedidos:lista_pedidos_admin' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_pedidos_admin' %}active{% endif %}">
                             <i class="bi bi-cart-check-fill text-warning"></i>
                             <span data-i18n="sidebar.gestionPedidos">Gestión de Pedidos</span>
                         </a>
@@ -82,46 +82,46 @@
 
             <div class="sidebar-section sidebar-section--inventario">
                 <button
-                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'inventario' or request.resolver_match.app_name == 'transporte' %}{% else %}collapsed{% endif %}"
+                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'catalogo' or request.resolver_match.app_name == 'logistica' %}{% else %}collapsed{% endif %}"
                     type="button" data-bs-toggle="collapse" data-bs-target="#inventarioCollapse"
-                    aria-expanded="{% if request.resolver_match.app_name == 'inventario' or request.resolver_match.app_name == 'transporte' %}true{% else %}false{% endif %}"
+                    aria-expanded="{% if request.resolver_match.app_name == 'catalogo' or request.resolver_match.app_name == 'logistica' %}true{% else %}false{% endif %}"
                     aria-controls="inventarioCollapse">
                     <span class="d-flex align-items-center gap-2">
                         <span class="nav-icon-wrap nav-icon-wrap--teal"><i class="bi bi-box-seam-fill"></i></span>
                         <span data-i18n="sidebar.inventarioFlota">Inventario y Flota</span>
                     </span>
                     <i
-                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'inventario' or request.resolver_match.app_name == 'transporte' %}rotated{% endif %}"></i>
+                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'catalogo' or request.resolver_match.app_name == 'logistica' %}rotated{% endif %}"></i>
                 </button>
-                <div class="collapse {% if request.resolver_match.app_name == 'inventario' or request.resolver_match.app_name == 'transporte' %}show{% endif %}"
+                <div class="collapse {% if request.resolver_match.app_name == 'catalogo' or request.resolver_match.app_name == 'logistica' %}show{% endif %}"
                     id="inventarioCollapse">
                     <div class="nav-submenu">
-                        <a href="{% url 'inventario:materiales_lista' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name in 'materiales_lista,crear_material,editar_material' %}active{% endif %}"
+                        <a href="{% url 'catalogo:materiales_lista' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'catalogo' and request.resolver_match.url_name in 'materiales_lista,crear_material,editar_material' %}active{% endif %}"
                             aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
                             <i class="bi bi-box"></i>
                             <span data-i18n="sidebar.materiales">Materiales</span>
                         </a>
-                        <a href="{% url 'inventario:tipos_material_lista' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name in 'tipos_material_lista,crear_tipo_material,editar_tipo_material' %}active{% endif %}"
+                        <a href="{% url 'catalogo:tipos_material_lista' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'catalogo' and request.resolver_match.url_name in 'tipos_material_lista,crear_tipo_material,editar_tipo_material' %}active{% endif %}"
                             aria-label="Agregar tipo de material" data-tooltip="Agregar tipo de material"
                             title="Agregar tipo de material">
                             <i class="bi bi-tags"></i>
                             <span data-i18n="sidebar.tiposMaterial">Tipos de Material</span>
                         </a>
-                        <a href="{% url 'inventario:stock_lista' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'stock_lista' %}active{% endif %}">
+                        <a href="{% url 'catalogo:stock_lista' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'catalogo' and request.resolver_match.url_name == 'stock_lista' %}active{% endif %}">
                             <i class="bi bi-clipboard-data-fill"></i>
                             <span data-i18n="sidebar.stock">Stock</span>
                         </a>
-                        <a href="{% url 'inventario:movimientos_lista' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'inventario' and request.resolver_match.url_name == 'movimientos_lista' %}active{% endif %}"
+                        <a href="{% url 'catalogo:movimientos_lista' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'catalogo' and request.resolver_match.url_name == 'movimientos_lista' %}active{% endif %}"
                             aria-label="Volver" data-tooltip="Volver" title="Volver">
                             <i class="bi bi-arrow-left-right"></i>
                             <span data-i18n="sidebar.movimientos">Movimientos</span>
                         </a>
-                        <a href="{% url 'transporte:lista_vehiculos' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'transporte' %}active{% endif %}">
+                        <a href="{% url 'logistica:lista_vehiculos' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'logistica' %}active{% endif %}">
                             <i class="bi bi-truck"></i>
                             <span data-i18n="sidebar.vehiculos">Vehículos</span>
                         </a>
@@ -161,22 +161,22 @@
 
             <div class="sidebar-section sidebar-section--entregas">
                 <button
-                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}{% else %}collapsed{% endif %}"
+                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_entregas_admin' %}{% else %}collapsed{% endif %}"
                     type="button" data-bs-toggle="collapse" data-bs-target="#entregasCollapse"
-                    aria-expanded="{% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}true{% else %}false{% endif %}"
+                    aria-expanded="{% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_entregas_admin' %}true{% else %}false{% endif %}"
                     aria-controls="entregasCollapse">
                     <span class="d-flex align-items-center gap-2">
                         <span class="nav-icon-wrap nav-icon-wrap--green"><i class="bi bi-truck-flatbed"></i></span>
                         <span data-i18n="sidebar.entregas">Entregas</span>
                     </span>
                     <i
-                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}rotated{% endif %}"></i>
+                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_entregas_admin' %}rotated{% endif %}"></i>
                 </button>
-                <div class="collapse {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}show{% endif %}"
+                <div class="collapse {% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_entregas_admin' %}show{% endif %}"
                     id="entregasCollapse">
                     <div class="nav-submenu">
-                        <a href="{% url 'ordenes:lista_entregas_admin' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'ordenes' and request.resolver_match.url_name == 'lista_entregas_admin' %}active{% endif %}">
+                        <a href="{% url 'pedidos:lista_entregas_admin' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_entregas_admin' %}active{% endif %}">
                             <i class="bi bi-truck"></i>
                             <span data-i18n="sidebar.entregasList">Entregas</span>
                         </a>
@@ -188,18 +188,18 @@
                     data-i18n="sidebar.label.sistema">Sistema</span></p>
             <div class="sidebar-section sidebar-section--admin">
                 <button
-                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}{% else %}collapsed{% endif %}"
+                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'auditoria' %}{% else %}collapsed{% endif %}"
                     type="button" data-bs-toggle="collapse" data-bs-target="#adminCollapse"
-                    aria-expanded="{% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}true{% else %}false{% endif %}"
+                    aria-expanded="{% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'auditoria' %}true{% else %}false{% endif %}"
                     aria-controls="adminCollapse">
                     <span class="d-flex align-items-center gap-2">
                         <span class="nav-icon-wrap nav-icon-wrap--purple"><i class="bi bi-shield-lock-fill"></i></span>
                         <span data-i18n="sidebar.administracion">Administración</span>
                     </span>
                     <i
-                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}rotated{% endif %}"></i>
+                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'auditoria' %}rotated{% endif %}"></i>
                 </button>
-                <div class="collapse {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'historial' %}show{% endif %}"
+                <div class="collapse {% if request.resolver_match.app_name == 'usuarios' and request.resolver_match.url_name in 'lista_usuarios,lista_conductores' or request.resolver_match.app_name == 'reportes' or request.resolver_match.app_name == 'auditoria' %}show{% endif %}"
                     id="adminCollapse">
                     <div class="nav-submenu">
                         <a href="{% url 'usuarios:lista_usuarios' %}"
@@ -217,8 +217,8 @@
                             <i class="bi bi-graph-up-arrow"></i>
                             <span data-i18n="sidebar.reportes">Reportes</span>
                         </a>
-                        <a href="{% url 'historial:lista_historial' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'historial' %}active{% endif %}">
+                        <a href="{% url 'auditoria:lista_historial' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'auditoria' %}active{% endif %}">
                             <i class="bi bi-clock-history"></i>
                             <span data-i18n="sidebar.auditoria">Auditoría</span>
                         </a>
@@ -343,8 +343,3 @@
         });
     });
 </script>
-
-
-
-
-
