@@ -1,5 +1,10 @@
 <div class="card bg-surface border-0 shadow-sm p-3 mb-4 filter-bar-card standard-filter-bar" data-aos="fade-down">
-    <form id="filterForm" action="." method="GET" class="w-100" {% if form_data_ajax %}data-ajax-filter-form="true"{% endif %}>
+    <form id="filterForm"
+          action="."
+          method="GET"
+          class="w-100 standard-filter-form"
+          {% if form_data_ajax %}data-ajax-filter-form="true"{% endif %}
+          {% if tbody_id %}data-tbody-id="{{ tbody_id }}"{% endif %}>
 
         <div class="standard-filter-layout">
             <div class="standard-filter-label">
@@ -38,34 +43,3 @@
         </div>
     </form>
 </div>
-
-<script>
-(function () {
-    function bindAutoFilters() {
-        const form = document.getElementById('filterForm');
-        if (!form || form.dataset.ajaxFilterForm === 'true') return;
-
-        const fields = form.querySelectorAll('input.filter-input, select.filter-select');
-        if (!fields.length) return;
-
-        let timeoutId = null;
-        const submitFilters = () => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-                form.requestSubmit ? form.requestSubmit() : form.submit();
-            }, 300);
-        };
-
-        fields.forEach((field) => {
-            const eventName = field.tagName === 'SELECT' ? 'change' : 'input';
-            field.addEventListener(eventName, submitFilters);
-        });
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', bindAutoFilters);
-    } else {
-        bindAutoFilters();
-    }
-})();
-</script>

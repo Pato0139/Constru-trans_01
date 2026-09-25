@@ -105,39 +105,30 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Esperar a que DataTables se inicialice en base.js
         setTimeout(function () {
-            // Seleccionamos la tabla
             var tableEl = document.querySelector('.table');
             if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
                 var table = $(tableEl).DataTable();
+                var FP = (window.FocusPreserver || {
+                    save: function(){return{el:document.activeElement,start:document.activeElement&&document.activeElement.selectionStart!==undefined?document.activeElement.selectionStart:null,end:document.activeElement&&document.activeElement.selectionEnd!==undefined?document.activeElement.selectionEnd:null};},
+                    restore: function(s){if(!s||!s.el)return;try{s.el.focus({preventScroll:true});}catch(_){try{s.el.focus();}catch(__){}}if(s.start!==null&&s.end!==null&&typeof s.el.setSelectionRange==='function'){try{s.el.setSelectionRange(s.start,s.end);}catch(_){}}},
+                    wrap: function(fn){var s=this.save();try{return fn();}finally{this.restore(s);}},
+                    debounce: function(fn,ms){var t=null;return function(){var c=this,a=arguments;if(t)clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);t=null;},ms||350);};
+                });
 
-                // Índices de columnas:
-                // 0: ID Pedido
-                // 1: Material
-                // 2: Cantidad
-                // 3: Fecha
-                // 4: Total
-                // 5: Estado
-                // 6: Acciones
+                var drawSearch = function (colIdx, val) {
+                    FP.wrap(function () { table.column(colIdx).search(val).draw(); });
+                };
 
-                $('#filter-id-pedido').on('keyup change', function () {
-                    table.column(0).search(this.value).draw();
-                });
-                $('#filter-material').on('keyup change', function () {
-                    table.column(1).search(this.value).draw();
-                });
-                $('#filter-fecha').on('change', function () {
-                    table.column(3).search(this.value).draw();
-                });
-                $('#filter-estado').on('change', function () {
-                    table.column(5).search(this.value).draw();
-                });
+                $('#filter-id-pedido').on('input', FP.debounce(function () { drawSearch(0, this.value); }, 300));
+                $('#filter-material').on('input', FP.debounce(function () { drawSearch(1, this.value); }, 300));
+                $('#filter-fecha').on('change', function () { drawSearch(3, this.value); });
+                $('#filter-estado').on('change', function () { drawSearch(5, this.value); });
 
                 $('#clear-filters').on('click', function () {
                     $('#filter-id-pedido, #filter-material, #filter-fecha').val('');
                     $('#filter-estado').val('');
-                    table.columns().search('').draw();
+                    FP.wrap(function () { table.columns().search('').draw(); });
                 });
             }
         }, 150);

@@ -12,121 +12,76 @@
 <script src="{% static 'js/usuarios/lista.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Esperar a que DataTables se inicialice en base.js
     setTimeout(function() {
-        // Seleccionamos la tabla dentro del panel #general
+        var FP = (window.FocusPreserver || {
+            save: function(){return{el:document.activeElement,start:document.activeElement&&document.activeElement.selectionStart!==undefined?document.activeElement.selectionStart:null,end:document.activeElement&&document.activeElement.selectionEnd!==undefined?document.activeElement.selectionEnd:null};},
+            restore: function(s){if(!s||!s.el)return;try{s.el.focus({preventScroll:true});}catch(_){try{s.el.focus();}catch(__){}}if(s.start!==null&&s.end!==null&&typeof s.el.setSelectionRange==='function'){try{s.el.setSelectionRange(s.start,s.end);}catch(_){}}},
+            wrap: function(fn){var s=this.save();try{return fn();}finally{this.restore(s);}},
+            debounce: function(fn,ms){var t=null;return function(){var c=this,a=arguments;if(t)clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);t=null;},ms||350);};
+        });
+
         var generalTableEl = document.querySelector('#general .table');
         if (generalTableEl && $.fn.DataTable.isDataTable(generalTableEl)) {
             var tableGen = $(generalTableEl).DataTable();
-            
-            // Índices de columnas para General:
-            // 0: Usuario
-            // 1: Rol
-            // 2: Email
-            // 3: Estado
-            // 4: Acciones
-            
-            $('#filter-usuario-gen').on('keyup change', function() {
-                tableGen.column(0).search(this.value).draw();
-            });
-            $('#filter-rol-gen').on('change', function() {
-                tableGen.column(1).search(this.value).draw();
-            });
-            $('#filter-email-gen').on('keyup change', function() {
-                tableGen.column(2).search(this.value).draw();
-            });
-            $('#filter-estado-gen').on('change', function() {
-                tableGen.column(3).search(this.value).draw();
-            });
-            
-            $('#clear-filters-gen').on('click', function() {
+            var drawGen = function (colIdx, val) { FP.wrap(function () { tableGen.column(colIdx).search(val).draw(); }); };
+
+            $('#filter-usuario-gen').on('input', FP.debounce(function () { drawGen(0, this.value); }, 300));
+            $('#filter-rol-gen').on('change', function () { drawGen(1, this.value); });
+            $('#filter-email-gen').on('input', FP.debounce(function () { drawGen(2, this.value); }, 300));
+            $('#filter-estado-gen').on('change', function () { drawGen(3, this.value); });
+
+            $('#clear-filters-gen').on('click', function () {
                 $('#filter-usuario-gen, #filter-email-gen').val('');
                 $('#filter-rol-gen, #filter-estado-gen').val('');
-                tableGen.columns().search('').draw();
+                FP.wrap(function () { tableGen.columns().search('').draw(); });
             });
         }
 
-        // Seleccionamos la tabla dentro del panel #clientes
         var clientesTableEl = document.querySelector('#clientes .table');
         if (clientesTableEl && $.fn.DataTable.isDataTable(clientesTableEl)) {
             var tableCli = $(clientesTableEl).DataTable();
-            
-            // Índices de columnas para Clientes:
-            // 0: Usuario
-            // 1: Email
-            // 2: Estado
-            // 3: Acciones
-            
-            $('#filter-usuario-cli').on('keyup change', function() {
-                tableCli.column(0).search(this.value).draw();
-            });
-            $('#filter-email-cli').on('keyup change', function() {
-                tableCli.column(1).search(this.value).draw();
-            });
-            $('#filter-estado-cli').on('change', function() {
-                tableCli.column(2).search(this.value).draw();
-            });
-            
-            $('#clear-filters-cli').on('click', function() {
+            var drawCli = function (colIdx, val) { FP.wrap(function () { tableCli.column(colIdx).search(val).draw(); }); };
+
+            $('#filter-usuario-cli').on('input', FP.debounce(function () { drawCli(0, this.value); }, 300));
+            $('#filter-email-cli').on('input', FP.debounce(function () { drawCli(1, this.value); }, 300));
+            $('#filter-estado-cli').on('change', function () { drawCli(2, this.value); });
+
+            $('#clear-filters-cli').on('click', function () {
                 $('#filter-usuario-cli, #filter-email-cli').val('');
                 $('#filter-estado-cli').val('');
-                tableCli.columns().search('').draw();
+                FP.wrap(function () { tableCli.columns().search('').draw(); });
             });
         }
 
-        // Seleccionamos la tabla dentro del panel #conductores
         var condTableEl = document.querySelector('#conductores .table');
         if (condTableEl && $.fn.DataTable.isDataTable(condTableEl)) {
             var tableCond = $(condTableEl).DataTable();
-            
-            // Índices de columnas para Conductores:
-            // 0: Usuario
-            // 1: Email
-            // 2: Estado
-            // 3: Acciones
-            
-            $('#filter-usuario-cond').on('keyup change', function() {
-                tableCond.column(0).search(this.value).draw();
-            });
-            $('#filter-email-cond').on('keyup change', function() {
-                tableCond.column(1).search(this.value).draw();
-            });
-            $('#filter-estado-cond').on('change', function() {
-                tableCond.column(2).search(this.value).draw();
-            });
-            
-            $('#clear-filters-cond').on('click', function() {
+            var drawCond = function (colIdx, val) { FP.wrap(function () { tableCond.column(colIdx).search(val).draw(); }); };
+
+            $('#filter-usuario-cond').on('input', FP.debounce(function () { drawCond(0, this.value); }, 300));
+            $('#filter-email-cond').on('input', FP.debounce(function () { drawCond(1, this.value); }, 300));
+            $('#filter-estado-cond').on('change', function () { drawCond(2, this.value); });
+
+            $('#clear-filters-cond').on('click', function () {
                 $('#filter-usuario-cond, #filter-email-cond').val('');
                 $('#filter-estado-cond').val('');
-                tableCond.columns().search('').draw();
+                FP.wrap(function () { tableCond.columns().search('').draw(); });
             });
         }
 
-        // Seleccionamos la tabla dentro del panel #admin
         var adminTableEl = document.querySelector('#admin .table');
         if (adminTableEl && $.fn.DataTable.isDataTable(adminTableEl)) {
             var tableAdmin = $(adminTableEl).DataTable();
-            
-            // Índices de columnas para Administradores:
-            // 0: Usuario
-            // 1: Email
-            // 2: Estado
-            // 3: Acciones
-            
-            $('#filter-usuario-admin').on('keyup change', function() {
-                tableAdmin.column(0).search(this.value).draw();
-            });
-            $('#filter-email-admin').on('keyup change', function() {
-                tableAdmin.column(1).search(this.value).draw();
-            });
-            $('#filter-estado-admin').on('change', function() {
-                tableAdmin.column(2).search(this.value).draw();
-            });
-            
-            $('#clear-filters-admin').on('click', function() {
+            var drawAdmin = function (colIdx, val) { FP.wrap(function () { tableAdmin.column(colIdx).search(val).draw(); }); };
+
+            $('#filter-usuario-admin').on('input', FP.debounce(function () { drawAdmin(0, this.value); }, 300));
+            $('#filter-email-admin').on('input', FP.debounce(function () { drawAdmin(1, this.value); }, 300));
+            $('#filter-estado-admin').on('change', function () { drawAdmin(2, this.value); });
+
+            $('#clear-filters-admin').on('click', function () {
                 $('#filter-usuario-admin, #filter-email-admin').val('');
                 $('#filter-estado-admin').val('');
-                tableAdmin.columns().search('').draw();
+                FP.wrap(function () { tableAdmin.columns().search('').draw(); });
             });
         }
     }, 150);

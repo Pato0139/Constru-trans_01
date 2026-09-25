@@ -114,10 +114,44 @@ def lista_historial(request):
             "data": data
         })
 
-    # Normal render (empty tbody, handled by Ajax DataTable)
+    # Standard HTML filtering (AJAX or full page)
+    usuario_q = request.GET.get("usuario", "").strip()
+    accion_q = request.GET.get("accion", "").strip()
+    modulo_q = request.GET.get("modulo", "").strip()
+    fecha_inicio = request.GET.get("fecha_inicio", "").strip()
+    fecha_fin = request.GET.get("fecha_fin", "").strip()
+
+    registros = Historial.objects.select_related("usuario").all()
+
+    if usuario_q:
+        registros = registros.filter(usuario__username__icontains=usuario_q)
+    if accion_q:
+        registros = registros.filter(accion=accion_q)
+    if modulo_q:
+        registros = registros.filter(modulo=modulo_q)
+    if fecha_inicio:
+        registros = registros.filter(fecha_hora__date__gte=fecha_inicio)
+    if fecha_fin:
+        registros = registros.filter(fecha_hora__date__lte=fecha_fin)
+
+    registros = registros.order_by("-fecha_hora")
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return render(
+            request,
+            "historial/_lista_body.html",
+            {"registros": registros},
+        )
+
     context = {
         "acciones": Historial.ACCIONES,
         "modulos": Historial.objects.order_by("modulo").values_list("modulo", flat=True).distinct(),
+        "registros": registros,
+        "usuario_actual": usuario_q,
+        "accion_actual": accion_q,
+        "modulo_actual": modulo_q,
+        "fecha_inicio_actual": fecha_inicio,
+        "fecha_fin_actual": fecha_fin,
     }
     return render(request, "historial/lista.html", context)
 

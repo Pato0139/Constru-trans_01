@@ -29,6 +29,13 @@ def lista_pagos(request):
     if metodo:
         pagos = pagos.filter(metodo=metodo)
 
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return render(
+            request,
+            "pagos/_tabla_body.html",
+            {"pagos": pagos},
+        )
+
     return render(
         request,
         "pagos/lista.html",
