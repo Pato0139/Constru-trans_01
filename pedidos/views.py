@@ -22,10 +22,8 @@ from core.db_preference import debe_usar_bd_remota
 from core.db_utils import select_for_update_if_supported
 
 from .models import (
-    DetalleOrden,
     DetallePedido,
     DetalleSolicitudPedido,
-    Orden,
     Pedido,
     SolicitudPedido,
 )
@@ -36,14 +34,14 @@ logger = logging.getLogger(__name__)
 
 @admin_required
 def calcular_total(request, id):
-    orden = get_object_or_404(Orden, codigo_pedido=id)
+    orden = get_object_or_404(Pedido, codigo_pedido=id)
     total = orden.calcular_total()
     return JsonResponse({"total": float(total)})
 
 
 @admin_required
 def eliminar_detalle(request, id):
-    detalle = get_object_or_404(DetalleOrden, id_detalle_pedido=id)
+    detalle = get_object_or_404(DetallePedido, id_detalle_pedido=id)
     orden = detalle.pedido
     db_alias = "remota" if debe_usar_bd_remota() else "default"
 
@@ -75,7 +73,7 @@ def eliminar_detalle(request, id):
 
 @admin_required
 def agregar_materiales(request, id):
-    orden = get_object_or_404(Orden, codigo_pedido=id)
+    orden = get_object_or_404(Pedido, codigo_pedido=id)
     materiales = MaterialConstruccion.objects.all()
     detalles = orden.detalles.all()
 
@@ -97,7 +95,7 @@ def agregar_materiales(request, id):
 
             if stock_obj.cantidad_actual >= cantidad:
                 with transaction.atomic():
-                    detalle, created = DetalleOrden.objects.get_or_create(
+                    detalle, created = DetallePedido.objects.get_or_create(
                         pedido=orden,
                         material=material,
                         defaults={
@@ -134,7 +132,7 @@ def agregar_materiales(request, id):
 
 def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=None):
     pedidos = (
-        Orden.objects.all()
+        Pedido.objects.all()
         .select_related("usuario", "cliente", "conductor")
         .prefetch_related("detalles__material", "entregas")
         .order_by("-fecha_solicitud")
@@ -175,7 +173,10 @@ def _render_lista_por_estado(request, estado, titulo):
 
     pedidos = buscar_pedidos_admin(cliente_query=cliente_query, fecha_query=fecha_query, q=q)
     if estado:
-        pedidos = pedidos.filter(estado=estado)
+        if isinstance(estado, (list, tuple, set)):
+            pedidos = pedidos.filter(estado__in=estado)
+        else:
+            pedidos = pedidos.filter(estado=estado)
 
     has_filters = bool(cliente_query or fecha_query or q)
     total_resultados = pedidos.count()
@@ -195,22 +196,30 @@ def _render_lista_por_estado(request, estado, titulo):
 
 @admin_required
 def lista_pedidos_admin(request):
-    return _render_lista_por_estado(request, Orden.PENDIENTE, "Ventas Pendientes")
+    return _render_lista_por_estado(
+        request,
+        [
+            Pedido.PENDIENTE,
+            Pedido.AUTORIZADO_DESPACHO,
+            Pedido.VEHICULO_ASIGNADO,
+        ],
+        "Gestión de Pedidos",
+    )
 
 
 @admin_required
 def lista_entregas_admin(request):
-    return _render_lista_por_estado(request, Orden.EN_RUTA, "Control de Entregas")
+    return _render_lista_por_estado(request, Pedido.EN_RUTA, "Control de Entregas")
 
 
 @login_required
 def ver_pedido_admin(request, id):
-    orden = get_object_or_404(Orden, codigo_pedido=id)
+    orden = get_object_or_404(Pedido, codigo_pedido=id)
     usuario_actual = request.user
     is_super = getattr(usuario_actual, "is_superuser", False) or getattr(usuario_actual, "es_superadmin", False)
     es_admin = is_super or usuario_actual.rol == "admin"
 
-    cliente_dueno = (
+    cliente_dueno = orden.usuario_id == usuario_actual.pk or (
         orden.cliente is not None
         and orden.cliente.usuario_id is not None
         and orden.cliente.usuario_id == usuario_actual.pk
@@ -311,7 +320,7 @@ def ver_pedido_admin(request, id):
                     },
                 )
             if accion == "confirmar":
-                if orden.estado != Orden.ENTREGADO:
+                if orden.estado != Pedido.ENTREGADO:
                     with transaction.atomic():
                         entrega = orden.entregas.filter(conductor=usuario_actual).first()
                         if entrega:
@@ -340,7 +349,7 @@ def ver_pedido_admin(request, id):
                 return redirect("usuarios:panel")
 
             elif accion == "cancelar":
-                if orden.estado not in (Orden.ENTREGADO, Orden.CANCELADO):
+                if orden.estado not in (Pedido.ENTREGADO, Pedido.CANCELADO):
                     db_alias = "remota" if debe_usar_bd_remota() else "default"
                     with transaction.atomic():
                         with transaction.atomic(using=db_alias):
@@ -349,7 +358,7 @@ def ver_pedido_admin(request, id):
                                 orden, request.user, "Cancelación (Conductor)", using=db_alias
                             )
 
-                        orden.estado = Orden.CANCELADO
+                        orden.estado = Pedido.CANCELADO
                         orden.save()
 
                         registrar_actividad(
@@ -365,20 +374,31 @@ def ver_pedido_admin(request, id):
                 return redirect("usuarios:panel")
 
         elif es_admin:
-            if orden.estado == Orden.CANCELADO and nuevo_estado and nuevo_estado != Orden.CANCELADO:
+            if orden.estado == Pedido.CANCELADO and nuevo_estado and nuevo_estado != Pedido.CANCELADO:
                 messages.info(request, "El pedido está cancelado. Solo se permite su consulta.")
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
             db_alias = "remota" if debe_usar_bd_remota() else "default"
             if nuevo_estado:
+                estados_requieren_pago = {
+                    Pedido.AUTORIZADO_DESPACHO,
+                    Pedido.VEHICULO_ASIGNADO,
+                    Pedido.EN_RUTA,
+                }
+                if nuevo_estado in estados_requieren_pago and not orden.puede_despacharse:
+                    messages.error(
+                        request,
+                        "No se autoriza el despacho sin un pago aprobado.",
+                    )
+                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
                 with transaction.atomic():
-                    if nuevo_estado == Orden.ENTREGADO and orden.estado != Orden.ENTREGADO:
+                    if nuevo_estado == Pedido.ENTREGADO and orden.estado != Pedido.ENTREGADO:
                         entrega = orden.entregas.first()
                         if entrega:
                             entrega.estado = "entregado"
                             if not entrega.fecha_entrega:
                                 entrega.fecha_entrega = timezone.now()
                             entrega.save()
-                            orden.estado = Orden.ENTREGADO
+                            orden.estado = Pedido.ENTREGADO
                             orden.fecha_entrega_real = timezone.now()
                             orden.save()
                         else:
@@ -387,7 +407,7 @@ def ver_pedido_admin(request, id):
                             )
                             return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
                     else:
-                        if nuevo_estado == Orden.CANCELADO and orden.estado != Orden.CANCELADO:
+                        if nuevo_estado == Pedido.CANCELADO and orden.estado != Pedido.CANCELADO:
                             with transaction.atomic(using=db_alias):
                                 liberar_vehiculo_pedido(orden)
                                 revertir_stock_pedido(
@@ -395,7 +415,7 @@ def ver_pedido_admin(request, id):
                                 )
 
                         orden.estado = nuevo_estado
-                        if nuevo_estado == Orden.EN_RUTA and not orden.fecha_toma_entrega:
+                        if nuevo_estado == Pedido.EN_RUTA and not orden.fecha_toma_entrega:
                             orden.fecha_toma_entrega = timezone.now()
                         orden.save()
 
@@ -418,7 +438,14 @@ def ver_pedido_admin(request, id):
 
 @admin_required
 def crear_entrega(request, orden_id):
-    orden = get_object_or_404(Orden, codigo_pedido=orden_id)
+    orden = get_object_or_404(Pedido, codigo_pedido=orden_id)
+    if not orden.puede_despacharse:
+        messages.error(
+            request,
+            "Este pedido no tiene un pago aprobado. No se puede asignar transporte.",
+        )
+        return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
     conductores = (
         Usuario.objects.filter(
             rol="conductor", perfil_conductor__asignaciones_vehiculo__fecha_fin__isnull=True
@@ -433,19 +460,29 @@ def crear_entrega(request, orden_id):
 
         if conductor_id:
             with transaction.atomic():
-                conductor = get_object_or_404(Usuario, id=conductor_id)
-                vehiculo = conductor.vehiculo_actual
+                usuario_conductor = get_object_or_404(Usuario, pk=conductor_id, rol="conductor")
+                try:
+                    conductor_perfil = usuario_conductor.perfil_conductor
+                except Conductor.DoesNotExist:
+                    messages.error(
+                        request,
+                        f"El usuario {usuario_conductor.nombres} no tiene perfil de conductor.",
+                    )
+                    context = {"orden": orden, "conductores": conductores}
+                    return render(request, "pedidos/asignar_entrega.html", context)
+
+                vehiculo = conductor_perfil.vehiculo_actual
 
                 if not vehiculo:
                     messages.error(
                         request,
-                        f"El conductor {conductor.nombres} no tiene un vehículo asignado. "
+                        f"El conductor {usuario_conductor.nombres} no tiene un vehículo asignado. "
                         "Por favor, asígnale uno en la gestión de usuarios.",
                     )
                     context = {"orden": orden, "conductores": conductores}
                     return render(request, "pedidos/asignar_entrega.html", context)
 
-                if orden.conductor and orden.conductor != conductor:
+                if orden.conductor_id and orden.conductor_id != conductor_perfil.pk:
                     vehiculo_anterior = orden.conductor.vehiculo_actual
                     if vehiculo_anterior:
                         vehiculo_anterior.estado = "disponible"
@@ -456,7 +493,7 @@ def crear_entrega(request, orden_id):
                 entrega, created = Entrega.objects.get_or_create(
                     pedido=orden,
                     defaults={
-                        "conductor": conductor,
+                        "conductor": conductor_perfil,
                         "vehiculo": vehiculo,
                         "estado": "en_ruta",
                         "direccion_entrega": orden.direccion_destino,
@@ -472,14 +509,14 @@ def crear_entrega(request, orden_id):
                         )
                         return redirect("pedidos:lista_pedidos_admin")
 
-                    entrega.conductor = conductor
+                    entrega.conductor = conductor_perfil
                     entrega.vehiculo = vehiculo
                     entrega.estado = "en_ruta"
                     entrega.direccion_entrega = orden.direccion_destino
                     entrega.save()
 
-                orden.estado = Orden.EN_RUTA
-                orden.conductor = conductor
+                orden.estado = Pedido.EN_RUTA
+                orden.conductor = conductor_perfil
                 if not orden.fecha_toma_entrega:
                     orden.fecha_toma_entrega = timezone.now()
                 orden.save()
@@ -493,11 +530,11 @@ def crear_entrega(request, orden_id):
                     "editar",
                     "pedidos",
                     orden.codigo_pedido,
-                    f"Pedido {accion} a conductor: {conductor.nombres} con vehículo {vehiculo.placa}",
+                    f"Pedido {accion} a conductor: {usuario_conductor.nombres} con vehículo {vehiculo.placa}",
                 )
                 messages.success(
                     request,
-                    f"Pedido #{orden.codigo_pedido} {accion} con éxito a {conductor.nombres}.",
+                    f"Pedido #{orden.codigo_pedido} {accion} con éxito a {usuario_conductor.nombres}.",
                 )
                 return redirect("pedidos:lista_pedidos_admin")
         else:
@@ -511,14 +548,14 @@ def crear_entrega(request, orden_id):
 
 @admin_required
 def eliminar_orden(request, id):
-    orden = get_object_or_404(Orden, codigo_pedido=id)
+    orden = get_object_or_404(Pedido, codigo_pedido=id)
     order_id = orden.codigo_pedido
     db_alias = "remota" if debe_usar_bd_remota() else "default"
 
     try:
         with transaction.atomic(using=db_alias):
 
-            if orden.estado not in (Orden.ENTREGADO, Orden.CANCELADO):
+            if orden.estado not in (Pedido.ENTREGADO, Pedido.CANCELADO):
                 revertir_stock_pedido(orden, request.user, "Eliminación", using=db_alias)
             liberar_vehiculo_pedido(orden)
     except DatabaseError as exc:

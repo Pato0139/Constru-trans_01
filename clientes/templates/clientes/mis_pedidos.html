@@ -88,6 +88,17 @@
                                 <i class="bi bi-eye"></i>
                             </a>
                             {% if pedido.estado == 'pendiente' %}
+                            {% if not pedido.pago_actual or pedido.pago_actual.estado == 'rechazado' %}
+                            <a href="{% url 'pagos:registrar_pago' pedido.id %}" class="btn-action text-success"
+                                title="Registrar pago">
+                                <i class="bi bi-wallet2"></i>
+                            </a>
+                            {% elif pedido.pago_actual %}
+                            <a href="{% url 'pagos:detalle_pago' pedido.pago_actual.pk %}" class="btn-action text-info"
+                                title="Ver pago">
+                                <i class="bi bi-receipt"></i>
+                            </a>
+                            {% endif %}
                             <a href="{% url 'clientes:editar_pedido' pedido.id %}" class="btn-action text-warning"
                                 title="Editar">
                                 <i class="bi bi-pencil-square"></i>

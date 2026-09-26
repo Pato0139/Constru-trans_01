@@ -19,6 +19,7 @@ urlpatterns = [
     path("catalogo/", include("catalogo.urls")),
     path("compras/", include("compras.urls")),
     path("pedidos/", include("pedidos.urls")),
+    path("pagos/", include("pagos.urls")),
     path("reportes/", include("reportes.urls")),
     path("auditoria/", include("auditoria.urls")),
     path("logistica/", include("logistica.urls")),
@@ -42,4 +43,5 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += [path("__reload__/", include("django_browser_reload.urls"))]
+    if "django_browser_reload" in settings.INSTALLED_APPS:
+        urlpatterns += [path("__reload__/", include("django_browser_reload.urls"))]

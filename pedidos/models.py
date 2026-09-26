@@ -132,6 +132,20 @@ class Pedido(models.Model):
             return self.conductor.usuario
         return self.conductor_usuario_legacy
 
+    @property
+    def pago_actual(self):
+        from django.core.exceptions import ObjectDoesNotExist
+
+        try:
+            return self.pago
+        except (ObjectDoesNotExist, AttributeError):
+            return None
+
+    @property
+    def puede_despacharse(self):
+        pago = self.pago_actual
+        return bool(pago and pago.habilita_despacho())
+
     def save(self, *args, **kwargs):
         if self.conductor_id and not self.conductor_usuario_legacy_id:
             try:
