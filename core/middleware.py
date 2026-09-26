@@ -45,7 +45,7 @@ def _namespace_from_path(path):
         return "inicio"
     first = parts[0]
     if first in {"usuarios", "clientes", "catalogo", "compras", "pedidos",
-                  "reportes", "auditoria", "logistica",
+                  "pagos", "reportes", "auditoria", "logistica",
                   "ia", "ayuda", "licensing", "inicio"}:
         return first
     return None
@@ -58,6 +58,7 @@ _NAMESPACES_OBSOLETOS = {
     "novedades": "logistica",
     "historial": "auditoria",
     "ordenes": "pedidos",
+    "facturacion": "pagos",
 }
 
 _PATH_PREFIXES_OBSOLETOS = {
@@ -67,6 +68,7 @@ _PATH_PREFIXES_OBSOLETOS = {
     "/novedades": "/logistica",
     "/historial": "/auditoria",
     "/ordenes": "/pedidos",
+    "/facturacion": "/pagos",
 }
 
 _NAMESPACE_ROLES = {
@@ -76,6 +78,7 @@ _NAMESPACE_ROLES = {
     "reportes": {"admin"},
     "auditoria": {"admin"},
     "pedidos": {"admin", "cliente"},
+    "pagos": {"admin", "cliente"},
     "inicio": {"admin", "cliente", "conductor", "empleado"},
     "ia": {"admin", "cliente", "conductor", "empleado"},
     "ayuda": {"admin", "cliente", "conductor", "empleado"},
@@ -161,6 +164,12 @@ _URLNAMES_BY_ROLE_EXTRA = {
         "detalle_compra": {"admin"},
         "proveedores_lista": {"admin"},
         "proveedor_form": {"admin"},
+    },
+    "pagos": {
+        "lista_pagos": {"admin", "cliente"},
+        "revisar_pago": {"admin"},
+        "detalle_pago": {"admin", "cliente"},
+        "registrar_pago": {"cliente"},
     },
 }
 

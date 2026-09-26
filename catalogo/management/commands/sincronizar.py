@@ -10,7 +10,7 @@ from clientes.models import Cliente
 from compras.models import Compra
 from auditoria.models import Historial
 from catalogo.models import MovimientoInventario
-from pedidos.models import Orden
+from pedidos.models import Pedido
 from logistica.models import Entrega
 from catalogo.models import MaterialConstruccion as Material
 from compras.models import Proveedor
@@ -74,7 +74,7 @@ class Command(BaseCommand):
                     self.sincronizar_modelo(Material, force=force)
                     self.sincronizar_modelo(Vehiculo, force=force)
                     self.sincronizar_modelo(Compra, force=force)
-                    self.sincronizar_modelo(Orden, force=force)
+                    self.sincronizar_modelo(Pedido, force=force)
                     self.sincronizar_modelo(Entrega, force=force)
                     self.sincronizar_modelo(MovimientoInventario, force=force)
                     self.sincronizar_modelo(Historial, force=force)
