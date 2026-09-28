@@ -1,7 +1,11 @@
 from datetime import date, timedelta
-from django.test import Client, TestCase
+from types import SimpleNamespace
+
+from django.template.loader import render_to_string
+from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
-from usuarios.models import Usuario, Conductor, ConductorVehiculo, Vehiculo
+from logistica.models import ConductorVehiculo, Vehiculo
+from usuarios.models import Usuario, Conductor
 
 
 class UsuarioViewsTests(TestCase):
@@ -90,3 +94,13 @@ class UsuarioViewsTests(TestCase):
         self.client.login(username="admin@test.com", password="password123")
         response = self.client.get(reverse("usuarios:lista_conductores"))
         self.assertEqual(response.status_code, 200)
+
+    def test_sidebar_usa_namespace_correcto_de_pedidos(self):
+        request = RequestFactory().get("/usuarios/panel/")
+        request.user = self.admin_user
+        request.resolver_match = SimpleNamespace(app_name="pedidos", url_name="lista_pedidos_admin")
+
+        rendered = render_to_string("partials/sidebar.html", {"request": request}, request=request)
+
+        self.assertIn("pedidos:lista_pedidos_admin", rendered)
+        self.assertNotIn("ordenes:lista_pedidos_admin", rendered)

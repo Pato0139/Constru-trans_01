@@ -1,9 +1,52 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from usuarios.models import Proveedor
+from usuarios.utils import limpiar_telefono
 
-from .models import Compra, DetalleCompra, ProveedorMaterial
+from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
+
+
+class ProveedorForm(forms.ModelForm):
+    class Meta:
+        model = Proveedor
+        fields = ["nombre_empresa", "nit", "telefono", "correo", "descripcion"]
+        widgets = {
+            "nombre_empresa": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre Legal"}
+            ),
+            "nit": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "9000000000",
+                    "pattern": "[0-9\\s]*",
+                    "title": "Solo se admiten números y espacios",
+                    "oninput": "this.value = this.value.replace(/[^0-9\\s]/g, '')",
+                }
+            ),
+            "telefono": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "3001234567",
+                    "pattern": "[0-9\\s]*",
+                    "title": "Solo se admiten números y espacios",
+                    "oninput": "this.value = this.value.replace(/[^0-9\\s]/g, '')",
+                }
+            ),
+            "correo": forms.EmailInput(
+                attrs={"class": "form-control", "placeholder": "empresa@correo.com"}
+            ),
+            "descripcion": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3, "placeholder": "Descripción..."}
+            ),
+        }
+
+    def clean_nit(self):
+        nit = self.cleaned_data.get("nit")
+        return limpiar_telefono(nit)
+
+    def clean_telefono(self):
+        telefono = self.cleaned_data.get("telefono")
+        return limpiar_telefono(telefono)
 
 
 class ProveedorPerfilForm(forms.ModelForm):

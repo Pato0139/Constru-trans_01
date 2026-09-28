@@ -16,14 +16,19 @@ urlpatterns = [
     # Apps
     path("usuarios/", include("usuarios.urls")),
     path("clientes/", include("clientes.urls")),
-    path("inventario/", include("inventario.urls")),
+    path("catalogo/", include("catalogo.urls")),
     path("compras/", include("compras.urls")),
+<<<<<<< HEAD
     path("ordenes/", include("ordenes.urls")),
     path("pagos/", include("pagos.urls")),
     path("pedidos/", include("gestion_pedidos.urls")),
+=======
+    path("pedidos/", include("pedidos.urls")),
+    path("pagos/", include("pagos.urls")),
+>>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
     path("reportes/", include("reportes.urls")),
-    path("historial/", include("historial.urls")),
-    path("transporte/", include("transporte.urls")),
+    path("auditoria/", include("auditoria.urls")),
+    path("logistica/", include("logistica.urls")),
     path("ia/", include("ia.urls")),
     path("ayuda/", include("ayuda.urls")),
     path("", include("inicio.urls")),
@@ -40,9 +45,9 @@ urlpatterns = [
         lambda r: redirect("usuarios:password_reset_complete"),
         name="password_reset_complete",
     ),
-    path("novedades/", include("novedades.urls")),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += [path("__reload__/", include("django_browser_reload.urls"))]
+    if "django_browser_reload" in settings.INSTALLED_APPS:
+        urlpatterns += [path("__reload__/", include("django_browser_reload.urls"))]

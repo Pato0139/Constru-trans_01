@@ -11,20 +11,21 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from historial.utils import registrar_actividad
-from ordenes.models import Orden
-from usuarios.models import Material, Usuario, Vehiculo
+from auditoria.utils import registrar_actividad
+from pedidos.models import Pedido
+from usuarios.models import Usuario
+from catalogo.models import MaterialConstruccion as Material
+from logistica.models import Vehiculo
 from usuarios.views import admin_required
 
 
 @admin_required
 def reportes_admin(request):
-    # Estadísticas de Órdenes
-    ordenes = Orden.objects.all()
-    total = ordenes.count()
-    pendientes = ordenes.filter(estado="pendiente").count()
-    en_ruta = ordenes.filter(estado="en_ruta").count()
-    entregadas = ordenes.filter(estado="entregado").count()
+    pedidos = Pedido.objects.all()
+    total = pedidos.count()
+    pendientes = pedidos.filter(estado="pendiente").count()
+    en_ruta = pedidos.filter(estado="en_ruta").count()
+    entregadas = pedidos.filter(estado="entregado").count()
 
     # Calcular porcentajes
     pct_pendientes = (pendientes * 100 / total) if total > 0 else 0
@@ -52,7 +53,7 @@ def reportes_admin(request):
         "total_materiales": Material.objects.count(),
         "total_vehiculos": Vehiculo.objects.count(),
         # Financiero
-        "total_ingresos": ordenes.aggregate(total=Sum("precio"))["total"] or 0,
+        "total_ingresos": pedidos.aggregate(total=Sum("total"))["total"] or 0,
         # Stock Crítico
         "stock_critico": stock_critico,
     }
@@ -109,8 +110,8 @@ def exportar_reporte_pdf(request, tipo):
 
     elif tipo == "ventas":
         data.append(["ID", "Cliente", "Fecha", "Total", "Estado"])
-        for o in Orden.objects.all().select_related("cliente__usuario"):
-            p = o.precio or 0
+        for o in Pedido.objects.all().select_related("cliente__usuario"):
+            p = o.total or o.precio or 0
             precio_formateado = format_money(p)
             fecha_str = o.fecha.strftime("%Y-%m-%d") if o.fecha else "N/A"
             cliente_nombre = (
@@ -123,14 +124,14 @@ def exportar_reporte_pdf(request, tipo):
     elif tipo == "pedidos":
         data.append(["ID", "Cliente", "Materiales", "Total", "Estado"])
         for o in (
-            Orden.objects.all()
+            Pedido.objects.all()
             .select_related("cliente__usuario")
             .prefetch_related("detalles__material")
         ):
             materiales = ", ".join(
                 [f"{d.cantidad} x {d.material.nombre}" for d in o.detalles.all()]
             )
-            p = o.precio or 0
+            p = o.total or o.precio or 0
             precio_formateado = format_money(p)
             cliente_nombre = (
                 f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
@@ -206,20 +207,20 @@ def exportar_reporte_excel(request, tipo):
     elif tipo == "ventas":
         headers = ["ID", "Cliente", "Fecha", "Total", "Estado"]
         ws.append(headers)
-        for o in Orden.objects.all().select_related("cliente__usuario"):
+        for o in Pedido.objects.all().select_related("cliente__usuario"):
             fecha_str = o.fecha.strftime("%Y-%m-%d") if o.fecha else "N/A"
             cliente_nombre = (
                 f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
                 if (o.cliente and o.cliente.usuario)
                 else "N/A"
             )
-            ws.append([o.id, cliente_nombre, fecha_str, format_money_raw(o.precio), o.estado])
+            ws.append([o.id, cliente_nombre, fecha_str, format_money_raw(o.total or o.precio), o.estado])
 
     elif tipo == "pedidos":
         headers = ["ID", "Cliente", "Materiales", "Total", "Estado"]
         ws.append(headers)
         for o in (
-            Orden.objects.all()
+            Pedido.objects.all()
             .select_related("cliente__usuario")
             .prefetch_related("detalles__material")
         ):
@@ -231,7 +232,7 @@ def exportar_reporte_excel(request, tipo):
                 if (o.cliente and o.cliente.usuario)
                 else "N/A"
             )
-            ws.append([o.id, cliente_nombre, materiales, format_money_raw(o.precio), o.estado])
+            ws.append([o.id, cliente_nombre, materiales, format_money_raw(o.total or o.precio), o.estado])
 
     for cell in ws[1]:
         cell.font = header_font
@@ -287,7 +288,7 @@ def exportar_reporte_xml(request, tipo):
             ET.SubElement(item, "stock").text = str(m.stock)
 
     elif tipo == "ventas":
-        for o in Orden.objects.all().select_related("cliente__usuario"):
+        for o in Pedido.objects.all().select_related("cliente__usuario"):
             item = ET.SubElement(root, "venta")
             ET.SubElement(item, "id").text = str(o.id)
             cliente_nombre = (
@@ -298,12 +299,12 @@ def exportar_reporte_xml(request, tipo):
             ET.SubElement(item, "cliente").text = cliente_nombre
             fecha_str = o.fecha.strftime("%Y-%m-%d") if o.fecha else "N/A"
             ET.SubElement(item, "fecha").text = fecha_str
-            ET.SubElement(item, "total").text = str(o.precio or 0)
+            ET.SubElement(item, "total").text = str(o.total or o.precio or 0)
             ET.SubElement(item, "estado").text = o.estado
 
     elif tipo == "pedidos":
         for o in (
-            Orden.objects.all()
+            Pedido.objects.all()
             .select_related("cliente__usuario")
             .prefetch_related("detalles__material")
         ):
@@ -315,7 +316,7 @@ def exportar_reporte_xml(request, tipo):
                 else "N/A"
             )
             ET.SubElement(item, "cliente").text = cliente_nombre
-            ET.SubElement(item, "total").text = str(o.precio or 0)
+            ET.SubElement(item, "total").text = str(o.total or o.precio or 0)
             ET.SubElement(item, "estado").text = o.estado
             dets = ET.SubElement(item, "detalles")
             for d in o.detalles.all():

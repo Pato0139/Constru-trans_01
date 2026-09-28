@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 
 from core.routers import EnrutadorInventario
 from core.utils import conexion_remota_disponible
-from usuarios.models import Catalogo
+from catalogo.models import Catalogo
 
 _router = EnrutadorInventario()
 
