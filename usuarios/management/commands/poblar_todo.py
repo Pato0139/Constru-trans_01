@@ -13,35 +13,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE("== Iniciando poblamiento total =="))
 
-        self.stdout.write(self.style.NOTICE("1) Métodos de pago"))
-        call_command("seed_mer")
-
-        self.stdout.write(self.style.NOTICE("2) Tipos de material"))
-        # Check if seed_tipos_material exists, if not skip or use whatever is available
-        try:
-            call_command("seed_tipos_material")
-        except Exception as e:
-            self.stdout.write(self.style.WARNING(f"⚠️  seed_tipos_material no disponible: {e}"))
+        self.stdout.write(self.style.NOTICE("1) Tipos de material"))
+        call_command("seed_tipos_material")
 
         if not options["skip_demo"]:
-            self.stdout.write(self.style.NOTICE("3) Datos demo principales"))
-            call_command(
-                "poblar_demo",
-                admins=2,
-                clientes=12,
-                conductores=6,
-                empleados=4,
-                compras=8,
-                solicitudes=8,
-                pedidos=10,
-            )
-
-            self.stdout.write(self.style.NOTICE("4) Ajustes extra de demo"))
+            self.stdout.write(self.style.NOTICE("2) Datos demo principales"))
             call_command("seed_data", force_pedidos=options["force_pedidos"])
-            call_command("llenar_datos_prueba")
 
         if not options["skip_ayuda"]:
-            self.stdout.write(self.style.NOTICE("5) Centro de ayuda"))
+            self.stdout.write(self.style.NOTICE("3) Centro de ayuda"))
             call_command("seed_ayuda")
 
         self.stdout.write(self.style.SUCCESS("✅ Poblamiento total completado"))

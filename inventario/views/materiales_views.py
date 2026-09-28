@@ -203,6 +203,9 @@ def stock_lista(request):
         "filter_fields": filter_fields,
     }
 
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return render(request, "inventario/_stock_body.html", context)
+
     return render(request, "inventario/stock.html", context)
 
 

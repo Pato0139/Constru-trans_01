@@ -155,6 +155,32 @@
     .inventory-materials-table { table-layout: auto; }
     .inventory-materials-table th,
     .inventory-materials-table td { white-space: nowrap; }
+
+    .inventory-materials-page .standard-page-header {
+        margin-bottom: 1rem !important;
+    }
+
+    .inventory-types-page .standard-page-header {
+        margin-bottom: 1rem !important;
+    }
+
+    .inventory-materials-page .filter-bar-card,
+    .inventory-types-page .filter-bar-card {
+        margin-bottom: 0.75rem !important;
+    }
+
+    .inventory-types-page .inventory-types-controls {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .inventory-types-page .inventory-types-controls .search-filters-card {
+        width: 100%;
+    }
+
+    .inventory-types-page .inventory-types-controls .dropdown {
+        align-self: flex-end;
+    }
 }
 
 .btn-action--success {
