@@ -32,7 +32,7 @@ def _extraer_codigo_pedido(mensaje):
 
 
 def consultar_pedido(codigo):
-    from ordenes.models import Pedido
+    from pedidos.models import Pedido
 
     pedido = Pedido.objects.filter(codigo_pedido=codigo).select_related("cliente", "usuario").prefetch_related("detalles__material").first()
     if not pedido:
@@ -61,7 +61,7 @@ def consultar_pedido(codigo):
 
 
 def consultar_materiales(mensaje):
-    from usuarios.models import MaterialConstruccion
+    from catalogo.models import MaterialConstruccion
 
     query = re.sub(r"(cuales|cuáles|qué|que|materiales|tienes|hay|manejan|lista|catalogo|catálogo|precio)", "", mensaje or "", flags=re.IGNORECASE).strip()
     materiales = MaterialConstruccion.objects.filter(activo=True).select_related("unidad_medida", "marca")
@@ -79,7 +79,7 @@ def consultar_materiales(mensaje):
 
 
 def consultar_pedidos_cliente(mensaje, usuario):
-    from ordenes.models import Pedido
+    from pedidos.models import Pedido
 
     consulta = Pedido.objects.all().order_by("-fecha_solicitud")
     if usuario and usuario.is_authenticated and getattr(usuario, "rol", None) not in {"admin", "empleado", "administrador"}:

@@ -65,13 +65,13 @@
                     <h5 class="fw-bold m-0 u-inline-6e24079678"><i class="bi bi-lightning-charge-fill text-accent me-2"></i> Acciones Rápidas</h5>
                 </div>
                 <div class="d-flex gap-3 flex-wrap">
-                    <a href="{% url 'transporte:lista_vehiculos' %}" class="btn btn-premium d-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-sm u-inline-47ad96ef0d">
+                    <a href="{% url 'logistica:lista_vehiculos' %}" class="btn btn-premium d-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-sm u-inline-47ad96ef0d">
                         <i class="bi bi-truck"></i> Gestionar Vehículos
                     </a>
                     <a href="{% url 'usuarios:lista_usuarios' %}" class="btn btn-premium d-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-sm u-inline-104ee9d501">
                         <i class="bi bi-person-badge"></i> Ver Usuarios
                     </a>
-                    <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2 u-inline-9fea1dad05">
+                    <a href="{% url 'pedidos:lista_pedidos_admin' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2 u-inline-9fea1dad05">
                         <i class="bi bi-journal-text"></i> Revisar Pedidos
                     </a>
                 </div>
@@ -83,7 +83,7 @@
     <div class="table-container p-4 rounded-4 shadow-sm u-inline-54085855f8">
         <div class="d-flex justify-content-between align-items-center mb-4 px-2">
             <h5 class="fw-bold m-0 u-inline-6e24079678">Pedidos Recientes</h5>
-            <a href="{% url 'ordenes:lista_pedidos_admin' %}" class="small text-accent text-decoration-none fw-bold">Ver todos <i class="bi bi-arrow-right"></i></a>
+            <a href="{% url 'pedidos:lista_pedidos_admin' %}" class="small text-accent text-decoration-none fw-bold">Ver todos <i class="bi bi-arrow-right"></i></a>
         </div>
 
         <div class="table-responsive">
@@ -137,7 +137,7 @@
                             {% endif %}
                         </td>
                         <td class="py-3 px-4 text-center">
-                            <a href="{% url 'ordenes:ver_pedido_admin' orden.id %}" class="btn btn-sm btn-outline-secondary border-0 u-inline-6e24079678" aria-label="Ver detalle" data-tooltip="Ver detalle" title="Ver detalle">
+                            <a href="{% url 'pedidos:ver_pedido_admin' orden.id %}" class="btn btn-sm btn-outline-secondary border-0 u-inline-6e24079678" aria-label="Ver detalle" data-tooltip="Ver detalle" title="Ver detalle">
                                 <i class="bi bi-eye"></i>
                             </a>
                         </td>

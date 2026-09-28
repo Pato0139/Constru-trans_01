@@ -1,7 +1,8 @@
 from django.test import TestCase
 
-from compras.models import Compra, DetalleCompra
-from usuarios.models import MaterialConstruccion, Proveedor, UnidadMedida, Usuario
+from catalogo.models import MaterialConstruccion, UnidadMedida
+from compras.models import Compra, DetalleCompra, Proveedor
+from usuarios.models import Usuario
 
 
 class ComprasModelsTests(TestCase):
