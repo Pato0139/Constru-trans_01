@@ -583,6 +583,11 @@ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-i
     width: 100%;
   }
 
+  .standard-filter-field {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
   .standard-filter-actions {
     justify-content: stretch;
   }

@@ -4,7 +4,7 @@
 {% block title %}Tipos de Material - ConstruTrans{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/inventario/lista.css' %}?v=1.8">
+<link rel="stylesheet" href="{% static 'css/inventario/lista.css' %}?v=1.9">
 {% endblock %}
 {% block content %}
 <div class="inventory-types-page">
@@ -22,7 +22,7 @@
 
     <div class="w-100">
         <div class="d-flex flex-column gap-2">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="d-flex align-items-center gap-2 flex-wrap inventory-types-controls">
                 <div class="search-filters-card flex-grow-1 min-width-0">
                     {% include "partials/filter_bar.html" with filter_fields=filter_fields has_filters=has_filters form_data_ajax=True tbody_id="tipos-tbody" %}
                 </div>
