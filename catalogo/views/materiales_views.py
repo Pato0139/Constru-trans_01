@@ -181,14 +181,10 @@ def stock_lista(request):
         "filter_fields": filter_fields,
     }
 
-<<<<<<< HEAD:inventario/views/materiales_views.py
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return render(request, "inventario/_stock_body.html", context)
+        return render(request, "catalogo/_stock_body.html", context)
 
-    return render(request, "inventario/stock.html", context)
-=======
     return render(request, "catalogo/stock.html", context)
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525:catalogo/views/materiales_views.py
 
 
 @admin_required

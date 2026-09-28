@@ -174,16 +174,12 @@ def _render_lista_por_estado(request, estado, titulo):
 
     pedidos = buscar_pedidos_admin(cliente_query=cliente_query, fecha_query=fecha_query, q=q)
     if estado:
-<<<<<<< HEAD:ordenes/views.py
-        pedidos = pedidos.filter(estado=estado)
-    if estado_query:
-        pedidos = pedidos.filter(estado=estado_query)
-=======
         if isinstance(estado, (list, tuple, set)):
             pedidos = pedidos.filter(estado__in=estado)
         else:
             pedidos = pedidos.filter(estado=estado)
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525:pedidos/views.py
+    if estado_query:
+        pedidos = pedidos.filter(estado=estado_query)
 
     has_filters = bool(cliente_query or fecha_query or q or estado_query)
     total_resultados = pedidos.count()
@@ -588,69 +584,6 @@ def eliminar_orden(request, id):
     )
     orden.delete()
     messages.success(request, f"Pedido #{order_id} eliminado correctamente.")
-<<<<<<< HEAD:ordenes/views.py
-    return redirect("ordenes:lista_pedidos_admin")
-
-
-@admin_required
-def lista_ordenes(request):
-    q = request.GET.get("q", "").strip()
-    cliente_query = request.GET.get("cliente", "").strip()
-    destino_query = request.GET.get("destino", "").strip()
-    estado_query = request.GET.get("estado", "").strip()
-
-    ordenes = (
-        Orden.objects.all()
-        .select_related("cliente", "cliente__usuario", "conductor")
-        .prefetch_related("detalles__material", "entregas")
-        .order_by("-fecha_solicitud")
-    )
-
-    if q:
-        ordenes = ordenes.filter(
-            Q(codigo_pedido__icontains=q)
-            | Q(direccion_destino__icontains=q)
-            | Q(cliente__nombres__icontains=q)
-            | Q(cliente__apellidos__icontains=q)
-            | Q(usuario__nombres__icontains=q)
-            | Q(usuario__apellidos__icontains=q)
-        )
-
-    if cliente_query:
-        ordenes = ordenes.filter(
-            Q(cliente__nombres__icontains=cliente_query)
-            | Q(cliente__apellidos__icontains=cliente_query)
-            | Q(usuario__nombres__icontains=cliente_query)
-            | Q(usuario__apellidos__icontains=cliente_query)
-        )
-
-    if destino_query:
-        ordenes = ordenes.filter(direccion_destino__icontains=destino_query)
-
-    if estado_query:
-        ordenes = ordenes.filter(estado=estado_query)
-
-    has_filters = bool(q or cliente_query or destino_query or estado_query)
-    total_resultados = ordenes.count()
-
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        return render(
-            request,
-            "ordenes/_lista_ordenes_body.html",
-            {"ordenes": ordenes},
-        )
-
-    context = {
-        "ordenes": ordenes,
-        "q": q,
-        "cliente_query": cliente_query,
-        "destino_query": destino_query,
-        "estado_query": estado_query,
-        "has_filters": has_filters,
-        "total_resultados": total_resultados,
-    }
-    return render(request, "ordenes/lista_ordenes.html", context)
-=======
     return redirect("pedidos:lista_pedidos_admin")
 
 
@@ -759,4 +692,3 @@ def cancelar_pedido(request, pk):
         messages.warning(request, "Esta solicitud no puede ser cancelada.")
 
     return redirect("pedidos:detalle_solicitud", pk=pk)
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525:pedidos/views.py
