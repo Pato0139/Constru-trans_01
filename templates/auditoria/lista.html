@@ -14,8 +14,7 @@
     <!-- Filtros -->
     <div class="card border-0 shadow-sm mb-4 filter-bar-card" data-aos="fade-down">
         <div class="card-body p-3">
-            <form method="get" class="standard-filter-form row g-3 align-items-end"
-                  data-ajax-filter-form="true" data-tbody-id="historial-tbody">
+            <form id="filter-form" method="get" class="standard-filter-form row g-3 align-items-end">
                 <div class="col-md-2">
                     <label class="form-label small text-muted fw-bold">Usuario</label>
                     <input type="text" name="usuario" value="{{ usuario_actual }}"
@@ -77,7 +76,7 @@
                         </tr>
                     </thead>
                     <tbody id="historial-tbody">
-                        {% include "historial/_lista_body.html" %}
+                        {% include "auditoria/_lista_body.html" %}
                     </tbody>
                 </table>
             </div>
@@ -87,9 +86,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<<<<<<< HEAD:templates/historial/lista.html
-{% endblock %}
-=======
 <script>
     $(document).ready(function () {
         var table = $('#tabla-historial').DataTable({
@@ -145,4 +141,3 @@
     });
 </script>
 {% endblock %}
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525:templates/auditoria/lista.html

@@ -139,7 +139,7 @@ def lista_historial(request):
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return render(
             request,
-            "historial/_lista_body.html",
+            "auditoria/_lista_body.html",
             {"registros": registros},
         )
 

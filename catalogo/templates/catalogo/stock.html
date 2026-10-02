@@ -3,12 +3,8 @@
 {% load static %}
 
 {% block extra_css %}
-<<<<<<< HEAD:inventario/templates/inventario/stock.html
-<link rel="stylesheet" href="{% static 'css/inventario/theme.css' %}?v=1.0">
-<link rel="stylesheet" href="{% static 'css/inventario/stock.css' %}?v=1.2">
-=======
 <link rel="stylesheet" href="{% static 'css/catalogo/theme.css' %}?v=1.0">
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525:catalogo/templates/catalogo/stock.html
+<link rel="stylesheet" href="{% static 'css/catalogo/stock.css' %}?v=1.2">
 {% endblock %}
 
 {% block title %}Inventario - ConstruTrans{% endblock %}
@@ -46,53 +42,8 @@
                         Acciones</th>
                 </tr>
             </thead>
-<<<<<<< HEAD:inventario/templates/inventario/stock.html
             <tbody id="stock-tbody">
-                {% include "inventario/_stock_body.html" %}
-=======
-            <tbody>
-                {% for s in stocks %}
-                <tr class="u-inline-e91738c112">
-                    <td class="py-3 px-4">
-                        <div class="d-flex align-items-center gap-3">
-                            <div
-                                class="inventory-avatar rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 u-inline-ddca8f0ddd">
-                                {{ s.material.nombre|first }}
-                            </div>
-                            <div>
-                                <span class="fw-medium u-inline-6e24079678">{{ s.material.nombre }}</span>
-                                <div class="text-muted small">{{ s.material.tipo }}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="py-3 px-4">
-                        <span
-                            class="badge inventory-status {% if s.cantidad > 100 %}inventory-status--success{% elif s.cantidad > 0 %}inventory-status--warning{% else %}inventory-status--danger{% endif %} px-3">
-                            {{ s.cantidad }} unidades
-                        </span>
-                    </td>
-                    <td class="py-3 px-4">
-                        <span class="inventory-price">${{ s.material.precio|floatformat:0 }}</span>
-                    </td>
-                    <td class="py-3 px-4 u-inline-6e24079678">{{ s.ubicacion }}</td>
-                    <td class="py-3 px-4 text-muted small">{{ s.ultima_actualizacion|date:"d/m/Y H:i" }}</td>
-                    <td class="py-3 px-4 text-center">
-                        <a href="{% url 'catalogo:editar_stock' s.id %}" class="btn-action" title="Editar stock">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center py-5">
-                        <div class="py-5">
-                            <i class="bi bi-archive text-muted mb-3 d-block u-inline-8ae57e885d"></i>
-                            <p class="text-muted fw-medium mb-0">No hay materiales en inventario</p>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525:catalogo/templates/catalogo/stock.html
+                {% include "catalogo/_stock_body.html" %}
             </tbody>
         </table>
     </div>

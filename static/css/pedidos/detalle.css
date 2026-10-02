@@ -4,3 +4,9 @@
     color: #dc2626;
     border: 1px solid rgba(239, 68, 68, 0.3);
 }
+
+#order-master-state,
+#order-master-state option {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+}

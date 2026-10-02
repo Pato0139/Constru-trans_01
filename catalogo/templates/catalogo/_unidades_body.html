@@ -13,12 +13,12 @@
     <td class="py-3 px-4 text-center">{{ unidad.num_materiales }}</td>
     <td class="py-3 px-4 text-center">
         <div class="d-flex justify-content-center gap-2">
-            <a href="{% url 'inventario:editar_unidad_medida' unidad.pk %}"
+            <a href="{% url 'catalogo:editar_unidad_medida' unidad.pk %}"
                 class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--edit"
                 title="Editar">
                 <i class="bi bi-pencil"></i>
             </a>
-            <form method="post" action="{% url 'inventario:cambiar_estado_unidad_medida' unidad.pk %}"
+            <form method="post" action="{% url 'catalogo:cambiar_estado_unidad_medida' unidad.pk %}"
                 class="d-inline">
                 {% csrf_token %}
                 <button type="submit"
