@@ -8,7 +8,7 @@
 {% block header_title %}Información del Pedido #CT-{{ orden.id }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pedidos/detalle.css' %}">
+<link rel="stylesheet" href="{% static 'css/pedidos/detalle.css' %}?v=1.2">
 {% endblock %}
 
 {% block content %}
@@ -166,12 +166,15 @@
                         <form method="POST">
                             {% csrf_token %}
                             <div class="mb-2">
-                                <select id="order-master-state" name="estado" class="form-select rounded-pill border-0 px-3 small u-inline-a3e311813a">
-                                    <option value="pendiente" {% if orden.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                                    <option value="en_ruta" {% if orden.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
-                                    <option value="entregado" {% if orden.estado == 'entregado' %}selected{% endif %}>Entregado</option>
-                                    <option value="cancelado" {% if orden.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
-                                </select>
+                                <div class="order-master-select-wrap">
+                                    <select id="order-master-state" name="estado" class="form-select rounded-pill border-0 px-3 small u-inline-a3e311813a">
+                                        <option value="pendiente" {% if orden.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                        <option value="en_ruta" {% if orden.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
+                                        <option value="entregado" {% if orden.estado == 'entregado' %}selected{% endif %}>Entregado</option>
+                                        <option value="cancelado" {% if orden.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                                    </select>
+                                    <span id="order-master-state-label" class="order-master-select-label" aria-hidden="true">{{ orden.get_estado_display }}</span>
+                                </div>
                             </div>
                             <button type="submit" class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm small" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                                 <i class="bi bi-save me-1"></i> Aplicar
@@ -214,6 +217,20 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const select = document.getElementById('order-master-state');
+        const label = document.getElementById('order-master-state-label');
+        if (!select || !label) return;
+
+        const updateLabel = function () {
+            label.textContent = select.selectedOptions[0]?.textContent.trim() || '';
+        };
+
+        select.addEventListener('change', updateLabel);
+        updateLabel();
+    });
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const printBtn = document.getElementById('print-btn');
