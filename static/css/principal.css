@@ -48,6 +48,41 @@
     color: #fff !important;
 }
 
+.theme-locked-card,
+.theme-locked-box,
+.theme-locked-panel,
+.theme-locked-alert {
+    background: var(--card-bg, #ffffff) !important;
+    color: var(--color-text, #0f172a) !important;
+    border-color: var(--color-border, rgba(15, 23, 42, 0.1)) !important;
+}
+
+.theme-locked-card .card-body,
+.theme-locked-box .card-body,
+.theme-locked-panel,
+.theme-locked-alert {
+    color: var(--color-text, #0f172a) !important;
+}
+
+.theme-locked-card .text-muted,
+.theme-locked-box .text-muted,
+.theme-locked-panel .text-muted,
+.theme-locked-alert .text-muted {
+    color: var(--color-muted, #64748b) !important;
+}
+
+.theme-locked-alert {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: var(--color-text, #0f172a) !important;
+}
+
+.theme-locked-alert .bi,
+.theme-locked-alert strong,
+.theme-locked-alert h4,
+.theme-locked-alert p {
+    color: var(--color-text, #0f172a) !important;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -337,8 +372,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .bg-white-10 { background: rgba(255, 255, 255, 0.1) !important; }
-.backdrop-blur { backdrop-filter: blur(10px); }
 .bg-white-5 { background: rgba(255, 255, 255, 0.05) !important; }
+.bg-black-30 { background: rgba(0, 0, 0, 0.3) !important; }
+.backdrop-blur { backdrop-filter: blur(10px); }
 
 .hero-glow-sphere {
     position: absolute;
