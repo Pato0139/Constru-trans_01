@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-<<<<<<< HEAD
 {% load humanize %}
 
 {% block title %}Gestión de Pagos - ConstruTrans{% endblock %}
@@ -194,69 +193,3 @@
 })();
 </script>
 {% endblock %}
-=======
-{% load currency_tags %}
-
-{% block title %}Pagos - ConstruTrans{% endblock %}
-{% block header_title %}Revisión de Pagos{% endblock %}
-
-{% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-white mb-1"><i class="bi bi-wallet2 text-accent me-2"></i>Pagos</h2>
-            <p class="text-muted small mb-0">Revisión de comprobantes y autorización de despacho</p>
-        </div>
-    </div>
-
-    <form method="get" class="mb-4">
-        <select name="estado" class="form-select w-auto d-inline-block" onchange="this.form.submit()">
-            <option value="">Todos los estados</option>
-            <option value="pendiente" {% if estado_actual == "pendiente" %}selected{% endif %}>Pendiente</option>
-            <option value="aprobado" {% if estado_actual == "aprobado" %}selected{% endif %}>Aprobado</option>
-            <option value="rechazado" {% if estado_actual == "rechazado" %}selected{% endif %}>Rechazado</option>
-        </select>
-    </form>
-
-    <div class="table-container p-0 overflow-hidden">
-        <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th class="ps-4 py-3">Pedido</th>
-                        <th>Método</th>
-                        <th>Monto</th>
-                        <th>Estado</th>
-                        <th>Registro</th>
-                        <th class="text-center pe-4">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for pago in pagos %}
-                    <tr>
-                        <td class="ps-4">#{{ pago.pedido.codigo_pedido }}</td>
-                        <td>{{ pago.get_metodo_display }}</td>
-                        <td>{{ pago.monto|currency }}</td>
-                        <td>{{ pago.get_estado_display }}</td>
-                        <td>{{ pago.fecha_registro|date:"d/m/Y H:i" }}</td>
-                        <td class="text-center pe-4">
-                            <a href="{% url 'pagos:detalle_pago' pago.pk %}" class="btn btn-sm btn-outline-light">Ver</a>
-                            {% if pago.estado == "pendiente" %}
-                            {% if user.rol == "admin" or user.usuario.rol == "admin" %}
-                            <a href="{% url 'pagos:revisar_pago' pago.pk %}" class="btn btn-sm btn-gold">Revisar</a>
-                            {% endif %}
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">No hay pagos registrados.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endblock %}
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
