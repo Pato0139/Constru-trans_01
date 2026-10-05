@@ -1,9 +1,8 @@
 from typing import List
 
-from sentence_transformers import SentenceTransformer
-
 from app.core.config import settings
 from app.core.logging import logger
+from sentence_transformers import SentenceTransformer
 
 
 class EmbeddingService:

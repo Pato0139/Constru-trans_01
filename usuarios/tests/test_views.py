@@ -4,8 +4,9 @@ from types import SimpleNamespace
 from django.template.loader import render_to_string
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
+
 from logistica.models import ConductorVehiculo, Vehiculo
-from usuarios.models import Usuario, Conductor
+from usuarios.models import Conductor, Usuario
 
 
 class UsuarioViewsTests(TestCase):

@@ -184,6 +184,7 @@ class CustomPasswordResetForm(PasswordResetForm):
 
     def get_users(self, email):
         from django.conf import settings
+
         from core.utils import conexion_remota_disponible
         seen = set()
         merged = []

@@ -1,12 +1,7 @@
 from django.contrib import admin
-from .models import (
-    Vehiculo,
-    ConductorVehiculo,
-    Entrega,
-    Novedad,
-    Seguimiento,
-    RespuestaSeguimiento,
-)
+
+from .models import (ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento,
+                     Seguimiento, Vehiculo)
 
 admin.site.register(Vehiculo)
 admin.site.register(ConductorVehiculo)

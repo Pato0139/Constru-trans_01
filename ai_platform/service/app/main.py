@@ -1,10 +1,6 @@
 import uuid
 from typing import Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-
 from app.core.config import settings
 from app.core.logging import logger
 from app.db.models import Conversation, Message
@@ -14,6 +10,9 @@ from app.memory.embeddings import embedding_service
 from app.memory.retriever import semantic_retriever
 from app.memory.short_term import short_term_memory
 from app.schemas.chat import ChatRequest, ChatResponse
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
 # Initialize services
 llm = get_llm_provider()

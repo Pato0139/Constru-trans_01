@@ -3,17 +3,11 @@ import logging
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 
-from core.db_preference import PREF_AUTO, PREF_REMOTA, clear_db_preference, set_db_preference
-from core.security import (
-    BloqueoIP,
-    SecurityEvent,
-    _respuesta_no_autorizada,
-    contar_warnings_ventana,
-    ip_esta_bloqueada,
-    obtener_ip,
-    registrar_evento,
-    registrar_warning,
-)
+from core.db_preference import (PREF_AUTO, PREF_REMOTA, clear_db_preference,
+                                set_db_preference)
+from core.security import (BloqueoIP, SecurityEvent, _respuesta_no_autorizada,
+                           contar_warnings_ventana, ip_esta_bloqueada,
+                           obtener_ip, registrar_evento, registrar_warning)
 from core.utils import conexion_remota_disponible
 
 logger = logging.getLogger(__name__)

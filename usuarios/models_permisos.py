@@ -1,7 +1,9 @@
-from django.contrib.auth.models import Group, Permission as AuthPermission
+from django.contrib.auth.models import Group
+from django.contrib.auth.models import Permission as AuthPermission
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from .models import Usuario, Rol
+
+from .models import Rol, Usuario
 
 
 class RolProxy(Group):

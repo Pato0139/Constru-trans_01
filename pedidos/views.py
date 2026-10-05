@@ -1,32 +1,25 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import transaction, DatabaseError
+from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-import logging
 
-from core.security import (
-    _respuesta_no_autorizada,
-    obtener_ip,
-    registrar_evento,
-    registrar_warning,
-)
 from auditoria.utils import registrar_actividad
-from catalogo.models.movimientos import MovimientoInventario
 from catalogo.models import MaterialConstruccion, Stock
-from usuarios.models import Conductor, Usuario
-from usuarios.views import admin_required
+from catalogo.models.movimientos import MovimientoInventario
 from core.db_preference import debe_usar_bd_remota
 from core.db_utils import select_for_update_if_supported
+from core.security import (_respuesta_no_autorizada, obtener_ip,
+                           registrar_evento, registrar_warning)
+from usuarios.models import Conductor, Usuario
+from usuarios.views import admin_required
 
-from .models import (
-    DetallePedido,
-    DetalleSolicitudPedido,
-    Pedido,
-    SolicitudPedido,
-)
+from .models import (DetallePedido, DetalleSolicitudPedido, Pedido,
+                     SolicitudPedido)
 from .utils import liberar_vehiculo_pedido, revertir_stock_pedido
 
 logger = logging.getLogger(__name__)

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
-from ayuda.models import CategoriaAyuda, GuiaEdicion, PasoGuia, ColorSistema
 
+from ayuda.models import CategoriaAyuda, ColorSistema, GuiaEdicion, PasoGuia
 
 GUIAS = [
     {

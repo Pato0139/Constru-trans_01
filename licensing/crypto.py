@@ -1,6 +1,7 @@
 # licensing/crypto.py
 import os
-from argon2.low_level import hash_secret_raw, Type
+
+from argon2.low_level import Type, hash_secret_raw
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 AAD = b"constru-trans-lic-v1"

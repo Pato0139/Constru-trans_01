@@ -11,7 +11,8 @@ from django.views.decorators.http import require_POST
 from auditoria.utils import registrar_actividad
 from usuarios.views import admin_required
 
-from .forms import CompraForm, DetalleCompraFormSet, ProveedorMaterialFormSet, ProveedorPerfilForm
+from .forms import (CompraForm, DetalleCompraFormSet, ProveedorMaterialFormSet,
+                    ProveedorPerfilForm)
 from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
 

@@ -8,7 +8,6 @@ import django
 import pytest
 from django.urls import NoReverseMatch, reverse
 
-
 _RAIZ = Path(__file__).resolve().parents[2]
 _EXCLUIR = {".venv", "venv", "node_modules", ".git", "staticfiles", "media"}
 
@@ -113,8 +112,9 @@ class TestUrlsRegistradas:
             "inicio.urls", "licensing.urls", "ayuda.urls", "ia.urls",
         ]
         faltantes: list[str] = []
-        from django.urls.resolvers import URLPattern
         from inspect import isclass
+
+        from django.urls.resolvers import URLPattern
 
         for url_mod in apps_urls:
             mod = __import__(url_mod, fromlist=["urlpatterns"])

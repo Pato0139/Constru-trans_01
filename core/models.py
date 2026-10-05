@@ -62,7 +62,8 @@ class BloqueoIP(models.Model):
         if not ip:
             return None
         try:
-            from django.db import OperationalError as _OpErr, ProgrammingError as _ProgErr
+            from django.db import OperationalError as _OpErr
+            from django.db import ProgrammingError as _ProgErr
 
             return cls.objects.get(ip=ip, activo=True)
         except cls.DoesNotExist:

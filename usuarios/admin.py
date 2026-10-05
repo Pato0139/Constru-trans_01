@@ -1,12 +1,6 @@
 from django.contrib import admin
-from .models import (
-    EPS,
-    Conductor,
-    Notificacion,
-    Rol,
-    Usuario,
-    UsuarioRol,
-)
+
+from .models import EPS, Conductor, Notificacion, Rol, Usuario, UsuarioRol
 
 
 @admin.register(Usuario)

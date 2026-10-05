@@ -3,7 +3,6 @@ from datetime import timedelta
 from typing import Dict, List, Optional
 
 import redis
-
 from app.core.config import settings
 from app.core.logging import logger
 

@@ -1,13 +1,7 @@
 from django.contrib import admin
 
-from .models import (
-    AIConfiguration,
-    AIPromptTemplate,
-    ConversationHistory,
-    ConversationMessage,
-    KnowledgeBase,
-    UserFeedback,
-)
+from .models import (AIConfiguration, AIPromptTemplate, ConversationHistory,
+                     ConversationMessage, KnowledgeBase, UserFeedback)
 
 
 # Register your models here.

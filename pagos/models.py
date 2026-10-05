@@ -2,11 +2,11 @@
 =======
 from django.conf import settings
 from django.core.exceptions import ValidationError
+
 >>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
-
 
 <<<<<<< HEAD
 class Pago(models.Model):

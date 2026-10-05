@@ -7,14 +7,9 @@ from django.utils.timezone import now
 from core.permissions import requiere_funcion
 from usuarios.models import Conductor, Usuario
 from usuarios.views import admin_required
-from .models import (
-    Vehiculo,
-    ConductorVehiculo,
-    Entrega,
-    Novedad,
-    Seguimiento,
-    RespuestaSeguimiento,
-)
+
+from .models import (ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento,
+                     Seguimiento, Vehiculo)
 
 
 def _vehiculos_con_fallback_seguro():

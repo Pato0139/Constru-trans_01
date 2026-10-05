@@ -1,9 +1,8 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-
 from app.core.config import settings
 from app.core.logging import logger
 from app.db.models import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 # Build database URL
 DATABASE_URL = (

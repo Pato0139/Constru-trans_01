@@ -11,15 +11,11 @@ from catalogo.models import MaterialConstruccion, Stock
 from catalogo.models.movimientos import MovimientoInventario
 from clientes.models import Cliente, crear_perfil_cliente
 from compras.models import Proveedor
-from logistica.models import ConductorVehiculo, Entrega, Vehiculo
-from pedidos.models import DetallePedido, Pedido
-from usuarios.models import (
-    EPS,
-    Conductor,
-    Usuario,
-)
 from core.routers import EnrutadorInventario
 from core.utils import conexion_remota_disponible
+from logistica.models import ConductorVehiculo, Entrega, Vehiculo
+from pedidos.models import DetallePedido, Pedido
+from usuarios.models import EPS, Conductor, Usuario
 
 DEFAULT_PASSWORD = "davit12345"
 _router = EnrutadorInventario()

@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+
 from django.test import TestCase
 
 KB_PATH = Path("ia/training/ia_knowledge_base.json")

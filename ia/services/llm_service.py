@@ -4,8 +4,8 @@ import os
 logger = logging.getLogger(__name__)
 
 try:
-    from openai import OpenAI
     from httpx import Client
+    from openai import OpenAI
 
     LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").lower()
     if LLM_PROVIDER == "ollama":

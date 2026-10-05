@@ -1,6 +1,8 @@
 import json
 from unittest.mock import MagicMock, patch
+
 from django.test import TestCase
+
 from ia.services import llm_service, tools_registry
 
 

@@ -1,7 +1,9 @@
-from django.shortcuts import render
-from django.http import JsonResponse
 from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import render
+
 from usuarios.views import admin_required
+
 from .models import Historial
 
 

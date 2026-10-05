@@ -7,8 +7,8 @@ Módulo de seguridad centralizado para Constru-trans.
 """
 
 import logging
-from functools import wraps
 from datetime import timedelta
+from functools import wraps
 
 from django.conf import settings
 from django.contrib import messages
