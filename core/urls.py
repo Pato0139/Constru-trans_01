@@ -18,14 +18,8 @@ urlpatterns = [
     path("clientes/", include("clientes.urls")),
     path("catalogo/", include("catalogo.urls")),
     path("compras/", include("compras.urls")),
-<<<<<<< HEAD
-    path("ordenes/", include("ordenes.urls")),
-    path("pagos/", include("pagos.urls")),
-    path("pedidos/", include("gestion_pedidos.urls")),
-=======
     path("pedidos/", include("pedidos.urls")),
     path("pagos/", include("pagos.urls")),
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
     path("reportes/", include("reportes.urls")),
     path("auditoria/", include("auditoria.urls")),
     path("logistica/", include("logistica.urls")),

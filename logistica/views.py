@@ -113,14 +113,10 @@ def lista_vehiculos(request):
         "has_filters": any([id_vehiculo, placa, tipo, estado, conductor, query]),
     }
 
-<<<<<<< HEAD:transporte/views.py
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        return render(request, "transporte/_lista_body.html", {"vehiculos": vehiculos})
+        return render(request, "logistica/_lista_body.html", {"vehiculos": vehiculos})
 
-    return render(request, "transporte/lista.html", context)
-=======
     return render(request, "logistica/lista.html", context)
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525:logistica/views.py
 
 
 @admin_required

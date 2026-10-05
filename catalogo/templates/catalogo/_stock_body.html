@@ -24,7 +24,7 @@
     <td class="py-3 px-4 u-inline-6e24079678" data-label="Ubicación">{{ s.ubicacion }}</td>
     <td class="py-3 px-4 text-muted small" data-label="Actualizado">{{ s.ultima_actualizacion|date:"d/m/Y H:i" }}</td>
     <td class="py-3 px-4 text-center" data-label="Acciones">
-        <a href="{% url 'inventario:editar_stock' s.id %}" class="btn-action" title="Editar stock">
+        <a href="{% url 'catalogo:editar_stock' s.id %}" class="btn-action" title="Editar stock">
             <i class="bi bi-pencil-square"></i>
         </a>
     </td>
