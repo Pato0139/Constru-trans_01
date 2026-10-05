@@ -120,7 +120,14 @@ LOCAL_APPS = [
     "clientes",
     "catalogo",
     "compras",
+<<<<<<< HEAD
+    "ordenes",
+    "pagos",
+    "gestion_pedidos",
+=======
     "pedidos",
+    "pagos",
+>>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
     "reportes",
     "inicio",
     "auditoria",

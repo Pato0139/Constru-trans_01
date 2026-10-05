@@ -15,7 +15,7 @@
     </div>
 
     <div class="d-flex flex-column flex-md-row gap-2 align-items-center w-100">
-        {% include "partials/filter_bar.html" %}
+        {% include "partials/filter_bar.html" with form_data_ajax=True tbody_id="transporte-tbody" %}
 
         <a href="{% url 'logistica:crear_vehiculo' %}" class="btn btn-premium btn-premium-gold btn-main-action px-4 fw-bold d-flex align-items-center gap-2 u-inline-300bde8981" aria-label="Agregar vehiculo" data-tooltip="Agregar vehiculo" title="Agregar vehiculo">
             <i class="bi bi-plus-lg"></i> Crear vehículo
@@ -39,6 +39,10 @@
                         Acciones</th>
                 </tr>
             </thead>
+<<<<<<< HEAD:transporte/templates/transporte/lista.html
+            <tbody id="transporte-tbody">
+                {% include "transporte/_lista_body.html" %}
+=======
             <tbody>
                 {% for v in vehiculos %}
                 <tr class="u-inline-e91738c112">
@@ -104,6 +108,7 @@
                     </td>
                 </tr>
                 {% endfor %}
+>>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525:logistica/templates/logistica/lista.html
             </tbody>
         </table>
     </div>

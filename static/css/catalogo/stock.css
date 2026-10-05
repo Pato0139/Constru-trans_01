@@ -2,3 +2,111 @@
  * Estilos para el módulo de inventario - stock
  * BEM Methodology
  */
+
+.inventory-stock-table {
+	min-width: 68rem;
+	table-layout: fixed;
+}
+
+.inventory-stock-table th:nth-child(1),
+.inventory-stock-table td:nth-child(1) { width: 18rem; }
+.inventory-stock-table th:nth-child(2),
+.inventory-stock-table td:nth-child(2) { width: 11rem; }
+.inventory-stock-table th:nth-child(3),
+.inventory-stock-table td:nth-child(3) { width: 9rem; }
+.inventory-stock-table th:nth-child(4),
+.inventory-stock-table td:nth-child(4) { width: 11rem; }
+.inventory-stock-table th:nth-child(5),
+.inventory-stock-table td:nth-child(5) { width: 12rem; }
+.inventory-stock-table th:nth-child(6),
+.inventory-stock-table td:nth-child(6) { width: 7rem; }
+
+.main-content .inventory-stock-table td {
+	overflow-wrap: normal;
+	word-break: normal;
+}
+
+@media (max-width: 576px) {
+	.inventory-stock-table {
+		display: block;
+		width: 100%;
+		min-width: 0 !important;
+	}
+
+	.inventory-stock-table thead {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.inventory-stock-table tbody {
+		display: block;
+	}
+
+	.inventory-stock-table tbody > tr:not(.inventory-stock-empty) {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.15rem;
+		margin: 0 0 0.75rem;
+		padding: 0.5rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		background: var(--card-bg);
+	}
+
+	.inventory-stock-table tbody > tr > td {
+		display: block;
+		min-width: 0;
+		padding: 0.5rem 0.35rem !important;
+		border: 0;
+		overflow-wrap: break-word;
+		word-break: normal;
+	}
+
+	.inventory-stock-table tbody > tr > td::before {
+		display: block;
+		margin-bottom: 0.25rem;
+		color: var(--color-accent);
+		content: attr(data-label);
+		font-size: 0.7rem;
+		font-weight: 700;
+		text-align: left;
+		text-transform: uppercase;
+	}
+
+	.inventory-stock-table tbody > tr > td:first-child > div {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.inventory-stock-table tbody > tr > td:first-child > div > div:last-child {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.inventory-stock-table tbody > tr > td[data-label="Stock actual"] > span,
+	.inventory-stock-table tbody > tr > td[data-label="Precio unitario"] > span {
+		display: inline-block;
+		white-space: nowrap;
+	}
+
+	.inventory-stock-table .inventory-stock-empty {
+		display: block;
+		margin: 0;
+	}
+
+	.inventory-stock-table .inventory-stock-empty > td {
+		display: block;
+		text-align: center;
+	}
+
+	.inventory-stock-table .inventory-stock-empty > td::before {
+		content: none;
+	}
+}

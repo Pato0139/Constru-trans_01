@@ -3,7 +3,12 @@
 {% load static %}
 
 {% block extra_css %}
+<<<<<<< HEAD:inventario/templates/inventario/stock.html
+<link rel="stylesheet" href="{% static 'css/inventario/theme.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/inventario/stock.css' %}?v=1.2">
+=======
 <link rel="stylesheet" href="{% static 'css/catalogo/theme.css' %}?v=1.0">
+>>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525:catalogo/templates/catalogo/stock.html
 {% endblock %}
 
 {% block title %}Inventario - ConstruTrans{% endblock %}
@@ -22,13 +27,13 @@
     </div>
 
     <div class="w-100">
-        {% include "partials/filter_bar.html" %}
+        {% include "partials/filter_bar.html" with form_data_ajax=True tbody_id="stock-tbody" %}
     </div>
 </div>
 
 <div class="inventory-page table-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8" data-aos="fade-up">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 u-inline-3e7cad1772">
+        <table class="table table-hover align-middle mb-0 inventory-stock-table u-inline-3e7cad1772">
             <thead>
                 <tr class="u-inline-0d59a3f53c">
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Material</th>
@@ -41,6 +46,10 @@
                         Acciones</th>
                 </tr>
             </thead>
+<<<<<<< HEAD:inventario/templates/inventario/stock.html
+            <tbody id="stock-tbody">
+                {% include "inventario/_stock_body.html" %}
+=======
             <tbody>
                 {% for s in stocks %}
                 <tr class="u-inline-e91738c112">
@@ -83,6 +92,7 @@
                     </td>
                 </tr>
                 {% endfor %}
+>>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525:catalogo/templates/catalogo/stock.html
             </tbody>
         </table>
     </div>

@@ -492,8 +492,8 @@ def crear_pedido(request):
                     stock_obj.cantidad_actual = F("cantidad_actual") - cantidad
                     stock_obj.save(using=db_alias)
 
-            messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente.")
-            return redirect("clientes:mis_pedidos")
+            messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente. Registra el pago para habilitar el despacho.")
+            return redirect("pagos:registrar_pago", pedido_id=nuevo_pedido.codigo_pedido)
 
         except ValueError as e:
             messages.error(request, str(e))
@@ -830,6 +830,16 @@ def lista_clientes(request):
         
     has_filters = bool(q or estado)
     total_resultados = clientes.count()
+    
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return render(
+            request,
+            "clientes/_admin_lista_body.html",
+            {
+                "clientes": clientes,
+                "has_filters": has_filters,
+            },
+        )
     
     context = {
         "clientes": clientes,

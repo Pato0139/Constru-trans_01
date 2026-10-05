@@ -82,9 +82,17 @@ class Command(BaseCommand):
         abrev = abreviaturas.get(unidad_str, unidad_str[:10])
         codigo = unidad_str.upper()[:10]
 
-        unidad_obj, _ = UnidadMedida.objects.using(db_alias).get_or_create(
-            codigo=codigo, defaults={"nombre": unidad_str, "abreviatura": abrev, "activa": True}
-        )
+        unidades = UnidadMedida.objects.using(db_alias)
+        unidad_obj = unidades.filter(codigo=codigo).first()
+        if unidad_obj is None:
+            unidad_obj = unidades.filter(nombre=unidad_str).first()
+        if unidad_obj is None:
+            unidad_obj = unidades.create(
+                codigo=codigo,
+                nombre=unidad_str,
+                abreviatura=abrev,
+                activa=True,
+            )
 
         m_data_copy = m_data.copy()
         m_data_copy["unidad_medida"] = unidad_obj
@@ -251,7 +259,7 @@ class Command(BaseCommand):
             },
         ]
 
-        conductores_usuarios = []
+        conductores_creados = []
         vehiculos_creados = []
         for c_data in conductores_data:
             p_cond, created = self._ensure_usuario(
@@ -295,7 +303,7 @@ class Command(BaseCommand):
                 vehiculo=vehiculo,
             )
 
-            conductores_usuarios.append(p_cond)
+            conductores_creados.append(cond_profile)
             self.stdout.write(f'Conductor {p_cond.nombres} y Vehiculo {c_data["placa"]} listos.')
 
         # 5. Clientes y pedidos
@@ -377,11 +385,11 @@ class Command(BaseCommand):
 
                 pedido.calcular_total(using=db_alias)
 
-                if estado_p != "pendiente" and conductores_usuarios and vehiculos_creados:
-                    conductor_idx = idx % len(conductores_usuarios)
+                if estado_p != "pendiente" and conductores_creados and vehiculos_creados:
+                    conductor_idx = idx % len(conductores_creados)
                     entrega = Entrega.objects.using(db_alias).create(
                         pedido=pedido,
-                        conductor=conductores_usuarios[conductor_idx],
+                        conductor=conductores_creados[conductor_idx],
                         vehiculo=vehiculos_creados[conductor_idx],
                         direccion_entrega=pedido.direccion_destino,
                         estado="pendiente" if estado_p == "en_ruta" else "entregado",

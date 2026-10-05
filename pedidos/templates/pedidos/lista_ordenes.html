@@ -180,38 +180,30 @@
 {{ block.super }}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Esperar a que DataTables se inicialice en base.js
         setTimeout(function () {
             var tableEl = document.querySelector('.table-container .table');
             if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
                 var table = $(tableEl).DataTable();
+                var FP = (window.FocusPreserver || {
+                    save: function(){return{el:document.activeElement,start:document.activeElement&&document.activeElement.selectionStart!==undefined?document.activeElement.selectionStart:null,end:document.activeElement&&document.activeElement.selectionEnd!==undefined?document.activeElement.selectionEnd:null};},
+                    restore: function(s){if(!s||!s.el)return;try{s.el.focus({preventScroll:true});}catch(_){try{s.el.focus();}catch(__){}}if(s.start!==null&&s.end!==null&&typeof s.el.setSelectionRange==='function'){try{s.el.setSelectionRange(s.start,s.end);}catch(_){}}},
+                    wrap: function(fn){var s=this.save();try{return fn();}finally{this.restore(s);}},
+                    debounce: function(fn,ms){var t=null;return function(){var c=this,a=arguments;if(t)clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);t=null;},ms||350);};
+                });
 
-                // Índices de columnas (según thead en lista_ordenes.html):
-                // 0: ID
-                // 1: Cliente
-                // 2: Conductor
-                // 3: Destino
-                // 4: Estado
-                // 5: Fecha
-                // 6: Acciones
+                var drawSearch = function (colIdx, val) {
+                    FP.wrap(function () { table.column(colIdx).search(val).draw(); });
+                };
 
-                $('#filter-id').on('keyup change', function () {
-                    table.column(0).search(this.value).draw();
-                });
-                $('#filter-cliente').on('keyup change', function () {
-                    table.column(1).search(this.value).draw();
-                });
-                $('#filter-destino').on('keyup change', function () {
-                    table.column(3).search(this.value).draw();
-                });
-                $('#filter-estado').on('change', function () {
-                    table.column(4).search(this.value).draw();
-                });
+                $('#filter-id').on('input', FP.debounce(function () { drawSearch(0, this.value); }, 300));
+                $('#filter-cliente').on('input', FP.debounce(function () { drawSearch(1, this.value); }, 300));
+                $('#filter-destino').on('input', FP.debounce(function () { drawSearch(3, this.value); }, 300));
+                $('#filter-estado').on('change', function () { drawSearch(4, this.value); });
 
                 $('#clear-filters').on('click', function () {
                     $('#filter-id, #filter-cliente, #filter-destino').val('');
                     $('#filter-estado').val('');
-                    table.columns().search('').draw();
+                    FP.wrap(function () { table.columns().search('').draw(); });
                 });
             }
         }, 150);
