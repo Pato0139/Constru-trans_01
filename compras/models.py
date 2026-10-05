@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator, RegexValidator
@@ -74,6 +76,9 @@ class Compra(models.Model):
     id_compra = models.AutoField(primary_key=True)
     proveedor = models.ForeignKey(Proveedor, on_delete=models.PROTECT, db_column="codigo_proveedor")
     fecha_compra = models.DateTimeField(auto_now_add=True)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    impuesto = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    impuesto_porcentaje = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     total_compra = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
     usuario = models.ForeignKey(
@@ -108,7 +113,12 @@ class Compra(models.Model):
     def calcular_total(self, using=None):
         if using is None:
             using = self._state.db
-        self.total_compra = sum(d.subtotal for d in self.detalles.using(using).all())
+        self.subtotal = sum(
+            (detalle.subtotal for detalle in self.detalles.using(using).all()),
+            Decimal("0.00"),
+        )
+        self.impuesto = Decimal("0.00")
+        self.total_compra = self.subtotal + self.impuesto
         self.save(using=using)
         return self.total_compra
 
@@ -161,6 +171,7 @@ class DetalleCompra(models.Model):
     material = models.ForeignKey(MaterialConstruccion, on_delete=models.PROTECT, db_column="cod_material")
     cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     class Meta:
         db_table = "detalle_compra"
@@ -184,9 +195,6 @@ class DetalleCompra(models.Model):
 
     def save(self, *args, **kwargs):
         using = kwargs.get("using", self._state.db)
+        self.subtotal = Decimal(self.cantidad) * Decimal(str(self.precio_unitario))
         super().save(*args, **kwargs)
         self.compra.calcular_total(using=using)
-
-    @property
-    def subtotal(self):
-        return self.cantidad * self.precio_unitario

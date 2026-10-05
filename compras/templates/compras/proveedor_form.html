@@ -48,6 +48,10 @@
                                 <label class="mb-2">Dirección</label>
                                 <input type="text" name="direccion" class="form-control" required value="{{ proveedor.direccion|default:'' }}">
                             </div>
+                            <div class="col-md-6">
+                                <label class="mb-2">Ciudad</label>
+                                <input type="text" name="ciudad" class="form-control" value="{{ proveedor.ciudad|default:'' }}">
+                            </div>
                         </div>
 
                         <div class="mt-4 pt-3 border-top border-secondary text-end">

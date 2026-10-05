@@ -48,6 +48,9 @@ class ComprasModelsTests(TestCase):
         )
         compra.refresh_from_db()
         self.assertEqual(float(compra.total_compra), 90000.0)
+        self.assertEqual(float(compra.subtotal), 90000.0)
+        self.assertEqual(float(compra.impuesto), 0.0)
+        self.assertEqual(float(compra.impuesto_porcentaje), 0.0)
 
     def test_detalle_compra_subtotal(self):
         compra = Compra.objects.create(

@@ -59,6 +59,7 @@ def api_materiales_listado(request):
                 "material": nombre_seguro,
                 "tipo": material.tipo or "-",
                 "unidad": getattr(material.unidad_medida, "abreviatura", "-"),
+                "activo": material.activo,
                 "acciones": f'''
                     <div class="d-flex justify-content-center gap-2">
                         <a href="{reverse('catalogo:editar_material', args=[material.id])}" class="btn-action" title="Editar">

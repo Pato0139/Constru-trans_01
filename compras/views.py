@@ -378,7 +378,7 @@ def crear_proveedor(request):
             telefono=request.POST.get("telefono"),
             correo=request.POST.get("email"),
             direccion=request.POST.get("direccion"),
-            ciudad=request.POST.get("ciudad"),
+            ciudad=(request.POST.get("ciudad") or "").strip(),
             categoria=request.POST.get("categoria"),
             descripcion=request.POST.get("descripcion", ""),
             activo=bool(request.POST.get("activo", "on")),
@@ -402,7 +402,7 @@ def editar_proveedor(request, codigo_proveedor):
         proveedor.telefono = request.POST.get("telefono")
         proveedor.correo = request.POST.get("email")
         proveedor.direccion = request.POST.get("direccion")
-        proveedor.ciudad = request.POST.get("ciudad")
+        proveedor.ciudad = (request.POST.get("ciudad") or "").strip()
         proveedor.categoria = request.POST.get("categoria")
         proveedor.descripcion = request.POST.get("descripcion", "")
         proveedor.activo = bool(request.POST.get("activo"))

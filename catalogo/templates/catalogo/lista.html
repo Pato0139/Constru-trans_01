@@ -65,13 +65,14 @@
                         <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">
                             Unidad
                         </th>
+                        <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold">Estado</th>
                         <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-9c77c1e711">
                             Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
+                        <td colspan="6" class="text-center py-5 text-muted">
                             <div class="py-4">
                                 <div class="spinner-border spinner-border-sm text-warning mb-3" role="status"></div>
                                 <p class="mb-0">Cargando materiales...</p>
@@ -87,6 +88,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/catalogo/materiales-ajax.js' %}?v=1.2"></script>
+<script src="{% static 'js/catalogo/materiales-ajax.js' %}?v=1.4"></script>
 <script src="{% static 'js/catalogo/catalogo-menu.js' %}?v=1.1"></script>
 {% endblock %}

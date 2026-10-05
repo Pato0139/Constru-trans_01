@@ -4,7 +4,7 @@
 {% block title %}Proveedor - {{ proveedor.nombre_empresa }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/compras/proveedores.css' %}?v=2.1">
+<link rel="stylesheet" href="{% static 'css/compras/proveedores.css' %}?v=2.2">
 {% endblock %}
 
 {% block content %}
@@ -124,18 +124,20 @@
             <i class="bi bi-pencil-square"></i>
             Registrar materiales y precios del proveedor
         </div>
-        <div class="supplier-editor-note">
-            <strong>Cómo se registra:</strong> selecciona el material, escribe el precio actual de este proveedor, deja Activo marcado y guarda cambios.
-        </div>
-
-        <div class="supplier-form-grid">
-            {% for field in form %}
-            <label>
-                <span>{{ field.label }}</span>
-                {{ field }}
-            </label>
-            {% endfor %}
-        </div>
+        <details class="supplier-editor-details">
+            <summary>
+                <span><i class="bi bi-building"></i> Datos del proveedor</span>
+                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+            </summary>
+            <div class="supplier-form-grid">
+                {% for field in form %}
+                <label>
+                    <span>{{ field.label }}</span>
+                    {{ field }}
+                </label>
+                {% endfor %}
+            </div>
+        </details>
 
         <div class="supplier-table-wrap">
             <table class="supplier-table" id="supplier-catalog-formset">

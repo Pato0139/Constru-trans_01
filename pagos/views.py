@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -14,6 +15,13 @@ from .models import Pago
 
 def _usuario_actual(request):
     return getattr(request.user, "usuario", request.user)
+
+
+def _revisor_en_base_del_pago(usuario, pago):
+    using = pago._state.db
+    if usuario._state.db == using:
+        return usuario
+    return get_user_model().objects.using(using).filter(username=usuario.get_username()).first()
 
 
 def _cliente_es_dueno(usuario, pedido):
@@ -138,11 +146,12 @@ def revisar_pago(request, pk):
                     "pagos/revisar.html",
                     {"form": form, "pago": pago, "pedido": pedido},
                 )
+            revisor = _revisor_en_base_del_pago(request.user, pago)
             with transaction.atomic():
                 if accion == "aprobar":
                     pago.marcar_revision(
                         estado=Pago.APROBADO,
-                        revisor=request.user,
+                        revisor=revisor,
                         observaciones=observaciones,
                     )
                     pago.save()
@@ -169,7 +178,7 @@ def revisar_pago(request, pk):
                         return redirect("pagos:detalle_pago", pk=pago.pk)
                     pago.marcar_revision(
                         estado=Pago.RECHAZADO,
-                        revisor=request.user,
+                        revisor=revisor,
                         observaciones=observaciones,
                     )
                     pago.save()

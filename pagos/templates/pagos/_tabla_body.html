@@ -24,20 +24,9 @@
     <td>{{ pago.fecha_registro|date:"d/m/Y H:i" }}</td>
     <td>
         {% if pago.estado == 'pendiente' %}
-        <div class="d-flex gap-2">
-            <form method="post" action="{% url 'pagos:aprobar_pago' pago.id %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-success" aria-label="Aprobar pago" data-tooltip="Aprobar pago">
-                    <i class="bi bi-check-lg"></i>
-                </button>
-            </form>
-            <form method="post" action="{% url 'pagos:rechazar_pago' pago.id %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Rechazar pago" data-tooltip="Rechazar pago">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </form>
-        </div>
+        <a href="{% url 'pagos:revisar_pago' pago.pk %}" class="btn btn-sm btn-outline-warning" aria-label="Revisar pago" data-tooltip="Revisar pago">
+            <i class="bi bi-clipboard-check"></i>
+        </a>
         {% else %}
         <span class="text-muted small">Procesado</span>
         {% endif %}

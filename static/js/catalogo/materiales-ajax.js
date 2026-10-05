@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
         save: function(){return{el:document.activeElement,start:document.activeElement&&document.activeElement.selectionStart!==undefined?document.activeElement.selectionStart:null,end:document.activeElement&&document.activeElement.selectionEnd!==undefined?document.activeElement.selectionEnd:null};},
         restore: function(s){if(!s||!s.el)return;try{s.el.focus({preventScroll:true});}catch(_){try{s.el.focus();}catch(__){}}if(s.start!==null&&s.end!==null&&typeof s.el.setSelectionRange==='function'){try{s.el.setSelectionRange(s.start,s.end);}catch(_){}}},
         wrap: function(fn){var s=this.save();var r=fn();if(r&&typeof r.then==='function'){r.then(()=>this.restore(s)).catch(()=>this.restore(s));}else{this.restore(s);}return r;},
-        debounce: function(fn,ms){var t=null;return function(){var c=this,a=arguments;if(t)clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);t=null;},ms||350);};
+        debounce: function(fn,ms){var t=null;return function(){var c=this,a=arguments;if(t)clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);t=null;},ms||350);};}
     });
 
     const table = AppAjaxTable.init({
@@ -53,6 +53,15 @@ document.addEventListener('DOMContentLoaded', function () {
             {
                 data: 'unidad',
                 className: 'py-3 px-4 text-center'
+            },
+            {
+                data: 'activo',
+                className: 'py-3 px-4 text-center',
+                render: function (data) {
+                    return data
+                        ? '<span class="badge bg-success-subtle text-success">Habilitado</span>'
+                        : '<span class="badge bg-secondary-subtle text-secondary">Inhabilitado</span>';
+                }
             },
             {
                 data: 'acciones',

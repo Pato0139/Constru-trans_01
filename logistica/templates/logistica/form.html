@@ -40,16 +40,15 @@
                         Vehículo</label>
                     <select name="tipo" class="form-select" required>
                         <option value="">Seleccione tipo...</option>
-                        <option value="Bolqueta" {% if vehiculo.tipo=='Bolqueta' %}selected{% endif %}>Bolqueta</option>
-                        <option value="Camión Sencillo" {% if vehiculo.tipo=='Camión Sencillo' %}selected{% endif %}>
+                        <option value="Bolqueta" {% if vehiculo.tipo == 'Bolqueta' %}selected{% endif %}>Bolqueta</option>
+                        <option value="Camión Sencillo" {% if vehiculo.tipo == 'Camión Sencillo' %}selected{% endif %}>
                             Camión Sencillo</option>
-                        <option value="Doble Troque" {% if vehiculo.tipo=='Doble Troque' %}selected{% endif %}>Doble
+                        <option value="Doble Troque" {% if vehiculo.tipo == 'Doble Troque' %}selected{% endif %}>Doble
                             Troque</option>
-                        <option value="Minitransporte" {% if vehiculo.tipo=='Minitransporte' %}selected{% endif %}>
+                        <option value="Minitransporte" {% if vehiculo.tipo == 'Minitransporte' %}selected{% endif %}>
                             Minitransporte</option>
-                        <option value="Turbo" {% if vehiculo.tipo=='Turbo' %}selected{% endif %}>Turbo</option>
-                        <option value="Maquinaria Amarilla" {% if vehiculo.tipo=='Maquinaria Amarilla' %}selected{%
-                            endif %}>Maquinaria Amarilla</option>
+                        <option value="Turbo" {% if vehiculo.tipo == 'Turbo' %}selected{% endif %}>Turbo</option>
+                        <option value="Maquinaria Amarilla" {% if vehiculo.tipo == 'Maquinaria Amarilla' %}selected{% endif %}>Maquinaria Amarilla</option>
                     </select>
                 </div>
 
@@ -89,10 +88,10 @@
                     <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Estado
                         Operativo</label>
                     <select name="estado" class="form-select" required>
-                        <option value="disponible" {% if vehiculo.estado=='disponible' %}selected{% endif %}>Disponible
+                        <option value="disponible" {% if vehiculo.estado == 'disponible' %}selected{% endif %}>Disponible
                         </option>
-                        <option value="en_ruta" {% if vehiculo.estado=='en_ruta' %}selected{% endif %}>En Ruta</option>
-                        <option value="mantenimiento" {% if vehiculo.estado=='mantenimiento' %}selected{% endif %}>En
+                        <option value="en_ruta" {% if vehiculo.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
+                        <option value="mantenimiento" {% if vehiculo.estado == 'mantenimiento' %}selected{% endif %}>En
                             Mantenimiento</option>
                     </select>
                 </div>
@@ -104,8 +103,7 @@
                     <select name="conductor" class="form-select">
                         <option value="">Sin asignar (Disponible)</option>
                         {% for cond in conductores %}
-                        <option value="{{ cond.usuario.id }}" {% if vehiculo and vehiculo.conductor_actual and
-                            vehiculo.conductor_actual.id==cond.usuario.id %}selected{% endif %}>
+                        <option value="{{ cond.usuario.id }}" {% if vehiculo and vehiculo.conductor_actual and vehiculo.conductor_actual.id == cond.usuario.id %}selected{% endif %}>
                             {{ cond.usuario.nombres }} {{ cond.usuario.apellidos }} ({{ cond.usuario.documento }})
                         </option>
                         {% endfor %}
@@ -120,8 +118,7 @@
                     <button type="submit"
                         class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase u-inline-2ecb5783f5"
                         aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
-                        <i class="bi bi-check2-circle me-2"></i> {% if action == 'crear' %}Registrar Vehículo{% else
-                        %}Actualizar Vehículo{% endif %}
+                        <i class="bi bi-check2-circle me-2"></i> {% if action == 'crear' %}Registrar Vehículo{% else %}Actualizar Vehículo{% endif %}
                     </button>
                     <a href="{% url 'logistica:lista_vehiculos' %}"
                         class="btn btn-outline-light rounded-pill py-2 opacity-75 hover-opacity-100" aria-label="Volver"
