@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Detalle Factura {{ factura.numero }}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+      <i class="bi bi-file-earmark-richtext text-primary me-2"></i>
+      Factura {{ factura.numero }}
+    </h1>
+    <div>
+      <a class="btn btn-outline-danger me-1" href="{% url 'pagos:descargar_factura' factura.pk %}">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
+      </a>
+      {% if saldo_pendiente > 0 %}
+      <a class="btn btn-primary" href="{% url 'pagos:registrar_pago' factura.pk %}">
+        <i class="bi bi-cash-stack me-1"></i>Registrar pago
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Información de la factura</h5>
+          <dl class="row mb-0">
+            <dt class="col-sm-5">Cliente</dt>
+            <dd class="col-sm-7">{{ factura.cliente.usuario.get_full_name }}</dd>
+
+            <dt class="col-sm-5">Pedido</dt>
+            <dd class="col-sm-7">#{{ factura.pedido.codigo_pedido }}</dd>
+
+            <dt class="col-sm-5">Fecha emisión</dt>
+            <dd class="col-sm-7">{{ factura.fecha_emision|date:"Y-m-d H:i" }}</dd>
+
+            <dt class="col-sm-5">Subtotal</dt>
+            <dd class="col-sm-7">${{ factura.subtotal }}</dd>
+
+            <dt class="col-sm-5">Impuestos</dt>
+            <dd class="col-sm-7">${{ factura.impuestos }}</dd>
+
+            <dt class="col-sm-5">Total</dt>
+            <dd class="col-sm-7 fw-bold fs-5">${{ factura.total }}</dd>
+
+            <dt class="col-sm-5">Pagado</dt>
+            <dd class="col-sm-7 text-success">${{ factura.monto_pagado }}</dd>
+
+            <dt class="col-sm-5">Saldo pendiente</dt>
+            <dd class="col-sm-7 text-danger fw-bold fs-5">${{ saldo_pendiente }}</dd>
+
+            <dt class="col-sm-5">Estado</dt>
+            <dd class="col-sm-7">
+              {% if factura.estado == "emitida" %}
+                <span class="badge bg-warning text-dark">Emitida</span>
+              {% elif factura.estado == "parcial" %}
+                <span class="badge bg-info text-dark">Pago parcial</span>
+              {% elif factura.estado == "pagada" %}
+                <span class="badge bg-success">Pagada</span>
+              {% elif factura.estado == "vencida" %}
+                <span class="badge bg-danger">Vencida</span>
+              {% elif factura.estado == "anulada" %}
+                <span class="badge bg-secondary">Anulada</span>
+              {% endif %}
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Pagos asociados</h5>
+          {% if pagos %}
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Fecha</th>
+                  <th>Monto</th>
+                  <th>Método</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in pagos %}
+                <tr>
+                  <td>{{ p.fecha_registro|date:"Y-m-d H:i" }}</td>
+                  <td>${{ p.monto }}</td>
+                  <td>{{ p.get_metodo_display }}</td>
+                  <td>
+                    {% if p.estado == "pendiente" %}
+                      <span class="badge bg-warning text-dark">Pendiente</span>
+                    {% elif p.estado == "aprobado" %}
+                      <span class="badge bg-success">Aprobado</span>
+                    {% elif p.estado == "rechazado" %}
+                      <span class="badge bg-danger">Rechazado</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if p.estado == "pendiente" %}
+                      <a href="{% url 'pagos:revisar_pago' factura.pk p.pk %}" class="btn btn-sm btn-outline-primary">
+                        Revisar
+                      </a>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-muted mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            No hay pagos registrados para esta factura.
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

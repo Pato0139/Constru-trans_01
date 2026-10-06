@@ -1,0 +1,44 @@
+{% for unidad in unidades %}
+<tr class="u-inline-e91738c112">
+    <td class="py-3 px-4 text-center fw-bold text-accent">{{ unidad.codigo }}</td>
+    <td class="py-3 px-4">{{ unidad.nombre }}</td>
+    <td class="py-3 px-4 text-center">{{ unidad.abreviatura }}</td>
+    <td class="py-3 px-4 text-center">
+        {% if unidad.activa %}
+        <span class="badge rounded-pill px-3 u-inline-76bb199fc9">Sí</span>
+        {% else %}
+        <span class="badge rounded-pill px-3 u-inline-3f4cb36460">No</span>
+        {% endif %}
+    </td>
+    <td class="py-3 px-4 text-center">{{ unidad.num_materiales }}</td>
+    <td class="py-3 px-4 text-center">
+        <div class="d-flex justify-content-center gap-2">
+            <a href="{% url 'catalogo:editar_unidad_medida' unidad.pk %}"
+                class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--edit"
+                title="Editar">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" action="{% url 'catalogo:cambiar_estado_unidad_medida' unidad.pk %}"
+                class="d-inline">
+                {% csrf_token %}
+                <button type="submit"
+                    class="btn btn-sm rounded-pill px-3 {% if unidad.activa %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                    title="{% if unidad.activa %}Inhabilitar{% else %}Habilitar{% endif %}">
+                    <i
+                        class="bi {% if unidad.activa %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                </button>
+            </form>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="6" class="text-center py-5">
+        <div class="py-5">
+            <i class="bi bi-rulers text-muted mb-3 d-block u-inline-8ae57e885d"></i>
+            <p class="text-muted fw-medium mb-0">No se encontraron unidades de medida.</p>
+            <small class="text-muted">Crea una nueva unidad usando el botón superior.</small>
+        </div>
+    </td>
+</tr>
+{% endfor %}

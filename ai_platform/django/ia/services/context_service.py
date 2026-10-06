@@ -17,12 +17,12 @@ def obtener_contexto_datos(force_refresh=False):
             return cached
 
     try:
-        from catalogo.models import MaterialConstruccion, Stock
-        from clientes.models import Cliente
-        from compras.models import Compra, Proveedor
-        from logistica.models import Vehiculo
-        from pedidos.models import SolicitudPedido as PedidoGestion
-        from usuarios.models import Usuario
+        from apps.catalogo.models import MaterialConstruccion, Stock
+        from apps.clientes.models import Cliente
+        from apps.compras.models import Compra, Proveedor
+        from apps.logistica.models import Vehiculo
+        from apps.pedidos.models import SolicitudPedido as PedidoGestion
+        from apps.usuarios.models import Usuario
 
         data = {
             "total_usuarios": Usuario.objects.count(),

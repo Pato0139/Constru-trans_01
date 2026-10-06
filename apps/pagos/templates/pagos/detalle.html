@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load currency_tags %}
+
+{% block title %}Detalle de pago - ConstruTrans{% endblock %}
+{% block header_title %}Pago #{{ pago.pk }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="table-container p-4">
+        <h3 class="text-white mb-4">Pago del pedido #{{ pedido.codigo_pedido }}</h3>
+        <dl class="row text-white">
+            <dt class="col-sm-3 text-muted">Método</dt>
+            <dd class="col-sm-9">{{ pago.get_metodo_display }}</dd>
+            <dt class="col-sm-3 text-muted">Monto</dt>
+            <dd class="col-sm-9">{{ pago.monto|currency }}</dd>
+            <dt class="col-sm-3 text-muted">Estado</dt>
+            <dd class="col-sm-9">{{ pago.get_estado_display }}</dd>
+            <dt class="col-sm-3 text-muted">Registrado</dt>
+            <dd class="col-sm-9">{{ pago.fecha_registro|date:"d/m/Y H:i" }}</dd>
+            <dt class="col-sm-3 text-muted">Revisado</dt>
+            <dd class="col-sm-9">{{ pago.fecha_revision|date:"d/m/Y H:i"|default:"Pendiente" }}</dd>
+            <dt class="col-sm-3 text-muted">Observaciones</dt>
+            <dd class="col-sm-9">{{ pago.observaciones|default:"—" }}</dd>
+            {% if pago.comprobante %}
+            <dt class="col-sm-3 text-muted">Comprobante</dt>
+            <dd class="col-sm-9"><a href="{{ pago.comprobante.url }}" class="link-info" target="_blank" rel="noopener">Ver archivo</a></dd>
+            {% endif %}
+        </dl>
+        <div class="d-flex gap-2">
+            {% if user.rol == "admin" or user.usuario.rol == "admin" %}
+            {% if pago.estado == "pendiente" %}
+            <a href="{% url 'pagos:revisar_pago_pedido' pago.pk %}" class="btn btn-gold">Revisar</a>
+            {% endif %}
+            <a href="{% url 'pagos:lista_pagos' %}" class="btn btn-outline-light">Volver al listado</a>
+            {% else %}
+            {% if pago.estado == "rechazado" %}
+            <a href="{% url 'pagos:registrar_pago_pedido' pedido.codigo_pedido %}" class="btn btn-gold">Volver a registrar</a>
+            {% endif %}
+            <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light">Mis pedidos</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

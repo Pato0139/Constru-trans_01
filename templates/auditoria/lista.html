@@ -77,7 +77,7 @@
                         </tr>
                     </thead>
                     <tbody id="historial-tbody">
-                        {% include "historial/_lista_body.html" %}
+                        {% include "auditoria/_lista_body.html" %}
                     </tbody>
                 </table>
             </div>
@@ -87,9 +87,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<<<<<<< HEAD:templates/historial/lista.html
-{% endblock %}
-=======
 <script>
     $(document).ready(function () {
         var table = $('#tabla-historial').DataTable({
@@ -145,4 +142,3 @@
     });
 </script>
 {% endblock %}
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525:templates/auditoria/lista.html

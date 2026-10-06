@@ -3,13 +3,13 @@ from datetime import date, timedelta
 
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from django.test import Client
 from django.urls import reverse
 
-from usuarios.models import Conductor, ConductorVehiculo, Usuario, Vehiculo
+from apps.usuarios.models import Conductor, ConductorVehiculo, Usuario, Vehiculo
 
 Usuario.objects.filter(username__in=["admin@test.com", "cond@test.com"]).delete()
 Vehiculo.objects.filter(placa__in=["ABC123", "DEF456"]).delete()
