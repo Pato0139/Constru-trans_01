@@ -9,7 +9,7 @@
 
 {% block extra_js %}
 {{ block.super }}
-<script src="{% static 'js/usuarios/lista.js' %}"></script>
+<script src="{% static 'js/usuarios/lista.js' %}?v=1.1"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
             save: function(){return{el:document.activeElement,start:document.activeElement&&document.activeElement.selectionStart!==undefined?document.activeElement.selectionStart:null,end:document.activeElement&&document.activeElement.selectionEnd!==undefined?document.activeElement.selectionEnd:null};},
             restore: function(s){if(!s||!s.el)return;try{s.el.focus({preventScroll:true});}catch(_){try{s.el.focus();}catch(__){}}if(s.start!==null&&s.end!==null&&typeof s.el.setSelectionRange==='function'){try{s.el.setSelectionRange(s.start,s.end);}catch(_){}}},
             wrap: function(fn){var s=this.save();try{return fn();}finally{this.restore(s);}},
-            debounce: function(fn,ms){var t=null;return function(){var c=this,a=arguments;if(t)clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);t=null;},ms||350);};
+            debounce: function(fn,ms){var t=null;return function(){var c=this,a=arguments;if(t)clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);t=null;},ms||350);};}
         });
 
         var generalTableEl = document.querySelector('#general .table');

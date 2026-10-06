@@ -10,7 +10,7 @@
         </h2>
         <div class="d-flex gap-2">
             {% if compra.estado == 'pendiente' %}
-            <a href="{% url 'compras:editar_compra' compra.id %}" class="btn btn-warning">
+            <a href="{% url 'compras:editar_compra' compra.id_compra %}" class="btn btn-warning">
                 <i class="fas fa-edit me-1"></i> Editar
             </a>
             {% endif %}
@@ -140,7 +140,7 @@
                     <hr class="border-secondary my-4">
                     
                     <label class="text-white-50 small text-uppercase mb-3 d-block">Cambiar Estado</label>
-                    <form action="{% url 'compras:cambiar_estado_compra' compra.id %}" method="post">
+                    <form action="{% url 'compras:cambiar_estado_compra' compra.id_compra %}" method="post">
                         {% csrf_token %}
                         <div class="dropdown w-100">
                             <button class="btn w-100 py-3 fw-bold text-uppercase dropdown-toggle 

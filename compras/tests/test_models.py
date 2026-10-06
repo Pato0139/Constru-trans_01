@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.urls import reverse
 
 from catalogo.models import MaterialConstruccion, UnidadMedida
 from compras.models import Compra, DetalleCompra, Proveedor
@@ -64,3 +65,41 @@ class ComprasModelsTests(TestCase):
             precio_unitario=25000,
         )
         self.assertEqual(float(detalle.subtotal), 50000.0)
+
+    def test_lista_compras_renders_count_and_theme_default(self):
+        compra = Compra.objects.create(
+            proveedor=self.proveedor,
+            usuario=self.usuario,
+        )
+        DetalleCompra.objects.create(
+            compra=compra,
+            material=self.material,
+            cantidad=1,
+            precio_unitario=15000,
+        )
+
+        self.client.force_login(self.usuario)
+        response = self.client.get(reverse("compras:lista_compras"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-theme="light"')
+        self.assertNotContains(response, "{{ compra.detalles.count }}")
+        self.assertContains(response, "1")
+
+    def test_detalle_compra_renders_action_urls(self):
+        compra = Compra.objects.create(
+            proveedor=self.proveedor,
+            usuario=self.usuario,
+        )
+        self.client.force_login(self.usuario)
+
+        response = self.client.get(
+            reverse("compras:detalle_compra", kwargs={"id": compra.id_compra})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse("compras:editar_compra", args=[compra.id_compra]))
+        self.assertContains(
+            response,
+            reverse("compras:cambiar_estado_compra", args=[compra.id_compra]),
+        )

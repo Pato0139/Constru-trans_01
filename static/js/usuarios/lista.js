@@ -7,6 +7,23 @@
  * @listens DOMContentLoaded
  */
 document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = searchForm && searchForm.querySelector('input[name="q"]');
+    if (searchForm && searchInput) {
+        let searchTimer;
+        searchInput.addEventListener('input', function(event) {
+            clearTimeout(searchTimer);
+            if (event.isComposing) return;
+            searchTimer = setTimeout(function() {
+                const currentQuery = new URLSearchParams(window.location.search).get('q') || '';
+                if (searchInput.value !== currentQuery) {
+                    if (searchForm.requestSubmit) searchForm.requestSubmit();
+                    else searchForm.submit();
+                }
+            }, 350);
+        });
+    }
+
     /**
      * Manejador de clic en pestañas para actualizar estado activo
      */
