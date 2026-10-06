@@ -2,12 +2,12 @@ import os
 
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from datetime import date, timedelta
 
-from usuarios.models import EPS, Conductor, Usuario
+from apps.usuarios.models import EPS, Conductor, Usuario
 
 
 def add_conductor_to_db(db_alias):

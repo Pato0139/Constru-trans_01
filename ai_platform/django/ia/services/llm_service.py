@@ -32,9 +32,8 @@ def verificar_conexion_llm():
         return False
 
 
-def construir_prompt_sistema(contexto, nombre_usuario, contexto_rag=""):
+def construir_prompt_sistema(contexto, nombre_usuario):
     contexto_texto = "\n".join(f"- {k}: {v}" for k, v in contexto.items() if k != "generated_at")
-    rag_texto = f"\nDocumentos relevantes:\n{contexto_rag}" if contexto_rag else ""
     return f"""
 Eres el asistente virtual oficial de Constru-Trans.
 
@@ -50,16 +49,15 @@ Usuario actual: {nombre_usuario or "No identificado"}
 
 Datos actuales del sistema:
 {contexto_texto}
-{rag_texto}
 """.strip()
 
 
-def preguntar_llm(mensaje, contexto, nombre_usuario, historial, contexto_rag=""):
+def preguntar_llm(mensaje, contexto, nombre_usuario, historial):
     if client is None:
         logger.error("Cliente LLM no disponible: falta LLM_API_KEY")
         return None
 
-    system_prompt = construir_prompt_sistema(contexto, nombre_usuario, contexto_rag)
+    system_prompt = construir_prompt_sistema(contexto, nombre_usuario)
 
     messages = [{"role": "system", "content": system_prompt}]
 

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Revisar pago #{{ pago.pk }}{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+          <h1 class="h4 mb-0">
+            <i class="bi bi-clipboard-check text-primary me-2"></i>
+            Revisar pago — Factura {{ pago.factura.numero }}
+          </h1>
+        </div>
+        <div class="card-body">
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <dl class="row mb-0">
+                <dt class="col-sm-5">Factura</dt>
+                <dd class="col-sm-7 fw-semibold">{{ pago.factura.numero }}</dd>
+                <dt class="col-sm-5">Monto</dt>
+                <dd class="col-sm-7 fw-bold fs-5">${{ pago.monto }}</dd>
+                <dt class="col-sm-5">Método</dt>
+                <dd class="col-sm-7">{{ pago.get_metodo_display }}</dd>
+                <dt class="col-sm-5">Referencia</dt>
+                <dd class="col-sm-7">{{ pago.referencia|default:"—" }}</dd>
+                <dt class="col-sm-5">Fecha registro</dt>
+                <dd class="col-sm-7">{{ pago.fecha_registro|date:"Y-m-d H:i" }}</dd>
+                <dt class="col-sm-5">Registrado por</dt>
+                <dd class="col-sm-7">{{ pago.registrado_por.username|default:"—" }}</dd>
+              </dl>
+            </div>
+            <div class="col-md-6">
+              {% if pago.evidencia %}
+              <div class="border rounded p-2 bg-light">
+                <p class="small text-muted mb-2 fw-semibold">Evidencia fotográfica:</p>
+                <a href="{{ pago.evidencia.url }}" target="_blank">
+                  <img src="{{ pago.evidencia.url }}" alt="Comprobante" class="img-fluid rounded">
+                </a>
+              </div>
+              {% else %}
+              <div class="alert alert-secondary">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                No se adjuntó evidencia fotográfica.
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Observaciones</label>
+              <textarea
+                name="observaciones"
+                class="form-control"
+                rows="3"
+                placeholder="Detalles sobre la aprobación o motivo de rechazo..."
+              ></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                name="accion"
+                value="aprobar"
+                class="btn btn-success btn-lg flex-grow-1"
+              >
+                <i class="bi bi-check2-circle me-2"></i>Aprobar pago
+              </button>
+              <button
+                type="submit"
+                name="accion"
+                value="rechazar"
+                class="btn btn-danger btn-lg flex-grow-1"
+              >
+                <i class="bi bi-x-circle me-2"></i>Rechazar pago
+              </button>
+            </div>
+
+            <div class="mt-3">
+              <a class="btn btn-outline-secondary" href="{% url 'pagos:gestion_pagos' %}">
+                ← Volver a gestión
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

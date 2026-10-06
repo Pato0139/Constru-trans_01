@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
       keysToRemove.forEach(key => localStorage.removeItem(key));
       chatHistory = [];
     } catch (e) {
-      console.error('Error al cargar historial:', e);
+      console.error('Error al cargar auditoria:', e);
       chatHistory = [];
     }
   }
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
     } catch (e) {
-      console.error('Error al guardar historial:', e);
+      console.error('Error al guardar auditoria:', e);
     }
   }
 
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
       },
       body: JSON.stringify({ 
         mensaje: message,
-        historial: chatHistory.slice(-10), // Enviar últimos 10 mensajes para contexto
+        auditoria: chatHistory.slice(-10), // Enviar últimos 10 mensajes para contexto
         session_id: sessionId
       })
     })
