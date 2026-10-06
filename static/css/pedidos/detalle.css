@@ -4,3 +4,40 @@
     color: #dc2626;
     border: 1px solid rgba(239, 68, 68, 0.3);
 }
+
+#order-master-state,
+#order-master-state option {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    -webkit-text-fill-color: var(--color-text) !important;
+}
+
+#order-master-state {
+    appearance: auto !important;
+    -webkit-appearance: menulist !important;
+    opacity: 1 !important;
+}
+
+.order-master-select-wrap {
+    position: relative;
+}
+
+#order-master-state {
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+.order-master-select-label {
+    position: absolute;
+    top: 50%;
+    left: 0.75rem;
+    right: 2.5rem;
+    overflow: hidden;
+    color: var(--color-text) !important;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    text-overflow: ellipsis;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    pointer-events: none;
+}

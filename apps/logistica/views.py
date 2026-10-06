@@ -118,6 +118,9 @@ def lista_vehiculos(request):
         "has_filters": any([id_vehiculo, placa, tipo, estado, conductor, query]),
     }
 
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return render(request, "logistica/_lista_body.html", {"vehiculos": vehiculos})
+
     return render(request, "logistica/lista.html", context)
 
 
