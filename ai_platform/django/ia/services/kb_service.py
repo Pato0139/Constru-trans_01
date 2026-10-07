@@ -1,7 +1,7 @@
 import logging
 import re
 
-from ia.models import KnowledgeBase
+from apps.ia.models import KnowledgeBase
 
 logger = logging.getLogger(__name__)
 

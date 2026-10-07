@@ -14,29 +14,33 @@ python_version = "3.12"
 plugins = ["mypy_django_plugin.main"]
 
 [tool.django-stubs]
-django_settings_module = "core.settings"
+django_settings_module = "config.settings.dev"
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "core.settings"
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
 testpaths = [
-  "usuarios",
-  "clientes",
-  "catalogo",
-  "compras",
-  "pedidos",
-  "logistica",
-  "auditoria",
-  "ordenes",
-  "pagos",
-  "gestion_pedidos",
-  "reportes",
-  "inicio",
-  "licensing",
-  "ia",
-  "inventario",
-  "historial",
-  "transporte"
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
+testpaths = [
+  "apps/usuarios",
+  "apps/clientes",
+  "apps/catalogo",
+  "apps/compras",
+  "apps/pedidos",
+  "apps/pagos",
+  "apps/facturacion",
+  "apps/logistica",
+  "apps/auditoria",
+  "apps/reportes",
+  "apps/inicio",
+  "apps/licensing",
+  "apps/ia",
+  "apps/ordenes",
+  "apps/gestion_pedidos",
+  "apps/inventario",
+  "apps/historial",
+  "apps/transporte"
 ]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 norecursedirs = [".venv", "scripts", "htmlcov", "staticfiles"]
-addopts = "--cov=usuarios --cov=clientes --cov=catalogo --cov=compras --cov=pedidos --cov=logistica --cov=auditoria --cov=ordenes --cov=pagos --cov=gestion_pedidos --cov=reportes --cov=inicio --cov=historial --cov=transporte --cov=licensing --cov=ia --cov-report=html --cov-report=term"
+addopts = "--cov=apps.usuarios --cov=apps.clientes --cov=apps.catalogo --cov=apps.compras --cov=apps.pedidos --cov=apps.pagos --cov=apps.facturacion --cov=apps.logistica --cov=apps.auditoria --cov=apps.reportes --cov=apps.inicio --cov=apps.licensing --cov=apps.ia --cov=apps.ordenes --cov=apps.gestion_pedidos --cov=apps.inventario --cov=apps.historial --cov=apps.transporte --cov-report=html --cov-report=term"

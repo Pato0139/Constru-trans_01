@@ -4,7 +4,7 @@ import re
 import time
 from datetime import datetime
 
-from ia.models import AIPromptTemplate, ConversationMessage, UserFeedback
+from apps.ia.models import AIPromptTemplate, ConversationMessage, UserFeedback
 
 from .ai_gateway import enviar_a_ai_service
 from .context_service import obtener_contexto_datos
@@ -12,8 +12,6 @@ from .conversation_service import add_message_to_conversation, get_conversation
 from .kb_service import check_knowledge_base, update_knowledge_base
 from .math_service import evaluar_expresion_matematica
 from .orm_query_service import consultar_datos
-from .rag_service import buscar_contexto
-from .semantic_memory_service import guardar_interaccion
 
 logger = logging.getLogger(__name__)
 
@@ -342,10 +340,6 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
             )
             return respuesta_orm, bot_message.id if bot_message else None
 
-        contexto_rag = buscar_contexto(mensaje, k=3)
-        if contexto_rag:
-            datos = {**datos, "rag_context": contexto_rag}
-
         # Enviar al AI Service
         ai_result = enviar_a_ai_service(
             mensaje=mensaje,
@@ -355,7 +349,7 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
             user_role=rol_usuario,
             business_context=datos,
             historial=historial,
-            use_rag=True,
+            use_rag=False,
         )
 
         respuesta = ai_result.get("response") or "No pude generar una respuesta ahora mismo."
@@ -367,13 +361,6 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
             prompt_used="AI Service",
             model_used=ai_result.get("model_used", "external-ai-service"),
             response_time=time.time() - start_time,
-        )
-
-        # Guardar interacción en memoria semántica
-        guardar_interaccion(
-            doc_id=f"conv-{conversation.id}-{int(time.time())}",
-            texto=f"Usuario: {mensaje}\nAsistente: {respuesta}",
-            metadata={"conversation_id": conversation.id},
         )
 
         return respuesta, bot_message.id if bot_message else None

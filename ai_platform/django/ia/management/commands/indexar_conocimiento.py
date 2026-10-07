@@ -1,14 +1,14 @@
 from django.core.management.base import BaseCommand
 
-from ia.services.rag_service import indexar_documentos
+from apps.ia.services.rag_service import indexar_documentos
 
 
 class Command(BaseCommand):
     help = "Indexa materiales y pedidos en ChromaDB para las consultas RAG"
 
     def handle(self, *args, **options):
-        from catalogo.models import MaterialConstruccion
-        from pedidos.models import Pedido
+        from apps.catalogo.models import MaterialConstruccion
+        from apps.pedidos.models import Pedido
 
         documentos = []
         materiales = MaterialConstruccion.objects.filter(activo=True).select_related(

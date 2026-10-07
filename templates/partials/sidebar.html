@@ -75,10 +75,20 @@
                             <i class="bi bi-cart-check-fill text-warning"></i>
                             <span data-i18n="sidebar.gestionPedidos">Gestión de Pedidos</span>
                         </a>
-                        <a href="{% url 'pagos:lista_pagos' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' %}active{% endif %}">
+                        <a href="{% url 'pagos:lista_facturas' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'lista_facturas' %}active{% endif %}">
+                            <i class="bi bi-receipt text-info"></i>
+                            <span>Facturación</span>
+                        </a>
+                        <a href="{% url 'pagos:gestion_pagos' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'gestion_pagos' %}active{% endif %}">
                             <i class="bi bi-cash-stack text-success"></i>
                             <span data-i18n="sidebar.gestionPagos">Gestión de Pagos</span>
+                        </a>
+                        <a href="{% url 'pagos:historial_pagos' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'historial_pagos' %}active{% endif %}">
+                            <i class="bi bi-clock-history text-success"></i>
+                            <span>Historial de Pagos</span>
                         </a>
 
                     </div>
@@ -252,8 +262,13 @@
                 <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-cart-fill"></i></span>
                 <span data-i18n="sidebar.misPedidos">Mis Pedidos</span>
             </a>
-            <a href="{% url 'pagos:lista_pagos' %}"
-                class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' %}active{% endif %}">
+            <a href="{% url 'pagos:mis_facturas' %}"
+                class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'mis_facturas' %}active{% endif %}">
+                <span class="nav-icon-wrap nav-icon-wrap--info"><i class="bi bi-receipt-cutoff"></i></span>
+                <span data-i18n="sidebar.misFacturas">Mis Facturas</span>
+            </a>
+            <a href="{% url 'pagos:mis_pagos' %}"
+                class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'mis_pagos' %}active{% endif %}">
                 <span class="nav-icon-wrap nav-icon-wrap--orange"><i class="bi bi-wallet2"></i></span>
                 <span data-i18n="sidebar.pagos">Mis Pagos</span>
             </a>

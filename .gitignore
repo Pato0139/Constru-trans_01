@@ -78,3 +78,9 @@ list_tables.py
 
 cache/
 media/chroma_constru_trans/
+
+# Temporary reorg scripts
+_core_old/
+_fix_relaciones.py
+_reorganizar.py
+
