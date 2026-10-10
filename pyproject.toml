@@ -29,7 +29,7 @@ testpaths = [
   "reportes",
   "inicio",
   "licensing",
-  "ia"
+  "ia",
 ]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 norecursedirs = [".venv", "scripts", "htmlcov", "staticfiles"]

@@ -108,11 +108,15 @@ echo -e "${CYAN}================================================================
 echo -e "${NC}"
 
 NEON_REPO_URL="https://github.com/Pato0139/Neon.git"
-TEMP_DIR="temp_neon_repo"
+TEMP_DIR="$REPO_ROOT/temp_neon_repo"
 ENV_CREADO=false
 
-# Limpiar temporal si existe
-trap 'if [ -d "$TEMP_DIR" ]; then rm -rf "$TEMP_DIR"; fi' EXIT
+cleanup_temp() {
+    if [ -d "$TEMP_DIR" ]; then
+        rm -rf "$TEMP_DIR" 2>/dev/null || true
+    fi
+}
+trap cleanup_temp EXIT INT TERM HUP
 
 if command -v git >/dev/null 2>&1; then
     echo -e "${BLUE}[1/3] Clonando repositorio de credenciales..."
