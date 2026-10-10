@@ -1,8 +1,11 @@
 """Recolecta preguntas públicas y destila respuestas en memoria."""
 import time
+
 from django.core.management.base import BaseCommand
+
 from ia.services import llm_service
-from ia.services.memoria_destilada import _cargar_vistos, guardar_par, hash_pregunta, leer_pares
+from ia.services.memoria_destilada import (_cargar_vistos, guardar_par,
+                                           hash_pregunta, leer_pares)
 from ia.training.recolector_preguntas import recolectar
 
 SYSTEM_MASTER = "Eres un tutor enciclopédico. Responde en español, de forma breve (2-4 frases), clara y correcta. No inventes datos."

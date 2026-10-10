@@ -9,9 +9,9 @@ import django
 django.setup()
 
 from django.contrib.auth.models import User
+from ordenes.models import Pedido
 
 from clientes.models import Cliente
-from ordenes.models import Pedido
 from usuarios.models import EPS, Usuario
 
 print("=== DEBUG: Creating data step by step ===")

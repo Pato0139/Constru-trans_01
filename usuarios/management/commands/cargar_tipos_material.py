@@ -1,9 +1,9 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from catalogo.models import Catalogo
 from core.routers import EnrutadorInventario
 from core.utils import conexion_remota_disponible
-from catalogo.models import Catalogo
 
 _router = EnrutadorInventario()
 

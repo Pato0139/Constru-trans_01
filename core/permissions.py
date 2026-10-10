@@ -1,6 +1,8 @@
 from functools import wraps
+
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+
 from usuarios.models_permisos import usuario_tiene_permiso
 
 

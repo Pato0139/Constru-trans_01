@@ -1,6 +1,6 @@
 import sys
 
-from core.db_preference import get_db_preference, PREF_LOCAL, PREF_REMOTA
+from core.db_preference import PREF_LOCAL, PREF_REMOTA, get_db_preference
 from core.utils import conexion_remota_disponible
 
 # Apps de Django que SIEMPRE deben vivir en la BD default (local)

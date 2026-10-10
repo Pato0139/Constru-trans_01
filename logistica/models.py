@@ -1,8 +1,9 @@
+import logging
+
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
-import logging
 
 logger = logging.getLogger(__name__)
 

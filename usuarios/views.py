@@ -19,29 +19,23 @@ from django.urls import reverse, reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.timezone import now
 
-from core.security import (
-    _respuesta_no_autorizada,
-    admin_required,
-    obtener_ip,
-    registrar_evento,
-    registrar_warning,
-    role_required,
-)
 from auditoria.utils import registrar_actividad
-from pedidos.models import Pedido
-from core.db_preference import PREF_LOCAL, PREF_REMOTA, get_db_preference, invalidate_connection_cache
+from catalogo.models import MaterialConstruccion as Material
+from core.db_preference import (PREF_LOCAL, PREF_REMOTA, get_db_preference,
+                                invalidate_connection_cache)
+from core.security import (_respuesta_no_autorizada, admin_required,
+                           obtener_ip, registrar_evento, registrar_warning,
+                           role_required)
 from core.sync import sync_all_usuarios
 from core.utils import conexion_remota_disponible
-
-from .forms import LoginForm, RegistroForm, CustomPasswordResetForm
 from logistica.forms import AsignarVehiculoForm
-from .models import (
-    Conductor,
-    Usuario,
-)
 from logistica.models import ConductorVehiculo
-from catalogo.models import MaterialConstruccion as Material
-from .utils import get_account_switch_options, limpiar_documento, limpiar_telefono
+from pedidos.models import Pedido
+
+from .forms import CustomPasswordResetForm, LoginForm, RegistroForm
+from .models import Conductor, Usuario
+from .utils import (get_account_switch_options, limpiar_documento,
+                    limpiar_telefono)
 
 logger = logging.getLogger(__name__)
 
@@ -487,6 +481,7 @@ def panel(request):
 
     if usuario.rol == "admin":
         from django.core.cache import cache
+
         from core.utils import get_cache_key
 
         cache_key = get_cache_key("panel_admin_v2", usuario.id)

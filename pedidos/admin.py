@@ -1,11 +1,7 @@
 from django.contrib import admin
 
-from .models import (
-    DetallePedido,
-    DetalleSolicitudPedido,
-    Pedido,
-    SolicitudPedido,
-)
+from .models import (DetallePedido, DetalleSolicitudPedido, Pedido,
+                     SolicitudPedido)
 
 
 class DetallePedidoInline(admin.TabularInline):

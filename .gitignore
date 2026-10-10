@@ -78,3 +78,11 @@ list_tables.py
 
 cache/
 media/chroma_constru_trans/
+__pycache__/
+*.pyc
+db.sqlite3
+.env
+venv/
+.venv/
+staticfiles/
+media/

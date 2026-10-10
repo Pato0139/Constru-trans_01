@@ -1,7 +1,6 @@
 from typing import Dict, List, Optional
 
 import chromadb
-
 from app.core.config import settings
 from app.core.logging import logger
 from app.memory.embeddings import embedding_service

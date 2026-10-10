@@ -1,10 +1,9 @@
-from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.utils import timezone
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.utils import timezone
 
 from usuarios.models import Usuario
-
 
 numeric_and_space_validator = []
 
@@ -197,6 +196,6 @@ class Stock(models.Model):
         return self.fecha_actualizacion
 
 
-from .conteos import SesionConteo, ConteoItem
+from .conteos import ConteoItem, SesionConteo
 from .lotes import LoteMaterial
 from .movimientos import MovimientoInventario

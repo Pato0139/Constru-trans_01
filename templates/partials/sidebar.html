@@ -56,18 +56,30 @@
                     data-i18n="sidebar.label.operaciones">Operaciones</span></p>
             <div class="sidebar-section sidebar-section--ventas">
                 <button
+<<<<<<< HEAD
+                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'pagos' %}{% else %}collapsed{% endif %}"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse"
+                    aria-expanded="{% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'pagos' %}true{% else %}false{% endif %}"
+=======
                     class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'pedidos' or request.resolver_match.app_name == 'pagos' %}{% else %}collapsed{% endif %}"
                     type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse"
                     aria-expanded="{% if request.resolver_match.app_name == 'pedidos' or request.resolver_match.app_name == 'pagos' %}true{% else %}false{% endif %}"
+>>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
                     aria-controls="ventasCollapse">
                     <span class="d-flex align-items-center gap-2">
                         <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-cart-fill"></i></span>
                         <span data-i18n="sidebar.ventasCobros">Ventas y Cobros</span>
                     </span>
                     <i
+<<<<<<< HEAD
+                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'pagos' %}rotated{% endif %}"></i>
+                </button>
+                    <div class="collapse {% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'pagos' %}show{% endif %}"
+=======
                         class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'pedidos' or request.resolver_match.app_name == 'pagos' %}rotated{% endif %}"></i>
                 </button>
                 <div class="collapse {% if request.resolver_match.app_name == 'pedidos' or request.resolver_match.app_name == 'pagos' %}show{% endif %}"
+>>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
                     id="ventasCollapse">
                     <div class="nav-submenu">
                         <a href="{% url 'pedidos:lista_pedidos_admin' %}"
@@ -77,8 +89,13 @@
                         </a>
                         <a href="{% url 'pagos:lista_pagos' %}"
                             class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' %}active{% endif %}">
+<<<<<<< HEAD
                             <i class="bi bi-cash-stack text-success"></i>
                             <span data-i18n="sidebar.gestionPagos">Gestión de Pagos</span>
+=======
+                            <i class="bi bi-wallet2 text-success"></i>
+                            <span data-i18n="sidebar.pagos">Pagos</span>
+>>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
                         </a>
 
                     </div>

@@ -1,9 +1,8 @@
 from typing import Dict, List, Optional
 
-from openai import AsyncOpenAI, OpenAI
-
 from app.core.logging import logger
 from app.llm.base import BaseLLMProvider
+from openai import AsyncOpenAI, OpenAI
 
 
 class OpenAICompatibleProvider(BaseLLMProvider):

@@ -1,16 +1,11 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
 from django.contrib import messages
-from .models import (
-    CategoriaAyuda,
-    GuiaEdicion,
-    PasoGuia,
-    SugerenciaRecomendacion,
-    ManualUsuario,
-    ColorSistema,
-)
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
 from .forms import SugerenciaForm
+from .models import (CategoriaAyuda, ColorSistema, GuiaEdicion, ManualUsuario,
+                     PasoGuia, SugerenciaRecomendacion)
 
 
 @login_required

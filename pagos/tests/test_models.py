@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 from django.test import TestCase
-
 from ordenes.models import Pedido
+
 from pagos.models import Pago
 from usuarios.models import Usuario
 
@@ -21,10 +21,9 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from pagos.models import Pago
 from pedidos.models import Pedido
 from usuarios.models import Usuario
-
-from pagos.models import Pago
 
 
 class PagoModelTests(TestCase):

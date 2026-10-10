@@ -1,6 +1,8 @@
 import logging
+
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
+
 from core.utils import conexion_remota_disponible
 
 logger = logging.getLogger(__name__)

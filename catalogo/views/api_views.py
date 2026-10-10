@@ -1,12 +1,13 @@
 from html import escape
+
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.urls import reverse
 
-from catalogo.models import MaterialConstruccion as Material, Catalogo
+from catalogo.models import Catalogo
+from catalogo.models import MaterialConstruccion as Material
+from core.datatables import apply_search, build_dt_response, get_dt_params
 from usuarios.views import admin_required
-
-from core.datatables import get_dt_params, apply_search, build_dt_response
 
 
 @admin_required

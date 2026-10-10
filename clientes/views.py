@@ -8,25 +8,20 @@ from django.db import transaction
 from django.db.models import F, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
-from core.security import (
-    _respuesta_no_autorizada,
-    obtener_ip,
-    registrar_evento,
-    registrar_warning,
-    role_required,
-)
-from pedidos.models import DetallePedido, Pedido
-from usuarios.models import Usuario
-from catalogo.models import Catalogo, Stock, UnidadMedida, MaterialConstruccion as Material
-from usuarios.utils import get_account_switch_options
+from catalogo.models import Catalogo
+from catalogo.models import MaterialConstruccion as Material
+from catalogo.models import Stock, UnidadMedida
 from core.db_preference import debe_usar_bd_remota
 from core.db_utils import select_for_update_if_supported
-from core.despacho import (
-    CIUDADES_DESPACHO,
-    ciudad_valida,
-    construir_direccion_destino,
-    separar_direccion_destino,
-)
+from core.despacho import (CIUDADES_DESPACHO, ciudad_valida,
+                           construir_direccion_destino,
+                           separar_direccion_destino)
+from core.security import (_respuesta_no_autorizada, obtener_ip,
+                           registrar_evento, registrar_warning, role_required)
+from pedidos.models import DetallePedido, Pedido
+from usuarios.models import Usuario
+from usuarios.utils import get_account_switch_options
+
 from .models import Cliente
 
 

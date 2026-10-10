@@ -13,9 +13,9 @@ from .llm_service import LLM_MODEL, LLM_PROVIDER, client, preguntar_llm
 from .math_service import evaluar_expresion_matematica
 from .orm_query_service import consultar_datos
 from .rag_service import buscar_contexto
-from .web_search_service import buscar_web_si_aplica
 from .semantic_memory_service import buscar_memoria, guardar_interaccion
 from .time_service import responder_hora
+from .web_search_service import buscar_web_si_aplica
 
 logger = logging.getLogger(__name__)
 

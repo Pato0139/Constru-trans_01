@@ -1,9 +1,9 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
+>>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
-
 
 def comprobante_upload_to(instance, filename):
     pedido_id = getattr(instance, "pedido_id", None) or "sin_pedido"

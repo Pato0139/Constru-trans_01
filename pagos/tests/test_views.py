@@ -2,10 +2,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from pagos.models import Pago
 from pedidos.models import Pedido
 from usuarios.models import Usuario
-
-from pagos.models import Pago
 
 
 class PagoViewsTests(TestCase):

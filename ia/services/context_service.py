@@ -31,20 +31,12 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
         try:
             from django.db.models import Count
 
+            from catalogo.models import MaterialConstruccion, Stock
             from clientes.models import Cliente
             from compras.models import Compra, Proveedor
+            from logistica.models import ConductorVehiculo, Vehiculo
             from pedidos.models import Pedido as PedidoGestion
-            from catalogo.models import (
-                MaterialConstruccion,
-                Stock,
-            )
-            from logistica.models import (
-                ConductorVehiculo,
-                Vehiculo,
-            )
-            from usuarios.models import (
-                Usuario,
-            )
+            from usuarios.models import Usuario
 
             # --- DATOS GLOBALES ---
             # Obtener vehículos asociados a cada conductor

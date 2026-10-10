@@ -1,10 +1,11 @@
-from django.core.validators import MinValueValidator
-from django.core.exceptions import ValidationError
-from django.db import models
-from django.utils import timezone
-from django.db.utils import OperationalError
 import datetime
 import logging
+
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
+from django.db import models
+from django.db.utils import OperationalError
+from django.utils import timezone
 
 from catalogo.models import MaterialConstruccion
 from usuarios.models import Usuario

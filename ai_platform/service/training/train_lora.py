@@ -2,7 +2,8 @@ import os
 
 from datasets import load_dataset
 from peft import LoraConfig, get_peft_model
-from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
+from transformers import (AutoModelForCausalLM, AutoTokenizer, Trainer,
+                          TrainingArguments)
 
 
 def main():

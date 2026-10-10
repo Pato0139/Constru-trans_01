@@ -1,15 +1,17 @@
+import datetime
+import logging
+import uuid
+from pathlib import Path
+
 from django.contrib.auth.models import AbstractUser, UserManager
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
+from django.core.validators import (MaxValueValidator, MinValueValidator,
+                                    RegexValidator)
 from django.db import models, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import now
-from django.core.files.storage import default_storage
-import datetime
-import uuid
-from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -480,4 +482,4 @@ class Notificacion(models.Model):
 
 
 # Imports que requiere el nuevo save() lazy en el bloque condicional.
-from django.db import IntegrityError, DatabaseError  # noqa: E402
+from django.db import DatabaseError, IntegrityError  # noqa: E402

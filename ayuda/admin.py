@@ -1,12 +1,7 @@
 from django.contrib import admin
-from .models import (
-    CategoriaAyuda,
-    GuiaEdicion,
-    PasoGuia,
-    SugerenciaRecomendacion,
-    ManualUsuario,
-    ColorSistema,
-)
+
+from .models import (CategoriaAyuda, ColorSistema, GuiaEdicion, ManualUsuario,
+                     PasoGuia, SugerenciaRecomendacion)
 
 
 @admin.register(CategoriaAyuda)

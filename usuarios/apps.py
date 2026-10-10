@@ -13,9 +13,10 @@ class UsuariosConfig(AppConfig):
         # violaciones de FK cuando se usan múltiples DBs.
         try:
             from django.contrib import admin
+            from django.contrib.admin.models import (ADDITION, CHANGE,
+                                                     DELETION, LogEntry)
             from django.contrib.admin.options import ModelAdmin
             from django.contrib.contenttypes.models import ContentType
-            from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 
             def _get_user_db(request):
                 try:

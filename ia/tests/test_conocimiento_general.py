@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
+
 from django.test import TestCase
+
 from ia.services import assistant_service, llm_service
 from ia.services.web_search_service import _es_pregunta_general
 

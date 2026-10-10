@@ -39,6 +39,7 @@ def _materiales(busqueda=None):
 
 def _stock_bajo():
     from django.db.models import F
+
     from catalogo.models import Stock
 
     queryset = Stock.objects.filter(cantidad_actual__lt=F("stock_minimo")).select_related("material")[:15]

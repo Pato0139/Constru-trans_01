@@ -1,7 +1,7 @@
 from django.test import TestCase
 
-from catalogo.services.kardex import KardexService
 from catalogo.models import MaterialConstruccion, Stock, UnidadMedida
+from catalogo.services.kardex import KardexService
 
 
 class CatalogoStockTests(TestCase):
