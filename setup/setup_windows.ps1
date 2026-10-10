@@ -1,4 +1,4 @@
-
+﻿
 Write-Host "================================================================" -ForegroundColor cyan
 Write-Host "  CONSTRU-TRANS - Setup automatico (Windows)" -ForegroundColor blue
 Write-Host "================================================================" -ForegroundColor cyan
@@ -6,10 +6,26 @@ Write-Host "==Derechos_Autor==Edward_Fonseca==_-_==" -ForegroundColor black
 Write-Host "Iniciando..." -ForegroundColor Green
 Write-Host ""
 
-# Cambiar al directorio raíz del proyecto
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptDir
 Set-Location $projectRoot
+
+$tempDir = Join-Path $projectRoot "temp_neon_repo"
+$global:NeonTempDir = $tempDir
+
+trap {
+    if (Test-Path $global:NeonTempDir) {
+        try { Remove-Item -Recurse -Force $global:NeonTempDir -ErrorAction Stop } catch {}
+    }
+}
+
+try {
+    Register-EngineEvent PowerShell.Exiting -SupportEvent -Action {
+        if (Test-Path $global:NeonTempDir) {
+            try { Remove-Item -Recurse -Force $global:NeonTempDir -ErrorAction Stop } catch {}
+        }
+    } | Out-Null
+} catch {}
 
 # Paso 1: Verificar Python
 Write-Host "[1/5] Verificando Python..." -ForegroundColor blue
@@ -116,7 +132,6 @@ Write-Host "================================================================" -F
 Write-Host ""
 
 $neonRepoUrl = "https://github.com/Pato0139/Neon.git"
-$tempDir = "temp_neon_repo"
 $envCreado = $false
 
 try {
@@ -141,7 +156,7 @@ try {
     }
 
     Write-Host "[3/3] Limpiando repositorio temporal..." -ForegroundColor blue
-    Remove-Item -Recurse -Force $tempDir
+    if (Test-Path $tempDir) { Remove-Item -Recurse -Force $tempDir }
     Write-Host "[OK] Repositorio temporal eliminado" -ForegroundColor Green
 } catch {
     Write-Host "[AVISO] No se pudo obtener el repositorio de credenciales: $($_.Exception.Message)" -ForegroundColor Yellow
