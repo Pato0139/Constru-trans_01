@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 set "TEMP_DIR=%~dp0temp_neon_repo"
 powershell -ExecutionPolicy Bypass -File "%~dp0setup\setup_windows.ps1"

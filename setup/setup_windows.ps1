@@ -1,4 +1,4 @@
-
+﻿
 Write-Host "================================================================" -ForegroundColor cyan
 Write-Host "  CONSTRU-TRANS - Setup automatico (Windows)" -ForegroundColor blue
 Write-Host "================================================================" -ForegroundColor cyan
