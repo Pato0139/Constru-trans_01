@@ -19,9 +19,6 @@ django_settings_module = "config.settings.dev"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.dev"
 testpaths = [
-[tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "config.settings.dev"
-testpaths = [
   "apps/usuarios",
   "apps/clientes",
   "apps/catalogo",
@@ -39,7 +36,7 @@ testpaths = [
   "apps/gestion_pedidos",
   "apps/inventario",
   "apps/historial",
-  "apps/transporte"
+  "apps/transporte",
 ]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 norecursedirs = [".venv", "scripts", "htmlcov", "staticfiles"]
