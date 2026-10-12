@@ -75,6 +75,7 @@ backups/*.json
 # Archivos de prueba
 test_db.py
 list_tables.py
+integrar_ramas.bat
 
 cache/
 media/chroma_constru_trans/
