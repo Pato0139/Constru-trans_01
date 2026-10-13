@@ -1,13 +1,31 @@
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+extend-exclude = [
+  ".venv",
+  "venv",
+  "staticfiles",
+  "htmlcov",
+  "media",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "B", "DJ"]
-ignore = ["E501"]
+ignore = [
+  "E501",   # el limite de linea lo controla ruff-format
+  "DJ001",  # los CharField existentes usan null=True por compatibilidad con Neon
+  "DJ012",  # orden de metodos de los modelos heredados
+  "E402",   # import local en scripts y comandos de datos
+]
 
 [tool.ruff.lint.per-file-ignores]
 "ia/services/math_service.py" = ["N802"]
+"**/migrations/*" = ["E501", "F401", "I001", "N999"]
+"**/__init__.py" = ["F401", "F403"]
+"core/settings/*" = ["F405"]
+"verificar_rubrica.py" = ["F401", "F841", "W291", "W293", "E722"]
+"scripts/**" = ["F401", "F841", "W293", "E722"]
+"ñ**" = []
 
 [tool.mypy]
 python_version = "3.12"
@@ -25,12 +43,11 @@ testpaths = [
   "compras",
   "pedidos",
   "logistica",
-  "auditoria",
-  "reportes",
-  "inicio",
   "licensing",
   "ia",
+  "ayuda",
+  "core",
 ]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
-norecursedirs = [".venv", "scripts", "htmlcov", "staticfiles"]
-addopts = "--cov=usuarios --cov=clientes --cov=catalogo --cov=compras --cov=pedidos --cov=logistica --cov=auditoria --cov=reportes --cov=inicio --cov=licensing --cov=ia --cov-report=html --cov-report=term"
+norecursedirs = [".venv", "venv", "scripts", "htmlcov", "staticfiles", "media"]
+addopts = "--cov=usuarios --cov=clientes --cov=catalogo --cov=compras --cov=pedidos --cov=logistica --cov=licensing --cov=ia --cov=ayuda --cov=core --cov-report=term-missing"

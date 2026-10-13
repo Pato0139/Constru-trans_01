@@ -38,15 +38,23 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 
 def get_secret_key():
+    """Devuelve la SECRET_KEY de forma estable.
+
+    - Producción: exige una clave real en el entorno o en .env.
+    - Desarrollo: si falta o es inválida, genera una clave aleatoria y la
+      PERSISTE en .env (no se regenera en cada inicio, así no se invalidan
+      las sesiones al reiniciar runserver). Es lo que hacía el setup anterior,
+      pero ahora la lógica vive aquí y nunca deja el proyecto sin arrancar.
+    """
     secret_key = env("SECRET_KEY", default="").strip()
     default_secret_placeholders = {
         "cambia-esto-por-una-clave-aleatoria-de-50-caracteres",
+        "cambiar",
         "change-me",
         "changeme",
         "secret-key",
         "example-secret-key",
     }
-
     placeholder_keys = {value.lower() for value in default_secret_placeholders}
 
     def is_valid_key(value):
@@ -55,21 +63,38 @@ def get_secret_key():
     if is_valid_key(secret_key):
         return secret_key
 
-    if DJANGO_ENV != "production":
-        env_file = BASE_DIR / ".env"
-        if env_file.is_file():
-            for line in env_file.read_text(encoding="utf-8-sig").splitlines():
-                key, separator, value = line.partition("=")
-                if separator and key.strip() == "SECRET_KEY":
-                    dotenv_secret_key = value.strip().strip("\"'")
-                    if is_valid_key(dotenv_secret_key):
-                        return dotenv_secret_key
+    env_file = BASE_DIR / ".env"
 
-    raise RuntimeError(
-        "SECRET_KEY no configurada, demasiado corta o con valor por defecto. Define una clave fija "
-        "de al menos 32 caracteres en .env o en el entorno; generar una distinta en cada inicio "
-        "invalida las sesiones al reiniciar runserver."
-    )
+    # 1) En desarrollo, rescatar una clave válida directamente del .env
+    if DJANGO_ENV != "production" and env_file.is_file():
+        for line in env_file.read_text(encoding="utf-8-sig").splitlines():
+            key, separator, value = line.partition("=")
+            if separator and key.strip() == "SECRET_KEY":
+                dotenv_secret_key = value.strip().strip("\"'")
+                if is_valid_key(dotenv_secret_key):
+                    return dotenv_secret_key
+
+    if DJANGO_ENV == "production":
+        raise RuntimeError(
+            "SECRET_KEY no configurada, demasiado corta o con valor por defecto. "
+            "Define una clave fija de al menos 32 caracteres en el entorno o en .env."
+        )
+
+    # 2) Desarrollo sin clave: generarla y guardarla para que sea estable.
+    try:
+        from django.core.management.utils import get_random_secret_key
+
+        generated = get_random_secret_key()
+        with env_file.open("a", encoding="utf-8") as handle:
+            if env_file.exists() and env_file.stat().st_size > 0:
+                handle.write("\n")
+            handle.write(f"SECRET_KEY={generated}\n")
+        return generated
+    except OSError:
+        # 3) Último recurso: clave derivada y estable (solo desarrollo).
+        import hashlib
+
+        return hashlib.sha256(f"constru-trans-dev-{BASE_DIR}".encode()).hexdigest()
 
 
 SECRET_KEY = get_secret_key()

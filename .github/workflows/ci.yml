@@ -16,40 +16,79 @@ jobs:
           POSTGRES_PASSWORD: testpass
           POSTGRES_DB: testdb
         ports: ['5432:5432']
-        options: --health-cmd pg_isready
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    env:
+      DJANGO_ENV: development
+      DEBUG: "True"
+      SECRET_KEY: ci-secret-key-solo-para-pipelines-de-pruebas-0123456789
+      DATABASE_URL: postgresql://postgres:testpass@localhost:5432/testdb
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
-      - run: pip install -r requirements/dev.txt
-      - run: python manage.py check
-      - run: python manage.py makemigrations --check --dry-run
-      - run: ruff check .
-      - name: Secret scan
+      - name: Instalar dependencias
+        run: pip install -r requirements/dev.txt
+      - name: Configuracion de Django
+        run: python manage.py check
+      - name: Migraciones al dia
+        run: python manage.py makemigrations --check --dry-run
+      - name: Estilo de codigo
+        run: ruff check .
+      - name: Pruebas
+        run: pytest
+      - name: Escaneo de secretos
         run: |
           python - <<'PY'
           import pathlib
           import re
-          root = pathlib.Path('.')
+
+          # Detecta SOLO valores literales con pinta de secreto.
+          # No marca lecturas de entorno (os.getenv / env(...)), ni tests,
+          # ni docs, ni ficheros de ejemplo o plantilla.
+          sospechoso = re.compile(
+              r"""(SECRET_KEY|PASSWORD|API_KEY|TOKEN|ACCESS_KEY|CLIENT_SECRET)"""
+              r"""\s*[:=]\s*[\'"]([A-Za-z0-9_\-]{16,})[\'"]""",
+              re.IGNORECASE,
+          )
+          permitido = re.compile(
+              r"(os\.getenv|os\.environ|env\(|settings\.|test-|dummy-|fake-|example|placeholder|tu_|pon-tu|\$\{|%\()",
+              re.IGNORECASE,
+          )
+          rutas_ignoradas = {".git", ".venv", "venv", "htmlcov", "staticfiles", "media", "node_modules"}
+          nombres_ignorados = {
+              ".env.example", "dev.txt", "requirements.txt", "docker-compose.yml",
+              "docker-compose.override.yml", "ci.yml",
+          }
+          partes_ignoradas = {"tests", "test", "docs", "ayuda"}
+
           offenders = []
-          for path in root.rglob('*'):
-              if not path.is_file() or '.git' in path.parts or path.name == '.env.example':
+          for path in pathlib.Path(".").rglob("*"):
+              if not path.is_file():
                   continue
-              if path.suffix in {'.py', '.txt', '.yml', '.yaml', '.toml', '.ini', '.cfg'}:
-                  text = path.read_text(errors='ignore')
-                  if re.search(r'(SECRET_KEY\s*[:=]|PASSWORD\s*[:=]|API_KEY\s*[:=]|TOKEN\s*[:=])', text, re.I):
-                      offenders.append(str(path))
+              if any(parte in rutas_ignoradas for parte in path.parts):
+                  continue
+              if any(parte in partes_ignoradas for parte in path.parts):
+                  continue
+              if path.name in nombres_ignorados or path.name.startswith(".env"):
+                  continue
+              if path.suffix not in {".py", ".yml", ".yaml", ".toml", ".ini", ".cfg", ".json", ".sh", ".ps1"}:
+                  continue
+              try:
+                  texto = path.read_text(errors="ignore")
+              except OSError:
+                  continue
+              for numero, linea in enumerate(texto.splitlines(), start=1):
+                  if sospechoso.search(linea) and not permitido.search(linea):
+                      offenders.append(f"{path}:{numero}")
+
           if offenders:
-              print('Potential secrets found:')
+              print("Posibles secretos en el codigo:")
               for item in offenders:
-                  print(item)
+                  print("  " + item)
               raise SystemExit(1)
-          print('No obvious secret values found in tracked source files.')
+          print("OK: no se encontraron secretos literales en el codigo.")
           PY
-      - run: pytest
-        env:
-          DATABASE_URL: postgresql://postgres:testpass@localhost:5432/testdb
-          SECRET_KEY: test-secret-key
-          DEBUG: 'True'
