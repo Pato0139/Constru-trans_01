@@ -21,14 +21,13 @@ env = environ.Env(
     EMAIL_TIMEOUT=(int, 30),
     PASSWORD_RESET_TIMEOUT=(int, 1800),
     SESSION_COOKIE_AGE=(int, 1209600),
-    AXES_FAILURE_LIMIT=(int, 5),
-    AXES_COOLOFF_TIME=(int, 1),
     USE_S3=(bool, False),
     LICENSE_REQUIRED=(bool, False),
     LICENSE_SERVER_URL=(str, ""),
     LICENSE_PUBLIC_KEY=(str, ""),
     LICENSE_HEARTBEAT_MINUTES=(int, 360),
     LICENSE_MAX_AGE_DAYS=(int, 30),
+    OPENWEATHER_API_KEY=(str, ""),
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
@@ -48,17 +47,29 @@ def get_secret_key():
         "example-secret-key",
     }
 
-    if secret_key and secret_key.lower() not in {value.lower() for value in default_secret_placeholders}:
+    placeholder_keys = {value.lower() for value in default_secret_placeholders}
+
+    def is_valid_key(value):
+        return bool(value) and len(value) >= 32 and value.lower() not in placeholder_keys
+
+    if is_valid_key(secret_key):
         return secret_key
 
-    if DJANGO_ENV == "production":
-        raise RuntimeError(
-            "SECRET_KEY no configurada o con valor por defecto. Define una clave segura en el archivo .env antes de ejecutar la app en producción."
-        )
+    if DJANGO_ENV != "production":
+        env_file = BASE_DIR / ".env"
+        if env_file.is_file():
+            for line in env_file.read_text(encoding="utf-8-sig").splitlines():
+                key, separator, value = line.partition("=")
+                if separator and key.strip() == "SECRET_KEY":
+                    dotenv_secret_key = value.strip().strip("\"'")
+                    if is_valid_key(dotenv_secret_key):
+                        return dotenv_secret_key
 
-    import secrets
-
-    return secrets.token_hex(50)
+    raise RuntimeError(
+        "SECRET_KEY no configurada, demasiado corta o con valor por defecto. Define una clave fija "
+        "de al menos 32 caracteres en .env o en el entorno; generar una distinta en cada inicio "
+        "invalida las sesiones al reiniciar runserver."
+    )
 
 
 SECRET_KEY = get_secret_key()
@@ -106,13 +117,7 @@ DJANGO_APPS = [
     "django.contrib.humanize",
 ]
 
-THIRD_PARTY_APPS = [
-    "django_otp",
-    "django_otp.plugins.otp_totp",
-    "django_otp.plugins.otp_static",
-    "simple_history",
-    "django_recaptcha",
-]
+THIRD_PARTY_APPS = []
 
 LOCAL_APPS = [
     "core.apps.CoreConfig",
@@ -121,10 +126,6 @@ LOCAL_APPS = [
     "catalogo",
     "compras",
     "pedidos",
-    "pagos",
-    "reportes",
-    "inicio",
-    "auditoria",
     "logistica",
     "licensing",
     "ia",
@@ -154,7 +155,6 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "simple_history.middleware.HistoryRequestMiddleware",
     # Licencia: último paso antes de servir la app
     "licensing.middleware.LicenseEnforcementMiddleware",
 ]
@@ -296,14 +296,6 @@ LOGIN_REDIRECT_URL = "/usuarios/panel/"
 LOGOUT_REDIRECT_URL = "/usuarios/login/"
 
 # ============================================================
-# DJANGO-AXES (anti fuerza bruta)
-# ============================================================
-
-AXES_FAILURE_LIMIT = env("AXES_FAILURE_LIMIT")
-AXES_COOLOFF_TIME = env("AXES_COOLOFF_TIME")
-AXES_RESET_ON_SUCCESS = True
-
-# ============================================================
 # RECUPERACIÓN DE CONTRASEÑA
 # ============================================================
 
@@ -323,6 +315,9 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=f"Constru-Trans <{EMAIL_HOST_USER}>")
 SERVER_EMAIL = env("SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
 EMAIL_TIMEOUT = env("EMAIL_TIMEOUT")
+RESEND_API_KEY = env("RESEND_API_KEY", default="")
+RESEND_FROM_EMAIL = env("RESEND_FROM_EMAIL", default="")
+OPENWEATHER_API_KEY = env("OPENWEATHER_API_KEY")
 
 # ============================================================
 # INTERNACIONALIZACIÓN
@@ -403,18 +398,6 @@ LOGGING = {
 # Custom User Model
 AUTH_USER_MODEL = "usuarios.Usuario"
 APPEND_SLASH = False
-
-# ============================================================
-# Captcha
-# ============================================================
-
-RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY", default="")
-RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY", default="")
-
-# Silenciar el check de Django cuando se usan las claves de prueba de Google
-# en entornos de desarrollo. IMPORTANTE: usar claves reales antes de producción.
-if DJANGO_ENV != "production":
-    SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]
 
 # ============================================================
 # LICENCIAMIENTO

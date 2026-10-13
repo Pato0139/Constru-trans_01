@@ -6,7 +6,7 @@
  * Inicializa el formset de catálogo de proveedores
  * @listens DOMContentLoaded
  */
-document.addEventListener('DOMContentLoaded', () => {
+window.AppPageLifecycle.onPageLoad(() => {
   const table = document.getElementById('supplier-catalog-formset');
   const addButton = document.getElementById('add-material-row');
   const totalForms = document.getElementById('id_catalogo-TOTAL_FORMS');

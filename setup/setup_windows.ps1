@@ -1,269 +1,196 @@
-﻿
-Write-Host "================================================================" -ForegroundColor cyan
-Write-Host "  CONSTRU-TRANS - Setup automatico (Windows)" -ForegroundColor blue
-Write-Host "================================================================" -ForegroundColor cyan
-Write-Host "==Derechos_Autor==Edward_Fonseca==_-_==" -ForegroundColor black
-Write-Host "Iniciando..." -ForegroundColor Green
-Write-Host ""
+$ErrorActionPreference = "Stop"
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptDir
 Set-Location $projectRoot
 
-$tempDir = Join-Path $projectRoot "temp_neon_repo"
-$global:NeonTempDir = $tempDir
+Write-Host "CONSTRU-TRANS - Instalador para Windows" -ForegroundColor Cyan
+Write-Host ""
 
-trap {
-    if (Test-Path $global:NeonTempDir) {
-        try { Remove-Item -Recurse -Force $global:NeonTempDir -ErrorAction Stop } catch {}
+function Test-PythonEnvironment {
+    param([string]$PythonPath)
+
+    if (-not (Test-Path $PythonPath -PathType Leaf)) {
+        return $null
+    }
+
+    $probe = "import sys; print(sys.version.split()[0]); raise SystemExit(0 if sys.version_info >= (3, 11) and sys.prefix != sys.base_prefix else 1)"
+    try {
+        $result = & $PythonPath -c $probe 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            return ($result | Select-Object -Last 1).ToString().Trim()
+        }
+    } catch {
+        return $null
+    }
+
+    return $null
+}
+
+$venvPath = $null
+$venvPython = $null
+$pythonVersion = $null
+$projectPrefix = $projectRoot.TrimEnd("\") + "\"
+
+if ($env:VIRTUAL_ENV) {
+    $activeEnvironment = [System.IO.Path]::GetFullPath($env:VIRTUAL_ENV).TrimEnd("\")
+    if ($activeEnvironment.StartsWith($projectPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        $activePython = Join-Path $activeEnvironment "Scripts\python.exe"
+        $activeVersion = Test-PythonEnvironment $activePython
+        if ($activeVersion) {
+            $venvPath = $activeEnvironment
+            $venvPython = $activePython
+            $pythonVersion = $activeVersion
+            Write-Host "[OK] Se usará el entorno virtual activo: $venvPath" -ForegroundColor Green
+        }
     }
 }
 
-try {
-    Register-EngineEvent PowerShell.Exiting -SupportEvent -Action {
-        if (Test-Path $global:NeonTempDir) {
-            try { Remove-Item -Recurse -Force $global:NeonTempDir -ErrorAction Stop } catch {}
-        }
-    } | Out-Null
-} catch {}
+if (-not $venvPython) {
+    $environmentCandidates = @(
+        (Join-Path $projectRoot ".venv"),
+        (Join-Path $projectRoot "venv"),
+        (Join-Path $projectRoot ".venv-1")
+    )
+    $environmentCandidates += Get-ChildItem -Path $projectRoot -Directory -Force -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -like ".venv-*" -and $_.Name -ne ".venv-1" } |
+        Sort-Object Name |
+        ForEach-Object { $_.FullName }
 
-# Paso 1: Verificar Python
-Write-Host "[1/5] Verificando Python..." -ForegroundColor blue
-$pythonCmd = $null
-$pyArgs = @()
-$pythonVersion = ""
-
-# Intentar encontrar Python a traves del lanzador 'py' prefiriendo 3.12, 3.11, 3.13, 3.14
-try {
-    $null = Get-Command py -ErrorAction Stop
-    $preferredVersions = @("-3.12", "-3.11", "-3.13", "-3.14")
-    foreach ($ver in $preferredVersions) {
-        $testOutput = & py $ver --version 2>&1
-        if ($LASTEXITCODE -eq 0 -and $testOutput -match "Python\s+3\.") {
-            $pythonCmd = "py"
-            $pyArgs = @($ver)
-            $pythonVersion = $testOutput.Trim()
+    foreach ($candidatePath in $environmentCandidates) {
+        $candidatePython = Join-Path $candidatePath "Scripts\python.exe"
+        $candidateVersion = Test-PythonEnvironment $candidatePython
+        if ($candidateVersion) {
+            $venvPath = $candidatePath
+            $venvPython = $candidatePython
+            $pythonVersion = $candidateVersion
+            Write-Host "[OK] Se reutilizará el entorno virtual existente: $venvPath" -ForegroundColor Green
             break
         }
     }
-    if (-not $pythonCmd) {
-        $testOutput = & py --version 2>&1
-        if ($testOutput -match "Python\s+3\.") {
-            $pythonCmd = "py"
-            $pythonVersion = $testOutput.Trim()
+}
+
+if (-not $venvPython) {
+    $pythonCandidates = @()
+    if (Get-Command py -ErrorAction SilentlyContinue) {
+        $pythonCandidates += @(
+            @{ Command = "py"; Args = @("-3.14") },
+            @{ Command = "py"; Args = @("-3.13") },
+            @{ Command = "py"; Args = @("-3.12") },
+            @{ Command = "py"; Args = @("-3.11") }
+        )
+    }
+    if (Get-Command python -ErrorAction SilentlyContinue) {
+        $pythonCandidates += @{ Command = "python"; Args = @() }
+    }
+
+    $pythonCommand = $null
+    $pythonArgs = @()
+    $versionCheck = "import sys; print(sys.version.split()[0]); raise SystemExit(0 if sys.version_info >= (3, 11) else 1)"
+
+    foreach ($candidate in $pythonCandidates) {
+        try {
+            $commandArgs = @($candidate.Args) + @("-c", $versionCheck)
+            $versionOutput = & $candidate.Command @commandArgs 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                $pythonCommand = $candidate.Command
+                $pythonArgs = $candidate.Args
+                $pythonVersion = ($versionOutput | Select-Object -Last 1).ToString().Trim()
+                break
+            }
+        } catch {
+            continue
         }
     }
-} catch {}
 
-if (-not $pythonCmd) {
-    try {
-        $testOutput = & python --version 2>&1
-        if ($testOutput -match "Python\s+3\.") {
-            $pythonCmd = "python"
-            $pythonVersion = $testOutput.Trim()
-        }
-    } catch {}
-}
-
-if (-not $pythonCmd) {
-    Write-Host ""
-    Write-Host "[ERROR] Python no encontrado. Instala Python 3.11 o superior (recomendado 3.12)." -ForegroundColor Red
-    Write-Host "Descarga: https://www.python.org/downloads/" -ForegroundColor Yellow
-    Read-Host "Presiona cualquier tecla para salir"
-    exit 1
-}
-
-Write-Host "[OK] Python seleccionado: $pythonVersion" -ForegroundColor Green
-
-# Paso 2: Crear entorno virtual
-Write-Host ""
-Write-Host "[2/5] Creando entorno virtual..." -ForegroundColor blue
-if (Test-Path "venv") {
-    # Verificar si el venv existente esta roto o incompleto
-    if (-not (Test-Path "venv\Scripts\python.exe") -or -not (Test-Path "venv\Scripts\activate.bat")) {
-        Write-Host "[AVISO] Entorno virtual anterior corrupto o incompleto. Recreando..." -ForegroundColor Yellow
-        Remove-Item -Recurse -Force "venv"
-    }
-}
-
-if (-not (Test-Path "venv")) {
-    if ($pyArgs.Count -gt 0) {
-        & $pythonCmd $pyArgs -m venv venv
-    } else {
-        & $pythonCmd -m venv venv
-    }
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "[ERROR] Fallo al crear entorno virtual." -ForegroundColor Red
-        Read-Host "Presiona cualquier tecla para salir"
+    if (-not $pythonCommand) {
+        Write-Host "[ERROR] No encontré un Python 3.11 o superior ni un entorno virtual utilizable." -ForegroundColor Red
+        Write-Host "Instala Python desde https://www.python.org/downloads/ o activa el entorno del proyecto y vuelve a intentarlo." -ForegroundColor Yellow
         exit 1
     }
-    Write-Host "[OK] Entorno virtual creado exitosamente" -ForegroundColor Green
+
+    $venvPath = Join-Path $projectRoot ".venv"
+    $venvPython = Join-Path $venvPath "Scripts\python.exe"
+    if (Test-Path $venvPath) {
+        Write-Host "[ERROR] La carpeta .venv existe pero no contiene un entorno válido. No se borró ni modificó." -ForegroundColor Red
+        Write-Host "Activa otro entorno válido o revisa .venv antes de volver a ejecutar el setup." -ForegroundColor Yellow
+        exit 1
+    }
+
+    Write-Host "[OK] Python $pythonVersion; creando el entorno .venv..." -ForegroundColor Green
+    & $pythonCommand @pythonArgs -m venv $venvPath
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ERROR] No se pudo crear el entorno virtual .venv." -ForegroundColor Red
+        exit 1
+    }
+    $pythonVersion = Test-PythonEnvironment $venvPython
+    if (-not $pythonVersion) {
+        Write-Host "[ERROR] El entorno .venv recién creado no es válido. No se eliminaron archivos." -ForegroundColor Red
+        exit 1
+    }
+}
+
+Write-Host "[OK] Entorno listo con Python $pythonVersion" -ForegroundColor Green
+
+Write-Host "[OK] Instalando dependencias de requirements.txt..."
+& $venvPython -m pip install --upgrade pip
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERROR] No se pudo actualizar pip." -ForegroundColor Red
+    exit 1
+}
+& $venvPython -m pip install --prefer-binary -r (Join-Path $projectRoot "requirements.txt")
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERROR] Falló la instalación de dependencias. Revisa la conexión a Internet y requirements.txt." -ForegroundColor Red
+    exit 1
+}
+
+$envPath = Join-Path $projectRoot ".env"
+if (-not (Test-Path $envPath)) {
+    $secretKey = & $venvPython -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+    if ($LASTEXITCODE -ne 0 -or -not $secretKey) {
+        Write-Host "[ERROR] No se pudo generar SECRET_KEY para .env." -ForegroundColor Red
+        exit 1
+    }
+    $envContent = @(
+        "DJANGO_ENV=development",
+        "SECRET_KEY=$($secretKey.Trim())",
+        "DEBUG=True",
+        "ALLOWED_HOSTS=localhost,127.0.0.1",
+        "CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000",
+        "DATABASE_URL=",
+        "OPENWEATHER_API_KEY="
+    ) -join [Environment]::NewLine
+    [System.IO.File]::WriteAllText($envPath, $envContent, [System.Text.UTF8Encoding]::new($false))
+    Write-Host "[OK] Se creó .env para desarrollo local."
 } else {
-    Write-Host "[OK] Entorno virtual existente verificado" -ForegroundColor Green
+    Write-Host "[OK] Se conserva el .env existente."
 }
 
-# Paso 3: Instalar dependencias
-Write-Host ""
-Write-Host "[3/5] Instalando dependencias..." -ForegroundColor blue
-& .\venv\Scripts\python.exe -m pip install --upgrade pip
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Fallo al actualizar pip" -ForegroundColor Red
-    Read-Host "Presiona cualquier tecla para salir"
-    exit 1
-}
-
-# Usar --prefer-binary para priorizar ruedas precompiladas y evitar fallos por compilacion en Windows
-& .\venv\Scripts\python.exe -m pip install --prefer-binary -r requirements.txt
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Fallo al instalar dependencias." -ForegroundColor Red
-    Write-Host "Asegurate de que las versiones en requirements.txt cuenten con ruedas (wheels) precompiladas." -ForegroundColor Yellow
-    Read-Host "Presiona cualquier tecla para salir"
-    exit 1
-}
-Write-Host "[OK] Dependencias instaladas" -ForegroundColor Green
-
-# Paso 4: Configurar .env local
-Write-Host ""
-Write-Host "[4/5] Configurando archivo .env local..." -ForegroundColor blue
-Write-Host ""
-Write-Host "================================================================" -ForegroundColor cyan
-Write-Host "  OBTENIENDO CREDENCIALES AUTOMATICAMENTE" -ForegroundColor blue
-Write-Host "================================================================" -ForegroundColor cyan
-Write-Host ""
-
-$neonRepoUrl = "https://github.com/Pato0139/Neon.git"
-$envCreado = $false
-
+$previousDatabaseUrl = $env:DATABASE_URL
 try {
-    Write-Host "[1/3] Clonando repositorio de credenciales..." -ForegroundColor blue
-    if (Test-Path $tempDir) {
-        Remove-Item -Recurse -Force $tempDir
-    }
-    git clone --depth 1 $neonRepoUrl $tempDir
+    $env:DATABASE_URL = ""
+    Write-Host "[OK] Verificando configuración Django..."
+    & $venvPython manage.py check
     if ($LASTEXITCODE -ne 0) {
-        throw "git clone fallo con codigo de salida $LASTEXITCODE"
-    }
-    Write-Host "[OK] Repositorio clonado" -ForegroundColor Green
-
-    Write-Host "[2/3] Copiando archivo de configuración..." -ForegroundColor blue
-    $neonEnvPath = Join-Path $tempDir ".env.example"
-    if (Test-Path $neonEnvPath) {
-        Copy-Item -Path $neonEnvPath -Destination ".env" -Force
-        Write-Host "[OK] Archivo .env creado con todas las credenciales!" -ForegroundColor Green
-        $envCreado = $true
-    } else {
-        Write-Host "[AVISO] No se encontró .env.example en el repo" -ForegroundColor Yellow
-    }
-
-    Write-Host "[3/3] Limpiando repositorio temporal..." -ForegroundColor blue
-    if (Test-Path $tempDir) { Remove-Item -Recurse -Force $tempDir }
-    Write-Host "[OK] Repositorio temporal eliminado" -ForegroundColor Green
-} catch {
-    Write-Host "[AVISO] No se pudo obtener el repositorio de credenciales: $($_.Exception.Message)" -ForegroundColor Yellow
-    if (Test-Path $tempDir) {
-        Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
-    }
-}
-
-# Si no se pudo crear desde el repo, creamos uno básico
-if (-not $envCreado) {
-    Write-Host ""
-    Write-Host "[OK] Generando configuración básica..." -ForegroundColor blue
-    $djangoEnv = "development"
-    $secretKey = & .\venv\Scripts\python.exe -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-    
-    $envContent = @"
-# Variables minimas para desarrollo local
-DJANGO_ENV=$djangoEnv
-SECRET_KEY=$secretKey
-DEBUG=True
-ALLOWED_HOSTS=127.0.0.1,localhost
-CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
-
-# Base de datos local por defecto (SQLite)
-DATABASE_URL=
-
-# Email en desarrollo
-EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USE_TLS=True
-EMAIL_USE_SSL=False
-EMAIL_HOST_USER=
-EMAIL_HOST_PASSWORD=
-DEFAULT_FROM_EMAIL=Constru-Trans <no-reply@example.com>
-SERVER_EMAIL=Constru-Trans <no-reply@example.com>
-
-# Almacenamiento opcional en S3
-USE_S3=False
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_STORAGE_BUCKET_NAME=
-AWS_S3_ENDPOINT_URL=
-AWS_S3_REGION_NAME=us-east-1
-"@
-
-    $envContent | Out-File -FilePath ".env" -Encoding UTF8
-    Write-Host "[OK] Archivo .env creado con valores básicos" -ForegroundColor Green
-}
-
-# Verificamos si tenemos DATABASE_URL
-$databaseUrl = ""
-if (Test-Path ".env") {
-    $match = Select-String -Path ".env" -Pattern "^DATABASE_URL=(.*)$"
-    if ($match) {
-        $databaseUrl = $match.Matches[0].Groups[1].Value.Trim()
-    }
-}
-
-Write-Host ""
-if ($databaseUrl) {
-    Write-Host "[OK] DATABASE_URL configurada! Modo híbrido activado (SQLite local + Neon remota)" -ForegroundColor Green
-} else {
-    Write-Host "[INFO] Usando solo base de datos SQLite local (modo offline)" -ForegroundColor Gray
-}
-
-# Paso 5: Aplicar migraciones
-Write-Host ""
-Write-Host "[5/5] Aplicando migraciones..." -ForegroundColor blue
-& .\venv\Scripts\python.exe manage.py migrate --run-syncdb
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Las migraciones locales fallaron. El setup no puede continuar." -ForegroundColor Red
-    Read-Host "Presiona cualquier tecla para salir"
-    exit 1
-}
-Write-Host "[OK] Migraciones aplicadas en base local" -ForegroundColor Green
-
-$applyRemoteMigrations = if ($env:APPLY_REMOTE_MIGRATIONS) {
-    $env:APPLY_REMOTE_MIGRATIONS.ToLowerInvariant() -eq "true"
-} else {
-    $true
-}
-
-if ($databaseUrl -and $applyRemoteMigrations) {
-    Write-Host ""
-    Write-Host "[INFO] Aplicando migraciones en base remota..." -ForegroundColor Yellow
-    & .\venv\Scripts\python.exe manage.py migrate --database=remota
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "[ERROR] Las migraciones remotas fallaron. No se marcaran como completadas." -ForegroundColor Red
-        Read-Host "Presiona cualquier tecla para salir"
+        Write-Host "[ERROR] La verificación de Django falló." -ForegroundColor Red
         exit 1
     }
-    Write-Host "[OK] Migraciones aplicadas en base remota" -ForegroundColor Green
-} elseif ($databaseUrl) {
-    Write-Host "[AVISO] DATABASE_URL esta configurada, pero las migraciones remotas estan desactivadas." -ForegroundColor Yellow
-    Write-Host "[INFO] Para ejecutarlas explicitamente: `$env:APPLY_REMOTE_MIGRATIONS='true'; .\setup\setup_windows.ps1" -ForegroundColor Yellow
+
+    Write-Host "[OK] Aplicando migraciones a la base SQLite local..."
+    & $venvPython manage.py migrate --run-syncdb
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ERROR] Fallaron las migraciones de la base local." -ForegroundColor Red
+        exit 1
+    }
+} finally {
+    if ($null -eq $previousDatabaseUrl) {
+        Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
+    } else {
+        $env:DATABASE_URL = $previousDatabaseUrl
+    }
 }
 
-# Final
 Write-Host ""
-Write-Host "================================================================" -ForegroundColor cyan
-Write-Host "  Setup COMPLETO!" -ForegroundColor blue
-Write-Host "================================================================" -ForegroundColor cyan
-Write-Host ""
-Write-Host "Para iniciar el servidor:" -ForegroundColor blue
-Write-Host "  .\venv\Scripts\python.exe manage.py runserver" -ForegroundColor White
-Write-Host ""
-Write-Host "================================================================" -ForegroundColor cyan
-Read-Host "Presiona cualquier tecla para salir"
-
+Write-Host "Setup completado." -ForegroundColor Green
+Write-Host "Para iniciar el servidor:"
+Write-Host "  `"$venvPython`" manage.py runserver"

@@ -6,6 +6,7 @@ from pathlib import Path
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
+from django.core.validators import FileExtensionValidator
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models, transaction
@@ -75,10 +76,11 @@ class Usuario(AbstractUser):
     # NO se toca
     tipo_documento = models.CharField(max_length=5, choices=TIPOS_DOCUMENTO)
     estado = models.CharField(max_length=15, choices=ESTADO_USUARIO, default="activo")
-    foto_perfil = models.FileField(
+    foto_perfil = models.ImageField(
         upload_to=foto_perfil_upload_path,
         null=True,
         blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"])],
     )
     sincronizado = models.BooleanField(default=False)
 
@@ -178,7 +180,8 @@ class Usuario(AbstractUser):
 
     @property
     def es_superadmin(self):
-        return bool(getattr(self, "is_superuser", False)) or self.pk == 1
+        from core.superadmin_lock import es_superadmin_global
+        return es_superadmin_global(self)
 
     @property
     def conductor_profile(self):
@@ -483,3 +486,6 @@ class Notificacion(models.Model):
 
 # Imports que requiere el nuevo save() lazy en el bloque condicional.
 from django.db import DatabaseError, IntegrityError  # noqa: E402
+
+# Registra los modelos de permisos que viven en un módulo separado.
+from . import models_permisos  # noqa: E402,F401

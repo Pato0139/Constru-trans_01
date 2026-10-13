@@ -227,6 +227,7 @@
         });
 
         global.addEventListener('popstate', function () {
+            if (!form.isConnected) return;
             currentQueryString = window.location.search || '';
             const sp = new URLSearchParams(window.location.search);
             fields.forEach((field) => {
@@ -246,11 +247,7 @@
         forms.forEach(bindStandardAutoFilter);
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () { initAll(); });
-    } else {
-        initAll();
-    }
+    global.AppPageLifecycle.onPageLoad(function () { initAll(); });
 
     global.AjaxFilters = { init: initAll, bind: bindStandardAutoFilter };
 })(window);

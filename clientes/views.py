@@ -20,7 +20,6 @@ from core.security import (_respuesta_no_autorizada, obtener_ip,
                            registrar_evento, registrar_warning, role_required)
 from pedidos.models import DetallePedido, Pedido
 from usuarios.models import Usuario
-from usuarios.utils import get_account_switch_options
 
 from .models import Cliente
 
@@ -308,7 +307,6 @@ def perfil_cliente(request):
         "pedidos_pendientes": pedidos.filter(estado="pendiente").count(),
         "en_ruta": pedidos.filter(estado="en_ruta").count(),
         "total_invertido": pedidos.aggregate(total=Sum("total"))["total"] or 0,
-        "account_switch_options": get_account_switch_options(usuario),
     }
 
     return render(request, "clientes/detalle.html", context)
@@ -770,7 +768,7 @@ def cancelar_pedido(request, id):
             pedido.estado = "cancelado"
             pedido.save()
 
-            from auditoria.utils import registrar_actividad
+            from core.utils import registrar_actividad
 
             comentario = (
                 f"Pedido #{pedido.codigo_pedido} cancelado por "

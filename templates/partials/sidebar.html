@@ -10,7 +10,7 @@
     <!-- Determinar modo de visualización (Solo superadmin puede cambiar) -->
     {% if user.is_authenticated %}
     {% with is_super=user.is_superuser|default:user.es_superadmin|default:False %}
-    {% with active_role=request.session.active_account_role|default_if_none:user.usuario.rol|default:user.usuario.rol %}
+    {% with active_role=user.usuario.rol %}
 
     <!-- Logo y marca -->
     <div class="sidebar-brand-card position-relative">
@@ -26,17 +26,7 @@
         </div>
         <h5 class="sidebar-brand-title">ConstruTrans</h5>
         <p class="sidebar-brand-sub" data-i18n="sidebar.brandSub">
-            {% if is_super and request.session.active_account_role %}
-            <span class="badge rounded-pill bg-info-subtle text-info border border-info-subtle">
-                Vista:
-                {% if request.session.active_account_role == "admin" %}Administrador
-                {% elif request.session.active_account_role == "cliente" %}Cliente
-                {% elif request.session.active_account_role == "conductor" %}Conductor
-                {% endif %}
-            </span>
-            {% else %}
             Panel de gestión
-            {% endif %}
         </p>
     </div>
 
@@ -56,30 +46,18 @@
                     data-i18n="sidebar.label.operaciones">Operaciones</span></p>
             <div class="sidebar-section sidebar-section--ventas">
                 <button
-<<<<<<< HEAD
-                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'pagos' %}{% else %}collapsed{% endif %}"
-                    type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse"
-                    aria-expanded="{% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'pagos' %}true{% else %}false{% endif %}"
-=======
                     class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'pedidos' or request.resolver_match.app_name == 'pagos' %}{% else %}collapsed{% endif %}"
                     type="button" data-bs-toggle="collapse" data-bs-target="#ventasCollapse"
                     aria-expanded="{% if request.resolver_match.app_name == 'pedidos' or request.resolver_match.app_name == 'pagos' %}true{% else %}false{% endif %}"
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
                     aria-controls="ventasCollapse">
                     <span class="d-flex align-items-center gap-2">
                         <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-cart-fill"></i></span>
                         <span data-i18n="sidebar.ventasCobros">Ventas y Cobros</span>
                     </span>
                     <i
-<<<<<<< HEAD
-                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'pagos' %}rotated{% endif %}"></i>
-                </button>
-                    <div class="collapse {% if request.resolver_match.app_name == 'ordenes' or request.resolver_match.app_name == 'pagos' %}show{% endif %}"
-=======
                         class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'pedidos' or request.resolver_match.app_name == 'pagos' %}rotated{% endif %}"></i>
                 </button>
                 <div class="collapse {% if request.resolver_match.app_name == 'pedidos' or request.resolver_match.app_name == 'pagos' %}show{% endif %}"
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
                     id="ventasCollapse">
                     <div class="nav-submenu">
                         <a href="{% url 'pedidos:lista_pedidos_admin' %}"
@@ -89,13 +67,8 @@
                         </a>
                         <a href="{% url 'pagos:lista_pagos' %}"
                             class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' %}active{% endif %}">
-<<<<<<< HEAD
-                            <i class="bi bi-cash-stack text-success"></i>
-                            <span data-i18n="sidebar.gestionPagos">Gestión de Pagos</span>
-=======
                             <i class="bi bi-wallet2 text-success"></i>
                             <span data-i18n="sidebar.pagos">Pagos</span>
->>>>>>> 49984237c7825998944fb40ba7acb96be2e3d525
                         </a>
 
                     </div>
@@ -349,7 +322,7 @@
 </aside>
 
 <!-- Script del sidebar -->
-<script>
+<script data-ajax-persistent>
     document.addEventListener('DOMContentLoaded', function () {
         const collapseToggles = document.querySelectorAll('[data-bs-toggle="collapse"]');
 

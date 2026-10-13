@@ -1,7 +1,9 @@
 import logging
 import re
+import smtplib
 from functools import wraps
 
+import requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
@@ -11,7 +13,7 @@ from django.views.decorators.http import require_POST
 User = get_user_model()
 from django.contrib.auth.views import PasswordResetView
 from django.core.exceptions import PermissionDenied
-from django.db import IntegrityError, transaction
+from django.db import DatabaseError, IntegrityError, transaction
 from django.db.models import Prefetch, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -19,23 +21,24 @@ from django.urls import reverse, reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.timezone import now
 
-from auditoria.utils import registrar_actividad
+from core.utils import registrar_actividad
 from catalogo.models import MaterialConstruccion as Material
 from core.db_preference import (PREF_LOCAL, PREF_REMOTA, get_db_preference,
                                 invalidate_connection_cache)
 from core.security import (_respuesta_no_autorizada, admin_required,
                            obtener_ip, registrar_evento, registrar_warning,
                            role_required)
+from core.superadmin_lock import es_superadmin_global
 from core.sync import sync_all_usuarios
 from core.utils import conexion_remota_disponible
+from usuarios.weather import get_route_weather
 from logistica.forms import AsignarVehiculoForm
 from logistica.models import ConductorVehiculo
 from pedidos.models import Pedido
 
-from .forms import CustomPasswordResetForm, LoginForm, RegistroForm
+from .forms import CustomPasswordResetForm, FotoPerfilForm, LoginForm, RegistroForm
 from .models import Conductor, Usuario
-from .utils import (get_account_switch_options, limpiar_documento,
-                    limpiar_telefono)
+from .utils import limpiar_documento, limpiar_telefono
 
 logger = logging.getLogger(__name__)
 
@@ -127,45 +130,6 @@ def lista_usuarios(request):
         "active_tab": active_tab,
     }
     return render(request, "usuarios/lista.html", context)
-
-
-def cambiar_cuenta(request, rol):
-    """Permite cambiar entre las vistas de cuenta disponibles desde el perfil."""
-    if not request.user.is_authenticated:
-        return redirect("usuarios:login")
-
-    is_super = getattr(request.user, "is_superuser", False) or getattr(
-        request.user, "es_superadmin", False
-    )
-    if not is_super:
-        registrar_evento(request, "role_violation", gravedad="high", detalles={"target_role": rol})
-        messages.error(request, "Solo el Administrador Global puede cambiar de panel.")
-        return redirect("usuarios:panel")
-
-    role_targets = {
-        "admin": {"panel": "usuarios:panel", "label": "Administrador"},
-        "cliente": {"panel": "clientes:panel_cliente", "label": "Cliente"},
-        "conductor": {"panel": "usuarios:panel_conductor", "label": "Conductor"},
-    }
-
-    target = role_targets.get(rol)
-    if not target:
-        messages.error(request, "No es posible cambiar a esa cuenta.")
-        return redirect("usuarios:panel")
-
-    request.session["active_account_role"] = rol
-    request.session.modified = True
-    registrar_evento(
-        request,
-        "admin_switch",
-        gravedad="info",
-        detalles={"cambio_de": request.user.rol, "cambio_a": rol},
-    )
-    messages.success(
-        request,
-        f"Modo de vista cambiado a: {target['label']}. (Modo Administrador Global — solo lectura de pruebas).",
-    )
-    return redirect(target["panel"])
 
 
 def buscar_usuarios_generales(query=None):
@@ -516,28 +480,35 @@ def panel(request):
 
 @role_required(["conductor"])
 def panel_conductor(request):
-    conductor = request.user
+    conductor, _ = Conductor.ensure_for_user(request.user)
     pedidos_asignados = (
         Pedido.objects.filter(conductor=conductor)
         .select_related("usuario", "cliente__usuario")
         .exclude(estado="entregado")
     )
-    entregas_completadas = Pedido.objects.filter(
-        conductor=conductor, estado="entregado"
-    ).select_related("usuario", "cliente__usuario")
-
+    proxima_entrega = (
+        pedidos_asignados.exclude(estado=Pedido.CANCELADO)
+        .order_by("fecha_entrega_programada", "fecha_solicitud")
+        .first()
+    )
     context = {
         "pedidos": pedidos_asignados,
-        "entregas_totales": entregas_completadas.count(),
-        "pedidos_pendientes": pedidos_asignados.count(),
-        "ultima_entrega": entregas_completadas.order_by("-fecha_solicitud").first(),
+        "proxima_entrega": proxima_entrega,
+        "clima_ruta": (
+            get_route_weather(
+                proxima_entrega.direccion_destino,
+                proxima_entrega.fecha_entrega_programada,
+            )
+            if proxima_entrega
+            else None
+        ),
     }
     return render(request, "usuarios/panel-conductor.html", context)
 
 
 @role_required(["conductor"])
 def pedidos_conductor(request):
-    conductor = request.user
+    conductor, _ = Conductor.ensure_for_user(request.user)
     pedidos = Pedido.objects.filter(conductor=conductor).exclude(estado="entregado").select_related("usuario", "cliente__usuario")
 
     id_pedido = request.GET.get("id_pedido")
@@ -571,7 +542,7 @@ def pedidos_conductor(request):
 
 @role_required(["conductor"])
 def mis_entregas(request):
-    conductor = request.user
+    conductor, _ = Conductor.ensure_for_user(request.user)
     entregas = Pedido.objects.filter(conductor=conductor).select_related(
         "usuario", "cliente__usuario"
     ).order_by("-fecha_solicitud")
@@ -622,7 +593,6 @@ def perfil_admin(request):
         "ordenes_count": Pedido.objects.count(),
         "total_ventas": Pedido.objects.aggregate(total=Sum("total"))["total"] or 0,
         "entregados_count": Pedido.objects.filter(estado="entregado").count(),
-        "account_switch_options": get_account_switch_options(usuario),
     }
     return render(request, "usuarios/detalle.html", context)
 
@@ -632,18 +602,77 @@ def editar_perfil(request):
     usuario = request.user 
 
     if request.method == "POST":
+        if request.POST.get("action") == "upload_photo":
+            foto_form = FotoPerfilForm(request.POST, request.FILES)
+            if not foto_form.is_valid():
+                messages.error(
+                    request,
+                    "No se pudo guardar la foto. Revisa el formato y el tamaño (máximo 5 MB).",
+                )
+                return render(
+                    request,
+                    "usuarios/editar_perfil.html",
+                    {"usuario": usuario, "foto_form": foto_form},
+                )
+
+            foto_nueva = foto_form.cleaned_data["foto_perfil"]
+            if not foto_nueva:
+                messages.error(request, "Selecciona una foto antes de guardarla.")
+                return redirect("usuarios:editar_perfil")
+
+            foto_anterior = usuario.foto_perfil
+            nombre_foto_anterior = foto_anterior.name if foto_anterior else ""
+            usuario.foto_perfil = foto_nueva
+            try:
+                usuario.save(update_fields=["foto_perfil"])
+            except (OSError, DatabaseError):
+                nombre_foto_nuevo = usuario.foto_perfil.name
+                if nombre_foto_nuevo and nombre_foto_nuevo != nombre_foto_anterior:
+                    try:
+                        usuario.foto_perfil.storage.delete(nombre_foto_nuevo)
+                    except OSError as exc:
+                        logger.warning(
+                            "No se pudo limpiar la foto sin guardar del usuario %s: %s",
+                            usuario.pk,
+                            exc,
+                        )
+                usuario.foto_perfil.name = nombre_foto_anterior
+                logger.exception("No se pudo guardar la foto de perfil del usuario %s", usuario.pk)
+                messages.error(request, "No se pudo guardar la foto. Inténtalo de nuevo.")
+                return redirect("usuarios:editar_perfil")
+
+            if nombre_foto_anterior and nombre_foto_anterior != usuario.foto_perfil.name:
+                try:
+                    foto_anterior.storage.delete(nombre_foto_anterior)
+                except OSError as exc:
+                    logger.warning(
+                        "No se pudo borrar la foto anterior del usuario %s: %s",
+                        usuario.pk,
+                        exc,
+                    )
+
+            messages.success(request, "La foto de perfil se guardó correctamente.")
+            return redirect("usuarios:editar_perfil")
+
+        foto_form = FotoPerfilForm(request.POST, request.FILES)
+        if not foto_form.is_valid():
+            messages.error(request, "No se pudo guardar la foto. Revisa el formato y el tamaño (máximo 5 MB).")
+            return render(
+                request,
+                "usuarios/editar_perfil.html",
+                {"usuario": usuario, "foto_form": foto_form, "form_data": request.POST},
+            )
+
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
         telefono = limpiar_telefono(request.POST.get("telefono"))
         email = request.POST.get("email")
+        foto_anterior = usuario.foto_perfil
+        nombre_foto_anterior = foto_anterior.name if foto_anterior else ""
 
-        if "foto_perfil" in request.FILES:
-            if usuario.foto_perfil:
-                try:
-                    usuario.foto_perfil.delete(save=False)
-                except OSError as exc:
-                    logger.warning("No se pudo borrar foto anterior: %s", exc)
-            usuario.foto_perfil = request.FILES["foto_perfil"]
+        foto_nueva = foto_form.cleaned_data.get("foto_perfil")
+        if foto_nueva:
+            usuario.foto_perfil = foto_nueva
 
         usuario.nombres = nombres
         usuario.apellidos = apellidos
@@ -656,10 +685,22 @@ def editar_perfil(request):
 
         try:
             usuario.save()
+            if foto_nueva and nombre_foto_anterior:
+                try:
+                    foto_anterior.storage.delete(nombre_foto_anterior)
+                except OSError as exc:
+                    logger.warning("No se pudo borrar la foto anterior del usuario %s: %s", usuario.pk, exc)
             messages.success(request, "Perfil actualizado correctamente.")
         except IntegrityError:
+            if foto_nueva and usuario.foto_perfil.name != nombre_foto_anterior:
+                usuario.foto_perfil.storage.delete(usuario.foto_perfil.name)
+                usuario.foto_perfil.name = nombre_foto_anterior
             messages.error(request, "No se pudo actualizar el perfil porque el correo ya está en uso.")
-            return render(request, "usuarios/editar_perfil.html", {"usuario": usuario})
+            return render(
+                request,
+                "usuarios/editar_perfil.html",
+                {"usuario": usuario, "foto_form": foto_form, "form_data": request.POST},
+            )
 
         if usuario.rol == "admin":
             return redirect("usuarios:perfil_admin")
@@ -811,7 +852,7 @@ def editar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
     user = request.user
 
-    is_super = getattr(user, "is_superuser", False) or getattr(user, "es_superadmin", False)
+    is_super = es_superadmin_global(user)
     es_admin = is_super or user.rol == "admin"
     es_propio = user.id == usuario.user.id or user.pk == usuario.pk
 
@@ -986,17 +1027,19 @@ def perfil_conductor(request):
     conductor_id = request.GET.get("id")
 
     if conductor_id and request.user.rol == "admin":
-        conductor = get_object_or_404(Usuario, id=conductor_id)
+        usuario_conductor = get_object_or_404(Usuario, id=conductor_id)
     else:
-        conductor = request.user  # CORRECCIÓN #2
+        usuario_conductor = request.user
 
-    pedidos = Pedido.objects.filter(conductor=conductor).select_related("usuario", "cliente__usuario")
+    perfil_conductor, _ = Conductor.ensure_for_user(usuario_conductor)
+    pedidos = Pedido.objects.filter(conductor=perfil_conductor).select_related(
+        "usuario", "cliente__usuario"
+    )
 
     from logistica.models import Entrega
     try:
-        conductor_perfil = Conductor.objects.get(usuario=conductor)
         ultima_entrega = (
-            Entrega.objects.filter(conductor=conductor_perfil)
+            Entrega.objects.filter(conductor=perfil_conductor)
             .select_related("vehiculo", "pedido")
             .order_by("-fecha_salida")
             .first()
@@ -1009,10 +1052,9 @@ def perfil_conductor(request):
         vehiculo = None
 
     context = {
-        "conductor": conductor,
+        "conductor": usuario_conductor,
         "pedidos": pedidos,
         "vehiculo": vehiculo,
-        "account_switch_options": get_account_switch_options(conductor),
     }
     return render(request, "usuarios/perfil-conductor.html", context)
 
@@ -1029,36 +1071,19 @@ class CustomPasswordResetView(PasswordResetView):
     success_url = reverse_lazy("usuarios:password_reset_done")
     from_email = None
 
-    def dispatch(self, *args, **kwargs):
-        try:
-            if conexion_remota_disponible():
-                sync_all_usuarios()
-        except Exception as exc:
-            logger.warning(
-                "[Password Reset] No se pudo sincronizar usuarios antes de reset: %s",
-                exc,
-            )
-        return super().dispatch(*args, **kwargs)
-
     def form_valid(self, form):
-        email = form.cleaned_data["email"]
-        usuarios_encontrados = list(form.get_users(email))
-        logger.info(
-            "[Password Reset] Solicitud para: %s | Usuarios coincidentes: %d",
-            email,
-            len(usuarios_encontrados),
-        )
-        for u in usuarios_encontrados:
-            logger.info(
-                "  -> usuario_id=%s username=%s email=%s is_active=%s has_pwd=%s",
-                u.pk,
-                u.username,
-                u.email,
-                getattr(u, "is_active", None),
-                u.has_usable_password(),
+        try:
+            return super().form_valid(form)
+        except (smtplib.SMTPException, OSError, requests.RequestException) as exc:
+            logger.warning(
+                "Password reset email delivery failed (%s)",
+                type(exc).__name__,
             )
-        return super().form_valid(form)
-
+            form.add_error(
+                None,
+                "No pudimos enviar el correo de recuperación. Intenta de nuevo más tarde.",
+            )
+            return self.form_invalid(form)
 
 # =====================================================================
 # CERRAR SESIÓN

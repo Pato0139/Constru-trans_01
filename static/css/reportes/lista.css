@@ -1,0 +1,26 @@
+.report-page,
+.report-page .text-white {
+    color: var(--color-text) !important;
+}
+
+.report-page .text-white-50,
+.report-page .text-muted,
+.report-page .page-subtitle {
+    color: var(--color-muted) !important;
+}
+
+.report-page .stats-card {
+    color: var(--color-text);
+}
+
+.report-page .btn-premium.u-inline-4eb189190c {
+    background: var(--item-bg) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-text) !important;
+}
+
+.report-page .btn-premium.u-inline-4eb189190c:hover,
+.report-page .btn-premium.u-inline-4eb189190c:focus-visible {
+    background: var(--item-bg-hover) !important;
+    color: var(--color-text) !important;
+}

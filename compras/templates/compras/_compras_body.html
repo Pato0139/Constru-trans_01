@@ -21,15 +21,20 @@
         <div class="small">{{ compra.fecha_compra|date:"H:i" }}</div>
     </td>
     <td class="text-center">
-        <span class="badge bg-dark border border-white-10 text-info px-3">{{ compra.detalles.count
-            }}</span>
+        <div class="d-flex flex-wrap justify-content-center gap-1">
+            {% for detalle in compra.detalles_cargados %}
+            <span class="badge purchase-meta-badge">{{ detalle.material.nombre }}</span>
+            {% empty %}
+            <span class="text-muted small">Sin materiales</span>
+            {% endfor %}
+        </div>
     </td>
     <td class="text-end fw-bold text-success">
         {{ compra.total_compra|currency }}
     </td>
     <td class="text-center">
         {% if compra.usuario %}
-        <span class="badge bg-dark border border-white-10 text-info px-3">
+        <span class="badge purchase-meta-badge">
             <i class="bi bi-person-circle me-1"></i> {{ compra.usuario.username }}
         </span>
         {% else %}

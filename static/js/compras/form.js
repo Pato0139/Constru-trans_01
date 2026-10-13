@@ -6,7 +6,7 @@
  * Inicializa el formulario de compra con manejo de proveedores y materiales
  * @listens DOMContentLoaded
  */
-document.addEventListener('DOMContentLoaded', () => {
+window.AppPageLifecycle.onPageLoad(() => {
   const form = document.getElementById('compra-form');
   const providerSelect = document.getElementById('id_proveedor');
   const catalogUrlInput = document.getElementById('supplier-catalog-url');

@@ -6,7 +6,7 @@
  * Inicializa el modal y formulario de entradas de inventario
  * @listens DOMContentLoaded
  */
-document.addEventListener('DOMContentLoaded', () => {
+window.AppPageLifecycle.onPageLoad(() => {
   const modalElement = document.getElementById('modalEntrada');
   const form = document.getElementById('formEntrada');
 

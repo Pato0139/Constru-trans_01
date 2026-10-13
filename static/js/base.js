@@ -48,11 +48,13 @@ $.fn.dataTable.ext.errMode = 'throw';
 /* =====================================================================
    DataTables
    ===================================================================== */
-$(document).ready(function() {
+window.AppPageLifecycle.onPageLoad(function() {
     /**
      * Inicializa DataTables en todas las tablas que no tengan la clase .no-datatable
      */
-    $('.table:not(.no-datatable)').DataTable({
+    $('.table:not(.no-datatable)').each(function() {
+        if ($.fn.dataTable.isDataTable(this)) return;
+        $(this).DataTable({
         language: {
             search:        'Buscar:',
             lengthMenu:    'Mostrar _MENU_ registros por página',
@@ -70,6 +72,7 @@ $(document).ready(function() {
         pageLength: 10,
         responsive: true,
         dom: '<"d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3"l>rt<"d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4"ip>'
+        });
     });
 
     /**
@@ -77,7 +80,8 @@ $(document).ready(function() {
      * Los mensajes se inyectan desde el div #django-messages-data
      */
     const djangoMessagesDiv = document.getElementById('django-messages-data');
-    if (djangoMessagesDiv) {
+    if (djangoMessagesDiv && djangoMessagesDiv.dataset.toastShown !== 'true') {
+        djangoMessagesDiv.dataset.toastShown = 'true';
         djangoMessagesDiv.querySelectorAll('.django-message-item').forEach(msgEl => {
             const tags = msgEl.dataset.tags;
             const text = msgEl.dataset.text;
@@ -182,7 +186,7 @@ $(document).on('click', '.confirm-delete-form', function(e) {
         confirmButtonText: 'Sí, continuar', cancelButtonText: 'Cancelar',
         background: '#1a1a1a', color: '#ffffff',
         customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
-    }).then(result => { if (result.isConfirmed) form.submit(); });
+    }).then(result => { if (result.isConfirmed) form.requestSubmit(); });
 });
 
 /**
@@ -201,7 +205,9 @@ $(document).on('click', '.confirm-delete', function(e) {
         confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar',
         background: '#1a1a1a', color: '#ffffff',
         customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
-    }).then(result => { if (result.isConfirmed) window.location.href = url; });
+    }).then(result => {
+        if (result.isConfirmed) window.AppAjaxNavigation.navigate(url);
+    });
 });
 
 /**
@@ -220,7 +226,9 @@ $(document).on('click', '.confirm-delete-link', function(e) {
         confirmButtonText: 'Sí, continuar', cancelButtonText: 'Cancelar',
         background: '#1a1a1a', color: '#ffffff',
         customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
-    }).then(result => { if (result.isConfirmed) window.location.href = url; });
+    }).then(result => {
+        if (result.isConfirmed) window.AppAjaxNavigation.navigate(url);
+    });
 });
 
 /**
@@ -241,7 +249,7 @@ $(document).on('click', '.confirm-delete-btn', function(e) {
         confirmButtonText: 'Sí, continuar', cancelButtonText: 'Cancelar',
         background: '#1a1a1a', color: '#ffffff',
         customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
-    }).then(result => { if (result.isConfirmed) form.submit(); });
+    }).then(result => { if (result.isConfirmed) form[0].requestSubmit(); });
 });
 
 /* =====================================================================
@@ -256,22 +264,14 @@ function initTableScrollability() {
     const tableResponsives = document.querySelectorAll('.table-responsive');
 
     tableResponsives.forEach(container => {
-        const checkScroll = () => {
-            if (container.scrollWidth > container.clientWidth) {
-                container.classList.add('is-scrollable');
-            } else {
-                container.classList.remove('is-scrollable');
-            }
-        };
-
-        checkScroll();
-        window.addEventListener('resize', checkScroll, { passive: true });
+        container.classList.toggle('is-scrollable', container.scrollWidth > container.clientWidth);
     });
 
 }
 
 // Inicializar al cargar la página
-document.addEventListener('DOMContentLoaded', initTableScrollability);
+window.AppPageLifecycle.onPageLoad(initTableScrollability);
+window.addEventListener('resize', initTableScrollability, { passive: true });
 
 // Reinicializar después de que DataTables redibuje las tablas
 $(document).on('draw.dt', function() {

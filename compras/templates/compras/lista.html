@@ -3,7 +3,7 @@
 {% load currency_tags %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 compras-list-page">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-4"
         data-aos="fade-down">
         <div>
@@ -103,8 +103,29 @@
         border-color: var(--color-border) !important;
     }
 
+    .compras-list-page .purchase-meta-badge {
+        background-color: var(--item-bg);
+        border: 1px solid var(--color-border);
+        color: var(--color-info);
+        font-weight: 600;
+    }
+
+    [data-theme="light"] .compras-list-page .purchase-meta-badge {
+        background-color: #eaf2ff;
+        border-color: #c9dcff;
+        color: #174ea6;
+    }
+
     .table-hover tbody tr:hover {
         background-color: var(--item-bg-hover) !important;
+    }
+
+    [data-theme="light"] .compras-list-page .table-hover tbody tr:hover > * {
+        --bs-table-bg-state: #fff1d6 !important;
+        --bs-table-color-state: var(--color-text) !important;
+        background-color: #fff1d6 !important;
+        box-shadow: inset 0 0 0 9999px #fff1d6 !important;
+        color: var(--color-text) !important;
     }
 
     .input-group {

@@ -6,7 +6,7 @@
  * Inicializa el evento de cambio de foto de perfil
  * @listens DOMContentLoaded
  */
-document.addEventListener('DOMContentLoaded', function() {
+window.AppPageLifecycle.onPageLoad(function() {
     const fotoPerfilInput = document.getElementById('foto_perfil_input');
     if (fotoPerfilInput) {
         /**

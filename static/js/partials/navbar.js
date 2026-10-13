@@ -16,7 +16,11 @@ document.addEventListener('click', (event) => {
     if (themeLink) {
         event.preventDefault();
         const theme = themeLink.dataset.themeValue;
-        if (typeof setTheme === 'function') setTheme(theme);
+        if (typeof window.setTheme !== 'function') {
+            console.error('No se pudo cambiar el tema: el módulo de preferencias no está disponible.');
+            return;
+        }
+        window.setTheme(theme);
         closeAccessibilityMenus();
         return;
     }

@@ -9,8 +9,8 @@ from django.db.utils import ConnectionDoesNotExist, OperationalError
 
 logger = logging.getLogger(__name__)
 
-_REMOTA_NEGATIVA_TTL = 15  # si falló, no reintentar antes de 15s (evita cascadas de timeout)
-_REMOTA_POSITIVA_TTL = 300  # si conectó ok, recordar 5min
+_REMOTA_NEGATIVA_TTL = 15
+_REMOTA_POSITIVA_TTL = 300
 
 
 def _socket_check_rapido(host, port, timeout=2.0):
@@ -111,3 +111,36 @@ def clear_user_cache(user_id):
         except OSError:
             logger.warning("No se pudo borrar cache (FileBasedCache) para usuario %s", user_id, exc_info=True)
         cache.delete(registry_key)
+
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(",")[0]
+    else:
+        ip = request.META.get("REMOTE_ADDR")
+    return ip
+
+
+def registrar_actividad(request, accion, modulo, elemento_id=None, descripcion=""):
+    from core.models import Historial
+
+    usuario = request.user if request and request.user.is_authenticated else None
+    ip_address = get_client_ip(request) if request else None
+
+    datos = {
+        "usuario": usuario,
+        "accion": accion,
+        "modulo": modulo,
+        "elemento_id": str(elemento_id) if elemento_id else None,
+        "descripcion": descripcion,
+        "ip_address": ip_address,
+    }
+
+    try:
+        Historial.objects.create(**datos)
+    except Exception:
+        from django.db import IntegrityError
+        logger.warning("No se pudo asociar el usuario al historial; se guardará sin usuario.")
+        datos["usuario"] = None
+        Historial.objects.create(**datos)

@@ -37,7 +37,7 @@
 <link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=1.0">
 <link rel="stylesheet" href="{% static 'css/sticky-topbar.css' %}?v=1.1">
 
-<script src="{% static 'js/user-preferences.js' %}?v=1.0"></script>
+<script src="{% static 'js/user-preferences.js' %}?v=3.1"></script>
 
 <link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=1.0">
 {% block extra_css %}{% endblock %}
@@ -45,7 +45,7 @@
 <link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=1.4">
 </head>
 
-<body>
+<body data-ajax-shell="conductor">
 
     <!-- Loader -->
     <div id="loader-container">
@@ -77,8 +77,10 @@
 </div>
 {% endif %}
 
+<div data-ajax-content>
 {% block content %}
 {% endblock %}
+</div>
 
 </main>
 
@@ -92,10 +94,11 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/loader.js' %}"></script>
+<script src="{% static 'js/core/ajax-navigation.js' %}?v=1.1"></script>
 <script src="{% static 'js/usuarios/base.js' %}?v=1.0"></script>
 <script src="{% static 'js/quantity-stepper.js' %}?v=1.0"></script>
 <script src="{% static 'js/tooltips.js' %}?v=1.0"></script>
-<script src="{% static 'js/partials/navbar.js' %}?v=1.0"></script>
+<script src="{% static 'js/partials/navbar.js' %}?v=1.2"></script>
 <script src="{% static 'js/sticky-topbar.js' %}?v=1.1"></script>
 <script src="{% static 'js/partials/bd-mode-toggle.js' %}?v=1.0"></script>
 
@@ -120,4 +123,3 @@
 
 </body>
 </html>
-

@@ -203,7 +203,7 @@ function formatFechaParaInput(value) {
  * Inicializa eventos del formulario cuando el DOM está listo
  * @listens DOMContentLoaded
  */
-document.addEventListener('DOMContentLoaded', () => {
+window.AppPageLifecycle.onPageLoad(() => {
     const totalInicial = document.getElementById('display-total')?.dataset.totalInicial;
     totalGeneral = parseFloat(totalInicial || 0);
 

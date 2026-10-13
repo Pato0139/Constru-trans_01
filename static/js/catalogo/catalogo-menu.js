@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    document.addEventListener("DOMContentLoaded", function () {
+    window.AppPageLifecycle.onPageLoad(function () {
         var dropdown = document.querySelector(
             ".inventory-materials-page .dropdown, .inventory-types-page .dropdown"
         );

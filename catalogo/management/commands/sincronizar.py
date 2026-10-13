@@ -6,7 +6,7 @@ from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
 from django.db import OperationalError, connections
 
-from auditoria.models import Historial
+from core.models import Historial
 from catalogo.models import MaterialConstruccion as Material
 from catalogo.models import MovimientoInventario
 from clientes.models import Cliente

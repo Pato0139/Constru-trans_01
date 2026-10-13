@@ -1,12 +1,34 @@
+import logging
+import smtplib
+
+import requests
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.core.mail import EmailMultiAlternatives
+from django.core.validators import FileExtensionValidator
 from django.db.models import Q
+from django.template import loader
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 from .models import Usuario
 from .utils import limpiar_telefono
+
+
+class FotoPerfilForm(forms.Form):
+    foto_perfil = forms.ImageField(
+        required=False,
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"])],
+    )
+
+    def clean_foto_perfil(self):
+        foto = self.cleaned_data.get("foto_perfil")
+        if foto and foto.size > 5 * 1024 * 1024:
+            raise forms.ValidationError("La foto debe pesar máximo 5 MB.")
+        return foto
 
 
 class UsuarioForm(forms.ModelForm):
@@ -194,8 +216,11 @@ class CustomPasswordResetForm(PasswordResetForm):
         if "remota" in settings.DATABASES and conexion_remota_disponible():
             try:
                 qs_remota = list(User.objects.filter(criterio, is_active=True).using("remota"))
-            except Exception:
-                qs_remota = []
+            except Exception as exc:
+                logger.warning(
+                    "Password reset could not query the remote user database (%s)",
+                    type(exc).__name__,
+                )
         for obj in qs_local + qs_remota:
             dedup_key = (
                 (obj.email or "").lower(),
@@ -204,6 +229,78 @@ class CustomPasswordResetForm(PasswordResetForm):
             if dedup_key in seen:
                 continue
             seen.add(dedup_key)
-            if obj.has_usable_password():
+            if obj.has_usable_password() and obj.email:
                 merged.append(obj)
+        logger.info(
+            "Password reset matched %d active account(s) with email and usable password",
+            len(merged),
+        )
         return iter(merged)
+
+    def send_mail(
+        self,
+        subject_template_name,
+        email_template_name,
+        context,
+        from_email,
+        to_email,
+        html_email_template_name=None,
+    ):
+        api_key = settings.RESEND_API_KEY.strip()
+        sender = settings.RESEND_FROM_EMAIL.strip()
+        subject = loader.render_to_string(subject_template_name, context)
+        subject = "".join(subject.splitlines())
+        body = loader.render_to_string(email_template_name, context)
+        html_body = (
+            loader.render_to_string(html_email_template_name, context)
+            if html_email_template_name is not None
+            else None
+        )
+
+        if not api_key or not sender:
+            message = EmailMultiAlternatives(
+                subject,
+                body,
+                from_email,
+                [to_email],
+            )
+            if html_body is not None:
+                message.attach_alternative(html_body, "text/html")
+            return message.send(fail_silently=False)
+
+        payload = {
+            "from": sender,
+            "to": [to_email],
+            "subject": subject,
+            "text": body,
+        }
+        if html_body is not None:
+            payload["html"] = html_body
+
+        try:
+            response = requests.post(
+                "https://api.resend.com/emails",
+                json=payload,
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=(5, 15),
+            )
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            logger.warning(
+                "Resend password-reset request failed (%s, HTTP %s)",
+                type(exc).__name__,
+                getattr(getattr(exc, "response", None), "status_code", "n/a"),
+            )
+            raise smtplib.SMTPException(
+                "Resend could not accept the password-reset email"
+            ) from exc
+
+        try:
+            message_id = response.json().get("id")
+        except (ValueError, AttributeError):
+            message_id = None
+        logger.info(
+            "Resend accepted a password-reset email (message_id=%s)",
+            message_id or "unavailable",
+        )
+        return 1

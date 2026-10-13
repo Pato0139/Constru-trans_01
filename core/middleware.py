@@ -2,12 +2,14 @@ import logging
 
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
+from django.urls import Resolver404, resolve
 
 from core.db_preference import (PREF_AUTO, PREF_REMOTA, clear_db_preference,
                                 set_db_preference)
 from core.security import (BloqueoIP, SecurityEvent, _respuesta_no_autorizada,
                            contar_warnings_ventana, ip_esta_bloqueada,
                            obtener_ip, registrar_evento, registrar_warning)
+from core.superadmin_lock import es_superadmin_global
 from core.utils import conexion_remota_disponible
 
 logger = logging.getLogger(__name__)
@@ -100,6 +102,7 @@ _PEDIDOS_URLNAMES_ROLES = {
     "agregar_materiales": {"admin"},
     "lista_pedidos_admin": {"admin"},
     "lista_entregas_admin": {"admin"},
+    "ver_pedido_admin": {"admin", "cliente", "conductor"},
     "crear_orden": {"admin"},
     "detalle_orden": {"admin"},
     "crear_pedido_admin": {"admin"},
@@ -201,7 +204,7 @@ class RoleNamespaceMiddleware:
             if user is None or not getattr(user, "is_authenticated", False):
                 return self.get_response(request)
 
-            is_super = getattr(user, "is_superuser", False) or getattr(user, "es_superadmin", False)
+            is_super = es_superadmin_global(user)
             if is_super:
                 return self.get_response(request)
 
@@ -209,8 +212,24 @@ class RoleNamespaceMiddleware:
             ip = obtener_ip(request)
             namespace = _namespace_from_path(path)
 
+            try:
+                match = resolve(path)
+            except Resolver404:
+                match = None
+
+            app_name = (match.app_name or match.namespace or "") if match else ""
+            url_name = match.url_name if match else None
+            perms_extra = _URLNAMES_BY_ROLE_EXTRA.get(app_name, {})
+            allowed_roles_url = perms_extra.get(url_name)
+            if not allowed_roles_url and app_name == "usuarios":
+                allowed_roles_url = _USUARIOS_URLNAMES_ROLES.get(url_name)
+
             allowed_roles_ns = _NAMESPACE_ROLES.get(namespace)
-            if allowed_roles_ns is not None and user_role not in allowed_roles_ns:
+            if (
+                allowed_roles_ns is not None
+                and user_role not in allowed_roles_ns
+                and not (allowed_roles_url and user_role in allowed_roles_url)
+            ):
                 return self._violacion(
                     request, ip, user_role,
                     detalle={
@@ -221,12 +240,7 @@ class RoleNamespaceMiddleware:
                     },
                 )
 
-            try:
-                from django.urls import resolve
-                match = resolve(path)
-                url_name = match.url_name
-                app_name = match.app_name or match.namespace or ""
-
+            if match:
                 try:
                     from django.conf import settings
 
@@ -245,11 +259,6 @@ class RoleNamespaceMiddleware:
                 except Exception:
                     pass
 
-                perms_extra = _URLNAMES_BY_ROLE_EXTRA.get(app_name, {})
-                allowed_roles_url = perms_extra.get(url_name)
-                if not allowed_roles_url and app_name == "usuarios":
-                    allowed_roles_url = _USUARIOS_URLNAMES_ROLES.get(url_name)
-
                 if allowed_roles_url and user_role not in allowed_roles_url:
                     return self._violacion(
                         request, ip, user_role,
@@ -261,8 +270,6 @@ class RoleNamespaceMiddleware:
                             "path": path,
                         },
                     )
-            except Exception:
-                pass
         except Exception as _exc:
             logger.error(
                 "RoleNamespaceMiddleware falló (no aplicará filtros) — path=%s error=%s",

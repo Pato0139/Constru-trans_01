@@ -4,6 +4,8 @@ from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import include, path
 
+from core import views as core_views
+
 
 def redirect_password_reset_confirm(request, uidb64, token):
     return redirect("usuarios:password_reset_confirm", uidb64=uidb64, token=token)
@@ -19,13 +21,13 @@ urlpatterns = [
     path("catalogo/", include("catalogo.urls")),
     path("compras/", include("compras.urls")),
     path("pedidos/", include("pedidos.urls")),
-    path("pagos/", include("pagos.urls")),
-    path("reportes/", include("reportes.urls")),
-    path("auditoria/", include("auditoria.urls")),
+    path("pagos/", include("pedidos.pagos_urls")),
+    path("reportes/", include("core.reportes_urls")),
+    path("auditoria/", include("core.auditoria_urls")),
     path("logistica/", include("logistica.urls")),
     path("ia/", include("ia.urls")),
     path("ayuda/", include("ayuda.urls")),
-    path("", include("inicio.urls")),
+    path("", include(([path("", core_views.inicio, name="inicio")], "inicio"))),
     # ===== Redirecciones de recuperación de contraseña a usuarios =====
     path("password-reset/", lambda r: redirect("usuarios:password_reset"), name="password_reset"),
     path(
@@ -43,5 +45,3 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    if "django_browser_reload" in settings.INSTALLED_APPS:
-        urlpatterns += [path("__reload__/", include("django_browser_reload.urls"))]

@@ -7,55 +7,63 @@
 {% block content %}
 
 <div class="row g-4 mb-5">
-    <div class="col-md-4">
-        <div class="stat-card u-inline-806d4e75c1">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="text-muted fw-700 m-0 text-uppercase small">Entregas Pendientes</h6>
-                <i class="bi bi-truck text-warning fs-4"></i>
+    <div class="col-12">
+        <section class="table-container p-4 driver-weather-card" aria-labelledby="driver-weather-title">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <div>
+                    <h5 class="fw-800 mb-1" id="driver-weather-title">
+                        <i class="bi bi-cloud-sun text-accent me-2"></i>Clima para tu próxima ruta
+                    </h5>
+                    {% if proxima_entrega %}
+                    <p class="text-muted mb-0">
+                        Pedido #CT-{{ proxima_entrega.codigo_pedido }} · {{ clima_ruta.city }}
+                        {% if proxima_entrega.fecha_entrega_programada %}
+                        · {{ proxima_entrega.fecha_entrega_programada|date:"d/m/Y H:i" }}
+                        {% endif %}
+                    </p>
+                    {% else %}
+                    <p class="text-muted mb-0">No tienes entregas activas asignadas.</p>
+                    {% endif %}
+                </div>
+                {% if clima_ruta.available %}
+                <span class="badge rounded-pill text-bg-success">Pronóstico disponible</span>
+                {% endif %}
             </div>
-            <h2 class="fw-900 mb-0">{{ pedidos_pendientes }}</h2>
-        </div>
-    </div>
 
-    <div class="col-md-4">
-        <div class="stat-card u-inline-857e10e91e">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="text-muted fw-700 m-0 text-uppercase small">Total Completadas</h6>
-                <i class="bi bi-check-circle-fill text-success fs-4"></i>
-            </div>
-            <h2 class="fw-900 mb-0">{{ entregas_totales }}</h2>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="stat-card u-inline-471a0ac46a">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="text-muted fw-700 m-0 text-uppercase small">Última Entrega</h6>
-                <i class="bi bi-calendar-check text-info fs-4"></i>
-            </div>
-            <h2 class="fw-900 mb-0 u-inline-199b90cae3">{% if ultima_entrega %}{{ ultima_entrega.fecha|date:"d M" }}{% else %}N/A{% endif %}</h2>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4 mb-5">
-    <div class="col-lg-12">
-        <div class="table-container p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-800 m-0 text-color">Acciones Rápidas</h5>
-            </div>
-            <div class="d-flex gap-3 flex-wrap">
-                <a href="{% url 'usuarios:pedidos_conductor' %}" class="btn btn-gold d-flex align-items-center gap-2 shadow-sm">
-                    <i class="bi bi-map"></i> Ver Mapa de Entregas
-                </a>
-                <a href="{% url 'usuarios:mis_entregas' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2">
-                    <i class="bi bi-clock-history"></i> Mi Historial
-                </a>
-                <a href="{% url 'usuarios:perfil_conductor' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2">
-                    <i class="bi bi-person-badge"></i> Mi Perfil
-                </a>
-            </div>
-        </div>
+            {% if clima_ruta %}
+                {% if clima_ruta.available %}
+                <div class="driver-weather-details mt-3">
+                    <div class="d-flex align-items-center gap-3">
+                        {% if clima_ruta.icon_url %}
+                        <img src="{{ clima_ruta.icon_url }}" alt="" width="64" height="64">
+                        {% endif %}
+                        <div>
+                            <div class="driver-weather-temperature">{{ clima_ruta.temperature }} °C</div>
+                            <div class="text-muted">{{ clima_ruta.description }} · Sensación {{ clima_ruta.feels_like }} °C</div>
+                        </div>
+                    </div>
+                    <div class="driver-weather-metrics">
+                        <span><i class="bi bi-droplet me-1"></i>Humedad {{ clima_ruta.humidity }}%</span>
+                        <span><i class="bi bi-cloud-rain me-1"></i>Prob. lluvia {{ clima_ruta.precipitation_probability }}%</span>
+                        <span><i class="bi bi-wind me-1"></i>Viento {{ clima_ruta.wind_kmh }} km/h</span>
+                        <span><i class="bi bi-clock me-1"></i>{{ clima_ruta.forecast_time|date:"d/m H:i" }}</span>
+                    </div>
+                    <p class="driver-weather-recommendation mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>{{ clima_ruta.recommendation }}
+                    </p>
+                </div>
+                <small class="text-muted d-block mt-3">
+                    Datos de
+                    <a href="https://openweathermap.org/" target="_blank" rel="noopener noreferrer">OpenWeather</a>.
+                    Pronóstico orientativo; confirma las condiciones antes de salir.
+                </small>
+                {% else %}
+                <div class="alert alert-warning mt-3 mb-0" role="status">
+                    <i class="bi bi-info-circle me-2"></i>{{ clima_ruta.message }}
+                </div>
+                {% endif %}
+            {% endif %}
+        </section>
     </div>
 </div>
 
@@ -101,11 +109,35 @@
 </div>
 
 <style>
-    .fw-900 { font-weight: 900; }
     .fw-800 { font-weight: 800; }
     .fw-700 { font-weight: 700; }
     .text-accent { color: var(--color-accent) !important; }
     .text-color { color: var(--color-text) !important; }
+    .driver-weather-card {
+        background: var(--card-bg);
+        color: var(--color-text);
+    }
+    .driver-weather-temperature {
+        color: var(--color-text);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+    .driver-weather-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+        margin-top: 0.5rem;
+        color: var(--color-muted);
+    }
+    .driver-weather-recommendation {
+        margin-top: 1rem;
+        padding: 0.75rem 1rem;
+        border-left: 3px solid var(--color-accent);
+        border-radius: 0.5rem;
+        background: var(--item-bg);
+        color: var(--color-text);
+    }
 </style>
 
 {% endblock %}

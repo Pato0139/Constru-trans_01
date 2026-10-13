@@ -4,7 +4,7 @@
  * Keeps templates free of inline style attributes while preserving user-specific
  * colors and per-row animation timings.
  */
-document.addEventListener('DOMContentLoaded', () => {
+window.AppPageLifecycle.onPageLoad(() => {
   document.querySelectorAll('[data-bg-color]').forEach((element) => {
     element.style.backgroundColor = element.dataset.bgColor;
   });

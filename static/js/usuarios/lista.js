@@ -6,7 +6,7 @@
  * Inicializa eventos de pestañas y sincronización de URL
  * @listens DOMContentLoaded
  */
-document.addEventListener('DOMContentLoaded', function() {
+window.AppPageLifecycle.onPageLoad(function() {
     /**
      * Manejador de clic en pestañas para actualizar estado activo
      */

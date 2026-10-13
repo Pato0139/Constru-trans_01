@@ -17,11 +17,13 @@ $.fn.dataTable.ext.errMode = 'throw';
 /**
  * Inicializa DataTables y mensajes Django cuando el DOM está listo
  */
-$(document).ready(function() {
+window.AppPageLifecycle.onPageLoad(function() {
     /**
      * Configuración predeterminada de DataTables para todas las tablas
      */
-    $('.table:not(.no-datatable)').DataTable({
+    $('.table:not(.no-datatable)').each(function() {
+        if ($.fn.dataTable.isDataTable(this)) return;
+        $(this).DataTable({
         "language": {
             "search": "Buscar:",
             "lengthMenu": "Mostrar _MENU_ registros por página",
@@ -39,13 +41,15 @@ $(document).ready(function() {
         "pageLength": 10,
         "responsive": true,
         "dom": '<"d-flex justify-content-between align-items-center mb-3"lf>rt<"d-flex justify-content-between align-items-center mt-3"ip>'
+        });
     });
 
     /**
      * Procesa y muestra mensajes de Django usando SweetAlert2
      */
     const djangoMessagesDiv = document.getElementById('django-messages-data');
-    if (djangoMessagesDiv) {
+    if (djangoMessagesDiv && djangoMessagesDiv.dataset.toastShown !== 'true') {
+        djangoMessagesDiv.dataset.toastShown = 'true';
         const messages = djangoMessagesDiv.querySelectorAll('.django-message-item');
         messages.forEach(msgEl => {
             const tags = msgEl.dataset.tags;

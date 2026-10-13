@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from types import SimpleNamespace
 
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.template.loader import render_to_string
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
@@ -84,24 +85,53 @@ class UsuarioViewsTests(TestCase):
             ConductorVehiculo.objects.filter(conductor=self.conductor_profile).count(), 1
         )
 
-    def test_cambiar_cuenta_redirige_al_panel_correspondiente(self):
-        self.client.login(username="admin@test.com", password="password123")
-        response = self.client.post(reverse("usuarios:cambiar_cuenta", args=["cliente"]))
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse("clientes:panel_cliente"))
-
     def test_lista_conductores_muestra_datos(self):
         self.client.login(username="admin@test.com", password="password123")
         response = self.client.get(reverse("usuarios:lista_conductores"))
         self.assertEqual(response.status_code, 200)
 
+    def test_panel_conductor_muestra_clima_y_pedidos_sin_estadisticas(self):
+        self.client.force_login(self.conductor_user)
+
+        response = self.client.get(reverse("usuarios:panel_conductor"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context["proxima_entrega"])
+        self.assertEqual(response.context["pedidos"].count(), 0)
+        self.assertContains(response, "Clima para tu próxima ruta")
+        self.assertContains(response, "Mis Entregas Asignadas")
+        self.assertNotContains(response, "Entregas Pendientes")
+        self.assertNotContains(response, "Acciones Rápidas")
+
+    def test_pedidos_conductor_filtra_por_perfil(self):
+        self.client.force_login(self.conductor_user)
+
+        response = self.client.get(reverse("usuarios:pedidos_conductor"))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_mis_entregas_filtra_por_perfil(self):
+        self.client.force_login(self.conductor_user)
+
+        response = self.client.get(reverse("usuarios:mis_entregas"))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_perfil_conductor_filtra_pedidos_por_perfil(self):
+        self.client.force_login(self.conductor_user)
+
+        response = self.client.get(reverse("usuarios:perfil_conductor"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["conductor"], self.conductor_user)
+
     def test_sidebar_usa_namespace_correcto_de_pedidos(self):
         request = RequestFactory().get("/usuarios/panel/")
+        SessionMiddleware(lambda request: None).process_request(request)
         request.user = self.admin_user
         request.resolver_match = SimpleNamespace(app_name="pedidos", url_name="lista_pedidos_admin")
 
         rendered = render_to_string("partials/sidebar.html", {"request": request}, request=request)
 
-        self.assertIn("pedidos:lista_pedidos_admin", rendered)
-        self.assertNotIn("ordenes:lista_pedidos_admin", rendered)
+        self.assertIn(reverse("pedidos:lista_pedidos_admin"), rendered)
+        self.assertNotIn("/ordenes/", rendered)

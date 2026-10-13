@@ -2,13 +2,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from auditoria.utils import registrar_actividad
+from core.utils import registrar_actividad
 from usuarios.views import admin_required
 
 from .forms import (CompraForm, DetalleCompraFormSet, ProveedorMaterialFormSet,
@@ -22,7 +22,13 @@ def lista_compras(request):
     fecha_compra = request.GET.get("fecha_compra", "").strip()
     material = request.GET.get("material", "").strip()
 
-    compras = Compra.objects.select_related("proveedor", "usuario").prefetch_related("detalles")
+    compras = Compra.objects.select_related("proveedor", "usuario").prefetch_related(
+        Prefetch(
+            "detalles",
+            queryset=DetalleCompra.objects.select_related("material"),
+            to_attr="detalles_cargados",
+        )
+    )
 
     if proveedor:
         compras = compras.filter(proveedor__nombre_empresa__icontains=proveedor)

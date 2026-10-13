@@ -1,242 +1,65 @@
-﻿
 #!/usr/bin/env bash
-
 set -euo pipefail
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-MAGENTA='\033[0;35m'
-GRAY='\033[0;37m'
-WHITE='\033[1;37m'
-NC='\033[0m'
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-cd "$REPO_ROOT"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
 
-VENV_DIR="$REPO_ROOT/venv"
-VENV_ACTIVATE="$VENV_DIR/bin/activate"
-VENV_PYTHON="$VENV_DIR/bin/python"
+echo "CONSTRU-TRANS - Instalador para macOS/Linux"
+echo
 
-ensure_python() {
-    PYTHON_CMD=""
-    for cmd in python3.12 python3.11 python3.13 python3.14 python3 python; do
-        if command -v "$cmd" >/dev/null 2>&1; then
-            if "$cmd" -c 'import sys; sys.exit(not (sys.version_info >= (3, 11)))' >/dev/null 2>&1; then
-                PYTHON_CMD="$cmd"
-                break
-            fi
-        fi
-    done
-
-    if [ -z "$PYTHON_CMD" ]; then
-        echo -e "${RED}[ERROR] Python 3.11+ no encontrado. Instala Python (recomendado 3.12) y vuelve a intentar."
-        exit 1
+PYTHON_CMD=""
+for cmd in python3.12 python3.11 python3.13 python3.14 python3 python; do
+    if command -v "$cmd" >/dev/null 2>&1 \
+        && "$cmd" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)' >/dev/null 2>&1; then
+        PYTHON_CMD="$cmd"
+        break
     fi
+done
 
-    echo -e "${GREEN}[OK] Python seleccionado: $($PYTHON_CMD --version)"
-}
-
-ensure_venv() {
-    echo -e "${BLUE}[2/5] Creando entorno virtual..."
-
-    if [ -x "$VENV_PYTHON" ] && [ -f "$VENV_ACTIVATE" ]; then
-        echo -e "${GREEN}[OK] Entorno virtual ya existe"
-        return 0
-    fi
-
-    rm -rf "$VENV_DIR"
-
-    if "$PYTHON_CMD" -m venv "$VENV_DIR"; then
-        echo -e "${GREEN}[OK] Entorno virtual creado"
-        return 0
-    fi
-
-    echo -e "${YELLOW}[AVISO] No se pudo crear el entorno virtual con venv. Intentando instalar virtualenv de forma portátil..."
-
-    if ! command -v curl >/dev/null 2>&1; then
-        echo -e "${RED}[ERROR] No se pudo crear el entorno virtual y no está disponible curl. Instala curl o el paquete de venv para tu sistema."
-        exit 1
-    fi
-
-    if ! "$PYTHON_CMD" -m pip install --user virtualenv --break-system-packages >/dev/null 2>&1; then
-        echo -e "${RED}[ERROR] No se pudo instalar virtualenv desde pip."
-        exit 1
-    fi
-
-    if ! "$PYTHON_CMD" -m virtualenv "$VENV_DIR"; then
-        echo -e "${RED}[ERROR] No se pudo crear el entorno virtual con virtualenv."
-        exit 1
-    fi
-
-    if [ ! -x "$VENV_PYTHON" ] || [ ! -f "$VENV_ACTIVATE" ]; then
-        echo -e "${RED}[ERROR] El entorno virtual no quedó correctamente creado."
-        exit 1
-    fi
-
-    echo -e "${GREEN}[OK] Entorno virtual creado"
-}
-
-echo -e "${CYAN}================================================================"
-echo -e "${BLUE}CONSTRU-TRANS - Setup automático (macOS/Linux)"
-echo -e "${CYAN}================================================================"
-echo -e "${NC}"
-
-echo -e "${BLUE}[1/5] Verificando Python..."
-ensure_python
-ensure_venv
-
-# shellcheck disable=SC1090
-source "$VENV_ACTIVATE"
-
-echo -e ""
-echo -e "${BLUE}[3/5] Instalando dependencias..."
-"$VENV_PYTHON" -m pip install --upgrade pip
-"$VENV_PYTHON" -m pip install --prefer-binary -r requirements.txt
-
-echo -e "${GREEN}[OK] Dependencias instaladas"
-
-echo -e ""
-echo -e "${BLUE}[4/5] Configurando archivo .env local..."
-echo -e ""
-echo -e "${CYAN}================================================================"
-echo -e "${BLUE}OBTENIENDO CREDENCIALES AUTOMATICAMENTE"
-echo -e "${CYAN}================================================================"
-echo -e "${NC}"
-
-NEON_REPO_URL="https://github.com/Pato0139/Neon.git"
-TEMP_DIR="$REPO_ROOT/temp_neon_repo"
-ENV_CREADO=false
-
-cleanup_temp() {
-    if [ -d "$TEMP_DIR" ]; then
-        rm -rf "$TEMP_DIR" 2>/dev/null || true
-    fi
-}
-trap cleanup_temp EXIT INT TERM HUP
-
-if command -v git >/dev/null 2>&1; then
-    echo -e "${BLUE}[1/3] Clonando repositorio de credenciales..."
-    if [ -d "$TEMP_DIR" ]; then
-        rm -rf "$TEMP_DIR"
-    fi
-    if git clone --depth 1 "$NEON_REPO_URL" "$TEMP_DIR"; then
-        echo -e "${GREEN}[OK] Repositorio clonado"
-
-        echo -e "${BLUE}[2/3] Copiando archivo de configuración..."
-        if [ -f "$TEMP_DIR/.env.example" ]; then
-            cp "$TEMP_DIR/.env.example" ".env"
-            echo -e "${GREEN}[OK] Archivo .env creado con todas las credenciales!"
-            ENV_CREADO=true
-        else
-            echo -e "${YELLOW}[AVISO] No se encontró .env.example en el repo"
-        fi
-
-        echo -e "${BLUE}[3/3] Limpiando repositorio temporal..."
-        rm -rf "$TEMP_DIR"
-        echo -e "${GREEN}[OK] Repositorio temporal eliminado"
-    else
-        echo -e "${YELLOW}[AVISO] No se pudo clonar el repositorio"
-    fi
-else
-    echo -e "${YELLOW}[AVISO] Git no está instalado"
-fi
-
-# Si no se pudo crear desde el repo, creamos uno básico
-if [ "$ENV_CREADO" = false ]; then
-    echo -e ""
-    echo -e "${BLUE}[OK] Generando configuración básica..."
-    DJANGO_ENV="development"
-    SECRET_KEY="$($VENV_PYTHON - <<'PY'
-from django.core.management.utils import get_random_secret_key
-print(get_random_secret_key())
-PY
-)"
-
-    cat > ".env" <<EOF
-# Variables minimas para desarrollo local
-DJANGO_ENV=$DJANGO_ENV
-SECRET_KEY=$SECRET_KEY
-DEBUG=True
-ALLOWED_HOSTS=127.0.0.1,localhost
-CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8000,http://localhost:8000
-
-# Base de datos local por defecto (SQLite)
-DATABASE_URL=
-
-# Email en desarrollo
-EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USE_TLS=True
-EMAIL_USE_SSL=False
-EMAIL_HOST_USER=
-EMAIL_HOST_PASSWORD=
-DEFAULT_FROM_EMAIL=Constru-Trans <no-reply@example.com>
-SERVER_EMAIL=Constru-Trans <no-reply@example.com>
-
-# Almacenamiento opcional en S3
-USE_S3=False
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_STORAGE_BUCKET_NAME=
-AWS_S3_ENDPOINT_URL=
-AWS_S3_REGION_NAME=us-east-1
-EOF
-
-    echo -e "${GREEN}[OK] Archivo .env creado con valores básicos"
-fi
-
-# Verificamos si tenemos DATABASE_URL
-DATABASE_URL=""
-if [ -f ".env" ]; then
-    DATABASE_URL=$(grep -E '^DATABASE_URL=' .env | cut -d'=' -f2-)
-fi
-# Las credenciales remotas se obtienen durante el setup; aplicar sus migraciones
-# por defecto mantiene la base Neon alineada con la SQLite local.
-APPLY_REMOTE_MIGRATIONS="${APPLY_REMOTE_MIGRATIONS:-true}"
-
-echo -e ""
-if [ -n "$DATABASE_URL" ]; then
-    echo -e "${GREEN}[OK] DATABASE_URL configurada! Modo híbrido activado (SQLite local + Neon remota)"
-else
-    echo -e "${GRAY}[INFO] Usando solo base de datos SQLite local (modo offline)"
-fi
-
-echo -e ""
-echo -e "${BLUE}[5/5] Aplicando migraciones..."
-if ! "$VENV_PYTHON" manage.py migrate --run-syncdb; then
-    echo -e "${RED}[ERROR] Las migraciones locales fallaron. El setup no puede continuar."
+if [ -z "$PYTHON_CMD" ]; then
+    echo "[ERROR] Se requiere Python 3.11 o superior (se recomienda 3.12). Instálalo y vuelve a ejecutar el setup." >&2
     exit 1
 fi
+echo "[OK] Python seleccionado: $("$PYTHON_CMD" --version)"
 
-echo -e "${GREEN}[OK] Migraciones completadas en base local"
-
-if [ -n "$DATABASE_URL" ] && [ "$APPLY_REMOTE_MIGRATIONS" = "true" ]; then
-    echo -e ""
-    echo -e "${YELLOW}[INFO] Aplicando migraciones en base remota..."
-    if ! "$VENV_PYTHON" manage.py migrate --database=remota; then
-        echo -e "${RED}[ERROR] Las migraciones remotas fallaron. No se marcarán como completadas."
-        exit 1
-    fi
-    echo -e "${GREEN}[OK] Migraciones completadas en base remota"
-elif [ -n "$DATABASE_URL" ]; then
-    echo -e "${YELLOW}[AVISO] DATABASE_URL está configurada, pero las migraciones remotas están desactivadas."
-    echo -e "${YELLOW}[INFO] Para ejecutarlas explícitamente: APPLY_REMOTE_MIGRATIONS=true ./setup_project.sh"
+VENV_DIR="$PROJECT_ROOT/.venv"
+VENV_PYTHON="$VENV_DIR/bin/python"
+if [ -d "$VENV_DIR" ] && [ ! -x "$VENV_PYTHON" ]; then
+    echo "[ERROR] El entorno .venv existe pero está incompleto. Elimínalo manualmente y vuelve a ejecutar el setup." >&2
+    exit 1
+fi
+if [ ! -x "$VENV_PYTHON" ]; then
+    "$PYTHON_CMD" -m venv "$VENV_DIR"
 fi
 
-echo -e ""
-echo -e "${CYAN}================================================================"
-echo -e "${BLUE}Setup COMPLETO!"
-echo -e "${CYAN}================================================================"
-echo -e "${NC}"
-echo -e "${BLUE}Para iniciar el servidor:"
-echo -e "${WHITE}source venv/bin/activate"
-echo -e "${WHITE}python manage.py runserver"
-echo -e "${NC}"
-echo -e ""
-echo -e "${CYAN}================================================================"
+echo "[OK] Instalando dependencias de requirements.txt..."
+"$VENV_PYTHON" -m pip install --upgrade pip
+"$VENV_PYTHON" -m pip install --prefer-binary -r "$PROJECT_ROOT/requirements.txt"
 
+if [ ! -f "$PROJECT_ROOT/.env" ]; then
+    SECRET_KEY="$("$VENV_PYTHON" -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')"
+    cat > "$PROJECT_ROOT/.env" <<EOF
+DJANGO_ENV=development
+SECRET_KEY=$SECRET_KEY
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
+DATABASE_URL=
+OPENWEATHER_API_KEY=
+EOF
+    echo "[OK] Se creó .env para desarrollo local."
+else
+    echo "[OK] Se conserva el .env existente."
+fi
+
+echo "[OK] Verificando configuración Django..."
+DATABASE_URL="" "$VENV_PYTHON" manage.py check
+
+echo "[OK] Aplicando migraciones a la base SQLite local..."
+DATABASE_URL="" "$VENV_PYTHON" manage.py migrate --run-syncdb
+
+echo
+echo "Setup completado."
+echo "Para iniciar el servidor:"
+echo "  .venv/bin/python manage.py runserver"

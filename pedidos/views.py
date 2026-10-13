@@ -8,7 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from auditoria.utils import registrar_actividad
+from core.utils import registrar_actividad
 from catalogo.models import MaterialConstruccion, Stock
 from catalogo.models.movimientos import MovimientoInventario
 from core.db_preference import debe_usar_bd_remota
@@ -228,8 +228,20 @@ def ver_pedido_admin(request, id):
         and orden.cliente.usuario_id is not None
         and orden.cliente.usuario_id == usuario_actual.pk
     )
+    perfil_conductor = (
+        usuario_actual.conductor_profile
+        if usuario_actual.rol == "conductor"
+        else None
+    )
     conductor_asignado = bool(
-        orden.entregas.filter(conductor_id=getattr(usuario_actual, "pk", None)).exists()
+        orden.conductor_usuario_legacy_id == usuario_actual.pk
+        or (
+            perfil_conductor is not None
+            and (
+                orden.conductor_id == perfil_conductor.pk
+                or orden.entregas.filter(conductor_id=perfil_conductor.pk).exists()
+            )
+        )
     )
 
     if not es_admin:
@@ -685,3 +697,5 @@ def cancelar_pedido(request, pk):
         messages.warning(request, "Esta solicitud no puede ser cancelada.")
 
     return redirect("pedidos:detalle_solicitud", pk=pk)
+
+from pedidos.views_pagos import *  # noqa: F401,F403

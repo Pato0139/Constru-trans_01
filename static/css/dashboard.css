@@ -639,6 +639,14 @@ body {
     background: rgba(255, 255, 255, 0.03);
 }
 
+html body .conductores-list-table > tbody > tr:hover,
+html body .conductores-list-table > tbody > tr:hover > * {
+    --bs-table-bg-state: transparent !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
 @media (min-width: 768px) {
     .table-container {
         padding: 1.25rem !important;
@@ -1626,4 +1634,3 @@ button.nav-link-premium:focus {
      font-size: 0.85rem !important; 
    } 
  }
-

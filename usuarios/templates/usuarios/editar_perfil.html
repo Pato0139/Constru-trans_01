@@ -6,19 +6,19 @@
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
+        <div class="col-md-10 col-lg-8 col-xl-7">
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden u-inline-11d9ca5a15">
                 <div class="card-header border-0 py-4 text-center u-inline-2286cd84e7">
                     <h3 class="fw-bold mb-0 u-inline-598e65ac7a">Editar Perfil</h3>
                     <p class="text-muted small mb-0">Actualiza tu información personal</p>
                 </div>
                 <div class="card-body p-4 p-md-5">
-                    <form method="POST" enctype="multipart/form-data">
+                    <form id="profile-photo-form" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
-                        
+                        <input type="hidden" name="action" value="upload_photo">
                         <!-- Imagen de Perfil -->
-                        <div class="text-center mb-4">
-                            <div class="position-relative d-inline-block edit-profile-avatar-container">
+                        <div class="edit-profile-photo-section mb-4">
+                            <div class="position-relative edit-profile-avatar-container">
                             {% if usuario.foto_perfil %}
                                 <img id="avatar-preview" src="{{ usuario.foto_perfil.url }}" class="edit-profile-avatar-img" alt="Avatar">
                             {% else %}
@@ -26,15 +26,24 @@
                                     <span class="display-3 fw-bold">{{ usuario.iniciales }}</span>
                                 </div>
                             {% endif %}
-                            <div class="mt-3">
+                            <div class="edit-profile-photo-controls">
                                 <label for="foto_perfil" class="btn btn-sm btn-outline-accent rounded-pill px-3">
                                         <i class="bi bi-camera-fill me-2"></i> Cambiar Foto
                                     </label>
-                                    <input type="file" id="foto_perfil" name="foto_perfil" class="d-none">
+                                    <input type="file" id="foto_perfil" name="foto_perfil" class="d-none" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                                    {% if foto_form.foto_perfil.errors %}
+                                    <div class="text-danger small mt-2" role="alert">{{ foto_form.foto_perfil.errors|join:" " }}</div>
+                                    {% endif %}
+                                    <div id="foto-perfil-status" class="text-muted small mt-2" role="status" aria-live="polite">
+                                        JPG, PNG o WEBP. Máximo 5 MB. Se guardará al elegir la imagen.
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </form>
 
+                    <form method="POST">
+                        {% csrf_token %}
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Nombres</label>
@@ -64,7 +73,7 @@
                                 <input type="text" name="telefono" value="{{ usuario.telefono }}" class="form-control rounded-3 py-2 u-inline-b4973e868e"
                                 pattern="[0-9\s]*" title="Solo se admiten números y espacios" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-5">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Tipo Documento</label>
                                 <select name="tipo_documento" class="form-select rounded-3 py-2 u-inline-b4973e868e">
                                     {% for code, name in usuario.TIPOS_DOCUMENTO %}
@@ -72,7 +81,7 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-12">
+                            <div class="col-md-7">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Número de Identificación</label>
                                 <input type="text" name="documento" value="{{ usuario.documento }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" required
                                 pattern="[0-9\s]*" title="Solo se admiten números y espacios" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
@@ -97,12 +106,12 @@
 <style>
     .btn-accent {
         background-color: var(--color-accent);
-        color: #000;
+        color: var(--color-on-accent, #ffffff);
         border: none;
     }
     .btn-accent:hover {
-        background-color: #d68910;
-        color: #000;
+        background-color: var(--color-accent);
+        color: var(--color-on-accent, #ffffff);
     }
     .btn-outline-accent {
         color: var(--color-accent);
@@ -110,19 +119,38 @@
     }
     .btn-outline-accent:hover {
         background-color: var(--color-accent);
-        color: #000;
+        color: var(--color-on-accent, #ffffff);
     }
     .form-control:focus, .form-select:focus {
         background-color: var(--item-bg) !important;
-        box-shadow: 0 0 0 0.25rem rgba(243, 156, 18, 0.25);
+        box-shadow: 0 0 0 0.25rem var(--glow-accent, rgba(255, 255, 255, 0.35));
         border-color: var(--color-accent);
         color: var(--color-text);
     }
 
     .edit-profile-avatar-container {
         position: relative;
-        display: inline-block;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
         z-index: 1;
+    }
+
+    .edit-profile-photo-controls {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .edit-profile-photo-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        text-align: center;
     }
 
     .edit-profile-avatar-img {
@@ -145,32 +173,55 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #000;
+        color: var(--color-on-accent, #ffffff);
     }
 </style>
 
 <script>
-    // Aceptar cualquier archivo sin restricciones de tipo
-    document.getElementById('foto_perfil').addEventListener('change', function (evt) {
-        const [file] = this.files;
-        if (file) {
-            // Solo validar tamaño
-            if (file.size > 100 * 1024 * 1024) {
-                alert('El archivo es demasiado grande. El tamaño máximo es 100MB.');
+    (() => {
+        const photoInput = document.getElementById('foto_perfil');
+        const photoForm = document.getElementById('profile-photo-form');
+        const photoStatus = document.getElementById('foto-perfil-status');
+
+        if (!photoInput || !photoForm || !photoStatus) return;
+
+        photoInput.addEventListener('change', function () {
+            const [file] = this.files;
+            if (!file) return;
+
+            if (file.type && !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                photoStatus.textContent = 'Selecciona una imagen JPG, PNG o WEBP.';
                 this.value = '';
                 return;
             }
-            
-            // Mostrar previsualización si es imagen
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById('avatar-preview');
-                    preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
-                };
-                reader.readAsDataURL(file);
+            if (file.size > 5 * 1024 * 1024) {
+                photoStatus.textContent = 'La foto debe pesar máximo 5 MB.';
+                this.value = '';
+                return;
             }
-        }
-    });
+
+            photoStatus.textContent = 'Preparando la foto...';
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const preview = document.getElementById('avatar-preview');
+                if (preview.tagName === 'IMG') {
+                    preview.src = event.target.result;
+                } else {
+                    const image = document.createElement('img');
+                    image.src = event.target.result;
+                    image.alt = 'Vista previa de la foto de perfil';
+                    image.className = 'edit-profile-avatar-img';
+                    image.id = 'avatar-preview';
+                    preview.replaceWith(image);
+                }
+                photoStatus.textContent = 'Guardando foto...';
+                photoForm.requestSubmit();
+            };
+            reader.onerror = function () {
+                photoStatus.textContent = 'No se pudo leer la imagen. Intenta seleccionarla de nuevo.';
+            };
+            reader.readAsDataURL(file);
+        });
+    })();
 </script>
 {% endblock %}

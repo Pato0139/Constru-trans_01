@@ -5,7 +5,7 @@
  * visible text receive a consistent tooltip without requiring every template to
  * duplicate Bootstrap attributes by hand.
  */
-document.addEventListener('DOMContentLoaded', () => {
+window.AppPageLifecycle.onPageLoad(() => {
   if (!window.bootstrap || !bootstrap.Tooltip) return;
 
   const inferTooltipLabel = (element) => {
@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll(actionSelector).forEach((element) => {
     if (element.disabled || element.closest('[data-tooltip-disabled="true"]')) return;
+    if (bootstrap.Tooltip.getInstance(element)) return;
 
     const label = (
       element.dataset.tooltip

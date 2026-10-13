@@ -1,6 +1,11 @@
 from django.test import TestCase
 
-from catalogo.models import MaterialConstruccion, Stock, UnidadMedida
+from catalogo.models import (
+    MaterialConstruccion,
+    MovimientoInventario,
+    Stock,
+    UnidadMedida,
+)
 from catalogo.services.kardex import KardexService
 
 
@@ -52,3 +57,21 @@ class CatalogoStockTests(TestCase):
                 cantidad=999,
                 observacion="Prueba de error",
             )
+
+    def test_movimiento_con_material_huerfano_conserva_el_codigo_original(self):
+        movimiento = MovimientoInventario.objects.create(
+            material=None,
+            material_codigo_original=152,
+            tipo_movimiento="entrada",
+            cantidad=1,
+            observacion="Registro histórico",
+        )
+
+        self.assertEqual(
+            movimiento.material_label,
+            "Material no disponible (código 152)",
+        )
+        self.assertEqual(
+            str(movimiento),
+            "ENTRADA: 1 de Material no disponible (código 152)",
+        )

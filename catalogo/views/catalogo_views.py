@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
-from auditoria.utils import registrar_actividad
+from core.utils import registrar_actividad
 from catalogo.forms import CatalogoForm, UnidadMedidaForm
 from catalogo.models import Catalogo, UnidadMedida
 from usuarios.views import admin_required

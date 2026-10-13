@@ -2,7 +2,7 @@
  * AJAX implementation for materials list using core helpers
  */
 
-document.addEventListener('DOMContentLoaded', function () {
+window.AppPageLifecycle.onPageLoad(function () {
     const form = document.querySelector('.standard-filter-bar form');
     const idInput = form?.querySelector('[name="id"]');
     const materialInput = form?.querySelector('[name="material"]');
@@ -12,12 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!form || !tableEl) return;
 
-    const FP = (window.FocusPreserver || {
-        save: function(){return{el:document.activeElement,start:document.activeElement&&document.activeElement.selectionStart!==undefined?document.activeElement.selectionStart:null,end:document.activeElement&&document.activeElement.selectionEnd!==undefined?document.activeElement.selectionEnd:null};},
-        restore: function(s){if(!s||!s.el)return;try{s.el.focus({preventScroll:true});}catch(_){try{s.el.focus();}catch(__){}}if(s.start!==null&&s.end!==null&&typeof s.el.setSelectionRange==='function'){try{s.el.setSelectionRange(s.start,s.end);}catch(_){}}},
-        wrap: function(fn){var s=this.save();var r=fn();if(r&&typeof r.then==='function'){r.then(()=>this.restore(s)).catch(()=>this.restore(s));}else{this.restore(s);}return r;},
-        debounce: function(fn,ms){var t=null;return function(){var c=this,a=arguments;if(t)clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);t=null;},ms||350);};
-    });
+    const FP = window.FocusPreserver;
 
     const table = AppAjaxTable.init({
         selector: '#tablaMateriales',

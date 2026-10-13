@@ -7,7 +7,15 @@ from .models import (Catalogo, ConteoItem, HistorialPrecioMaterial,
 
 @admin.register(MovimientoInventario)
 class MovimientoInventarioAdmin(admin.ModelAdmin):
-    list_display = ("id_movimiento", "material", "tipo_movimiento", "cantidad", "fecha_movimiento", "usuario")
+    list_display = (
+        "id_movimiento",
+        "material_label",
+        "tipo_movimiento",
+        "cantidad",
+        "fecha_movimiento",
+        "usuario",
+    )
+    list_select_related = ("material",)
     list_filter = ("tipo_movimiento", "fecha_movimiento", "material")
     search_fields = ("material__nombre", "observacion")
     readonly_fields = ("fecha_movimiento",)

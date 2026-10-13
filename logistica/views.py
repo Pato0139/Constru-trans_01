@@ -1,6 +1,9 @@
+from functools import lru_cache
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError, models
+from django.db import IntegrityError, connections, models, router
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 
@@ -12,32 +15,20 @@ from .models import (ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento,
                      Seguimiento, Vehiculo)
 
 
+@lru_cache(maxsize=4)
+def _tiene_columna_catalogo(db_alias):
+    connection = connections[db_alias]
+    with connection.cursor() as cursor:
+        columns = connection.introspection.get_table_description(cursor, Vehiculo._meta.db_table)
+    return any(column.name == "codigo_catalogo" for column in columns)
+
+
 def _vehiculos_con_fallback_seguro():
-    from django.db.utils import ProgrammingError
-
-    base_qs = Vehiculo.objects.all().defer("catalogo")
-
-    try:
-        from django.db import connections
-        for alias in ("default", "remota"):
-            if alias not in connections.databases:
-                continue
-            try:
-                with connections[alias].cursor() as cursor:
-                    cursor.execute(
-                        "SELECT 1 FROM information_schema.columns "
-                        "WHERE table_name = %s AND column_name = %s",
-                        ["vehiculo", "codigo_catalogo"],
-                    )
-                    has_column = cursor.fetchone() is not None
-            except Exception:
-                has_column = False
-            if alias == "default" and not has_column:
-                return base_qs
-    except (ProgrammingError, Exception):
-        return base_qs
-
-    return Vehiculo.objects.all()
+    db_alias = router.db_for_read(Vehiculo)
+    vehiculos = Vehiculo.objects.using(db_alias).all()
+    if not _tiene_columna_catalogo(db_alias):
+        vehiculos = vehiculos.defer("catalogo")
+    return vehiculos
 
 
 @admin_required
@@ -49,7 +40,16 @@ def lista_vehiculos(request):
     conductor = request.GET.get("conductor")
     query = request.GET.get("q", "")
 
-    vehiculos = _vehiculos_con_fallback_seguro()
+    asignaciones_activas = Prefetch(
+        "asignaciones_conductor",
+        queryset=(
+            ConductorVehiculo.objects.filter(fecha_fin__isnull=True)
+            .select_related("conductor__usuario")
+            .order_by("-fecha_asignacion")
+        ),
+        to_attr="asignaciones_activas",
+    )
+    vehiculos = _vehiculos_con_fallback_seguro().prefetch_related(asignaciones_activas)
 
     if id_vehiculo and id_vehiculo.isdigit():
         vehiculos = vehiculos.filter(id_vehiculo=int(id_vehiculo))
@@ -89,17 +89,10 @@ def lista_vehiculos(request):
         },
     ]
 
-    from django.db.utils import ProgrammingError as _PgError
-
-    try:
-        vehiculos = list(vehiculos)
-    except _PgError as exc:
-        if "codigo_catalogo" in str(exc):
-            vehiculos = list(Vehiculo.objects.all().defer("catalogo"))
-        else:
-            raise
+    vehiculos = list(vehiculos)
     for v in vehiculos:
-        v.conductor = v.conductor_actual
+        asignacion = v.asignaciones_activas[0] if v.asignaciones_activas else None
+        v.conductor = asignacion.conductor.usuario if asignacion else None
 
     context = {
         "vehiculos": vehiculos,

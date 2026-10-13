@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from auditoria.utils import registrar_actividad
+from core.utils import registrar_actividad
 from catalogo.forms import MaterialForm
 from catalogo.models import Catalogo
 from catalogo.models import MaterialConstruccion as Material
