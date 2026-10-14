@@ -1,8 +1,11 @@
 import logging
+import re
 import smtplib
+import unicodedata
 
 import requests
 from django import forms
+from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
@@ -15,7 +18,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 from .models import Usuario
-from .utils import limpiar_telefono
+from .utils import limpiar_documento, limpiar_telefono
 
 
 class FotoPerfilForm(forms.Form):
@@ -93,12 +96,20 @@ class LoginForm(forms.Form):
 
 
 class RegistroForm(forms.ModelForm):
+    CODIGOS_PAIS = ("+57", "+1", "+52", "+54", "+34", "+56")
+
     correo = forms.EmailField(
         widget=forms.EmailInput(
             attrs={"class": "input-custom", "placeholder": "ejemplo@correo.com"}
         )
     )
+    pais_codigo = forms.ChoiceField(
+        choices=[(codigo, codigo) for codigo in CODIGOS_PAIS],
+        required=True,
+    )
+    aceptar_terminos = forms.BooleanField(required=True)
     contrasena = forms.CharField(
+        max_length=128,
         widget=forms.PasswordInput(
             attrs={"class": "input-custom", "placeholder": "••••••••", "id": "id_contrasena"}
         )
@@ -118,16 +129,20 @@ class RegistroForm(forms.ModelForm):
         model = Usuario
         fields = ["nombres", "apellidos", "tipo_documento", "documento", "telefono"]
         widgets = {
-            "nombres": forms.TextInput(attrs={"class": "input-custom", "placeholder": "Juan"}),
-            "apellidos": forms.TextInput(attrs={"class": "input-custom", "placeholder": "Pérez"}),
+            "nombres": forms.TextInput(
+                attrs={"class": "input-custom", "placeholder": "Juan", "maxlength": "200"}
+            ),
+            "apellidos": forms.TextInput(
+                attrs={"class": "input-custom", "placeholder": "Pérez", "maxlength": "200"}
+            ),
             "tipo_documento": forms.Select(attrs={"class": "input-custom form-select"}),
             "documento": forms.TextInput(
                 attrs={
                     "class": "input-custom",
                     "placeholder": "12345678",
-                    "pattern": "[0-9\\s]*",
-                    "title": "Solo se admiten números y espacios",
-                    "oninput": "this.value = this.value.replace(/[^0-9\\s]/g, '')",
+                    "pattern": "[A-Za-z0-9\\s]*",
+                    "title": "Solo se admiten letras y números",
+                    "maxlength": "20",
                 }
             ),
             "telefono": forms.TextInput(
@@ -136,34 +151,65 @@ class RegistroForm(forms.ModelForm):
                     "placeholder": "3001234567",
                     "pattern": "[0-9\\s]*",
                     "title": "Solo se admiten números y espacios",
+                    "maxlength": "20",
                     "oninput": "this.value = this.value.replace(/[^0-9\\s]/g, '')",
                 }
             ),
         }
 
     def clean_correo(self):
-        correo = self.cleaned_data.get("correo")
-        if User.objects.using("default").filter(email=correo).exists():
+        correo = (self.cleaned_data.get("correo") or "").strip()
+        if User.objects.using("default").filter(
+            Q(email__iexact=correo) | Q(username__iexact=correo)
+        ).exists():
             raise forms.ValidationError("Este correo ya está registrado.")
         return correo
 
+    def _clean_nombre(self, field_name):
+        nombre = unicodedata.normalize("NFC", self.cleaned_data.get(field_name, "")).strip()
+        nombre = " ".join(nombre.split())
+        if len(nombre) < 2 or not re.fullmatch(
+            r"[^\W\d_]+(?:[ '\u2019-][^\W\d_]+)*", nombre, flags=re.UNICODE
+        ):
+            raise forms.ValidationError(
+                "Use solo letras, espacios, guiones o apóstrofos; no se admiten números ni símbolos."
+            )
+        return nombre
+
+    def clean_nombres(self):
+        return self._clean_nombre("nombres")
+
+    def clean_apellidos(self):
+        return self._clean_nombre("apellidos")
+
     def clean_contrasena(self):
-        contrasena = self.cleaned_data.get("contrasena")
+        contrasena = self.cleaned_data.get("contrasena") or ""
         if " " in contrasena:
             raise forms.ValidationError("La contraseña no puede contener espacios.")
         return contrasena
 
     def clean_documento(self):
-        documento = self.cleaned_data.get("documento")
-        documento = limpiar_telefono(documento)
+        documento = (self.cleaned_data.get("documento") or "").strip()
+        tipo_documento = self.cleaned_data.get("tipo_documento")
+        if not re.fullmatch(r"[A-Za-z0-9 ]+", documento):
+            raise forms.ValidationError("El documento solo puede contener letras y números.")
+        if tipo_documento != "PA" and not re.fullmatch(r"[0-9 ]+", documento):
+            raise forms.ValidationError(
+                "Este tipo de documento solo admite números."
+            )
+        documento = limpiar_documento(documento)
         if not (7 <= len(documento) <= 15):
-            raise forms.ValidationError("El número de documento debe tener entre 7 y 15 dígitos.")
-        if Usuario.objects.using("default").filter(documento=documento).exists():
+            raise forms.ValidationError(
+                "El documento debe tener entre 7 y 15 caracteres alfanuméricos."
+            )
+        if Usuario.objects.using("default").filter(documento__iexact=documento).exists():
             raise forms.ValidationError("Este documento ya está registrado.")
         return documento
 
     def clean_telefono(self):
-        telefono = self.cleaned_data.get("telefono")
+        telefono = (self.cleaned_data.get("telefono") or "").strip()
+        if not re.fullmatch(r"[0-9 ]+", telefono):
+            raise forms.ValidationError("El teléfono solo puede contener números.")
         telefono = limpiar_telefono(telefono)
         if not (9 <= len(telefono) <= 15):
             raise forms.ValidationError("El número de teléfono debe tener entre 9 y 15 dígitos.")
@@ -174,6 +220,17 @@ class RegistroForm(forms.ModelForm):
         password = cleaned_data.get("contrasena")
         confirm_password = cleaned_data.get("confirmar_contrasena")
 
+        if password:
+            user = Usuario(
+                username=cleaned_data.get("correo", ""),
+                email=cleaned_data.get("correo", ""),
+                nombres=cleaned_data.get("nombres", ""),
+                apellidos=cleaned_data.get("apellidos", ""),
+            )
+            try:
+                validate_password(password, user=user)
+            except forms.ValidationError as exc:
+                self.add_error("contrasena", exc)
         if password and confirm_password and password != confirm_password:
             self.add_error("confirmar_contrasena", "Las contraseñas no coinciden.")
         return cleaned_data

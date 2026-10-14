@@ -77,18 +77,24 @@
 
                         <div class="mt-4">
                             <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Rol del Usuario</label>
-                            {% if request.user.usuario.rol == 'admin' %}
+                            {% if request.user.es_superadmin %}
                                 <select name="rol" class="form-select py-2 usuario-select" required>
                                     <option value="">Seleccione rol...</option>
                                     <option value="cliente" {% if form_data %}{% if form_data.rol == 'cliente' or usuario.rol == 'cliente' %}selected{% endif %}{% else %}{% if usuario.rol == 'cliente' %}selected{% endif %}{% endif %}>Cliente</option>
                                     <option value="conductor" {% if form_data %}{% if form_data.rol == 'conductor' or usuario.rol == 'conductor' %}selected{% endif %}{% else %}{% if usuario.rol == 'conductor' %}selected{% endif %}{% endif %}>Conductor</option>
                                     <option value="admin" {% if form_data %}{% if form_data.rol == 'admin' or usuario.rol == 'admin' %}selected{% endif %}{% else %}{% if usuario.rol == 'admin' %}selected{% endif %}{% endif %}>Administrador</option>
                                 </select>
+                            {% elif action == 'crear' or usuario.rol != 'admin' %}
+                                <select name="rol" class="form-select py-2 usuario-select" required>
+                                    <option value="">Seleccione rol...</option>
+                                    <option value="cliente" {% if form_data.rol == 'cliente' or usuario.rol == 'cliente' %}selected{% endif %}>Cliente</option>
+                                    <option value="conductor" {% if form_data.rol == 'conductor' or usuario.rol == 'conductor' %}selected{% endif %}>Conductor</option>
+                                    <option value="empleado" {% if form_data.rol == 'empleado' or usuario.rol == 'empleado' %}selected{% endif %}>Empleado</option>
+                                </select>
                             {% else %}
                                 <div class="form-control text-white-50 d-flex align-items-center py-2 usuario-rol-disabled">
                                     <i class="bi bi-shield-check me-2 text-accent"></i>
                                     {{ usuario.rol|title }}
-                                    <input type="hidden" name="rol" value="{{ usuario.rol }}">
                                 </div>
                             {% endif %}
                         </div>

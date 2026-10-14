@@ -17,17 +17,17 @@ $scriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptDir
 Set-Location $projectRoot
 
-function Write-Ok    { param([string]$m) Write-Host "[OK] $m" -ForegroundColor Green }
-function Write-Warn  { param([string]$m) Write-Host "[AVISO] $m" -ForegroundColor Yellow }
-function Write-Err   { param([string]$m) Write-Host "[ERROR] $m" -ForegroundColor Red }
-function Write-Step  { param([string]$m) Write-Host ""; Write-Host $m -ForegroundColor Cyan }
-
-Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host "CONSTRU-TRANS - Instalacion automatica (Windows)" -ForegroundColor Blue
-Write-Host "================================================================" -ForegroundColor Cyan
-
-# ---------- [1/6] Python ----------
-Write-Step "[1/6] Verificando Python..."
+# ---------- Colores y utilidades de salida ----------
+function Write-Ok    { param([string]$m) Write-Host "[  OK  ] $m" -ForegroundColor Green }
+function Write-Warn  { param([string]$m) Write-Host "[ AVISO ] $m" -ForegroundColor Yellow }
+function Write-Err   { param([string]$m) Write-Host "[ ERROR ] $m" -ForegroundColor Red }
+function Write-Section {
+    param([string]$title)
+    Write-Host ""
+    Write-Host "================================================================" -ForegroundColor Cyan
+    Write-Host " $title" -ForegroundColor Blue
+    Write-Host "================================================================" -ForegroundColor Cyan
+}
 
 function Test-PythonVenv {
     param([string]$PythonPath)
@@ -55,7 +55,6 @@ function Test-PythonBase {
 $venvPath = $null
 $venvPython = $null
 $pythonVersion = $null
-$prefix = $projectRoot.TrimEnd("\") + "\"
 
 # 1) Entorno virtual ya activado dentro del proyecto
 if ($env:VIRTUAL_ENV) {
@@ -112,8 +111,8 @@ if (-not $venvPython) {
     Write-Ok "Entorno virtual creado"
 }
 
-# ---------- [2/6] Dependencias ----------
-Write-Step "[2/6] Instalando dependencias..."
+# ---------- [2/6] DEPENDENCIAS --------------------------------
+Write-Section "[2/6] Instalando dependencias..."
 & $venvPython -m pip install --upgrade pip > $null
 & $venvPython -m pip install --prefer-binary -r (Join-Path $projectRoot "requirements.txt")
 if ($LASTEXITCODE -ne 0) {
@@ -128,8 +127,8 @@ if ($Dev) {
     if ($LASTEXITCODE -ne 0) { Write-Warn "Fallaron las dependencias de desarrollo; el proyecto sigue operativo." }
 }
 
-# ---------- [3/6] .env ----------
-Write-Step "[3/6] Configurando el archivo .env..."
+# ---------- [3/6] CONFIGURACION -----------------------------
+Write-Section "[3/6] Configurando el archivo .env ..."
 $envPath = Join-Path $projectRoot ".env"
 
 if (-not $NoFetchCredentials -and -not (Test-Path $envPath) -and (Get-Command git -ErrorAction SilentlyContinue)) {
@@ -184,8 +183,8 @@ if ($necesitaClave) {
     Write-Ok "SECRET_KEY valida encontrada en .env"
 }
 
-# ---------- [4/6] Base de datos ----------
-Write-Step "[4/6] Preparando la base de datos local..."
+# ---------- [4/6] BASE DE DATOS -----------------------------
+Write-Section "[4/6] Preparando la base de datos local ..."
 $sqlite = Join-Path $projectRoot "db.sqlite3"
 if ($ResetDb -and (Test-Path $sqlite)) {
     $respaldo = Join-Path $projectRoot ("db.sqlite3.broken-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
@@ -236,16 +235,17 @@ if ($contenido -match '^\s*DATABASE_URL=.+') {
     if ($LASTEXITCODE -eq 0) { Write-Ok "Base remota actualizada" } else { Write-Warn "No se pudo migrar la base remota; el trabajo local continua normal." }
 }
 
-# ---------- [5/6] Datos de prueba ----------
+# ---------- [5/6] DATOS DE PRUEBA ---------------------------
+Write-Section "[5/6] Cargando datos de prueba ..."
 if ($Seed) {
-    Write-Step "[5/6] Cargando datos de prueba..."
     $env:DATABASE_URL = ""
     & $venvPython manage.py poblar_todo
     if ($LASTEXITCODE -ne 0) { Write-Warn "No se pudieron cargar los datos de prueba." }
     Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
 }
 
-# ---------- Cierre ----------
+# ---------- [6/6] COMPLETAR ---------------------------------
+Write-Section "[6/6] Configuracion y comandos finales ..."
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host "Setup COMPLETO" -ForegroundColor Green

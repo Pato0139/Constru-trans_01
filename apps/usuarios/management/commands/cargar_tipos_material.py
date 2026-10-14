@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from apps.catalogo.models as  Catalogo
+from apps.catalogo.models import Catalogo
 from config.routers import EnrutadorInventario
 from config.utils import conexion_remota_disponible
 
