@@ -21,7 +21,6 @@
         <div class="small">{{ compra.fecha_compra|date:"H:i" }}</div>
     </td>
     <td class="text-center">
-<<<<<<< HEAD:compras/templates/compras/_compras_body.html
         <div class="d-flex flex-wrap justify-content-center gap-1">
             {% for detalle in compra.detalles_cargados %}
             <span class="badge purchase-meta-badge">{{ detalle.material.nombre }}</span>
@@ -29,22 +28,15 @@
             <span class="text-muted small">Sin materiales</span>
             {% endfor %}
         </div>
-=======
         <span class="badge bg-dark border border-white-10 text-info px-3 compras-theme-badge">{{ compra.detalles_count|default:0 }}</span>
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/compras/templates/compras/_compras_body.html
     </td>
     <td class="text-end fw-bold text-success">
         {{ compra.total_compra|currency }}
     </td>
     <td class="text-center">
         {% if compra.usuario %}
-<<<<<<< HEAD:compras/templates/compras/_compras_body.html
         <span class="badge purchase-meta-badge">
             <i class="bi bi-person-circle me-1"></i> {{ compra.usuario.username }}
-=======
-        <span class="badge bg-dark border border-white-10 text-info px-3 compras-theme-badge">
-            <i class="bi bi-person-circle me-1"></i> {{ compra.usuario.username|default:"N/A" }}
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/compras/templates/compras/_compras_body.html
         </span>
         {% else %}
         <span class="text-muted small">N/A</span>

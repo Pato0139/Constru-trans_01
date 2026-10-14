@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block title %}
-    {% if action == 'crear' %}Nuevo Material{% else %}Editar Material{% endif %} - Constru-trans
+    {% if action == 'crear' %}Nuevo Producto{% else %}Editar Producto{% endif %} - Constru-trans
 {% endblock %}
 
 {% block content %}
@@ -19,7 +19,7 @@
                     <i class="bi {% if action == 'crear' %}bi-box-seam{% else %}bi-pencil-square{% endif %} fs-2"></i>
                 </div>
                 <h3 class="fw-900 text-white mb-2">
-                    {% if action == 'crear' %}Registrar Material{% else %}Editar Material{% endif %}
+                    {% if action == 'crear' %}Registrar Producto{% else %}Editar Producto{% endif %}
                 </h3>
                 <p class="text-muted small text-uppercase fw-700 u-inline-1ddabe40c2">
                     Gestión de inventario y suministros
@@ -41,7 +41,7 @@
                 {% csrf_token %}
                 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Nombre del Material</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Nombre del Producto</label>
                     <div class="input-group">
                         <span class="input-group-text border-0 u-inline-b6cbaa05fa">
                             <i class="bi bi-tag"></i>
@@ -77,7 +77,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Tipo de Material</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Categoría</label>
                     <div class="input-group">
                         <span class="input-group-text border-0 u-inline-b6cbaa05fa">
                             <i class="bi bi-layers"></i>
@@ -107,6 +107,16 @@
                 </div>
 
                 <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Estado</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
+                            <i class="bi bi-toggle-on"></i>
+                        </span>
+                        {{ form.estado }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
                     <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Stock actual</label>
                     <div class="input-group">
                         <span class="input-group-text border-0 u-inline-b6cbaa05fa">
@@ -128,7 +138,7 @@
 
                 <div class="d-grid gap-3">
                     <button type="submit" class="btn btn-premium-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase u-inline-37b2cef266" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
-                        <i class="bi bi-check2-circle me-2"></i> {% if action == 'crear' %}Registrar Material{% else %}Actualizar Material{% endif %}
+                        <i class="bi bi-check2-circle me-2"></i> {% if action == 'crear' %}Registrar Producto{% else %}Actualizar Producto{% endif %}
                     </button>
                     <a href="{% url 'catalogo:materiales_lista' %}" class="btn btn-outline-secondary rounded-pill py-3 opacity-75 hover-opacity-100 u-inline-20f19d2528" aria-label="Volver" data-tooltip="Volver" title="Volver">
                         <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver

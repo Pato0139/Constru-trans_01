@@ -3,8 +3,8 @@ from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from config.utils import registrar_actividad
-from apps.catalogo.forms import CatalogoForm, UnidadMedidaForm
-from apps.catalogo.models import Catalogo, UnidadMedida
+from apps.catalogo.forms import CatalogoForm, MarcaForm, UnidadMedidaForm
+from apps.catalogo.models import Catalogo, Marca, UnidadMedida
 from apps.usuarios.views import admin_required
 
 
@@ -211,3 +211,91 @@ def eliminar_unidad_medida(request, id):
         request, "eliminar", "unidad_medida", id, f"Unidad de medida eliminada: {nombre}")
     messages.success(request, f"Unidad de medida '{nombre}' eliminada correctamente.")
     return redirect("catalogo:unidades_medida_lista")
+
+
+# ============================================================
+# MARCAS
+# ============================================================
+
+@admin_required
+def marcas_lista(request):
+    query = request.GET.get("q", "").strip()
+
+    marcas = Marca.objects.annotate(num_materiales=Count("materiales"))
+
+    if query:
+        marcas = marcas.filter(nombre__icontains=query)
+
+    marcas = marcas.order_by("nombre")
+
+    filter_fields = [
+        {"type": "text", "name": "q", "placeholder": "Buscar marca...", "value": query, "size": "4"},
+    ]
+
+    context = {
+        "marcas": marcas,
+        "query": query,
+        "filter_fields": filter_fields,
+        "has_filters": bool(query),
+    }
+    return render(request, "catalogo/marcas_lista.html", context)
+
+
+@admin_required
+def crear_marca(request):
+    if request.method == "POST":
+        form = MarcaForm(request.POST)
+        if form.is_valid():
+            try:
+                marca = form.save()
+                registrar_actividad(
+                    request, "crear", "marca", marca.pk,
+                    f"Marca creada: {marca.nombre}",
+                )
+                messages.success(request, "Marca creada correctamente.")
+                return redirect("catalogo:marcas_lista")
+            except Exception as e:
+                messages.error(request, f"Error al crear la marca: {e}")
+    else:
+        form = MarcaForm()
+    context = {"form": form, "action": "crear"}
+    return render(request, "catalogo/form_marca.html", context)
+
+
+@admin_required
+def editar_marca(request, id):
+    marca = get_object_or_404(Marca, pk=id)
+    if request.method == "POST":
+        form = MarcaForm(request.POST, instance=marca)
+        if form.is_valid():
+            form.save()
+            registrar_actividad(
+                request, "editar", "marca", marca.pk,
+                f"Marca editada: {marca.nombre}",
+            )
+            messages.success(request, "Marca actualizada correctamente.")
+            return redirect("catalogo:marcas_lista")
+    else:
+        form = MarcaForm(instance=marca)
+    context = {"form": form, "action": "editar", "marca": marca}
+    return render(request, "catalogo/form_marca.html", context)
+
+
+@admin_required
+def eliminar_marca(request, id):
+    marca = get_object_or_404(Marca, pk=id)
+
+    if marca.materiales.exists():
+        messages.error(
+            request,
+            f"No se puede eliminar '{marca.nombre}' porque tiene materiales asociados.",
+        )
+        return redirect("catalogo:marcas_lista")
+
+    nombre = marca.nombre
+    marca.delete()
+    registrar_actividad(
+        request, "eliminar", "marca", id, f"Marca eliminada: {nombre}"
+    )
+    messages.success(request, f"Marca '{nombre}' eliminada correctamente.")
+    return redirect("catalogo:marcas_lista")

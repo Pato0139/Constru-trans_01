@@ -140,7 +140,19 @@ def registrar_actividad(request, accion, modulo, elemento_id=None, descripcion="
     try:
         Historial.objects.create(**datos)
     except Exception:
-        from django.db import IntegrityError
-        logger.warning("No se pudo asociar el usuario al historial; se guardará sin usuario.")
-        datos["usuario"] = None
-        Historial.objects.create(**datos)
+        logger.warning(
+            "No se pudo asociar el usuario al historial; se guardará sin usuario.",
+            exc_info=True,
+        )
+        try:
+            datos["usuario"] = None
+            Historial.objects.create(**datos)
+        except Exception:
+            # Último recurso: la auditoría nunca debe tumbar la operación
+            # del usuario (un toggle, un login, etc.).
+            logger.error(
+                "No se pudo registrar la actividad en el historial: %s/%s",
+                accion,
+                modulo,
+                exc_info=True,
+            )

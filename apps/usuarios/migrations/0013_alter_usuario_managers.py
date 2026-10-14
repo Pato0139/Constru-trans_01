@@ -3,9 +3,6 @@
 from django.db import migrations
 
 import apps.usuarios.models
-from django.db import migrations
-
-import apps.usuarios.models
 
 
 class Migration(migrations.Migration):

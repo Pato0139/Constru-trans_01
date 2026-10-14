@@ -30,12 +30,11 @@ def materiales_lista(request):
     total = Material.objects.count()
 
     filter_fields = [
-        {"name": "id", "type": "text", "placeholder": "ID", "value": material_id},
-        {"name": "material", "type": "text", "placeholder": "Material", "value": material},
+        {"name": "material", "type": "text", "placeholder": "Producto", "value": material},
         {
             "name": "tipo",
             "type": "select",
-            "placeholder": "Todos los tipos",
+            "placeholder": "Todas las categorías",
             "value": tipo,
             "options": [
                 {"value": t.codigo_catalogo, "label": t.nombre_empresa, "selected": t.codigo_catalogo == tipo}
@@ -141,7 +140,8 @@ def cambiar_estado_material(request, id):
 
     material = get_object_or_404(Material, pk=id)
     material.activo = not material.activo
-    material.save(update_fields=["activo"])
+    material.estado = "activo" if material.activo else "inactivo"
+    material.save(update_fields=["activo", "estado"])
     estado = "habilitado" if material.activo else "inhabilitado"
     registrar_actividad(request, "actualizar", "catalogo", material.pk, f"Material {estado}: {material.nombre}")
     messages.success(request, f"Material {material.nombre} {estado} correctamente.")

@@ -7,6 +7,7 @@ from django.urls import reverse
 from apps.catalogo.models import Catalogo
 from apps.catalogo.models import MaterialConstruccion as Material
 from config.datatables import apply_search, build_dt_response, get_dt_params
+from apps.usuarios.templatetags.currency_tags import currency
 from apps.usuarios.views import admin_required
 
 @admin_required
@@ -53,12 +54,19 @@ def api_materiales_listado(request):
     data = []
     for material in materiales:
         nombre_seguro = escape(material.nombre)
+        stock_actual = material.stock_info.cantidad_actual if hasattr(material, "stock_info") else material.stock
+        stock_minimo = material.stock_info.stock_minimo if hasattr(material, "stock_info") else 0
         data.append(
             {
                 "id": material.id,
                 "material": nombre_seguro,
+                "marca": material.marca.nombre if material.marca else "-",
                 "tipo": material.tipo or "-",
                 "unidad": getattr(material.unidad_medida, "abreviatura", "-"),
+                "precio": currency(material.precio_referencia),
+                "stock": stock_actual,
+                "stock_minimo": stock_minimo,
+                "estado": material.estado,
                 "activo": material.activo,
                 "acciones": f'''
                     <div class="d-flex justify-content-center gap-2">
@@ -67,10 +75,10 @@ def api_materiales_listado(request):
                         </a>
                         <form method="post" action="{reverse('catalogo:cambiar_estado_material', args=[material.id])}" class="d-inline">
                             <input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">
-                            <button type="submit" class="btn-action {'btn-action--danger' if material.activo else 'btn-action--success'}"
+                            <button type="submit" class="btn-action {'btn-action--success' if material.activo else 'btn-action--danger'}"
                                     title="{'Inhabilitar' if material.activo else 'Habilitar'} material"
                                     aria-label="{'Inhabilitar' if material.activo else 'Habilitar'} {nombre_seguro}">
-                                <i class="bi {'bi-toggle-on' if material.activo else 'bi-toggle-off'}"></i>
+                                <i class="bi {'bi-check-circle-fill' if material.activo else 'bi-x-circle-fill'}"></i>
                             </button>
                         </form>
                     </div>

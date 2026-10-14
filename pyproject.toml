@@ -37,42 +37,20 @@ django_settings_module = "config.settings.dev"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.dev"
 testpaths = [
-<<<<<<< HEAD
-  "usuarios",
-  "clientes",
-  "catalogo",
-  "compras",
-  "pedidos",
-  "logistica",
-  "licensing",
-  "ia",
-  "ayuda",
-  "core",
-]
-python_files = ["tests.py", "test_*.py", "*_tests.py"]
-norecursedirs = [".venv", "venv", "scripts", "htmlcov", "staticfiles", "media"]
-addopts = "--cov=usuarios --cov=clientes --cov=catalogo --cov=compras --cov=pedidos --cov=logistica --cov=licensing --cov=ia --cov=ayuda --cov=core --cov-report=term-missing"
-=======
   "apps/usuarios",
   "apps/clientes",
   "apps/catalogo",
   "apps/compras",
   "apps/pedidos",
   "apps/pagos",
-  "apps/facturacion",
   "apps/logistica",
   "apps/auditoria",
   "apps/reportes",
   "apps/inicio",
   "apps/licensing",
   "apps/ia",
-  "apps/ordenes",
-  "apps/gestion_pedidos",
-  "apps/inventario",
-  "apps/historial",
-  "apps/transporte",
+  "apps/ayuda",
 ]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
-norecursedirs = [".venv", "scripts", "htmlcov", "staticfiles"]
-addopts = "--cov=apps.usuarios --cov=apps.clientes --cov=apps.catalogo --cov=apps.compras --cov=apps.pedidos --cov=apps.pagos --cov=apps.facturacion --cov=apps.logistica --cov=apps.auditoria --cov=apps.reportes --cov=apps.inicio --cov=apps.licensing --cov=apps.ia --cov=apps.ordenes --cov=apps.gestion_pedidos --cov=apps.inventario --cov=apps.historial --cov=apps.transporte --cov-report=html --cov-report=term"
->>>>>>> origin/GRUPO_7_ADSO/FIX
+norecursedirs = [".venv", "venv", "scripts", "htmlcov", "staticfiles", "media"]
+addopts = "--cov=apps.usuarios --cov=apps.clientes --cov=apps.catalogo --cov=apps.compras --cov=apps.pedidos --cov=apps.pagos --cov=apps.logistica --cov=apps.auditoria --cov=apps.reportes --cov=apps.inicio --cov=apps.licensing --cov=apps.ia --cov=apps.ayuda --cov-report=term-missing"

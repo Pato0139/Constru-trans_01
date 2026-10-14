@@ -57,6 +57,12 @@ class Marca(models.Model):
         return self.nombre
 
 
+ESTADOS_PRODUCTO = [
+    ("activo", "Activo"),
+    ("inactivo", "Inactivo"),
+]
+
+
 class MaterialConstruccion(models.Model):
     cod_material = models.AutoField(primary_key=True)
     catalogo = models.ForeignKey(
@@ -82,6 +88,17 @@ class MaterialConstruccion(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0.01), MaxValueValidator(9999999999.99)],
     )
+    stock = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100000)],
+        help_text="Cantidad disponible (se sincroniza con el registro de Stock)",
+    )
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS_PRODUCTO,
+        default="activo",
+        help_text="Estado del producto en el catálogo",
+    )
     activo = models.BooleanField(default=True, help_text="Indica si el material está disponible para uso")
     sincronizado = models.BooleanField(default=False)
 
@@ -102,16 +119,15 @@ class MaterialConstruccion(models.Model):
     def __str__(self):
         return self.nombre
 
+    def save(self, *args, **kwargs):
+        # El campo 'activo' queda como espejo de 'estado' para compatibilidad
+        # con el código existente que todavía lee el booleano.
+        self.activo = self.estado == "activo"
+        super().save(*args, **kwargs)
+
     @property
     def id(self):
         return self.cod_material
-
-    @property
-    def stock(self):
-        try:
-            return self.stock_info.cantidad_actual
-        except Stock.DoesNotExist:
-            return 0
 
     @property
     def precio(self):

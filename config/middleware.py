@@ -152,6 +152,10 @@ _URLNAMES_BY_ROLE_EXTRA = {
         "movimientos": {"admin"},
         "tipos_lista": {"admin"},
         "unidades_lista": {"admin"},
+        "marcas_lista": {"admin"},
+        "crear_marca": {"admin"},
+        "editar_marca": {"admin"},
+        "eliminar_marca": {"admin"},
     },
     "auditoria": {
         "lista_auditoria": {"admin"},

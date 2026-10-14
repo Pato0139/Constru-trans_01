@@ -4,7 +4,7 @@ import unicodedata
 from django import forms
 from django.db.models import Q
 
-from .models import Catalogo, Marca, MaterialConstruccion, Stock, UnidadMedida
+from .models import Catalogo, ESTADOS_PRODUCTO, Marca, MaterialConstruccion, Stock, UnidadMedida
 
 
 class MaterialForm(forms.ModelForm):
@@ -43,6 +43,16 @@ class MaterialForm(forms.ModelForm):
             attrs={
                 "class": "form-control",
                 "placeholder": "Ej: Argos",
+            }
+        ),
+    )
+    estado = forms.ChoiceField(
+        choices=ESTADOS_PRODUCTO,
+        required=False,
+        label="Estado",
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
             }
         ),
     )
@@ -112,6 +122,7 @@ class MaterialForm(forms.ModelForm):
         if self.instance and self.instance.pk and self.instance.marca:
             self.fields["marca_nombre"].initial = self.instance.marca.nombre
         if self.instance and self.instance.pk:
+            self.fields["estado"].initial = self.instance.estado
             try:
                 stock = self.instance.stock_info
                 self.fields["stock"].initial = stock.cantidad_actual
@@ -147,6 +158,13 @@ class MaterialForm(forms.ModelForm):
         marca = Marca.objects.filter(nombre__iexact=marca_nombre).first()
         material.marca = marca or Marca.objects.create(nombre=marca_nombre)
 
+        # Estado (columna del MER): si no se envía, queda 'activo'
+        material.estado = self.cleaned_data.get("estado") or "activo"
+
+        stock_value = self.cleaned_data.get("stock")
+        if stock_value is not None:
+            material.stock = stock_value
+
         if commit:
             material.save()
 
@@ -167,6 +185,32 @@ class MaterialForm(forms.ModelForm):
                 stock_obj.save()
 
         return material
+
+
+class MarcaForm(forms.ModelForm):
+    class Meta:
+        model = Marca
+        fields = ["nombre"]
+        labels = {"nombre": "Nombre de la Marca"}
+        widgets = {
+            "nombre": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: Argos",
+                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
+                }
+            ),
+        }
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get("nombre", "").strip()
+        if not nombre:
+            raise forms.ValidationError("El nombre de la marca es obligatorio.")
+        if Marca.objects.filter(nombre__iexact=nombre).exclude(
+            pk=self.instance.pk
+        ).exists():
+            raise forms.ValidationError("Ya existe una marca con este nombre.")
+        return nombre
 
 
 class UnidadMedidaForm(forms.ModelForm):

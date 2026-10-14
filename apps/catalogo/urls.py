@@ -23,6 +23,10 @@ urlpatterns = [
     path("unidades/editar/<int:id>/", views.editar_unidad_medida, name="editar_unidad_medida"),
     path("unidades/estado/<int:id>/", views.cambiar_estado_unidad_medida, name="cambiar_estado_unidad_medida"),
     path("unidades/eliminar/<int:id>/", views.eliminar_unidad_medida, name="eliminar_unidad_medida"),
+    path("marcas/", views.marcas_lista, name="marcas_lista"),
+    path("marcas/crear/", views.crear_marca, name="crear_marca"),
+    path("marcas/editar/<int:id>/", views.editar_marca, name="editar_marca"),
+    path("marcas/eliminar/<int:id>/", views.eliminar_marca, name="eliminar_marca"),
     path("api/materiales/", views.api_materiales, name="api_materiales"),
     path("api/materiales/listado/", views.api_materiales_listado, name="api_materiales_listado"),
 ]
