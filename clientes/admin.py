@@ -5,7 +5,15 @@ from .models import Cliente
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
-    list_display = ("usuario", "direccion", "tipo_cliente", "nombre_empresa", "nit", "es_vip", "gasto_acumulado")
+    list_display = (
+        "usuario",
+        "direccion",
+        "tipo_cliente",
+        "nombre_empresa",
+        "nit",
+        "es_vip",
+        "gasto_acumulado",
+    )
     list_filter = ("tipo_cliente", "es_vip", "fecha_registro")
     search_fields = (
         "usuario__nombres",
@@ -18,3 +26,4 @@ class ClienteAdmin(admin.ModelAdmin):
         "observaciones",
     )
     readonly_fields = ("fecha_registro",)
+    list_select_related = ("usuario",)

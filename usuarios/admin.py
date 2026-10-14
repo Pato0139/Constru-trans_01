@@ -5,9 +5,12 @@ from .models import EPS, Conductor, Notificacion, Rol, Usuario, UsuarioRol
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ("nombres", "apellidos", "get_email", "documento", "rol", "estado", "intentos_fallidos", "nivel_bloqueo")
+    list_display = (
+        "nombres", "apellidos", "get_email", "documento", "rol", "estado",
+        "intentos_fallidos", "nivel_bloqueo",
+    )
     list_filter = ("rol", "estado", "tipo_documento", "nivel_bloqueo")
-    search_fields = ("nombres", "apellidos", "documento")
+    search_fields = ("nombres", "apellidos", "documento", "email", "username")
     readonly_fields = ("intentos_fallidos", "bloqueado_hasta", "nivel_bloqueo")
 
     def get_email(self, obj):
