@@ -18,19 +18,19 @@ class PasoGuiaInline(admin.TabularInline):
 
 @admin.register(GuiaEdicion)
 class GuiaEdicionAdmin(admin.ModelAdmin):
-    list_display = ["titulo", "categoria", "orden", "activo", "es_favorito"]
-    list_filter = ["categoria", "activo", "es_favorito"]
+    list_display = ["titulo", "categoria", "orden", "activo", "es_favorito", "fecha_creacion"]
+    list_filter = ["categoria", "activo", "es_favorito", "fecha_creacion"]
     list_editable = ["orden", "activo", "es_favorito"]
-    search_fields = ["titulo", "contenido"]
+    search_fields = ["titulo", "contenido", "categoria__nombre"]
     inlines = [PasoGuiaInline]
 
 
 @admin.register(SugerenciaRecomendacion)
 class SugerenciaRecomendacionAdmin(admin.ModelAdmin):
-    list_display = ["titulo", "usuario", "tipo", "estado", "fecha_creacion"]
-    list_filter = ["tipo", "estado", "fecha_creacion"]
-    list_editable = ["estado"]
-    search_fields = ["titulo", "descripcion"]
+    list_display = ("titulo", "usuario", "tipo", "estado", "fecha_creacion", "fecha_actualizacion")
+    list_filter = ("tipo", "estado", "fecha_creacion", "usuario")
+    list_editable = ("estado",)
+    search_fields = ("titulo", "descripcion", "usuario__nombres", "usuario__apellidos")
     date_hierarchy = "fecha_creacion"
 
 

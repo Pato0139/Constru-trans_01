@@ -35,6 +35,7 @@ class DetallePedidoAdmin(admin.ModelAdmin):
         "subtotal",
     )
     list_filter = ("pedido", "material")
+    search_fields = ("pedido__codigo_pedido", "material__nombre")
     readonly_fields = ("subtotal",)
 
 
@@ -42,14 +43,19 @@ class DetallePedidoAdmin(admin.ModelAdmin):
 class SolicitudPedidoAdmin(admin.ModelAdmin):
     list_display = ("id", "cliente", "estado", "total", "fecha_creacion")
     list_filter = ("estado", "fecha_creacion")
-    search_fields = ("cliente__nombres", "cliente__apellidos")
+    search_fields = (
+        "cliente__nombres",
+        "cliente__apellidos",
+        "cliente__documento",
+    )
     readonly_fields = ("total", "fecha_creacion")
 
 
 @admin.register(DetalleSolicitudPedido)
 class DetalleSolicitudPedidoAdmin(admin.ModelAdmin):
     list_display = ("pedido", "material", "cantidad", "precio_unitario", "subtotal")
-    search_fields = ("material__nombre",)
+    list_filter = ("material",)
+    search_fields = ("pedido__id", "material__nombre")
     raw_id_fields = ("pedido",)
 
 
@@ -65,5 +71,10 @@ class PagoAdmin(admin.ModelAdmin):
         "revisado_por",
     )
     list_filter = ("estado", "metodo", "fecha_registro")
-    search_fields = ("pedido__codigo_pedido", "observaciones")
+    search_fields = (
+        "pedido__codigo_pedido",
+        "observaciones",
+        "revisado_por__nombres",
+        "revisado_por__apellidos",
+    )
     readonly_fields = ("fecha_registro", "fecha_revision")

@@ -16,8 +16,40 @@ class UsuarioAdmin(admin.ModelAdmin):
     get_email.short_description = "Correo"
 
 
-admin.site.register(EPS)
-admin.site.register(Conductor)
-admin.site.register(Notificacion)
-admin.site.register(Rol)
-admin.site.register(UsuarioRol)
+@admin.register(EPS)
+class EPSAdmin(admin.ModelAdmin):
+    list_display = ("codigo_eps", "numero_seguro", "ciudad", "telefono", "correo")
+    search_fields = ("codigo_eps", "numero_seguro", "ciudad", "correo")
+
+
+@admin.register(Conductor)
+class ConductorAdmin(admin.ModelAdmin):
+    list_display = ("usuario", "numero_licencia", "categoria_licencia", "estado", "fecha_vencimiento_licencia")
+    list_filter = ("estado", "categoria_licencia", "eps")
+    search_fields = (
+        "usuario__nombres",
+        "usuario__apellidos",
+        "usuario__documento",
+        "numero_licencia",
+    )
+
+
+@admin.register(Notificacion)
+class NotificacionAdmin(admin.ModelAdmin):
+    list_display = ("usuario", "titulo", "tipo", "leida", "fecha")
+    list_filter = ("tipo", "leida", "fecha")
+    search_fields = ("titulo", "mensaje", "usuario__nombres", "usuario__apellidos")
+
+
+@admin.register(Rol)
+class RolAdmin(admin.ModelAdmin):
+    list_display = ("nombre_rol", "descripcion", "activo")
+    list_filter = ("activo",)
+    search_fields = ("nombre_rol", "descripcion")
+
+
+@admin.register(UsuarioRol)
+class UsuarioRolAdmin(admin.ModelAdmin):
+    list_display = ("usuario", "rol", "fecha_asignacion", "fecha_revocacion", "activo")
+    list_filter = ("activo", "rol", "fecha_asignacion")
+    search_fields = ("usuario__nombres", "usuario__apellidos", "rol__nombre_rol")
