@@ -6,9 +6,6 @@
  * Inicializa eventos de pestañas y sincronización de URL
  * @listens DOMContentLoaded
  */
-<<<<<<< HEAD
-window.AppPageLifecycle.onPageLoad(function() {
-=======
 document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.getElementById('searchForm');
     const searchInput = searchForm && searchForm.querySelector('input[name="q"]');
@@ -26,8 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 350);
         });
     }
-
->>>>>>> origin/GRUPO_7_ADSO/FIX
     /**
      * Manejador de clic en pestañas para actualizar estado activo
      */

@@ -1,10 +1,5 @@
 from django.core.management.base import BaseCommand
-<<<<<<< HEAD:ayuda/management/commands/seed_ayuda.py
-=======
-from apps.ayuda.models import CategoriaAyuda, GuiaEdicion, PasoGuia, ColorSistema
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/ayuda/management/commands/seed_ayuda.py
-
-from ayuda.models import CategoriaAyuda, ColorSistema, GuiaEdicion, PasoGuia
+from apps.ayuda.models import CategoriaAyuda, ColorSistema, GuiaEdicion, PasoGuia
 
 GUIAS = [
     {

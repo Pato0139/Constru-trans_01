@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from apps.catalogo.models as  (
+from apps.catalogo.models import (
     MaterialConstruccion,
     MovimientoInventario,
     Stock,

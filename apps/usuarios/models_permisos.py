@@ -9,6 +9,8 @@
 ================================================================================
 """
 
+import logging
+
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import Permission as AuthPermission
 from django.contrib.contenttypes.models import ContentType
@@ -17,6 +19,8 @@ from django.db import models
 from config.superadmin_lock import es_superadmin_global
 
 from .models import Rol, Usuario
+
+logger = logging.getLogger(__name__)
 
 
 class RolProxy(Group):
@@ -94,7 +98,8 @@ class PermisoUsuario(models.Model):
 def _permisos_desde_licencias(user) -> set:
     """Devuelve los codenames de auth.Permission otorgados por licencias vigentes."""
     try:
-        from licensing.models import UsuarioLicencia
+        from apps.licensing.models import UsuarioLicencia
+
         codenames = set()
         for ul in UsuarioLicencia.objects.filter(
             usuario=user, fecha_desasignacion__isnull=True,
@@ -105,6 +110,10 @@ def _permisos_desde_licencias(user) -> set:
                 )
         return codenames
     except Exception:
+        logger.exception(
+            "No se pudieron resolver los permisos de licencia para el usuario %s",
+            getattr(user, "pk", None),
+        )
         return set()
 
 
@@ -113,6 +122,8 @@ def usuario_tiene_permiso(user, funcion: str) -> bool:
         return False
 
     if es_superadmin_global(user):
+        return True
+    if getattr(user, "rol", None) == "admin":
         return True
 
     try:

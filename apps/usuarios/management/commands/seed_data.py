@@ -7,10 +7,10 @@ from django.core.management.base import BaseCommand
 from django.db.models.signals import post_save
 from django.utils import timezone
 
-from apps.catalogo.models as  MaterialConstruccion, Stock
+from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
 from apps.clientes.models import Cliente, crear_perfil_cliente
-from compras.models import Proveedor
+from apps.compras.models import Proveedor
 from config.routers import EnrutadorInventario
 from config.utils import conexion_remota_disponible
 from apps.logistica.models import ConductorVehiculo, Entrega, Vehiculo

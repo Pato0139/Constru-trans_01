@@ -30,7 +30,6 @@ class Reporte(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="reportes_usuario",
     )
 
     # Fuera del MER pero útil — NO se toca
@@ -38,7 +37,7 @@ class Reporte(models.Model):
 
     class Meta:
         ordering = ["-fecha_generada"]
-        db_table = "reporte_reportes"
+        db_table = "reporte"
 
     def __str__(self):
         return f"Reporte {self.numero_reporte}"

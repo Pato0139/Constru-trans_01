@@ -161,51 +161,37 @@ def buscar_conductores(query=None):
 
 def registro(request):
     if request.method == "POST":
-        nombres = request.POST.get("nombres")
-        apellidos = request.POST.get("apellidos")
-        correo = request.POST.get("correo")
-        contrasena = request.POST.get("contrasena")
-        confirmar_contrasena = request.POST.get("confirmar_contrasena")
-        telefono = limpiar_telefono(request.POST.get("telefono"))
-        tipo_documento = request.POST.get("tipo_documento")
-        documento = limpiar_documento(request.POST.get("documento"))
-        pais_codigo = request.POST.get("pais_codigo", "+57")
-
-        logger.info(f"Intentando registro: {correo}")
-
-        # Validaciones básicas
-        if not all([nombres, apellidos, correo, contrasena, confirmar_contrasena, telefono, tipo_documento, documento]):
-            error_msg = "Todos los campos son obligatorios."
-            logger.warning("Campos incompletos en registro")
+        form = RegistroForm(request.POST)
+        if not form.is_valid():
+            error_msg = "Revise los datos ingresados e intente nuevamente."
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                return JsonResponse({"status": "error", "message": error_msg}, status=400)
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "message": error_msg,
+                        "errors": {
+                            field: [str(error) for error in errors]
+                            for field, errors in form.errors.items()
+                        },
+                    },
+                    status=400,
+                )
             messages.error(request, error_msg)
-            return render(request, "usuarios/registro.html", {"form": RegistroForm()})
+            return render(request, "usuarios/registro.html", {"form": form}, status=400)
 
-        if contrasena != confirmar_contrasena:
-            error_msg = "Las contraseñas no coinciden."
-            logger.warning("Contraseñas no coinciden")
-            if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                return JsonResponse({"status": "error", "message": error_msg}, status=400)
-            messages.error(request, error_msg)
-            return render(request, "usuarios/registro.html", {"form": RegistroForm()})
-
-        # Verificar si el usuario ya existe (forzar BD local)
-        if User.objects.db_manager('default').filter(username=correo).exists() or User.objects.db_manager('default').filter(email=correo).exists():
-            error_msg = "Este correo electrónico ya está registrado."
-            logger.warning(f"Correo duplicado: {correo}")
-            if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                return JsonResponse({"status": "error", "message": error_msg}, status=400)
-            messages.error(request, error_msg)
-            return render(request, "usuarios/registro.html", {"form": RegistroForm()})
+        data = form.cleaned_data
+        nombres = data["nombres"]
+        apellidos = data["apellidos"]
+        correo = data["correo"]
+        contrasena = data["contrasena"]
+        telefono = data["telefono"]
+        tipo_documento = data["tipo_documento"]
+        documento = data["documento"]
+        pais_codigo = data["pais_codigo"]
 
         try:
-            # Creación directa de usuario - MÁS SIMPLE POSIBLE
-            logger.info(f"Creando usuario registro: {correo}")
             telefono_completo = f"{pais_codigo}{telefono}"
-            
-            # Forzar uso de base de datos local para evitar latencia
-            user = User.objects.db_manager('default').create_user(
+            User.objects.db_manager('default').create_user(
                 username=correo,
                 email=correo,
                 password=contrasena,
@@ -218,9 +204,7 @@ def registro(request):
                 estado="activo",
                 sincronizado=False,
             )
-            logger.info(f"Usuario registro creado: {user.id}")
 
-            # RESPUESTA INMEDIATA sin registrar actividad
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({
                     "status": "success",
@@ -230,13 +214,20 @@ def registro(request):
             messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
             return redirect("usuarios:login")
 
-        except Exception as e:
-            logger.error(f"Error en registro {correo}: {str(e)}", exc_info=True)
-            error_msg = f"Error al crear el usuario: {str(e)}"
+        except IntegrityError:
+            logger.warning("Conflicto al registrar la cuenta %s", correo, exc_info=True)
+            error_msg = "No se pudo completar el registro. Verifique si el correo o documento ya existen."
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
-            return render(request, "usuarios/registro.html", {"form": RegistroForm()})
+            return render(request, "usuarios/registro.html", {"form": form}, status=400)
+        except DatabaseError:
+            logger.exception("Error de base de datos durante el registro de %s", correo)
+            error_msg = "No fue posible completar el registro en este momento. Inténtelo más tarde."
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"status": "error", "message": error_msg}, status=500)
+            messages.error(request, error_msg)
+            return render(request, "usuarios/registro.html", {"form": form}, status=500)
 
     form = RegistroForm()
     context = {"form": form}
@@ -729,6 +720,9 @@ def crear_usuario(request):
         tipo_doc = request.POST.get("tipo_doc")
         documento = limpiar_documento(request.POST.get("documento"))
 
+        if rol == "admin" and not es_superadmin_global(request.user):
+            raise PermissionDenied("Solo el Administrador Global puede crear otros administradores.")
+
         logger.info(f"Intentando crear usuario: {email}, rol: {rol}")
 
         # Validación básica simplificada
@@ -901,6 +895,13 @@ def editar_usuario(request, id):
             messages.error(request, "Los campos nombres, apellidos y teléfono son obligatorios.")
             context = {"usuario": usuario, "form_data": request.POST, "action": "editar"}
             return render(request, "usuarios/form.html", context)
+
+        if es_admin and rol and not is_super and (
+            usuario.rol == "admin" or rol == "admin"
+        ) and rol != usuario.rol:
+            raise PermissionDenied(
+                "Solo el Administrador Global puede asignar o cambiar el rol de administrador."
+            )
 
         try:
             usuario.nombres = nombres

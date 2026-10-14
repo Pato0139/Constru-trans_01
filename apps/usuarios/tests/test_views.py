@@ -64,6 +64,28 @@ class UsuarioViewsTests(TestCase):
         response = self.client.get(reverse("inicio:inicio"))
         self.assertEqual(response.status_code, 200)
 
+    def test_registro_rechaza_datos_manipulados_en_el_servidor(self):
+        response = self.client.post(
+            reverse("usuarios:registro"),
+            {
+                "nombres": "Juan123",
+                "apellidos": "Perez",
+                "correo": "registro-invalido@test.com",
+                "tipo_documento": "CC",
+                "documento": "123456789",
+                "pais_codigo": "+57",
+                "telefono": "3001234567",
+                "contrasena": "Nube!Tren2026#",
+                "confirmar_contrasena": "Nube!Tren2026#",
+                "aceptar_terminos": "yes",
+            },
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(
+            Usuario.objects.filter(email="registro-invalido@test.com").exists()
+        )
+
     def test_asignar_vehiculo_a_conductor(self):
         """El administrador puede asignar y cambiar vehículos de un conductor."""
         self.client.login(username="admin@test.com", password="password123")
@@ -132,5 +154,5 @@ class UsuarioViewsTests(TestCase):
 
         rendered = render_to_string("partials/sidebar.html", {"request": request}, request=request)
 
-self.assertIn(reverse("pedidos:lista_pedidos_admin"), rendered)
+        self.assertIn(reverse("pedidos:lista_pedidos_admin"), rendered)
         self.assertNotIn("/ordenes/", rendered)

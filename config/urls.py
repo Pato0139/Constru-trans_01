@@ -17,12 +17,12 @@ urlpatterns = [
     # Licensing
     path("licensing/", include("apps.licensing.urls")),
     # Apps
-path("usuarios/", include("apps.usuarios.urls")),
+    path("usuarios/", include("apps.usuarios.urls")),
     path("clientes/", include("apps.clientes.urls")),
     path("catalogo/", include("apps.catalogo.urls")),
     path("compras/", include("apps.compras.urls")),
     path("pedidos/", include("apps.pedidos.urls")),
-    path("pagos/", include("apps.pedidos.pagos_urls")),
+    path("pagos/", include("apps.pagos.urls")),
     path("reportes/", include("apps.reportes.urls")),
     path("auditoria/", include("apps.auditoria.urls")),
     path("logistica/", include("apps.logistica.urls")),

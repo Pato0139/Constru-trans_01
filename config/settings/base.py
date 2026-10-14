@@ -133,7 +133,7 @@ if not CSRF_TRUSTED_ORIGINS:
 # ============================================================
 
 DJANGO_APPS = [
-    "django.contrib.admin",
+    "config.admin_apps.ConstruTransAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -301,6 +301,7 @@ PASSWORD_HASHERS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
+    "apps.usuarios.backends.AdminRolePermissionBackend",
     "apps.usuarios.backends.EmailOrUsernameBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]

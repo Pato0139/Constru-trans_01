@@ -2,7 +2,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from apps.catalogo.models as  MaterialConstruccion, UnidadMedida
+from apps.catalogo.models import MaterialConstruccion, UnidadMedida
 from apps.pedidos.models import DetallePedido
 from apps.pedidos.models import Pago
 from apps.pedidos.models import Pedido
