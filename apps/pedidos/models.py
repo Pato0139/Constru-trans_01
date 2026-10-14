@@ -368,13 +368,13 @@ class Pago(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="pagos_revisados",
+        related_name="pedidos_pagos_revisados",
         db_column="revisado_por_id",
     )
     observaciones = models.TextField(blank=True, db_column="motivo_rechazo")
 
     class Meta:
-        db_table = "pago_pedido"
+        db_table = "pago_pedido_pedidos"
         ordering = ["-fecha_registro"]
         permissions = (
             ("revisar_pago", "Puede revisar y aprobar o rechazar pagos"),

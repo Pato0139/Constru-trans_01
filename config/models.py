@@ -144,7 +144,7 @@ class Historial(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="auditoria",
+        related_name="historial_core",
         verbose_name="Usuario",
     )
     accion = models.CharField(max_length=20, choices=ACCIONES, verbose_name="Acción")
@@ -166,7 +166,7 @@ class Historial(models.Model):
         verbose_name = "Historial de Actividad"
         verbose_name_plural = "Historial de Actividades"
         ordering = ["-fecha"]
-        db_table = "historial"
+        db_table = "historial_core"
 
     def __str__(self):
         return f"{self.usuario} - {self.accion} - {self.tabla or self.modulo} ({self.fecha})"
@@ -210,12 +210,18 @@ class Reporte(models.Model):
     fecha_generada = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=15, choices=ESTADOS, default="generado")
     descripcion = models.TextField(blank=True)
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reporte_usuario",
+    )
     archivo_pdf = models.FileField(upload_to="reportes/", null=True, blank=True)
 
     class Meta:
         ordering = ["-fecha_generada"]
-        db_table = "reporte"
+        db_table = "reporte_core"
 
     def __str__(self):
         return f"Reporte {self.numero_reporte}"
@@ -229,7 +235,7 @@ class HistorialReporte(models.Model):
 
     class Meta:
         ordering = ["-fecha_reporte"]
-        db_table = "historial_reporte"
+        db_table = "historial_reporte_core"
 
     def __str__(self):
         return f"Historial {self.codigo_historia}"

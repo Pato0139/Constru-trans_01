@@ -47,7 +47,7 @@ class Pago(models.Model):
     pedido = models.OneToOneField(
         "pedidos.Pedido",
         on_delete=models.CASCADE,
-        related_name="pago",
+        related_name="pagos_pago",
         db_column="pedido_id",
     )
     metodo = models.CharField(max_length=20, choices=METODOS, db_column="codigo_metodo_pago")
@@ -70,13 +70,13 @@ class Pago(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="pagos_revisados",
+        related_name="pagos_pagos_revisados",
         db_column="revisado_por_id",
     )
     observaciones = models.TextField(blank=True, db_column="motivo_rechazo")
 
     class Meta:
-        db_table = "pago_pedido"
+        db_table = "pago_pedido_pagos"
         ordering = ["-fecha_registro"]
         permissions = (
             ("revisar_pago", "Puede revisar y aprobar o rechazar pagos"),
@@ -85,7 +85,7 @@ class Pago(models.Model):
         constraints = [
             models.CheckConstraint(
                 check=models.Q(monto__gte=0),
-                name="chk_pago_monto_gte_0",
+                name="chk_pago_monto_gte_0_pagos",
             ),
         ]
 

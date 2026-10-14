@@ -43,7 +43,7 @@ class Historial(models.Model):
         verbose_name = "Historial de Actividad"
         verbose_name_plural = "Historial de Actividades"
         ordering = ["-fecha"]
-        db_table = "historial"
+        db_table = "historial_auditoria"
 
     def __str__(self):
         return f"{self.usuario} - {self.accion} - {self.tabla or self.modulo} ({self.fecha})"
