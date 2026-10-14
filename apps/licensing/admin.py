@@ -8,7 +8,7 @@
 
 from django.contrib import admin
 
-from core.superadmin_lock import es_superadmin_global
+from config.superadmin_lock import es_superadmin_global
 
 from .models import AuditoriaLicencia, Installation, Licencia, UsuarioLicencia
 

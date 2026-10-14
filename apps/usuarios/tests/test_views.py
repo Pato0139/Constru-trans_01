@@ -5,14 +5,8 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.template.loader import render_to_string
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
-<<<<<<< HEAD:usuarios/tests/test_views.py
-
-from logistica.models import ConductorVehiculo, Vehiculo
-from usuarios.models import Conductor, Usuario
-=======
 from apps.logistica.models import ConductorVehiculo, Vehiculo
-from apps.usuarios.models import Usuario, Conductor
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/usuarios/tests/test_views.py
+from apps.usuarios.models import Conductor, Usuario
 
 
 class UsuarioViewsTests(TestCase):
@@ -138,10 +132,5 @@ class UsuarioViewsTests(TestCase):
 
         rendered = render_to_string("partials/sidebar.html", {"request": request}, request=request)
 
-<<<<<<< HEAD:usuarios/tests/test_views.py
-        self.assertIn(reverse("pedidos:lista_pedidos_admin"), rendered)
+self.assertIn(reverse("pedidos:lista_pedidos_admin"), rendered)
         self.assertNotIn("/ordenes/", rendered)
-=======
-        self.assertIn("pedidos:lista_pedidos_admin", rendered)
-        self.assertNotIn("pedidos:lista_pedidos_admin", rendered)
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/usuarios/tests/test_views.py

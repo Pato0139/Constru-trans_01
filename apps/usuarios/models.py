@@ -181,7 +181,7 @@ class Usuario(AbstractUser):
 
     @property
     def es_superadmin(self):
-        from core.superadmin_lock import es_superadmin_global
+        from config.superadmin_lock import (es_superadmin_global,)
         return es_superadmin_global(self)
 
     @property

@@ -206,12 +206,8 @@ class CustomPasswordResetForm(PasswordResetForm):
 
     def get_users(self, email):
         from django.conf import settings
-<<<<<<< HEAD:usuarios/forms.py
-
-        from core.utils import conexion_remota_disponible
-=======
         from config.utils import conexion_remota_disponible
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/usuarios/forms.py
+
         seen = set()
         merged = []
         criterio = Q(email__iexact=email) | Q(username__iexact=email)

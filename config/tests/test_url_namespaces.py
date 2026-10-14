@@ -107,16 +107,10 @@ class TestUrlsRegistradas:
 
     def test_vistas_urls_mapeadas_existen(self):
         apps_urls = [
-<<<<<<< HEAD:core/tests/test_url_namespaces.py
-            "usuarios.urls", "clientes.urls", "catalogo.urls", "compras.urls",
+"usuarios.urls", "clientes.urls", "catalogo.urls", "compras.urls",
             "pedidos.urls", "pedidos.pagos_urls", "logistica.urls",
             "core.auditoria_urls", "core.reportes_urls",
             "licensing.urls", "ayuda.urls", "ia.urls",
-=======
-            "apps.usuarios.urls", "apps.clientes.urls", "apps.catalogo.urls", "apps.compras.urls",
-            "apps.pedidos.urls", "apps.logistica.urls", "apps.auditoria.urls", "apps.reportes.urls",
-            "apps.inicio.urls", "apps.licensing.urls", "apps.ayuda.urls", "apps.ia.urls",
->>>>>>> origin/GRUPO_7_ADSO/FIX:config/tests/test_url_namespaces.py
         ]
         faltantes: list[str] = []
         from inspect import isclass

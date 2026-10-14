@@ -29,12 +29,7 @@ def clear_db_preference() -> None:
 
 def debe_usar_bd_remota() -> bool:
     from django.conf import settings
-<<<<<<< HEAD:core/db_preference.py
-
-    from core.utils import conexion_remota_disponible
-=======
     from config.utils import conexion_remota_disponible
->>>>>>> origin/GRUPO_7_ADSO/FIX:config/db_preference.py
 
     if "test" in sys.argv:
         return False

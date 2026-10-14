@@ -4,19 +4,10 @@ from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.urls import reverse
 
-<<<<<<< HEAD:catalogo/views/api_views.py
-from catalogo.models import Catalogo
-from catalogo.models import MaterialConstruccion as Material
-from core.datatables import apply_search, build_dt_response, get_dt_params
-from usuarios.views import admin_required
-
-=======
-from apps.catalogo.models import MaterialConstruccion as Material, Catalogo
+from apps.catalogo.models as  Catalogo
+from apps.catalogo.models as  MaterialConstruccion as Material
+from config.datatables import apply_search, build_dt_response, get_dt_params
 from apps.usuarios.views import admin_required
-
-from config.datatables import get_dt_params, apply_search, build_dt_response
-
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/catalogo/views/api_views.py
 
 @admin_required
 def api_materiales(request):

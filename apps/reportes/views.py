@@ -13,21 +13,12 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import (Paragraph, SimpleDocTemplate, Spacer, Table,
                                 TableStyle)
 
-<<<<<<<< HEAD:config/views_reportes.py
-from core.utils import registrar_actividad
-from catalogo.models import MaterialConstruccion as Material
-from logistica.models import Vehiculo
-from pedidos.models import Pedido
-from usuarios.models import Usuario
-from usuarios.views import admin_required
-========
-from apps.auditoria.utils import registrar_actividad
+from config.utils import registrar_actividad
+from apps.catalogo.models as  MaterialConstruccion as Material
+from apps.logistica.models import Vehiculo
 from apps.pedidos.models import Pedido
 from apps.usuarios.models import Usuario
-from apps.catalogo.models import MaterialConstruccion as Material
-from apps.logistica.models import Vehiculo
 from apps.usuarios.views import admin_required
->>>>>>>> origin/GRUPO_7_ADSO/FIX:apps/reportes/views.py
 
 
 @admin_required

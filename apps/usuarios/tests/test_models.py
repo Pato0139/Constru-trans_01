@@ -1,16 +1,9 @@
 from datetime import date, timedelta
 
 from django.test import TestCase
-<<<<<<< HEAD:usuarios/tests/test_models.py
-
-from catalogo.models import MaterialConstruccion, Stock, UnidadMedida
-from logistica.models import ConductorVehiculo, Vehiculo
-from usuarios.models import EPS, Conductor, Usuario
-=======
-from apps.catalogo.models import MaterialConstruccion, Stock, UnidadMedida
-from apps.logistica.models import Vehiculo, ConductorVehiculo
-from apps.usuarios.models import Usuario, Conductor, EPS
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/usuarios/tests/test_models.py
+from apps.catalogo.models as  MaterialConstruccion, Stock, UnidadMedida
+from apps.logistica.models import ConductorVehiculo, Vehiculo
+from apps.usuarios.models import EPS, Conductor, Usuario
 
 
 class UsuarioModelTests(TestCase):

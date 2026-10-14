@@ -1,15 +1,9 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-<<<<<<< HEAD:usuarios/management/commands/cargar_tipos_material.py
-from catalogo.models import Catalogo
-from core.routers import EnrutadorInventario
-from core.utils import conexion_remota_disponible
-=======
+from apps.catalogo.models as  Catalogo
 from config.routers import EnrutadorInventario
 from config.utils import conexion_remota_disponible
-from apps.catalogo.models import Catalogo
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/usuarios/management/commands/cargar_tipos_material.py
 
 _router = EnrutadorInventario()
 

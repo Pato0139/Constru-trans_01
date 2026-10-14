@@ -29,7 +29,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from core.superadmin_lock import es_superadmin_global
+from config.superadmin_lock import es_superadmin_global
 
 from .models import BloqueoIP, SecurityEvent
 

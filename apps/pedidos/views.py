@@ -8,31 +8,15 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-<<<<<<< HEAD:pedidos/views.py
-from core.utils import registrar_actividad
-from catalogo.models import MaterialConstruccion, Stock
-from catalogo.models.movimientos import MovimientoInventario
-from core.db_preference import debe_usar_bd_remota
-from core.db_utils import select_for_update_if_supported
-from core.security import (_respuesta_no_autorizada, obtener_ip,
-                           registrar_evento, registrar_warning)
-from usuarios.models import Conductor, Usuario
-from usuarios.views import admin_required
-=======
-from config.security import (
-    _respuesta_no_autorizada,
-    obtener_ip,
-    registrar_evento,
-    registrar_warning,
-)
-from apps.auditoria.utils import registrar_actividad
+from config.utils import registrar_actividad
+from apps.catalogo.models as  MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
-from apps.catalogo.models import MaterialConstruccion, Stock
-from apps.usuarios.models import Conductor, Usuario
-from apps.usuarios.views import admin_required
 from config.db_preference import debe_usar_bd_remota
 from config.db_utils import select_for_update_if_supported
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/pedidos/views.py
+from config.security import (_respuesta_no_autorizada, obtener_ip,
+                           registrar_evento, registrar_warning)
+from apps.usuarios.models import Conductor, Usuario
+from apps.usuarios.views import admin_required
 
 from .models import (DetallePedido, DetalleSolicitudPedido, Pedido,
                      SolicitudPedido)
@@ -714,4 +698,4 @@ def cancelar_pedido(request, pk):
 
     return redirect("pedidos:detalle_solicitud", pk=pk)
 
-from pedidos.views_pagos import *  # noqa: F401,F403
+from apps.pedidos.views_pagos import *  # noqa: F401,F403

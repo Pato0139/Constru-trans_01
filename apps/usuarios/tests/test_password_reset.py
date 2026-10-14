@@ -7,8 +7,8 @@ from django.core.mail import EmailMultiAlternatives
 from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, override_settings
 
-from usuarios.forms import CustomPasswordResetForm
-from usuarios.views import CustomPasswordResetView
+from apps.usuarios.forms import CustomPasswordResetForm
+from apps.usuarios.views import CustomPasswordResetView
 
 
 class PasswordResetViewTests(SimpleTestCase):

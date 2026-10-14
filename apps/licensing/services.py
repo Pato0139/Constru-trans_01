@@ -22,7 +22,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.utils import timezone
 
-from core.superadmin_lock import puede_gestionar_licensing
+from config.superadmin_lock import puede_gestionar_licensing
 
 from .crypto import KDF_DEFAULTS, decrypt_license_blob, encrypt_license_blob
 from .models import AuditoriaLicencia, Installation, Licencia, UsuarioLicencia

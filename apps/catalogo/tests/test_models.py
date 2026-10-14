@@ -1,12 +1,6 @@
 from django.test import TestCase
-<<<<<<< HEAD:catalogo/tests/test_models.py
-
-from catalogo.forms import MaterialForm
-from catalogo.models import MaterialConstruccion, Stock, UnidadMedida
-=======
 from apps.catalogo.forms import MaterialForm
-from apps.catalogo.models import UnidadMedida, MaterialConstruccion, Stock
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/catalogo/tests/test_models.py
+from apps.catalogo.models as  MaterialConstruccion, Stock, UnidadMedida
 
 
 class CatalogoModelsTests(TestCase):

@@ -1,15 +1,9 @@
 from django.conf import settings
 from django.core.cache import cache
 
-<<<<<<< HEAD:usuarios/context_processors.py
-from core.db_preference import PREF_AUTO, debe_usar_bd_remota
-from core.utils import conexion_remota_disponible
-from usuarios.models import Notificacion
-=======
-from apps.usuarios.models import Notificacion
 from config.db_preference import PREF_AUTO, debe_usar_bd_remota
 from config.utils import conexion_remota_disponible
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/usuarios/context_processors.py
+from apps.usuarios.models import Notificacion
 
 
 def notificaciones_context(request):

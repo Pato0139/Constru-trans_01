@@ -12,12 +12,8 @@ from .kb_service import check_knowledge_base, update_knowledge_base
 from .llm_service import LLM_MODEL, LLM_PROVIDER, client, preguntar_llm
 from .math_service import evaluar_expresion_matematica
 from .orm_query_service import consultar_datos
-<<<<<<< HEAD:ia/services/assistant_service.py
 from .rag_service import buscar_contexto
 from .semantic_memory_service import buscar_memoria, guardar_interaccion
-=======
-from .web_search_service import buscar_web_si_aplica
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/ia/services/assistant_service.py
 from .time_service import responder_hora
 from .web_search_service import buscar_web_si_aplica
 

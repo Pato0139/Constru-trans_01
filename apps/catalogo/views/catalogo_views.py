@@ -2,17 +2,10 @@ from django.contrib import messages
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
-<<<<<<< HEAD:catalogo/views/catalogo_views.py
-from core.utils import registrar_actividad
-from catalogo.forms import CatalogoForm, UnidadMedidaForm
-from catalogo.models import Catalogo, UnidadMedida
-from usuarios.views import admin_required
-=======
-from apps.auditoria.utils import registrar_actividad
+from config.utils import registrar_actividad
 from apps.catalogo.forms import CatalogoForm, UnidadMedidaForm
-from apps.catalogo.models import Catalogo, UnidadMedida
+from apps.catalogo.models as  Catalogo, UnidadMedida
 from apps.usuarios.views import admin_required
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/catalogo/views/catalogo_views.py
 
 
 @admin_required

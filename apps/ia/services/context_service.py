@@ -31,29 +31,12 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
         try:
             from django.db.models import Count
 
-<<<<<<< HEAD:ia/services/context_service.py
-            from catalogo.models import MaterialConstruccion, Stock
-            from clientes.models import Cliente
-            from compras.models import Compra, Proveedor
-            from logistica.models import ConductorVehiculo, Vehiculo
-            from pedidos.models import Pedido as PedidoGestion
-            from usuarios.models import Usuario
-=======
+from apps.catalogo.models as  MaterialConstruccion, Stock
             from apps.clientes.models import Cliente
-            from apps.compras.models import Compra, Proveedor
+            from compras.models import Compra, Proveedor
+            from apps.logistica.models import ConductorVehiculo, Vehiculo
             from apps.pedidos.models import Pedido as PedidoGestion
-            from apps.catalogo.models import (
-                MaterialConstruccion,
-                Stock,
-            )
-            from apps.logistica.models import (
-                ConductorVehiculo,
-                Vehiculo,
-            )
-            from apps.usuarios.models import (
-                Usuario,
-            )
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/ia/services/context_service.py
+            from apps.usuarios.models import Usuario
 
             # --- DATOS GLOBALES ---
             # Obtener vehículos asociados a cada conductor

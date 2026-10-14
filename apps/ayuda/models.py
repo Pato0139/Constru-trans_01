@@ -1,11 +1,6 @@
 from django.db import models
 from django.utils import timezone
-<<<<<<< HEAD:ayuda/models.py
-
-from usuarios.models import Usuario
-=======
 from apps.usuarios.models import Usuario
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/ayuda/models.py
 
 
 class CategoriaAyuda(models.Model):

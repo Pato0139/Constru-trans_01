@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 
-from core.despacho import separar_direccion_destino
+from config.despacho import separar_direccion_destino
 
 logger = logging.getLogger(__name__)
 

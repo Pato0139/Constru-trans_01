@@ -4,17 +4,10 @@ import qrcode
 from django.core.files.base import ContentFile
 from django.db.models import F
 
-<<<<<<< HEAD:pedidos/utils.py
-from catalogo.models import Stock
-from catalogo.models.movimientos import MovimientoInventario
-from core.db_preference import debe_usar_bd_remota
-from core.db_utils import select_for_update_if_supported
-=======
+from apps.catalogo.models as  Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
-from apps.catalogo.models import Stock
 from config.db_preference import debe_usar_bd_remota
 from config.db_utils import select_for_update_if_supported
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/pedidos/utils.py
 
 
 def revertir_stock_pedido(orden, usuario, motivo_prefijo="Cancelación", using=None):

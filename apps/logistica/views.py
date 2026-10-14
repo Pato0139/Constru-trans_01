@@ -7,10 +7,9 @@ from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 
-<<<<<<< HEAD:logistica/views.py
-from core.permissions import requiere_funcion
-from usuarios.models import Conductor, Usuario
-from usuarios.views import admin_required
+from config.permissions import requiere_funcion
+from apps.usuarios.models import Conductor, Usuario
+from apps.usuarios.views import admin_required
 
 from .models import (ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento,
                      Seguimiento, Vehiculo)
@@ -22,19 +21,6 @@ def _tiene_columna_catalogo(db_alias):
     with connection.cursor() as cursor:
         columns = connection.introspection.get_table_description(cursor, Vehiculo._meta.db_table)
     return any(column.name == "codigo_catalogo" for column in columns)
-=======
-from config.permissions import requiere_funcion
-from apps.usuarios.models import Conductor, Usuario
-from apps.usuarios.views import admin_required
-from .models import (
-    Vehiculo,
-    ConductorVehiculo,
-    Entrega,
-    Novedad,
-    Seguimiento,
-    RespuestaSeguimiento,
-)
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/logistica/views.py
 
 
 def _vehiculos_con_fallback_seguro():

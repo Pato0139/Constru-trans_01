@@ -6,27 +6,14 @@ from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
 from django.db import OperationalError, connections
 
-<<<<<<< HEAD:catalogo/management/commands/sincronizar.py
-from core.models import Historial
-from catalogo.models import MaterialConstruccion as Material
-from catalogo.models import MovimientoInventario
-from clientes.models import Cliente
-from compras.models import Compra, Proveedor
-from logistica.models import Entrega, Vehiculo
-from pedidos.models import Pedido
-from usuarios.models import Usuario
-=======
+from config.models import Historial
+from apps.catalogo.models as  MaterialConstruccion as Material
+from apps.catalogo.models as  MovimientoInventario
 from apps.clientes.models import Cliente
-from apps.compras.models import Compra
-from apps.auditoria.models import Historial
-from apps.catalogo.models import MovimientoInventario
+from compras.models import Compra, Proveedor
+from apps.logistica.models import Entrega, Vehiculo
 from apps.pedidos.models import Pedido
-from apps.logistica.models import Entrega
-from apps.catalogo.models import MaterialConstruccion as Material
-from apps.compras.models import Proveedor
 from apps.usuarios.models import Usuario
-from apps.logistica.models import Vehiculo
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/catalogo/management/commands/sincronizar.py
 
 
 def conexion_remota_disponible():

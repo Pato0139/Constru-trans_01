@@ -4,27 +4,13 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import Resolver404, resolve
 
-<<<<<<< HEAD:core/middleware.py
-from core.db_preference import (PREF_AUTO, PREF_REMOTA, clear_db_preference,
+from config.db_preference import (PREF_AUTO, PREF_REMOTA, clear_db_preference,
                                 set_db_preference)
-from core.security import (BloqueoIP, SecurityEvent, _respuesta_no_autorizada,
+from config.security import (BloqueoIP, SecurityEvent, _respuesta_no_autorizada,
                            contar_warnings_ventana, ip_esta_bloqueada,
                            obtener_ip, registrar_evento, registrar_warning)
-from core.superadmin_lock import es_superadmin_global
-from core.utils import conexion_remota_disponible
-=======
-from config.db_preference import PREF_AUTO, PREF_REMOTA, clear_db_preference, set_db_preference
-from config.security import (
-    BloqueoIP,
-    _respuesta_no_autorizada,
-    contar_warnings_ventana,
-    ip_esta_bloqueada,
-    obtener_ip,
-    registrar_evento,
-    registrar_warning,
-)
+from config.superadmin_lock import es_superadmin_global
 from config.utils import conexion_remota_disponible
->>>>>>> origin/GRUPO_7_ADSO/FIX:config/middleware.py
 
 logger = logging.getLogger(__name__)
 

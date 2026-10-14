@@ -123,7 +123,7 @@ def get_client_ip(request):
 
 
 def registrar_actividad(request, accion, modulo, elemento_id=None, descripcion=""):
-    from core.models import Historial
+    from config.models import Historial
 
     usuario = request.user if request and request.user.is_authenticated else None
     ip_address = get_client_ip(request) if request else None

@@ -2,20 +2,11 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-<<<<<<<< HEAD:apps/pedidos/tests/test_pagos_views.py
-from catalogo.models import MaterialConstruccion, UnidadMedida
-from pedidos.models import DetallePedido
-from pedidos.models import Pago
-from pedidos.models import Pedido
-from usuarios.models import Usuario
-
-========
+from apps.catalogo.models as  MaterialConstruccion, UnidadMedida
+from apps.pedidos.models import DetallePedido
+from apps.pedidos.models import Pago
 from apps.pedidos.models import Pedido
 from apps.usuarios.models import Usuario
-
-from apps.pagos.models import Pago
-
->>>>>>>> origin/GRUPO_7_ADSO/FIX:apps/pagos/tests/test_views.py
 
 class PagoViewsTests(TestCase):
     def setUp(self):

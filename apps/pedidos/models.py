@@ -1,7 +1,6 @@
 import datetime
 import logging
 
-<<<<<<< HEAD:pedidos/models.py
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
@@ -9,12 +8,8 @@ from django.db import models
 from django.db.utils import OperationalError
 from django.utils import timezone
 
-from catalogo.models import MaterialConstruccion
-from usuarios.models import Usuario
-=======
 from apps.catalogo.models import MaterialConstruccion
 from apps.usuarios.models import Usuario
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/pedidos/models.py
 
 logger = logging.getLogger(__name__)
 

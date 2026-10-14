@@ -14,7 +14,7 @@ from django.contrib.auth.models import Permission as AuthPermission
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from core.superadmin_lock import es_superadmin_global
+from config.superadmin_lock import es_superadmin_global
 
 from .models import Rol, Usuario
 

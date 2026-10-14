@@ -1,15 +1,10 @@
 from django.db.models import Q
-<<<<<<<< HEAD:config/views_auditoria.py
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from usuarios.views import admin_required
-
-from core.models import Historial
-========
 from apps.usuarios.views import admin_required
-from .models import Historial
->>>>>>>> origin/GRUPO_7_ADSO/FIX:apps/auditoria/views.py
+
+from config.models import Historial
 
 
 @admin_required

@@ -1,14 +1,8 @@
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
-<<<<<<< HEAD:ia/tests/test_conocimiento_general.py
-
 from ia.services import assistant_service, llm_service
 from ia.services.web_search_service import _es_pregunta_general
-=======
-from apps.ia.services import assistant_service, llm_service
-from apps.ia.services.web_search_service import _es_pregunta_general
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/ia/tests/test_conocimiento_general.py
 
 
 class RouterGeneralTests(TestCase):

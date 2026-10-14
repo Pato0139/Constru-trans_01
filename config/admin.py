@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from core.models import BloqueoIP, Historial, HistorialReporte, Reporte, SecurityEvent
+from config.models import BloqueoIP, Historial, HistorialReporte, Reporte, SecurityEvent
 
 
 @admin.register(Historial)

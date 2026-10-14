@@ -2,7 +2,6 @@ from io import BytesIO
 from types import SimpleNamespace
 from unittest.mock import Mock
 
-<<<<<<< HEAD:usuarios/tests/test_media_upload.py
 from django.contrib.messages.middleware import MessageMiddleware
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.sessions.middleware import SessionMiddleware
@@ -10,12 +9,9 @@ from django.test import RequestFactory, SimpleTestCase
 from django.urls import reverse
 from PIL import Image
 
-from usuarios.forms import FotoPerfilForm
-from usuarios.models import Usuario, foto_perfil_upload_path
-from usuarios.views import editar_perfil
-=======
+from apps.usuarios.forms import FotoPerfilForm
 from apps.usuarios.models import Usuario, foto_perfil_upload_path
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/usuarios/tests/test_media_upload.py
+from apps.usuarios.views import editar_perfil
 
 
 class FotoPerfilUploadPathTests(SimpleTestCase):

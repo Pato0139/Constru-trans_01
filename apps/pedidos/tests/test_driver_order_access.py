@@ -1,8 +1,8 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from pedidos.models import Pedido
-from usuarios.models import Conductor, Usuario
+from apps.pedidos.models import Pedido
+from apps.usuarios.models import Conductor, Usuario
 
 
 class DriverOrderAccessTests(TestCase):

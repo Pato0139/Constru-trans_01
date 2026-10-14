@@ -8,23 +8,12 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-<<<<<<<< HEAD:apps/pedidos/views_pagos.py
-from core.utils import registrar_actividad
-from core.security import role_required
-from usuarios.views import admin_required
-
-from pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
-from pedidos.models import Pago, Pedido
-========
-from apps.auditoria.utils import registrar_actividad
-from apps.pedidos.models import Pedido
-from apps.usuarios.views import admin_required
+from config.utils import registrar_actividad
 from config.security import role_required
+from apps.usuarios.views import admin_required
 
-from .forms import PagoRegistroForm, PagoRevisionForm
-from .models import Pago, Factura, PagoFactura
-from .pdf import render_factura_pdf
->>>>>>>> origin/GRUPO_7_ADSO/FIX:apps/pagos/views.py
+from apps.pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
+from apps.pedidos.models import Pago, Pedido
 
 
 def _usuario_actual(request):

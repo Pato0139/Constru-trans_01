@@ -2,17 +2,10 @@
 import time
 
 from django.core.management.base import BaseCommand
-<<<<<<< HEAD:ia/management/commands/autoentrenar.py
-
 from ia.services import llm_service
 from ia.services.memoria_destilada import (_cargar_vistos, guardar_par,
                                            hash_pregunta, leer_pares)
 from ia.training.recolector_preguntas import recolectar
-=======
-from apps.ia.services import llm_service
-from apps.ia.services.memoria_destilada import _cargar_vistos, guardar_par, hash_pregunta, leer_pares
-from apps.ia.training.recolector_preguntas import recolectar
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/ia/management/commands/autoentrenar.py
 
 SYSTEM_MASTER = "Eres un tutor enciclopédico. Responde en español, de forma breve (2-4 frases), clara y correcta. No inventes datos."
 

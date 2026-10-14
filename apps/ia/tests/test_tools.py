@@ -2,12 +2,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
-<<<<<<< HEAD:ia/tests/test_tools.py
-
 from ia.services import llm_service, tools_registry
-=======
-from apps.ia.services import llm_service, tools_registry
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/ia/tests/test_tools.py
 
 
 class ToolsRegistryTests(TestCase):

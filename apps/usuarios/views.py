@@ -21,50 +21,24 @@ from django.urls import reverse, reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.timezone import now
 
-<<<<<<< HEAD:usuarios/views.py
-from core.utils import registrar_actividad
-from catalogo.models import MaterialConstruccion as Material
-from core.db_preference import (PREF_LOCAL, PREF_REMOTA, get_db_preference,
+from config.utils import registrar_actividad
+from apps.catalogo.models import MaterialConstruccion as Material
+from config.db_preference import (PREF_LOCAL, PREF_REMOTA, get_db_preference,
                                 invalidate_connection_cache)
-from core.security import (_respuesta_no_autorizada, admin_required,
+from config.security import (_respuesta_no_autorizada, admin_required,
                            obtener_ip, registrar_evento, registrar_warning,
                            role_required)
-from core.superadmin_lock import es_superadmin_global
-from core.sync import sync_all_usuarios
-from core.utils import conexion_remota_disponible
-from usuarios.weather import get_route_weather
-from logistica.forms import AsignarVehiculoForm
-from logistica.models import ConductorVehiculo
-from pedidos.models import Pedido
+from config.superadmin_lock import es_superadmin_global
+from config.sync import sync_all_usuarios
+from config.utils import conexion_remota_disponible
+from apps.usuarios.weather import get_route_weather
+from apps.logistica.forms import AsignarVehiculoForm
+from apps.logistica.models import ConductorVehiculo
+from apps.pedidos.models import Pedido
 
 from .forms import CustomPasswordResetForm, FotoPerfilForm, LoginForm, RegistroForm
 from .models import Conductor, Usuario
 from .utils import limpiar_documento, limpiar_telefono
-=======
-from config.security import (
-    _respuesta_no_autorizada,
-    admin_required,
-    obtener_ip,
-    registrar_evento,
-    registrar_warning,
-    role_required,
-)
-from apps.auditoria.utils import registrar_actividad
-from apps.pedidos.models import Pedido
-from config.db_preference import PREF_LOCAL, PREF_REMOTA, get_db_preference, invalidate_connection_cache
-from config.sync import sync_all_usuarios
-from config.utils import conexion_remota_disponible
-
-from .forms import LoginForm, RegistroForm, CustomPasswordResetForm
-from apps.logistica.forms import AsignarVehiculoForm
-from .models import (
-    Conductor,
-    Usuario,
-)
-from apps.logistica.models import ConductorVehiculo
-from apps.catalogo.models import MaterialConstruccion as Material
-from .utils import get_account_switch_options, limpiar_documento, limpiar_telefono
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/usuarios/views.py
 
 logger = logging.getLogger(__name__)
 
@@ -471,12 +445,7 @@ def panel(request):
 
     if usuario.rol == "admin":
         from django.core.cache import cache
-<<<<<<< HEAD:usuarios/views.py
-
-        from core.utils import get_cache_key
-=======
         from config.utils import get_cache_key
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/usuarios/views.py
 
         cache_key = get_cache_key("panel_admin_v2", usuario.id)
         context = cache.get(cache_key)

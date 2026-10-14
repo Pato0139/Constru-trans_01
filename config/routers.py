@@ -1,12 +1,7 @@
 import sys
 
-<<<<<<< HEAD:core/routers.py
-from core.db_preference import PREF_LOCAL, PREF_REMOTA, get_db_preference
-from core.utils import conexion_remota_disponible
-=======
-from config.db_preference import get_db_preference, PREF_LOCAL, PREF_REMOTA
+from config.db_preference import PREF_LOCAL, PREF_REMOTA, get_db_preference
 from config.utils import conexion_remota_disponible
->>>>>>> origin/GRUPO_7_ADSO/FIX:config/routers.py
 
 # Apps de Django que SIEMPRE deben vivir en la BD default (local)
 # para evitar conflictos de sesión entre bases de datos.

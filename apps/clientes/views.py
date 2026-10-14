@@ -8,41 +8,18 @@ from django.db import transaction
 from django.db.models import F, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
-<<<<<<< HEAD:clientes/views.py
-from catalogo.models import Catalogo
-from catalogo.models import MaterialConstruccion as Material
-from catalogo.models import Stock, UnidadMedida
-from core.db_preference import debe_usar_bd_remota
-from core.db_utils import select_for_update_if_supported
-from core.despacho import (CIUDADES_DESPACHO, ciudad_valida,
-                           construir_direccion_destino,
-                           separar_direccion_destino)
-from core.security import (_respuesta_no_autorizada, obtener_ip,
-                           registrar_evento, registrar_warning, role_required)
-from pedidos.models import DetallePedido, Pedido
-from usuarios.models import Usuario
-
-=======
-from config.security import (
-    _respuesta_no_autorizada,
-    obtener_ip,
-    registrar_evento,
-    registrar_warning,
-    role_required,
-)
-from apps.pedidos.models import DetallePedido, Pedido
-from apps.usuarios.models import Usuario
-from apps.catalogo.models import Catalogo, Stock, UnidadMedida, MaterialConstruccion as Material
-from apps.usuarios.utils import get_account_switch_options
+from apps.catalogo.models import Catalogo
+from apps.catalogo.models import MaterialConstruccion as Material
+from apps.catalogo.models import Stock, UnidadMedida
 from config.db_preference import debe_usar_bd_remota
 from config.db_utils import select_for_update_if_supported
-from config.despacho import (
-    CIUDADES_DESPACHO,
-    ciudad_valida,
-    construir_direccion_destino,
-    separar_direccion_destino,
-)
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/clientes/views.py
+from config.despacho import (CIUDADES_DESPACHO, ciudad_valida,
+                           construir_direccion_destino,
+                           separar_direccion_destino)
+from config.security import (_respuesta_no_autorizada, obtener_ip,
+                           registrar_evento, registrar_warning, role_required)
+from apps.pedidos.models import DetallePedido, Pedido
+from apps.usuarios.models import Usuario
 from .models import Cliente
 
 
@@ -769,51 +746,47 @@ def cancelar_pedido(request, id):
             return redirect("pedidos:lista_pedidos_admin")
         return redirect("clientes:mis_pedidos")
 
-    db_alias = _obtener_alias_db()
-    try:
-        with transaction.atomic(using=db_alias):
-            for detalle in pedido.detalles.all():
-                try:
-                    stock_obj = (
-                        select_for_update_if_supported(
-                            Stock.objects.using(db_alias),
-                            db_alias,
-                        ).get(material=detalle.material)
-                    )
-                except Stock.DoesNotExist:
-                    stock_obj = Stock.objects.using(db_alias).create(
-                        material=detalle.material, cantidad_actual=0
-                    )
-                stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
-                stock_obj.save(using=db_alias)
+db_alias = _obtener_alias_db()
+try:
+    with transaction.atomic(using=db_alias):
+        for detalle in pedido.detalles.all():
+            try:
+                stock_obj = (
+                    select_for_update_if_supported(
+                        Stock.objects.using(db_alias),
+                        db_alias,
+                    ).get(material=detalle.material)
+                )
+            except Stock.DoesNotExist:
+                stock_obj = Stock.objects.using(db_alias).create(
+                    material=detalle.material, cantidad_actual=0
+                )
+            stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
+            stock_obj.save(using=db_alias)
 
-            pedido.estado = "cancelado"
-            pedido.save()
+        pedido.estado = "cancelado"
+        pedido.save()
 
-<<<<<<< HEAD:clientes/views.py
-            from core.utils import registrar_actividad
-=======
-            from apps.auditoria.utils import registrar_actividad
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/clientes/views.py
+        from config.utils import registrar_actividad
 
-            comentario = (
-                f"Pedido #{pedido.codigo_pedido} cancelado por "
-                f"{'admin' if es_admin else 'cliente'}"
-            )
-            registrar_actividad(
-                request,
-                "cancelar_pedido",
-                "pedidos",
-                pedido.codigo_pedido,
-                comentario,
-            )
-
-        messages.warning(
-            request,
-            f"Pedido #{pedido.codigo_pedido} ha sido cancelado y el stock ha sido devuelto.",
+        comentario = (
+            f"Pedido #{pedido.codigo_pedido} cancelado por "
+            f"{'admin' if es_admin else 'cliente'}"
         )
-    except Exception as e:
-        messages.error(request, f"Error al cancelar el pedido: {e}")
+        registrar_actividad(
+            request,
+            "cancelar_pedido",
+            "pedidos",
+            pedido.codigo_pedido,
+            comentario,
+        )
+
+    messages.warning(
+        request,
+        f"Pedido #{pedido.codigo_pedido} ha sido cancelado y el stock ha sido devuelto.",
+    )
+except Exception as e:
+    messages.error(request, f"Error al cancelar el pedido: {e}")
 
     if es_admin:
         return redirect("pedidos:lista_pedidos_admin")

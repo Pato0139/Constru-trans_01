@@ -1,17 +1,12 @@
 from django.test import TestCase
 
-<<<<<<< HEAD:catalogo/tests/test_stock.py
-from catalogo.models import (
+from apps.catalogo.models as  (
     MaterialConstruccion,
     MovimientoInventario,
     Stock,
     UnidadMedida,
 )
-from catalogo.services.kardex import KardexService
-=======
 from apps.catalogo.services.kardex import KardexService
-from apps.catalogo.models import MaterialConstruccion, Stock, UnidadMedida
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/catalogo/tests/test_stock.py
 
 
 class CatalogoStockTests(TestCase):

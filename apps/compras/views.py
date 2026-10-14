@@ -2,23 +2,14 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db import transaction
-<<<<<<< HEAD:compras/views.py
 from django.db.models import Prefetch, Q
-=======
-from django.db.models import Count, Q
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/compras/views.py
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-<<<<<<< HEAD:compras/views.py
-from core.utils import registrar_actividad
-from usuarios.views import admin_required
-=======
-from apps.auditoria.utils import registrar_actividad
+from config.utils import registrar_actividad
 from apps.usuarios.views import admin_required
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/compras/views.py
 
 from .forms import (CompraForm, DetalleCompraFormSet, ProveedorMaterialFormSet,
                     ProveedorPerfilForm)
@@ -31,19 +22,12 @@ def lista_compras(request):
     fecha_compra = request.GET.get("fecha_compra", "").strip()
     material = request.GET.get("material", "").strip()
 
-<<<<<<< HEAD:compras/views.py
-    compras = Compra.objects.select_related("proveedor", "usuario").prefetch_related(
+compras = Compra.objects.select_related("proveedor", "usuario").prefetch_related(
         Prefetch(
             "detalles",
             queryset=DetalleCompra.objects.select_related("material"),
             to_attr="detalles_cargados",
         )
-=======
-    compras = (
-        Compra.objects.select_related("proveedor", "usuario")
-        .prefetch_related("detalles")
-        .annotate(detalles_count=Count("detalles", distinct=True))
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/compras/views.py
     )
 
     if proveedor:

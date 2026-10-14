@@ -3,17 +3,8 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-<<<<<<<< HEAD:apps/pedidos/tests/test_pagos_models.py
-from pedidos.models import Pago, Pedido
-from usuarios.models import Usuario
-
-========
-from apps.pedidos.models import Pedido
+from apps.pedidos.models import Pago, Pedido
 from apps.usuarios.models import Usuario
-
-from apps.pagos.models import Pago
-
->>>>>>>> origin/GRUPO_7_ADSO/FIX:apps/pagos/tests/test_models.py
 
 class PagoModelTests(TestCase):
     def setUp(self):

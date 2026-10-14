@@ -8,13 +8,8 @@ class Command(BaseCommand):
     help = "Indexa materiales y pedidos en ChromaDB para las consultas RAG"
 
     def handle(self, *args, **options):
-<<<<<<< HEAD:ia/management/commands/indexar_conocimiento.py
-        from catalogo.models import MaterialConstruccion
-        from pedidos.models import Pedido
-=======
+from apps.catalogo.models as  MaterialConstruccion
         from apps.pedidos.models import Pedido
-        from apps.catalogo.models import MaterialConstruccion
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/ia/management/commands/indexar_conocimiento.py
 
         documentos = []
         try:

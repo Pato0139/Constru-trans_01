@@ -11,14 +11,8 @@ django.setup()
 from django.contrib.auth.models import User
 from ordenes.models import Pedido
 
-<<<<<<< HEAD
-from clientes.models import Cliente
-from usuarios.models import EPS, Usuario
-=======
 from apps.clientes.models import Cliente
-from apps.pedidos.models import Pedido
 from apps.usuarios.models import EPS, Usuario
->>>>>>> origin/GRUPO_7_ADSO/FIX
 
 print("=== DEBUG: Creating data step by step ===")
 

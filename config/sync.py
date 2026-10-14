@@ -2,12 +2,7 @@ import logging
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-<<<<<<< HEAD:core/sync.py
-
-from core.utils import conexion_remota_disponible
-=======
 from config.utils import conexion_remota_disponible
->>>>>>> origin/GRUPO_7_ADSO/FIX:config/sync.py
 
 logger = logging.getLogger(__name__)
 

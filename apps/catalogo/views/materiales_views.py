@@ -3,19 +3,12 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-<<<<<<< HEAD:catalogo/views/materiales_views.py
-from core.utils import registrar_actividad
-from catalogo.forms import MaterialForm
-from catalogo.models import Catalogo
-from catalogo.models import MaterialConstruccion as Material
-from catalogo.models import Stock
-from usuarios.views import admin_required
-=======
-from apps.auditoria.utils import registrar_actividad
+from config.utils import registrar_actividad
 from apps.catalogo.forms import MaterialForm
-from apps.catalogo.models import Catalogo, MaterialConstruccion as Material, Stock
+from apps.catalogo.models as  Catalogo
+from apps.catalogo.models as  MaterialConstruccion as Material
+from apps.catalogo.models as  Stock
 from apps.usuarios.views import admin_required
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/catalogo/views/materiales_views.py
 
 
 @admin_required

@@ -1,6 +1,6 @@
 from django import forms
 
-from pedidos.models import Pago
+from apps.pedidos.models import Pago
 
 
 class PagoRegistroForm(forms.ModelForm):

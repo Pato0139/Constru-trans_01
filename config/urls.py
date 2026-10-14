@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 
-from core import views as core_views
+from config import views as core_views
 
 
 def redirect_password_reset_confirm(request, uidb64, token):
@@ -17,33 +17,18 @@ urlpatterns = [
     # Licensing
     path("licensing/", include("apps.licensing.urls")),
     # Apps
-<<<<<<< HEAD:core/urls.py
-    path("usuarios/", include("usuarios.urls")),
-    path("clientes/", include("clientes.urls")),
-    path("catalogo/", include("catalogo.urls")),
-    path("compras/", include("compras.urls")),
-    path("pedidos/", include("pedidos.urls")),
-    path("pagos/", include("pedidos.pagos_urls")),
-    path("reportes/", include("core.reportes_urls")),
-    path("auditoria/", include("core.auditoria_urls")),
-    path("logistica/", include("logistica.urls")),
-    path("ia/", include("ia.urls")),
-    path("ayuda/", include("ayuda.urls")),
-    path("", include(([path("", core_views.inicio, name="inicio")], "inicio"))),
-=======
-    path("usuarios/", include("apps.usuarios.urls")),
+path("usuarios/", include("apps.usuarios.urls")),
     path("clientes/", include("apps.clientes.urls")),
     path("catalogo/", include("apps.catalogo.urls")),
     path("compras/", include("apps.compras.urls")),
     path("pedidos/", include("apps.pedidos.urls")),
-    path("pagos/", include("apps.pagos.urls")),
+    path("pagos/", include("apps.pedidos.pagos_urls")),
     path("reportes/", include("apps.reportes.urls")),
     path("auditoria/", include("apps.auditoria.urls")),
     path("logistica/", include("apps.logistica.urls")),
     path("ia/", include("apps.ia.urls")),
     path("ayuda/", include("apps.ayuda.urls")),
-    path("", include("apps.inicio.urls")),
->>>>>>> origin/GRUPO_7_ADSO/FIX:config/urls.py
+    path("", include(([path("", core_views.inicio, name="inicio")], "inicio"))),
     # ===== Redirecciones de recuperación de contraseña a usuarios =====
     path("password-reset/", lambda r: redirect("usuarios:password_reset"), name="password_reset"),
     path(

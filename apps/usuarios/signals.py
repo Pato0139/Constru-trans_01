@@ -14,7 +14,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 
-from core.superadmin_lock import (
+from config.superadmin_lock import (
     SUPERADMIN_EMAIL,
     SUPERADMIN_USERNAME,
     es_superadmin_por_identificador,

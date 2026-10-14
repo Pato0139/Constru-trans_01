@@ -8,7 +8,7 @@ django.setup()
 
 from django.test import Client
 from django.contrib.auth import get_user_model
-from catalogo.models import MaterialConstruccion, UnidadMedida
+from apps.catalogo.models as  MaterialConstruccion, UnidadMedida
 from compras.models import Compra, DetalleCompra, Proveedor
 
 User = get_user_model()

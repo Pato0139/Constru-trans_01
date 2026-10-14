@@ -7,31 +7,15 @@ from django.core.management.base import BaseCommand
 from django.db.models.signals import post_save
 from django.utils import timezone
 
-<<<<<<< HEAD:usuarios/management/commands/seed_data.py
-from catalogo.models import MaterialConstruccion, Stock
-from catalogo.models.movimientos import MovimientoInventario
-from clientes.models import Cliente, crear_perfil_cliente
-from compras.models import Proveedor
-from core.routers import EnrutadorInventario
-from core.utils import conexion_remota_disponible
-from logistica.models import ConductorVehiculo, Entrega, Vehiculo
-from pedidos.models import DetallePedido, Pedido
-from usuarios.models import EPS, Conductor, Usuario
-=======
-from apps.catalogo.models import MaterialConstruccion, Stock
+from apps.catalogo.models as  MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
 from apps.clientes.models import Cliente, crear_perfil_cliente
-from apps.compras.models import Proveedor
-from apps.logistica.models import ConductorVehiculo, Entrega, Vehiculo
-from apps.pedidos.models import DetallePedido, Pedido
-from apps.usuarios.models import (
-    EPS,
-    Conductor,
-    Usuario,
-)
+from compras.models import Proveedor
 from config.routers import EnrutadorInventario
 from config.utils import conexion_remota_disponible
->>>>>>> origin/GRUPO_7_ADSO/FIX:apps/usuarios/management/commands/seed_data.py
+from apps.logistica.models import ConductorVehiculo, Entrega, Vehiculo
+from apps.pedidos.models import DetallePedido, Pedido
+from apps.usuarios.models import EPS, Conductor, Usuario
 
 DEFAULT_PASSWORD = "davit12345"
 _router = EnrutadorInventario()

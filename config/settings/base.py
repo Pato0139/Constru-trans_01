@@ -145,20 +145,20 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = []
 
 LOCAL_APPS = [
-<<<<<<< HEAD:core/settings/base.py
-    "core.apps.CoreConfig",
-    "usuarios",
-    "clientes",
-    "catalogo",
-    "compras",
-    "pedidos",
-    "logistica",
-    "licensing",
-    "ia",
-    "ayuda",
-=======
-    "config.apps.CoreConfig","apps.usuarios","apps.clientes","apps.catalogo","apps.compras","apps.pedidos","apps.pagos","apps.reportes","apps.inicio","apps.auditoria","apps.logistica","apps.licensing","apps.ia","apps.ayuda",
->>>>>>> origin/GRUPO_7_ADSO/FIX:config/settings/base.py
+    "config.apps.CoreConfig",
+    "apps.usuarios",
+    "apps.clientes",
+    "apps.catalogo",
+    "apps.compras",
+    "apps.pedidos",
+    "apps.pagos",
+    "apps.reportes",
+    "apps.inicio",
+    "apps.auditoria",
+    "apps.logistica",
+    "apps.licensing",
+    "apps.ia",
+    "apps.ayuda",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -437,8 +437,3 @@ LICENSE_SERVER_URL = env("LICENSE_SERVER_URL")
 LICENSE_PUBLIC_KEY = env("LICENSE_PUBLIC_KEY")
 LICENSE_HEARTBEAT_MINUTES = env("LICENSE_HEARTBEAT_MINUTES")
 LICENSE_MAX_AGE_DAYS = env("LICENSE_MAX_AGE_DAYS")
-<<<<<<< HEAD:core/settings/base.py
-=======
-
-
->>>>>>> origin/GRUPO_7_ADSO/FIX:config/settings/base.py

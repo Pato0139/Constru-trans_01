@@ -2,12 +2,7 @@ from functools import wraps
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-<<<<<<< HEAD:core/permissions.py
-
-from usuarios.models_permisos import usuario_tiene_permiso
-=======
 from apps.usuarios.models_permisos import usuario_tiene_permiso
->>>>>>> origin/GRUPO_7_ADSO/FIX:config/permissions.py
 
 
 def requiere_funcion(funcion: str):

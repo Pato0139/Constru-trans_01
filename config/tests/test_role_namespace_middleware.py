@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 from django.test import RequestFactory, SimpleTestCase
 
-from core.middleware import RoleNamespaceMiddleware
+from config.middleware import RoleNamespaceMiddleware
 
 
 class RoleNamespaceMiddlewareTests(SimpleTestCase):
