@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from config.utils import registrar_actividad
 from apps.catalogo.forms import CatalogoForm, UnidadMedidaForm
-from apps.catalogo.models as  Catalogo, UnidadMedida
+from apps.catalogo.models import Catalogo, UnidadMedida
 from apps.usuarios.views import admin_required
 
 

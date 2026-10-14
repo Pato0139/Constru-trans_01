@@ -22,7 +22,7 @@ def lista_compras(request):
     fecha_compra = request.GET.get("fecha_compra", "").strip()
     material = request.GET.get("material", "").strip()
 
-compras = Compra.objects.select_related("proveedor", "usuario").prefetch_related(
+    compras = Compra.objects.select_related("proveedor", "usuario").prefetch_related(
         Prefetch(
             "detalles",
             queryset=DetalleCompra.objects.select_related("material"),

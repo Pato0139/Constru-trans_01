@@ -4,8 +4,8 @@ from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.urls import reverse
 
-from apps.catalogo.models as  Catalogo
-from apps.catalogo.models as  MaterialConstruccion as Material
+from apps.catalogo.models import Catalogo
+from apps.catalogo.models import MaterialConstruccion as Material
 from config.datatables import apply_search, build_dt_response, get_dt_params
 from apps.usuarios.views import admin_required
 

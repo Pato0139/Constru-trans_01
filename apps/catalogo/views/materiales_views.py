@@ -5,9 +5,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from config.utils import registrar_actividad
 from apps.catalogo.forms import MaterialForm
-from apps.catalogo.models as  Catalogo
-from apps.catalogo.models as  MaterialConstruccion as Material
-from apps.catalogo.models as  Stock
+from apps.catalogo.models import Catalogo
+from apps.catalogo.models import MaterialConstruccion as Material
+from apps.catalogo.models import Stock
 from apps.usuarios.views import admin_required
 
 

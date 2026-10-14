@@ -4,7 +4,7 @@ import qrcode
 from django.core.files.base import ContentFile
 from django.db.models import F
 
-from apps.catalogo.models as  Stock
+from apps.catalogo.models import Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
 from config.db_preference import debe_usar_bd_remota
 from config.db_utils import select_for_update_if_supported

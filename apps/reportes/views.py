@@ -14,7 +14,7 @@ from reportlab.platypus import (Paragraph, SimpleDocTemplate, Spacer, Table,
                                 TableStyle)
 
 from config.utils import registrar_actividad
-from apps.catalogo.models as  MaterialConstruccion as Material
+from apps.catalogo.models import MaterialConstruccion as Material
 from apps.logistica.models import Vehiculo
 from apps.pedidos.models import Pedido
 from apps.usuarios.models import Usuario

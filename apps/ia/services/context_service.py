@@ -31,7 +31,7 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
         try:
             from django.db.models import Count
 
-from apps.catalogo.models as  MaterialConstruccion, Stock
+            from apps.catalogo.models import MaterialConstruccion, Stock
             from apps.clientes.models import Cliente
             from compras.models import Compra, Proveedor
             from apps.logistica.models import ConductorVehiculo, Vehiculo

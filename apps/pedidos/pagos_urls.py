@@ -1,6 +1,6 @@
 from django.urls import path
 
-from pedidos import views_pagos
+from apps.pedidos import views_pagos
 
 app_name = "pagos"
 
