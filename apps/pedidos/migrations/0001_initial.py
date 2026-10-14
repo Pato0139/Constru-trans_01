@@ -3,7 +3,7 @@
 import django.core.validators
 import django.db.models.deletion
 import django.utils.timezone
-import pedidos.models
+import apps.pedidos.models
 from django.conf import settings
 from django.db import migrations, models
 
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                 ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('autorizado_despacho', 'Autorizado para despacho'), ('vehiculo_asignado', 'Vehículo asignado'), ('en_ruta', 'En Ruta'), ('entregado', 'Entregado'), ('cancelado', 'Cancelado')], default='pendiente', max_length=20)),
                 ('direccion_origen', models.CharField(default='Bodega Central', max_length=200)),
                 ('direccion_destino', models.CharField(default='', max_length=200)),
-                ('fecha_entrega_programada', models.DateTimeField(blank=True, null=True, validators=[pedidos.models.validar_fecha_no_pasada])),
+                ('fecha_entrega_programada', models.DateTimeField(blank=True, null=True, validators=[apps.pedidos.models.validar_fecha_no_pasada])),
                 ('fecha', models.DateTimeField(auto_now_add=True, null=True)),
                 ('precio', models.DecimalField(blank=True, decimal_places=2, default=0, max_digits=12, null=True)),
                 ('fecha_toma_entrega', models.DateTimeField(blank=True, null=True)),
@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('metodo', models.CharField(choices=[('nequi', 'Nequi'), ('daviplata', 'DaviPlata'), ('bancolombia', 'Bancolombia'), ('contraentrega', 'Contraentrega')], db_column='codigo_metodo_pago', max_length=20)),
                 ('monto', models.DecimalField(decimal_places=2, max_digits=12, validators=[django.core.validators.MinValueValidator(0)])),
-                ('comprobante', models.FileField(blank=True, db_column='comprobante', null=True, upload_to=pedidos.models.comprobante_upload_to)),
+                ('comprobante', models.FileField(blank=True, db_column='comprobante', null=True, upload_to=apps.pedidos.models.comprobante_upload_to)),
                 ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('aprobado', 'Aprobado'), ('rechazado', 'Rechazado')], db_column='estado_pago', default='pendiente', max_length=20)),
                 ('fecha_registro', models.DateTimeField(auto_now_add=True, db_column='fecha_creacion')),
                 ('fecha_revision', models.DateTimeField(blank=True, db_column='fecha_actualizacion', null=True)),
