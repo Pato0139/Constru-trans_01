@@ -37,11 +37,12 @@ class DetalleCompraAdmin(admin.ModelAdmin):
         "subtotal",
     )
     list_filter = ("compra", "material")
+    search_fields = ("compra__id_compra", "material__nombre")
     readonly_fields = ("subtotal",)
 
 
 @admin.register(ProveedorMaterial)
 class ProveedorMaterialAdmin(admin.ModelAdmin):
     list_display = ("proveedor", "material", "precio_actual", "fecha_actualizacion", "activo")
-    list_filter = ("activo", "proveedor")
+    list_filter = ("activo", "proveedor", "material")
     search_fields = ("proveedor__nombre_empresa", "material__nombre", "referencia_proveedor")
