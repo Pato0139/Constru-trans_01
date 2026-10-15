@@ -75,15 +75,15 @@
                         </div>
                     </div>
 
-                    <!-- Número de cuenta (se muestra al seleccionar método) -->
+                    <!-- Número de cuenta destino (solo lectura) -->
                     <div class="mb-4 d-none" id="cuenta-section">
                         <label class="form-label text-white fw-bold">
-                            <i class="bi bi-hash me-1"></i> Número de cuenta
+                            <i class="bi bi-hash me-1"></i> Número de cuenta para depositar
                         </label>
-                        <input type="text" class="form-control bg-dark border-secondary text-white" id="numero-cuenta" placeholder="Ingresa el número de cuenta">
+                        <input type="text" class="form-control fw-bold" id="numero-cuenta" readonly>
                         <div class="form-text mt-2">
                             <i class="bi bi-info-circle me-1"></i>
-                            Ingresa el número de cuenta registrado en tu billetera digital.
+                            Usa este número de cuenta para realizar tu transferencia.
                         </div>
                     </div>
 
@@ -101,7 +101,7 @@
                         {{ form.comprobante.errors }}
                         <div class="form-text mt-2">
                             <i class="bi bi-info-circle me-1"></i>
-                            Formatos aceptados: JPG, PNG, PDF. Tamaño máximo: 5MB.
+                            Formatos aceptados: PNG, JPG. Tamaño máximo: 5MB.
                         </div>
                     </div>
 
@@ -163,11 +163,18 @@
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    var cuentas = {
+        'nequi': '3001234567',
+        'daviplata': '3109876543',
+        'bancolombia': '1234567890'
+    };
     var metodoRadios = document.querySelectorAll('input[name="metodo"]');
     var cuentaSection = document.getElementById('cuenta-section');
+    var numeroCuenta = document.getElementById('numero-cuenta');
     metodoRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
-            if (['nequi', 'daviplata', 'bancolombia'].includes(this.value)) {
+            if (cuentas[this.value]) {
+                numeroCuenta.value = cuentas[this.value];
                 cuentaSection.classList.remove('d-none');
             } else {
                 cuentaSection.classList.add('d-none');

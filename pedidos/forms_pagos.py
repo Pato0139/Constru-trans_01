@@ -8,9 +8,19 @@ class PagoRegistroForm(forms.ModelForm):
         model = Pago
         fields = ["metodo", "comprobante"]
         widgets = {
-            "metodo": forms.Select(attrs={"class": "form-select"}),
-            "comprobante": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "metodo": forms.RadioSelect(attrs={"class": "form-check-input"}),
+            "comprobante": forms.ClearableFileInput(
+                attrs={"class": "form-control", "accept": "image/png,image/jpeg"}
+            ),
         }
+
+    def clean_comprobante(self):
+        comprobante = self.cleaned_data.get("comprobante")
+        if comprobante:
+            content_type = getattr(comprobante, "content_type", "")
+            if content_type not in ("image/png", "image/jpeg"):
+                raise forms.ValidationError("Solo se permiten archivos PNG o JPG.")
+        return comprobante
 
     def clean(self):
         cleaned = super().clean()
