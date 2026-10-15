@@ -535,25 +535,18 @@ def crear_pedido(request):
     )
 
 
-@login_required
+@role_required(["cliente", "admin"])
 def editar_pedido(request, id):
     usuario_remoto = request.user.usuario
     db_alias = _obtener_alias_db()
     pedido = get_object_or_404(Pedido.objects.using(db_alias), codigo_pedido=id)
-
-    detalle_total = sum(d.subtotal for d in pedido.detalles.using(db_alias).all())
-    if pedido.total != detalle_total or pedido.precio != detalle_total:
-        pedido.total = detalle_total
-        pedido.precio = detalle_total
-        pedido.save(using=db_alias)
-
-    materiales = Material.objects.all()
 
     is_super = getattr(request.user, "is_superuser", False) or getattr(request.user, "es_superadmin", False)
     es_admin = is_super or usuario_remoto.rol == "admin"
     usuario = _obtener_usuario_local(usuario_remoto)
     es_dueno = _es_dueno_pedido(pedido, usuario_remoto, usuario)
 
+    # Validación de propiedad ANTES de cualquier render
     if not (es_admin or es_dueno):
         ip = obtener_ip(request)
         registrar_warning(ip)
@@ -576,6 +569,14 @@ def editar_pedido(request, id):
                 "codigo_pedido": pedido.codigo_pedido,
             },
         )
+
+    detalle_total = sum(d.subtotal for d in pedido.detalles.using(db_alias).all())
+    if pedido.total != detalle_total or pedido.precio != detalle_total:
+        pedido.total = detalle_total
+        pedido.precio = detalle_total
+        pedido.save(using=db_alias)
+
+    materiales = Material.objects.all()
 
     if pedido.estado != "pendiente":
         messages.error(

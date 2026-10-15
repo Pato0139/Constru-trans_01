@@ -291,6 +291,18 @@ CSRF_COOKIE_HTTPONLY = False
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_SAMESITE = "Lax"
 
+# Cabeceras de seguridad
+SECURE_BROWSER_X_FRAME_OPTIONS = "DENY"
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# CORS
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
 LOGIN_URL = "/usuarios/login/"
 LOGIN_REDIRECT_URL = "/usuarios/panel/"
 LOGOUT_REDIRECT_URL = "/usuarios/login/"
