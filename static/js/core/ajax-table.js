@@ -10,7 +10,9 @@ window.AppAjaxTable = (() => {
             columns = [],
             countSelector = null,
             pageLength = 10,
-            emptyText = 'No se encontraron registros'
+            emptyText = 'No se encontraron registros',
+            infoEmpty = 'No hay registros disponibles',
+            infoFiltered = '(filtrado de _MAX_ registros)'
         } = config;
 
         if (typeof $ === 'undefined' || !$.fn.DataTable) return null;
@@ -48,8 +50,8 @@ window.AppAjaxTable = (() => {
                 processing: 'Cargando...',
                 zeroRecords: emptyText,
                 info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
-                infoEmpty: 'No hay registros disponibles',
-                infoFiltered: '(filtrado de _MAX_ registros)',
+                infoEmpty: infoEmpty,
+                infoFiltered: infoFiltered,
                 lengthMenu: 'Mostrar _MENU_ registros',
                 paginate: {
                     first: 'Primero',
