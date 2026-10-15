@@ -1,8 +1,63 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 
+from config.superadmin_lock import es_superadmin_global
+
 User = get_user_model()
+
+
+class AdminRolePermissionBackend:
+    PROTECTED_APPS = {"auth", "contenttypes"}
+    PROTECTED_MODELS = {
+        ("usuarios", "permiso"),
+        ("usuarios", "permisousuario"),
+        ("usuarios", "rol"),
+        ("usuarios", "rolpermiso"),
+        ("usuarios", "rolproxy"),
+        ("usuarios", "usuariorol"),
+        ("usuarios", "usuariorolnegocio"),
+    }
+
+    def has_perm(self, user_obj, perm, obj=None):
+        if not getattr(user_obj, "is_authenticated", False) or not getattr(
+            user_obj, "is_active", False
+        ):
+            return False
+        if es_superadmin_global(user_obj):
+            return False
+
+        app_label, separator, codename = perm.partition(".")
+        if not separator:
+            return False
+
+        if app_label in self.PROTECTED_APPS:
+            raise PermissionDenied("Solo el Administrador Global puede modificar permisos.")
+        if app_label == "licensing" and getattr(user_obj, "rol", None) == "admin":
+            raise PermissionDenied("Solo el Administrador Global puede gestionar licencias.")
+
+        action, separator, model_name = codename.partition("_")
+        if separator and (app_label, model_name) in self.PROTECTED_MODELS:
+            raise PermissionDenied("Solo el Administrador Global puede modificar roles y permisos.")
+        if app_label == "usuarios" and model_name == "usuario":
+            if action != "view":
+                raise PermissionDenied("Solo el Administrador Global puede modificar usuarios desde /admin/.")
+
+        return getattr(user_obj, "rol", None) == "admin"
+
+    def has_module_perms(self, user_obj, app_label):
+        if not getattr(user_obj, "is_authenticated", False) or not getattr(
+            user_obj, "is_active", False
+        ):
+            return False
+        if es_superadmin_global(user_obj):
+            return False
+        if app_label in self.PROTECTED_APPS:
+            raise PermissionDenied("Solo el Administrador Global puede gestionar permisos.")
+        if app_label == "licensing" and getattr(user_obj, "rol", None) == "admin":
+            raise PermissionDenied("Solo el Administrador Global puede gestionar licencias.")
+        return getattr(user_obj, "rol", None) == "admin"
 
 
 class EmailOrUsernameBackend(ModelBackend):

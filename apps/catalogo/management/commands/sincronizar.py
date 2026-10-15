@@ -7,10 +7,10 @@ from django.core.management.base import BaseCommand
 from django.db import OperationalError, connections
 
 from config.models import Historial
-from apps.catalogo.models as  MaterialConstruccion as Material
-from apps.catalogo.models as  MovimientoInventario
+from apps.catalogo.models import MaterialConstruccion as Material
+from apps.catalogo.models import MovimientoInventario
 from apps.clientes.models import Cliente
-from compras.models import Compra, Proveedor
+from apps.compras.models import Compra, Proveedor
 from apps.logistica.models import Entrega, Vehiculo
 from apps.pedidos.models import Pedido
 from apps.usuarios.models import Usuario

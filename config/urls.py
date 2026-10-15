@@ -17,7 +17,7 @@ urlpatterns = [
     # Licensing
     path("licensing/", include("apps.licensing.urls")),
     # Apps
-path("usuarios/", include("apps.usuarios.urls")),
+    path("usuarios/", include("apps.usuarios.urls")),
     path("clientes/", include("apps.clientes.urls")),
     path("catalogo/", include("apps.catalogo.urls")),
     path("compras/", include("apps.compras.urls")),

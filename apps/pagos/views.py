@@ -261,32 +261,6 @@ def revisar_pago_pedido(request, pk):
 # ======================
 
 @admin_required
-def lista_facturas(request):
-    q = request.GET.get("q", "").strip()
-    estado = request.GET.get("estado", "").strip()
-    qs = Factura.objects.select_related("pedido", "cliente__usuario")
-    if q:
-        qs = qs.filter(
-            Q(numero__icontains=q)
-            | Q(pedido__codigo_pedido__icontains=q)
-            | Q(cliente__usuario__nombres__icontains=q)
-            | Q(cliente__usuario__apellidos__icontains=q)
-        )
-    if estado:
-        qs = qs.filter(estado=estado)
-    return render(
-        request,
-        "pagos/facturas_lista.html",
-        {
-            "facturas": qs,
-            "estados": Factura.Estado.choices,
-            "q": q,
-            "estado_actual": estado,
-        },
-    )
-
-
-@admin_required
 def registrar_pago(request, pk):
     factura = get_object_or_404(Factura, pk=pk)
     if request.method == "POST":
@@ -327,31 +301,6 @@ def registrar_pago(request, pk):
             "saldo_pendiente": factura.saldo_pendiente,
             "metodos": PagoFactura.Metodo.choices,
         },
-    )
-
-
-@admin_required
-def gestion_pagos(request):
-    pagos = PagoFactura.objects.select_related(
-        "factura__pedido", "factura__cliente__usuario", "revisado_por"
-    ).order_by("-fecha_registro")
-    estado = request.GET.get("estado", "").strip()
-    if estado:
-        pagos = pagos.filter(estado=estado)
-    return render(
-        request,
-        "pagos/gestion_pagos.html",
-        {"pagos": pagos, "estado_actual": estado},
-    )
-
-
-@admin_required
-def historial_pagos(request):
-    pagos = PagoFactura.objects.select_related("factura").filter(
-        estado=PagoFactura.Estado.APROBADO
-    ).order_by("-fecha_revision")
-    return render(
-        request, "pagos/historial_pagos.html", {"pagos": pagos}
     )
 
 
@@ -434,5 +383,5 @@ def revisar_pago(request, pk, pago_id):
             f"Pago {pago.pk} {pago.estado} — factura {pago.factura.numero}",
         )
         messages.success(request, f"Pago {pago.estado}.")
-        return redirect("pagos:gestion_pagos")
+        return redirect("pagos:lista_pagos")
     return render(request, "pagos/revisar_pago_factura.html", {"pago": pago})

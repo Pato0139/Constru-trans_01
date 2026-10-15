@@ -5,6 +5,33 @@ from .models import (Catalogo, ConteoItem, HistorialPrecioMaterial,
                      MovimientoInventario, SesionConteo, Stock, UnidadMedida)
 
 
+@admin.register(Catalogo)
+class CatalogoAdmin(admin.ModelAdmin):
+    list_display = ("codigo_catalogo", "nombre_empresa")
+    search_fields = ("codigo_catalogo", "nombre_empresa")
+
+
+@admin.register(Marca)
+class MarcaAdmin(admin.ModelAdmin):
+    list_display = ("nombre",)
+    search_fields = ("nombre",)
+
+
+@admin.register(Stock)
+class StockAdmin(admin.ModelAdmin):
+    list_display = (
+        "material",
+        "cantidad_actual",
+        "stock_minimo",
+        "ubicacion",
+        "fecha_actualizacion",
+    )
+    list_select_related = ("material",)
+    list_filter = ("fecha_actualizacion",)
+    search_fields = ("material__nombre", "ubicacion")
+    readonly_fields = ("fecha_actualizacion",)
+
+
 @admin.register(MovimientoInventario)
 class MovimientoInventarioAdmin(admin.ModelAdmin):
     list_display = (
@@ -16,7 +43,7 @@ class MovimientoInventarioAdmin(admin.ModelAdmin):
         "usuario",
     )
     list_select_related = ("material",)
-    list_filter = ("tipo_movimiento", "fecha_movimiento", "material")
+    list_filter = ("tipo_movimiento", "fecha_movimiento", "material", "sincronizado", "usuario")
     search_fields = ("material__nombre", "observacion")
     readonly_fields = ("fecha_movimiento",)
 
@@ -31,7 +58,7 @@ class LoteMaterialAdmin(admin.ModelAdmin):
         "fecha_vencimiento",
         "activo",
     )
-    list_filter = ("activo", "material", "fecha_entrada")
+    list_filter = ("activo", "material", "fecha_entrada", "fecha_vencimiento")
     search_fields = ("codigo_lote", "material__nombre")
     readonly_fields = ("fecha_entrada",)
 
@@ -83,7 +110,7 @@ class UnidadMedidaAdmin(admin.ModelAdmin):
 @admin.register(MaterialConstruccion)
 class MaterialConstruccionAdmin(admin.ModelAdmin):
     list_display = ("nombre", "unidad_medida", "precio_referencia", "activo", "sincronizado")
-    list_filter = ("activo", "unidad_medida", "catalogo")
+    list_filter = ("activo", "unidad_medida", "catalogo", "marca", "sincronizado")
     list_editable = ("activo",)
     search_fields = ("nombre", "descripcion")
 
@@ -102,8 +129,3 @@ class HistorialPrecioMaterialAdmin(admin.ModelAdmin):
     search_fields = ("material__nombre", "observaciones")
     readonly_fields = ("fecha_cambio", "mes", "año")
     date_hierarchy = "fecha_cambio"
-
-
-admin.site.register(Catalogo)
-admin.site.register(Marca)
-admin.site.register(Stock)

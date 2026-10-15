@@ -6,7 +6,7 @@
  * Inicializa eventos de pestañas y sincronización de URL
  * @listens DOMContentLoaded
  */
-window.AppPageLifecycle.onPageLoad(function() {
+document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.getElementById('searchForm');
     const searchInput = searchForm && searchForm.querySelector('input[name="q"]');
     if (searchForm && searchInput) {
@@ -23,7 +23,6 @@ window.AppPageLifecycle.onPageLoad(function() {
             }, 350);
         });
     }
-
     /**
      * Manejador de clic en pestañas para actualizar estado activo
      */

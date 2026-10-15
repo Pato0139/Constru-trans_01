@@ -1,6 +1,6 @@
 from django.urls import path
 
-from core import views_auditoria
+from apps.auditoria import views as views_auditoria
 
 app_name = "auditoria"
 

@@ -16,7 +16,7 @@
         data-aos="fade-down">
         <div>
             <h2 class="fw-bold mb-0 text-white"><i class="bi bi-box-seam-fill text-accent me-2"></i>Catálogo de
-                Productos
+                Materiales
             </h2>
             <div class="d-flex align-items-center gap-2 mt-1">
                 <p class="page-subtitle small mb-0">Gestión de productos y precios base</p>
@@ -26,11 +26,36 @@
             </div>
         </div>
 
-        <a href="{% url 'catalogo:crear_material' %}"
-            class="btn btn-premium btn-premium-gold btn-main-action align-self-md-center"
-            aria-label="Nuevo producto" data-tooltip="Nuevo producto" title="Nuevo producto">
-            <i class="bi bi-plus-lg me-1"></i> Nuevo producto
-        </a>
+        <div class="d-flex flex-column flex-md-row align-items-stretch gap-2 w-100">
+            {% include "partials/filter_bar.html" with filter_fields=filter_fields form_data_ajax=True %}
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'catalogo:crear_material' %}"
+                    class="btn btn-premium btn-premium-gold btn-main-action align-self-md-center"
+                    aria-label="Nuevo producto" data-tooltip="Nuevo producto" title="Nuevo producto">
+                    <i class="bi bi-plus-lg me-1"></i> Nuevo producto
+                </a>
+                <div class="dropdown align-self-md-center">
+                    <button class="btn btn-premium btn-premium-gold btn-main-action dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-plus-lg"></i> Agregar
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="{% url 'catalogo:crear_material' %}">
+                                <i class="bi bi-box-seam text-warning"></i> Nuevo material
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="{% url 'catalogo:crear_unidad_medida' %}">
+                                <i class="bi bi-rulers text-warning"></i> Nueva unidad de medida
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Contenedor integrado: filtros + tabla en la misma tarjeta -->
@@ -48,14 +73,13 @@
                 data-api-url="{% url 'catalogo:api_materiales_listado' %}">
                 <thead>
                     <tr class="clientes__table-head-row u-inline-0d59a3f53c">
-                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Producto</th>
-                        <th class="py-3 ps-5 pe-4 text-muted small text-uppercase fw-bold col-marca">Marca</th>
+                        <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2c34455993">ID
+                        </th>
+                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Material</th>
                         <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Tipo</th>
                         <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">
                             Unidad
                         </th>
-                        <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold">Precio</th>
-                        <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold">Stock</th>
                         <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold">Estado</th>
                         <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-9c77c1e711">
                             Acciones</th>
@@ -63,10 +87,10 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="6" class="text-center py-5 text-muted">
                             <div class="py-4">
                                 <div class="spinner-border spinner-border-sm text-warning mb-3" role="status"></div>
-                                <p class="mb-0">Cargando productos...</p>
+                                <p class="mb-0">Cargando materiales...</p>
                             </div>
                         </td>
                     </tr>
@@ -76,46 +100,11 @@
     </div>
 
 </div>
-
-<style>
-    /* Barra de filtros integrada al contenedor de la tabla: se aplana
-       la tarjeta (sin fondo ni sombra propios) y se separa de la tabla
-       con una linea, formando una sola pieza visual. */
-    .materiales-filter-bar .filter-bar-card {
-        background: transparent !important;
-        box-shadow: none !important;
-        border: 0 !important;
-        border-bottom: 1px solid var(--color-border) !important;
-        border-radius: 0 !important;
-        margin-bottom: 0 !important;
-        padding: 0.875rem 1.25rem !important;
-    }
-
-    /* Espaciado de la tabla: dashboard.css fuerza padding !important
-       pequeño en todas las celdas. Con 8 columnas el ancho es limitado,
-       así que el padding se mantiene moderado (16px) para que los datos
-       respiren sin que la tabla se desborde a zoom normal. */
-    #tablaMateriales thead th,
-    #tablaMateriales tbody td {
-        padding: 0.875rem 1rem !important;
-    }
-
-    /* Marca con espacio extra respecto a Producto */
-    #tablaMateriales thead th.col-marca,
-    #tablaMateriales tbody td.col-marca {
-        padding-left: 1.5rem !important;
-    }
-
-    /* Ancho mínimo: si la pantalla es más angosta, la tabla scrollea
-       horizontal (envuelta en .table-responsive) en vez de aplastar
-       las columnas. Los % de ancho de cada columna se definen en el JS. */
-    #tablaMateriales {
-        min-width: 820px;
-    }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/catalogo/materiales-ajax.js' %}?v=2.3"></script>
+<script src="{% static 'js/catalogo/catalogo-menu.js' %}?v=1.1"></script>
 <script src="{% static 'js/catalogo/catalogo-menu.js' %}?v=1.1"></script>
 {% endblock %}

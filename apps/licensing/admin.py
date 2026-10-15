@@ -38,16 +38,17 @@ class InstallationAdmin(_SoloSuperadminModifica):
         "activated_at",
         "expires_at",
         "last_validated_at",
+        "created_at",
     )
-    list_filter = ("status", "activated_at", "expires_at")
-    search_fields = ("customer_id", "build_hash", "manifest_hash")
+    list_filter = ("status", "activated_at", "expires_at", "created_at")
+    search_fields = ("instance_id", "customer_id", "build_hash", "manifest_hash")
     readonly_fields = ("instance_id", "created_at")
 
 
 @admin.register(Licencia)
 class LicenciaAdmin(_SoloSuperadminModifica):
-    list_display = ("codigo", "nombre", "estado", "fecha_emision", "fecha_expiracion")
-    list_filter = ("estado", "fecha_expiracion")
+    list_display = ("codigo", "nombre", "estado", "fecha_emision", "fecha_expiracion", "created_at")
+    list_filter = ("estado", "fecha_emision", "fecha_expiracion", "created_at")
     search_fields = ("codigo", "nombre")
     readonly_fields = (
         "archivo_cifrado_nonce",
@@ -66,15 +67,26 @@ class LicenciaAdmin(_SoloSuperadminModifica):
 @admin.register(UsuarioLicencia)
 class UsuarioLicenciaAdmin(_SoloSuperadminModifica):
     list_display = ("usuario", "licencia", "fecha_asignacion", "asignada_por")
-    list_filter = ("fecha_asignacion",)
-    search_fields = ("usuario__username", "usuario__email", "licencia__codigo")
+    list_filter = ("fecha_asignacion", "licencia", "usuario")
+    search_fields = (
+        "usuario__username",
+        "usuario__email",
+        "licencia__codigo",
+        "asignada_por__username",
+    )
 
 
 @admin.register(AuditoriaLicencia)
 class AuditoriaLicenciaAdmin(admin.ModelAdmin):
     list_display = ("created_at", "accion", "actor", "usuario_afectado", "exitosa", "ip")
-    list_filter = ("accion", "exitosa", "created_at")
-    search_fields = ("detalle", "ip", "user_agent")
+    list_filter = ("accion", "exitosa", "created_at", "usuario_afectado")
+    search_fields = (
+        "detalle",
+        "ip",
+        "user_agent",
+        "actor__username",
+        "usuario_afectado__username",
+    )
     readonly_fields = (
         "licencia",
         "usuario_afectado",

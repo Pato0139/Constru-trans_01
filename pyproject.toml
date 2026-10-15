@@ -53,4 +53,5 @@ testpaths = [
 ]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 norecursedirs = [".venv", "venv", "scripts", "htmlcov", "staticfiles", "media"]
-addopts = "--cov=apps.usuarios --cov=apps.clientes --cov=apps.catalogo --cov=apps.compras --cov=apps.pedidos --cov=apps.pagos --cov=apps.logistica --cov=apps.auditoria --cov=apps.reportes --cov=apps.inicio --cov=apps.licensing --cov=apps.ia --cov=apps.ayuda --cov-report=term-missing"
+addopts = "--cov=apps.usuarios --cov=apps.clientes --cov=apps.catalogo --cov=apps.compras --cov=apps.pedidos --cov=apps.pagos --cov=apps.logistica --cov=apps.auditoria --cov=apps.reportes --cov=apps.inicio --cov=apps.licensing --cov=apps.ia --cov=apps.ayuda --cov-report=html --cov-report=term"
+

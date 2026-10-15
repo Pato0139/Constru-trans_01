@@ -1,6 +1,6 @@
 from django.urls import path
 
-from core import views_reportes
+from apps.reportes import views as views_reportes
 
 app_name = "reportes"
 
