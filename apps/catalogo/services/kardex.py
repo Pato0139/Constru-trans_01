@@ -47,9 +47,10 @@ class KardexService:
         db_alias = cls.get_db_alias()
 
         with transaction.atomic(using=db_alias):
-            material = Material.objects.select_for_update().using(db_alias).get(pk=material_id)
+            from config.db_utils import select_for_update_if_supported
+            material = select_for_update_if_supported(Material.objects.using(db_alias), db_alias).get(pk=material_id)
             stock, _ = (
-                Stock.objects.select_for_update()
+                select_for_update_if_supported(Stock.objects.using(db_alias), db_alias)
                 .using(db_alias)
                 .get_or_create(material=material, defaults={"cantidad_actual": 0})
             )

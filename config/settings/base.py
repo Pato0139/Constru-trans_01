@@ -312,7 +312,9 @@ AUTHENTICATION_BACKENDS = [
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_AGE = env("SESSION_COOKIE_AGE")
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_SAVE_EVERY_REQUEST = True
+# Avoid an unnecessary SQLite write on every request, which can lock the
+# database during concurrent session, inventory, or order writes.
+SESSION_SAVE_EVERY_REQUEST = DATABASES["default"]["ENGINE"] != "django.db.backends.sqlite3"
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 

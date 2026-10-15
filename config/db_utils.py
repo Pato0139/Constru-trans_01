@@ -5,6 +5,9 @@ def should_use_select_for_update(alias="default"):
     """Devuelve True solo cuando la base de datos admite bloqueos de fila reales."""
     try:
         connection = connections[alias]
+        # SQLite no soporta SELECT ... FOR UPDATE
+        if connection.vendor == 'sqlite':
+            return False
         return connection.features.supports_select_for_update
     except Exception:
         return False
