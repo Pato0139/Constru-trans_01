@@ -1,6 +1,7 @@
 from django import forms
 
 from apps.pedidos.models import Pago
+from apps.pedidos.validators import validar_comprobante_imagen
 
 
 class PagoRegistroForm(forms.ModelForm):
@@ -11,6 +12,12 @@ class PagoRegistroForm(forms.ModelForm):
             "metodo": forms.Select(attrs={"class": "form-select"}),
             "comprobante": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
+
+    def clean_comprobante(self):
+        comprobante = self.cleaned_data.get("comprobante")
+        if comprobante:
+            validar_comprobante_imagen(comprobante)
+        return comprobante
 
     def clean(self):
         cleaned = super().clean()

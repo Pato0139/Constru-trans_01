@@ -12,27 +12,7 @@ class Migration(migrations.Migration):
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
-    operations = [
-        migrations.AlterField(
-            model_name='historial',
-            name='usuario',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='historial_core', to=settings.AUTH_USER_MODEL, verbose_name='Usuario'),
-        ),
-        migrations.AlterField(
-            model_name='reporte',
-            name='usuario',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='reporte_usuario', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AlterModelTable(
-            name='historial',
-            table='historial_core',
-        ),
-        migrations.AlterModelTable(
-            name='historialreporte',
-            table='historial_reporte_core',
-        ),
-        migrations.AlterModelTable(
-            name='reporte',
-            table='reporte_core',
-        ),
-    ]
+    # NEUTRALIZADO: 'historial', 'reporte' y 'historial_reporte' tienen un unico
+    # dueno: apps.auditoria y apps.reportes. Antes se creaban dos veces y el
+    # migrate moria con 'relation already exists'.
+    operations = []

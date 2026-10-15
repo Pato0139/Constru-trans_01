@@ -9,9 +9,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from config.utils import registrar_actividad
-from config.security import role_required
+from config.security import (role_required, _respuesta_no_autorizada,
+                             obtener_ip, registrar_evento, registrar_warning)
 from apps.usuarios.views import admin_required
 
+from apps.pagos.models import Factura, PagoFactura
+from apps.pagos.pdf import render_factura_pdf
 from apps.pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
 from apps.pedidos.models import Pago, Pedido
 
