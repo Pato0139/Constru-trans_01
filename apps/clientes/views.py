@@ -244,7 +244,6 @@ def mis_pedidos(request):
         return redirect("usuarios:panel")
 
     # Get filter parameters
-    id_pedido = request.GET.get("id_pedido", "")
     destino = request.GET.get("destino", "")
     estado = request.GET.get("estado", "")
     q = request.GET.get("q", "")
@@ -252,8 +251,6 @@ def mis_pedidos(request):
     pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto)
 
     # Apply filters
-    if id_pedido:
-        pedidos = pedidos.filter(codigo_pedido__icontains=id_pedido)
     if destino:
         pedidos = pedidos.filter(direccion_destino__icontains=destino)
     if estado:
@@ -263,14 +260,15 @@ def mis_pedidos(request):
             Q(codigo_pedido__icontains=q)
             | Q(direccion_destino__icontains=q)
             | Q(estado__icontains=q)
+            | Q(direccion_origen__icontains=q)
         )
 
     # Prepare filter fields
     filter_fields = [
-        {"type": "text", "name": "id_pedido", "placeholder": "ID Pedido", "value": id_pedido, "size": "3"},
+        {"type": "text", "name": "q", "placeholder": "Buscar...", "value": q, "size": "3"},
         {"type": "text", "name": "destino", "placeholder": "Destino", "value": destino, "size": "3"},
         {"type": "select", "name": "estado", "placeholder": "Estado (Todos)", "value": estado, "size": "3",
-         "options": [
+                 "options": [
              {"value": "pendiente", "label": "Pendiente"},
              {"value": "en_ruta", "label": "En Ruta"},
              {"value": "entregado", "label": "Entregado"},
@@ -278,7 +276,7 @@ def mis_pedidos(request):
          ]},
     ]
 
-    has_filters = any([id_pedido, destino, estado, q])
+    has_filters = any([destino, estado, q])
     context = {
         "pedidos": pedidos,
         "filter_fields": filter_fields,
@@ -335,8 +333,26 @@ def historial_pedidos(request):
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
 
+    q = request.GET.get("q", "").strip()
+    fecha = request.GET.get("fecha", "").strip()
+
     pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto).filter(estado="entregado")
-    context = {"pedidos": pedidos}
+
+    if q:
+        pedidos = pedidos.filter(
+            Q(codigo_pedido__icontains=q)
+            | Q(detalles__material__nombre__icontains=q)
+            | Q(direccion_destino__icontains=q)
+        ).distinct()
+    if fecha:
+        pedidos = pedidos.filter(fecha_solicitud__date=fecha)
+
+    context = {
+        "pedidos": pedidos,
+        "q": q,
+        "fecha": fecha,
+        "has_filters": bool(q or fecha),
+    }
 
     return render(request, "clientes/historial.html", context)
 
@@ -518,25 +534,18 @@ def crear_pedido(request):
     )
 
 
-@login_required
+@role_required(["cliente", "admin"])
 def editar_pedido(request, id):
     usuario_remoto = request.user.usuario
     db_alias = _obtener_alias_db()
     pedido = get_object_or_404(Pedido.objects.using(db_alias), codigo_pedido=id)
-
-    detalle_total = sum(d.subtotal for d in pedido.detalles.using(db_alias).all())
-    if pedido.total != detalle_total or pedido.precio != detalle_total:
-        pedido.total = detalle_total
-        pedido.precio = detalle_total
-        pedido.save(using=db_alias)
-
-    materiales = Material.objects.all()
 
     is_super = getattr(request.user, "is_superuser", False) or getattr(request.user, "es_superadmin", False)
     es_admin = is_super or usuario_remoto.rol == "admin"
     usuario = _obtener_usuario_local(usuario_remoto)
     es_dueno = _es_dueno_pedido(pedido, usuario_remoto, usuario)
 
+    # Validación de propiedad ANTES de cualquier render
     if not (es_admin or es_dueno):
         ip = obtener_ip(request)
         registrar_warning(ip)
@@ -559,6 +568,14 @@ def editar_pedido(request, id):
                 "codigo_pedido": pedido.codigo_pedido,
             },
         )
+
+    detalle_total = sum(d.subtotal for d in pedido.detalles.using(db_alias).all())
+    if pedido.total != detalle_total or pedido.precio != detalle_total:
+        pedido.total = detalle_total
+        pedido.precio = detalle_total
+        pedido.save(using=db_alias)
+
+    materiales = Material.objects.all()
 
     if pedido.estado != "pendiente":
         messages.error(
