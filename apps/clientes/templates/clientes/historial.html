@@ -13,37 +13,26 @@
         <h5 class="fw-800 m-0 text-white">Pedidos Finalizados</h5>
     </div>
 
-    <!-- Filtros personalizados DataTables -->
     <div class="card border-0 shadow-sm p-3 mb-3 filter-bar-card" data-aos="fade-down">
-        <div class="row g-3 align-items-center">
+        <form method="GET" class="row g-3 align-items-center" id="filtros-historial">
             <div class="col-auto">
                 <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
             </div>
-            <div class="col-md-2">
-                <input type="text" id="filter-id-pedido"
-                    class="form-control form-control-sm bg-surface text-white filter-input" placeholder="ID Pedido">
+            <div class="col-md-4">
+                <input type="text" name="q"
+                    class="form-control form-control-sm bg-surface text-white" placeholder="Buscar por ID, material o destino..." value="{{ q }}" autocomplete="off">
             </div>
             <div class="col-md-3">
-                <input type="text" id="filter-material"
-                    class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Material">
+                <input type="date" name="fecha"
+                    class="form-control form-control-sm bg-surface text-white" value="{{ fecha }}">
             </div>
-            <div class="col-md-2">
-                <input type="date" id="filter-fecha"
-                    class="form-control form-control-sm bg-surface text-white filter-input">
-            </div>
-            <div class="col-md-2">
-                <select id="filter-estado" class="form-select form-select-sm bg-surface text-white filter-select">
-                    <option value="">Estado (Todos)</option>
-                    <option value="Entregado">Entregado</option>
-                </select>
-            </div>
-            <div class="col-auto ms-auto">
-                <button class="btn btn-sm btn-outline-secondary" id="clear-filters" type="button"
+            <div class="col-auto ms-auto d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-limpiar-historial" {% if not has_filters %}disabled{% endif %}
                     title="Limpiar filtros">
-                    <i class="bi bi-x-circle"></i>
+                    <i class="bi bi-x-circle"></i> Limpiar
                 </button>
             </div>
-        </div>
+        </form>
     </div>
 
     <div class="table-responsive">
@@ -62,18 +51,30 @@
             <tbody>
                 {% for pedido in pedidos %}
                 <tr>
-                    <td class="fw-700 text-accent">#CT-{{ pedido.id }}</td>
-                    <td class="fw-600 text-white">{{ pedido.material.nombre|default:"Materiales varios" }}</td>
-                    <td class="text-muted small">{{ pedido.cantidad }}</td>
-                    <td class="text-muted small">{{ pedido.fecha|date:"d M, Y" }}</td>
-                    <td class="price-tag">{{ pedido.precio|currency }}</td>
+                    <td class="fw-700 text-accent">#CT-{{ pedido.codigo_pedido }}</td>
+                    <td class="fw-600 text-white">
+                        {% for detalle in pedido.detalles.all %}
+                            {{ detalle.material.nombre }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            Materiales varios
+                        {% endfor %}
+                    </td>
+                    <td class="text-muted small">
+                        {% for detalle in pedido.detalles.all %}
+                            {{ detalle.cantidad }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            -
+                        {% endfor %}
+                    </td>
+                    <td class="text-muted small">{{ pedido.fecha_solicitud|date:"d M, Y" }}</td>
+                    <td class="price-tag">{{ pedido.total|currency }}</td>
                     <td class="text-center">
                         <span class="badge-tipo u-inline-a9b2e7691f">
                             <i class="bi bi-check-circle-fill me-1"></i> Entregado
                         </span>
                     </td>
                     <td class="text-center">
-                        <a href="{% url 'pedidos:ver_pedido_admin' pedido.id %}" class="btn-action"
+                        <a href="{% url 'pedidos:ver_pedido_admin' pedido.codigo_pedido %}" class="btn-action"
                             title="Ver Detalles">
                             <i class="bi bi-eye"></i>
                         </a>
@@ -89,50 +90,54 @@
     </div>
 </div>
 
-<style>
-    .fw-800 {
-        font-weight: 800;
-    }
+{% endblock %}
 
-    .fw-700 {
-        font-weight: 700;
-    }
-
-    .text-accent {
-        color: var(--color-accent) !important;
-    }
-</style>
-
+{% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        setTimeout(function () {
-            var tableEl = document.querySelector('.table');
-            if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
-                var table = $(tableEl).DataTable();
-                var FP = (window.FocusPreserver || {
-                    save: function(){return{el:document.activeElement,start:document.activeElement&&document.activeElement.selectionStart!==undefined?document.activeElement.selectionStart:null,end:document.activeElement&&document.activeElement.selectionEnd!==undefined?document.activeElement.selectionEnd:null};},
-                    restore: function(s){if(!s||!s.el)return;try{s.el.focus({preventScroll:true});}catch(_){try{s.el.focus();}catch(__){}}if(s.start!==null&&s.end!==null&&typeof s.el.setSelectionRange==='function'){try{s.el.setSelectionRange(s.start,s.end);}catch(_){}}},
-                    wrap: function(fn){var s=this.save();try{return fn();}finally{this.restore(s);}},
-                    debounce: function(fn,ms){var t=null;return function(){var c=this,a=arguments;if(t)clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);t=null;},ms||350);};
-                });
+(function () {
+    var form = document.getElementById('filtros-historial');
+    if (!form) return;
 
-                var drawSearch = function (colIdx, val) {
-                    FP.wrap(function () { table.column(colIdx).search(val).draw(); });
-                };
+    var debounceTimer = null;
 
-                $('#filter-id-pedido').on('input', FP.debounce(function () { drawSearch(0, this.value); }, 300));
-                $('#filter-material').on('input', FP.debounce(function () { drawSearch(1, this.value); }, 300));
-                $('#filter-fecha').on('change', function () { drawSearch(3, this.value); });
-                $('#filter-estado').on('change', function () { drawSearch(5, this.value); });
+    function submitForm() {
+        form.submit();
+    }
 
-                $('#clear-filters').on('click', function () {
-                    $('#filter-id-pedido, #filter-material, #filter-fecha').val('');
-                    $('#filter-estado').val('');
-                    FP.wrap(function () { table.columns().search('').draw(); });
-                });
-            }
-        }, 150);
-    });
+    function debounceSubmit(ms) {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(submitForm, ms || 300);
+    }
+
+    var textInput = form.querySelector('input[type="text"]');
+    if (textInput) {
+        textInput.addEventListener('input', function () {
+            debounceSubmit(300);
+        });
+    }
+
+    var dateInput = form.querySelector('input[type="date"]');
+    if (dateInput) {
+        dateInput.addEventListener('change', function () {
+            submitForm();
+        });
+    }
+
+    var btnLimpiar = document.getElementById('btn-limpiar-historial');
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener('click', function () {
+            if (textInput) textInput.value = '';
+            if (dateInput) dateInput.value = '';
+            submitForm();
+        });
+    }
+})();
 </script>
+
+<style>
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .text-accent { color: var(--color-accent) !important; }
+</style>
 
 {% endblock %}
