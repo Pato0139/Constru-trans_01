@@ -102,7 +102,9 @@ window.AppPageLifecycle.onPageLoad(function () {
                 width: '15%'
             }
         ],
-        emptyText: 'No se encontraron productos'
+        emptyText: '<div class="py-5"><i class="bi bi-box-seam d-block mb-3" style="font-size:2.5rem;opacity:0.4"></i><p class="fw-medium mb-1">No se encontraron productos</p><small>Probá ajustando los filtros o creá un producto nuevo con el botón superior.</small></div>',
+        infoEmpty: '',
+        infoFiltered: ''
     });
 
     if (!table) return;
