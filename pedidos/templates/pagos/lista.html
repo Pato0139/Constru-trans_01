@@ -37,13 +37,10 @@
             </select>
         </div>
         <div class="col-auto ms-auto d-flex gap-2">
-            <button class="btn btn-sm btn-gold" type="submit" aria-label="Aplicar filtros" data-tooltip="Aplicar filtros">
-                <i class="bi bi-search"></i>
-            </button>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'pagos:lista_pagos' %}"
+            <button class="btn btn-sm btn-outline-secondary" type="button" id="btn-limpiar-pagos"
                 aria-label="Limpiar filtros" data-tooltip="Limpiar filtros">
-                <i class="bi bi-x-circle"></i>
-            </a>
+                <i class="bi bi-x-circle"></i> Limpiar
+            </button>
         </div>
     </form>
 </div>
@@ -174,6 +171,20 @@
         e.preventDefault();
         applyFilters();
     });
+
+    var btnLimpiar = document.getElementById('btn-limpiar-pagos');
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener('click', function () {
+            fields.forEach((field) => {
+                if (field.tagName === 'INPUT') {
+                    field.value = '';
+                } else if (field.tagName === 'SELECT') {
+                    field.value = '';
+                }
+            });
+            applyFilters();
+        });
+    }
 
     window.addEventListener('popstate', function () {
         if (!form.isConnected) return;

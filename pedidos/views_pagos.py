@@ -74,7 +74,14 @@ def lista_pagos(request):
     return render(
         request,
         "pagos/lista.html",
-        {"pagos": pagos, "estado_actual": estado, "metodo_actual": metodo, "query_actual": query},
+        {
+            "pagos": pagos,
+            "estado_actual": estado,
+            "metodo_actual": metodo,
+            "query_actual": query,
+            "estados": Pago.ESTADOS,
+            "metodos": Pago.METODOS,
+        },
     )
 
 

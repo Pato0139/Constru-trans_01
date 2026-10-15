@@ -21,20 +21,20 @@
     </div>
 
     <div class="card border-0 shadow-sm p-3 mb-4 mx-4 filter-bar-card" data-aos="fade-down">
-        <form method="GET" class="standard-filter-form row g-3 align-items-center" data-ajax-filter-form="true" data-tbody-id="mis-pedidos-tbody">
+        <form method="GET" class="standard-filter-form row g-3 align-items-center" id="filtros-mis-pedidos">
             <div class="col-auto">
                 <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
             </div>
-            <div class="col-md-3">
-                <input type="text" name="id_pedido"
-                    class="form-control form-control-sm bg-surface text-white filter-input" placeholder="ID Pedido" value="{{ id_pedido }}">
+            <div class="col-md-4">
+                <input type="text" name="q"
+                    class="form-control form-control-sm bg-surface text-white" placeholder="Buscar..." value="{{ q }}" autocomplete="off">
             </div>
             <div class="col-md-3">
                 <input type="text" name="destino"
-                    class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Destino" value="{{ destino }}">
+                    class="form-control form-control-sm bg-surface text-white" placeholder="Destino" value="{{ destino }}" autocomplete="off">
             </div>
             <div class="col-md-3">
-                <select name="estado" class="form-select form-select-sm bg-surface text-white filter-select">
+                <select name="estado" class="form-select form-select-sm bg-surface text-white">
                     <option value="">Estado (Todos)</option>
                     <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
                     <option value="en_ruta" {% if estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
@@ -43,13 +43,10 @@
                 </select>
             </div>
             <div class="col-auto ms-auto d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-premium btn-premium-gold"><i class="bi bi-search me-1"></i> Filtrar</button>
-                {% if has_filters %}
-                <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-sm btn-outline-secondary"
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-limpiar-filtros" {% if not has_filters %}disabled{% endif %}
                     title="Limpiar filtros">
-                    <i class="bi bi-x-circle"></i>
-                </a>
-                {% endif %}
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </button>
             </div>
         </form>
     </div>
@@ -77,30 +74,49 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        setTimeout(function () {
-            var tableEl = document.querySelector('.table-responsive .table');
-            if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
-                var table = $(tableEl).DataTable();
-                var FP = (window.FocusPreserver || {
-                    save: function(){return{el:document.activeElement,start:document.activeElement&&document.activeElement.selectionStart!==undefined?document.activeElement.selectionStart:null,end:document.activeElement&&document.activeElement.selectionEnd!==undefined?document.activeElement.selectionEnd:null};},
-                    restore: function(s){if(!s||!s.el)return;try{s.el.focus({preventScroll:true});}catch(_){try{s.el.focus();}catch(__){}}if(s.start!==null&&s.end!==null&&typeof s.el.setSelectionRange==='function'){try{s.el.setSelectionRange(s.start,s.end);}catch(_){}}},
-                    wrap: function(fn){var s=this.save();try{return fn();}finally{this.restore(s);}},
-                    debounce: function(fn,ms){var t=null;return function(){var c=this,a=arguments;if(t)clearTimeout(t);t=setTimeout(function(){fn.apply(c,a);t=null;},ms||350);};
-                });
-                var drawSearch = function (colIdx, val) { FP.wrap(function () { table.column(colIdx).search(val).draw(); }); };
+(function () {
+    var form = document.getElementById('filtros-mis-pedidos');
+    if (!form) return;
 
-                $('#filter-id-cli').on('input', FP.debounce(function () { drawSearch(0, this.value); }, 300));
-                $('#filter-destino-cli').on('input', FP.debounce(function () { drawSearch(1, this.value); }, 300));
-                $('#filter-estado-cli').on('change', function () { drawSearch(4, this.value); });
+    var submitting = false;
+    var debounceTimer = null;
 
-                $('#clear-filters-cli').on('click', function () {
-                    $('#filter-id-cli, #filter-destino-cli').val('');
-                    $('#filter-estado-cli').val('');
-                    FP.wrap(function () { table.columns().search('').draw(); });
-                });
+    function submitForm() {
+        if (submitting) return;
+        submitting = true;
+        form.submit();
+    }
+
+    function debounceSubmit(ms) {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(submitForm, ms || 300);
+    }
+
+    var textInputs = form.querySelectorAll('input[type="text"]');
+    for (var i = 0; i < textInputs.length; i++) {
+        textInputs[i].addEventListener('input', function () {
+            debounceSubmit(300);
+        });
+    }
+
+    var selects = form.querySelectorAll('select');
+    for (var j = 0; j < selects.length; j++) {
+        selects[j].addEventListener('change', function () {
+            submitForm();
+        });
+    }
+
+    var btnLimpiar = document.getElementById('btn-limpiar-filtros');
+    if (btnLimpiar) {
+        btnLimpiar.addEventListener('click', function () {
+            var inputs = form.querySelectorAll('input, select');
+            for (var m = 0; m < inputs.length; m++) {
+                inputs[m].value = '';
             }
-        }, 150);
-    });
+            submitting = false;
+            form.submit();
+        });
+    }
+})();
 </script>
 {% endblock %}
