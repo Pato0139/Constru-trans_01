@@ -27,7 +27,6 @@ env = environ.Env(
     LICENSE_PUBLIC_KEY=(str, ""),
     LICENSE_HEARTBEAT_MINUTES=(int, 360),
     LICENSE_MAX_AGE_DAYS=(int, 30),
-    OPENWEATHER_API_KEY=(str, ""),
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
@@ -347,7 +346,6 @@ SERVER_EMAIL = env("SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
 EMAIL_TIMEOUT = env("EMAIL_TIMEOUT")
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 RESEND_FROM_EMAIL = env("RESEND_FROM_EMAIL", default="")
-OPENWEATHER_API_KEY = env("OPENWEATHER_API_KEY")
 
 # ============================================================
 # INTERNACIONALIZACIÓN

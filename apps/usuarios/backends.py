@@ -8,7 +8,18 @@ from config.superadmin_lock import es_superadmin_global
 User = get_user_model()
 
 
-class AdminRolePermissionBackend:
+class AdminRolePermissionBackend(ModelBackend):
+    """
+    Backend de autenticación + control de permisos del /admin/.
+
+    Extiende ModelBackend (hereda authenticate/get_user) y ademas restringe
+    que solo el Administrador Global toque permisos, roles, licencias y
+    usuarios desde /admin/, levantando PermissionDenied en los modelos
+    protegidos.
+
+    Nota: debe estar en AUTHENTICATION_BACKENDS y por eso necesita authenticate;
+    antes era una clase plana sin ese metodo -> AttributeError al hacer login.
+    """
     PROTECTED_APPS = {"auth", "contenttypes"}
     PROTECTED_MODELS = {
         ("usuarios", "permiso"),
