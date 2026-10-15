@@ -133,6 +133,9 @@
     }
     .payment-option .form-check-input {
         margin-top: 0.3rem;
+        pointer-events: none;
+        position: absolute;
+        opacity: 0;
     }
     .payment-option .form-check-input:checked {
         background-color: #0d6efd;
@@ -163,6 +166,14 @@
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.payment-option').forEach(function(option) {
+        option.addEventListener('click', function() {
+            var radio = this.querySelector('input[type="radio"]');
+            if (radio && !radio.checked) {
+                radio.click();
+            }
+        });
+    });
     var cuentas = {
         'nequi': '3001234567',
         'daviplata': '3109876543',
