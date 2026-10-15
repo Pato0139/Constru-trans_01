@@ -320,7 +320,7 @@ class Pago(models.Model):
     METODOS = [
         (METODO_NEQUI, "Nequi"),
         (METODO_DAVIPLATA, "DaviPlata"),
-        (METODO_BANCOLOMBIA, "Bancolombia"),
+        (METODO_BANCOLOMBIA, "Transferencia bancaria"),
         (METODO_CONTRAENTREGA, "Contraentrega"),
     ]
     METODOS_CON_COMPROBANTE = {
