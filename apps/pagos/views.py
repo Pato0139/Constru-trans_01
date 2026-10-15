@@ -12,6 +12,8 @@ from config.utils import registrar_actividad
 from config.security import role_required
 from apps.usuarios.views import admin_required
 
+from .models import Factura, PagoFactura
+from .pdf import render_factura_pdf
 from apps.pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
 from apps.pedidos.models import Pago, Pedido
 

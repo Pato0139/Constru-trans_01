@@ -93,6 +93,7 @@ function agregarMaterial() {
             <span class="badge rounded-pill px-3 material-badge">${cantidad}</span>
             <input type="hidden" name="cantidad[]" value="${cantidad}">
         </td>
+        <td class="text-end text-white-50 py-3">${formatCurrency(precio)}</td>
         <td class="text-end text-accent fw-800 py-3">${formatCurrency(subtotal)}</td>
         <td class="text-end pe-0 py-3">
             <button type="button" class="btn btn-link text-danger p-0 btn-eliminar-material" data-subtotal="${subtotal}">

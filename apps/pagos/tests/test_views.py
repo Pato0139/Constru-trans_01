@@ -3,6 +3,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from apps.catalogo.models import MaterialConstruccion, UnidadMedida
+from apps.pagos.models import Factura
 from apps.pedidos.models import DetallePedido
 from apps.pedidos.models import Pago
 from apps.pedidos.models import Pedido
@@ -152,3 +153,17 @@ class PagoViewsTests(TestCase):
         self.client.login(username="otropago", password="password123")
         response = self.client.get(reverse("pagos:detalle_pago", args=[pago.pk]))
         self.assertEqual(response.status_code, 302)
+
+    def test_cliente_puede_ver_sus_facturas(self):
+        factura = Factura.objects.create(
+            pedido=self.pedido,
+            cliente=self.cliente.perfil_cliente,
+            subtotal=120000,
+            total=120000,
+        )
+        self.client.force_login(self.cliente)
+
+        response = self.client.get(reverse("pagos:mis_facturas"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, factura.numero)

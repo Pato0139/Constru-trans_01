@@ -77,6 +77,7 @@
                                 <tr class="text-muted small border-bottom border-white-10">
                                     <th class="ps-0 py-3">Material</th>
                                     <th class="text-center py-3">Cant.</th>
+                                    <th class="text-end py-3">Precio unitario</th>
                                     <th class="text-end py-3">Subtotal</th>
                                     <th class="text-end pe-0 py-3"></th>
                                 </tr>
@@ -93,6 +94,7 @@
                                             <span class="badge rounded-pill px-3 material-badge">{{ detalle.cantidad }}</span>
                                             <input type="hidden" name="cantidad[]" value="{{ detalle.cantidad }}">
                                         </td>
+                                        <td class="text-end text-white-50 py-3">{{ detalle.precio_unitario|currency }}</td>
                                         <td class="text-end text-accent fw-800 py-3">{{ detalle.subtotal|currency }}</td>
                                         <td class="text-end pe-0 py-3">
                                             <button type="button" class="btn btn-link text-danger p-0 btn-eliminar-material" data-subtotal="{{ detalle.subtotal|unlocalize }}" aria-label="Eliminar material" data-tooltip="Eliminar material" title="Eliminar material">
@@ -168,5 +170,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/clientes/form.js' %}?v=1.0"></script>
+<script src="{% static 'js/clientes/form.js' %}?v=1.1"></script>
 {% endblock %}
