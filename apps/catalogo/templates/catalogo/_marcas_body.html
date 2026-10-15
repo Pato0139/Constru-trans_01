@@ -1,0 +1,34 @@
+{% for marca in marcas %}
+<tr>
+    <td class="py-3 px-4 fw-bold text-accent">{{ marca.nombre }}</td>
+    <td class="py-3 px-4 text-center">{{ marca.num_materiales }}</td>
+    <td class="py-3 px-4 text-center">
+        <div class="d-flex justify-content-center gap-2">
+            <a href="{% url 'catalogo:editar_marca' marca.pk %}"
+                class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--edit"
+                title="Editar">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" action="{% url 'catalogo:eliminar_marca' marca.pk %}"
+                class="d-inline" onsubmit="return confirm('¿Eliminar la marca \'{{ marca.nombre }}\'?');">
+                {% csrf_token %}
+                <button type="submit"
+                    class="btn btn-sm rounded-pill px-3 btn-outline-danger"
+                    title="Eliminar">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="3" class="text-center py-5">
+        <div class="py-5">
+            <i class="bi bi-tag text-muted mb-3 d-block" style="font-size: 3rem;"></i>
+            <p class="text-muted fw-medium mb-0">No se encontraron marcas.</p>
+            <small class="text-muted">Crea una nueva marca usando el botón superior.</small>
+        </div>
+    </td>
+</tr>
+{% endfor %}

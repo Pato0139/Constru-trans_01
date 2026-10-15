@@ -66,10 +66,10 @@
                             <span data-i18n="sidebar.gestionPedidos">Gestión de Pedidos</span>
                         </a>
                         <a href="{% url 'pagos:lista_pagos' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' %}active{% endif %}">
-                            <i class="bi bi-wallet2 text-success"></i>
-                            <span data-i18n="sidebar.pagos">Pagos</span>
-                        </a>
+                                                    class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'lista_pagos' %}active{% endif %}">
+                                                    <i class="bi bi-wallet2 text-success"></i>
+                                                    <span data-i18n="sidebar.pagos">Pagos</span>
+                                                </a>
 
                     </div>
                 </div>
@@ -242,8 +242,13 @@
                 <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-cart-fill"></i></span>
                 <span data-i18n="sidebar.misPedidos">Mis Pedidos</span>
             </a>
-            <a href="{% url 'pagos:lista_pagos' %}"
-                class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' %}active{% endif %}">
+            <a href="{% url 'pagos:mis_facturas' %}"
+                class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'mis_facturas' %}active{% endif %}">
+                <span class="nav-icon-wrap nav-icon-wrap--info"><i class="bi bi-receipt-cutoff"></i></span>
+                <span data-i18n="sidebar.misFacturas">Mis Facturas</span>
+            </a>
+            <a href="{% url 'pagos:mis_pagos' %}"
+                class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'mis_pagos' %}active{% endif %}">
                 <span class="nav-icon-wrap nav-icon-wrap--orange"><i class="bi bi-wallet2"></i></span>
                 <span data-i18n="sidebar.pagos">Mis Pagos</span>
             </a>
@@ -280,16 +285,10 @@
         </nav>
 
         <div class="sidebar-footer-nav">
-            <p class="sidebar-nav-label mb-2"><i class="bi bi-gear"></i> <span
-                    data-i18n="sidebar.label.configuracion">Configuración</span></p>
-            <nav class="nav flex-column sidebar-nav">
-                <!-- Enlace Ayuda -->
-                <a href="{% url 'ayuda:index' %}"
-                    class="nav-link-premium {% if request.resolver_match.app_name == 'ayuda' %}active{% endif %}">
-                    <span class="nav-icon-wrap nav-icon-wrap--purple"><i class="bi bi-question-circle"></i></span>
-                    <span>Ayuda</span>
-                </a>
-                <!-- Enlace Mi Cuenta según rol -->
+                    <p class="sidebar-nav-label mb-2"><i class="bi bi-gear"></i> <span
+                            data-i18n="sidebar.label.configuracion">Configuración</span></p>
+                    <nav class="nav flex-column sidebar-nav">
+                        <!-- Enlace Mi Cuenta según rol -->
                 {% with ''|center:1 as dummy %}
                 {% if active_role == 'admin' %}
                 <a href="{% url 'usuarios:perfil_admin' %}"

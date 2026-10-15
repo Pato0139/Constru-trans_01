@@ -1,0 +1,105 @@
+from django.test import TestCase
+from django.urls import reverse
+
+from apps.catalogo.models import MaterialConstruccion, UnidadMedida
+from apps.compras.models import Compra, DetalleCompra, Proveedor
+from apps.usuarios.models import Usuario
+
+
+class ComprasModelsTests(TestCase):
+    def setUp(self):
+        self.usuario = Usuario.objects.create_user(
+            username="admincompras",
+            email="compras@test.com",
+            password="password123",
+            nombres="Admin",
+            apellidos="Compras",
+            documento="123123123",
+            tipo_documento="CC",
+            rol="admin",
+        )
+        self.unidad = UnidadMedida.objects.create(
+            codigo="UND",
+            nombre="Unidad",
+            abreviatura="u",
+        )
+        self.material = MaterialConstruccion.objects.create(
+            nombre="Cemento",
+            unidad_medida=self.unidad,
+            descripcion="Bulto de cemento",
+            precio_referencia=30000,
+        )
+        self.proveedor = Proveedor.objects.create(
+            nombre_empresa="Proveedor SAS",
+            nit="9000000000",
+            telefono="3201234567",
+            correo="proveedor@test.com",
+        )
+
+    def test_compra_calcula_total_desde_detalles(self):
+        compra = Compra.objects.create(
+            proveedor=self.proveedor,
+            usuario=self.usuario,
+        )
+        DetalleCompra.objects.create(
+            compra=compra,
+            material=self.material,
+            cantidad=3,
+            precio_unitario=30000,
+        )
+        compra.refresh_from_db()
+        self.assertEqual(float(compra.total_compra), 90000.0)
+        self.assertEqual(float(compra.subtotal), 90000.0)
+        self.assertEqual(float(compra.impuesto), 0.0)
+        self.assertEqual(float(compra.impuesto_porcentaje), 0.0)
+
+    def test_detalle_compra_subtotal(self):
+        compra = Compra.objects.create(
+            proveedor=self.proveedor,
+            usuario=self.usuario,
+        )
+        detalle = DetalleCompra.objects.create(
+            compra=compra,
+            material=self.material,
+            cantidad=2,
+            precio_unitario=25000,
+        )
+        self.assertEqual(float(detalle.subtotal), 50000.0)
+
+    def test_lista_compras_renders_count_and_theme_default(self):
+        compra = Compra.objects.create(
+            proveedor=self.proveedor,
+            usuario=self.usuario,
+        )
+        DetalleCompra.objects.create(
+            compra=compra,
+            material=self.material,
+            cantidad=1,
+            precio_unitario=15000,
+        )
+
+        self.client.force_login(self.usuario)
+        response = self.client.get(reverse("compras:lista_compras"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-theme="light"')
+        self.assertNotContains(response, "{{ compra.detalles.count }}")
+        self.assertContains(response, "1")
+
+    def test_detalle_compra_renders_action_urls(self):
+        compra = Compra.objects.create(
+            proveedor=self.proveedor,
+            usuario=self.usuario,
+        )
+        self.client.force_login(self.usuario)
+
+        response = self.client.get(
+            reverse("compras:detalle_compra", kwargs={"id": compra.id_compra})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse("compras:editar_compra", args=[compra.id_compra]))
+        self.assertContains(
+            response,
+            reverse("compras:cambiar_estado_compra", args=[compra.id_compra]),
+        )

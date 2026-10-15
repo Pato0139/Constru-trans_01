@@ -48,9 +48,38 @@ body {
 }
 
 /* Prevent long labels, IDs and email addresses from creating a page-wide scroll. */
-.main-content :is(p, span, small, td, th, label, a, button),
-.modal :is(p, span, small, td, th, label) {
+.main-content :is(p, span, small, label, a, button),
+.modal :is(p, span, small, label) {
   overflow-wrap: anywhere;
+}
+
+/* Tablas responsivas: Evitar que las columnas se aplasten verticalmente letra por letra */
+.table td, .table th,
+.main-content table td, .main-content table th {
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  word-wrap: normal !important;
+}
+
+.table-responsive,
+.table-container {
+  max-width: 100%;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive > table.table,
+.table-container > table.table,
+table.table {
+  min-width: 650px;
+}
+
+.table td .badge,
+.table td .btn,
+.table td .btn-action,
+.table th {
+  white-space: nowrap;
 }
 
 /* The dashboard scrolls inside main-content.  Keep the fixed header clear of
@@ -78,7 +107,7 @@ body {
 
 /* Keep table rows in the page flow; the inner wrapper handles wide tables. */
 .table-container {
-  overflow: visible !important;
+  overflow-x: auto !important;
 }
 
 /* The orders list shares the viewport with the fixed dashboard chrome. Keep

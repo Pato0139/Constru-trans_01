@@ -2,7 +2,7 @@ import os
 import sys
 
 sys.path.append(os.getcwd())
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 import django
 
@@ -11,8 +11,8 @@ django.setup()
 from django.contrib.auth.models import User
 from ordenes.models import Pedido
 
-from clientes.models import Cliente
-from usuarios.models import EPS, Usuario
+from apps.clientes.models import Cliente
+from apps.usuarios.models import EPS, Usuario
 
 print("=== DEBUG: Creating data step by step ===")
 

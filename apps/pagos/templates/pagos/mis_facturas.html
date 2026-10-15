@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Mis facturas{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+      <i class="bi bi-file-earmark-text text-primary me-2"></i>Mis facturas
+    </h1>
+  </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>N° factura</th>
+              <th>Pedido</th>
+              <th>Fecha</th>
+              <th>Total</th>
+              <th>Estado de pago</th>
+              <th>PDF</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in facturas %}
+            <tr>
+              <td class="fw-semibold">{{ f.numero }}</td>
+              <td>#{{ f.pedido.codigo_pedido }}</td>
+              <td>{{ f.fecha_emision|date:"Y-m-d" }}</td>
+              <td>${{ f.total }}</td>
+              <td>
+                {% if f.estado == "emitida" %}
+                  <span class="badge bg-warning text-dark">Emitida</span>
+                {% elif f.estado == "parcial" %}
+                  <span class="badge bg-info text-dark">Pago parcial</span>
+                {% elif f.estado == "pagada" %}
+                  <span class="badge bg-success">Pagada</span>
+                {% elif f.estado == "vencida" %}
+                  <span class="badge bg-danger">Vencida</span>
+                {% elif f.estado == "anulada" %}
+                  <span class="badge bg-secondary">Anulada</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ f.get_estado_display }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'pagos:descargar_factura' f.pk %}" class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-file-earmark-pdf me-1"></i>Descargar
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-5 text-muted">
+                <i class="bi bi-inbox display-4 d-block mb-2"></i>
+                Aún no tienes facturas generadas.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

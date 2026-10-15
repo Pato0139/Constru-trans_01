@@ -70,7 +70,7 @@ app/
 pytest
 
 # Coverage report
-pytest --cov=usuarios --cov=clientes --cov=inventario --cov=compras --cov=ordenes --cov=gestion_pedidos --cov=facturacion --cov=pagos --cov=ia
+pytest --cov=apps.usuarios --cov=apps.clientes --cov=inventario --cov=apps.compras --cov=ordenes --cov=gestion_pedidos --cov=facturacion --cov=apps.pagos --cov=apps.ia
 
 # Solo una app
 pytest usuarios/tests/
