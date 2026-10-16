@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.db.models import F
 
 from apps.catalogo.forms import MaterialForm
 from apps.catalogo.models import MaterialConstruccion, Stock, UnidadMedida
@@ -37,6 +38,28 @@ class CatalogoModelsTests(TestCase):
         self.assertEqual(stock.material, material)
         self.assertEqual(stock.cantidad_actual, 100)
         self.assertEqual(stock.id, material.cod_material)
+
+    def test_stock_con_actualizacion_atomica_sincroniza_material(self):
+        unidad = UnidadMedida.objects.create(
+            codigo="UND",
+            nombre="Unidad",
+            abreviatura="u",
+        )
+        material = MaterialConstruccion.objects.create(
+            nombre="Bloque",
+            unidad_medida=unidad,
+            descripcion="Bloque de prueba",
+            precio_referencia=5000,
+        )
+        stock = Stock.objects.create(material=material, cantidad_actual=4)
+
+        stock.cantidad_actual = F("cantidad_actual") + 3
+        stock.save()
+
+        material.refresh_from_db()
+        stock.refresh_from_db()
+        self.assertEqual(stock.cantidad_actual, 7)
+        self.assertEqual(material.stock, 7)
 
     def test_formulario_material_crea_stock_y_ubicacion(self):
         unidad = UnidadMedida.objects.create(

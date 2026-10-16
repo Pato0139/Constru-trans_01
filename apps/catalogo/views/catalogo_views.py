@@ -1,6 +1,7 @@
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Case, When, Value, CharField
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from apps.catalogo.forms import CatalogoForm, MarcaForm, UnidadMedidaForm
 from apps.catalogo.models import Catalogo, Marca, UnidadMedida
@@ -15,7 +16,14 @@ def tipos_material_lista(request):
     materiales_asociados = request.GET.get("materiales_asociados", "").strip()
     query = request.GET.get("q", "").strip()
 
-    tipos = Catalogo.objects.annotate(num_materiales=Count("materiales"))
+    tipos = Catalogo.objects.annotate(
+        num_materiales=Count("materiales"),
+        boton_estado=Case(
+            When(activo=True, then=Value("btn-action--success")),
+            default=Value("btn-action--danger"),
+            output_field=CharField(),
+        ),
+    )
 
     if codigo:
         tipos = tipos.filter(codigo_catalogo__icontains=codigo)
@@ -114,6 +122,20 @@ def editar_tipo_material(request, codigo):
 
 
 @admin_required
+@require_POST
+def cambiar_estado_tipo(request, codigo):
+    tipo = get_object_or_404(Catalogo, pk=codigo)
+    tipo.activo = not tipo.activo
+    tipo.estado = "activo" if tipo.activo else "inactivo"
+    tipo.save(update_fields=["activo", "estado"])
+    estado = "habilitada" if tipo.activo else "inhabilitada"
+    registrar_actividad(request, "actualizar", "catalogo", tipo.pk, f"Categoría {estado}: {tipo.nombre_empresa}")
+    messages.success(request, f"Categoría {tipo.nombre_empresa} {estado} correctamente.")
+    return redirect("catalogo:tipos_material_lista")
+
+
+@admin_required
+@require_POST
 def eliminar_tipo_material(request, codigo):
     tipo = get_object_or_404(Catalogo, pk=codigo)
 
@@ -221,6 +243,7 @@ def cambiar_estado_unidad_medida(request, id):
 
 
 @admin_required
+@require_POST
 def eliminar_unidad_medida(request, id):
     unidad = get_object_or_404(UnidadMedida, pk=id)
 
@@ -249,7 +272,14 @@ def eliminar_unidad_medida(request, id):
 def marcas_lista(request):
     query = request.GET.get("q", "").strip()
 
-    marcas = Marca.objects.annotate(num_materiales=Count("materiales"))
+    marcas = Marca.objects.annotate(
+        num_materiales=Count("materiales"),
+        boton_estado=Case(
+            When(activo=True, then=Value("btn-action--success")),
+            default=Value("btn-action--danger"),
+            output_field=CharField(),
+        ),
+    )
 
     if query:
         marcas = marcas.filter(nombre__icontains=query)
@@ -322,6 +352,26 @@ def editar_marca(request, id):
 
 
 @admin_required
+@require_POST
+def cambiar_estado_marca(request, id):
+    marca = get_object_or_404(Marca, pk=id)
+    marca.activo = not marca.activo
+    marca.estado = "activo" if marca.activo else "inactivo"
+    marca.save(update_fields=["activo", "estado"])
+    estado = "habilitada" if marca.activo else "inhabilitada"
+    registrar_actividad(
+        request,
+        "actualizar",
+        "marca",
+        marca.pk,
+        f"Marca {estado}: {marca.nombre}",
+    )
+    messages.success(request, f"Marca {estado} correctamente.")
+    return redirect("catalogo:marcas_lista")
+
+
+@admin_required
+@require_POST
 def eliminar_marca(request, id):
     marca = get_object_or_404(Marca, pk=id)
 

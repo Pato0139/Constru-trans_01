@@ -34,6 +34,7 @@ class PagoRegistroForm(forms.ModelForm):
 class PagoRevisionForm(forms.Form):
     observaciones = forms.CharField(
         required=False,
+        max_length=1000,
         widget=forms.Textarea(
             attrs={
                 "class": "form-control",

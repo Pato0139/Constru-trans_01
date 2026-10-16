@@ -10,6 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # vehiculo.catalogo apunta al Catalogo de usuarios; se quita antes de borrar
+        # el modelo. La tabla vehiculo se vuelve a crear en logistica.0001.
         migrations.RemoveField(
             model_name="materialconstruccion",
             name="catalogo",
@@ -18,6 +20,62 @@ class Migration(migrations.Migration):
             model_name="vehiculo",
             name="catalogo",
         ),
+        # Las tablas catalogo, marca, material_construccion, unidad_medida, stock,
+        # historial_precio_material y proveedor fueron adoptadas por sus apps actuales
+        # (catalogo y compras). Aquí solo se limpia el estado de 'usuarios' sin tocar la
+        # base de datos, para no eliminar tablas en uso (SeparateDatabaseAndState).
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.RemoveField(
+                    model_name='materialconstruccion',
+                    name='catalogo',
+                ),
+                migrations.RemoveField(
+                    model_name='historialpreciomaterial',
+                    name='material',
+                ),
+                migrations.RemoveField(
+                    model_name='historialpreciomaterial',
+                    name='usuario',
+                ),
+                migrations.RemoveField(
+                    model_name='materialconstruccion',
+                    name='marca',
+                ),
+                migrations.RemoveField(
+                    model_name='materialconstruccion',
+                    name='unidad_medida',
+                ),
+                migrations.RemoveField(
+                    model_name='stock',
+                    name='material',
+                ),
+                migrations.DeleteModel(
+                    name='Proveedor',
+                ),
+                migrations.DeleteModel(
+                    name='Catalogo',
+                ),
+                migrations.DeleteModel(
+                    name='HistorialPrecioMaterial',
+                ),
+                migrations.DeleteModel(
+                    name='Marca',
+                ),
+                migrations.DeleteModel(
+                    name='UnidadMedida',
+                ),
+                migrations.DeleteModel(
+                    name='MaterialConstruccion',
+                ),
+                migrations.DeleteModel(
+                    name='Stock',
+                ),
+            ],
+        ),
+        # Vehiculo y ConductorVehiculo sí se eliminan de la base de datos: la app
+        # 'logistica' los vuelve a crear en su migración inicial, que depende de esta.
         migrations.AlterUniqueTogether(
             name="conductorvehiculo",
             unique_together=None,

@@ -88,11 +88,13 @@
                                 class="btn btn-sm btn-outline-warning rounded-pill px-3" title="Asignar Entrega">
                                 <i class="bi bi-truck"></i>
                             </a>
-                            <a href="{% url 'clientes:cancelar_pedido' p.codigo_pedido %}"
-                                class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Cancelar"
-                                onclick="return confirm('¿Estás seguro de cancelar este pedido?')">
-                                <i class="bi bi-x-circle"></i>
-                            </a>
+                            <form action="{% url 'clientes:cancelar_pedido' p.codigo_pedido %}" method="post"
+                                onsubmit="return confirm('¿Estás seguro de cancelar este pedido?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Cancelar">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </form>
                             {% endif %}
                         </div>
                     </td>

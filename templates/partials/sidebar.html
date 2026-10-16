@@ -66,59 +66,111 @@
                             <span data-i18n="sidebar.gestionPedidos">Gestión de Pedidos</span>
                         </a>
                         <a href="{% url 'pagos:lista_pagos' %}"
-                                                    class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'lista_pagos' %}active{% endif %}">
-                                                    <i class="bi bi-wallet2 text-success"></i>
-                                                    <span data-i18n="sidebar.pagos">Pagos</span>
-                                                </a>
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' %}active{% endif %}">
+                            <i class="bi bi-wallet2 text-success"></i>
+                            <span data-i18n="sidebar.pagos">Pagos</span>
+                        </a>
+                        <a href="{% url 'pagos:lista_facturas' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'lista_facturas' %}active{% endif %}">
+                            <i class="bi bi-receipt text-info"></i>
+                            <span>Facturación</span>
+                        </a>
+                        <a href="{% url 'pagos:gestion_pagos' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'gestion_pagos' %}active{% endif %}">
+                            <i class="bi bi-cash-stack text-success"></i>
+                            <span data-i18n="sidebar.gestionPagos">Gestión de Pagos</span>
+                        </a>
+                        <a href="{% url 'pagos:historial_pagos' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'pagos' and request.resolver_match.url_name == 'historial_pagos' %}active{% endif %}">
+                            <i class="bi bi-clock-history text-success"></i>
+                            <span>Historial de Pagos</span>
+                        </a>
 
                     </div>
                 </div>
             </div>
 
+            <!-- ============ CATÁLOGO (Categorías, Marcas, Unidades, Materiales, Stock, Movimientos) ============ -->
+            <p class="sidebar-nav-label"><i class="bi bi-box-seam"></i> <span
+                    data-i18n="sidebar.label.catalogo">Catálogo</span></p>
             <div class="sidebar-section sidebar-section--inventario">
                 <button
-                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'catalogo' or request.resolver_match.app_name == 'logistica' %}{% else %}collapsed{% endif %}"
-                    type="button" data-bs-toggle="collapse" data-bs-target="#inventarioCollapse"
-                    aria-expanded="{% if request.resolver_match.app_name == 'catalogo' or request.resolver_match.app_name == 'logistica' %}true{% else %}false{% endif %}"
-                    aria-controls="inventarioCollapse">
+                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'catalogo' %}{% else %}collapsed{% endif %}"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#catalogoCollapse"
+                    aria-expanded="{% if request.resolver_match.app_name == 'catalogo' %}true{% else %}false{% endif %}"
+                    aria-controls="catalogoCollapse">
                     <span class="d-flex align-items-center gap-2">
                         <span class="nav-icon-wrap nav-icon-wrap--teal"><i class="bi bi-box-seam-fill"></i></span>
-                        <span data-i18n="sidebar.inventarioFlota">Inventario y Flota</span>
+                        <span data-i18n="sidebar.catalogo">Catálogo</span>
                     </span>
                     <i
-                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'catalogo' or request.resolver_match.app_name == 'logistica' %}rotated{% endif %}"></i>
+                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'catalogo' %}rotated{% endif %}"></i>
                 </button>
-                <div class="collapse {% if request.resolver_match.app_name == 'catalogo' or request.resolver_match.app_name == 'logistica' %}show{% endif %}"
-                    id="inventarioCollapse">
+                <div class="collapse {% if request.resolver_match.app_name == 'catalogo' %}show{% endif %}"
+                    id="catalogoCollapse">
                     <div class="nav-submenu">
                         <a href="{% url 'catalogo:materiales_lista' %}"
                             class="nav-link-premium {% if request.resolver_match.app_name == 'catalogo' and request.resolver_match.url_name in 'materiales_lista,crear_material,editar_material' %}active{% endif %}"
-                            aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
+                            aria-label="Producto" data-tooltip="Producto" title="Producto">
                             <i class="bi bi-box"></i>
-                            <span data-i18n="sidebar.materiales">Materiales</span>
+                            <span data-i18n="sidebar.producto">Producto</span>
                         </a>
                         <a href="{% url 'catalogo:tipos_material_lista' %}"
                             class="nav-link-premium {% if request.resolver_match.app_name == 'catalogo' and request.resolver_match.url_name in 'tipos_material_lista,crear_tipo_material,editar_tipo_material' %}active{% endif %}"
-                            aria-label="Agregar tipo de material" data-tooltip="Agregar tipo de material"
-                            title="Agregar tipo de material">
+                            aria-label="Categorías" data-tooltip="Categorías" title="Categorías">
                             <i class="bi bi-tags"></i>
-                            <span data-i18n="sidebar.tiposMaterial">Tipos de Material</span>
+                            <span data-i18n="sidebar.categorias">Categorías</span>
                         </a>
-                        <a href="{% url 'catalogo:stock_lista' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'catalogo' and request.resolver_match.url_name == 'stock_lista' %}active{% endif %}">
-                            <i class="bi bi-clipboard-data-fill"></i>
-                            <span data-i18n="sidebar.stock">Stock</span>
+                        <a href="{% url 'catalogo:marcas_lista' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'catalogo' and request.resolver_match.url_name in 'marcas_lista,crear_marca,editar_marca' %}active{% endif %}"
+                            aria-label="Marcas" data-tooltip="Marcas" title="Marcas">
+                            <i class="bi bi-bookmark-star"></i>
+                            <span data-i18n="sidebar.marcas">Marcas</span>
+                        </a>
+                        <a href="{% url 'catalogo:unidades_medida_lista' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'catalogo' and request.resolver_match.url_name in 'unidades_medida_lista,crear_unidad_medida,editar_unidad_medida' %}active{% endif %}"
+                            aria-label="Unidades de Medida" data-tooltip="Unidades de Medida" title="Unidades de Medida">
+                            <i class="bi bi-rulers"></i>
+                            <span data-i18n="sidebar.unidadesMedida">Unidades de Medida</span>
                         </a>
                         <a href="{% url 'catalogo:movimientos_lista' %}"
                             class="nav-link-premium {% if request.resolver_match.app_name == 'catalogo' and request.resolver_match.url_name == 'movimientos_lista' %}active{% endif %}"
-                            aria-label="Volver" data-tooltip="Volver" title="Volver">
+                            aria-label="Movimientos" data-tooltip="Movimientos" title="Movimientos">
                             <i class="bi bi-arrow-left-right"></i>
                             <span data-i18n="sidebar.movimientos">Movimientos</span>
                         </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ LOGÍSTICA (Vehículos y Entregas) ============ -->
+            <p class="sidebar-nav-label"><i class="bi bi-truck"></i> <span
+                    data-i18n="sidebar.label.logistica">Logística</span></p>
+            <div class="sidebar-section sidebar-section--entregas">
+                <button
+                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'logistica' or request.resolver_match.url_name == 'lista_entregas_admin' %}{% else %}collapsed{% endif %}"
+                    type="button" data-bs-toggle="collapse" data-bs-target="#logisticaCollapse"
+                    aria-expanded="{% if request.resolver_match.app_name == 'logistica' or request.resolver_match.url_name == 'lista_entregas_admin' %}true{% else %}false{% endif %}"
+                    aria-controls="logisticaCollapse">
+                    <span class="d-flex align-items-center gap-2">
+                        <span class="nav-icon-wrap nav-icon-wrap--green"><i class="bi bi-truck-flatbed"></i></span>
+                        <span data-i18n="sidebar.logistica">Logística</span>
+                    </span>
+                    <i
+                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'logistica' or request.resolver_match.url_name == 'lista_entregas_admin' %}rotated{% endif %}"></i>
+                </button>
+                <div class="collapse {% if request.resolver_match.app_name == 'logistica' or request.resolver_match.url_name == 'lista_entregas_admin' %}show{% endif %}"
+                    id="logisticaCollapse">
+                    <div class="nav-submenu">
                         <a href="{% url 'logistica:lista_vehiculos' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'logistica' %}active{% endif %}">
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'logistica' and request.resolver_match.url_name in 'lista_vehiculos,crear_vehiculo,editar_vehiculo' %}active{% endif %}">
                             <i class="bi bi-truck"></i>
                             <span data-i18n="sidebar.vehiculos">Vehículos</span>
+                        </a>
+                        <a href="{% url 'pedidos:lista_entregas_admin' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_entregas_admin' %}active{% endif %}">
+                            <i class="bi bi-box-arrow-in-down"></i>
+                            <span data-i18n="sidebar.entregasList">Entregas</span>
                         </a>
                     </div>
                 </div>
@@ -149,31 +201,6 @@
                             class="nav-link-premium {% if request.resolver_match.app_name == 'compras' and request.resolver_match.url_name == 'lista_compras' %}active{% endif %}">
                             <i class="bi bi-bag-check-fill"></i>
                             <span data-i18n="sidebar.comprasList">Compras</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="sidebar-section sidebar-section--entregas">
-                <button
-                    class="nav-link-premium nav-link-premium--parent w-100 text-start d-flex justify-content-between align-items-center {% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_entregas_admin' %}{% else %}collapsed{% endif %}"
-                    type="button" data-bs-toggle="collapse" data-bs-target="#entregasCollapse"
-                    aria-expanded="{% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_entregas_admin' %}true{% else %}false{% endif %}"
-                    aria-controls="entregasCollapse">
-                    <span class="d-flex align-items-center gap-2">
-                        <span class="nav-icon-wrap nav-icon-wrap--green"><i class="bi bi-truck-flatbed"></i></span>
-                        <span data-i18n="sidebar.entregas">Entregas</span>
-                    </span>
-                    <i
-                        class="bi bi-chevron-down collapse-icon transition-transform {% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_entregas_admin' %}rotated{% endif %}"></i>
-                </button>
-                <div class="collapse {% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_entregas_admin' %}show{% endif %}"
-                    id="entregasCollapse">
-                    <div class="nav-submenu">
-                        <a href="{% url 'pedidos:lista_entregas_admin' %}"
-                            class="nav-link-premium {% if request.resolver_match.app_name == 'pedidos' and request.resolver_match.url_name == 'lista_entregas_admin' %}active{% endif %}">
-                            <i class="bi bi-truck"></i>
-                            <span data-i18n="sidebar.entregasList">Entregas</span>
                         </a>
                     </div>
                 </div>
@@ -285,28 +312,40 @@
         </nav>
 
         <div class="sidebar-footer-nav">
-                    <p class="sidebar-nav-label mb-2"><i class="bi bi-gear"></i> <span
-                            data-i18n="sidebar.label.configuracion">Configuración</span></p>
-                    <nav class="nav flex-column sidebar-nav">
-                        <!-- Enlace Mi Cuenta según rol -->
-                {% with ''|center:1 as dummy %}
+            <p class="sidebar-nav-label mb-2"><i class="bi bi-gear"></i> <span
+                    data-i18n="sidebar.label.configuracion">Configuración</span></p>
+            <nav class="nav flex-column sidebar-nav">
+                <!-- Enlace Ayuda -->
+                <a href="{% url 'ayuda:index' %}"
+                    class="nav-link-premium {% if request.resolver_match.app_name == 'ayuda' %}active{% endif %}">
+                    <span class="nav-icon-wrap nav-icon-wrap--purple"><i class="bi bi-question-circle"></i></span>
+                    <span>Ayuda</span>
+                </a>
+                <!-- Enlace Mi Cuenta según rol -->
                 {% if active_role == 'admin' %}
                 <a href="{% url 'usuarios:perfil_admin' %}"
                     class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_admin' %}active{% endif %}">
-                    {% elif active_role == 'conductor' %}
-                    <a href="{% url 'usuarios:perfil_conductor' %}"
-                        class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_conductor' %}active{% endif %}">
-                        {% elif active_role == 'cliente' %}
-                        <a href="{% url 'clientes:perfil_cliente' %}"
-                            class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_cliente' %}active{% endif %}">
-                            {% else %}
-                            <a href="{% url 'usuarios:panel' %}" class="nav-link-premium">
-                                {% endif %}
-                                <span class="nav-icon-wrap nav-icon-wrap--blue"><i
-                                        class="bi bi-person-circle"></i></span>
-                                <span data-i18n="sidebar.miCuenta">Mi Cuenta</span>
-                            </a>
-                            {% endwith %}
+                    <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-person-circle"></i></span>
+                    <span data-i18n="sidebar.miCuenta">Mi Cuenta</span>
+                </a>
+                {% elif active_role == 'conductor' %}
+                <a href="{% url 'usuarios:perfil_conductor' %}"
+                    class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_conductor' %}active{% endif %}">
+                    <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-person-circle"></i></span>
+                    <span data-i18n="sidebar.miCuenta">Mi Cuenta</span>
+                </a>
+                {% elif active_role == 'cliente' %}
+                <a href="{% url 'clientes:perfil_cliente' %}"
+                    class="nav-link-premium {% if request.resolver_match.url_name == 'perfil_cliente' %}active{% endif %}">
+                    <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-person-circle"></i></span>
+                    <span data-i18n="sidebar.miCuenta">Mi Cuenta</span>
+                </a>
+                {% else %}
+                <a href="{% url 'usuarios:panel' %}" class="nav-link-premium">
+                    <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-person-circle"></i></span>
+                    <span data-i18n="sidebar.miCuenta">Mi Cuenta</span>
+                </a>
+                {% endif %}
                             <a href="{% url 'usuarios:logout' %}"
                                 class="nav-link-premium nav-link-premium--danger confirm-logout">
                                 <span class="nav-icon-wrap nav-icon-wrap--danger"><i class="bi bi-power"></i></span>

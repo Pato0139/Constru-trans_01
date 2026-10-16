@@ -1,0 +1,300 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Constru-trans</title>
+    
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- SweetAlert2 for beautiful alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="/static/css/loader.css">
+    
+    <link rel="stylesheet" href="/static/css/usuarios/auth-panel.css?v=1.0">
+    
+    
+    <link rel="stylesheet" href="/static/css/inline-migrated.css?v=1.0">
+
+
+<link rel="stylesheet" href="/static/css/usuarios/auth-modals.css?v=1.0">
+<link rel="stylesheet" href="/static/css/usuarios/login.css?v=1.0">
+
+</head>
+<body>
+    <div id="particles-js"></div>
+
+    <!-- Botón Flotante de Soporte -->
+    <a href="https://chat.whatsapp.com/EN3S08Z50IvGENZv7IX1AK" target="_blank" class="support-badge animate__animated animate__fadeInRight">
+        <div class="support-icon">
+            <i class="bi bi-whatsapp"></i>
+        </div>
+        <div class="support-text">
+            <span class="support-label">Soporte Técnico</span>
+            <span class="support-value">Grupo de Ayuda</span>
+        </div>
+    </a>
+
+<div id="loader-container">
+    <img src="/static/img/Logo1.jpeg" class="loader-img" alt="Cargando...">
+    <div class="loader">
+        <div class="progress-bar"></div>
+    </div>
+    <p>Cargando Constru-trans...</p>
+</div>
+
+    <div class="auth-master-card animate__animated animate__fadeIn">
+        <div class="auth-form-section">
+            <div class="auth-brand d-flex align-items-center justify-content-between w-100">
+                <div class="d-flex align-items-center">
+                    <img src="/static/img/Logo1.jpeg" alt="Logo" class="brand-icon">
+                    CONSTRU<span>-TRANS</span>
+                </div>
+                <a href="/" class="btn-back-home d-none d-sm-block">
+                    <i class="bi bi-house-door-fill me-1"></i> Volver al Inicio
+                </a>
+                <a href="/" class="btn-back-home d-sm-none">
+                    <i class="bi bi-house-door-fill"></i>
+                </a>
+            </div>
+            
+            
+<div class="animate-up">
+    <h1 class="welcome-h1">¡BIENVENIDO!</h1>
+    <p class="welcome-p">¿No tiene una cuenta? <a href="/usuarios/registro/">Regístrese</a></p>
+</div>
+
+
+
+
+
+<form method="POST" class="animate-up delay-1">
+    <input type="hidden" name="csrfmiddlewaretoken" value="LuDAoAUyt6XVCMwqosOqRgZrmA63VWt696TO3KUMGNmaFECdNmKB6IctybIsyZbY">
+
+    <div class="form-group-custom">
+        <label class="label-custom">Usuario o Correo</label>
+        <input type="text" name="username" class="input-custom" placeholder="Usuario o Correo" required id="id_username">
+    </div>
+
+    <div class="form-group-custom">
+        <label class="label-custom">Contraseña</label>
+        <div class="position-relative">
+            <input type="password" name="password" class="input-custom" placeholder="Contraseña" id="password" required>
+            <button type="button" onclick="togglePassword()"
+                    class="btn btn-password-toggle position-absolute top-50 end-0 translate-middle-y border-0 pe-4">
+                <i class="bi bi-eye-slash icon-password-toggle" id="toggleIcon"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="login-options-row d-flex justify-content-between align-items-center mb-4">
+        <div class="form-check">
+            <input class="form-check-input auth-terms-checkbox" type="checkbox"
+                   name="remember_me" id="id_remember_me"
+                   >
+            <label class="form-check-label small text-white fw-bold ms-2" for="id_remember_me">
+                Recordarme en este dispositivo
+            </label>
+        </div>
+        <a href="/usuarios/recuperar/" class="text-decoration-none small fw-bold link-gold">
+            ¿Se le olvidó la clave?
+        </a>
+    </div>
+
+    <div class="mb-4 d-flex justify-content-center flex-column align-items-center">
+        <!-- Mock reCAPTCHA UI -->
+        <div class="recaptcha-mock" role="checkbox" aria-checked="false" tabindex="0" onclick="toggleCaptcha()" onkeydown="handleCaptchaKeydown(event)">
+            <div class="recaptcha-left">
+                <div class="recaptcha-checkbox" id="captcha-box">
+                    <i class="bi bi-check d-none" id="captcha-icon"></i>
+                </div>
+                <span class="recaptcha-text">No soy un robot</span>
+            </div>
+            <div class="recaptcha-right">
+                <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA logo">
+                <div class="recaptcha-privacy">reCAPTCHA<br>Privacidad - Condiciones</div>
+            </div>
+        </div>
+        <input type="checkbox" name="captcha" id="id_captcha" class="d-none">
+        
+    </div>
+
+    <button type="submit" class="btn-main d-flex align-items-center justify-content-center">
+        <i class="bi bi-box-arrow-in-right me-2"></i> ENTRAR
+    </button>
+
+    <p class="auth-footer-text">
+        Al iniciar sesión acepta nuestros
+        <button type="button" onclick="abrirTerminosLogin()" class="btn auth-terms-link">
+            Términos y Condiciones
+        </button>
+        y la
+        <button type="button" onclick="abrirPrivacidadLogin()" class="btn auth-terms-link">
+            Política de Privacidad
+        </button>
+    </p>
+</form>
+
+<!-- Modal Términos y Condiciones (Login) -->
+<div id="terminosModalLogin" class="fixed-top d-none auth-modal-overlay">
+    <div id="terminosBackdropLogin" class="auth-modal-backdrop"></div>
+    <div class="auth-modal-wrapper">
+        <div class="auth-modal-box">
+            <div class="auth-modal-header">
+                <h5 class="auth-modal-title">
+                    <i class="bi bi-file-earmark-text-fill fs-5"></i> Términos y Condiciones de Uso
+                </h5>
+                <button type="button" onclick="cerrarTerminosLogin()" class="auth-modal-close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <p class="auth-modal-subtitle">
+                Última actualización: julio de 2026. Al usar Constru-Trans, usted acepta los siguientes términos en su totalidad.
+            </p>
+            <div class="d-flex flex-column gap-3">
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-1-circle me-2"></i>Aceptación de los Términos</h6>
+                    <p class="auth-modal-section-text">Al registrarse y utilizar la plataforma Constru-Trans, usted acepta quedar vinculado por estos Términos y Condiciones, así como por nuestra Política de Privacidad. Si no está de acuerdo con alguno de estos términos, no debe utilizar la plataforma.</p>
+                </div>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-2-circle me-2"></i>Descripción del Servicio</h6>
+                    <p class="auth-modal-section-text">Constru-Trans es una plataforma de gestión logística que facilita la conexión entre clientes que requieren transporte de materiales de construcción y conductores/proveedores registrados.</p>
+                </div>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-3-circle me-2"></i>Registro y Cuenta de Usuario</h6>
+                    <ul class="auth-modal-section-list">
+                        <li>Debe proporcionar información verídica, completa y actualizada durante el registro.</li>
+                        <li>Es responsable de mantener la confidencialidad de su contraseña.</li>
+                        <li>Debe notificarnos inmediatamente si sospecha de acceso no autorizado a su cuenta.</li>
+                        <li>Una persona solo puede tener una cuenta activa en la plataforma.</li>
+                        <li>Está prohibido ceder, vender o transferir su cuenta a terceros.</li>
+                    </ul>
+                </div>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-4-circle me-2"></i>Uso Aceptable</h6>
+                    <ul class="auth-modal-section-list">
+                        <li>Actividades ilegales o que infrinjan derechos de terceros.</li>
+                        <li>Publicar información falsa, engañosa o fraudulenta.</li>
+                        <li>Intentar acceder de forma no autorizada a sistemas o datos.</li>
+                        <li>Interferir con el funcionamiento normal de la plataforma.</li>
+                        <li>Realizar actividades de spam, phishing o distribución de malware.</li>
+                    </ul>
+                </div>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-5-circle me-2"></i>Pagos y Facturación</h6>
+                    <p class="auth-modal-section-text">Los precios son los establecidos en cada cotización confirmada. Constru-Trans actúa como intermediario y no se hace responsable por disputas entre clientes y proveedores.</p>
+                </div>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-6-circle me-2"></i>Limitación de Responsabilidad</h6>
+                    <p class="auth-modal-section-text">Constru-Trans no será responsable por daños directos, indirectos o consecuentes derivados del uso de la plataforma. El servicio se provee "tal como está".</p>
+                </div>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-7-circle me-2"></i>Suspensión y Terminación</h6>
+                    <p class="auth-modal-section-text">Nos reservamos el derecho de suspender o terminar su cuenta sin previo aviso si detectamos violaciones a estos términos o actividad fraudulenta.</p>
+                </div>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-envelope me-2"></i>Contacto</h6>
+                    <p class="auth-modal-section-text">Para dudas: <a href="mailto:construtranscolombia@gmail.com" class="auth-terms-link">construtranscolombia@gmail.com</a></p>
+                </div>
+            </div>
+            <div class="auth-modal-footer">
+                <button type="button" onclick="cerrarTerminosLogin()" class="auth-modal-btn-accept">
+                    <i class="bi bi-check-circle-fill me-2"></i> Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Política de Privacidad (Login) -->
+<div id="privacidadModalLogin" class="fixed-top d-none auth-modal-overlay">
+    <div id="privacidadBackdropLogin" class="auth-modal-backdrop"></div>
+    <div class="auth-modal-wrapper">
+        <div class="auth-modal-box">
+            <div class="auth-modal-header">
+                <h5 class="auth-modal-title">
+                    <i class="bi bi-shield-lock-fill fs-5"></i> Política de Privacidad
+                </h5>
+                <button type="button" onclick="cerrarPrivacidadLogin()" class="auth-modal-close">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <p class="auth-modal-subtitle">Esta Política describe cómo Constru-Trans recopila, usa y protege su información personal al utilizar nuestra plataforma.</p>
+            <div class="d-flex flex-column gap-3">
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-database me-2"></i>Datos que recopilamos</h6>
+                    <ul class="auth-modal-section-list">
+                        <li>Nombre, apellidos, correo electrónico, teléfono y documento de identidad.</li>
+                        <li>Datos de uso: páginas visitadas, acciones realizadas, dirección IP.</li>
+                        <li>Información de transacciones: pedidos, pagos y comprobantes.</li>
+                    </ul>
+                </div>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-gear me-2"></i>Cómo usamos sus datos</h6>
+                    <p class="auth-modal-section-text">Para proveer el servicio, procesar transacciones, mejorar la experiencia del usuario y cumplir obligaciones legales.</p>
+                </div>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-safe2 me-2"></i>Protección de datos</h6>
+                    <p class="auth-modal-section-text">Aplicamos medidas de seguridad técnicas y administrativas. Cumplimos con la Ley 1581 de 2012 (Colombia), RGPD (UE) y CCPA (California).</p>
+                </div>
+                <div class="auth-modal-section">
+                    <h6 class="auth-modal-section-title"><i class="bi bi-person-check me-2"></i>Sus derechos</h6>
+                    <p class="auth-modal-section-text">Puede acceder, corregir, eliminar o portar sus datos contactándonos en <a href="mailto:construtranscolombia@gmail.com" class="auth-terms-link">construtranscolombia@gmail.com</a>.</p>
+                </div>
+            </div>
+            <div class="auth-modal-footer">
+                <button type="button" onclick="cerrarPrivacidadLogin()" class="auth-modal-btn-accept">
+                    <i class="bi bi-check-circle-fill me-2"></i> Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+        </div>
+
+        <div class="auth-visual-section">
+            <div class="illustration-wrapper">
+                <div class="illustration-circle animate__animated animate__zoomIn"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="/static/js/loader.js" defer></script>
+    
+<script src="/static/js/usuarios/login.js?v=1.0"></script>
+
+    
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": ["#F39C12", "#0056B3", "#ffffff"] },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.2, "random": true },
+                "size": { "value": 3, "random": true },
+                "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.05, "width": 1 },
+                "move": { "enable": true, "speed": 2, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
+                "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 1 } }, "push": { "particles_nb": 4 } }
+            },
+            "retina_detect": true
+        });
+    </script>
+</body>
+</html>

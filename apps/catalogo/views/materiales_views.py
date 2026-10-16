@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from apps.catalogo.forms import MaterialForm
 from apps.catalogo.models import Catalogo, Stock
@@ -114,6 +115,7 @@ def editar_material(request, id):
 
 
 @admin_required
+@require_POST
 def eliminar_material(request, id):
     material = get_object_or_404(Material, pk=id)
 
@@ -204,13 +206,17 @@ def stock_lista(request):
 def editar_stock(request, id):
     stock = get_object_or_404(Stock, material_id=id)
     if request.method == "POST":
+        ubicacion = request.POST.get("ubicacion", "").strip()
         try:
             cantidad = int(request.POST.get("cantidad", "0"))
         except (ValueError, TypeError):
             messages.error(request, "La cantidad debe ser un número válido.")
             return redirect("catalogo:stock_lista")
+        if not 0 <= cantidad <= 100000 or len(ubicacion) > 120:
+            messages.error(request, "La cantidad o ubicación no es válida.")
+            return redirect("catalogo:stock_lista")
         stock.cantidad_actual = cantidad
-        stock.ubicacion = request.POST.get("ubicacion", "")
+        stock.ubicacion = ubicacion
         stock.save()
         messages.success(request, f"Stock de {stock.material.nombre} actualizado.")
         return redirect("catalogo:stock_lista")

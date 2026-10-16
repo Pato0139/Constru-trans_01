@@ -142,9 +142,13 @@
                                 <a href="{% url 'clientes:editar_pedido' orden.id %}" class="btn btn-outline-warning rounded-pill py-2 fw-700 small" aria-label="Editar" data-tooltip="Editar" title="Editar">
                                     <i class="bi bi-pencil-square me-1"></i> Modificar
                                 </a>
-                                <a href="{% url 'clientes:cancelar_pedido' orden.id %}" class="btn btn-outline-danger rounded-pill py-2 fw-700 small confirm-delete-link" data-title="¿Estás seguro de cancelar este pedido?">
-                                    <i class="bi bi-x-circle me-1"></i> Cancelar
-                                </a>
+                                <form action="{% url 'clientes:cancelar_pedido' orden.id %}" method="post"
+                                    onsubmit="return confirm('¿Estás seguro de cancelar este pedido?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger rounded-pill py-2 fw-700 small">
+                                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                                    </button>
+                                </form>
                             </div>
                         </div>
                         {% endif %}
@@ -184,12 +188,16 @@
                     {% endif %}
 
                     <!-- Sección para el Conductor -->
-                    {% if user.usuario.rol == "conductor" and orden.conductor == user.usuario and orden.estado != "entregado" and orden.estado != "cancelado" %}
+                    {% if puede_confirmar_entrega %}
                     <div class="p-4 rounded-4 u-inline-a07baf5f39">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3 u-inline-2ecb5783f5">Panel del Conductor</h6>
-                        <p class="text-muted small mb-4">Como conductor asignado, puedes confirmar la entrega exitosa o reportar una cancelación.</p>
+                        <p class="text-muted small mb-4">Confirma la entrega cuando hayas llegado al destino. Puedes añadir una observación opcional.</p>
                         <form method="POST" class="d-grid gap-3">
                             {% csrf_token %}
+                            <div>
+                                <label for="observacion-entrega" class="form-label text-white fw-semibold">Observación (opcional)</label>
+                                <textarea id="observacion-entrega" name="observacion" class="form-control" rows="3" maxlength="2000" placeholder="Ej.: Entregado a la persona encargada, sin novedades."></textarea>
+                            </div>
                             <button type="submit" name="accion" value="confirmar" class="btn btn-success rounded-pill py-3 fw-800 d-flex align-items-center justify-content-center gap-2 shadow-sm" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                                 <i class="bi bi-check-circle-fill"></i> Confirmar Entrega
                             </button>
@@ -201,6 +209,18 @@
                     {% endif %}
                 </div>
             </div>
+
+            {% for entrega in orden.entregas.all %}
+                {% for novedad in entrega.novedades.all %}
+                    {% if novedad.tipo == "observacion" %}
+                    <div class="alert alert-info mt-3 mb-0">
+                        <div class="fw-bold"><i class="bi bi-chat-left-text me-2"></i>Observación de entrega</div>
+                        <p class="mb-1 mt-2">{{ novedad.descripcion }}</p>
+                        <small>{{ novedad.fecha_generada|date:"d/m/Y H:i" }}</small>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
 
             <div class="mt-4 pt-3 border-top border-secondary d-flex justify-content-between align-items-center">
                 <a href="javascript:history.back()" class="btn btn-outline-light rounded-pill px-3 small" aria-label="Volver" data-tooltip="Volver" title="Volver">

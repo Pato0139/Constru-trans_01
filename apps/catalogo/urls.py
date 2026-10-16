@@ -19,6 +19,8 @@ urlpatterns = [
     path("tipos/", views.tipos_material_lista, name="tipos_material_lista"),
     path("tipos/crear/", views.crear_tipo_material, name="crear_tipo_material"),
     path("tipos/editar/<str:codigo>/", views.editar_tipo_material, name="editar_tipo_material"),
+    path("tipos/estado/<str:codigo>/", views.cambiar_estado_tipo, name="cambiar_estado_tipo"),
+    path("tipos/eliminar/<str:codigo>/", views.eliminar_tipo_material, name="eliminar_tipo_material"),
     path(
         "tipos/eliminar/<str:codigo>/", views.eliminar_tipo_material, name="eliminar_tipo_material"
     ),
@@ -37,6 +39,7 @@ urlpatterns = [
     path("marcas/crear/", views.crear_marca, name="crear_marca"),
     path("marcas/editar/<int:id>/", views.editar_marca, name="editar_marca"),
     path("marcas/eliminar/<int:id>/", views.eliminar_marca, name="eliminar_marca"),
+    path("marcas/estado/<int:id>/", views.cambiar_estado_marca, name="cambiar_estado_marca"),
     path("api/materiales/", views.api_materiales, name="api_materiales"),
     path("api/materiales/listado/", views.api_materiales_listado, name="api_materiales_listado"),
 ]

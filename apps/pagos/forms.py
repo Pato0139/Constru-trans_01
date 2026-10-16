@@ -1,5 +1,7 @@
 from django import forms
 
+from apps.pagos.models import Factura, PagoFactura
+from apps.pedidos.models import Pago
 from apps.pagos.models import Pago
 from apps.pedidos.validators import validar_comprobante_imagen
 
@@ -31,6 +33,7 @@ class PagoRegistroForm(forms.ModelForm):
 class PagoRevisionForm(forms.Form):
     observaciones = forms.CharField(
         required=False,
+        max_length=1000,
         widget=forms.Textarea(
             attrs={
                 "class": "form-control",
@@ -39,3 +42,28 @@ class PagoRevisionForm(forms.Form):
             }
         ),
     )
+
+
+class PagoFacturaRegistroForm(forms.ModelForm):
+    class Meta:
+        model = PagoFactura
+        fields = ["monto", "metodo", "referencia", "evidencia"]
+
+    def __init__(self, *args, factura: Factura, **kwargs):
+        self.factura = factura
+        super().__init__(*args, **kwargs)
+
+    def clean_monto(self):
+        monto = self.cleaned_data["monto"]
+        if monto <= 0 or monto > self.factura.saldo_pendiente:
+            raise forms.ValidationError("El monto debe ser positivo y no superar el saldo pendiente.")
+        return monto
+
+    def clean_referencia(self):
+        return self.cleaned_data.get("referencia", "").strip()
+
+    def clean_evidencia(self):
+        evidencia = self.cleaned_data.get("evidencia")
+        if evidencia and evidencia.size > 5 * 1024 * 1024:
+            raise forms.ValidationError("La evidencia no puede superar los 5 MB.")
+        return evidencia

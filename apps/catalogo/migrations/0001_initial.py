@@ -15,6 +15,119 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Las tablas 'catalogo', 'marca', 'material_construccion', 'unidad_medida',
+        # 'historial_precio_material' y 'stock' ya fueron creadas por las migraciones
+        # legacy de la app 'usuarios' (0001, 0003, 0007, 0012), incluidos el campo
+        # unidad_medida y las restricciones CHECK. Se adoptan aquí únicamente a nivel
+        # de estado para no duplicar el DDL en bases nuevas.
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.CreateModel(
+                    name='Catalogo',
+                    fields=[
+                        ('codigo_catalogo', models.CharField(max_length=20, primary_key=True, serialize=False)),
+                        ('nombre_empresa', models.CharField(max_length=150)),
+                    ],
+                    options={
+                        'db_table': 'catalogo',
+                    },
+                ),
+                migrations.CreateModel(
+                    name='Marca',
+                    fields=[
+                        ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                        ('nombre', models.CharField(max_length=100, unique=True)),
+                    ],
+                    options={
+                        'verbose_name': 'Marca',
+                        'verbose_name_plural': 'Marcas',
+                        'db_table': 'marca',
+                        'ordering': ['nombre'],
+                    },
+                ),
+                migrations.CreateModel(
+                    name='MaterialConstruccion',
+                    fields=[
+                        ('cod_material', models.AutoField(primary_key=True, serialize=False)),
+                        ('nombre', models.CharField(max_length=100)),
+                        ('descripcion', models.TextField()),
+                        ('precio_referencia', models.DecimalField(decimal_places=2, max_digits=12, validators=[django.core.validators.MinValueValidator(0.01), django.core.validators.MaxValueValidator(9999999999.99)])),
+                        ('activo', models.BooleanField(default=True, help_text='Indica si el material está disponible para uso')),
+                        ('sincronizado', models.BooleanField(default=False)),
+                        ('catalogo', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='materiales', to='catalogo.catalogo')),
+                        ('marca', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='materiales', to='catalogo.marca')),
+                    ],
+                    options={
+                        'verbose_name': 'Material de Construcción',
+                        'verbose_name_plural': 'Materiales de Construcción',
+                        'db_table': 'material_construccion',
+                        'permissions': (('gestionar_inventario', 'Puede gestionar inventario'),),
+                    },
+                ),
+                migrations.CreateModel(
+                    name='UnidadMedida',
+                    fields=[
+                        ('id_unidad', models.AutoField(primary_key=True, serialize=False)),
+                        ('codigo', models.CharField(db_index=True, max_length=10, unique=True)),
+                        ('nombre', models.CharField(max_length=50, unique=True)),
+                        ('abreviatura', models.CharField(max_length=10)),
+                        ('descripcion', models.TextField(blank=True)),
+                        ('activa', models.BooleanField(default=True)),
+                        ('orden', models.PositiveIntegerField(default=0, help_text='Para ordenar en select')),
+                        ('fecha_creacion', models.DateTimeField(auto_now_add=True)),
+                    ],
+                    options={
+                        'verbose_name': 'Unidad de Medida',
+                        'verbose_name_plural': 'Unidades de Medida',
+                        'db_table': 'unidad_medida',
+                        'ordering': ['orden', 'nombre'],
+                    },
+                ),
+                migrations.CreateModel(
+                    name='HistorialPrecioMaterial',
+                    fields=[
+                        ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                        ('precio_anterior', models.DecimalField(decimal_places=2, max_digits=12)),
+                        ('precio_nuevo', models.DecimalField(decimal_places=2, max_digits=12)),
+                        ('fecha_cambio', models.DateTimeField(auto_now_add=True)),
+                        ('observaciones', models.TextField(blank=True, help_text='Detalles o razones del cambio de precio')),
+                        ('mes', models.IntegerField(editable=False)),
+                        ('año', models.IntegerField(editable=False)),
+                        ('usuario', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='cambios_precios', to=settings.AUTH_USER_MODEL)),
+                        ('material', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='historial_precios', to='catalogo.materialconstruccion')),
+                    ],
+                    options={
+                        'verbose_name': 'Historial de Precio',
+                        'verbose_name_plural': 'Historial de Precios',
+                        'db_table': 'historial_precio_material',
+                        'ordering': ['-fecha_cambio'],
+                    },
+                ),
+                migrations.AddField(
+                    model_name='materialconstruccion',
+                    name='unidad_medida',
+                    field=models.ForeignKey(help_text='Seleccione una unidad de medida estándar', on_delete=django.db.models.deletion.PROTECT, related_name='materiales', to='catalogo.unidadmedida'),
+                ),
+                migrations.CreateModel(
+                    name='Stock',
+                    fields=[
+                        ('material', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='stock_info', serialize=False, to='catalogo.materialconstruccion')),
+                        ('cantidad_actual', models.IntegerField(default=0, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(100000)])),
+                        ('stock_minimo', models.IntegerField(default=10, validators=[django.core.validators.MinValueValidator(0)])),
+                        ('ubicacion', models.CharField(blank=True, default='', max_length=120)),
+                        ('fecha_actualizacion', models.DateTimeField(auto_now=True)),
+                    ],
+                    options={
+                        'db_table': 'stock',
+                        'constraints': [models.CheckConstraint(condition=models.Q(('cantidad_actual__gte', 0)), name='chk_stock_cantidad_actual_gte_0'), models.CheckConstraint(condition=models.Q(('stock_minimo__gte', 0)), name='chk_stock_minimo_gte_0')],
+                    },
+                ),
+                migrations.AddConstraint(
+                    model_name='materialconstruccion',
+                    constraint=models.CheckConstraint(condition=models.Q(('precio_referencia__gte', 0)), name='chk_material_precio_referencia_gte_0'),
+                ),
+            ],
         migrations.CreateModel(
             name="Catalogo",
             fields=[
@@ -120,6 +233,7 @@ class Migration(migrations.Migration):
                 "ordering": ["orden", "nombre"],
             },
         ),
+        # Tablas propias de la app catalogo (no duplicadas en usuarios): DDL real.
         migrations.CreateModel(
             name="LoteMaterial",
             fields=[
@@ -164,6 +278,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name='SesionConteo',
             name="HistorialPrecioMaterial",
             fields=[
                 (

@@ -5,17 +5,22 @@
     <td class="py-3 px-4 text-center">
         <div class="d-flex justify-content-center gap-2">
             <a href="{% url 'catalogo:editar_marca' marca.pk %}"
-                class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--edit"
-                title="Editar">
+               class="btn-action btn-action--edit btn-table-action rounded-circle"
+               title="Editar">
                 <i class="bi bi-pencil"></i>
             </a>
-            <form method="post" action="{% url 'catalogo:eliminar_marca' marca.pk %}"
-                class="d-inline" onsubmit="return confirm('¿Eliminar la marca \'{{ marca.nombre }}\'?');">
+            <form method="post" action="{% url 'catalogo:cambiar_estado_marca' marca.pk %}"
+                  class="d-inline">
                 {% csrf_token %}
                 <button type="submit"
-                    class="btn btn-sm rounded-pill px-3 btn-outline-danger"
-                    title="Eliminar">
-                    <i class="bi bi-trash"></i>
+                        class="btn-action {{ marca.boton_estado }} btn-action--rounded"
+                        title="{% if marca.activo %}Inhabilitar marca{% else %}Habilitar marca{% endif %}"
+                        aria-label="{% if marca.activo %}Inhabilitar marca{% else %}Habilitar marca{% endif %}">
+                    {% if marca.activo %}
+                        <i class="bi bi-check-circle-fill"></i>
+                    {% else %}
+                        <i class="bi bi-x-circle-fill"></i>
+                    {% endif %}
                 </button>
             </form>
         </div>

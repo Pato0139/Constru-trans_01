@@ -88,11 +88,13 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             {% if u.user.username != 'Edward_Fonseca' and u.user != request.user %}
-                            <a href="{% url 'usuarios:toggle_estado_usuario' u.id %}" 
-                               class="btn btn-sm btn-action {% if u.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}" 
-                               title="{% if u.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                            <form action="{% url 'usuarios:toggle_estado_usuario' u.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-action {% if u.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}"
+                                        title="{% if u.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
                                 <i class="bi {% if u.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
-                            </a>
+                                </button>
+                            </form>
                             {% endif %}
                         </div>
                     </td>
@@ -181,11 +183,13 @@
                             <a href="{% url 'usuarios:editar_usuario' cliente.id %}" class="btn btn-sm btn-action btn-action-edit" title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="{% url 'usuarios:toggle_estado_usuario' cliente.id %}" 
-                               class="btn btn-sm btn-action {% if cliente.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}" 
-                               title="{% if cliente.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                            <form action="{% url 'usuarios:toggle_estado_usuario' cliente.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-action {% if cliente.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}"
+                                        title="{% if cliente.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
                                 <i class="bi {% if cliente.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
-                            </a>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -268,11 +272,13 @@
                             <a href="{% url 'usuarios:editar_usuario' conductor.id %}" class="btn btn-sm btn-action btn-action-edit" title="Editar">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="{% url 'usuarios:toggle_estado_usuario' conductor.id %}" 
-                               class="btn btn-sm btn-action {% if conductor.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}" 
-                               title="{% if conductor.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                            <form action="{% url 'usuarios:toggle_estado_usuario' conductor.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-action {% if conductor.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}"
+                                        title="{% if conductor.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
                                 <i class="bi {% if conductor.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
-                            </a>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -370,11 +376,13 @@
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 {% if admin.user.username != 'Edward_Fonseca' and admin.user != request.user %}
-                                <a href="{% url 'usuarios:toggle_estado_usuario' admin.id %}" 
-                                   class="btn btn-sm btn-action {% if admin.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}" 
-                                   title="{% if admin.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
+                                <form action="{% url 'usuarios:toggle_estado_usuario' admin.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-action {% if admin.estado == 'activo' %}btn-action-lock{% else %}btn-action-unlock{% endif %}"
+                                            title="{% if admin.estado == 'activo' %}Desactivar{% else %}Activar{% endif %}">
                                     <i class="bi {% if admin.estado == 'activo' %}bi-lock{% else %}bi-unlock{% endif %}"></i>
-                                </a>
+                                    </button>
+                                </form>
                                 {% endif %}
                             {% endif %}
                         </div>

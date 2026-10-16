@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from apps.pedidos import views_pagos
 
 app_name = "pagos"
 
@@ -11,6 +12,9 @@ urlpatterns = [
     path("<int:pk>/", views.detalle_pago, name="detalle_pago"),
     path("<int:pk>/revisar/", views.revisar_pago_pedido, name="revisar_pago_pedido"),
     # Facturación y pagos consolidados
+    path("facturas/", views_pagos.lista_facturas, name="lista_facturas"),
+    path("gestion/", views_pagos.gestion_pagos, name="gestion_pagos"),
+    path("historial/", views_pagos.historial_pagos, name="historial_pagos"),
     path("facturas/<int:pk>/", views.detalle_factura, name="detalle_factura"),
     path("facturas/<int:pk>/pago/", views.registrar_pago, name="registrar_pago"),
     path("facturas/<int:pk>/pago/<int:pago_id>/revisar/", views.revisar_pago, name="revisar_pago"),
