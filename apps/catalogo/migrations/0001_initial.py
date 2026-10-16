@@ -127,6 +127,7 @@ class Migration(migrations.Migration):
                     model_name='materialconstruccion',
                     constraint=models.CheckConstraint(condition=models.Q(('precio_referencia__gte', 0)), name='chk_material_precio_referencia_gte_0'),
                 ),
+<<<<<<< HEAD
             ],
         migrations.CreateModel(
             name="Catalogo",
@@ -232,6 +233,9 @@ class Migration(migrations.Migration):
                 "db_table": "unidad_medida",
                 "ordering": ["orden", "nombre"],
             },
+=======
+            ],
+>>>>>>> f47543c (fix: restaurar clonado de credenciales, corregir dependencias de migraciones y resolver conflictos de modelos)
         ),
         # Tablas propias de la app catalogo (no duplicadas en usuarios): DDL real.
         migrations.CreateModel(
@@ -271,10 +275,17 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
+<<<<<<< HEAD
                 "verbose_name": "Lote de Material",
                 "verbose_name_plural": "Lotes de Material",
                 "db_table": "lote_material",
                 "ordering": ["-fecha_entrada"],
+=======
+                'verbose_name': 'Lote de Material',
+                'verbose_name_plural': 'Lotes de Material',
+                'db_table': 'lote_material',
+                'ordering': ['-fecha_entrada'],
+>>>>>>> f47543c (fix: restaurar clonado de credenciales, corregir dependencias de migraciones y resolver conflictos de modelos)
             },
         ),
         migrations.CreateModel(
@@ -367,6 +378,7 @@ class Migration(migrations.Migration):
                 "ordering": ["-fecha_inicio"],
             },
         ),
+<<<<<<< HEAD
         migrations.AddField(
             model_name="materialconstruccion",
             name="unidad_medida",
@@ -422,6 +434,8 @@ class Migration(migrations.Migration):
                 ],
             },
         ),
+=======
+>>>>>>> f47543c (fix: restaurar clonado de credenciales, corregir dependencias de migraciones y resolver conflictos de modelos)
         migrations.CreateModel(
             name="ConteoItem",
             fields=[
@@ -459,6 +473,7 @@ class Migration(migrations.Migration):
                 "unique_together": {("sesion", "material")},
             },
         ),
+<<<<<<< HEAD
         migrations.AddConstraint(
             model_name="materialconstruccion",
             constraint=models.CheckConstraint(
@@ -466,4 +481,6 @@ class Migration(migrations.Migration):
                 name="chk_material_precio_referencia_gte_0",
             ),
         ),
+=======
+>>>>>>> f47543c (fix: restaurar clonado de credenciales, corregir dependencias de migraciones y resolver conflictos de modelos)
     ]

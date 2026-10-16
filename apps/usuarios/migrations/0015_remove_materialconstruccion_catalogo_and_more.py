@@ -10,16 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # vehiculo.catalogo apunta al Catalogo de usuarios; se quita antes de borrar
-        # el modelo. La tabla vehiculo se vuelve a crear en logistica.0001.
-        migrations.RemoveField(
-            model_name="materialconstruccion",
-            name="catalogo",
-        ),
-        migrations.RemoveField(
-            model_name="vehiculo",
-            name="catalogo",
-        ),
         # Las tablas catalogo, marca, material_construccion, unidad_medida, stock,
         # historial_precio_material y proveedor fueron adoptadas por sus apps actuales
         # (catalogo y compras). Aquí solo se limpia el estado de 'usuarios' sin tocar la
@@ -29,6 +19,10 @@ class Migration(migrations.Migration):
             state_operations=[
                 migrations.RemoveField(
                     model_name='materialconstruccion',
+                    name='catalogo',
+                ),
+                migrations.RemoveField(
+                    model_name='vehiculo',
                     name='catalogo',
                 ),
                 migrations.RemoveField(
@@ -88,51 +82,10 @@ class Migration(migrations.Migration):
             model_name="conductorvehiculo",
             name="vehiculo",
         ),
-        migrations.RemoveField(
-            model_name="historialpreciomaterial",
-            name="material",
-        ),
-        migrations.RemoveField(
-            model_name="historialpreciomaterial",
-            name="usuario",
-        ),
-        migrations.RemoveField(
-            model_name="materialconstruccion",
-            name="marca",
-        ),
-        migrations.RemoveField(
-            model_name="materialconstruccion",
-            name="unidad_medida",
-        ),
-        migrations.RemoveField(
-            model_name="stock",
-            name="material",
-        ),
-        migrations.DeleteModel(
-            name="Proveedor",
-        ),
-        migrations.DeleteModel(
-            name="Catalogo",
-        ),
         migrations.DeleteModel(
             name="ConductorVehiculo",
         ),
         migrations.DeleteModel(
             name="Vehiculo",
-        ),
-        migrations.DeleteModel(
-            name="HistorialPrecioMaterial",
-        ),
-        migrations.DeleteModel(
-            name="Marca",
-        ),
-        migrations.DeleteModel(
-            name="UnidadMedida",
-        ),
-        migrations.DeleteModel(
-            name="MaterialConstruccion",
-        ),
-        migrations.DeleteModel(
-            name="Stock",
         ),
     ]

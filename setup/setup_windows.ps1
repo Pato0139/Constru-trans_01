@@ -1,14 +1,12 @@
 # ============================================================
 #  CONSTRU-TRANS - Instalador para Windows (PowerShell)
-#  Uso:  .\setup\setup_windows.ps1 [-Dev] [-Seed] [-ResetDb] [-NoFetchCredentials]
-#  Por defecto intenta usar el repositorio compartido de credenciales,
-#  igual que hacia el instalador original.
+#  Uso:  .\setup\setup_windows.ps1 [-Dev] [-Seed] [-ResetDb]
+#  Configura el entorno virtual, instala dependencias y prepara la base de datos.
 # ============================================================
 param(
     [switch]$Dev,
     [switch]$Seed,
-    [switch]$ResetDb,
-    [switch]$NoFetchCredentials
+    [switch]$ResetDb
 )
 
 $ErrorActionPreference = "Stop"
@@ -59,7 +57,7 @@ $pythonVersion = $null
 # 1) Entorno virtual ya activado dentro del proyecto
 if ($env:VIRTUAL_ENV) {
     $activo = [System.IO.Path]::GetFullPath($env:VIRTUAL_ENV).TrimEnd("\")
-    if ($activo.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+    if ($activo.StartsWith($projectRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
         $cand = Join-Path $activo "Scripts\python.exe"
         $v = Test-PythonVenv $cand
         if ($v) { $venvPath = $activo; $venvPython = $cand; $pythonVersion = $v; Write-Ok "Se reutiliza el entorno activo: $venvPath" }
@@ -124,42 +122,72 @@ Write-Ok "Dependencias instaladas"
 if ($Dev) {
     Write-Host "[INFO] Instalando herramientas de desarrollo..." -ForegroundColor Gray
     & $venvPython -m pip install --prefer-binary -r (Join-Path $projectRoot "requirements\dev.txt")
-    if ($LASTEXITCODE -ne 0) { Write-Warn "Fallaron las dependencias de desarrollo; el proyecto sigue operativo." }
+    if ($LASTEXITCODE -eq 0) {
+        Write-Ok "Herramientas de desarrollo instaladas"
+        # Verificación inicial de Ruff
+        if (& $venvPython -m ruff --version) {
+            Write-Ok "Ruff verificado"
+        }
+    } else {
+        Write-Warn "Fallaron las dependencias de desarrollo; el proyecto sigue operativo."
+    }
 }
 
 # ---------- [3/6] CONFIGURACION -----------------------------
 Write-Section "[3/6] Configurando el archivo .env ..."
 $envPath = Join-Path $projectRoot ".env"
 
-if (-not $NoFetchCredentials -and -not (Test-Path $envPath) -and (Get-Command git -ErrorAction SilentlyContinue)) {
-    Write-Host "[INFO] Intentando obtener credenciales compartidas..." -ForegroundColor Gray
-    $tempDir = Join-Path $projectRoot "temp_neon_repo"
-    if (Test-Path $tempDir) { Remove-Item $tempDir -Recurse -Force }
-    $env:GIT_TERMINAL_PROMPT = "0"
-    & git clone --depth 1 https://github.com/Pato0139/Neon.git $tempDir 2>&1 | Out-Null
-    if ($LASTEXITCODE -eq 0) {
-        foreach ($nombre in @(".env", ".env.example")) {
-            $origen = Join-Path $tempDir $nombre
-            if (Test-Path $origen) { Copy-Item $origen $envPath -Force; Write-Ok ".env creado desde el repositorio de credenciales"; break }
+# Credenciales compartidas: se clonan desde el repositorio Neon y sobrescriben el .env.
+# Se ejecuta siempre; si falla la red, se avisa y el setup continua.
+$neonRepoUrl  = "https://github.com/Pato0139/Neon.git"
+$neonTempDir  = Join-Path $projectRoot "temp_neon_repo"
+$envDesdeNeon = $false
+
+Write-Host "[INFO] Obteniendo credenciales desde el repositorio Neon..." -ForegroundColor Gray
+if (Get-Command git -ErrorAction SilentlyContinue) {
+    if (Test-Path $neonTempDir) { Remove-Item $neonTempDir -Recurse -Force -ErrorAction SilentlyContinue }
+
+    $eapPrevio = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    & git clone --depth 1 $neonRepoUrl $neonTempDir *> $null
+    $clonOk = ($LASTEXITCODE -eq 0)
+    $ErrorActionPreference = $eapPrevio
+
+    if ($clonOk) {
+        $neonEnv = Join-Path $neonTempDir ".env.example"
+        if (Test-Path $neonEnv) {
+            Copy-Item $neonEnv $envPath -Force
+            $envDesdeNeon = $true
+            Write-Ok ".env sobrescrito con las credenciales de Neon"
+        } else {
+            Write-Warn "El repositorio Neon no contiene .env.example"
         }
     } else {
-        Write-Warn "No se pudo clonar (repo privado o sin acceso). Se usara la plantilla local."
+        Write-Warn "No se pudo clonar el repositorio de credenciales (revisa tu conexion a Internet)"
     }
-    if (Test-Path $tempDir) { Remove-Item $tempDir -Recurse -Force }
-    Remove-Item Env:GIT_TERMINAL_PROMPT -ErrorAction SilentlyContinue
+    Remove-Item $neonTempDir -Recurse -Force -ErrorAction SilentlyContinue
+} else {
+    Write-Warn "Git no esta instalado: no se pudieron clonar las credenciales de Neon"
 }
 
-if (-not (Test-Path $envPath)) {
-    $plantilla = Join-Path $projectRoot ".env.example"
-    if (Test-Path $plantilla) { Copy-Item $plantilla $envPath -Force } else { New-Item -ItemType File -Path $envPath -Force | Out-Null }
-    Write-Ok ".env creado desde .env.example"
-} else {
-    Write-Ok "Se conserva el .env existente"
+if (-not $envDesdeNeon) {
+    if (-not (Test-Path $envPath)) {
+        $plantilla = Join-Path $projectRoot ".env.example"
+        if (Test-Path $plantilla) {
+            Copy-Item $plantilla $envPath -Force
+            Write-Ok ".env creado desde .env.example"
+        } else {
+            New-Item -ItemType File -Path $envPath -Force | Out-Null
+            Write-Ok ".env vacio creado (no se encontro .env.example)"
+        }
+    } else {
+        Write-Ok "Se conserva el .env existente"
+    }
 }
 
 # SECRET_KEY estable
 $necesitaClave = $true
-$contenido = Get-Content $envPath -ErrorAction SilentlyContinue
+$contenido = Get-Content $envPath -Encoding UTF8 -ErrorAction SilentlyContinue
 foreach ($linea in $contenido) {
     if ($linea -match '^\s*SECRET_KEY\s*=') {
         $valor = ($linea -split '=', 2)[1].Trim().Trim("'", '"')
@@ -171,7 +199,7 @@ foreach ($linea in $contenido) {
 if ($necesitaClave) {
     $nueva = (& $venvPython -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())").Trim()
     if (-not $nueva) { Write-Err "No se pudo generar SECRET_KEY."; exit 1 }
-    $lineas = @(Get-Content $envPath -ErrorAction SilentlyContinue)
+    $lineas = @(Get-Content $envPath -Encoding UTF8 -ErrorAction SilentlyContinue)
     $puesta = $false; $salida = @()
     foreach ($linea in $lineas) {
         if ($linea -match '^\s*SECRET_KEY\s*=') { $salida += "SECRET_KEY=$nueva"; $puesta = $true } else { $salida += $linea }

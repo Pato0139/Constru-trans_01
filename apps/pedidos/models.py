@@ -403,7 +403,5 @@ class DetalleSolicitudPedido(models.Model):
 
         super().save(*args, **kwargs)
         self.pedido.calcular_total()
-
-
 # Re-export obligatorio: 0001_initial referencia apps.pedidos.models.comprobante_upload_to
 from apps.pagos.models import Pago, comprobante_upload_to  # noqa: F401, E402

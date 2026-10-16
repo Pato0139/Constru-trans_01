@@ -5,8 +5,6 @@
 #    --dev                 instala tambien requirements/dev.txt
 #    --seed                carga datos de prueba al finalizar
 #    --reset-db            aparta una db.sqlite3 rota y crea una limpia
-#    --no-fetch-credentials no intenta usar el repositorio compartido de credenciales
-#                           (por defecto SI se intenta, como hacia el instalador original)
 # ============================================================
 set -euo pipefail
 
@@ -17,16 +15,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-INSTALAR_DEV=false; CARGAR_SEED=false; RESET_DB=false; FETCH_CREDENTIALS=true
+INSTALAR_DEV=false; CARGAR_SEED=false; RESET_DB=false
 for arg in "$@"; do
     case "$arg" in
         --dev) INSTALAR_DEV=true ;;
         --seed) CARGAR_SEED=true ;;
         --reset-db) RESET_DB=true ;;
-        --fetch-credentials) FETCH_CREDENTIALS=true ;;
-        --no-fetch-credentials) FETCH_CREDENTIALS=false ;;
         -h|--help)
-            sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+            sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//'
             exit 0 ;;
         *) echo -e "${YELLOW}[AVISO] Opcion desconocida: $arg (se ignora)${NC}" ;;
     esac
@@ -114,8 +110,15 @@ echo -e "${GREEN}[OK] Dependencias instaladas${NC}"
 
 if [ "$INSTALAR_DEV" = true ]; then
     echo -e "${GRAY}[INFO] Instalando herramientas de desarrollo...${NC}"
-    "$VENV_PYTHON" -m pip install --prefer-binary -r "$PROJECT_ROOT/requirements/dev.txt" || \
+    if "$VENV_PYTHON" -m pip install --prefer-binary -r "$PROJECT_ROOT/requirements/dev.txt"; then
+        echo -e "${GREEN}[OK] Herramientas de desarrollo instaladas${NC}"
+        # Verificación inicial de Ruff
+        if "$VENV_PYTHON" -m ruff --version >/dev/null 2>&1; then
+            echo -e "${GREEN}[OK] Ruff verificado${NC}"
+        fi
+    else
         echo -e "${YELLOW}[AVISO] Fallaron las dependencias de desarrollo; el proyecto sigue operativo.${NC}"
+    fi
 fi
 
 # ---------- [4/6] Archivo .env ----------
@@ -123,31 +126,46 @@ echo
 echo -e "${BLUE}[4/6] Configurando el archivo .env...${NC}"
 ENV_FILE="$PROJECT_ROOT/.env"
 
-if [ "$FETCH_CREDENTIALS" = true ] && [ ! -f "$ENV_FILE" ] && command -v git >/dev/null 2>&1; then
-    echo -e "${GRAY}[INFO] Intentando obtener credenciales compartidas...${NC}"
-    TEMP_DIR="$PROJECT_ROOT/temp_neon_repo"
-    rm -rf "$TEMP_DIR"
-    if GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/Pato0139/Neon.git "$TEMP_DIR" >/dev/null 2>&1; then
-        if [ -f "$TEMP_DIR/.env" ]; then
-            cp "$TEMP_DIR/.env" "$ENV_FILE"
-            echo -e "${GREEN}[OK] .env creado desde el repositorio de credenciales${NC}"
-        elif [ -f "$TEMP_DIR/.env.example" ]; then
-            cp "$TEMP_DIR/.env.example" "$ENV_FILE"
-            echo -e "${GREEN}[OK] .env creado desde el repositorio de credenciales${NC}"
+# Credenciales compartidas: se clonan desde el repositorio Neon y sobrescriben el .env.
+# Se ejecuta siempre; si falla la red, se avisa y el setup continua.
+NEON_REPO_URL="https://github.com/Pato0139/Neon.git"
+NEON_TEMP_DIR="$PROJECT_ROOT/temp_neon_repo"
+ENV_DESDE_NEON=false
+
+limpiar_neon_temp() { rm -rf "$NEON_TEMP_DIR"; }
+trap limpiar_neon_temp EXIT
+
+echo -e "${GRAY}[INFO] Obteniendo credenciales desde el repositorio Neon...${NC}"
+if command -v git >/dev/null 2>&1; then
+    limpiar_neon_temp
+    if git clone --depth 1 "$NEON_REPO_URL" "$NEON_TEMP_DIR" >/dev/null 2>&1; then
+        if [ -f "$NEON_TEMP_DIR/.env.example" ]; then
+            cp -f "$NEON_TEMP_DIR/.env.example" "$ENV_FILE"
+            ENV_DESDE_NEON=true
+            echo -e "${GREEN}[OK] .env sobrescrito con las credenciales de Neon${NC}"
         else
-            echo -e "${YELLOW}[AVISO] El repositorio no traia archivo de configuracion.${NC}"
+            echo -e "${YELLOW}[AVISO] El repositorio Neon no contiene .env.example${NC}"
         fi
     else
-        echo -e "${YELLOW}[AVISO] No se pudo clonar (repo privado o sin acceso). Se usara la plantilla local.${NC}"
+        echo -e "${YELLOW}[AVISO] No se pudo clonar el repositorio de credenciales (revisa tu conexion a Internet)${NC}"
     fi
-    rm -rf "$TEMP_DIR"
+    limpiar_neon_temp
+else
+    echo -e "${YELLOW}[AVISO] Git no esta instalado: no se pudieron clonar las credenciales de Neon${NC}"
 fi
 
-if [ ! -f "$ENV_FILE" ]; then
-    [ -f "$PROJECT_ROOT/.env.example" ] && cp "$PROJECT_ROOT/.env.example" "$ENV_FILE" || : > "$ENV_FILE"
-    echo -e "${GREEN}[OK] .env creado desde .env.example${NC}"
-else
-    echo -e "${GREEN}[OK] Se conserva el .env existente${NC}"
+if [ "$ENV_DESDE_NEON" = false ]; then
+    if [ ! -f "$ENV_FILE" ]; then
+        if [ -f "$PROJECT_ROOT/.env.example" ]; then
+            cp "$PROJECT_ROOT/.env.example" "$ENV_FILE"
+            echo -e "${GREEN}[OK] .env creado desde .env.example${NC}"
+        else
+            touch "$ENV_FILE"
+            echo -e "${GREEN}[OK] .env vacio creado (no se encontro .env.example)${NC}"
+        fi
+    else
+        echo -e "${GREEN}[OK] Se conserva el .env existente${NC}"
+    fi
 fi
 
 # Garantiza una SECRET_KEY estable y valida (no se regenera en cada arranque).
