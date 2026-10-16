@@ -89,9 +89,12 @@
             <div class="glass-card p-4 animate__animated animate__fadeInRight u-inline-0f6fc7ccde">
                 <h5 class="text-white mb-3">Acciones Administrativas</h5>
                 {% if pedido.estado == 'pendiente' %}
-                <a href="{% url 'pedidos:aprobar_solicitud' pedido.id %}" class="btn btn-success w-100 mb-2">
-                    <i class="fas fa-check me-2"></i>Aprobar Pedido
-                </a>
+                <form action="{% url 'pedidos:aprobar_solicitud' pedido.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success w-100 mb-2">
+                        <i class="fas fa-check me-2"></i>Aprobar Pedido
+                    </button>
+                </form>
                 {% endif %}
                 
                 {% if pedido.estado != 'cancelado' and pedido.estado != 'entregado' %}
@@ -119,7 +122,10 @@
             </div>
             <div class="modal-footer border-secondary">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, mantener</button>
-                <a href="{% url 'pedidos:cancelar_solicitud' pedido.id %}" class="btn btn-danger">Sí, cancelar pedido</a>
+                <form action="{% url 'pedidos:cancelar_solicitud' pedido.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Sí, cancelar pedido</button>
+                </form>
             </div>
         </div>
     </div>

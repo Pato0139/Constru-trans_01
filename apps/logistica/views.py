@@ -2,12 +2,15 @@ from functools import lru_cache
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError, connections, models, router
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, connections, models, router, transaction
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
+from django.views.decorators.http import require_POST, require_http_methods
 
 from config.permissions import requiere_funcion
+from config.security import _respuesta_no_autorizada
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
 
@@ -132,7 +135,7 @@ def crear_vehiculo(request):
         conductor_id = request.POST.get("conductor")
 
         try:
-            vehiculo = Vehiculo.objects.create(
+            vehiculo = Vehiculo(
                 placa=placa,
                 marca=marca,
                 modelo=modelo,
@@ -140,19 +143,29 @@ def crear_vehiculo(request):
                 capacidad_carga=capacidad,
                 estado="disponible"
             )
+            vehiculo.full_clean()
 
             if conductor_id:
-                conductor_perfil, _ = Conductor.ensure_for_user(
-                    Usuario.objects.get(pk=conductor_id)
-                )
-                ConductorVehiculo.objects.create(conductor=conductor_perfil, vehiculo=vehiculo)
+                conductor_usuario = conductores_disponibles.filter(pk=conductor_id).first()
+                if conductor_usuario is None:
+                    raise ValueError("El conductor seleccionado no está disponible.")
+                conductor_perfil, _ = Conductor.ensure_for_user(conductor_usuario)
 
+            with transaction.atomic():
+                vehiculo.save()
+                if conductor_id:
+                    ConductorVehiculo.objects.create(
+                        conductor=conductor_perfil,
+                        vehiculo=vehiculo,
+                    )
             messages.success(request, f"Vehículo {placa} registrado correctamente.")
             return redirect("logistica:lista_vehiculos")
         except IntegrityError:
             messages.error(
                 request, "Error: La placa ya existe o el conductor ya tiene un vehículo."
             )
+        except (ValidationError, ValueError):
+            messages.error(request, "Revisa los datos del vehículo y el conductor seleccionado.")
         except Exception as e:
             messages.error(request, f"Error: {str(e)}")
 
@@ -195,6 +208,19 @@ def editar_vehiculo(request, id):
                 "No se puede cambiar el estado mientras el vehículo tenga una entrega activa (En Ruta).",
             )
         else:
+            conductor_id = request.POST.get("conductor")
+            conductor_perfil = None
+            if conductor_id:
+                conductor_perfil = conductores.filter(usuario_id=conductor_id).first()
+                if conductor_perfil is None:
+                    messages.error(request, "El conductor seleccionado no está disponible.")
+                    return render(
+                        request,
+                        "logistica/form.html",
+                        {"vehiculo": vehiculo, "action": "editar", "conductores": conductores},
+                        status=400,
+                    )
+
             entregas_activas = Entrega.objects.filter(
                 vehiculo=vehiculo, estado__in=["pendiente", "en_ruta"]
             ).exists()
@@ -208,20 +234,27 @@ def editar_vehiculo(request, id):
                 vehiculo.tipo_vehiculo = request.POST.get("tipo")
                 vehiculo.marca = request.POST.get("marca", "").strip()
                 vehiculo.modelo = request.POST.get("modelo", "").strip()
-                vehiculo.capacidad_carga = request.POST.get("capacidad").replace(",", ".")
+                capacidad = request.POST.get("capacidad", "").replace(",", ".")
+                vehiculo.capacidad_carga = capacidad
                 vehiculo.estado = nuevo_estado
+                try:
+                    vehiculo.full_clean()
+                except ValidationError:
+                    messages.error(request, "Revisa los datos del vehículo.")
+                    return render(
+                        request,
+                        "logistica/form.html",
+                        {"vehiculo": vehiculo, "action": "editar", "conductores": conductores},
+                        status=400,
+                    )
                 vehiculo.save()
 
-                conductor_id = request.POST.get("conductor")
                 try:
                     ConductorVehiculo.objects.filter(
                         vehiculo=vehiculo, fecha_fin__isnull=True
                     ).update(fecha_fin=now())
 
                     if conductor_id:
-                        conductor_perfil, _ = Conductor.ensure_for_user(
-                            Usuario.objects.get(pk=conductor_id)
-                        )
                         ConductorVehiculo.objects.create(
                             conductor=conductor_perfil, vehiculo=vehiculo
                         )
@@ -241,6 +274,7 @@ def editar_vehiculo(request, id):
 
 
 @admin_required
+@require_POST
 def eliminar_vehiculo(request, id):
     vehiculo = get_object_or_404(Vehiculo, pk=id)
 
@@ -287,6 +321,7 @@ def cambiar_disponibilidad_vehiculo(request, id):
 
 
 @admin_required
+@require_POST
 def desactivar_vehiculo(request, id):
     vehiculo = get_object_or_404(Vehiculo, pk=id)
 
@@ -305,18 +340,35 @@ def desactivar_vehiculo(request, id):
 
 @login_required
 @requiere_funcion("registrar_novedad")
+@require_http_methods(["GET", "POST"])
 def crear_novedad(request, entrega_id):
     entrega = get_object_or_404(
         Entrega.objects.select_related("pedido"),
         pk=entrega_id,
     )
     if request.method == "POST":
-        Novedad.objects.create(
+        if (
+            request.user.rol == "conductor"
+            and entrega.conductor.usuario_id != request.user.pk
+        ):
+            return _respuesta_no_autorizada(request)
+        novedad = Novedad(
             entrega=entrega,
             tipo=request.POST.get("tipo"),
-            descripcion=request.POST.get("descripcion"),
+            descripcion=request.POST.get("descripcion", "").strip(),
             reportado_por=request.user,
         )
+        try:
+            novedad.full_clean()
+        except ValidationError:
+            messages.error(request, "El tipo y la descripción de la novedad no son válidos.")
+            return render(
+                request,
+                "logistica/crear.html",
+                {"entrega": entrega, "pedido": entrega.pedido},
+                status=400,
+            )
+        novedad.save()
         messages.success(request, "Novedad registrada.")
         return redirect("pedidos:ver_pedido_admin", id=entrega.pedido_id)
     return render(
@@ -327,14 +379,32 @@ def crear_novedad(request, entrega_id):
 
 
 @login_required
+@requiere_funcion("registrar_novedad")
+@require_http_methods(["GET", "POST"])
 def agregar_seguimiento(request, novedad_id):
     novedad = get_object_or_404(Novedad, pk=novedad_id)
     if request.method == "POST":
-        Seguimiento.objects.create(
+        if (
+            request.user.rol == "conductor"
+            and novedad.entrega.conductor.usuario_id != request.user.pk
+        ):
+            return _respuesta_no_autorizada(request)
+        seguimiento = Seguimiento(
             novedad=novedad,
             atendido_por=request.user,
-            comentario=request.POST.get("comentario"),
+            comentario=request.POST.get("comentario", "").strip(),
         )
+        try:
+            seguimiento.full_clean()
+        except ValidationError:
+            messages.error(request, "El comentario debe contener texto válido.")
+            return render(
+                request,
+                "logistica/seguimiento.html",
+                {"novedad": novedad},
+                status=400,
+            )
+        seguimiento.save()
         if novedad.estado == "abierta":
             novedad.estado = "en_atencion"
             novedad.save(update_fields=["estado"])
@@ -344,15 +414,30 @@ def agregar_seguimiento(request, novedad_id):
 
 @login_required
 @requiere_funcion("responder_seguimiento")
+@require_http_methods(["GET", "POST"])
 def responder_seguimiento(request, seguimiento_id):
     seg = get_object_or_404(Seguimiento, pk=seguimiento_id)
     if request.method == "POST":
-        RespuestaSeguimiento.objects.create(
+        if hasattr(seg, "respuesta"):
+            messages.error(request, "Este seguimiento ya fue respondido.")
+            return redirect("pedidos:ver_pedido_admin", id=seg.novedad.entrega.pedido_id)
+        respuesta = RespuestaSeguimiento(
             seguimiento=seg,
             redactada_por=request.user,
-            texto=request.POST.get("texto"),
+            texto=request.POST.get("texto", "").strip(),
             estado=request.POST.get("estado", "aceptada"),
         )
+        try:
+            respuesta.full_clean()
+        except ValidationError:
+            messages.error(request, "La respuesta contiene datos no válidos.")
+            return render(
+                request,
+                "logistica/responder.html",
+                {"seguimiento": seg},
+                status=400,
+            )
+        respuesta.save()
         seg.estado = "respondida"
         seg.save(update_fields=["estado"])
         if seg.novedad.estado == "en_atencion":

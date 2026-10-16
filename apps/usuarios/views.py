@@ -7,14 +7,16 @@ import requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
 User = get_user_model()
 from django.contrib.auth.views import PasswordResetView
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import DatabaseError, IntegrityError, transaction
 from django.db.models import Prefetch, Q, Sum
+from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -182,7 +184,7 @@ def registro(request):
         data = form.cleaned_data
         nombres = data["nombres"]
         apellidos = data["apellidos"]
-        correo = data["correo"]
+        correo = data["correo"].casefold()
         contrasena = data["contrasena"]
         telefono = data["telefono"]
         tipo_documento = data["tipo_documento"]
@@ -656,7 +658,45 @@ def editar_perfil(request):
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
         telefono = limpiar_telefono(request.POST.get("telefono"))
-        email = request.POST.get("email")
+        email = (request.POST.get("email") or "").strip().casefold()
+        nombres = (nombres or "").strip()
+        apellidos = (apellidos or "").strip()
+
+        if (
+            not nombres
+            or not apellidos
+            or len(nombres) > 200
+            or len(apellidos) > 200
+            or len(telefono or "") > 20
+        ):
+            messages.error(request, "Revisa los nombres, apellidos y teléfono.")
+            return render(
+                request,
+                "usuarios/editar_perfil.html",
+                {"usuario": usuario, "foto_form": FotoPerfilForm()},
+                status=400,
+            )
+        if email:
+            try:
+                validate_email(email)
+            except ValidationError:
+                messages.error(request, "El correo electrónico no es válido.")
+                return render(
+                    request,
+                    "usuarios/editar_perfil.html",
+                    {"usuario": usuario, "foto_form": FotoPerfilForm()},
+                    status=400,
+                )
+            if User.objects.filter(
+                Q(username__iexact=email) | Q(email__iexact=email)
+            ).exclude(pk=usuario.pk).exists():
+                messages.error(request, "Ese correo ya está asociado a otra cuenta.")
+                return render(
+                    request,
+                    "usuarios/editar_perfil.html",
+                    {"usuario": usuario, "foto_form": FotoPerfilForm()},
+                    status=400,
+                )
         foto_anterior = usuario.foto_perfil
         nombre_foto_anterior = foto_anterior.name if foto_anterior else ""
 
@@ -711,14 +751,16 @@ def editar_perfil(request):
 @admin_required
 def crear_usuario(request):
     if request.method == "POST":
-        nombres = request.POST.get("nombres")
-        apellidos = request.POST.get("apellidos")
-        email = request.POST.get("email")
-        password = request.POST.get("password")
+        nombres = (request.POST.get("nombres") or "").strip()
+        apellidos = (request.POST.get("apellidos") or "").strip()
+        email = (request.POST.get("email") or "").strip().casefold()
+        password = request.POST.get("password") or ""
         telefono = limpiar_telefono(request.POST.get("telefono"))
         rol = request.POST.get("rol")
         tipo_doc = request.POST.get("tipo_doc")
         documento = limpiar_documento(request.POST.get("documento"))
+        form_data = request.POST.copy()
+        form_data.pop("password", None)
 
         if rol == "admin" and not es_superadmin_global(request.user):
             raise PermissionDenied("Solo el Administrador Global puede crear otros administradores.")
@@ -732,8 +774,45 @@ def crear_usuario(request):
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
-            context = {"form_data": request.POST, "action": "crear"}
+            context = {"form_data": form_data, "action": "crear"}
             return render(request, "usuarios/form.html", context)
+
+        try:
+            validate_email(email)
+            validate_password(password)
+            if (
+                len(nombres) > 200
+                or len(apellidos) > 200
+                or len(email) > 150
+                or not 7 <= len(telefono) <= 15
+                or not 7 <= len(documento) <= 15
+                or (tipo_doc == "PA" and not documento.isalnum())
+                or (tipo_doc != "PA" and not documento.isdigit())
+                or rol not in dict(Usuario.ROLES)
+                or tipo_doc not in dict(Usuario.TIPOS_DOCUMENTO)
+                or User.objects.using("default").filter(
+                    Q(email__iexact=email) | Q(username__iexact=email)
+                ).exists()
+            ):
+                raise ValidationError("Los datos exceden los límites o contienen opciones no válidas.")
+        except ValidationError:
+            messages.error(request, "Revisa el correo, contraseña, documento y rol seleccionados.")
+            return render(
+                request,
+                "usuarios/form.html",
+                {"form_data": form_data, "action": "crear"},
+                status=400,
+            )
+
+        foto_form = FotoPerfilForm(request.POST, request.FILES)
+        if not foto_form.is_valid():
+            messages.error(request, "La foto debe ser una imagen válida de hasta 5 MB.")
+            return render(
+                request,
+                "usuarios/form.html",
+                {"form_data": form_data, "action": "crear"},
+                status=400,
+            )
 
         try:
             # Creación directa de usuario - MÁS SIMPLE POSIBLE
@@ -769,8 +848,9 @@ def crear_usuario(request):
                     logger.warning("Perfil conductor no creado por conflicto: %s", exc)
 
             # Foto de perfil si existe
-            if "foto_perfil" in request.FILES:
-                user.foto_perfil = request.FILES["foto_perfil"]
+            foto_perfil = foto_form.cleaned_data.get("foto_perfil")
+            if foto_perfil:
+                user.foto_perfil = foto_perfil
                 user.save()
 
             # RESPUESTA INMEDIATA sin registrar actividad
@@ -789,15 +869,15 @@ def crear_usuario(request):
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
-            context = {"error": error_msg, "form_data": request.POST, "action": "crear"}
+            context = {"error": error_msg, "form_data": form_data, "action": "crear"}
             return render(request, "usuarios/form.html", context)
         except Exception as e:
-            logger.error(f"Error creando usuario {email}: {str(e)}", exc_info=True)
-            error_msg = f"Error al crear usuario: {str(e)}"
+            logger.error("Error creando usuario %s: %s", email, e, exc_info=True)
+            error_msg = "No se pudo crear el usuario. Revisa los datos e inténtalo nuevamente."
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=500)
             messages.error(request, error_msg)
-            context = {"error": error_msg, "form_data": request.POST, "action": "crear"}
+            context = {"error": error_msg, "form_data": form_data, "action": "crear"}
             return render(request, "usuarios/form.html", context)
 
     context = {"action": "crear", "form_data": {}}
@@ -805,6 +885,7 @@ def crear_usuario(request):
 
 
 @admin_required
+@require_POST
 def toggle_estado_usuario(request, id):
     usuario_obj = get_object_or_404(Usuario, id=id)
 
@@ -828,6 +909,7 @@ def toggle_estado_usuario(request, id):
 
 
 @admin_required
+@require_POST
 def eliminar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
 
@@ -902,19 +984,37 @@ def editar_usuario(request, id):
             raise PermissionDenied(
                 "Solo el Administrador Global puede asignar o cambiar el rol de administrador."
             )
+        if es_admin and rol and rol not in dict(Usuario.ROLES):
+            messages.error(request, "El rol seleccionado no es válido.")
+            return render(
+                request,
+                "usuarios/form.html",
+                {"usuario": usuario, "action": "editar"},
+                status=400,
+            )
 
         try:
+            foto_form = FotoPerfilForm(request.POST, request.FILES)
+            if not foto_form.is_valid():
+                messages.error(request, "La foto debe ser una imagen válida de hasta 5 MB.")
+                return render(
+                    request,
+                    "usuarios/form.html",
+                    {"usuario": usuario, "action": "editar"},
+                    status=400,
+                )
             usuario.nombres = nombres
             usuario.apellidos = apellidos
             usuario.telefono = telefono
 
-            if "foto_perfil" in request.FILES:
+            foto_perfil = foto_form.cleaned_data.get("foto_perfil")
+            if foto_perfil:
                 if usuario.foto_perfil:
                     try:
                         usuario.foto_perfil.delete(save=False)
                     except OSError as exc:
                         logger.warning("No se pudo borrar foto anterior: %s", exc)
-                usuario.foto_perfil = request.FILES["foto_perfil"]
+                usuario.foto_perfil = foto_perfil
 
             if es_admin and rol:
                 usuario.rol = rol
@@ -1023,6 +1123,7 @@ def asignar_vehiculo_conductor(request, conductor_id):
 
 
 @login_required
+@role_required(["admin", "conductor"])
 def perfil_conductor(request):
     conductor_id = request.GET.get("id")
 
@@ -1088,6 +1189,7 @@ class CustomPasswordResetView(PasswordResetView):
 # =====================================================================
 # CERRAR SESIÓN
 # =====================================================================
+@require_POST
 def cerrar_sesion(request):
     if request.user.is_authenticated:
         from config.utils import clear_user_cache
@@ -1121,6 +1223,7 @@ def lista_notificaciones(request):
 
 
 @login_required
+@require_POST
 def marcar_notificacion_leida(request, id):
     from django.utils.http import url_has_allowed_host_and_scheme
     try:
@@ -1149,6 +1252,7 @@ def configuraciones_usuario(request):
     return render(request, "usuarios/configuraciones.html", context)
 
 
+@admin_required
 @require_POST
 def cambiar_modo_bd(request):
     """Alterna entre base de datos local (SQLite) y remota (Neon).

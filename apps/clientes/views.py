@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from apps.catalogo.models import Catalogo
 from apps.catalogo.models import MaterialConstruccion as Material
@@ -206,6 +207,32 @@ def parse_fecha_entrega(value):
             continue
 
     return None
+
+
+def _normalizar_items_pedido(materiales_ids, cantidades):
+    if not materiales_ids or len(materiales_ids) > 50:
+        return None, "El pedido debe incluir entre 1 y 50 materiales."
+    if len(materiales_ids) != len(cantidades):
+        return None, "Error en los datos del formulario. Intenta nuevamente."
+
+    items = []
+    ids_vistos = set()
+    for material_id, cantidad_raw in zip(materiales_ids, cantidades, strict=True):
+        if not material_id or not material_id.isdecimal():
+            return None, "El pedido contiene materiales inválidos o repetidos."
+        material_pk = int(material_id)
+        if material_pk in ids_vistos:
+            return None, "El pedido contiene materiales inválidos o repetidos."
+        if not cantidad_raw or not cantidad_raw.isdecimal():
+            return None, "Las cantidades deben ser números enteros positivos."
+
+        cantidad = int(cantidad_raw)
+        if not 1 <= cantidad <= 100000:
+            return None, "Cada cantidad debe estar entre 1 y 100000."
+
+        ids_vistos.add(material_pk)
+        items.append((material_pk, cantidad))
+    return items, None
 
 
 @role_required(["cliente"])
@@ -423,8 +450,9 @@ def crear_pedido(request):
                 ),
             )
 
-        if len(materiales_ids) != len(cantidades):
-            messages.error(request, "Error en los datos del formulario. Intenta nuevamente.")
+        items, error_items = _normalizar_items_pedido(materiales_ids, cantidades)
+        if error_items:
+            messages.error(request, error_items)
             return render(
                 request,
                 "clientes/form.html",
@@ -453,10 +481,7 @@ def crear_pedido(request):
                     fecha_entrega_programada=fecha_entrega if fecha_entrega else None,
                 )
 
-                for m_id, cant in zip(materiales_ids, cantidades, strict=False):
-                    if not m_id or not cant:
-                        continue
-
+                for m_id, cantidad in items:
                     material = _obtener_material_local(m_id)
                     try:
                         stock_obj = (
@@ -468,16 +493,6 @@ def crear_pedido(request):
                     except Stock.DoesNotExist:
                         stock_obj = Stock.objects.using(db_alias).create(
                             material=material, cantidad_actual=0
-                        )
-
-                    try:
-                        cantidad = int(cant)
-                    except (ValueError, TypeError) as err:
-                        raise ValueError(f"Cantidad inválida para {material.nombre}") from err
-
-                    if cantidad <= 0:
-                        raise ValueError(
-                            f"La cantidad para {material.nombre} debe ser mayor a 0."
                         )
 
                     if stock_obj.cantidad_actual < cantidad:
@@ -647,6 +662,22 @@ def editar_pedido(request, id):
                 ),
             )
 
+        items, error_items = _normalizar_items_pedido(materiales_ids, cantidades)
+        if error_items:
+            messages.error(request, error_items)
+            return render(
+                request,
+                "clientes/form.html",
+                _contexto_formulario_pedido(
+                    orden=pedido,
+                    materiales=materiales,
+                    action="editar",
+                    fecha_entrega=fecha_entrega_raw,
+                    ciudad=ciudad,
+                    direccion_detalle=direccion_detalle,
+                ),
+            )
+
         try:
             with transaction.atomic(using=db_alias):
                 for detalle in pedido.detalles.using(db_alias).all():
@@ -668,7 +699,7 @@ def editar_pedido(request, id):
                 pedido.detalles.using(db_alias).all().delete()
 
                 total_general = 0
-                for m_id, cant in zip(materiales_ids, cantidades, strict=False):
+                for m_id, cantidad in items:
                     material = _obtener_material_local(m_id)
                     try:
                         stock_obj = (
@@ -681,8 +712,6 @@ def editar_pedido(request, id):
                         stock_obj = Stock.objects.using(db_alias).create(
                             material=material, cantidad_actual=0
                         )
-                    cantidad = int(cant)
-
                     if stock_obj.cantidad_actual < cantidad:
                         raise ValueError(f"Stock insuficiente para {material.nombre}")
 
@@ -725,6 +754,7 @@ def editar_pedido(request, id):
 
 
 @role_required(["cliente", "admin"])
+@require_POST
 def cancelar_pedido(request, id):
     pedido = get_object_or_404(Pedido, codigo_pedido=id)
 
@@ -878,9 +908,27 @@ def editar_cliente(request, id):
     cliente, _ = Cliente.ensure_for_user(usuario)
     
     if request.method == "POST":
+        tipo_cliente = request.POST.get("tipo_cliente", cliente.tipo_cliente)
+        estado = request.POST.get("estado", "")
+        if (
+            tipo_cliente not in dict(Cliente.TIPOS_CLIENTE)
+            or (estado and estado not in dict(Usuario.ESTADO_USUARIO))
+        ):
+            messages.error(request, "El tipo de cliente o estado seleccionado no es válido.")
+            return render(
+                request,
+                "clientes/admin_editar.html",
+                {
+                    "usuario_cliente": usuario,
+                    "cliente": cliente,
+                    "tipos_cliente": Cliente.TIPOS_CLIENTE,
+                },
+                status=400,
+            )
+
         cliente.direccion_principal = request.POST.get("direccion_principal", cliente.direccion_principal)
         cliente.direccion = request.POST.get("direccion", cliente.direccion)
-        cliente.tipo_cliente = request.POST.get("tipo_cliente", cliente.tipo_cliente)
+        cliente.tipo_cliente = tipo_cliente
         cliente.nit = request.POST.get("nit", cliente.nit)
         cliente.nombre_empresa = request.POST.get("nombre_empresa", cliente.nombre_empresa)
         cliente.contacto_alternativo = request.POST.get("contacto_alternativo", cliente.contacto_alternativo)
@@ -892,15 +940,14 @@ def editar_cliente(request, id):
                 cliente.save()
                 
                 telefono = request.POST.get("telefono")
-                estado = request.POST.get("estado")
-                
                 if telefono:
                     usuario.telefono = telefono
                 if estado:
                     usuario.estado = estado
                     usuario.user.is_active = (estado == "activo")
                     usuario.user.save()
-                    
+                cliente.full_clean()
+                usuario.full_clean()
                 usuario.save()
                 
             messages.success(request, f"Datos del cliente {usuario.nombres} actualizados exitosamente.")

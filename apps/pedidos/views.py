@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -7,6 +8,7 @@ from django.db.models import F, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from config.utils import registrar_actividad
 from apps.catalogo.models import MaterialConstruccion, Stock
@@ -14,7 +16,7 @@ from apps.catalogo.models.movimientos import MovimientoInventario
 from config.db_preference import debe_usar_bd_remota
 from config.db_utils import select_for_update_if_supported
 from config.security import (_respuesta_no_autorizada, obtener_ip,
-                           registrar_evento, registrar_warning)
+                           registrar_evento, registrar_warning, role_required)
 from apps.logistica.models import Entrega, Novedad
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
@@ -34,9 +36,13 @@ def calcular_total(request, id):
 
 
 @admin_required
+@require_POST
 def eliminar_detalle(request, id):
     detalle = get_object_or_404(DetallePedido, id_detalle_pedido=id)
     orden = detalle.pedido
+    if orden.estado != Pedido.PENDIENTE:
+        messages.error(request, "Solo se pueden modificar pedidos pendientes.")
+        return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
     db_alias = "remota" if debe_usar_bd_remota() else "default"
 
     with transaction.atomic():
@@ -68,6 +74,9 @@ def eliminar_detalle(request, id):
 @admin_required
 def agregar_materiales(request, id):
     orden = get_object_or_404(Pedido, codigo_pedido=id)
+    if orden.estado != Pedido.PENDIENTE:
+        messages.error(request, "Solo se pueden modificar pedidos pendientes.")
+        return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
     materiales = MaterialConstruccion.objects.all()
     detalles = orden.detalles.all()
 
@@ -81,6 +90,9 @@ def agregar_materiales(request, id):
 
         if cantidad < 1:
             messages.error(request, "La cantidad mínima es 1.")
+            return redirect("pedidos:agregar_materiales", id=orden.codigo_pedido)
+        if cantidad > 100000:
+            messages.error(request, "La cantidad no puede superar 100000.")
             return redirect("pedidos:agregar_materiales", id=orden.codigo_pedido)
 
         if material_id:
@@ -410,6 +422,9 @@ def ver_pedido_admin(request, id):
             if orden.estado == Pedido.CANCELADO and nuevo_estado and nuevo_estado != Pedido.CANCELADO:
                 messages.info(request, "El pedido está cancelado. Solo se permite su consulta.")
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+            if nuevo_estado and nuevo_estado not in dict(Pedido.ESTADOS):
+                messages.error(request, "El estado seleccionado no es válido.")
+                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
             db_alias = "remota" if debe_usar_bd_remota() else "default"
             if nuevo_estado:
                 estados_requieren_pago = {
@@ -587,6 +602,7 @@ def crear_entrega(request, orden_id):
 
 
 @admin_required
+@require_POST
 def eliminar_orden(request, id):
     orden = get_object_or_404(Pedido, codigo_pedido=id)
     order_id = orden.codigo_pedido
@@ -618,50 +634,93 @@ def eliminar_orden(request, id):
 
 # ========== Solicitudes (gestion_pedidos) ==========
 
-@login_required
-@transaction.atomic
+def _crear_solicitud_pedido(usuario, items, descuento):
+    with transaction.atomic():
+        pedido = SolicitudPedido.objects.create(
+            cliente=usuario, descuento=descuento, estado="pendiente"
+        )
+
+        bruto = Decimal("0")
+        for material_id, cantidad in items:
+            material = MaterialConstruccion.objects.filter(pk=material_id).first()
+            if material is None:
+                raise ValueError("Uno de los materiales seleccionados no existe.")
+            stock_obj = select_for_update_if_supported(Stock.objects, "default").filter(
+                material=material
+            ).first()
+            if stock_obj is None:
+                raise ValueError("Uno de los materiales no tiene inventario.")
+
+            if stock_obj.cantidad_actual < cantidad:
+                raise ValueError(
+                    f"Stock insuficiente para {material.nombre}. Disponible: {stock_obj.cantidad_actual}"
+                )
+
+            stock_obj.cantidad_actual -= cantidad
+            stock_obj.save()
+
+            DetalleSolicitudPedido.objects.create(
+                pedido=pedido, material=material, cantidad=cantidad
+            )
+            bruto += material.precio * cantidad
+
+        if descuento > bruto:
+            raise ValueError("El descuento no puede superar el subtotal del pedido.")
+
+    return pedido
+
+
+@role_required(["admin", "cliente"])
 def crear_pedido(request):
     materiales = MaterialConstruccion.objects.all()
 
     if request.method == "POST":
         materiales_ids = request.POST.getlist("materiales[]")
         cantidades = request.POST.getlist("cantidades[]")
-        descuento = request.POST.get("descuento", 0)
 
-        if not materiales_ids:
-            messages.error(request, "Debe agregar al menos un material al pedido.")
+        if (
+            not materiales_ids
+            or len(materiales_ids) > 50
+            or len(materiales_ids) != len(cantidades)
+        ):
+            messages.error(request, "El pedido debe incluir entre 1 y 50 líneas válidas.")
             context = {"materiales": materiales}
             return render(request, "pedidos/crear_pedido.html", context)
 
+        items = []
+        vistos = set()
         try:
-            pedido = SolicitudPedido.objects.create(
-                cliente=request.user, descuento=descuento, estado="pendiente"
-            )
+            for material_id, cantidad_raw in zip(materiales_ids, cantidades, strict=True):
+                if (
+                    not material_id.isdecimal()
+                    or not cantidad_raw.isdecimal()
+                ):
+                    raise ValueError("El formulario contiene materiales o cantidades inválidos.")
+                material_pk = int(material_id)
+                if material_pk in vistos:
+                    raise ValueError("El formulario contiene materiales o cantidades inválidos.")
+                cantidad = int(cantidad_raw)
+                if not 1 <= cantidad <= 100000:
+                    raise ValueError("Cada cantidad debe estar entre 1 y 100000.")
+                vistos.add(material_pk)
+                items.append((material_pk, cantidad))
 
-            for m_id, cant in zip(materiales_ids, cantidades, strict=False):
-                cant = int(cant)
-                material = get_object_or_404(MaterialConstruccion, pk=m_id)
-                stock_obj = select_for_update_if_supported(Stock.objects, "default").get(material=material)
+            descuento = Decimal(request.POST.get("descuento", "0"))
+            if not descuento.is_finite() or descuento < 0:
+                raise ValueError("El descuento debe ser un monto válido no negativo.")
+            if (
+                descuento > Decimal("99999999.99")
+                or descuento != descuento.quantize(Decimal("0.01"))
+            ):
+                raise ValueError("El descuento debe tener como máximo dos decimales.")
+            if descuento and request.user.rol != "admin":
+                raise ValueError("Solo un administrador puede aplicar un descuento.")
 
-                if stock_obj.cantidad_actual < cant:
-                    raise ValueError(
-                        f"Stock insuficiente para {material.nombre}. Disponible: {stock_obj.cantidad_actual}"
-                    )
-
-                stock_obj.cantidad_actual -= cant
-                stock_obj.save()
-
-                DetalleSolicitudPedido.objects.create(
-                    pedido=pedido, material=material, cantidad=cant
-                )
-
-            messages.success(request, f"Solicitud #{pedido.id} creada exitosamente.")
+            pedido = _crear_solicitud_pedido(request.user, items, descuento)
             return redirect("pedidos:lista_solicitudes")
 
-        except ValueError as e:
-            messages.error(request, str(e))
-        except Exception as e:
-            messages.error(request, f"Error al procesar la solicitud: {str(e)}")
+        except (InvalidOperation, ValueError) as exc:
+            messages.error(request, str(exc))
 
     context = {"materiales": materiales}
     return render(request, "pedidos/crear_pedido.html", context)
@@ -691,6 +750,7 @@ def detalle_pedido(request, pk):
 
 
 @admin_required
+@require_POST
 @transaction.atomic
 def aprobar_pedido(request, pk):
     pedido = get_object_or_404(SolicitudPedido, pk=pk)
@@ -705,6 +765,7 @@ def aprobar_pedido(request, pk):
 
 
 @admin_required
+@require_POST
 @transaction.atomic
 def cancelar_pedido(request, pk):
     pedido = get_object_or_404(SolicitudPedido, pk=pk)

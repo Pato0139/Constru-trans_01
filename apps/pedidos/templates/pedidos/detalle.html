@@ -142,9 +142,13 @@
                                 <a href="{% url 'clientes:editar_pedido' orden.id %}" class="btn btn-outline-warning rounded-pill py-2 fw-700 small" aria-label="Editar" data-tooltip="Editar" title="Editar">
                                     <i class="bi bi-pencil-square me-1"></i> Modificar
                                 </a>
-                                <a href="{% url 'clientes:cancelar_pedido' orden.id %}" class="btn btn-outline-danger rounded-pill py-2 fw-700 small confirm-delete-link" data-title="¿Estás seguro de cancelar este pedido?">
-                                    <i class="bi bi-x-circle me-1"></i> Cancelar
-                                </a>
+                                <form action="{% url 'clientes:cancelar_pedido' orden.id %}" method="post"
+                                    onsubmit="return confirm('¿Estás seguro de cancelar este pedido?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger rounded-pill py-2 fw-700 small">
+                                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                                    </button>
+                                </form>
                             </div>
                         </div>
                         {% endif %}

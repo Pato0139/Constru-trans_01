@@ -87,12 +87,14 @@
                                     title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                <a href="{% url 'catalogo:eliminar_tipo_material' t.codigo_catalogo %}"
-                                    class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--delete confirm-delete"
-                                    title="Eliminar" data-title="¿Eliminar tipo de material?"
-                                    data-text="¿Estás seguro de que deseas eliminar «{{ t.nombre_empresa }}»?">
-                                    <i class="bi bi-trash"></i>
-                                </a>
+                                <form action="{% url 'catalogo:eliminar_tipo_material' t.codigo_catalogo %}"
+                                    method="post" onsubmit="return confirm('¿Eliminar este tipo de material?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--delete"
+                                            title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>

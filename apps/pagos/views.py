@@ -7,12 +7,14 @@ from django.db.models import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST, require_http_methods
 
 from config.utils import registrar_actividad
 from config.security import role_required
 from apps.usuarios.views import admin_required
 
 from .models import Factura, PagoFactura
+from .forms import PagoFacturaRegistroForm
 from .pdf import render_factura_pdf
 from apps.pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
 from apps.pedidos.models import Pago, Pedido
@@ -37,14 +39,9 @@ def _cliente_es_dueno(usuario, pedido):
 
 def _monto_pedido(pedido):
     if pedido.detalles.exists():
-        return pedido.calcular_total(using=pedido._state.db)
+        return sum((detalle.subtotal for detalle in pedido.detalles.all()), Decimal("0"))
 
-    monto = pedido.total or pedido.precio or Decimal("0")
-    if monto > 0 and (pedido.total != monto or pedido.precio != monto):
-        pedido.total = monto
-        pedido.precio = monto
-        pedido.save(update_fields=["total", "precio"])
-    return monto
+    return pedido.total or pedido.precio or Decimal("0")
 
 
 @role_required(["admin", "cliente"])
@@ -191,6 +188,7 @@ def detalle_pago(request, pk):
 
 
 @admin_required
+@require_http_methods(["GET", "POST"])
 def revisar_pago_pedido(request, pk):
     pago = get_object_or_404(
         Pago.objects.select_related("pedido"),
@@ -201,6 +199,9 @@ def revisar_pago_pedido(request, pk):
     if request.method == "POST":
         form = PagoRevisionForm(request.POST)
         accion = request.POST.get("accion")
+        if pago.estado != Pago.PENDIENTE:
+            messages.error(request, "Este pago ya fue revisado y no puede volver a cambiarse.")
+            return redirect("pagos:detalle_pago", pk=pago.pk)
         if form.is_valid() and accion in ("aprobar", "rechazar"):
             observaciones = form.cleaned_data.get("observaciones", "")
             if accion == "rechazar" and not observaciones.strip():
@@ -279,37 +280,35 @@ def revisar_pago_pedido(request, pk):
 # ======================
 
 @admin_required
+@require_http_methods(["GET", "POST"])
 def registrar_pago(request, pk):
     factura = get_object_or_404(Factura, pk=pk)
     if request.method == "POST":
-        try:
-            monto_raw = request.POST.get("monto", "0").replace(",", ".")
-            monto = float(monto_raw)
-        except ValueError:
-            monto = 0
-        saldo = factura.saldo_pendiente
-        if monto <= 0 or monto > saldo + 0.001:
-            messages.error(request, "Monto inválido o superior al saldo pendiente.")
-            return redirect("pagos:registrar_pago", pk=pk)
-
-        with transaction.atomic():
-            pago = PagoFactura.objects.create(
-                factura=factura,
-                monto=monto,
-                metodo=request.POST.get("metodo", PagoFactura.Metodo.EFECTIVO),
-                referencia=request.POST.get("referencia", "").strip(),
-                evidencia=request.FILES.get("evidencia"),
-                registrado_por=request.user,
-            )
-            registrar_actividad(
-                request,
-                "crear",
-                "pagos",
-                pago.pk,
-                f"Pago registrado a factura {factura.numero}",
-            )
-        messages.success(request, "Pago registrado y pendiente de revisión.")
-        return redirect("pagos:detalle_factura", pk=pk)
+        form = PagoFacturaRegistroForm(request.POST, request.FILES, factura=factura)
+        if form.is_valid():
+            with transaction.atomic():
+                factura_bloqueada = Factura.objects.select_for_update().get(pk=pk)
+                pago = form.save(commit=False)
+                if pago.monto > factura_bloqueada.saldo_pendiente:
+                    form.add_error("monto", "El saldo de la factura cambió; verifica el monto.")
+                else:
+                    pago.factura = factura_bloqueada
+                    pago.registrado_por = request.user
+                    pago.save()
+                    registrar_actividad(
+                        request,
+                        "crear",
+                        "pagos",
+                        pago.pk,
+                        f"Pago registrado a factura {factura.numero}",
+                    )
+                    messages.success(request, "Pago registrado y pendiente de revisión.")
+                    return redirect("pagos:detalle_factura", pk=pk)
+    else:
+        form = PagoFacturaRegistroForm(
+            factura=factura,
+            initial={"monto": factura.saldo_pendiente},
+        )
 
     return render(
         request,
@@ -318,6 +317,7 @@ def registrar_pago(request, pk):
             "factura": factura,
             "saldo_pendiente": factura.saldo_pendiente,
             "metodos": PagoFactura.Metodo.choices,
+            "form": form,
         },
     )
 
@@ -365,6 +365,9 @@ def detalle_factura(request, pk):
 @role_required(["admin", "cliente"])
 def descargar_pdf(request, pk):
     factura = get_object_or_404(Factura, pk=pk)
+    usuario = _usuario_actual(request)
+    if getattr(usuario, "rol", "") == "cliente" and factura.cliente.usuario_id != usuario.pk:
+        raise Http404()
     pdf_bytes = render_factura_pdf(factura)
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="{factura.numero}.pdf"'
@@ -378,10 +381,14 @@ def descargar_factura_pedido(request, pedido_id):
 
 
 @admin_required
+@require_POST
 def revisar_pago(request, pk, pago_id):
     pago = get_object_or_404(PagoFactura, pk=pago_id, factura_id=pk)
     accion = request.POST.get("accion")
     if request.method == "POST" and accion in ("aprobar", "rechazar"):
+        if pago.estado != PagoFactura.Estado.PENDIENTE:
+            messages.error(request, "Este pago ya fue revisado.")
+            return redirect("pagos:detalle_factura", pk=pk)
         pago.estado = (
             PagoFactura.Estado.APROBADO
             if accion == "aprobar"

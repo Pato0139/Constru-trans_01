@@ -9,7 +9,17 @@ from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 class ProveedorForm(forms.ModelForm):
     class Meta:
         model = Proveedor
-        fields = ["nombre_empresa", "nit", "telefono", "correo", "descripcion"]
+        fields = [
+            "nombre_empresa",
+            "contacto_nombre",
+            "nit",
+            "telefono",
+            "correo",
+            "direccion",
+            "ciudad",
+            "categoria",
+            "descripcion",
+        ]
         widgets = {
             "nombre_empresa": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Nombre Legal"}

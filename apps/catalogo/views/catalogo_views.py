@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from config.utils import registrar_actividad
 from apps.catalogo.forms import CatalogoForm, MarcaForm, UnidadMedidaForm
@@ -96,6 +97,7 @@ def editar_tipo_material(request, codigo):
 
 
 @admin_required
+@require_POST
 def eliminar_tipo_material(request, codigo):
     tipo = get_object_or_404(Catalogo, pk=codigo)
 
@@ -195,6 +197,7 @@ def cambiar_estado_unidad_medida(request, id):
 
 
 @admin_required
+@require_POST
 def eliminar_unidad_medida(request, id):
     unidad = get_object_or_404(UnidadMedida, pk=id)
 
@@ -282,6 +285,7 @@ def editar_marca(request, id):
 
 
 @admin_required
+@require_POST
 def eliminar_marca(request, id):
     marca = get_object_or_404(Marca, pk=id)
 

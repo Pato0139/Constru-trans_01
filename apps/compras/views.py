@@ -6,13 +6,14 @@ from django.db.models import Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from config.utils import registrar_actividad
 from apps.usuarios.views import admin_required
 
-from .forms import (CompraForm, DetalleCompraFormSet, ProveedorMaterialFormSet,
-                    ProveedorPerfilForm)
+from .forms import (CompraForm, DetalleCompraFormSet, ProveedorForm,
+                    ProveedorMaterialFormSet, ProveedorPerfilForm)
 from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
 
@@ -83,7 +84,13 @@ def lista_compras(request):
 
 
 def _detalles_desde_post(request, proveedor):
-    total_forms = int(request.POST.get("detalles-TOTAL_FORMS", 0) or 0)
+    try:
+        total_forms = int(request.POST.get("detalles-TOTAL_FORMS", 0) or 0)
+    except (TypeError, ValueError):
+        return [], ["El formulario contiene un número inválido de materiales."]
+    if not 0 <= total_forms <= 100:
+        return [], ["El formulario no puede contener más de 100 materiales."]
+
     detalles = []
     errores = []
 
@@ -97,14 +104,18 @@ def _detalles_desde_post(request, proveedor):
         if not material_id and not cantidad_raw:
             continue
 
+        if not material_id or not material_id.isdecimal():
+            errores.append("Selecciona un material válido.")
+            continue
+
         try:
             cantidad = int(cantidad_raw or 0)
         except ValueError:
             errores.append("La cantidad debe ser un número entero.")
             continue
 
-        if cantidad <= 0:
-            errores.append("La cantidad debe ser mayor a cero.")
+        if not 1 <= cantidad <= 100000:
+            errores.append("La cantidad debe estar entre 1 y 100000.")
             continue
 
         oferta = (
@@ -376,25 +387,30 @@ def lista_proveedores(request):
 @admin_required
 def crear_proveedor(request):
     if request.method == "POST":
-        nombre_empresa = request.POST.get("nombre_empresa")
-        nit = request.POST.get("nit")
-        proveedor = Proveedor.objects.create(
-            nombre_empresa=nombre_empresa,
-            nit=nit,
-            contacto_nombre=request.POST.get("contacto_nombre"),
-            telefono=request.POST.get("telefono"),
-            correo=request.POST.get("email"),
-            direccion=request.POST.get("direccion"),
-            ciudad=(request.POST.get("ciudad") or "").strip(),
-            categoria=request.POST.get("categoria"),
-            descripcion=request.POST.get("descripcion", ""),
-            activo=bool(request.POST.get("activo", "on")),
+        data = request.POST.copy()
+        data["correo"] = data.get("email", "")
+        form = ProveedorForm(data)
+        if form.is_valid():
+            proveedor = form.save()
+            registrar_actividad(
+                request,
+                "crear",
+                "proveedores",
+                proveedor.nit,
+                f"Proveedor creado: {proveedor.nombre_empresa}",
+            )
+            messages.success(request, "Proveedor registrado con éxito.")
+            return redirect(
+                "compras:perfil_proveedor",
+                codigo_proveedor=proveedor.codigo_proveedor,
+            )
+        messages.error(request, "Revisa los datos del proveedor e inténtalo nuevamente.")
+        return render(
+            request,
+            "compras/proveedor_form.html",
+            {"action": "Crear", "form": form, "form_data": request.POST},
+            status=400,
         )
-        registrar_actividad(
-            request, "crear", "proveedores", nit, f"Proveedor creado: {nombre_empresa}"
-        )
-        messages.success(request, "Proveedor registrado con éxito.")
-        return redirect("compras:perfil_proveedor", codigo_proveedor=proveedor.codigo_proveedor)
 
     return render(request, "compras/proveedor_form.html", {"action": "Crear"})
 
@@ -403,27 +419,30 @@ def crear_proveedor(request):
 def editar_proveedor(request, codigo_proveedor):
     proveedor = get_object_or_404(Proveedor, codigo_proveedor=codigo_proveedor)
     if request.method == "POST":
-        proveedor.nombre_empresa = request.POST.get("nombre_empresa")
-        proveedor.nit = request.POST.get("nit")
-        proveedor.contacto_nombre = request.POST.get("contacto_nombre")
-        proveedor.telefono = request.POST.get("telefono")
-        proveedor.correo = request.POST.get("email")
-        proveedor.direccion = request.POST.get("direccion")
-        proveedor.ciudad = (request.POST.get("ciudad") or "").strip()
-        proveedor.categoria = request.POST.get("categoria")
-        proveedor.descripcion = request.POST.get("descripcion", "")
-        proveedor.activo = bool(request.POST.get("activo"))
-        proveedor.save()
-
-        registrar_actividad(
+        data = request.POST.copy()
+        data["correo"] = data.get("email", "")
+        form = ProveedorForm(data, instance=proveedor)
+        if form.is_valid():
+            proveedor = form.save()
+            registrar_actividad(
+                request,
+                "editar",
+                "proveedores",
+                proveedor.nit,
+                f"Proveedor editado: {proveedor.nombre_empresa}",
+            )
+            messages.success(request, "Proveedor actualizado.")
+            return redirect(
+                "compras:perfil_proveedor",
+                codigo_proveedor=proveedor.codigo_proveedor,
+            )
+        messages.error(request, "Revisa los datos del proveedor e inténtalo nuevamente.")
+        return render(
             request,
-            "editar",
-            "proveedores",
-            proveedor.nit,
-            f"Proveedor editado: {proveedor.nombre_empresa}",
+            "compras/proveedor_form.html",
+            {"proveedor": proveedor, "action": "Editar", "form": form, "form_data": request.POST},
+            status=400,
         )
-        messages.success(request, "Proveedor actualizado.")
-        return redirect("compras:perfil_proveedor", codigo_proveedor=proveedor.codigo_proveedor)
 
     return render(
         request,
@@ -480,7 +499,14 @@ def cambiar_estado_proveedor(request, codigo_proveedor):
         f"Proveedor {estado}: {proveedor.nombre_empresa}",
     )
     messages.success(request, f"Proveedor {estado} correctamente.")
-    return redirect(request.POST.get("next") or reverse("compras:lista_proveedores"))
+    next_url = request.POST.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = reverse("compras:lista_proveedores")
+    return redirect(next_url)
 
 
 @admin_required

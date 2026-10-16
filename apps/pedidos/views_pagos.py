@@ -35,14 +35,9 @@ def _cliente_es_dueno(usuario, pedido):
 
 def _monto_pedido(pedido):
     if pedido.detalles.exists():
-        return pedido.calcular_total(using=pedido._state.db)
+        return sum((detalle.subtotal for detalle in pedido.detalles.all()), Decimal("0"))
 
-    monto = pedido.total or pedido.precio or Decimal("0")
-    if monto > 0 and (pedido.total != monto or pedido.precio != monto):
-        pedido.total = monto
-        pedido.precio = monto
-        pedido.save(update_fields=["total", "precio"])
-    return monto
+    return pedido.total or pedido.precio or Decimal("0")
 
 
 @role_required(["admin", "cliente"])
