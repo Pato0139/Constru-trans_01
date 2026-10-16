@@ -18,7 +18,7 @@
                         {{ form.metodo }}
                         {{ form.metodo.errors }}
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3" id="comprobante-section">
                         <label class="form-label text-white">Comprobante</label>
                         {{ form.comprobante }}
                         <div class="form-text">Obligatorio para Nequi, DaviPlata y Bancolombia. No aplica en contraentrega.</div>
@@ -33,4 +33,46 @@
         </div>
     </div>
 </div>
+
+<style>
+    #comprobante-section.contraentrega-disabled {
+        opacity: 0.75;
+    }
+    #comprobante-section.contraentrega-disabled .form-control,
+    #comprobante-section.contraentrega-disabled input[type="file"] {
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background-color: rgba(255,255,255,0.02) !important;
+    }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var comprobanteSection = document.getElementById('comprobante-section');
+    var comprobanteInput = document.getElementById('id_comprobante');
+    var metodoRadios = document.querySelectorAll('input[name="metodo"]');
+
+    function actualizarComprobantePorMetodo() {
+        var metodoSeleccionado = document.querySelector('input[name="metodo"]:checked');
+        var esContraentrega = metodoSeleccionado && metodoSeleccionado.value === 'contraentrega';
+
+        if (comprobanteSection) {
+            comprobanteSection.classList.toggle('contraentrega-disabled', esContraentrega);
+        }
+
+        if (comprobanteInput) {
+            comprobanteInput.disabled = !!esContraentrega;
+            comprobanteInput.required = !esContraentrega;
+            comprobanteInput.classList.remove('is-invalid', 'is-valid');
+            if (esContraentrega) {
+                comprobanteInput.value = '';
+            }
+        }
+    }
+
+    metodoRadios.forEach(function(radio) {
+        radio.addEventListener('change', actualizarComprobantePorMetodo);
+    });
+    actualizarComprobantePorMetodo();
+});
+</script>
 {% endblock %}

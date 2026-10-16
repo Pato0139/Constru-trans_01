@@ -501,7 +501,7 @@ def crear_pedido(request):
                     stock_obj.save(using=db_alias)
 
             messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente. Registra el pago para habilitar el despacho.")
-            return redirect("pagos:registrar_pago", pedido_id=nuevo_pedido.codigo_pedido)
+            return redirect("pagos:registrar_pago_pedido", pedido_id=nuevo_pedido.codigo_pedido)
 
         except ValueError as e:
             messages.error(request, str(e))
@@ -724,7 +724,7 @@ def editar_pedido(request, id):
     )
 
 
-@login_required
+@role_required(["cliente", "admin"])
 def cancelar_pedido(request, id):
     pedido = get_object_or_404(Pedido, codigo_pedido=id)
 
@@ -812,12 +812,8 @@ def cancelar_pedido(request, id):
 # VISTAS DE ADMINISTRACIÓN DE CLIENTES
 # =====================================================================
 
-@login_required
+@role_required(["admin"])
 def lista_clientes(request):
-    if request.user.rol != "admin":
-        messages.error(request, "No tienes permisos para ver el listado de clientes.")
-        return redirect("usuarios:panel")
-        
     clientes = Usuario.objects.filter(rol="cliente").select_related("perfil_cliente").order_by("-date_joined")
     
     q = request.GET.get("q", "").strip()
@@ -858,11 +854,8 @@ def lista_clientes(request):
     return render(request, "clientes/admin_lista.html", context)
 
 
-@login_required
+@role_required(["admin"])
 def detalle_cliente(request, id):
-    if request.user.rol != "admin":
-        messages.error(request, "No tienes permisos para ver este perfil.")
-        return redirect("usuarios:panel")
         
     usuario = get_object_or_404(Usuario, id=id, rol="cliente")
     cliente, _ = Cliente.ensure_for_user(usuario)
@@ -878,11 +871,8 @@ def detalle_cliente(request, id):
     return render(request, "clientes/admin_detalle.html", context)
 
 
-@login_required
+@role_required(["admin"])
 def editar_cliente(request, id):
-    if request.user.rol != "admin":
-        messages.error(request, "No tienes permisos para editar este cliente.")
-        return redirect("usuarios:panel")
         
     usuario = get_object_or_404(Usuario, id=id, rol="cliente")
     cliente, _ = Cliente.ensure_for_user(usuario)

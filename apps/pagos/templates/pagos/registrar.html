@@ -53,7 +53,7 @@
                             {% for choice in form.metodo %}
                             {% if choice.data.value %}
                             <div class="col-md-6">
-                                <div class="form-check payment-option p-3 rounded-3 border {% if choice.data.selected %}border-warning bg-warning bg-opacity-10{% else %}border-secondary bg-dark{% endif %}">
+                                <div class="form-check payment-option p-3 rounded-3 border {% if choice.data.selected %}is-selected{% endif %}">
                                     <input class="form-check-input" type="radio" name="{{ form.metodo.html_name }}" id="{{ choice.id_for_label }}" value="{{ choice.data.value }}" {% if choice.data.selected %}checked{% endif %} required>
                                     <label class="form-check-label text-white fw-semibold" for="{{ choice.id_for_label }}">
                                         {% if choice.data.value == 'nequi' %}<i class="bi bi-phone me-2 text-info"></i>
@@ -93,7 +93,7 @@
                             <i class="bi bi-upload me-1"></i> Comprobante de pago
                         </label>
                         <div class="input-group">
-                            <span class="input-group-text bg-dark border-secondary text-white">
+                            <span class="input-group-text">
                                 <i class="bi bi-file-earmark-image"></i>
                             </span>
                             {{ form.comprobante }}
@@ -125,29 +125,26 @@
     .payment-option {
         cursor: pointer;
         transition: all 0.2s ease;
+        color: var(--color-text) !important;
+        background-color: var(--item-bg) !important;
+        border-color: var(--color-border-strong) !important;
+    }
+    .payment-option .form-check-label {
+        color: var(--color-text) !important;
     }
     .payment-option:hover {
         border-color: #ffc107 !important;
         box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.15);
         transform: translateY(-2px);
     }
+    .payment-option.is-selected {
+        border-color: #ffc107 !important;
+        background-color: rgba(255, 193, 7, 0.1) !important;
+    }
     .payment-option .form-check-input {
         margin-top: 0.3rem;
         position: absolute;
         opacity: 0;
-    }
-    .payment-option .form-check-input:checked {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-    .payment-option .form-check-input:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-    .payment-option input[type="radio"]:checked + label,
-    .payment-option:has(input:checked) {
-        border-color: #0d6efd !important;
-        background-color: rgba(13, 110, 253, 0.1) !important;
     }
 
     /* Botones grandes */
@@ -162,10 +159,27 @@
         border-top-left-radius: 0.375rem;
         border-bottom-left-radius: 0.375rem;
     }
+    #comprobante-section .input-group-text {
+        background-color: var(--item-bg) !important;
+        border-color: var(--color-border) !important;
+        color: var(--color-text) !important;
+    }
+    #comprobante-section.contraentrega-disabled {
+        opacity: 0.75;
+        border-radius: 0.75rem;
+    }
+    #comprobante-section.contraentrega-disabled .input-group,
+    #comprobante-section.contraentrega-disabled .input-group-text,
+    #comprobante-section.contraentrega-disabled input {
+        border-color: transparent !important;
+        box-shadow: none !important;
+        background-color: rgba(255,255,255,0.02) !important;
+    }
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.payment-option').forEach(function(option) {
+    var paymentOptions = document.querySelectorAll('.payment-option');
+    paymentOptions.forEach(function(option) {
         option.addEventListener('click', function() {
             var radio = this.querySelector('input[type="radio"]');
             if (radio && !radio.checked) {
@@ -173,6 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
     var cuentas = {
         'nequi': '3001234567',
         'daviplata': '3109876543',
@@ -181,16 +196,51 @@ document.addEventListener('DOMContentLoaded', function() {
     var metodoRadios = document.querySelectorAll('input[name="metodo"]');
     var cuentaSection = document.getElementById('cuenta-section');
     var numeroCuenta = document.getElementById('numero-cuenta');
-    metodoRadios.forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            if (cuentas[this.value]) {
-                numeroCuenta.value = cuentas[this.value];
-                cuentaSection.classList.remove('d-none');
-            } else {
-                cuentaSection.classList.add('d-none');
-            }
+    var comprobanteSection = document.getElementById('comprobante-section');
+    var comprobanteInput = document.getElementById('id_comprobante');
+
+    function actualizarOpcionSeleccionada() {
+        paymentOptions.forEach(function(option) {
+            var radio = option.querySelector('input[type="radio"]');
+            option.classList.toggle('is-selected', radio.checked);
         });
+    }
+
+    function actualizarComprobantePorMetodo() {
+        var metodoSeleccionado = document.querySelector('input[name="metodo"]:checked');
+        var metodo = metodoSeleccionado ? metodoSeleccionado.value : '';
+        var esContraentrega = metodo === 'contraentrega';
+
+        actualizarOpcionSeleccionada();
+
+        if (cuentas[metodo]) {
+            numeroCuenta.value = cuentas[metodo];
+            cuentaSection.classList.remove('d-none');
+        } else {
+            cuentaSection.classList.add('d-none');
+            numeroCuenta.value = '';
+        }
+
+        if (comprobanteSection) {
+            comprobanteSection.classList.toggle('contraentrega-disabled', esContraentrega);
+        }
+
+        if (comprobanteInput) {
+            comprobanteInput.disabled = esContraentrega;
+            comprobanteInput.required = !esContraentrega;
+            comprobanteInput.classList.remove('is-invalid', 'is-valid');
+
+            if (esContraentrega) {
+                comprobanteInput.value = '';
+            }
+        }
+    }
+
+    metodoRadios.forEach(function(radio) {
+        radio.addEventListener('change', actualizarComprobantePorMetodo);
     });
+
+    actualizarComprobantePorMetodo();
 });
 </script>
 {% endblock %}
