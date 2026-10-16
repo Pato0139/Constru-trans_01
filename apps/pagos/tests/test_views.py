@@ -64,7 +64,7 @@ class PagoViewsTests(TestCase):
         self.client.login(username="clientepagoview", password="password123")
         comprobante = SimpleUploadedFile("recibo.pdf", b"%PDF-1.4 test", content_type="application/pdf")
         response = self.client.post(
-            reverse("pagos:registrar_pago", args=[self.pedido.codigo_pedido]),
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
             {"metodo": Pago.METODO_NEQUI, "monto": "120000", "comprobante": comprobante},
         )
         self.assertEqual(response.status_code, 302)
@@ -87,7 +87,7 @@ class PagoViewsTests(TestCase):
         self.client.force_login(self.cliente)
 
         response = self.client.get(
-            reverse("pagos:registrar_pago", args=[self.pedido.codigo_pedido])
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido])
         )
 
         self.assertEqual(response.status_code, 200)
@@ -101,7 +101,7 @@ class PagoViewsTests(TestCase):
         self.client.force_login(self.cliente)
 
         response = self.client.post(
-            reverse("pagos:registrar_pago", args=[self.pedido.codigo_pedido]),
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
             {"metodo": Pago.METODO_CONTRAENTREGA, "monto": "0"},
         )
 
@@ -117,7 +117,7 @@ class PagoViewsTests(TestCase):
         )
         self.client.login(username="adminpago", password="password123")
         response = self.client.post(
-            reverse("pagos:revisar_pago", args=[pago.pk]),
+            reverse("pagos:revisar_pago_pedido", args=[pago.pk]),
             {"accion": "aprobar", "observaciones": "Validado"},
         )
         self.assertEqual(response.status_code, 302)
@@ -135,7 +135,7 @@ class PagoViewsTests(TestCase):
         )
         self.client.login(username="adminpago", password="password123")
         response = self.client.post(
-            reverse("pagos:revisar_pago", args=[pago.pk]),
+            reverse("pagos:revisar_pago_pedido", args=[pago.pk]),
             {"accion": "rechazar", "observaciones": "Comprobante ilegible"},
         )
         self.assertEqual(response.status_code, 302)
