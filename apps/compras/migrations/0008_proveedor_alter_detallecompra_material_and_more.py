@@ -6,9 +6,10 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("catalogo", "__first__"),
-        ("compras", "0007_merge_20260909_0900"),
+        ('catalogo', '__first__'),
+        ('compras', '0007_merge_20260909_0900'),
     ]
 
     operations = [
@@ -43,39 +44,23 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AlterField(
-            model_name="detallecompra",
-            name="material",
-            field=models.ForeignKey(
-                db_column="cod_material",
-                on_delete=django.db.models.deletion.PROTECT,
-                to="catalogo.materialconstruccion",
-            ),
+            model_name='detallecompra',
+            name='material',
+            field=models.ForeignKey(db_column='cod_material', on_delete=django.db.models.deletion.PROTECT, to='catalogo.materialconstruccion'),
         ),
         migrations.AlterField(
-            model_name="proveedormaterial",
-            name="material",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.PROTECT,
-                related_name="proveedores_ofertantes",
-                to="catalogo.materialconstruccion",
-            ),
+            model_name='proveedormaterial',
+            name='material',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='proveedores_ofertantes', to='catalogo.materialconstruccion'),
         ),
         migrations.AlterField(
-            model_name="compra",
-            name="proveedor",
-            field=models.ForeignKey(
-                db_column="codigo_proveedor",
-                on_delete=django.db.models.deletion.PROTECT,
-                to="compras.proveedor",
-            ),
+            model_name='compra',
+            name='proveedor',
+            field=models.ForeignKey(db_column='codigo_proveedor', on_delete=django.db.models.deletion.PROTECT, to='compras.proveedor'),
         ),
         migrations.AlterField(
-            model_name="proveedormaterial",
-            name="proveedor",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="materiales_ofertados",
-                to="compras.proveedor",
-            ),
+            model_name='proveedormaterial',
+            name='proveedor',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='materiales_ofertados', to='compras.proveedor'),
         ),
     ]

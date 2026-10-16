@@ -174,6 +174,7 @@ class Factura(TransicionMixin, models.Model):
         Estado.ANULADA: set(),
     }
 
+    id_factura = models.AutoField(primary_key=True, db_column="id_factura")
     numero = models.CharField(max_length=20, unique=True, editable=False)
     pedido = models.OneToOneField(
         "pedidos.Pedido",
@@ -185,9 +186,9 @@ class Factura(TransicionMixin, models.Model):
         on_delete=models.PROTECT,
         related_name="facturas",
     )
-    fecha_emision = models.DateTimeField(default=timezone.now)
+    fecha_emision = models.DateTimeField(default=timezone.now, db_column="fecha")
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
-    impuestos = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
+    impuestos = models.DecimalField(max_digits=12, decimal_places=2, default=0, db_column="impuesto", validators=[no_negativo])
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
     estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.EMITIDA)
     uuid_publico = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)

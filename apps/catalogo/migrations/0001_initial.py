@@ -8,6 +8,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     initial = True
 
     dependencies = [
@@ -131,126 +132,58 @@ class Migration(migrations.Migration):
         ),
         # Tablas propias de la app catalogo (no duplicadas en usuarios): DDL real.
         migrations.CreateModel(
-            name="LoteMaterial",
+            name='LoteMaterial',
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
-                ),
-                ("codigo_lote", models.CharField(db_index=True, max_length=50, unique=True)),
-                (
-                    "cantidad",
-                    models.PositiveIntegerField(
-                        validators=[django.core.validators.MinValueValidator(1)]
-                    ),
-                ),
-                ("fecha_entrada", models.DateTimeField(auto_now_add=True)),
-                (
-                    "fecha_vencimiento",
-                    models.DateField(
-                        blank=True,
-                        db_index=True,
-                        null=True,
-                        validators=[apps.catalogo.models.lotes.validar_fecha_no_pasada],
-                    ),
-                ),
-                ("activo", models.BooleanField(default=True)),
-                (
-                    "material",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="lotes",
-                        to="catalogo.materialconstruccion",
-                    ),
-                ),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('codigo_lote', models.CharField(db_index=True, max_length=50, unique=True)),
+                ('cantidad', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)])),
+                ('fecha_entrada', models.DateTimeField(auto_now_add=True)),
+                ('fecha_vencimiento', models.DateField(blank=True, db_index=True, null=True, validators=[apps.catalogo.models.lotes.validar_fecha_no_pasada])),
+                ('activo', models.BooleanField(default=True)),
+                ('material', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lotes', to='catalogo.materialconstruccion')),
             ],
             options={
-                "verbose_name": "Lote de Material",
-                "verbose_name_plural": "Lotes de Material",
-                "db_table": "lote_material",
-                "ordering": ["-fecha_entrada"],
+                'verbose_name': 'Lote de Material',
+                'verbose_name_plural': 'Lotes de Material',
+                'db_table': 'lote_material',
+                'ordering': ['-fecha_entrada'],
             },
         ),
         migrations.CreateModel(
-            name="SesionConteo",
+            name='SesionConteo',
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
-                ),
-                ("codigo", models.CharField(db_index=True, max_length=50, unique=True)),
-                ("fecha_inicio", models.DateTimeField(auto_now_add=True)),
-                ("fecha_fin", models.DateTimeField(blank=True, null=True)),
-                (
-                    "estado",
-                    models.CharField(
-                        choices=[
-                            ("pendiente", "Pendiente"),
-                            ("en_progreso", "En Progreso"),
-                            ("completado", "Completado"),
-                            ("cancelado", "Cancelado"),
-                        ],
-                        default="pendiente",
-                        max_length=20,
-                    ),
-                ),
-                ("observaciones", models.TextField(blank=True)),
-                (
-                    "usuario_responsable",
-                    models.ForeignKey(
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="conteos",
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('codigo', models.CharField(db_index=True, max_length=50, unique=True)),
+                ('fecha_inicio', models.DateTimeField(auto_now_add=True)),
+                ('fecha_fin', models.DateTimeField(blank=True, null=True)),
+                ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('en_progreso', 'En Progreso'), ('completado', 'Completado'), ('cancelado', 'Cancelado')], default='pendiente', max_length=20)),
+                ('observaciones', models.TextField(blank=True)),
+                ('usuario_responsable', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='conteos', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                "verbose_name": "Sesión de Conteo",
-                "verbose_name_plural": "Sesiones de Conteo",
-                "db_table": "sesion_conteo",
-                "ordering": ["-fecha_inicio"],
+                'verbose_name': 'Sesión de Conteo',
+                'verbose_name_plural': 'Sesiones de Conteo',
+                'db_table': 'sesion_conteo',
+                'ordering': ['-fecha_inicio'],
             },
         ),
         migrations.CreateModel(
-            name="ConteoItem",
+            name='ConteoItem',
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
-                ),
-                ("cantidad_sistema", models.PositiveIntegerField()),
-                ("cantidad_fisica", models.PositiveIntegerField()),
-                ("diferencia", models.IntegerField(editable=False)),
-                ("observaciones", models.TextField(blank=True)),
-                ("fecha_conteo", models.DateTimeField(auto_now=True)),
-                (
-                    "material",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="catalogo.materialconstruccion",
-                    ),
-                ),
-                (
-                    "sesion",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="items",
-                        to="catalogo.sesionconteo",
-                    ),
-                ),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('cantidad_sistema', models.PositiveIntegerField()),
+                ('cantidad_fisica', models.PositiveIntegerField()),
+                ('diferencia', models.IntegerField(editable=False)),
+                ('observaciones', models.TextField(blank=True)),
+                ('fecha_conteo', models.DateTimeField(auto_now=True)),
+                ('material', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='catalogo.materialconstruccion')),
+                ('sesion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='catalogo.sesionconteo')),
             ],
             options={
-                "verbose_name": "Item de Conteo",
-                "verbose_name_plural": "Items de Conteo",
-                "db_table": "conteo_item",
-                "unique_together": {("sesion", "material")},
+                'verbose_name': 'Item de Conteo',
+                'verbose_name_plural': 'Items de Conteo',
+                'db_table': 'conteo_item',
+                'unique_together': {('sesion', 'material')},
             },
         ),
     ]

@@ -23,15 +23,15 @@ class Migration(migrations.Migration):
             name="Factura",
             fields=[
                 (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    "id_factura",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, db_column="id_factura"
                     ),
                 ),
                 ("numero", models.CharField(editable=False, max_length=20, unique=True)),
-                ("fecha_emision", models.DateTimeField(default=django.utils.timezone.now)),
+                ("fecha_emision", models.DateTimeField(db_column="fecha", default=django.utils.timezone.now)),
                 ("subtotal", models.DecimalField(decimal_places=2, default=0, max_digits=12)),
-                ("impuestos", models.DecimalField(decimal_places=2, default=0, max_digits=12)),
+                ("impuestos", models.DecimalField(db_column="impuesto", decimal_places=2, default=0, max_digits=12)),
                 ("total", models.DecimalField(decimal_places=2, default=0, max_digits=12)),
                 (
                     "estado",

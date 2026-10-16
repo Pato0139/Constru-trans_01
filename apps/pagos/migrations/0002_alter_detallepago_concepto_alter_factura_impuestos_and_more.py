@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='factura',
             name='impuestos',
-            field=models.DecimalField(decimal_places=2, default=0, max_digits=12, validators=[django.core.validators.MinValueValidator(Decimal('0'), message='El valor no puede ser negativo.')]),
+            field=models.DecimalField(db_column='impuesto', decimal_places=2, default=0, max_digits=12, validators=[django.core.validators.MinValueValidator(Decimal('0'), message='El valor no puede ser negativo.')]),
         ),
         migrations.AlterField(
             model_name='factura',
