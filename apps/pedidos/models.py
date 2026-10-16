@@ -1,7 +1,6 @@
 import datetime
 import logging
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator, MinValueValidator
 from django.db import models
@@ -81,7 +80,9 @@ class Pedido(TransicionMixin, models.Model):
 
     direccion_origen = models.CharField(max_length=200, default="Bodega Central", validators=[no_solo_espacios])
     direccion_destino = models.CharField(max_length=200, default="", validators=[no_solo_espacios])
-    fecha_entrega_programada = models.DateTimeField(null=True, blank=True, validators=[validar_fecha_no_pasada])
+    fecha_entrega_programada = models.DateTimeField(
+        null=True, blank=True, validators=[validar_fecha_no_pasada]
+    )
     fecha = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     precio = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
     conductor = models.ForeignKey(
@@ -236,12 +237,14 @@ class Pedido(TransicionMixin, models.Model):
             except AttributeError as exc:
                 logger.warning(
                     "No se pudo resolver usuario legacy del conductor en pedido %s: %s",
-                    getattr(self, "codigo_pedido", "?"), exc,
+                    getattr(self, "codigo_pedido", "?"),
+                    exc,
                 )
             except OperationalError as exc:
                 logger.error(
                     "Error operativo resolviendo conductor_usuario_legacy en pedido %s: %s",
-                    getattr(self, "codigo_pedido", "?"), exc,
+                    getattr(self, "codigo_pedido", "?"),
+                    exc,
                 )
         super().save(*args, **kwargs)
 
@@ -249,7 +252,9 @@ class Pedido(TransicionMixin, models.Model):
 class DetallePedido(models.Model):
     id_detalle_pedido = models.AutoField(primary_key=True)
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="detalles")
-    material = models.ForeignKey("catalogo.MaterialConstruccion", on_delete=models.PROTECT, db_column="cod_material")
+    material = models.ForeignKey(
+        "catalogo.MaterialConstruccion", on_delete=models.PROTECT, db_column="cod_material"
+    )
     cantidad = models.IntegerField(validators=cantidad_validators)
     precio_unitario = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)]
@@ -400,5 +405,5 @@ class DetalleSolicitudPedido(models.Model):
         self.pedido.calcular_total()
 
 
-from apps.pagos.models import Pago, comprobante_upload_to
-
+# Re-export obligatorio: 0001_initial referencia apps.pedidos.models.comprobante_upload_to
+from apps.pagos.models import Pago, comprobante_upload_to  # noqa: F401, E402

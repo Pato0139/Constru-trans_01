@@ -15,6 +15,7 @@ def _get_collection():
         return _collection
     try:
         import chromadb
+
         path = Path(os.getenv("CHROMA_DIR", "media/chroma_constru_trans"))
         path.mkdir(parents=True, exist_ok=True)
         client = chromadb.PersistentClient(path=str(path))
@@ -48,7 +49,7 @@ def buscar_contexto(query, k=3):
         distancias = resultado.get("distances", [[]])[0]
         relevantes = [
             documento
-            for documento, distancia in zip(documentos, distancias)
+            for documento, distancia in zip(documentos, distancias, strict=False)
             if distancia is not None and distancia <= RAG_MAX_DISTANCE
         ]
         return "\n---\n".join(relevantes)

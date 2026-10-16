@@ -199,9 +199,9 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
 # SEGURIDAD — Control de acceso + Bloqueo IP
 # ============================================================
 
-SECURITY_MAX_WARNINGS = 5          # Intentos no autorizados antes de bloquear
-SECURITY_BLOCK_HOURS = 24          # Duración bloqueo IP (horas)
-SECURITY_WARNING_WINDOW = 60       # Ventana de gracia para contar warnings (minutos)
+SECURITY_MAX_WARNINGS = 5  # Intentos no autorizados antes de bloquear
+SECURITY_BLOCK_HOURS = 24  # Duración bloqueo IP (horas)
+SECURITY_WARNING_WINDOW = 60  # Ventana de gracia para contar warnings (minutos)
 
 ROOT_URLCONF = "config.urls"
 

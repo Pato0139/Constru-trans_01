@@ -1,7 +1,5 @@
-from datetime import date, timedelta
-
 from django.test import TestCase
-from apps.catalogo.models import MaterialConstruccion, Stock, UnidadMedida
+
 from apps.logistica.models import ConductorVehiculo, Vehiculo
 from apps.usuarios.models import EPS, Conductor, Usuario
 
@@ -17,7 +15,7 @@ class UsuarioModelTests(TestCase):
             apellidos="User",
             documento="12345678",
             tipo_documento="CC",
-            rol="cliente"
+            rol="cliente",
         )
         self.assertEqual(usuario.username, "testuser")
         self.assertEqual(usuario.email, "test@example.com")
@@ -33,7 +31,7 @@ class UsuarioModelTests(TestCase):
             apellidos="Perez",
             documento="12345678",
             tipo_documento="CC",
-            rol="cliente"
+            rol="cliente",
         )
         self.assertEqual(usuario.iniciales, "JC")
 
@@ -41,13 +39,13 @@ class UsuarioModelTests(TestCase):
 class ConductorModelTests(TestCase):
     def test_crear_conductor(self):
         """Prueba crear un conductor con su perfil"""
-        eps = EPS.objects.create(
+        EPS.objects.create(
             codigo_eps="EPS001",
             numero_seguro="123456",
             ciudad="Tunja",
             direccion="Calle 1",
             telefono="123456",
-            correo="eps@test.com"
+            correo="eps@test.com",
         )
         usuario = Usuario.objects.create_user(
             username="conductor1",
@@ -57,7 +55,7 @@ class ConductorModelTests(TestCase):
             apellidos="Test",
             documento="987654",
             tipo_documento="CC",
-            rol="conductor"
+            rol="conductor",
         )
         conductor = usuario.perfil_conductor
         self.assertEqual(conductor.usuario, usuario)
@@ -72,7 +70,7 @@ class ConductorModelTests(TestCase):
             apellidos="Prueba",
             documento="123456789",
             tipo_documento="CC",
-            rol="conductor"
+            rol="conductor",
         )
 
         Conductor.objects.filter(usuario=usuario).delete()
@@ -91,7 +89,7 @@ class ConductorModelTests(TestCase):
             apellidos="Eliminado",
             documento="987654321",
             tipo_documento="CC",
-            rol="conductor"
+            rol="conductor",
         )
         usuario.delete()
 
@@ -108,7 +106,7 @@ class VehiculoModelTests(TestCase):
             modelo="Hiace",
             tipo_vehiculo="Bolqueta",
             capacidad_carga=10.00,
-            estado="disponible"
+            estado="disponible",
         )
         self.assertEqual(vehiculo.placa, "ABC123")
         self.assertEqual(vehiculo.id, vehiculo.id_vehiculo)
@@ -125,7 +123,7 @@ class ConductorVehiculoModelTests(TestCase):
             apellidos="Dos",
             documento="111222333",
             tipo_documento="CC",
-            rol="conductor"
+            rol="conductor",
         )
         conductor, created = Conductor.ensure_for_user(usuario)
         self.assertFalse(created)
@@ -135,12 +133,9 @@ class ConductorVehiculoModelTests(TestCase):
             modelo="D21",
             tipo_vehiculo="Camion",
             capacidad_carga=8.00,
-            estado="disponible"
+            estado="disponible",
         )
-        asignacion = ConductorVehiculo.objects.create(
-            conductor=conductor,
-            vehiculo=vehiculo
-        )
+        asignacion = ConductorVehiculo.objects.create(conductor=conductor, vehiculo=vehiculo)
         self.assertEqual(asignacion.conductor, conductor)
         self.assertEqual(asignacion.vehiculo, vehiculo)
         self.assertIsNone(asignacion.fecha_fin)

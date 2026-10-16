@@ -1,9 +1,8 @@
 from django.conf import settings
 from django.core.cache import cache
 
-from config.db_preference import PREF_AUTO, debe_usar_bd_remota
-from config.utils import conexion_remota_disponible
 from apps.usuarios.models import Notificacion
+from config.utils import conexion_remota_disponible
 
 
 def notificaciones_context(request):
@@ -57,9 +56,9 @@ def notificaciones_context(request):
 def modo_context(request):
     """Estado de BD local/remota y preferencia de sesión para la UI."""
     from django.core.cache import cache
-    
+
     remota_configurada = "remota" in settings.DATABASES
-    
+
     # Get remota_disponible from cache to avoid repeated expensive calls
     cache_key = "core:conexion_remota_disponible"
     remota_disponible = cache.get(cache_key)
@@ -67,13 +66,14 @@ def modo_context(request):
         remota_disponible = conexion_remota_disponible()
     elif not remota_configurada:
         remota_disponible = False
-    
+
     try:
         from config.db_preference import debe_usar_bd_remota
+
         usando_remota = debe_usar_bd_remota() if remota_disponible else False
     except (ImportError, Exception):
         usando_remota = False
-    
+
     preferencia = request.session.get("bd_preferida", "auto")
 
     if usando_remota:

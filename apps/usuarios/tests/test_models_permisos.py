@@ -28,9 +28,7 @@ class PermisosLicenciaTests(SimpleTestCase):
             patch(
                 "apps.usuarios.models_permisos.PermisoUsuario.objects.filter"
             ) as direct_permissions,
-            patch(
-                "apps.usuarios.models_permisos.UsuarioRolNegocio.objects.filter"
-            ) as user_roles,
+            patch("apps.usuarios.models_permisos.UsuarioRolNegocio.objects.filter") as user_roles,
             patch(
                 "apps.licensing.models.UsuarioLicencia.objects.filter",
             ) as user_licenses,

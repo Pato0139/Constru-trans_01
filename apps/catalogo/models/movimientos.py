@@ -21,7 +21,9 @@ class MovimientoInventario(models.Model):
     tipo_movimiento = models.CharField(max_length=10, choices=TIPOS)
     cantidad = models.PositiveIntegerField()
     fecha_movimiento = models.DateTimeField(default=now)
-    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="movimientos")
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="movimientos"
+    )
 
     compra = models.ForeignKey(
         "compras.Compra",

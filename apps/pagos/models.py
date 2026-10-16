@@ -75,7 +75,9 @@ class Pago(TransicionMixin, models.Model):
         db_column="comprobante",
         validators=[ArchivoValidator(("png", "jpg", "jpeg"), max_mb=5)],
     )
-    estado = models.CharField(max_length=20, choices=ESTADOS, default=PENDIENTE, db_column="estado_pago")
+    estado = models.CharField(
+        max_length=20, choices=ESTADOS, default=PENDIENTE, db_column="estado_pago"
+    )
     fecha_registro = models.DateTimeField(auto_now_add=True, db_column="fecha_creacion")
     fecha_revision = models.DateTimeField(null=True, blank=True, db_column="fecha_actualizacion")
     revisado_por = models.ForeignKey(
@@ -262,9 +264,7 @@ class PagoFactura(TransicionMixin, models.Model):
         APROBADO = "aprobado", "Aprobado"
         RECHAZADO = "rechazado", "Rechazado"
 
-    factura = models.ForeignKey(
-        Factura, on_delete=models.CASCADE, related_name="pagos_factura"
-    )
+    factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name="pagos_factura")
     monto = models.DecimalField(
         max_digits=12, decimal_places=2, validators=[monto_positivo]
     )

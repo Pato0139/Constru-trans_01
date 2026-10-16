@@ -31,6 +31,4 @@ class CoreConfig(AppConfig):
                 import logging
 
                 logger = logging.getLogger(__name__)
-                logger.debug(
-                    "No se pudo fijar statement_timeout en remota; continuando sin él."
-                )
+                logger.debug("No se pudo fijar statement_timeout en remota; continuando sin él.")

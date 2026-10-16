@@ -43,13 +43,10 @@ class EnrutadorInventario:
         if db == "default":
             return True
         if db == "local":
-            return (
-                app_label == "compras"
-                and hints.get("schema_compat") in {
-                    "compra_tax_fields",
-                    "detalle_compra_subtotal",
-                }
-            )
+            return app_label == "compras" and hints.get("schema_compat") in {
+                "compra_tax_fields",
+                "detalle_compra_subtotal",
+            }
         if db == "remota":
             return True
         return False

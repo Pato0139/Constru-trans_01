@@ -9,7 +9,6 @@ class DetallePagoAdmin(admin.ModelAdmin):
     search_fields = ("concepto", "pago__pedido__codigo_pedido")
 
 
-
 class PagoFacturaInline(admin.TabularInline):
     model = PagoFactura
     extra = 0

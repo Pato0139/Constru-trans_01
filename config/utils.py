@@ -30,6 +30,7 @@ def _host_port_from_database_url():
     url = os.getenv("DATABASE_URL", "") or ""
     try:
         from urllib.parse import urlparse
+
         parsed = urlparse(url)
         host = parsed.hostname
         port = parsed.port or 5432
@@ -109,7 +110,9 @@ def clear_user_cache(user_id):
         try:
             cache.delete_many(list(keys))
         except OSError:
-            logger.warning("No se pudo borrar cache (FileBasedCache) para usuario %s", user_id, exc_info=True)
+            logger.warning(
+                "No se pudo borrar cache (FileBasedCache) para usuario %s", user_id, exc_info=True
+            )
         cache.delete(registry_key)
 
 
@@ -148,3 +151,11 @@ def registrar_actividad(request, accion, modulo, elemento_id=None, descripcion="
             Historial.objects.create(**datos)
         except Exception:
             pass  # Auditoría opcional: no bloquear la operación del usuario
+            # Último recurso: la auditoría nunca debe tumbar la operación
+            # del usuario (un toggle, un login, etc.).
+            logger.error(
+                "No se pudo registrar la actividad en el historial: %s/%s",
+                accion,
+                modulo,
+                exc_info=True,
+            )

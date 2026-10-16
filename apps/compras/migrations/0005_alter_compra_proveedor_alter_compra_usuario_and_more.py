@@ -6,32 +6,50 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compras', '0004_proveedormaterial_precio_actual'),
-        ('usuarios', '0007_rol_usuariorol_vehiculo_catalogo_and_more'),
+        ("compras", "0004_proveedormaterial_precio_actual"),
+        ("usuarios", "0007_rol_usuariorol_vehiculo_catalogo_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='compra',
-            name='proveedor',
-            field=models.ForeignKey(db_column='codigo_proveedor', on_delete=django.db.models.deletion.PROTECT, to='usuarios.proveedor'),
+            model_name="compra",
+            name="proveedor",
+            field=models.ForeignKey(
+                db_column="codigo_proveedor",
+                on_delete=django.db.models.deletion.PROTECT,
+                to="usuarios.proveedor",
+            ),
         ),
         migrations.AlterField(
-            model_name='compra',
-            name='usuario',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='compras', to=settings.AUTH_USER_MODEL),
+            model_name="compra",
+            name="usuario",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="compras",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='detallecompra',
-            name='compra',
-            field=models.ForeignKey(db_column='id_compra', on_delete=django.db.models.deletion.CASCADE, related_name='detalles', to='compras.compra'),
+            model_name="detallecompra",
+            name="compra",
+            field=models.ForeignKey(
+                db_column="id_compra",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="detalles",
+                to="compras.compra",
+            ),
         ),
         migrations.AlterField(
-            model_name='detallecompra',
-            name='material',
-            field=models.ForeignKey(db_column='cod_material', on_delete=django.db.models.deletion.PROTECT, to='usuarios.materialconstruccion'),
+            model_name="detallecompra",
+            name="material",
+            field=models.ForeignKey(
+                db_column="cod_material",
+                on_delete=django.db.models.deletion.PROTECT,
+                to="usuarios.materialconstruccion",
+            ),
         ),
     ]

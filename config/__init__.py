@@ -10,9 +10,13 @@ try:
 
     _orig_log_actions = LogEntryManager.log_actions
 
-    def _safe_log_actions(self, user_id, queryset, action_flag, change_message="", *, single_object=False):
+    def _safe_log_actions(
+        self, user_id, queryset, action_flag, change_message="", *, single_object=False
+    ):
         try:
-            return _orig_log_actions(self, user_id, queryset, action_flag, change_message, single_object=single_object)
+            return _orig_log_actions(
+                self, user_id, queryset, action_flag, change_message, single_object=single_object
+            )
         except IntegrityError:
             # Fallback: intentar insertar los log entries individualmente en la BD 'default'
             try:
@@ -38,6 +42,7 @@ try:
                 logger = logging.getLogger(__name__)
                 logger.exception("Fallo al crear LogEntry en fallback; se omite el log")
                 return None
+
     LogEntryManager.log_actions = _safe_log_actions
 except Exception:
     # No detener el arranque si falla el parche

@@ -3,10 +3,10 @@ from django.db.models import Count, Q, Case, When, Value, CharField
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from config.utils import registrar_actividad
 from apps.catalogo.forms import CatalogoForm, MarcaForm, UnidadMedidaForm
 from apps.catalogo.models import Catalogo, Marca, UnidadMedida
 from apps.usuarios.views import admin_required
+from config.utils import registrar_actividad
 
 
 @admin_required
@@ -44,8 +44,20 @@ def tipos_material_lista(request):
 
     filter_fields = [
         {"type": "text", "name": "codigo", "placeholder": "Código", "value": codigo, "size": "3"},
-        {"type": "text", "name": "nombre", "placeholder": "Nombre del material", "value": nombre, "size": "3"},
-        {"type": "text", "name": "materiales_asociados", "placeholder": "Materiales asociados", "value": materiales_asociados, "size": "3"},
+        {
+            "type": "text",
+            "name": "nombre",
+            "placeholder": "Nombre del material",
+            "value": nombre,
+            "size": "3",
+        },
+        {
+            "type": "text",
+            "name": "materiales_asociados",
+            "placeholder": "Materiales asociados",
+            "value": materiales_asociados,
+            "size": "3",
+        },
     ]
 
     context = {
@@ -69,7 +81,10 @@ def crear_tipo_material(request):
             try:
                 tipo = form.save()
                 registrar_actividad(
-                    request, "crear", "catalogo", tipo.pk,
+                    request,
+                    "crear",
+                    "catalogo",
+                    tipo.pk,
                     f"Tipo de material creado: {tipo.nombre_empresa}",
                 )
                 messages.success(request, "Tipo de material creado correctamente.")
@@ -91,7 +106,10 @@ def editar_tipo_material(request, codigo):
         if form.is_valid():
             form.save()
             registrar_actividad(
-                request, "editar", "catalogo", tipo.pk,
+                request,
+                "editar",
+                "catalogo",
+                tipo.pk,
                 f"Tipo de material editado: {tipo.nombre_empresa}",
             )
             messages.success(request, "Tipo de material actualizado correctamente.")
@@ -140,7 +158,7 @@ def eliminar_tipo_material(request, codigo):
 @admin_required
 def unidades_medida_lista(request):
     query = request.GET.get("q")
-    
+
     unidades = UnidadMedida.objects.all()
 
     if query:
@@ -151,7 +169,7 @@ def unidades_medida_lista(request):
         )
 
     unidades = unidades.order_by("orden", "nombre")
-    
+
     unidades_lista = []
     for unidad in unidades:
         unidad.num_materiales = unidad.materiales.count()
@@ -169,7 +187,10 @@ def crear_unidad_medida(request):
             try:
                 unidad = form.save()
                 registrar_actividad(
-                    request, "crear", "unidad_medida", unidad.pk,
+                    request,
+                    "crear",
+                    "unidad_medida",
+                    unidad.pk,
                     f"Unidad de medida creada: {unidad.nombre}",
                 )
                 messages.success(request, "Unidad de medida creada correctamente.")
@@ -190,7 +211,10 @@ def editar_unidad_medida(request, id):
         if form.is_valid():
             unidad = form.save()
             registrar_actividad(
-                request, "editar", "unidad_medida", unidad.pk,
+                request,
+                "editar",
+                "unidad_medida",
+                unidad.pk,
                 f"Unidad de medida editada: {unidad.nombre}",
             )
             messages.success(request, "Unidad de medida actualizada correctamente.")
@@ -211,7 +235,9 @@ def cambiar_estado_unidad_medida(request, id):
     unidad.activa = not unidad.activa
     unidad.save(update_fields=["activa"])
     estado = "habilitada" if unidad.activa else "inhabilitada"
-    registrar_actividad(request, "actualizar", "unidad_medida", unidad.pk, f"Unidad {estado}: {unidad.nombre}")
+    registrar_actividad(
+        request, "actualizar", "unidad_medida", unidad.pk, f"Unidad {estado}: {unidad.nombre}"
+    )
     messages.success(request, f"Unidad de medida '{unidad.nombre}' {estado} correctamente.")
     return redirect("catalogo:unidades_medida_lista")
 
@@ -231,7 +257,8 @@ def eliminar_unidad_medida(request, id):
     nombre = unidad.nombre
     unidad.delete()
     registrar_actividad(
-        request, "eliminar", "unidad_medida", id, f"Unidad de medida eliminada: {nombre}")
+        request, "eliminar", "unidad_medida", id, f"Unidad de medida eliminada: {nombre}"
+    )
     messages.success(request, f"Unidad de medida '{nombre}' eliminada correctamente.")
     return redirect("catalogo:unidades_medida_lista")
 
@@ -239,6 +266,7 @@ def eliminar_unidad_medida(request, id):
 # ============================================================
 # MARCAS
 # ============================================================
+
 
 @admin_required
 def marcas_lista(request):
@@ -259,7 +287,13 @@ def marcas_lista(request):
     marcas = marcas.order_by("nombre")
 
     filter_fields = [
-        {"type": "text", "name": "q", "placeholder": "Buscar marca...", "value": query, "size": "4"},
+        {
+            "type": "text",
+            "name": "q",
+            "placeholder": "Buscar marca...",
+            "value": query,
+            "size": "4",
+        },
     ]
 
     context = {
@@ -279,7 +313,10 @@ def crear_marca(request):
             try:
                 marca = form.save()
                 registrar_actividad(
-                    request, "crear", "marca", marca.pk,
+                    request,
+                    "crear",
+                    "marca",
+                    marca.pk,
                     f"Marca creada: {marca.nombre}",
                 )
                 messages.success(request, "Marca creada correctamente.")
@@ -300,7 +337,10 @@ def editar_marca(request, id):
         if form.is_valid():
             form.save()
             registrar_actividad(
-                request, "editar", "marca", marca.pk,
+                request,
+                "editar",
+                "marca",
+                marca.pk,
                 f"Marca editada: {marca.nombre}",
             )
             messages.success(request, "Marca actualizada correctamente.")
@@ -344,8 +384,6 @@ def eliminar_marca(request, id):
 
     nombre = marca.nombre
     marca.delete()
-    registrar_actividad(
-        request, "eliminar", "marca", id, f"Marca eliminada: {nombre}"
-    )
+    registrar_actividad(request, "eliminar", "marca", id, f"Marca eliminada: {nombre}")
     messages.success(request, f"Marca '{nombre}' eliminada correctamente.")
     return redirect("catalogo:marcas_lista")

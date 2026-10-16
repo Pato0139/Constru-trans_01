@@ -5,12 +5,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from config.utils import registrar_actividad
 from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
 from config.db_preference import debe_usar_bd_remota
@@ -20,6 +19,15 @@ from config.security import (_respuesta_no_autorizada, obtener_ip,
 from apps.logistica.models import Entrega, Novedad
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
+from config.db_preference import debe_usar_bd_remota
+from config.db_utils import select_for_update_if_supported
+from config.security import (
+    _respuesta_no_autorizada,
+    obtener_ip,
+    registrar_evento,
+    registrar_warning,
+)
+from config.utils import registrar_actividad
 
 from .forms import AgregarMaterialForm, CambioEstadoPedidoForm, FiltroPedidosForm
 from .models import (DetallePedido, DetalleSolicitudPedido, Pedido,
@@ -55,10 +63,8 @@ def eliminar_detalle(request, id):
 
     with transaction.atomic():
         with transaction.atomic(using=db_alias):
-            stock_obj = (
-                select_for_update_if_supported(Stock.objects.using(db_alias), db_alias).get(
-                    material=detalle.material
-                )
+            stock_obj = select_for_update_if_supported(Stock.objects.using(db_alias), db_alias).get(
+                material=detalle.material
             )
             stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
             stock_obj.save(using=db_alias)
@@ -244,7 +250,9 @@ def lista_entregas_admin(request):
 def ver_pedido_admin(request, id):
     orden = get_object_or_404(Pedido, codigo_pedido=id)
     usuario_actual = request.user
-    is_super = getattr(usuario_actual, "is_superuser", False) or getattr(usuario_actual, "es_superadmin", False)
+    is_super = getattr(usuario_actual, "is_superuser", False) or getattr(
+        usuario_actual, "es_superadmin", False
+    )
     es_admin = is_super or usuario_actual.rol == "admin"
 
     cliente_dueno = orden.usuario_id == usuario_actual.pk or (
@@ -253,9 +261,7 @@ def ver_pedido_admin(request, id):
         and orden.cliente.usuario_id == usuario_actual.pk
     )
     perfil_conductor = (
-        usuario_actual.conductor_profile
-        if usuario_actual.rol == "conductor"
-        else None
+        usuario_actual.conductor_profile if usuario_actual.rol == "conductor" else None
     )
     conductor_asignado = bool(
         orden.conductor_usuario_legacy_id == usuario_actual.pk
@@ -636,7 +642,6 @@ def eliminar_orden(request, id):
 
     try:
         with transaction.atomic(using=db_alias):
-
             if orden.estado not in (Pedido.ENTREGADO, Pedido.CANCELADO):
                 revertir_stock_pedido(orden, request.user, "Eliminación", using=db_alias)
             liberar_vehiculo_pedido(orden)
@@ -650,7 +655,10 @@ def eliminar_orden(request, id):
         return redirect("pedidos:lista_pedidos_admin")
 
     registrar_actividad(
-        request, "eliminar", "pedidos", order_id,
+        request,
+        "eliminar",
+        "pedidos",
+        order_id,
         f"Pedido #{order_id} eliminado definitivamente por admin",
     )
     orden.delete()
@@ -697,6 +705,9 @@ def _crear_solicitud_pedido(usuario, items, descuento):
 
 
 @role_required(["admin", "cliente"])
+
+@login_required
+@transaction.atomic
 def crear_pedido(request):
     materiales = MaterialConstruccion.objects.all()
 
@@ -743,6 +754,30 @@ def crear_pedido(request):
                 raise ValueError("Solo un administrador puede aplicar un descuento.")
 
             pedido = _crear_solicitud_pedido(request.user, items, descuento)
+            pedido = SolicitudPedido.objects.create(
+                cliente=request.user, descuento=descuento, estado="pendiente"
+            )
+
+            for m_id, cant in zip(materiales_ids, cantidades, strict=False):
+                cant = int(cant)
+                material = get_object_or_404(MaterialConstruccion, pk=m_id)
+                stock_obj = select_for_update_if_supported(Stock.objects, "default").get(
+                    material=material
+                )
+
+                if stock_obj.cantidad_actual < cant:
+                    raise ValueError(
+                        f"Stock insuficiente para {material.nombre}. Disponible: {stock_obj.cantidad_actual}"
+                    )
+
+                stock_obj.cantidad_actual -= cant
+                stock_obj.save()
+
+                DetalleSolicitudPedido.objects.create(
+                    pedido=pedido, material=material, cantidad=cant
+                )
+
+            messages.success(request, f"Solicitud #{pedido.id} creada exitosamente.")
             return redirect("pedidos:lista_solicitudes")
 
         except (InvalidOperation, ValueError) as exc:
@@ -797,7 +832,9 @@ def cancelar_pedido(request, pk):
     pedido = get_object_or_404(SolicitudPedido.objects.select_for_update(), pk=pk)
     if pedido.puede_transicionar("cancelado") and pedido.estado != "cancelado":
         for detalle in pedido.detalles.all():
-            stock_obj = select_for_update_if_supported(Stock.objects, "default").get(material=detalle.material)
+            stock_obj = select_for_update_if_supported(Stock.objects, "default").get(
+                material=detalle.material
+            )
             stock_obj.cantidad_actual += detalle.cantidad
             stock_obj.save()
 
@@ -808,5 +845,6 @@ def cancelar_pedido(request, pk):
         messages.warning(request, "Esta solicitud no puede ser cancelada.")
 
     return redirect("pedidos:detalle_solicitud", pk=pk)
+
 
 from apps.pedidos.views_pagos import *  # noqa: F401,F403

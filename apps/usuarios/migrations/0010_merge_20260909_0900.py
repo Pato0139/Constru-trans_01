@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('usuarios', '0008_catalogo_required_and_names_consolidation'),
-        ('usuarios', '0009_permiso_rolproxy_alter_materialconstruccion_options_and_more'),
+        ("usuarios", "0008_catalogo_required_and_names_consolidation"),
+        ("usuarios", "0009_permiso_rolproxy_alter_materialconstruccion_options_and_more"),
     ]
 
-    operations = [
-    ]
+    operations = []

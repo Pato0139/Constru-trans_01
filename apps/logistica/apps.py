@@ -8,4 +8,4 @@ class LogisticaConfig(AppConfig):
     verbose_name = "Logística"
 
     def ready(self):
-        import apps.logistica.signals
+        pass

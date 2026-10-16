@@ -1,7 +1,6 @@
 from django.contrib import admin
 
-from .models import (DetallePedido, DetalleSolicitudPedido, Pedido,
-                     SolicitudPedido)
+from .models import DetallePedido, DetalleSolicitudPedido, Pedido, SolicitudPedido
 
 
 class DetallePedidoInline(admin.TabularInline):
@@ -51,4 +50,3 @@ class DetalleSolicitudPedidoAdmin(admin.ModelAdmin):
     list_display = ("pedido", "material", "cantidad", "precio_unitario", "subtotal")
     search_fields = ("material__nombre",)
     raw_id_fields = ("pedido",)
-

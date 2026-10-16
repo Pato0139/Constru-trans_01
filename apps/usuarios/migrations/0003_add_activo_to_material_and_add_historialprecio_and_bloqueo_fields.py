@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("usuarios", "0002_alter_vehiculo_estado"),
     ]
@@ -14,35 +13,71 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="materialconstruccion",
             name="activo",
-            field=models.BooleanField(default=True, help_text="Indica si el material está disponible para uso"),
+            field=models.BooleanField(
+                default=True, help_text="Indica si el material está disponible para uso"
+            ),
         ),
         migrations.AddField(
             model_name="usuario",
             name="intentos_fallidos",
-            field=models.IntegerField(default=0, help_text="Número de intentos fallidos de inicio de sesión"),
+            field=models.IntegerField(
+                default=0, help_text="Número de intentos fallidos de inicio de sesión"
+            ),
         ),
         migrations.AddField(
             model_name="usuario",
             name="bloqueado_hasta",
-            field=models.DateTimeField(blank=True, null=True, help_text="Fecha y hora hasta la que está bloqueado el usuario"),
+            field=models.DateTimeField(
+                blank=True,
+                null=True,
+                help_text="Fecha y hora hasta la que está bloqueado el usuario",
+            ),
         ),
         migrations.AddField(
             model_name="usuario",
             name="nivel_bloqueo",
-            field=models.IntegerField(default=0, help_text="0: sin bloqueo, 1: 5 minutos, 2: 24 horas"),
+            field=models.IntegerField(
+                default=0, help_text="0: sin bloqueo, 1: 5 minutos, 2: 24 horas"
+            ),
         ),
         migrations.CreateModel(
             name="HistorialPrecioMaterial",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
                 ("precio_anterior", models.DecimalField(max_digits=12, decimal_places=2)),
                 ("precio_nuevo", models.DecimalField(max_digits=12, decimal_places=2)),
                 ("fecha_cambio", models.DateTimeField(auto_now_add=True)),
-                ("observaciones", models.TextField(blank=True, help_text="Detalles o razones del cambio de precio")),
+                (
+                    "observaciones",
+                    models.TextField(
+                        blank=True, help_text="Detalles o razones del cambio de precio"
+                    ),
+                ),
                 ("mes", models.IntegerField(editable=False)),
                 ("año", models.IntegerField(editable=False)),
-                ("material", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="historial_precios", to="usuarios.materialconstruccion")),
-                ("usuario", models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="cambios_precios", to="usuarios.usuario")),
+                (
+                    "material",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="historial_precios",
+                        to="usuarios.materialconstruccion",
+                    ),
+                ),
+                (
+                    "usuario",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="cambios_precios",
+                        to="usuarios.usuario",
+                    ),
+                ),
             ],
             options={
                 "db_table": "historial_precio_material",

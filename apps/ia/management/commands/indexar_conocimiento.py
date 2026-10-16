@@ -13,7 +13,9 @@ class Command(BaseCommand):
 
         documentos = []
         try:
-            for material in MaterialConstruccion.objects.filter(activo=True).select_related("unidad_medida"):
+            for material in MaterialConstruccion.objects.filter(activo=True).select_related(
+                "unidad_medida"
+            ):
                 documentos.append(
                     {
                         "id": f"material-{material.cod_material}",
@@ -26,11 +28,11 @@ class Command(BaseCommand):
                     }
                 )
 
-            for pedido in Pedido.objects.select_related("cliente").prefetch_related("detalles__material")[:200]:
+            for pedido in Pedido.objects.select_related("cliente").prefetch_related(
+                "detalles__material"
+            )[:200]:
                 cliente_texto = (
-                    f"cliente #{pedido.cliente_id}"
-                    if pedido.cliente_id
-                    else "sin cliente"
+                    f"cliente #{pedido.cliente_id}" if pedido.cliente_id else "sin cliente"
                 )
                 materiales_validos = []
                 detalles_huerfanos = 0

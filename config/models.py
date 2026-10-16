@@ -4,7 +4,6 @@ from django.utils import timezone
 
 
 class BloqueoIP(models.Model):
-
     TIPOS_BLOQUEO = (
         ("unauthorized_access", "Acceso no autorizado repetido"),
         ("brute_force", "Fuerza bruta (intentos login)"),
@@ -148,7 +147,7 @@ class Consecutivo(models.Model):
 
 # Re-exports de modelos canónicos para mantener compatibilidad hacia atrás
 from apps.auditoria.models import Historial
-from apps.reportes.models import Reporte, HistorialReporte
+from apps.reportes.models import HistorialReporte, Reporte
 
 __all__ = [
     "BloqueoIP",

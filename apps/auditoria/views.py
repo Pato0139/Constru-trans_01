@@ -3,7 +3,6 @@ from django.http import JsonResponse
 from django.shortcuts import render
 
 from apps.usuarios.views import admin_required
-
 from config.models import Historial
 
 
@@ -36,11 +35,11 @@ def lista_historial(request):
         search_value = request.GET.get("search[value]")
         if search_value:
             registros = registros.filter(
-                Q(descripcion__icontains=search_value) |
-                Q(modulo__icontains=search_value) |
-                Q(usuario__username__icontains=search_value) |
-                Q(elemento_id__icontains=search_value) |
-                Q(ip_address__icontains=search_value)
+                Q(descripcion__icontains=search_value)
+                | Q(modulo__icontains=search_value)
+                | Q(usuario__username__icontains=search_value)
+                | Q(elemento_id__icontains=search_value)
+                | Q(ip_address__icontains=search_value)
             )
 
         records_total = Historial.objects.count()
@@ -66,45 +65,57 @@ def lista_historial(request):
 
         registros = registros.order_by(order_field)
 
-        registros_page = registros[start:start + length]
+        registros_page = registros[start : start + length]
 
         data = []
         for reg in registros_page:
             if reg.usuario:
-                usuario_html = f'<span class="badge bg-info text-dark">{reg.usuario.username}</span>'
+                usuario_html = (
+                    f'<span class="badge bg-info text-dark">{reg.usuario.username}</span>'
+                )
             else:
                 usuario_html = '<span class="badge" style="background-color: rgba(255,255,255,0.2); color: #ffffff;">Sistema/Anónimo</span>'
 
-            if reg.accion == 'crear':
-                accion_html = '<span class="text-success"><i class="bi bi-plus-circle me-1"></i>Crear</span>'
-            elif reg.accion == 'editar':
-                accion_html = '<span class="text-warning"><i class="bi bi-pencil me-1"></i>Editar</span>'
-            elif reg.accion == 'eliminar':
-                accion_html = '<span class="text-danger"><i class="bi bi-trash me-1"></i>Eliminar</span>'
-            elif reg.accion == 'login':
+            if reg.accion == "crear":
+                accion_html = (
+                    '<span class="text-success"><i class="bi bi-plus-circle me-1"></i>Crear</span>'
+                )
+            elif reg.accion == "editar":
+                accion_html = (
+                    '<span class="text-warning"><i class="bi bi-pencil me-1"></i>Editar</span>'
+                )
+            elif reg.accion == "eliminar":
+                accion_html = (
+                    '<span class="text-danger"><i class="bi bi-trash me-1"></i>Eliminar</span>'
+                )
+            elif reg.accion == "login":
                 accion_html = '<span class="text-info"><i class="bi bi-box-arrow-in-right me-1"></i>Login</span>'
-            elif reg.accion == 'logout':
+            elif reg.accion == "logout":
                 accion_html = '<span class="text-secondary"><i class="bi bi-box-arrow-right me-1"></i>Logout</span>'
             else:
                 accion_html = reg.get_accion_display()
 
-            data.append([
-                reg.id,
-                usuario_html,
-                accion_html,
-                reg.modulo.capitalize() if reg.modulo else "-",
-                reg.elemento_id or "-",
-                f'<small>{reg.descripcion}</small>',
-                reg.fecha_hora.strftime("%Y-%m-%d %H:%M") if reg.fecha_hora else "",
-                f'<small class="text-muted">{reg.ip_address or "-"}</small>'
-            ])
+            data.append(
+                [
+                    reg.id,
+                    usuario_html,
+                    accion_html,
+                    reg.modulo.capitalize() if reg.modulo else "-",
+                    reg.elemento_id or "-",
+                    f"<small>{reg.descripcion}</small>",
+                    reg.fecha_hora.strftime("%Y-%m-%d %H:%M") if reg.fecha_hora else "",
+                    f'<small class="text-muted">{reg.ip_address or "-"}</small>',
+                ]
+            )
 
-        return JsonResponse({
-            "draw": draw,
-            "recordsTotal": records_total,
-            "recordsFiltered": records_filtered,
-            "data": data
-        })
+        return JsonResponse(
+            {
+                "draw": draw,
+                "recordsTotal": records_total,
+                "recordsFiltered": records_filtered,
+                "data": data,
+            }
+        )
 
     usuario_q = request.GET.get("usuario", "").strip()
     accion_q = request.GET.get("accion", "").strip()

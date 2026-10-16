@@ -7,15 +7,12 @@ class UsuariosConfig(AppConfig):
     label = "usuarios"
 
     def ready(self):
-        import apps.usuarios.signals
 
         # Parche para asegurar que los LogEntry del admin se guarden
         # en la misma base de datos que el `request.user`, evitando
         # violaciones de FK cuando se usan múltiples DBs.
         try:
-            from django.contrib import admin
-            from django.contrib.admin.models import (ADDITION, CHANGE,
-                                                     DELETION, LogEntry)
+            from django.contrib.admin.models import ADDITION, CHANGE, DELETION, LogEntry
             from django.contrib.admin.options import ModelAdmin
             from django.contrib.contenttypes.models import ContentType
 
@@ -65,7 +62,6 @@ class UsuariosConfig(AppConfig):
 
             def log_deletions(self, request, queryset):
                 user_db = _get_user_db(request)
-                ct = ContentType
                 log_entries = []
                 for obj in queryset:
                     ct_id = ContentType.objects.get_for_model(obj, for_concrete_model=False).pk
@@ -86,6 +82,9 @@ class UsuariosConfig(AppConfig):
             ModelAdmin.log_addition = log_addition
             ModelAdmin.log_change = log_change
             ModelAdmin.log_deletions = log_deletions
+
+            # Importar señales
+            import apps.usuarios.signals  # noqa: F401
 
         except Exception:
             # No queremos que un fallo aquí impida levantar la app

@@ -50,9 +50,7 @@ def validar_comprobante_imagen(archivo):
         raise ValidationError("Solo se permiten archivos PNG o JPG.")
 
     if getattr(archivo, "size", 0) > TAMANO_MAXIMO_BYTES:
-        raise ValidationError(
-            "El archivo supera el limite de %s MB." % TAMANO_MAXIMO_MB
-        )
+        raise ValidationError("El archivo supera el limite de %s MB." % TAMANO_MAXIMO_MB)
 
     if tipo_real(archivo) is None:
         raise ValidationError(
