@@ -4,21 +4,18 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("compras", "0008_proveedor_alter_detallecompra_material_and_more"),
-        ("usuarios", "0014_delete_metodopago"),
+        ('compras', '0008_proveedor_alter_detallecompra_material_and_more'),
+        ('usuarios', '0014_delete_metodopago'),
     ]
 
     operations = [
         # vehiculo.catalogo apunta al Catalogo de usuarios; se quita antes de borrar
         # el modelo. La tabla vehiculo se vuelve a crear en logistica.0001.
         migrations.RemoveField(
-            model_name="materialconstruccion",
-            name="catalogo",
-        ),
-        migrations.RemoveField(
-            model_name="vehiculo",
-            name="catalogo",
+            model_name='vehiculo',
+            name='catalogo',
         ),
         # Las tablas catalogo, marca, material_construccion, unidad_medida, stock,
         # historial_precio_material y proveedor fueron adoptadas por sus apps actuales
@@ -77,62 +74,21 @@ class Migration(migrations.Migration):
         # Vehiculo y ConductorVehiculo sí se eliminan de la base de datos: la app
         # 'logistica' los vuelve a crear en su migración inicial, que depende de esta.
         migrations.AlterUniqueTogether(
-            name="conductorvehiculo",
+            name='conductorvehiculo',
             unique_together=None,
         ),
         migrations.RemoveField(
-            model_name="conductorvehiculo",
-            name="conductor",
+            model_name='conductorvehiculo',
+            name='conductor',
         ),
         migrations.RemoveField(
-            model_name="conductorvehiculo",
-            name="vehiculo",
-        ),
-        migrations.RemoveField(
-            model_name="historialpreciomaterial",
-            name="material",
-        ),
-        migrations.RemoveField(
-            model_name="historialpreciomaterial",
-            name="usuario",
-        ),
-        migrations.RemoveField(
-            model_name="materialconstruccion",
-            name="marca",
-        ),
-        migrations.RemoveField(
-            model_name="materialconstruccion",
-            name="unidad_medida",
-        ),
-        migrations.RemoveField(
-            model_name="stock",
-            name="material",
+            model_name='conductorvehiculo',
+            name='vehiculo',
         ),
         migrations.DeleteModel(
-            name="Proveedor",
+            name='ConductorVehiculo',
         ),
         migrations.DeleteModel(
-            name="Catalogo",
-        ),
-        migrations.DeleteModel(
-            name="ConductorVehiculo",
-        ),
-        migrations.DeleteModel(
-            name="Vehiculo",
-        ),
-        migrations.DeleteModel(
-            name="HistorialPrecioMaterial",
-        ),
-        migrations.DeleteModel(
-            name="Marca",
-        ),
-        migrations.DeleteModel(
-            name="UnidadMedida",
-        ),
-        migrations.DeleteModel(
-            name="MaterialConstruccion",
-        ),
-        migrations.DeleteModel(
-            name="Stock",
+            name='Vehiculo',
         ),
     ]
