@@ -3,6 +3,14 @@
 /* Visibilidad */
 .u-hidden { display: none !important; }
 
+/* SVG filters container: oculto pero NO display:none para que filter:url() funcione */
+.svg-filters-hidden {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
 /* Layout */
 .ui-flex-center {
     display: flex !important;

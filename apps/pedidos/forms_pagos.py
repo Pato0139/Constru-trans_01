@@ -1,6 +1,7 @@
 from django import forms
 
 from apps.pedidos.models import Pago
+from apps.pedidos.validators import validar_comprobante_imagen
 
 
 class PagoRegistroForm(forms.ModelForm):
@@ -8,9 +9,18 @@ class PagoRegistroForm(forms.ModelForm):
         model = Pago
         fields = ["metodo", "comprobante"]
         widgets = {
-            "metodo": forms.Select(attrs={"class": "form-select"}),
-            "comprobante": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "metodo": forms.RadioSelect(attrs={"class": "form-check-input"}),
+            "comprobante": forms.ClearableFileInput(
+                attrs={"class": "form-control", "accept": "image/png,image/jpeg"}
+            ),
         }
+
+    def clean_comprobante(self):
+        comprobante = self.cleaned_data.get("comprobante")
+        if comprobante:
+            # No se confia en content_type: lo envia el cliente y se puede falsear.
+            validar_comprobante_imagen(comprobante)
+        return comprobante
 
     def clean(self):
         cleaned = super().clean()

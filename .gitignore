@@ -8,6 +8,7 @@
 .env.staging
 neon-repo/
 temp_neon_repo/
+Neon/
 
 # --- Bases de datos locales ---
 *.sqlite3
@@ -66,9 +67,8 @@ docker-compose.override.yml
 # --- Archivos locales sueltos ---
 test_db.py
 list_tables.py
-<<<<<<< HEAD
 integrar_ramas.bat
-=======
+
 
 cache/
 media/chroma_constru_trans/
@@ -78,4 +78,5 @@ _core_old/
 _fix_relaciones.py
 _reorganizar.py
 
->>>>>>> origin/GRUPO_7_ADSO/FIX
+# Archivos comprimidos y paquetes locales
+*.zip

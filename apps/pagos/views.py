@@ -9,9 +9,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from config.utils import registrar_actividad
-from config.security import role_required
+from config.security import (role_required, _respuesta_no_autorizada,
+                             obtener_ip, registrar_evento, registrar_warning)
 from apps.usuarios.views import admin_required
 
+from apps.pagos.models import Factura, PagoFactura
+from apps.pagos.pdf import render_factura_pdf
 from apps.pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
 from apps.pedidos.models import Pago, Pedido
 
@@ -84,7 +87,14 @@ def lista_pagos(request):
     return render(
         request,
         "pagos/lista.html",
-        {"pagos": pagos, "estado_actual": estado, "metodo_actual": metodo, "query_actual": query},
+        {
+            "pagos": pagos,
+            "estado_actual": estado,
+            "metodo_actual": metodo,
+            "query_actual": query,
+            "estados": Pago.ESTADOS,
+            "metodos": Pago.METODOS,
+        },
     )
 
 
@@ -157,18 +167,27 @@ def _puede_ver_pago(usuario, pago):
     return False
 
 
-@role_required(["admin", "cliente"])
-def detalle_pago(request, pk):
-    pago = get_object_or_404(
-        Pago.objects.select_related("pedido", "pedido__usuario", "pedido__cliente", "revisado_por"),
-        pk=pk,
-    )
+def _puede_ver_pago_por_id(request, pago_id):
+    pago = get_object_or_404(Pago, pk=pago_id)
     usuario = _usuario_actual(request)
     if not _puede_ver_pago(usuario, pago):
-        messages.error(request, "No tienes permiso para ver este pago.")
-        if getattr(usuario, "rol", "") == "cliente":
-            return redirect("clientes:mis_pedidos")
-        return redirect("pagos:lista_pagos")
+        ip = obtener_ip(request)
+        registrar_warning(ip)
+        registrar_evento(
+            request,
+            "role_violation",
+            gravedad="high",
+            detalles={"causa": "ver_pago_ajeno", "pago_id": pago.pk},
+        )
+        return None
+    return pago
+
+
+@role_required(["admin", "cliente"])
+def detalle_pago(request, pk):
+    pago = _puede_ver_pago_por_id(request, pk)
+    if pago is None:
+        return _respuesta_no_autorizada(request)
     return render(request, "pagos/detalle.html", {"pago": pago, "pedido": pago.pedido})
 
 

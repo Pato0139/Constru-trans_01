@@ -27,7 +27,6 @@ env = environ.Env(
     LICENSE_PUBLIC_KEY=(str, ""),
     LICENSE_HEARTBEAT_MINUTES=(int, 360),
     LICENSE_MAX_AGE_DAYS=(int, 30),
-    OPENWEATHER_API_KEY=(str, ""),
 )
 
 environ.Env.read_env(BASE_DIR / ".env")
@@ -321,6 +320,18 @@ CSRF_COOKIE_HTTPONLY = False
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_SAMESITE = "Lax"
 
+# Cabeceras de seguridad
+SECURE_BROWSER_X_FRAME_OPTIONS = "DENY"
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# CORS
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
 LOGIN_URL = "/usuarios/login/"
 LOGIN_REDIRECT_URL = "/usuarios/panel/"
 LOGOUT_REDIRECT_URL = "/usuarios/login/"
@@ -347,7 +358,6 @@ SERVER_EMAIL = env("SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
 EMAIL_TIMEOUT = env("EMAIL_TIMEOUT")
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 RESEND_FROM_EMAIL = env("RESEND_FROM_EMAIL", default="")
-OPENWEATHER_API_KEY = env("OPENWEATHER_API_KEY")
 
 # ============================================================
 # INTERNACIONALIZACIÓN

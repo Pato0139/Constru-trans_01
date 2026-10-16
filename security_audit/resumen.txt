@@ -1,0 +1,16 @@
+﻿Seguridad Django - Constru-trans
+Fecha: 2026-10-15 09:27
+Ruta del proyecto: C:\Users\edwar\OneDrive\Desktop\Constru-trans_01
+
+Categorias evaluadas:
+- Settings: Revisado
+- URL config: Revisado
+- Bloqueo IP: Configurado
+- Patrones Python: âŒ No ejecutado automaticamente
+
+Modo de uso:
+  1. Revisar manualmente los hallazgos mostrados
+  2. Corregir los problemas resaltados
+  3. Re-ejecutar el script para ver el estado final
+
+Este script NO ejecuta ni inyecta cÃ³digo. Solo lee archivos para anÃ¡lisis defensivo.
