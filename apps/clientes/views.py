@@ -763,51 +763,49 @@ def cancelar_pedido(request, id):
             return redirect("pedidos:lista_pedidos_admin")
         return redirect("clientes:mis_pedidos")
 
-        db_alias = _obtener_alias_db()
-        try:
-            with transaction.atomic(using=db_alias):
-                for detalle in pedido.detalles.all():
-                    try:
-                        stock_obj = (
-                            select_for_update_if_supported(
-                                Stock.objects.using(db_alias),
-                                db_alias,
-                            ).get(material=detalle.material)
-                        )
-                    except Stock.DoesNotExist:
-                        stock_obj = Stock.objects.using(db_alias).create(
-                            material=detalle.material, cantidad_actual=0
-                        )
-                    stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
-                    stock_obj.save(using=db_alias)
+    db_alias = _obtener_alias_db()
+    try:
+        with transaction.atomic(using=db_alias):
+            for detalle in pedido.detalles.using(db_alias).all():
+                try:
+                    stock_obj = select_for_update_if_supported(
+                        Stock.objects.using(db_alias),
+                        db_alias,
+                    ).get(material=detalle.material)
+                except Stock.DoesNotExist:
+                    stock_obj = Stock.objects.using(db_alias).create(
+                        material=detalle.material, cantidad_actual=0
+                    )
+                stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
+                stock_obj.save(using=db_alias)
 
-                pedido.estado = "cancelado"
-                pedido.save()
+            pedido.estado = "cancelado"
+            pedido.save(using=db_alias, update_fields=["estado"])
 
-                from config.utils import registrar_actividad
+            from config.utils import registrar_actividad
 
-                comentario = (
-                    f"Pedido #{pedido.codigo_pedido} cancelado por "
-                    f"{'admin' if es_admin else 'cliente'}"
-                )
-                registrar_actividad(
-                    request,
-                    "cancelar_pedido",
-                    "pedidos",
-                    pedido.codigo_pedido,
-                    comentario,
-                )
-
-            messages.warning(
-                request,
-                f"Pedido #{pedido.codigo_pedido} ha sido cancelado y el stock ha sido devuelto.",
+            comentario = (
+                f"Pedido #{pedido.codigo_pedido} cancelado por "
+                f"{'admin' if es_admin else 'cliente'}"
             )
-        except Exception as e:
-            messages.error(request, f"Error al cancelar el pedido: {e}")
+            registrar_actividad(
+                request,
+                "cancelar_pedido",
+                "pedidos",
+                pedido.codigo_pedido,
+                comentario,
+            )
 
-        if es_admin:
-            return redirect("pedidos:lista_pedidos_admin")
-        return redirect("clientes:mis_pedidos")
+        messages.warning(
+            request,
+            f"Pedido #{pedido.codigo_pedido} ha sido cancelado y el stock ha sido devuelto.",
+        )
+    except Exception as e:
+        messages.error(request, f"Error al cancelar el pedido: {e}")
+
+    if es_admin:
+        return redirect("pedidos:lista_pedidos_admin")
+    return redirect("clientes:mis_pedidos")
 
 
 # =====================================================================
