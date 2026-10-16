@@ -179,6 +179,7 @@ MIDDLEWARE = [
     "config.middleware.SecurityMiddleware",
     # Seguridad propia: validación a nivel de URL namespace / url_name ANTES de la vista
     "config.middleware.RoleNamespaceMiddleware",
+    "config.middleware.SessionVersionMiddleware",
     "config.middleware.DatabasePreferenceMiddleware",
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -317,6 +318,8 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = DATABASES["default"]["ENGINE"] != "django.db.backends.sqlite3"
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 CSRF_COOKIE_HTTPONLY = False
 CSRF_USE_SESSIONS = False

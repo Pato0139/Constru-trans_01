@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Case, When, Value, CharField
 from django.shortcuts import get_object_or_404, redirect, render
 
 from config.utils import registrar_actividad
@@ -15,7 +15,14 @@ def tipos_material_lista(request):
     materiales_asociados = request.GET.get("materiales_asociados", "").strip()
     query = request.GET.get("q", "").strip()
 
-    tipos = Catalogo.objects.annotate(num_materiales=Count("materiales"))
+    tipos = Catalogo.objects.annotate(
+        num_materiales=Count("materiales"),
+        boton_estado=Case(
+            When(activo=True, then=Value("btn-action--success")),
+            default=Value("btn-action--danger"),
+            output_field=CharField(),
+        ),
+    )
 
     if codigo:
         tipos = tipos.filter(codigo_catalogo__icontains=codigo)
@@ -93,6 +100,22 @@ def editar_tipo_material(request, codigo):
     context = {"form": form, "action": "editar", "tipo": tipo}
 
     return render(request, "catalogo/form_tipo.html", context)
+
+
+@admin_required
+def cambiar_estado_tipo(request, codigo):
+    if request.method != "POST":
+        messages.error(request, "La actualización del estado requiere una solicitud POST.")
+        return redirect("catalogo:tipos_material_lista")
+
+    tipo = get_object_or_404(Catalogo, pk=codigo)
+    tipo.activo = not tipo.activo
+    tipo.estado = "activo" if tipo.activo else "inactivo"
+    tipo.save(update_fields=["activo", "estado"])
+    estado = "habilitada" if tipo.activo else "inhabilitada"
+    registrar_actividad(request, "actualizar", "catalogo", tipo.pk, f"Categoría {estado}: {tipo.nombre_empresa}")
+    messages.success(request, f"Categoría {tipo.nombre_empresa} {estado} correctamente.")
+    return redirect("catalogo:tipos_material_lista")
 
 
 @admin_required
@@ -221,7 +244,14 @@ def eliminar_unidad_medida(request, id):
 def marcas_lista(request):
     query = request.GET.get("q", "").strip()
 
-    marcas = Marca.objects.annotate(num_materiales=Count("materiales"))
+    marcas = Marca.objects.annotate(
+        num_materiales=Count("materiales"),
+        boton_estado=Case(
+            When(activo=True, then=Value("btn-action--success")),
+            default=Value("btn-action--danger"),
+            output_field=CharField(),
+        ),
+    )
 
     if query:
         marcas = marcas.filter(nombre__icontains=query)
@@ -279,6 +309,28 @@ def editar_marca(request, id):
         form = MarcaForm(instance=marca)
     context = {"form": form, "action": "editar", "marca": marca}
     return render(request, "catalogo/form_marca.html", context)
+
+
+@admin_required
+def cambiar_estado_marca(request, id):
+    if request.method != "POST":
+        messages.error(request, "La actualización del estado requiere una solicitud POST.")
+        return redirect("catalogo:marcas_lista")
+
+    marca = get_object_or_404(Marca, pk=id)
+    marca.activo = not marca.activo
+    marca.estado = "activo" if marca.activo else "inactivo"
+    marca.save(update_fields=["activo", "estado"])
+    estado = "habilitada" if marca.activo else "inhabilitada"
+    registrar_actividad(
+        request,
+        "actualizar",
+        "marca",
+        marca.pk,
+        f"Marca {estado}: {marca.nombre}",
+    )
+    messages.success(request, f"Marca {estado} correctamente.")
+    return redirect("catalogo:marcas_lista")
 
 
 @admin_required

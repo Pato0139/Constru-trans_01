@@ -7,10 +7,15 @@ from apps.usuarios.models import Usuario
 
 numeric_and_space_validator = []
 
+# Estados posibles de un registro habilitable (productos y categorías)
+ESTADOS_PRODUCTO = [("activo", "Activo"), ("inactivo", "Inactivo")]
+
 
 class Catalogo(models.Model):
     codigo_catalogo = models.CharField(max_length=20, primary_key=True)
     nombre_empresa = models.CharField(max_length=150)
+    activo = models.BooleanField(default=True)
+    estado = models.CharField(max_length=10, choices=ESTADOS_PRODUCTO, default="activo")
 
     class Meta:
         db_table = "catalogo"
@@ -46,6 +51,12 @@ class UnidadMedida(models.Model):
 
 class Marca(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
+    activo = models.BooleanField(default=True)
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS_PRODUCTO,
+        default="activo",
+    )
 
     class Meta:
         db_table = "marca"
@@ -55,12 +66,6 @@ class Marca(models.Model):
 
     def __str__(self):
         return self.nombre
-
-
-ESTADOS_PRODUCTO = [
-    ("activo", "Activo"),
-    ("inactivo", "Inactivo"),
-]
 
 
 class MaterialConstruccion(models.Model):

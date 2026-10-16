@@ -7,13 +7,15 @@
 {% block content %}
 
 <div class="row justify-content-center">
-    <div class="col-lg-6">
+    <div class="col-lg-8">
         <div class="table-container p-4 p-md-5 border-0 shadow-lg">
-            <div class="text-center mb-5">
+
+            <!-- Encabezado: circulo dorado redondeado + titulo + subtitulo -->
+            <div class="text-center mb-4">
                 <div class="bg-accent rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow">
                     <i class="bi {% if action == 'crear' %}bi-tags{% else %}bi-pencil-square{% endif %} text-dark fs-2"></i>
                 </div>
-                <h3 class="fw-900 text-white mb-2">
+                <h3 class="fw-900 text-white mb-1">
                     {% if action == 'crear' %}Nueva Marca{% else %}Editar Marca{% endif %}
                 </h3>
                 <p class="text-muted small text-uppercase fw-700">
@@ -36,21 +38,22 @@
                 {% csrf_token %}
 
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted text-uppercase">Nombre de la Marca</label>
+                    <label class="form-label small fw-bold text-muted text-uppercase d-block">
+                        Nombre de la Marca
+                    </label>
                     <div class="input-group">
-                        <span class="input-group-text border-0">
-                            <i class="bi bi-tag"></i>
+                        <span class="input-group-text border-0 bg-transparent">
+                            <i class="bi bi-tag text-muted"></i>
                         </span>
                         {{ form.nombre }}
                     </div>
                 </div>
 
                 <div class="d-grid gap-3">
-                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
+                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase">
                         <i class="bi bi-check2-circle me-2"></i> {% if action == 'crear' %}Guardar Marca{% else %}Actualizar Marca{% endif %}
                     </button>
-                    <a href="{% url 'catalogo:marcas_lista' %}" class="btn btn-outline-light rounded-pill py-3 opacity-75 hover-opacity-100"
-                       aria-label="Volver" data-tooltip="Volver" title="Volver">
+                    <a href="{% url 'catalogo:marcas_lista' %}" class="btn btn-outline-light rounded-pill py-3 opacity-75 hover-opacity-100">
                         <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
                     </a>
                 </div>

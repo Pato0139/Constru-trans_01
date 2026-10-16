@@ -91,6 +91,7 @@ class Usuario(AbstractUser):
     intentos_fallidos = models.IntegerField(default=0, help_text="Número de intentos fallidos de inicio de sesión")
     bloqueado_hasta = models.DateTimeField(null=True, blank=True, help_text="Fecha y hora hasta la que está bloqueado el usuario")
     nivel_bloqueo = models.IntegerField(default=0, help_text="0: sin bloqueo, 1: 5 minutos, 2: 24 horas")
+    session_version = models.PositiveIntegerField(default=0, help_text="Versión de sesión para invalidar sesiones activas")
 
     class Meta:
         db_table = "usuario"
@@ -222,9 +223,11 @@ class Usuario(AbstractUser):
         if self.intentos_fallidos >= 3 and self.nivel_bloqueo < 1:
             self.nivel_bloqueo = 1
             self.bloqueado_hasta = timezone.now() + timezone.timedelta(minutes=5)
+            self.invalidar_sesiones()
         elif self.intentos_fallidos >= 6 and self.nivel_bloqueo < 2:
             self.nivel_bloqueo = 2
             self.bloqueado_hasta = timezone.now() + timezone.timedelta(days=1)
+            self.invalidar_sesiones()
         self.save()
 
     def reiniciar_intentos(self):
@@ -233,6 +236,11 @@ class Usuario(AbstractUser):
         self.bloqueado_hasta = None
         self.nivel_bloqueo = 0
         self.save()
+
+    def invalidar_sesiones(self):
+        """Incrementa la versión de sesión para invalidar todas las sesiones activas."""
+        self.session_version += 1
+        self.save(update_fields=["session_version"])
 
     def obtener_tiempo_restante_bloqueo(self):
         """Devuelve el tiempo restante de bloqueo en un formato legible."""
