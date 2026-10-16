@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import transaction
 from django.db.models import Prefetch, Q
@@ -206,19 +207,23 @@ def detalle_compra(request, id):
 @admin_required
 def cambiar_estado_compra(request, id):
     if request.method == "POST":
-        compra = get_object_or_404(Compra, id_compra=id)
         nuevo_estado = request.POST.get("estado")
-        if nuevo_estado in dict(Compra.ESTADOS):
-            compra.estado = nuevo_estado
-            compra.save(update_fields=["estado"])
-            registrar_actividad(
-                request,
-                "editar",
-                "compras",
-                compra.id_compra,
-                f"Estado de compra {compra.numero_orden} cambiado a {nuevo_estado}",
-            )
-            messages.success(request, f"Estado actualizado a {nuevo_estado}.")
+        with transaction.atomic():
+            compra = get_object_or_404(Compra.objects.select_for_update(), id_compra=id)
+            try:
+                compra.transicionar(nuevo_estado)
+                compra.save(update_fields=["estado"])
+                registrar_actividad(
+                    request,
+                    "editar",
+                    "compras",
+                    compra.id_compra,
+                    f"Estado de compra {compra.numero_orden} cambiado a {nuevo_estado}",
+                )
+                messages.success(request, f"Estado actualizado a {compra.get_estado_display()}.")
+            except ValidationError as err:
+                mensaje = "; ".join(err.messages) if hasattr(err, "messages") else str(err)
+                messages.error(request, f"No fue posible cambiar el estado: {mensaje}")
         return redirect("compras:detalle_compra", id=compra.id_compra)
     return redirect("compras:lista_compras")
 

@@ -14,6 +14,13 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import now
 
+from config.validators import (
+    documento_validator,
+    imagen_validator,
+    no_solo_espacios,
+    telefono_validator,
+)
+
 logger = logging.getLogger(__name__)
 
 def foto_perfil_upload_path(instance, filename):
@@ -27,10 +34,6 @@ def validar_fecha_no_pasada(value):
         value = value.date()
     if value and value < today:
         raise ValidationError("La fecha no puede ser en el pasado.")
-
-numeric_and_space_validator = RegexValidator(
-    regex=r"^[0-9\s]*$", message="Solo se admiten números y espacios.", code="invalid_numeric_space"
-)
 
 
 
@@ -66,10 +69,10 @@ class Usuario(AbstractUser):
         ("empleado", "Empleado"),
     ]
 
-    nombres = models.CharField(max_length=200)
-    apellidos = models.CharField(max_length=200)
-    telefono = models.CharField(max_length=20, blank=True)
-    documento = models.CharField(max_length=20, validators=[numeric_and_space_validator])
+    nombres = models.CharField(max_length=200, validators=[no_solo_espacios])
+    apellidos = models.CharField(max_length=200, validators=[no_solo_espacios])
+    telefono = models.CharField(max_length=20, blank=True, validators=[telefono_validator])
+    documento = models.CharField(max_length=20, validators=[documento_validator])
 
     rol = models.CharField(max_length=50, choices=ROLES)
 
@@ -80,7 +83,7 @@ class Usuario(AbstractUser):
         upload_to=foto_perfil_upload_path,
         null=True,
         blank=True,
-        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"])],
+        validators=[imagen_validator],
     )
     foto_posicion = models.CharField(max_length=50, default="", blank=True)
     sincronizado = models.BooleanField(default=False)
@@ -336,11 +339,11 @@ class UsuarioRol(models.Model):
 
 
 class EPS(models.Model):
-    codigo_eps = models.CharField(max_length=20, primary_key=True)
-    numero_seguro = models.CharField(max_length=50)
-    ciudad = models.CharField(max_length=100)
-    direccion = models.CharField(max_length=200)
-    telefono = models.CharField(max_length=20)
+    codigo_eps = models.CharField(max_length=20, primary_key=True, validators=[no_solo_espacios])
+    numero_seguro = models.CharField(max_length=50, validators=[no_solo_espacios])
+    ciudad = models.CharField(max_length=100, validators=[no_solo_espacios])
+    direccion = models.CharField(max_length=200, validators=[no_solo_espacios])
+    telefono = models.CharField(max_length=20, validators=[telefono_validator])
     correo = models.EmailField()
 
     class Meta:
@@ -355,10 +358,10 @@ class Conductor(models.Model):
     usuario = models.OneToOneField(
         Usuario, on_delete=models.CASCADE, primary_key=True, related_name="perfil_conductor"
     )
-    numero_licencia = models.CharField(max_length=50, unique=True)
-    categoria_licencia = models.CharField(max_length=10)
+    numero_licencia = models.CharField(max_length=50, unique=True, validators=[no_solo_espacios])
+    categoria_licencia = models.CharField(max_length=10, validators=[no_solo_espacios])
     fecha_vencimiento_licencia = models.DateField(validators=[validar_fecha_no_pasada])
-    telefono_empresarial = models.CharField(max_length=20, blank=True)
+    telefono_empresarial = models.CharField(max_length=20, blank=True, validators=[telefono_validator])
 
     ESTADO_CONDUCTOR = [("activo", "Activo"), ("inactivo", "Inactivo")]
     estado = models.CharField(max_length=15, choices=ESTADO_CONDUCTOR, default="activo")

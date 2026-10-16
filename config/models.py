@@ -128,6 +128,24 @@ class SecurityEvent(models.Model):
         return f"[{self.creado_en:%d/%m/%Y %H:%M}] {self.tipo} ({self.ip or '-'})"
 
 
+class Consecutivo(models.Model):
+    """Contador por (prefijo, año). Se bloquea con select_for_update al usarlo."""
+
+    prefijo = models.CharField(max_length=10)
+    anio = models.PositiveSmallIntegerField()
+    ultimo = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = "consecutivo"
+        constraints = [
+            models.UniqueConstraint(fields=["prefijo", "anio"], name="uq_consecutivo_prefijo_anio"),
+            models.CheckConstraint(check=models.Q(ultimo__gte=0), name="chk_consecutivo_ultimo_gte_0"),
+        ]
+
+    def __str__(self):
+        return f"{self.prefijo}-{self.anio}: {self.ultimo}"
+
+
 # Re-exports de modelos canónicos para mantener compatibilidad hacia atrás
 from apps.auditoria.models import Historial
 from apps.reportes.models import Reporte, HistorialReporte
@@ -135,6 +153,7 @@ from apps.reportes.models import Reporte, HistorialReporte
 __all__ = [
     "BloqueoIP",
     "SecurityEvent",
+    "Consecutivo",
     "Historial",
     "Reporte",
     "HistorialReporte",

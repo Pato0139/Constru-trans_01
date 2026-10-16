@@ -2,6 +2,7 @@ from django import forms
 
 from apps.pedidos.models import Pago
 from apps.pedidos.validators import validar_comprobante_imagen
+from config.forms_base import StrictForm
 
 
 class PagoRegistroForm(forms.ModelForm):
@@ -31,10 +32,20 @@ class PagoRegistroForm(forms.ModelForm):
         return cleaned
 
 
-class PagoRevisionForm(forms.Form):
+class PagoRevisionForm(StrictForm):
+    ACCIONES = (("aprobar", "Aprobar"), ("rechazar", "Rechazar"))
+    motivo_obligatorio = True
+
+    accion = forms.ChoiceField(
+        choices=ACCIONES,
+        required=False,  # el GET inicial no la envía; se exige en clean() si hay POST
+        error_messages={"invalid_choice": "La acción seleccionada no es válida."},
+    )
     observaciones = forms.CharField(
         required=False,
         max_length=1000,
+        strip=True,
+        error_messages={"max_length": "Las observaciones no pueden superar %(limit_value)d caracteres."},
         widget=forms.Textarea(
             attrs={
                 "class": "form-control",
@@ -43,3 +54,12 @@ class PagoRevisionForm(forms.Form):
             }
         ),
     )
+
+    def clean(self):
+        cleaned = super().clean()
+        accion = cleaned.get("accion")
+        if self.is_bound and not accion and "accion" not in self.errors:
+            self.add_error("accion", "Debes indicar si apruebas o rechazas el pago.")
+        if self.motivo_obligatorio and accion == "rechazar" and not cleaned.get("observaciones"):
+            self.add_error("observaciones", "Indica el motivo del rechazo.")
+        return cleaned

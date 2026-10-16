@@ -1,8 +1,10 @@
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from apps.usuarios.models import Usuario
+from config.validators import nit_validator, no_negativo, no_solo_espacios
 
 
 # =====================================================================
@@ -23,22 +25,23 @@ class Cliente(models.Model):
     )
 
     # Campos del MER (ClienteVIP)
-    nombre_empresa = models.CharField(max_length=200, default="", blank=True)
-    direccion_principal = models.CharField(max_length=200, default="Por definir")
+    nombre_empresa = models.CharField(max_length=200, default="", blank=True, validators=[no_solo_espacios])
+    direccion_principal = models.CharField(max_length=200, default="Por definir", validators=[no_solo_espacios])
     es_vip = models.BooleanField(default=False)
     fecha_vip = models.DateField(null=True, blank=True)
     gasto_acumulado = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=0,
+        validators=[no_negativo],
         verbose_name="Gasto acumulado",
     )
 
     # Campos legacy / adicionales
-    direccion = models.CharField(max_length=200, default="Por definir")
+    direccion = models.CharField(max_length=200, default="Por definir", validators=[no_solo_espacios])
     tipo_cliente = models.CharField(max_length=20, choices=TIPOS_CLIENTE, default="persona")
     nit = models.CharField(max_length=20, default="", blank=True)
-    contacto_alternativo = models.CharField(max_length=100, default="", blank=True)
+    contacto_alternativo = models.CharField(max_length=100, default="", blank=True, validators=[no_solo_espacios])
     observaciones = models.TextField(default="", blank=True)
 
     # NO cambien nada aca
@@ -48,6 +51,30 @@ class Cliente(models.Model):
         db_table = "cliente_vip"
         verbose_name = "Cliente VIP"
         verbose_name_plural = "Clientes VIP"
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(gasto_acumulado__gte=0),
+                name="chk_cliente_gasto_acumulado_gte_0",
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        errores = {}
+        if self.gasto_acumulado is not None and self.gasto_acumulado < 0:
+            errores["gasto_acumulado"] = "El gasto acumulado no puede ser negativo."
+        if self.tipo_cliente == "empresa":
+            if not self.nit or not self.nit.strip():
+                errores["nit"] = "El NIT es obligatorio para clientes de tipo Empresa."
+            if not self.nombre_empresa or not self.nombre_empresa.strip():
+                errores["nombre_empresa"] = "El nombre de la empresa es obligatorio para clientes de tipo Empresa."
+        if self.nit and self.nit.strip():
+            try:
+                nit_validator(self.nit.strip())
+            except ValidationError as err:
+                errores["nit"] = err.messages
+        if errores:
+            raise ValidationError(errores)
 
     def __str__(self):
         return self.usuario.nombres
