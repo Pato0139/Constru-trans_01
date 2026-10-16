@@ -15,6 +15,7 @@ from config.db_preference import debe_usar_bd_remota
 from config.db_utils import select_for_update_if_supported
 from config.security import (_respuesta_no_autorizada, obtener_ip,
                            registrar_evento, registrar_warning)
+from apps.logistica.models import Entrega, Novedad
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
 
@@ -338,10 +339,25 @@ def ver_pedido_admin(request, id):
             if accion == "confirmar":
                 if orden.estado != Pedido.ENTREGADO:
                     with transaction.atomic():
-                        entrega = orden.entregas.filter(conductor=usuario_actual).first()
+                        entrega = orden.entregas.filter(conductor=perfil_conductor).first()
                         if entrega:
+                            ahora = timezone.now()
                             entrega.estado = "entregado"
-                            entrega.save()
+                            entrega.fecha_entrega = entrega.fecha_entrega or ahora
+                            entrega.save(update_fields=["estado", "fecha_entrega"])
+
+                            orden.estado = Pedido.ENTREGADO
+                            orden.fecha_entrega_real = orden.fecha_entrega_real or ahora
+                            orden.save(update_fields=["estado", "fecha_entrega_real"])
+
+                            observacion = request.POST.get("observacion", "").strip()
+                            if observacion:
+                                Novedad.objects.create(
+                                    entrega=entrega,
+                                    tipo="observacion",
+                                    descripcion=observacion,
+                                    reportado_por=request.user,
+                                )
 
                             if entrega.vehiculo:
                                 entrega.vehiculo.estado = "disponible"
@@ -352,7 +368,8 @@ def ver_pedido_admin(request, id):
                                 "confirmar_entrega",
                                 "pedidos",
                                 orden.codigo_pedido,
-                                "Conductor confirmó entrega exitosa",
+                                "Conductor confirmó entrega exitosa"
+                                + (f". Observación: {observacion}" if observacion else ""),
                             )
                             messages.success(
                                 request,
@@ -448,7 +465,14 @@ def ver_pedido_admin(request, id):
                     )
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
-    context = {"orden": orden}
+    context = {
+        "orden": orden,
+        "puede_confirmar_entrega": (
+            usuario_actual.rol == "conductor"
+            and conductor_asignado
+            and orden.estado not in (Pedido.ENTREGADO, Pedido.CANCELADO)
+        ),
+    }
     return render(request, "pedidos/detalle.html", context)
 
 
