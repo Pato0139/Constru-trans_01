@@ -231,6 +231,7 @@ try {
 
     Write-Host "[INFO] Aplicando migraciones..." -ForegroundColor Gray
     $salida = & $venvPython manage.py migrate --noinput 2>&1
+    & $venvPython manage.py migrate --database=local --noinput 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
         $salida | Select-Object -Last 4 | ForEach-Object { Write-Host $_ -ForegroundColor Gray }
         if (($salida -join " ") -match "already exists") {

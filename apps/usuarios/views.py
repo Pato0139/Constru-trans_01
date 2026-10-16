@@ -215,7 +215,7 @@ def registro(request):
 
         try:
             telefono_completo = f"{pais_codigo}{telefono}"
-            User.objects.db_manager("default").create_user(
+            nuevo_usuario = User.objects.db_manager("default").create_user(
                 username=correo,
                 email=correo,
                 password=contrasena,
@@ -229,16 +229,26 @@ def registro(request):
                 sincronizado=False,
             )
 
+            # Cerrar cualquier sesión previa para evitar confusiones de rol (ej. admin previo)
+            if request.user.is_authenticated:
+                logout(request)
+
+            # Iniciar sesión automáticamente con la nueva cuenta de cliente
+            nuevo_usuario.backend = "apps.usuarios.backends.EmailOrUsernameBackend"
+            login(request, nuevo_usuario)
+            request.session["session_version"] = nuevo_usuario.session_version
+
+            dest_url = reverse("clientes:panel_cliente")
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse(
                     {
                         "status": "success",
-                        "message": "¡Listo! Ya quedó registrado. Ahora puede entrar.",
-                        "redirect_url": reverse("usuarios:login"),
+                        "message": "¡Cuenta creada exitosamente! Bienvenido/a a Constru-trans.",
+                        "redirect_url": dest_url,
                     }
                 )
-            messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
-            return redirect("usuarios:login")
+            messages.success(request, "¡Cuenta creada exitosamente! Bienvenido/a a Constru-trans.")
+            return redirect(dest_url)
 
         except IntegrityError:
             logger.warning("Conflicto al registrar la cuenta %s", correo, exc_info=True)
@@ -256,6 +266,10 @@ def registro(request):
                 return JsonResponse({"status": "error", "message": error_msg}, status=500)
             messages.error(request, error_msg)
             return render(request, "usuarios/registro.html", {"form": form}, status=500)
+
+    # Si un usuario autenticado entra por GET a registrarse, cerramos la sesión previa
+    if request.user.is_authenticated:
+        logout(request)
 
     form = RegistroForm()
     context = {"form": form}
