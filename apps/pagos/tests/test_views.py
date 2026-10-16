@@ -7,10 +7,7 @@ from apps.pagos.models import Factura
 from apps.pedidos.models import DetallePedido
 from apps.pedidos.models import Pago
 from apps.pedidos.models import Pedido
-from apps.pagos.models import Pago
-from apps.pedidos.models import DetallePedido, Pedido
 from apps.usuarios.models import Usuario
-
 
 class PagoViewsTests(TestCase):
     def setUp(self):
@@ -69,7 +66,6 @@ class PagoViewsTests(TestCase):
             "recibo.png",
             b"\x89PNG\r\n\x1a\n",
             content_type="image/png",
-            "recibo.pdf", b"%PDF-1.4 test", content_type="application/pdf"
         )
         response = self.client.post(
             reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),

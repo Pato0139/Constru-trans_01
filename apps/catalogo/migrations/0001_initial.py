@@ -8,6 +8,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     initial = True
 
     dependencies = [
@@ -128,342 +129,61 @@ class Migration(migrations.Migration):
                     constraint=models.CheckConstraint(condition=models.Q(('precio_referencia__gte', 0)), name='chk_material_precio_referencia_gte_0'),
                 ),
             ],
-        migrations.CreateModel(
-            name="Catalogo",
-            fields=[
-                (
-                    "codigo_catalogo",
-                    models.CharField(max_length=20, primary_key=True, serialize=False),
-                ),
-                ("nombre_empresa", models.CharField(max_length=150)),
-            ],
-            options={
-                "db_table": "catalogo",
-            },
-        ),
-        migrations.CreateModel(
-            name="Marca",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
-                ),
-                ("nombre", models.CharField(max_length=100, unique=True)),
-            ],
-            options={
-                "verbose_name": "Marca",
-                "verbose_name_plural": "Marcas",
-                "db_table": "marca",
-                "ordering": ["nombre"],
-            },
-        ),
-        migrations.CreateModel(
-            name="MaterialConstruccion",
-            fields=[
-                ("cod_material", models.AutoField(primary_key=True, serialize=False)),
-                ("nombre", models.CharField(max_length=100)),
-                ("descripcion", models.TextField()),
-                (
-                    "precio_referencia",
-                    models.DecimalField(
-                        decimal_places=2,
-                        max_digits=12,
-                        validators=[
-                            django.core.validators.MinValueValidator(0.01),
-                            django.core.validators.MaxValueValidator(9999999999.99),
-                        ],
-                    ),
-                ),
-                (
-                    "activo",
-                    models.BooleanField(
-                        default=True, help_text="Indica si el material está disponible para uso"
-                    ),
-                ),
-                ("sincronizado", models.BooleanField(default=False)),
-                (
-                    "catalogo",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="materiales",
-                        to="catalogo.catalogo",
-                    ),
-                ),
-                (
-                    "marca",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="materiales",
-                        to="catalogo.marca",
-                    ),
-                ),
-            ],
-            options={
-                "verbose_name": "Material de Construcción",
-                "verbose_name_plural": "Materiales de Construcción",
-                "db_table": "material_construccion",
-                "permissions": (("gestionar_inventario", "Puede gestionar inventario"),),
-            },
-        ),
-        migrations.CreateModel(
-            name="UnidadMedida",
-            fields=[
-                ("id_unidad", models.AutoField(primary_key=True, serialize=False)),
-                ("codigo", models.CharField(db_index=True, max_length=10, unique=True)),
-                ("nombre", models.CharField(max_length=50, unique=True)),
-                ("abreviatura", models.CharField(max_length=10)),
-                ("descripcion", models.TextField(blank=True)),
-                ("activa", models.BooleanField(default=True)),
-                (
-                    "orden",
-                    models.PositiveIntegerField(default=0, help_text="Para ordenar en select"),
-                ),
-                ("fecha_creacion", models.DateTimeField(auto_now_add=True)),
-            ],
-            options={
-                "verbose_name": "Unidad de Medida",
-                "verbose_name_plural": "Unidades de Medida",
-                "db_table": "unidad_medida",
-                "ordering": ["orden", "nombre"],
-            },
         ),
         # Tablas propias de la app catalogo (no duplicadas en usuarios): DDL real.
         migrations.CreateModel(
-            name="LoteMaterial",
+            name='LoteMaterial',
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
-                ),
-                ("codigo_lote", models.CharField(db_index=True, max_length=50, unique=True)),
-                (
-                    "cantidad",
-                    models.PositiveIntegerField(
-                        validators=[django.core.validators.MinValueValidator(1)]
-                    ),
-                ),
-                ("fecha_entrada", models.DateTimeField(auto_now_add=True)),
-                (
-                    "fecha_vencimiento",
-                    models.DateField(
-                        blank=True,
-                        db_index=True,
-                        null=True,
-                        validators=[apps.catalogo.models.lotes.validar_fecha_no_pasada],
-                    ),
-                ),
-                ("activo", models.BooleanField(default=True)),
-                (
-                    "material",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="lotes",
-                        to="catalogo.materialconstruccion",
-                    ),
-                ),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('codigo_lote', models.CharField(db_index=True, max_length=50, unique=True)),
+                ('cantidad', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)])),
+                ('fecha_entrada', models.DateTimeField(auto_now_add=True)),
+                ('fecha_vencimiento', models.DateField(blank=True, db_index=True, null=True, validators=[apps.catalogo.models.lotes.validar_fecha_no_pasada])),
+                ('activo', models.BooleanField(default=True)),
+                ('material', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lotes', to='catalogo.materialconstruccion')),
             ],
             options={
-                "verbose_name": "Lote de Material",
-                "verbose_name_plural": "Lotes de Material",
-                "db_table": "lote_material",
-                "ordering": ["-fecha_entrada"],
+                'verbose_name': 'Lote de Material',
+                'verbose_name_plural': 'Lotes de Material',
+                'db_table': 'lote_material',
+                'ordering': ['-fecha_entrada'],
             },
         ),
         migrations.CreateModel(
             name='SesionConteo',
-            name="HistorialPrecioMaterial",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
-                ),
-                ("precio_anterior", models.DecimalField(decimal_places=2, max_digits=12)),
-                ("precio_nuevo", models.DecimalField(decimal_places=2, max_digits=12)),
-                ("fecha_cambio", models.DateTimeField(auto_now_add=True)),
-                (
-                    "observaciones",
-                    models.TextField(
-                        blank=True, help_text="Detalles o razones del cambio de precio"
-                    ),
-                ),
-                ("mes", models.IntegerField(editable=False)),
-                ("año", models.IntegerField(editable=False)),
-                (
-                    "usuario",
-                    models.ForeignKey(
-                        blank=True,
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="cambios_precios",
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
-                (
-                    "material",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="historial_precios",
-                        to="catalogo.materialconstruccion",
-                    ),
-                ),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('codigo', models.CharField(db_index=True, max_length=50, unique=True)),
+                ('fecha_inicio', models.DateTimeField(auto_now_add=True)),
+                ('fecha_fin', models.DateTimeField(blank=True, null=True)),
+                ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('en_progreso', 'En Progreso'), ('completado', 'Completado'), ('cancelado', 'Cancelado')], default='pendiente', max_length=20)),
+                ('observaciones', models.TextField(blank=True)),
+                ('usuario_responsable', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='conteos', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                "verbose_name": "Historial de Precio",
-                "verbose_name_plural": "Historial de Precios",
-                "db_table": "historial_precio_material",
-                "ordering": ["-fecha_cambio"],
+                'verbose_name': 'Sesión de Conteo',
+                'verbose_name_plural': 'Sesiones de Conteo',
+                'db_table': 'sesion_conteo',
+                'ordering': ['-fecha_inicio'],
             },
         ),
         migrations.CreateModel(
-            name="SesionConteo",
+            name='ConteoItem',
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
-                ),
-                ("codigo", models.CharField(db_index=True, max_length=50, unique=True)),
-                ("fecha_inicio", models.DateTimeField(auto_now_add=True)),
-                ("fecha_fin", models.DateTimeField(blank=True, null=True)),
-                (
-                    "estado",
-                    models.CharField(
-                        choices=[
-                            ("pendiente", "Pendiente"),
-                            ("en_progreso", "En Progreso"),
-                            ("completado", "Completado"),
-                            ("cancelado", "Cancelado"),
-                        ],
-                        default="pendiente",
-                        max_length=20,
-                    ),
-                ),
-                ("observaciones", models.TextField(blank=True)),
-                (
-                    "usuario_responsable",
-                    models.ForeignKey(
-                        null=True,
-                        on_delete=django.db.models.deletion.SET_NULL,
-                        related_name="conteos",
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('cantidad_sistema', models.PositiveIntegerField()),
+                ('cantidad_fisica', models.PositiveIntegerField()),
+                ('diferencia', models.IntegerField(editable=False)),
+                ('observaciones', models.TextField(blank=True)),
+                ('fecha_conteo', models.DateTimeField(auto_now=True)),
+                ('material', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='catalogo.materialconstruccion')),
+                ('sesion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='catalogo.sesionconteo')),
             ],
             options={
-                "verbose_name": "Sesión de Conteo",
-                "verbose_name_plural": "Sesiones de Conteo",
-                "db_table": "sesion_conteo",
-                "ordering": ["-fecha_inicio"],
+                'verbose_name': 'Item de Conteo',
+                'verbose_name_plural': 'Items de Conteo',
+                'db_table': 'conteo_item',
+                'unique_together': {('sesion', 'material')},
             },
-        ),
-        migrations.AddField(
-            model_name="materialconstruccion",
-            name="unidad_medida",
-            field=models.ForeignKey(
-                help_text="Seleccione una unidad de medida estándar",
-                on_delete=django.db.models.deletion.PROTECT,
-                related_name="materiales",
-                to="catalogo.unidadmedida",
-            ),
-        ),
-        migrations.CreateModel(
-            name="Stock",
-            fields=[
-                (
-                    "material",
-                    models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        primary_key=True,
-                        related_name="stock_info",
-                        serialize=False,
-                        to="catalogo.materialconstruccion",
-                    ),
-                ),
-                (
-                    "cantidad_actual",
-                    models.IntegerField(
-                        default=0,
-                        validators=[
-                            django.core.validators.MinValueValidator(0),
-                            django.core.validators.MaxValueValidator(100000),
-                        ],
-                    ),
-                ),
-                (
-                    "stock_minimo",
-                    models.IntegerField(
-                        default=10, validators=[django.core.validators.MinValueValidator(0)]
-                    ),
-                ),
-                ("ubicacion", models.CharField(blank=True, default="", max_length=120)),
-                ("fecha_actualizacion", models.DateTimeField(auto_now=True)),
-            ],
-            options={
-                "db_table": "stock",
-                "constraints": [
-                    models.CheckConstraint(
-                        condition=models.Q(("cantidad_actual__gte", 0)),
-                        name="chk_stock_cantidad_actual_gte_0",
-                    ),
-                    models.CheckConstraint(
-                        condition=models.Q(("stock_minimo__gte", 0)), name="chk_stock_minimo_gte_0"
-                    ),
-                ],
-            },
-        ),
-        migrations.CreateModel(
-            name="ConteoItem",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-                    ),
-                ),
-                ("cantidad_sistema", models.PositiveIntegerField()),
-                ("cantidad_fisica", models.PositiveIntegerField()),
-                ("diferencia", models.IntegerField(editable=False)),
-                ("observaciones", models.TextField(blank=True)),
-                ("fecha_conteo", models.DateTimeField(auto_now=True)),
-                (
-                    "material",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="catalogo.materialconstruccion",
-                    ),
-                ),
-                (
-                    "sesion",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE,
-                        related_name="items",
-                        to="catalogo.sesionconteo",
-                    ),
-                ),
-            ],
-            options={
-                "verbose_name": "Item de Conteo",
-                "verbose_name_plural": "Items de Conteo",
-                "db_table": "conteo_item",
-                "unique_together": {("sesion", "material")},
-            },
-        ),
-        migrations.AddConstraint(
-            model_name="materialconstruccion",
-            constraint=models.CheckConstraint(
-                condition=models.Q(("precio_referencia__gte", 0)),
-                name="chk_material_precio_referencia_gte_0",
-            ),
         ),
     ]
