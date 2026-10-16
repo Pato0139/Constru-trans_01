@@ -4,14 +4,19 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compras', '0005_alter_compra_proveedor_alter_compra_usuario_and_more'),
+        ("compras", "0005_alter_compra_proveedor_alter_compra_usuario_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='compra',
-            options={'ordering': ['-fecha_compra'], 'permissions': (('aprobar_compra', 'Puede aprobar compras'), ('gestionar_proveedor', 'Puede gestionar proveedores'))},
+            name="compra",
+            options={
+                "ordering": ["-fecha_compra"],
+                "permissions": (
+                    ("aprobar_compra", "Puede aprobar compras"),
+                    ("gestionar_proveedor", "Puede gestionar proveedores"),
+                ),
+            },
         ),
     ]

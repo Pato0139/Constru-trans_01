@@ -19,13 +19,12 @@ from datetime import timedelta
 from functools import wraps
 
 from django.conf import settings
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.db import OperationalError as DB_OperationalError
 from django.db import ProgrammingError as DB_ProgrammingError
 from django.db.utils import DatabaseError
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
@@ -90,9 +89,7 @@ def ip_esta_bloqueada(ip):
     try:
         bloqueo = BloqueoIP.obtener_bloqueo_vigente(ip)
     except (DB_ProgrammingError, DB_OperationalError, DatabaseError) as exc:
-        logger.warning(
-            "Tabla BloqueoIP no disponible (migración pendiente?). Omite check: %s", exc
-        )
+        logger.warning("Tabla BloqueoIP no disponible (migración pendiente?). Omite check: %s", exc)
         return False
     cache.set(cache_key, bloqueo is not None, timeout=30)
     return bloqueo is not None
@@ -165,7 +162,9 @@ def _respuesta_no_autorizada(request, detalles=None, need_block=False):
         "X-Security-Will-Block": "1" if will_block else "0",
     }
 
-    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest" or request.accepts("application/json")
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest" or request.accepts(
+        "application/json"
+    )
 
     if will_block:
         bloquear_ip(

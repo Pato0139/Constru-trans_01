@@ -1,10 +1,12 @@
 from django.db import models
 from django.utils import timezone
+
 from apps.usuarios.models import Usuario
 
 
 class CategoriaAyuda(models.Model):
     """Categorías para organizar las guías y ayudas."""
+
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True)
     orden = models.PositiveIntegerField(default=0)
@@ -20,6 +22,7 @@ class CategoriaAyuda(models.Model):
 
 class GuiaEdicion(models.Model):
     """Guías paso a paso para editar diferentes elementos del sistema."""
+
     titulo = models.CharField(max_length=200)
     categoria = models.ForeignKey(CategoriaAyuda, on_delete=models.CASCADE, related_name="guias")
     contenido = models.TextField()
@@ -41,6 +44,7 @@ class GuiaEdicion(models.Model):
 
 class PasoGuia(models.Model):
     """Pasos individuales dentro de una guía de edición."""
+
     guia = models.ForeignKey(GuiaEdicion, on_delete=models.CASCADE, related_name="pasos")
     numero_paso = models.PositiveIntegerField()
     titulo_paso = models.CharField(max_length=200)
@@ -58,6 +62,7 @@ class PasoGuia(models.Model):
 
 class SugerenciaRecomendacion(models.Model):
     """Sugerencias y recomendaciones de los usuarios."""
+
     TIPOS = [
         ("sugerencia", "Sugerencia"),
         ("recomendacion", "Recomendación"),
@@ -90,6 +95,7 @@ class SugerenciaRecomendacion(models.Model):
 
 class ManualUsuario(models.Model):
     """Manual de usuario completo."""
+
     titulo = models.CharField(max_length=200)
     version = models.CharField(max_length=50)
     archivo = models.FileField(upload_to="manuales/")
@@ -107,6 +113,7 @@ class ManualUsuario(models.Model):
 
 class ColorSistema(models.Model):
     """Colores del sistema para la paleta visual."""
+
     nombre = models.CharField(max_length=100)
     codigo_hex = models.CharField(max_length=7)  # Ej: #FF0000
     descripcion = models.TextField(blank=True)

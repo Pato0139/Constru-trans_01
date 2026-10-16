@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone as datetime_timezone
+from datetime import datetime
 
 import requests
 from django.core.cache import cache
@@ -70,9 +70,7 @@ def _geocode(city):
         logger.warning("Open-Meteo geocoding devolvio JSON invalido para %s", city)
         return None
     except requests.RequestException as exc:
-        logger.warning(
-            "Open-Meteo geocoding fallo para %s (%s)", city, type(exc).__name__
-        )
+        logger.warning("Open-Meteo geocoding fallo para %s (%s)", city, type(exc).__name__)
         return None
 
     results = data.get("results") if isinstance(data, dict) else None
@@ -95,9 +93,7 @@ def get_route_weather(destination, scheduled_at=None):
 
     coords = _geocode(city)
     if coords is None:
-        return _unavailable(
-            city, "No se pudo ubicar la ciudad de destino en el mapa."
-        )
+        return _unavailable(city, "No se pudo ubicar la ciudad de destino en el mapa.")
     latitude, longitude = coords
 
     cache_key = "openmeteo_forecast_" + str(latitude) + "_" + str(longitude)
@@ -126,9 +122,7 @@ def get_route_weather(destination, scheduled_at=None):
             )
             return _unavailable(city, "El servicio del clima devolvió una respuesta inválida.")
         except requests.RequestException as exc:
-            logger.warning(
-                "Open-Meteo forecast fallo para %s (%s)", city, type(exc).__name__
-            )
+            logger.warning("Open-Meteo forecast fallo para %s (%s)", city, type(exc).__name__)
             return _unavailable(
                 city, "No se pudo consultar el pronóstico. Intenta de nuevo más tarde."
             )
@@ -172,9 +166,7 @@ def get_route_weather(destination, scheduled_at=None):
         selected_index = best
 
     if selected_index is None:
-        return _unavailable(
-            city, "No hay datos disponibles para el pronóstico de esta ruta."
-        )
+        return _unavailable(city, "No hay datos disponibles para el pronóstico de esta ruta.")
 
     def _at(key):
         values = hourly.get(key)

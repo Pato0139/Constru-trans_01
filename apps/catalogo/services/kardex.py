@@ -48,7 +48,10 @@ class KardexService:
 
         with transaction.atomic(using=db_alias):
             from config.db_utils import select_for_update_if_supported
-            material = select_for_update_if_supported(Material.objects.using(db_alias), db_alias).get(pk=material_id)
+
+            material = select_for_update_if_supported(
+                Material.objects.using(db_alias), db_alias
+            ).get(pk=material_id)
             stock, _ = (
                 select_for_update_if_supported(Stock.objects.using(db_alias), db_alias)
                 .using(db_alias)
@@ -130,6 +133,8 @@ class StockService:
         except Stock.DoesNotExist:
             return 0
 
-    @staticmethod
-    def materiales_sin_stock() -> list:
-        return list(Material.objects.filter(stock__cantidad_actual__lte=0).select_related("stock"))
+    @classmethod
+    def obtener_materiales_sin_stock(cls) -> list[Material]:
+        return list(
+            Material.objects.filter(stock_info__cantidad_actual__lte=0).select_related("stock_info")
+        )

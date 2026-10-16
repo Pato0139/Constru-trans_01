@@ -9,21 +9,19 @@ from .context_service import obtener_contexto_datos
 from .conversation_service import add_message_to_conversation, get_conversation
 from .formatting_service import format_number_es
 from .kb_service import check_knowledge_base, update_knowledge_base
-from .llm_service import LLM_MODEL, LLM_PROVIDER, client, preguntar_llm
+from .llm_service import LLM_MODEL, LLM_PROVIDER, preguntar_llm
 from .math_service import evaluar_expresion_matematica
 from .orm_query_service import consultar_datos
-from .rag_service import buscar_contexto
-from .semantic_memory_service import buscar_memoria, guardar_interaccion
 from .time_service import responder_hora
 from .web_search_service import buscar_web_si_aplica
 
 logger = logging.getLogger(__name__)
 
 
-def expandir_mensaje_contextual(mensaje: str, auditoria: list) -> str:
+def expandir_mensaje_contextual(mensaje: str, historial: list) -> str:
     m = (mensaje or "").strip().lower()
 
-    if not auditoria:
+    if not historial:
         return mensaje
 
     if m.startswith("y en "):
@@ -640,7 +638,7 @@ def procesar_parte_pregunta(parte, datos, secciones_vistas=None, usuario=None, r
                     if total_asignados > 0:
                         lineas.append("\nCONDUCTORES ASIGNADOS")
                         lista = datos.get("vehiculos_por_conductor_lista", [])
-                        for idx, item in enumerate(lista, 1):
+                        for _idx, item in enumerate(lista, 1):
                             lineas.append(
                                 f"{item['nombre']} (Vehículo: {item['marca']} {item['modelo']} | Placa: {item['placa']})"
                             )
@@ -915,22 +913,22 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
             secciones_vistas.add("RESUMEN DEL SISTEMA")
             if rol_usuario == "conductor":
                 respuestas.append(f"""RESUMEN DE TU PANEL
-- Entregas pendientes: {format_number_es(datos.get('mis_entregas_pendientes', 0))}
-- Entregas completadas: {format_number_es(datos.get('mis_entregas_completadas', 0))}
-- Vehículo asignado: {datos.get('mi_vehiculo', 'Sin vehículo asignado')}""")
+- Entregas pendientes: {format_number_es(datos.get("mis_entregas_pendientes", 0))}
+- Entregas completadas: {format_number_es(datos.get("mis_entregas_completadas", 0))}
+- Vehículo asignado: {datos.get("mi_vehiculo", "Sin vehículo asignado")}""")
             elif rol_usuario == "cliente":
                 respuestas.append(f"""RESUMEN DE TU CUENTA
-- Mis pedidos totales: {format_number_es(datos.get('mis_pedidos_totales', 0))}
-- Pedidos pendientes: {format_number_es(datos.get('mis_pedidos_pendientes', 0))}
-- Facturas pendientes: {format_number_es(datos.get('mis_facturas_pendientes', 0))}""")
+- Mis pedidos totales: {format_number_es(datos.get("mis_pedidos_totales", 0))}
+- Pedidos pendientes: {format_number_es(datos.get("mis_pedidos_pendientes", 0))}
+- Facturas pendientes: {format_number_es(datos.get("mis_facturas_pendientes", 0))}""")
             else:
                 respuestas.append(f"""RESUMEN DEL SISTEMA
-- Usuarios: {format_number_es(datos.get('total_usuarios', 0))} totales, {format_number_es(datos.get('usuarios_activos', 0))} activos
-- Clientes: {format_number_es(datos.get('clientes_registrados', 0))} registrados
-- Proveedores: {format_number_es(datos.get('proveedores_count', 0))}
-- Materiales: {format_number_es(datos.get('total_materiales', 0))} tipos
-- Vehículos: {format_number_es(datos.get('vehiculos_count', 0))} total
-- Pedidos: {format_number_es(datos.get('pedidos_totales', 0))} totales""")
+- Usuarios: {format_number_es(datos.get("total_usuarios", 0))} totales, {format_number_es(datos.get("usuarios_activos", 0))} activos
+- Clientes: {format_number_es(datos.get("clientes_registrados", 0))} registrados
+- Proveedores: {format_number_es(datos.get("proveedores_count", 0))}
+- Materiales: {format_number_es(datos.get("total_materiales", 0))} tipos
+- Vehículos: {format_number_es(datos.get("vehiculos_count", 0))} total
+- Pedidos: {format_number_es(datos.get("pedidos_totales", 0))} totales""")
 
     if respuestas:
         # Eliminar duplicados (mantener orden)
@@ -1041,13 +1039,10 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
     mensaje = expandir_mensaje_contextual(mensaje, historial_db)
 
     datos = obtener_contexto_datos(usuario=usuario)
-    nombre_usuario = ""
-    rol_usuario = None
-    user_id = None
     if usuario and usuario.is_authenticated:
         nombre_usuario = f"{usuario.nombres} {usuario.apellidos}".strip()
-        rol_usuario = getattr(usuario, "rol", None)
-        user_id = str(usuario.id)
+    else:
+        nombre_usuario = ""
 
     try:
         kb_entry = check_knowledge_base(mensaje)
@@ -1152,7 +1147,7 @@ def save_feedback(message_id, feedback, comment=None, user=None):
     try:
         message = ConversationMessage.objects.get(id=message_id)
 
-        fb = UserFeedback.objects.create(
+        UserFeedback.objects.create(
             message=message, user=user, feedback=feedback, comment=comment
         )
 

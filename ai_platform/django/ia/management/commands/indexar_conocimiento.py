@@ -29,9 +29,9 @@ class Command(BaseCommand):
                 }
             )
 
-        pedidos = Pedido.objects.select_related("cliente").prefetch_related(
-            "detalles__material"
-        )[:200]
+        pedidos = Pedido.objects.select_related("cliente").prefetch_related("detalles__material")[
+            :200
+        ]
         for pedido in pedidos:
             materiales_pedido = ", ".join(
                 detalle.material.nombre for detalle in pedido.detalles.all()[:10]

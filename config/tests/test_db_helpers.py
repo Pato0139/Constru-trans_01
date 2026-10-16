@@ -37,9 +37,7 @@ def test_secret_key_is_required_in_development_to_preserve_sessions(monkeypatch,
         settings_module.get_secret_key()
 
 
-def test_development_uses_valid_dotenv_key_when_environment_key_is_too_short(
-    monkeypatch, tmp_path
-):
+def test_development_uses_valid_dotenv_key_when_environment_key_is_too_short(monkeypatch, tmp_path):
     import core.settings.base as settings_module
 
     stable_key = "stable-development-secret-key-with-at-least-32-characters"

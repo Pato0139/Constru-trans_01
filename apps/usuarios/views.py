@@ -1,7 +1,5 @@
 import logging
-import re
 import smtplib
-from functools import wraps
 
 import requests
 from django.conf import settings
@@ -15,6 +13,8 @@ from django.views.decorators.http import require_POST
 User = get_user_model()
 from django.contrib.auth.views import PasswordResetView
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 from django.db import DatabaseError, IntegrityError, transaction
 from django.db.models import Prefetch, Q, Sum
 from django.core.validators import validate_email
@@ -24,20 +24,27 @@ from django.urls import reverse, reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.timezone import now
 
-from config.utils import registrar_actividad
 from apps.catalogo.models import MaterialConstruccion as Material
-from config.db_preference import (PREF_LOCAL, PREF_REMOTA, get_db_preference,
-                                invalidate_connection_cache)
-from config.security import (_respuesta_no_autorizada, admin_required,
-                           obtener_ip, registrar_evento, registrar_warning,
-                           role_required)
-from config.superadmin_lock import es_superadmin_global
-from config.sync import sync_all_usuarios
-from config.utils import conexion_remota_disponible
-from apps.usuarios.weather import get_route_weather
 from apps.logistica.forms import AsignarVehiculoForm
 from apps.logistica.models import ConductorVehiculo
 from apps.pedidos.models import Pedido
+from apps.usuarios.weather import get_route_weather
+from config.db_preference import (
+    PREF_LOCAL,
+    PREF_REMOTA,
+    get_db_preference,
+    invalidate_connection_cache,
+)
+from config.security import (
+    _respuesta_no_autorizada,
+    admin_required,
+    obtener_ip,
+    registrar_evento,
+    registrar_warning,
+    role_required,
+)
+from config.superadmin_lock import es_superadmin_global
+from config.utils import conexion_remota_disponible, registrar_actividad
 
 from .forms import CustomPasswordResetForm, FotoPerfilForm, LoginForm, RegistroForm
 from .models import Conductor, Usuario
@@ -69,11 +76,9 @@ def _buscar_qs_por_rol(rol, query=None):
     if rol is not None:
         qs = qs.filter(rol=rol)
     if query:
-            qs = qs.filter(
-                Q(nombres__icontains=query)
-                | Q(email__icontains=query)
-                | Q(documento__icontains=query)
-            )
+        qs = qs.filter(
+            Q(nombres__icontains=query) | Q(email__icontains=query) | Q(documento__icontains=query)
+        )
     return qs
 
 
@@ -210,7 +215,7 @@ def registro(request):
 
         try:
             telefono_completo = f"{pais_codigo}{telefono}"
-            User.objects.db_manager('default').create_user(
+            User.objects.db_manager("default").create_user(
                 username=correo,
                 email=correo,
                 password=contrasena,
@@ -225,17 +230,21 @@ def registro(request):
             )
 
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                return JsonResponse({
-                    "status": "success",
-                    "message": "¡Listo! Ya quedó registrado. Ahora puede entrar.",
-                    "redirect_url": reverse("usuarios:login")
-                })
+                return JsonResponse(
+                    {
+                        "status": "success",
+                        "message": "¡Listo! Ya quedó registrado. Ahora puede entrar.",
+                        "redirect_url": reverse("usuarios:login"),
+                    }
+                )
             messages.success(request, "¡Listo! Ya quedó registrado. Ahora puede entrar.")
             return redirect("usuarios:login")
 
         except IntegrityError:
             logger.warning("Conflicto al registrar la cuenta %s", correo, exc_info=True)
-            error_msg = "No se pudo completar el registro. Verifique si el correo o documento ya existen."
+            error_msg = (
+                "No se pudo completar el registro. Verifique si el correo o documento ya existen."
+            )
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
@@ -309,7 +318,9 @@ def login_usuario(request):
                     )
                     messages.error(request, error_message)
                     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                        return JsonResponse({"status": "error", "message": error_message}, status=403)
+                        return JsonResponse(
+                            {"status": "error", "message": error_message}, status=403
+                        )
                     context = {"form": form, "modo_local": modo_local}
                     return render(request, "usuarios/login.html", context)
 
@@ -343,7 +354,9 @@ def login_usuario(request):
                             )
                         messages.error(request, error_message)
                         if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                            return JsonResponse({"status": "error", "message": error_message}, status=403)
+                            return JsonResponse(
+                                {"status": "error", "message": error_message}, status=403
+                            )
                         context = {"form": form, "modo_local": modo_local}
                         return render(request, "usuarios/login.html", context)
                 else:
@@ -380,23 +393,33 @@ def login_usuario(request):
                 messages.success(request, f"¡Bienvenido de nuevo, {user.nombres}!")
 
                 next_url = request.GET.get("next")
-                redirect_target = next_url if next_url and url_has_allowed_host_and_scheme(
-                    url=next_url,
-                    allowed_hosts={request.get_host()},
-                    require_https=request.is_secure(),
-                ) else (
-                    "usuarios:panel" if user.rol == "admin" else
-                    "clientes:panel_cliente" if user.rol == "cliente" else
-                    "usuarios:panel_conductor" if user.rol == "conductor" else
-                    "usuarios:panel"
+                redirect_target = (
+                    next_url
+                    if next_url
+                    and url_has_allowed_host_and_scheme(
+                        url=next_url,
+                        allowed_hosts={request.get_host()},
+                        require_https=request.is_secure(),
+                    )
+                    else (
+                        "usuarios:panel"
+                        if user.rol == "admin"
+                        else "clientes:panel_cliente"
+                        if user.rol == "cliente"
+                        else "usuarios:panel_conductor"
+                        if user.rol == "conductor"
+                        else "usuarios:panel"
+                    )
                 )
 
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                    response = JsonResponse({
-                        "status": "success",
-                        "message": f"¡Bienvenido de nuevo, {user.nombres}!",
-                        "redirect_url": reverse(redirect_target)
-                    })
+                    response = JsonResponse(
+                        {
+                            "status": "success",
+                            "message": f"¡Bienvenido de nuevo, {user.nombres}!",
+                            "redirect_url": reverse(redirect_target),
+                        }
+                    )
                 else:
                     response = redirect(redirect_target)
 
@@ -425,7 +448,9 @@ def login_usuario(request):
                         error_message = f"Demasiados intentos fallidos. Tu cuenta está bloqueada por {tiempo_restante}."
                         messages.error(request, error_message)
                     else:
-                        intentos_restantes = 3 - user_obj.intentos_fallidos if user_obj.intentos_fallidos < 3 else 0
+                        intentos_restantes = (
+                            3 - user_obj.intentos_fallidos if user_obj.intentos_fallidos < 3 else 0
+                        )
                         if intentos_restantes > 0:
                             error_message = f"Usuario o contraseña incorrectos. Te quedan {intentos_restantes} intento(s)."
                             messages.error(request, error_message)
@@ -447,16 +472,17 @@ def login_usuario(request):
                 errors_dict = {}
                 for field, error_list in form.errors.items():
                     errors_dict[field] = [str(error) for error in error_list]
-                return JsonResponse({
-                    "status": "error",
-                    "message": error_message,
-                    "errors": errors_dict,
-                }, status=400)
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "message": error_message,
+                        "errors": errors_dict,
+                    },
+                    status=400,
+                )
 
     else:
-        form = LoginForm(
-            initial={"username": request.COOKIES.get(LOGIN_REMEMBER_COOKIE, "")}
-        )
+        form = LoginForm(initial={"username": request.COOKIES.get(LOGIN_REMEMBER_COOKIE, "")})
 
     context = {"form": form, "modo_local": modo_local}
     return render(request, "usuarios/login.html", context)
@@ -473,6 +499,7 @@ def panel(request):
 
     if usuario.rol == "admin":
         from django.core.cache import cache
+
         from config.utils import get_cache_key
 
         cache_key = get_cache_key("panel_admin_v2", usuario.id)
@@ -499,6 +526,7 @@ def panel(request):
         return panel_conductor(request)
 
     return redirect("usuarios:login")
+
 
 # =====================================================================
 # CONDUCTOR
@@ -536,7 +564,11 @@ def panel_conductor(request):
 @role_required(["conductor"])
 def pedidos_conductor(request):
     conductor, _ = Conductor.ensure_for_user(request.user)
-    pedidos = Pedido.objects.filter(conductor=conductor).exclude(estado="entregado").select_related("usuario", "cliente__usuario")
+    pedidos = (
+        Pedido.objects.filter(conductor=conductor)
+        .exclude(estado="entregado")
+        .select_related("usuario", "cliente__usuario")
+    )
 
     id_pedido = request.GET.get("id_pedido")
     origen = request.GET.get("origen")
@@ -570,9 +602,11 @@ def pedidos_conductor(request):
 @role_required(["conductor"])
 def mis_entregas(request):
     conductor, _ = Conductor.ensure_for_user(request.user)
-    entregas = Pedido.objects.filter(conductor=conductor).select_related(
-        "usuario", "cliente__usuario"
-    ).order_by("-fecha_solicitud")
+    entregas = (
+        Pedido.objects.filter(conductor=conductor)
+        .select_related("usuario", "cliente__usuario")
+        .order_by("-fecha_solicitud")
+    )
 
     id_pedido = request.GET.get("id_pedido")
     origen = request.GET.get("origen")
@@ -605,7 +639,7 @@ def mis_entregas(request):
 
 @login_required
 def perfil_admin(request):
-    usuario = request.user  
+    usuario = request.user
 
     try:
         materiales_count = Material.objects.count()
@@ -626,7 +660,7 @@ def perfil_admin(request):
 
 @login_required
 def editar_perfil(request):
-    usuario = request.user 
+    usuario = request.user
 
     if request.method == "POST":
         if request.POST.get("action") == "upload_photo":
@@ -683,7 +717,9 @@ def editar_perfil(request):
 
         foto_form = FotoPerfilForm(request.POST, request.FILES)
         if not foto_form.is_valid():
-            messages.error(request, "No se pudo guardar la foto. Revisa el formato y el tamaño (máximo 5 MB).")
+            messages.error(
+                request, "No se pudo guardar la foto. Revisa el formato y el tamaño (máximo 5 MB)."
+            )
             return render(
                 request,
                 "usuarios/editar_perfil.html",
@@ -754,13 +790,17 @@ def editar_perfil(request):
                 try:
                     foto_anterior.storage.delete(nombre_foto_anterior)
                 except OSError as exc:
-                    logger.warning("No se pudo borrar la foto anterior del usuario %s: %s", usuario.pk, exc)
+                    logger.warning(
+                        "No se pudo borrar la foto anterior del usuario %s: %s", usuario.pk, exc
+                    )
             messages.success(request, "Perfil actualizado correctamente.")
         except IntegrityError:
             if foto_nueva and usuario.foto_perfil.name != nombre_foto_anterior:
                 usuario.foto_perfil.storage.delete(usuario.foto_perfil.name)
                 usuario.foto_perfil.name = nombre_foto_anterior
-            messages.error(request, "No se pudo actualizar el perfil porque el correo ya está en uso.")
+            messages.error(
+                request, "No se pudo actualizar el perfil porque el correo ya está en uso."
+            )
             return render(
                 request,
                 "usuarios/editar_perfil.html",
@@ -798,7 +838,9 @@ def crear_usuario(request):
         form_data.pop("password", None)
 
         if rol == "admin" and not es_superadmin_global(request.user):
-            raise PermissionDenied("Solo el Administrador Global puede crear otros administradores.")
+            raise PermissionDenied(
+                "Solo el Administrador Global puede crear otros administradores."
+            )
 
         logger.info(f"Intentando crear usuario: {email}, rol: {rol}")
 
@@ -852,7 +894,7 @@ def crear_usuario(request):
         try:
             # Creación directa de usuario - MÁS SIMPLE POSIBLE
             logger.info(f"Creando usuario directamente: {email}")
-            user = User.objects.db_manager('default').create_user(
+            user = User.objects.db_manager("default").create_user(
                 username=email,
                 email=email,
                 password=password,
@@ -900,7 +942,7 @@ def crear_usuario(request):
 
         except IntegrityError as exc:
             logger.warning("Conflicto creando usuario %s: %s", email, exc)
-            error_msg = f"Ya existe un usuario con esos datos."
+            error_msg = "Ya existe un usuario con esos datos."
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"status": "error", "message": error_msg}, status=400)
             messages.error(request, error_msg)
@@ -1013,9 +1055,13 @@ def editar_usuario(request, id):
             context = {"usuario": usuario, "form_data": request.POST, "action": "editar"}
             return render(request, "usuarios/form.html", context)
 
-        if es_admin and rol and not is_super and (
-            usuario.rol == "admin" or rol == "admin"
-        ) and rol != usuario.rol:
+        if (
+            es_admin
+            and rol
+            and not is_super
+            and (usuario.rol == "admin" or rol == "admin")
+            and rol != usuario.rol
+        ):
             raise PermissionDenied(
                 "Solo el Administrador Global puede asignar o cambiar el rol de administrador."
             )
@@ -1173,6 +1219,7 @@ def perfil_conductor(request):
     )
 
     from apps.logistica.models import Entrega
+
     try:
         ultima_entrega = (
             Entrega.objects.filter(conductor=perfil_conductor)
@@ -1221,6 +1268,7 @@ class CustomPasswordResetView(PasswordResetView):
             )
             return self.form_invalid(form)
 
+
 # =====================================================================
 # CERRAR SESIÓN
 # =====================================================================
@@ -1229,6 +1277,7 @@ class CustomPasswordResetView(PasswordResetView):
 def cerrar_sesion(request):
     if request.user.is_authenticated:
         from config.utils import clear_user_cache
+
         clear_user_cache(request.user.id)
 
         try:
@@ -1262,6 +1311,7 @@ def lista_notificaciones(request):
 @require_POST
 def marcar_notificacion_leida(request, id):
     from django.utils.http import url_has_allowed_host_and_scheme
+
     try:
         notificacion = get_object_or_404(request.user.notificaciones, id=id)
         notificacion.leida = True

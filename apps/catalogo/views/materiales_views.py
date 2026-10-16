@@ -4,12 +4,11 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from config.utils import registrar_actividad
 from apps.catalogo.forms import MaterialForm
-from apps.catalogo.models import Catalogo
+from apps.catalogo.models import Catalogo, Stock
 from apps.catalogo.models import MaterialConstruccion as Material
-from apps.catalogo.models import Stock
 from apps.usuarios.views import admin_required
+from config.utils import registrar_actividad
 
 
 @admin_required
@@ -38,7 +37,11 @@ def materiales_lista(request):
             "placeholder": "Todas las categorías",
             "value": tipo,
             "options": [
-                {"value": t.codigo_catalogo, "label": t.nombre_empresa, "selected": t.codigo_catalogo == tipo}
+                {
+                    "value": t.codigo_catalogo,
+                    "label": t.nombre_empresa,
+                    "selected": t.codigo_catalogo == tipo,
+                }
                 for t in tipos_unicos
             ],
         },
@@ -68,7 +71,10 @@ def crear_material(request):
                     defaults={"cantidad_actual": 0, "stock_minimo": 10},
                 )
                 registrar_actividad(
-                    request, "crear", "catalogo", material.pk,
+                    request,
+                    "crear",
+                    "catalogo",
+                    material.pk,
                     f"Material creado: {material.nombre}",
                 )
 
@@ -145,7 +151,9 @@ def cambiar_estado_material(request, id):
     material.estado = "activo" if material.activo else "inactivo"
     material.save(update_fields=["activo", "estado"])
     estado = "habilitado" if material.activo else "inhabilitado"
-    registrar_actividad(request, "actualizar", "catalogo", material.pk, f"Material {estado}: {material.nombre}")
+    registrar_actividad(
+        request, "actualizar", "catalogo", material.pk, f"Material {estado}: {material.nombre}"
+    )
     messages.success(request, f"Material {material.nombre} {estado} correctamente.")
     return redirect("catalogo:materiales_lista")
 
@@ -166,14 +174,17 @@ def stock_lista(request):
     if stock_actual and stock_actual.isdigit():
         stocks = stocks.filter(cantidad_actual=int(stock_actual))
     if q:
-        stocks = stocks.filter(
-            Q(material__nombre__icontains=q) | Q(ubicacion__icontains=q)
-        )
+        stocks = stocks.filter(Q(material__nombre__icontains=q) | Q(ubicacion__icontains=q))
 
     filter_fields = [
         {"type": "text", "name": "material", "placeholder": "Material", "value": material},
         {"type": "text", "name": "ubicacion", "placeholder": "Ubicación", "value": ubicacion},
-        {"type": "text", "name": "stock_actual", "placeholder": "Stock exacto", "value": stock_actual},
+        {
+            "type": "text",
+            "name": "stock_actual",
+            "placeholder": "Stock exacto",
+            "value": stock_actual,
+        },
     ]
 
     context = {

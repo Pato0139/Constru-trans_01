@@ -16,9 +16,9 @@ from django.dispatch import receiver
 
 from config.superadmin_lock import (
     SUPERADMIN_EMAIL,
-    SUPERADMIN_USERNAME,
     es_superadmin_por_identificador,
 )
+
 from .models import Usuario
 
 

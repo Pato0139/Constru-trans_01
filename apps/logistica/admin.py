@@ -1,14 +1,19 @@
 from django.contrib import admin
 
-from .models import (ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento,
-                     Seguimiento, Vehiculo)
+from .models import ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento, Seguimiento, Vehiculo
 
 
 @admin.register(Vehiculo)
 class VehiculoAdmin(admin.ModelAdmin):
     list_display = (
-        "id_vehiculo", "placa", "marca", "modelo", "tipo_vehiculo",
-        "capacidad_carga", "estado", "sincronizado",
+        "id_vehiculo",
+        "placa",
+        "marca",
+        "modelo",
+        "tipo_vehiculo",
+        "capacidad_carga",
+        "estado",
+        "sincronizado",
     )
     search_fields = ("placa", "marca", "modelo", "tipo_vehiculo")
     list_filter = ("estado", "sincronizado", "fecha_registro")
@@ -17,7 +22,11 @@ class VehiculoAdmin(admin.ModelAdmin):
 @admin.register(ConductorVehiculo)
 class ConductorVehiculoAdmin(admin.ModelAdmin):
     list_display = ("conductor", "vehiculo", "fecha_asignacion", "fecha_fin")
-    search_fields = ("conductor__usuario__nombres", "conductor__usuario__apellidos", "vehiculo__placa")
+    search_fields = (
+        "conductor__usuario__nombres",
+        "conductor__usuario__apellidos",
+        "vehiculo__placa",
+    )
     list_filter = ("fecha_asignacion", "fecha_fin")
     list_select_related = ("conductor__usuario", "vehiculo")
 
@@ -25,8 +34,15 @@ class ConductorVehiculoAdmin(admin.ModelAdmin):
 @admin.register(Entrega)
 class EntregaAdmin(admin.ModelAdmin):
     list_display = (
-        "id_entrega", "pedido", "conductor", "vehiculo", "estado",
-        "direccion_entrega", "fecha_salida", "fecha_entrega", "sincronizado",
+        "id_entrega",
+        "pedido",
+        "conductor",
+        "vehiculo",
+        "estado",
+        "direccion_entrega",
+        "fecha_salida",
+        "fecha_entrega",
+        "sincronizado",
     )
     search_fields = (
         "direccion_entrega",
@@ -41,8 +57,13 @@ class EntregaAdmin(admin.ModelAdmin):
 @admin.register(Novedad)
 class NovedadAdmin(admin.ModelAdmin):
     list_display = (
-        "id_novedad", "entrega", "tipo", "estado", "fecha_generada",
-        "fecha_cierre", "reportado_por",
+        "id_novedad",
+        "entrega",
+        "tipo",
+        "estado",
+        "fecha_generada",
+        "fecha_cierre",
+        "reportado_por",
     )
     search_fields = ("descripcion", "reportado_por__username")
     list_filter = ("tipo", "estado", "fecha_generada", "fecha_cierre")
@@ -52,8 +73,11 @@ class NovedadAdmin(admin.ModelAdmin):
 @admin.register(Seguimiento)
 class SeguimientoAdmin(admin.ModelAdmin):
     list_display = (
-        "id_seguimiento", "novedad", "atendido_por",
-        "fecha_seguimiento", "estado",
+        "id_seguimiento",
+        "novedad",
+        "atendido_por",
+        "fecha_seguimiento",
+        "estado",
     )
     search_fields = ("comentario", "atendido_por__username")
     list_filter = ("estado", "fecha_seguimiento")
@@ -63,8 +87,11 @@ class SeguimientoAdmin(admin.ModelAdmin):
 @admin.register(RespuestaSeguimiento)
 class RespuestaSeguimientoAdmin(admin.ModelAdmin):
     list_display = (
-        "id_respuesta", "seguimiento", "redactada_por",
-        "fecha_respuesta", "estado",
+        "id_respuesta",
+        "seguimiento",
+        "redactada_por",
+        "fecha_respuesta",
+        "estado",
     )
     search_fields = ("texto", "redactada_por__username")
     list_filter = ("estado", "fecha_respuesta")

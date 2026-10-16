@@ -1,8 +1,8 @@
 import logging
 import os
 
-from openai import OpenAI
 from httpx import Client
+from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 

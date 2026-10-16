@@ -6,8 +6,14 @@ from .models import EPS, Conductor, Notificacion, Rol, Usuario, UsuarioRol
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
     list_display = (
-        "nombres", "apellidos", "get_email", "documento", "rol", "estado",
-        "intentos_fallidos", "nivel_bloqueo",
+        "nombres",
+        "apellidos",
+        "get_email",
+        "documento",
+        "rol",
+        "estado",
+        "intentos_fallidos",
+        "nivel_bloqueo",
     )
     list_filter = ("rol", "estado", "tipo_documento", "nivel_bloqueo")
     search_fields = ("nombres", "apellidos", "documento", "email", "username")
@@ -27,7 +33,13 @@ class EPSAdmin(admin.ModelAdmin):
 
 @admin.register(Conductor)
 class ConductorAdmin(admin.ModelAdmin):
-    list_display = ("usuario", "numero_licencia", "categoria_licencia", "estado", "fecha_vencimiento_licencia")
+    list_display = (
+        "usuario",
+        "numero_licencia",
+        "categoria_licencia",
+        "estado",
+        "fecha_vencimiento_licencia",
+    )
     list_filter = ("estado", "categoria_licencia", "eps")
     search_fields = (
         "usuario__nombres",

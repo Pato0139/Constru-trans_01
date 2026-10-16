@@ -3,7 +3,6 @@ from unittest.mock import Mock, patch
 
 import requests
 from django.contrib.auth.views import PasswordResetView
-from django.core.mail import EmailMultiAlternatives
 from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, override_settings
 
@@ -205,9 +204,7 @@ class PasswordResetViewTests(SimpleTestCase):
         with patch.object(
             PasswordResetView,
             "form_valid",
-            side_effect=smtplib.SMTPAuthenticationError(
-                535, b"authentication failed"
-            ),
+            side_effect=smtplib.SMTPAuthenticationError(535, b"authentication failed"),
         ):
             response = view.form_valid(form)
 

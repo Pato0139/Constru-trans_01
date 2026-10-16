@@ -61,9 +61,9 @@ def movimientos_lista(request):
 
     if usuario:
         movimientos = movimientos.filter(
-            Q(usuario__username__icontains=usuario) |
-            Q(usuario__first_name__icontains=usuario) |
-            Q(usuario__last_name__icontains=usuario)
+            Q(usuario__username__icontains=usuario)
+            | Q(usuario__first_name__icontains=usuario)
+            | Q(usuario__last_name__icontains=usuario)
         )
 
     materiales = Material.objects.all().order_by("nombre")

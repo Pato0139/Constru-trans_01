@@ -5,10 +5,10 @@ import unicodedata
 
 import requests
 from django import forms
-from django.contrib.auth.password_validation import validate_password
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from django.contrib.auth.password_validation import validate_password
 from django.core.mail import EmailMultiAlternatives
 from django.core.validators import FileExtensionValidator
 from django.db.models import Q
@@ -112,7 +112,7 @@ class RegistroForm(forms.ModelForm):
         max_length=128,
         widget=forms.PasswordInput(
             attrs={"class": "input-custom", "placeholder": "••••••••", "id": "id_contrasena"}
-        )
+        ),
     )
     confirmar_contrasena = forms.CharField(
         label="Confirmar Contraseña",
@@ -159,9 +159,11 @@ class RegistroForm(forms.ModelForm):
 
     def clean_correo(self):
         correo = (self.cleaned_data.get("correo") or "").strip()
-        if User.objects.using("default").filter(
-            Q(email__iexact=correo) | Q(username__iexact=correo)
-        ).exists():
+        if (
+            User.objects.using("default")
+            .filter(Q(email__iexact=correo) | Q(username__iexact=correo))
+            .exists()
+        ):
             raise forms.ValidationError("Este correo ya está registrado.")
         return correo
 
@@ -194,9 +196,7 @@ class RegistroForm(forms.ModelForm):
         if not re.fullmatch(r"[A-Za-z0-9 ]+", documento):
             raise forms.ValidationError("El documento solo puede contener letras y números.")
         if tipo_documento != "PA" and not re.fullmatch(r"[0-9 ]+", documento):
-            raise forms.ValidationError(
-                "Este tipo de documento solo admite números."
-            )
+            raise forms.ValidationError("Este tipo de documento solo admite números.")
         documento = limpiar_documento(documento)
         if not (7 <= len(documento) <= 15):
             raise forms.ValidationError(
@@ -254,15 +254,18 @@ class CustomPasswordResetForm(PasswordResetForm):
     email = forms.CharField(
         label="Usuario o Correo Electrónico",
         max_length=254,
-        widget=forms.TextInput(attrs={
-            "class": "input-custom",
-            "placeholder": "Ingresa tu usuario o correo electrónico",
-            "autofocus": True
-        })
+        widget=forms.TextInput(
+            attrs={
+                "class": "input-custom",
+                "placeholder": "Ingresa tu usuario o correo electrónico",
+                "autofocus": True,
+            }
+        ),
     )
 
     def get_users(self, email):
         from django.conf import settings
+
         from config.utils import conexion_remota_disponible
 
         seen = set()
@@ -348,9 +351,7 @@ class CustomPasswordResetForm(PasswordResetForm):
                 type(exc).__name__,
                 getattr(getattr(exc, "response", None), "status_code", "n/a"),
             )
-            raise smtplib.SMTPException(
-                "Resend could not accept the password-reset email"
-            ) from exc
+            raise smtplib.SMTPException("Resend could not accept the password-reset email") from exc
 
         try:
             message_id = response.json().get("id")

@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
-        ('usuarios', '0007_rol_usuariorol_vehiculo_catalogo_and_more'),
+        ("auth", "0012_alter_user_first_name_max_length"),
+        ("usuarios", "0007_rol_usuariorol_vehiculo_catalogo_and_more"),
     ]
 
     operations = [
         migrations.AddConstraint(
-            model_name='usuario',
-            constraint=models.UniqueConstraint(fields=('tipo_documento', 'documento'), name='uq_usuario_tipo_documento_documento'),
+            model_name="usuario",
+            constraint=models.UniqueConstraint(
+                fields=("tipo_documento", "documento"), name="uq_usuario_tipo_documento_documento"
+            ),
         ),
     ]

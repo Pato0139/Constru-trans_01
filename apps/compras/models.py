@@ -81,7 +81,11 @@ class Compra(models.Model):
     total_compra = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
     usuario = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="compras"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="compras",
     )
 
     # Fuera del MER pero útil — NO se toca
@@ -162,14 +166,20 @@ class ProveedorMaterial(models.Model):
 
 
 # =====================================================================
-# DETALLE_COMPRA 
+# DETALLE_COMPRA
 # =====================================================================
 class DetalleCompra(models.Model):
     id_detalle_compra = models.AutoField(primary_key=True)
-    compra = models.ForeignKey(Compra, on_delete=models.CASCADE, related_name="detalles", db_column="id_compra")
-    material = models.ForeignKey(MaterialConstruccion, on_delete=models.PROTECT, db_column="cod_material")
+    compra = models.ForeignKey(
+        Compra, on_delete=models.CASCADE, related_name="detalles", db_column="id_compra"
+    )
+    material = models.ForeignKey(
+        MaterialConstruccion, on_delete=models.PROTECT, db_column="cod_material"
+    )
     cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
+    precio_unitario = models.DecimalField(
+        max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)]
+    )
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     class Meta:

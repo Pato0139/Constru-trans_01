@@ -5,6 +5,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.template.loader import render_to_string
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
+
 from apps.logistica.models import ConductorVehiculo, Vehiculo
 from apps.usuarios.models import Conductor, Usuario
 
@@ -82,14 +83,12 @@ class UsuarioViewsTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertFalse(
-            Usuario.objects.filter(email="registro-invalido@test.com").exists()
-        )
+        self.assertFalse(Usuario.objects.filter(email="registro-invalido@test.com").exists())
 
     def test_asignar_vehiculo_a_conductor(self):
         """El administrador puede asignar y cambiar vehículos de un conductor."""
         self.client.login(username="admin@test.com", password="password123")
-        vehiculo2 = Vehiculo.objects.create(
+        Vehiculo.objects.create(
             placa="DEF456",
             marca="Nissan",
             modelo="D21",

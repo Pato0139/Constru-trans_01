@@ -140,24 +140,25 @@ class Entrega(models.Model):
             except AttributeError as exc:
                 logger.warning(
                     "No se pudo resolver usuario de entrega en pedido %s: %s",
-                    getattr(self.pedido, "codigo_pedido", "?"), exc,
+                    getattr(self.pedido, "codigo_pedido", "?"),
+                    exc,
                 )
         super().save(*args, **kwargs)
 
 
 class Novedad(models.Model):
     TIPOS = [
-        ("demora",              "Demora en entrega"),
-        ("producto_danado",     "Producto dañado"),
+        ("demora", "Demora en entrega"),
+        ("producto_danado", "Producto dañado"),
         ("cantidad_incorrecta", "Cantidad incorrecta"),
-        ("devolucion",          "Devolución"),
-        ("observacion",         "Observación"),
+        ("devolucion", "Devolución"),
+        ("observacion", "Observación"),
     ]
     ESTADOS = [
-        ("abierta",     "Abierta"),
+        ("abierta", "Abierta"),
         ("en_atencion", "En atención"),
-        ("cerrada",     "Cerrada"),
-        ("rechazada",   "Rechazada"),
+        ("cerrada", "Cerrada"),
+        ("rechazada", "Rechazada"),
     ]
     id_novedad = models.BigAutoField(primary_key=True)
 
@@ -173,11 +174,13 @@ class Novedad(models.Model):
     reportado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="novedades_reportadas"
     )
+
     class Meta:
         db_table = "novedad"
         permissions = (("registrar_novedad", "Puede registrar novedades"),)
         ordering = ["-fecha_generada"]
         indexes = [models.Index(fields=["estado"]), models.Index(fields=["tipo"])]
+
     def __str__(self):
         return f"Novedad #{self.id_novedad} - {self.tipo} ({self.estado})"
 
@@ -193,31 +196,35 @@ class Novedad(models.Model):
 
 class Seguimiento(models.Model):
     ESTADOS = [
-        ("pendiente",  "Pendiente"),
+        ("pendiente", "Pendiente"),
         ("respondida", "Respondida"),
-        ("escalado",   "Escalado"),
+        ("escalado", "Escalado"),
     ]
     id_seguimiento = models.BigAutoField(primary_key=True)
     novedad = models.ForeignKey(Novedad, on_delete=models.CASCADE, related_name="seguimientos")
     atendido_por = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
         related_name="seguimientos_atendidos",
     )
     fecha_seguimiento = models.DateTimeField(auto_now_add=True)
     comentario = models.TextField()
     estado = models.CharField(max_length=15, choices=ESTADOS, default="pendiente")
+
     class Meta:
         db_table = "seguimiento"
         permissions = (("responder_seguimiento", "Puede responder seguimientos"),)
         ordering = ["-fecha_seguimiento"]
+
     def __str__(self):
         return f"Seguimiento #{self.id_seguimiento} de Novedad {self.novedad_id}"
 
 
 class RespuestaSeguimiento(models.Model):
     ESTADOS = [
-        ("aceptada",   "Aceptada"),
-        ("rechazada",  "Rechazada"),
+        ("aceptada", "Aceptada"),
+        ("rechazada", "Rechazada"),
         ("en_gestion", "En gestión"),
     ]
     id_respuesta = models.BigAutoField(primary_key=True)
@@ -230,8 +237,10 @@ class RespuestaSeguimiento(models.Model):
     fecha_respuesta = models.DateTimeField(auto_now_add=True)
     texto = models.TextField()
     estado = models.CharField(max_length=15, choices=ESTADOS, default="aceptada")
+
     class Meta:
         db_table = "respuesta_seguimiento"
         ordering = ["-fecha_respuesta"]
+
     def __str__(self):
         return f"Respuesta a {self.seguimiento}"

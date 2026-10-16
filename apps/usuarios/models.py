@@ -6,20 +6,21 @@ from pathlib import Path
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
-from django.core.validators import FileExtensionValidator
-from django.core.validators import (MaxValueValidator, MinValueValidator,
-                                    RegexValidator)
+from django.core.validators import (
+    FileExtensionValidator,
+    RegexValidator,
+)
 from django.db import models, transaction
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils.timezone import now
 
 logger = logging.getLogger(__name__)
+
 
 def foto_perfil_upload_path(instance, filename):
     extension = Path(filename or "avatar.jpg").suffix.lower() or ".jpg"
     user_segment = instance.pk if instance and instance.pk is not None else "nuevo"
     return f"perfiles/usuarios/usuario_{user_segment}/{uuid.uuid4().hex}{extension}"
+
 
 def validar_fecha_no_pasada(value):
     today = now().date()
@@ -28,10 +29,10 @@ def validar_fecha_no_pasada(value):
     if value and value < today:
         raise ValidationError("La fecha no puede ser en el pasado.")
 
+
 numeric_and_space_validator = RegexValidator(
     regex=r"^[0-9\s]*$", message="Solo se admiten números y espacios.", code="invalid_numeric_space"
 )
-
 
 
 # =====================================================================
@@ -86,12 +87,21 @@ class Usuario(AbstractUser):
     sincronizado = models.BooleanField(default=False)
 
     objects = UsuarioManager()
-    
+
     # Bloqueo por intentos fallidos
     intentos_fallidos = models.IntegerField(default=0, help_text="Número de intentos fallidos de inicio de sesión")
     bloqueado_hasta = models.DateTimeField(null=True, blank=True, help_text="Fecha y hora hasta la que está bloqueado el usuario")
     nivel_bloqueo = models.IntegerField(default=0, help_text="0: sin bloqueo, 1: 5 minutos, 2: 24 horas")
     session_version = models.PositiveIntegerField(default=0, help_text="Versión de sesión para invalidar sesiones activas")
+    intentos_fallidos = models.IntegerField(
+        default=0, help_text="Número de intentos fallidos de inicio de sesión"
+    )
+    bloqueado_hasta = models.DateTimeField(
+        null=True, blank=True, help_text="Fecha y hora hasta la que está bloqueado el usuario"
+    )
+    nivel_bloqueo = models.IntegerField(
+        default=0, help_text="0: sin bloqueo, 1: 5 minutos, 2: 24 horas"
+    )
 
     class Meta:
         db_table = "usuario"
@@ -150,8 +160,16 @@ class Usuario(AbstractUser):
     @property
     def color_avatar(self):
         colores = [
-            "#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6",
-            "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1",
+            "#3B82F6",
+            "#EF4444",
+            "#10B981",
+            "#F59E0B",
+            "#8B5CF6",
+            "#EC4899",
+            "#06B6D4",
+            "#84CC16",
+            "#F97316",
+            "#6366F1",
         ]
         return colores[self.id % len(colores)] if self.id else colores[0]
 
@@ -159,6 +177,7 @@ class Usuario(AbstractUser):
         """Crea o devuelve el perfil asociado al rol del usuario."""
         if self.rol == "cliente":
             from apps.clientes.models import Cliente
+
             return Cliente.ensure_for_user(self, using=using)
         if self.rol == "conductor":
             return Conductor.ensure_for_user(self, using=using)
@@ -182,7 +201,10 @@ class Usuario(AbstractUser):
 
     @property
     def es_superadmin(self):
-        from config.superadmin_lock import (es_superadmin_global,)
+        from config.superadmin_lock import (
+            es_superadmin_global,
+        )
+
         return es_superadmin_global(self)
 
     @property
@@ -212,6 +234,7 @@ class Usuario(AbstractUser):
     def esta_bloqueado(self):
         """Verifica si el usuario está bloqueado actualmente."""
         from django.utils import timezone
+
         if self.bloqueado_hasta and timezone.now() < self.bloqueado_hasta:
             return True
         return False
@@ -219,6 +242,7 @@ class Usuario(AbstractUser):
     def registrar_intento_fallido(self):
         """Registra un intento fallido y bloquea el usuario si es necesario."""
         from django.utils import timezone
+
         self.intentos_fallidos += 1
         if self.intentos_fallidos >= 3 and self.nivel_bloqueo < 1:
             self.nivel_bloqueo = 1
@@ -245,6 +269,7 @@ class Usuario(AbstractUser):
     def obtener_tiempo_restante_bloqueo(self):
         """Devuelve el tiempo restante de bloqueo en un formato legible."""
         from django.utils import timezone
+
         if not self.esta_bloqueado():
             return None
         tiempo_restante = self.bloqueado_hasta - timezone.now()
@@ -294,7 +319,9 @@ class Usuario(AbstractUser):
                         defaults={"activo": True},
                     )
             except IntegrityError as exc:
-                logger.warning("Conflicto de integridad sincronizando rol de usuario %s: %s", self.pk, exc)
+                logger.warning(
+                    "Conflicto de integridad sincronizando rol de usuario %s: %s", self.pk, exc
+                )
             except DatabaseError as exc:
                 logger.error("Fallo de BD sincronizando rol de usuario %s: %s", self.pk, exc)
 
@@ -385,7 +412,9 @@ class Conductor(models.Model):
         db_alias = using or getattr(getattr(user, "_state", None), "db", None) or "default"
         user_for_profile = cls._resolve_user_for_db(user, db_alias)
         if user_for_profile is None:
-            raise ValueError("No fue posible resolver un usuario válido para el perfil de conductor.")
+            raise ValueError(
+                "No fue posible resolver un usuario válido para el perfil de conductor."
+            )
 
         profile_defaults = {
             "numero_licencia": f"PEND-{user_for_profile.pk}",
@@ -445,6 +474,7 @@ class Conductor(models.Model):
     @property
     def asignacion_actual(self):
         from apps.logistica.models import ConductorVehiculo
+
         if hasattr(self, "asignaciones_activas"):
             return self.asignaciones_activas[0] if self.asignaciones_activas else None
         return (
@@ -461,11 +491,14 @@ class Conductor(models.Model):
 
     def asignar_vehiculo(self, vehiculo):
         from apps.logistica.models import ConductorVehiculo
+
         if vehiculo is None:
             raise ValueError("El vehículo no puede ser None para la asignación.")
         if self.vehiculo_actual and self.vehiculo_actual.id_vehiculo == vehiculo.id_vehiculo:
             return self.vehiculo_actual
-        ConductorVehiculo.objects.filter(conductor=self, fecha_fin__isnull=True).update(fecha_fin=now())
+        ConductorVehiculo.objects.filter(conductor=self, fecha_fin__isnull=True).update(
+            fecha_fin=now()
+        )
         nueva_asignacion = ConductorVehiculo.objects.create(conductor=self, vehiculo=vehiculo)
         return nueva_asignacion
 

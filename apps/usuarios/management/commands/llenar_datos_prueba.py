@@ -103,7 +103,7 @@ class Command(BaseCommand):
             unidad, _ = UnidadMedida.objects.using(self.DB_ALIAS).get_or_create(
                 codigo="UN", defaults={"nombre": "Unidad", "abreviatura": "un"}
             )
-        except:
+        except Exception:
             # If UnidadMedida doesn't exist, we might need to skip, but let's try to get any!
             unidad = UnidadMedida.objects.using(self.DB_ALIAS).first()
             if not unidad:
