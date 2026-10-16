@@ -40,25 +40,31 @@ class Migration(migrations.Migration):
                 'permissions': (('ver_facturacion', 'Puede ver el módulo de facturación'), ('emitir_factura', 'Puede emitir facturas'), ('registrar_pago_admin', 'Puede registrar un pago en nombre del cliente')),
             },
         ),
-        migrations.CreateModel(
-            name='Pago',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('metodo', models.CharField(choices=[('nequi', 'Nequi'), ('daviplata', 'DaviPlata'), ('bancolombia', 'Bancolombia'), ('contraentrega', 'Contraentrega')], db_column='codigo_metodo_pago', max_length=20)),
-                ('monto', models.DecimalField(decimal_places=2, max_digits=12, validators=[django.core.validators.MinValueValidator(0)])),
-                ('comprobante', models.FileField(blank=True, db_column='comprobante', null=True, upload_to=apps.pagos.models.comprobante_upload_to)),
-                ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('aprobado', 'Aprobado'), ('rechazado', 'Rechazado')], db_column='estado_pago', default='pendiente', max_length=20)),
-                ('fecha_registro', models.DateTimeField(auto_now_add=True, db_column='fecha_creacion')),
-                ('fecha_revision', models.DateTimeField(blank=True, db_column='fecha_actualizacion', null=True)),
-                ('observaciones', models.TextField(blank=True, db_column='motivo_rechazo')),
-                ('pedido', models.OneToOneField(db_column='pedido_id', on_delete=django.db.models.deletion.CASCADE, related_name='pago', to='pedidos.pedido')),
-                ('revisado_por', models.ForeignKey(blank=True, db_column='revisado_por_id', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='pagos_revisados', to=settings.AUTH_USER_MODEL)),
+        # pedidos.0001 already creates the shared pago_pedido table.
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.CreateModel(
+                    name='Pago',
+                    fields=[
+                        ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                        ('metodo', models.CharField(choices=[('nequi', 'Nequi'), ('daviplata', 'DaviPlata'), ('bancolombia', 'Bancolombia'), ('contraentrega', 'Contraentrega')], db_column='codigo_metodo_pago', max_length=20)),
+                        ('monto', models.DecimalField(decimal_places=2, max_digits=12, validators=[django.core.validators.MinValueValidator(0)])),
+                        ('comprobante', models.FileField(blank=True, db_column='comprobante', null=True, upload_to=apps.pagos.models.comprobante_upload_to)),
+                        ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('aprobado', 'Aprobado'), ('rechazado', 'Rechazado')], db_column='estado_pago', default='pendiente', max_length=20)),
+                        ('fecha_registro', models.DateTimeField(auto_now_add=True, db_column='fecha_creacion')),
+                        ('fecha_revision', models.DateTimeField(blank=True, db_column='fecha_actualizacion', null=True)),
+                        ('observaciones', models.TextField(blank=True, db_column='motivo_rechazo')),
+                        ('pedido', models.OneToOneField(db_column='pedido_id', on_delete=django.db.models.deletion.CASCADE, related_name='pago', to='pedidos.pedido')),
+                        ('revisado_por', models.ForeignKey(blank=True, db_column='revisado_por_id', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='pagos_revisados', to=settings.AUTH_USER_MODEL)),
+                    ],
+                    options={
+                        'db_table': 'pago_pedido',
+                        'ordering': ['-fecha_registro'],
+                        'permissions': (('revisar_pago', 'Puede revisar y aprobar o rechazar pagos'), ('registrar_pago', 'Puede registrar un pago')),
+                    },
+                ),
             ],
-            options={
-                'db_table': 'pago_pedido',
-                'ordering': ['-fecha_registro'],
-                'permissions': (('revisar_pago', 'Puede revisar y aprobar o rechazar pagos'), ('registrar_pago', 'Puede registrar un pago')),
-            },
         ),
         migrations.CreateModel(
             name='DetallePago',

@@ -86,42 +86,53 @@ class Migration(migrations.Migration):
                 'ordering': ['-fecha_respuesta'],
             },
         ),
-        migrations.CreateModel(
-            name='Vehiculo',
-            fields=[
-                ('id_vehiculo', models.AutoField(primary_key=True, serialize=False)),
-                ('placa', models.CharField(max_length=10, unique=True)),
-                ('marca', models.CharField(max_length=50)),
-                ('modelo', models.CharField(max_length=50)),
-                ('tipo_vehiculo', models.CharField(max_length=50)),
-                ('capacidad_carga', models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(0.01)])),
-                ('fecha_registro', models.DateTimeField(auto_now_add=True)),
-                ('estado', models.CharField(choices=[('disponible', 'Disponible'), ('en_ruta', 'En Ruta'), ('mantenimiento', 'Mantenimiento'), ('fuera_de_servicio', 'Fuera de Servicio')], default='disponible', max_length=20)),
-                ('sincronizado', models.BooleanField(default=False)),
-                ('catalogo', models.ForeignKey(blank=True, db_column='codigo_catalogo', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='vehiculos', to='catalogo.catalogo')),
+        # These tables were created by usuarios and are reused by logistica.
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.CreateModel(
+                    name='Vehiculo',
+                    fields=[
+                        ('id_vehiculo', models.AutoField(primary_key=True, serialize=False)),
+                        ('placa', models.CharField(max_length=10, unique=True)),
+                        ('marca', models.CharField(max_length=50)),
+                        ('modelo', models.CharField(max_length=50)),
+                        ('tipo_vehiculo', models.CharField(max_length=50)),
+                        ('capacidad_carga', models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(0.01)])),
+                        ('fecha_registro', models.DateTimeField(auto_now_add=True)),
+                        ('estado', models.CharField(choices=[('disponible', 'Disponible'), ('en_ruta', 'En Ruta'), ('mantenimiento', 'Mantenimiento'), ('fuera_de_servicio', 'Fuera de Servicio')], default='disponible', max_length=20)),
+                        ('sincronizado', models.BooleanField(default=False)),
+                        ('catalogo', models.ForeignKey(blank=True, db_column='codigo_catalogo', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='vehiculos', to='catalogo.catalogo')),
+                    ],
+                    options={
+                        'db_table': 'vehiculo',
+                    },
+                ),
             ],
-            options={
-                'db_table': 'vehiculo',
-            },
         ),
         migrations.AddField(
             model_name='entrega',
             name='vehiculo',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='entregas', to='logistica.vehiculo'),
         ),
-        migrations.CreateModel(
-            name='ConductorVehiculo',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('fecha_asignacion', models.DateTimeField(auto_now_add=True)),
-                ('fecha_fin', models.DateTimeField(blank=True, null=True)),
-                ('conductor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='asignaciones_vehiculo', to='usuarios.conductor')),
-                ('vehiculo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='asignaciones_conductor', to='logistica.vehiculo')),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.CreateModel(
+                    name='ConductorVehiculo',
+                    fields=[
+                        ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                        ('fecha_asignacion', models.DateTimeField(auto_now_add=True)),
+                        ('fecha_fin', models.DateTimeField(blank=True, null=True)),
+                        ('conductor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='asignaciones_vehiculo', to='usuarios.conductor')),
+                        ('vehiculo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='asignaciones_conductor', to='logistica.vehiculo')),
+                    ],
+                    options={
+                        'db_table': 'conductor_vehiculo',
+                        'ordering': ['-fecha_asignacion'],
+                    },
+                ),
             ],
-            options={
-                'db_table': 'conductor_vehiculo',
-                'ordering': ['-fecha_asignacion'],
-            },
         ),
         migrations.AddIndex(
             model_name='novedad',
@@ -131,12 +142,22 @@ class Migration(migrations.Migration):
             model_name='novedad',
             index=models.Index(fields=['tipo'], name='novedad_tipo_10af70_idx'),
         ),
-        migrations.AddConstraint(
-            model_name='vehiculo',
-            constraint=models.CheckConstraint(condition=models.Q(('capacidad_carga__gt', 0)), name='chk_vehiculo_capacidad_carga_gt_0'),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.AddConstraint(
+                    model_name='vehiculo',
+                    constraint=models.CheckConstraint(condition=models.Q(('capacidad_carga__gt', 0)), name='chk_vehiculo_capacidad_carga_gt_0'),
+                ),
+            ],
         ),
-        migrations.AlterUniqueTogether(
-            name='conductorvehiculo',
-            unique_together={('conductor', 'vehiculo', 'fecha_asignacion')},
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.AlterUniqueTogether(
+                    name='conductorvehiculo',
+                    unique_together={('conductor', 'vehiculo', 'fecha_asignacion')},
+                ),
+            ],
         ),
     ]

@@ -7,6 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('pedidos', '0001_initial'),
+        ('pagos', '0001_initial'),
     ]
 
     operations = [
@@ -40,7 +41,13 @@ class Migration(migrations.Migration):
             name='subtotal',
             field=models.DecimalField(decimal_places=2, default=0, max_digits=12),
         ),
-        migrations.DeleteModel(
-            name='Pago',
+        # Pago moved to pagos; retain its table when removing the legacy model state.
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.DeleteModel(
+                    name='Pago',
+                ),
+            ],
         ),
     ]

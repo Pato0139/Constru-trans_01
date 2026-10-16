@@ -11,6 +11,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # These models have moved to other apps; removing their state must not drop shared tables.
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
         migrations.RemoveField(
             model_name='materialconstruccion',
             name='catalogo',
@@ -77,5 +81,7 @@ class Migration(migrations.Migration):
         ),
         migrations.DeleteModel(
             name='Stock',
+        ),
+            ],
         ),
     ]

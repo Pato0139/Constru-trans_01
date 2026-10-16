@@ -13,6 +13,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # proveedor is an existing shared table; these operations transfer its migration state.
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
         migrations.CreateModel(
             name='Proveedor',
             fields=[
@@ -54,5 +58,7 @@ class Migration(migrations.Migration):
             model_name='proveedormaterial',
             name='proveedor',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='materiales_ofertados', to='compras.proveedor'),
+        ),
+            ],
         ),
     ]
