@@ -13,27 +13,35 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='Proveedor',
-            fields=[
-                ('codigo_proveedor', models.AutoField(primary_key=True, serialize=False)),
-                ('nombre_empresa', models.CharField(max_length=150)),
-                ('nit', models.CharField(max_length=20, unique=True, validators=[django.core.validators.RegexValidator('^[0-9 ]+$', message='Este campo solo puede contener números y espacios.')])),
-                ('contacto_nombre', models.CharField(blank=True, max_length=150)),
-                ('telefono', models.CharField(max_length=20, validators=[django.core.validators.RegexValidator('^[0-9 ]+$', message='Este campo solo puede contener números y espacios.')])),
-                ('correo', models.EmailField(blank=True, max_length=254)),
-                ('direccion', models.CharField(blank=True, max_length=255)),
-                ('ciudad', models.CharField(blank=True, max_length=100)),
-                ('categoria', models.CharField(blank=True, default='General', max_length=100)),
-                ('descripcion', models.TextField(blank=True)),
-                ('activo', models.BooleanField(default=True)),
-                ('fecha_registro', models.DateTimeField(auto_now_add=True)),
-                ('sincronizado', models.BooleanField(default=False)),
+        # La tabla 'proveedor' ya fue creada por las migraciones legacy de 'usuarios'
+        # (0001, 0004, 0005) con las mismas columnas. Se adopta aquí a nivel de estado
+        # para no duplicar el DDL en bases nuevas.
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.CreateModel(
+                    name='Proveedor',
+                    fields=[
+                        ('codigo_proveedor', models.AutoField(primary_key=True, serialize=False)),
+                        ('nombre_empresa', models.CharField(max_length=150)),
+                        ('nit', models.CharField(max_length=20, unique=True, validators=[django.core.validators.RegexValidator('^[0-9 ]+$', message='Este campo solo puede contener números y espacios.')])),
+                        ('contacto_nombre', models.CharField(blank=True, max_length=150)),
+                        ('telefono', models.CharField(max_length=20, validators=[django.core.validators.RegexValidator('^[0-9 ]+$', message='Este campo solo puede contener números y espacios.')])),
+                        ('correo', models.EmailField(blank=True, max_length=254)),
+                        ('direccion', models.CharField(blank=True, max_length=255)),
+                        ('ciudad', models.CharField(blank=True, max_length=100)),
+                        ('categoria', models.CharField(blank=True, default='General', max_length=100)),
+                        ('descripcion', models.TextField(blank=True)),
+                        ('activo', models.BooleanField(default=True)),
+                        ('fecha_registro', models.DateTimeField(auto_now_add=True)),
+                        ('sincronizado', models.BooleanField(default=False)),
+                    ],
+                    options={
+                        'verbose_name_plural': 'Proveedores',
+                        'db_table': 'proveedor',
+                    },
+                ),
             ],
-            options={
-                'verbose_name_plural': 'Proveedores',
-                'db_table': 'proveedor',
-            },
         ),
         migrations.AlterField(
             model_name='detallecompra',

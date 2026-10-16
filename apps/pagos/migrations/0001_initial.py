@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('clientes', '0003_cliente_gasto_acumulado'),
-        ('pedidos', '__first__'),
+        ('pedidos', '0002_detallepedido_subtotal_pedido_descuento_and_more'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
