@@ -1,8 +1,17 @@
 from django.contrib import admin
 
-from .models import (Catalogo, ConteoItem, HistorialPrecioMaterial,
-                     LoteMaterial, Marca, MaterialConstruccion,
-                     MovimientoInventario, SesionConteo, Stock, UnidadMedida)
+from .models import (
+    Catalogo,
+    ConteoItem,
+    HistorialPrecioMaterial,
+    LoteMaterial,
+    Marca,
+    MaterialConstruccion,
+    MovimientoInventario,
+    SesionConteo,
+    Stock,
+    UnidadMedida,
+)
 
 
 @admin.register(Catalogo)

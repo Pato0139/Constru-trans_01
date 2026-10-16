@@ -105,7 +105,12 @@ class DetalleCompraForm(forms.ModelForm):
             "material": forms.Select(attrs={"class": "form-control select2 material-select"}),
             "cantidad": forms.NumberInput(attrs={"class": "form-control cantidad-input", "min": 1}),
             "precio_unitario": forms.NumberInput(
-                attrs={"class": "form-control precio-input", "step": "0.01", "min": 0, "readonly": True}
+                attrs={
+                    "class": "form-control precio-input",
+                    "step": "0.01",
+                    "min": 0,
+                    "readonly": True,
+                }
             ),
         }
 

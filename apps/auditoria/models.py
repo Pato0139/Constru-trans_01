@@ -25,9 +25,7 @@ class Historial(models.Model):
     )
     accion = models.CharField(max_length=20, choices=ACCIONES, verbose_name="Acción")
     tabla = models.CharField(max_length=50, blank=True, null=True, verbose_name="Tabla")
-    registro_id = models.IntegerField(
-        blank=True, null=True, verbose_name="ID del Registro"
-    )
+    registro_id = models.IntegerField(blank=True, null=True, verbose_name="ID del Registro")
     fecha = models.DateTimeField(default=now, verbose_name="Fecha")
     ip = models.GenericIPAddressField(null=True, blank=True, verbose_name="Dirección IP")
 
@@ -36,7 +34,9 @@ class Historial(models.Model):
     modulo = models.CharField(max_length=50, blank=True, null=True, verbose_name="Módulo")
     elemento_id = models.CharField(max_length=50, blank=True, null=True, verbose_name="ID Legacy")
     descripcion = models.TextField(blank=True, null=True, verbose_name="Descripción detallada")
-    fecha_hora = models.DateTimeField(default=now, blank=True, null=True, verbose_name="Fecha y Hora")
+    fecha_hora = models.DateTimeField(
+        default=now, blank=True, null=True, verbose_name="Fecha y Hora"
+    )
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP Legacy")
 
     class Meta:

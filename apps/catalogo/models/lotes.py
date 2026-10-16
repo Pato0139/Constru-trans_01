@@ -23,7 +23,9 @@ class LoteMaterial(models.Model):
     )
     cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     fecha_entrada = models.DateTimeField(auto_now_add=True)
-    fecha_vencimiento = models.DateField(null=True, blank=True, db_index=True, validators=[validar_fecha_no_pasada])
+    fecha_vencimiento = models.DateField(
+        null=True, blank=True, db_index=True, validators=[validar_fecha_no_pasada]
+    )
     activo = models.BooleanField(default=True)
 
     class Meta:

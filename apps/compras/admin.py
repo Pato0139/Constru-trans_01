@@ -11,7 +11,15 @@ class DetalleCompraInline(admin.TabularInline):
 
 @admin.register(Proveedor)
 class ProveedorAdmin(admin.ModelAdmin):
-    list_display = ("codigo_proveedor", "nombre_empresa", "nit", "contacto_nombre", "telefono", "ciudad", "activo")
+    list_display = (
+        "codigo_proveedor",
+        "nombre_empresa",
+        "nit",
+        "contacto_nombre",
+        "telefono",
+        "ciudad",
+        "activo",
+    )
     list_filter = ("activo", "ciudad", "categoria")
     search_fields = ("nombre_empresa", "nit", "contacto_nombre", "correo")
     readonly_fields = ("fecha_registro", "codigo_proveedor")

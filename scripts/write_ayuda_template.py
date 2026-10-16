@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Write the improved ayuda.html template
-content = r'''{% extends "base.html" %}
+content = r"""{% extends "base.html" %}
 
 {% block title %}Centro de Ayuda - Constru-trans{% endblock %}
 
@@ -292,8 +292,10 @@ content = r'''{% extends "base.html" %}
   });
 </script>
 {% endblock %}
-'''
+"""
 
-with open('/c/Users/edwar/OneDrive/Desktop/Constru-trans_01/templates/ayuda.html', 'w', encoding='utf-8') as f:
+with open(
+    "/c/Users/edwar/OneDrive/Desktop/Constru-trans_01/templates/ayuda.html", "w", encoding="utf-8"
+) as f:
     f.write(content)
 print("Written: /c/Users/edwar/OneDrive/Desktop/Constru-trans_01/templates/ayuda.html")

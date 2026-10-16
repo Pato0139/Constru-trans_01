@@ -1,4 +1,5 @@
 """Memoria portable de pares pregunta/respuesta destilados."""
+
 import hashlib
 import json
 import logging
@@ -53,7 +54,13 @@ def leer_pares() -> list:
 
 
 def guardar_par(pregunta: str, respuesta: str, fuente: str, metadata: dict | None = None) -> dict:
-    registro = {"id": hash_pregunta(pregunta), "pregunta": pregunta.strip(), "respuesta": respuesta.strip(), "fuente": fuente, "metadata": metadata or {}}
+    registro = {
+        "id": hash_pregunta(pregunta),
+        "pregunta": pregunta.strip(),
+        "respuesta": respuesta.strip(),
+        "fuente": fuente,
+        "metadata": metadata or {},
+    }
     DISTIL_DIR.mkdir(parents=True, exist_ok=True)
     with DISTIL_JSONL.open("a", encoding="utf-8") as archivo:
         archivo.write(json.dumps(registro, ensure_ascii=False) + "\n")
@@ -70,7 +77,9 @@ def indexar_par(registro: dict) -> bool:
     except ImportError:
         return False
     try:
-        model = os.getenv("EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+        model = os.getenv(
+            "EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+        )
         client = chromadb.PersistentClient(path=str(DISTIL_DIR / "chroma"))
         embeddings = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=model)
         collection = client.get_or_create_collection(COLECCION, embedding_function=embeddings)
@@ -106,7 +115,10 @@ def _buscar_chroma(pregunta: str) -> str:
     try:
         import chromadb
         from chromadb.utils import embedding_functions
-        model = os.getenv("EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+
+        model = os.getenv(
+            "EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+        )
         client = chromadb.PersistentClient(path=str(DISTIL_DIR / "chroma"))
         embeddings = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=model)
         collection = client.get_or_create_collection(COLECCION, embedding_function=embeddings)

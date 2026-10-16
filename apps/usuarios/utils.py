@@ -1,13 +1,6 @@
 import re
 
 
-def limpiar_documento(documento):
-    """Normaliza un documento: elimina espacios y caracteres no numéricos."""
-    if not documento:
-        return documento
-    return re.sub(r"[^0-9]", "", str(documento))
-
-
 def limpiar_telefono(telefono):
     """Limpia el numero de telefono: quita espacios y caracteres especiales"""
     if not telefono:

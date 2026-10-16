@@ -5,20 +5,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('catalogo', '0002_movimientoinventario'),
+        ("catalogo", "0002_movimientoinventario"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='materialconstruccion',
-            name='estado',
-            field=models.CharField(choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')], default='activo', help_text='Estado del producto en el catálogo', max_length=20),
+            model_name="materialconstruccion",
+            name="estado",
+            field=models.CharField(
+                choices=[("activo", "Activo"), ("inactivo", "Inactivo")],
+                default="activo",
+                help_text="Estado del producto en el catálogo",
+                max_length=20,
+            ),
         ),
         migrations.AddField(
-            model_name='materialconstruccion',
-            name='stock',
-            field=models.IntegerField(default=0, help_text='Cantidad disponible (se sincroniza con el registro de Stock)', validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(100000)]),
+            model_name="materialconstruccion",
+            name="stock",
+            field=models.IntegerField(
+                default=0,
+                help_text="Cantidad disponible (se sincroniza con el registro de Stock)",
+                validators=[
+                    django.core.validators.MinValueValidator(0),
+                    django.core.validators.MaxValueValidator(100000),
+                ],
+            ),
         ),
     ]

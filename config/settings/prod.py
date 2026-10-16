@@ -1,6 +1,7 @@
-from .base import *  # noqa: F401,F403
 import os
 from urllib.parse import urlparse
+
+from .base import *  # noqa: F401,F403
 
 DEBUG = False
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
@@ -30,8 +31,13 @@ if _db_url:
                 "postgresql": "django.db.backends.postgresql",
                 "mysql": "django.db.backends.mysql",
                 "sqlite": "django.db.backends.sqlite3",
-            }.get(u.scheme.replace("+psycopg2","").replace("+pymysql",""), "django.db.backends.sqlite3"),
-            "NAME": u.path.lstrip("/") if u.scheme.startswith("sqlite") else (u.hostname and u.path.lstrip("/")),
+            }.get(
+                u.scheme.replace("+psycopg2", "").replace("+pymysql", ""),
+                "django.db.backends.sqlite3",
+            ),
+            "NAME": u.path.lstrip("/")
+            if u.scheme.startswith("sqlite")
+            else (u.hostname and u.path.lstrip("/")),
             "USER": "" if u.scheme.startswith("sqlite") else (u.username or ""),
             "PASSWORD": "" if u.scheme.startswith("sqlite") else (u.password or ""),
             "HOST": "" if u.scheme.startswith("sqlite") else (u.hostname or ""),
@@ -43,7 +49,7 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.sqlite3"),
-            "NAME": os.getenv("DB_NAME", str(BASE_DIR / "db.sqlite3")),
+            "NAME": os.getenv("DB_NAME", str(BASE_DIR / "db.sqlite3")),  # noqa: F405
             "USER": os.getenv("DB_USER", ""),
             "PASSWORD": os.getenv("DB_PASSWORD", ""),
             "HOST": os.getenv("DB_HOST", ""),
@@ -54,7 +60,8 @@ else:
 # Estáticos: WhiteNoise si está instalado
 try:
     import whitenoise  # noqa: F401
-    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")  # noqa: F405
     STORAGES = {
         "staticfiles": {
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

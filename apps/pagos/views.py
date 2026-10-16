@@ -8,15 +8,19 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from config.utils import registrar_actividad
-from config.security import (role_required, _respuesta_no_autorizada,
-                             obtener_ip, registrar_evento, registrar_warning)
-from apps.usuarios.views import admin_required
-
-from apps.pagos.models import Factura, PagoFactura
+from apps.pagos.models import Factura, Pago, PagoFactura
 from apps.pagos.pdf import render_factura_pdf
 from apps.pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
-from apps.pedidos.models import Pago, Pedido
+from apps.pedidos.models import Pedido
+from apps.usuarios.views import admin_required
+from config.security import (
+    _respuesta_no_autorizada,
+    obtener_ip,
+    registrar_evento,
+    registrar_warning,
+    role_required,
+)
+from config.utils import registrar_actividad
 
 
 def _usuario_actual(request):
@@ -55,10 +59,9 @@ def lista_pagos(request):
     estado = request.GET.get("estado", "").strip()
     metodo = request.GET.get("metodo", "").strip()
 
-    pagos = (
-        Pago.objects.select_related("pedido", "pedido__usuario", "pedido__cliente", "revisado_por")
-        .order_by("-fecha_registro")
-    )
+    pagos = Pago.objects.select_related(
+        "pedido", "pedido__usuario", "pedido__cliente", "revisado_por"
+    ).order_by("-fecha_registro")
 
     if getattr(usuario, "rol", "") == "cliente":
         pagos = pagos.filter(Q(pedido__usuario=usuario) | Q(pedido__cliente__usuario=usuario))
@@ -279,6 +282,7 @@ def revisar_pago_pedido(request, pk):
 # Consolidado desde la app de facturacion (ahora dentro de pagos)
 # ======================
 
+
 @admin_required
 def registrar_pago(request, pk):
     factura = get_object_or_404(Factura, pk=pk)
@@ -326,28 +330,28 @@ def registrar_pago(request, pk):
 @role_required(["cliente"])
 def mis_facturas(request):
     usuario = _usuario_actual(request)
-    facturas = Factura.objects.select_related("pedido").filter(
-        cliente__usuario=usuario
-    ).order_by("-fecha_emision")
-    return render(
-        request, "pagos/mis_facturas.html", {"facturas": facturas}
+    facturas = (
+        Factura.objects.select_related("pedido")
+        .filter(cliente__usuario=usuario)
+        .order_by("-fecha_emision")
     )
+    return render(request, "pagos/mis_facturas.html", {"facturas": facturas})
 
 
 @role_required(["cliente"])
 def mis_pagos(request):
     usuario = _usuario_actual(request)
-    pagos = PagoFactura.objects.select_related("factura__pedido").filter(
-        factura__cliente__usuario=usuario
-    ).order_by("-fecha_registro")
+    pagos = (
+        PagoFactura.objects.select_related("factura__pedido")
+        .filter(factura__cliente__usuario=usuario)
+        .order_by("-fecha_registro")
+    )
     return render(request, "pagos/mis_pagos.html", {"pagos": pagos})
 
 
 @role_required(["admin", "cliente"])
 def detalle_factura(request, pk):
-    factura = get_object_or_404(
-        Factura.objects.select_related("pedido", "cliente__usuario"), pk=pk
-    )
+    factura = get_object_or_404(Factura.objects.select_related("pedido", "cliente__usuario"), pk=pk)
     usuario = _usuario_actual(request)
     es_cliente = getattr(usuario, "rol", "") == "cliente"
     if es_cliente and factura.cliente.usuario_id != usuario.pk:
@@ -384,9 +388,7 @@ def revisar_pago(request, pk, pago_id):
     accion = request.POST.get("accion")
     if request.method == "POST" and accion in ("aprobar", "rechazar"):
         pago.estado = (
-            PagoFactura.Estado.APROBADO
-            if accion == "aprobar"
-            else PagoFactura.Estado.RECHAZADO
+            PagoFactura.Estado.APROBADO if accion == "aprobar" else PagoFactura.Estado.RECHAZADO
         )
         pago.revisado_por = request.user
         pago.fecha_revision = timezone.now()

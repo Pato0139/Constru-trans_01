@@ -48,9 +48,7 @@ class AdminRoleAccessTests(SimpleTestCase):
 
     def test_business_admin_gets_regular_model_permissions(self):
         self.assertTrue(
-            self.backend.has_perm(
-                self.admin_user, "catalogo.change_materialconstruccion"
-            )
+            self.backend.has_perm(self.admin_user, "catalogo.change_materialconstruccion")
         )
 
     def test_permission_backend_grants_only_non_sensitive_model_access(self):
@@ -111,6 +109,4 @@ class AdminRoleAccessTests(SimpleTestCase):
             rol="cliente",
         )
 
-        self.assertFalse(
-            self.backend.has_perm(user, "catalogo.change_materialconstruccion")
-        )
+        self.assertFalse(self.backend.has_perm(user, "catalogo.change_materialconstruccion"))

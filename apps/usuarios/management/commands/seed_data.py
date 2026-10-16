@@ -11,11 +11,11 @@ from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
 from apps.clientes.models import Cliente, crear_perfil_cliente
 from apps.compras.models import Proveedor
-from config.routers import EnrutadorInventario
-from config.utils import conexion_remota_disponible
 from apps.logistica.models import ConductorVehiculo, Entrega, Vehiculo
 from apps.pedidos.models import DetallePedido, Pedido
 from apps.usuarios.models import EPS, Conductor, Usuario
+from config.routers import EnrutadorInventario
+from config.utils import conexion_remota_disponible
 
 DEFAULT_PASSWORD = "davit12345"
 _router = EnrutadorInventario()
@@ -274,7 +274,7 @@ class Command(BaseCommand):
                 p_cond,
                 using=db_alias,
                 defaults={
-                    "numero_licencia": f'LIC-{c_data["doc"]}',
+                    "numero_licencia": f"LIC-{c_data['doc']}",
                     "categoria_licencia": "C2",
                     "fecha_vencimiento_licencia": date.today() + timedelta(days=365),
                     "estado": "activo",
@@ -300,7 +300,7 @@ class Command(BaseCommand):
             )
 
             conductores_creados.append(cond_profile)
-            self.stdout.write(f'Conductor {p_cond.nombres} y Vehiculo {c_data["placa"]} listos.')
+            self.stdout.write(f"Conductor {p_cond.nombres} y Vehiculo {c_data['placa']} listos.")
 
         # 5. Clientes y pedidos
         clientes_data = [
@@ -357,7 +357,7 @@ class Command(BaseCommand):
 
             if not force_pedidos and Pedido.objects.using(db_alias).filter(usuario=p_cl).exists():
                 self.stdout.write(
-                    f'Cliente {cl_data["empresa"]}: ya tiene pedidos (use --force-pedidos para duplicar).'
+                    f"Cliente {cl_data['empresa']}: ya tiene pedidos (use --force-pedidos para duplicar)."
                 )
                 continue
 
@@ -366,7 +366,7 @@ class Command(BaseCommand):
                 pedido = Pedido.objects.using(db_alias).create(
                     usuario=p_cl,
                     cliente=cliente_perfil,
-                    direccion_destino=f'Tunja — Obra {cl_data["empresa"]} - Calle {100 + idx}',
+                    direccion_destino=f"Tunja — Obra {cl_data['empresa']} - Calle {100 + idx}",
                     estado=estado_p,
                 )
 
@@ -396,7 +396,7 @@ class Command(BaseCommand):
                         entrega.save(using=db_alias)
 
                 self.stdout.write(
-                    f'Cliente {cl_data["empresa"]} - Pedido #{pedido.codigo_pedido} ({estado_p}) creado.'
+                    f"Cliente {cl_data['empresa']} - Pedido #{pedido.codigo_pedido} ({estado_p}) creado."
                 )
 
         # 6. Movimientos de inventario

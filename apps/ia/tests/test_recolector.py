@@ -3,7 +3,7 @@ from pathlib import Path
 
 from django.test import TestCase
 
-KB_PATH = Path("ia/training/ia_knowledge_base.json")
+KB_PATH = Path("apps/ia/training/ia_knowledge_base.json")
 
 
 class CorpusCuradoTests(TestCase):
@@ -33,17 +33,26 @@ class CorpusCuradoTests(TestCase):
 class RecolectorTests(TestCase):
     def test_categorias_semilla_definidas(self):
         from apps.ia.training.recolector_preguntas import CATEGORIAS_DOMINIO
+
         self.assertGreaterEqual(len(CATEGORIAS_DOMINIO), 8)
         self.assertTrue(all(c.startswith("Categoría:") for c in CATEGORIAS_DOMINIO))
 
     def test_fuente_desconocida(self):
         from apps.ia.training.recolector_preguntas import recolectar
+
         self.assertEqual(recolectar(0, fuentes=["inexistente"]), [])
 
     def test_estructura_del_par(self):
         from apps.ia.training.recolector_preguntas import recolectar_opentdb
-        with __import__("unittest").mock.patch("apps.ia.training.recolector_preguntas.requests.get") as get:
-            get.return_value.json.return_value = {"results": [{"question": "Q?", "category": "C", "correct_answer": "A", "difficulty": "easy"}]}
+
+        with __import__("unittest").mock.patch(
+            "apps.ia.training.recolector_preguntas.requests.get"
+        ) as get:
+            get.return_value.json.return_value = {
+                "results": [
+                    {"question": "Q?", "category": "C", "correct_answer": "A", "difficulty": "easy"}
+                ]
+            }
             get.return_value.raise_for_status.return_value = None
             pregunta = recolectar_opentdb(1)[0]
         self.assertIn("pregunta", pregunta)

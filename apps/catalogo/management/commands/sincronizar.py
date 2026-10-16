@@ -6,7 +6,6 @@ from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
 from django.db import OperationalError, connections
 
-from config.models import Historial
 from apps.catalogo.models import MaterialConstruccion as Material
 from apps.catalogo.models import MovimientoInventario
 from apps.clientes.models import Cliente
@@ -14,6 +13,7 @@ from apps.compras.models import Compra, Proveedor
 from apps.logistica.models import Entrega, Vehiculo
 from apps.pedidos.models import Pedido
 from apps.usuarios.models import Usuario
+from config.models import Historial
 
 
 def conexion_remota_disponible():

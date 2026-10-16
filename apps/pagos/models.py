@@ -62,7 +62,9 @@ class Pago(models.Model):
         blank=True,
         db_column="comprobante",
     )
-    estado = models.CharField(max_length=20, choices=ESTADOS, default=PENDIENTE, db_column="estado_pago")
+    estado = models.CharField(
+        max_length=20, choices=ESTADOS, default=PENDIENTE, db_column="estado_pago"
+    )
     fecha_registro = models.DateTimeField(auto_now_add=True, db_column="fecha_creacion")
     fecha_revision = models.DateTimeField(null=True, blank=True, db_column="fecha_actualizacion")
     revisado_por = models.ForeignKey(
@@ -100,9 +102,7 @@ class Pago(models.Model):
 
     def clean(self):
         if self.requiere_comprobante() and not self.comprobante:
-            raise ValidationError(
-                {"comprobante": "Este método de pago requiere comprobante."}
-            )
+            raise ValidationError({"comprobante": "Este método de pago requiere comprobante."})
 
     def marcar_revision(self, *, estado, revisor, observaciones=""):
         if estado not in (self.APROBADO, self.RECHAZADO):
@@ -186,8 +186,7 @@ class Factura(models.Model):
     @property
     def monto_pagado(self):
         return sum(
-            float(p.monto)
-            for p in self.pagos_factura.filter(estado=PagoFactura.Estado.APROBADO)
+            float(p.monto) for p in self.pagos_factura.filter(estado=PagoFactura.Estado.APROBADO)
         )
 
     @property
@@ -219,17 +218,13 @@ class PagoFactura(models.Model):
         APROBADO = "aprobado", "Aprobado"
         RECHAZADO = "rechazado", "Rechazado"
 
-    factura = models.ForeignKey(
-        Factura, on_delete=models.CASCADE, related_name="pagos_factura"
-    )
+    factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name="pagos_factura")
     monto = models.DecimalField(
         max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)]
     )
     metodo = models.CharField(max_length=20, choices=Metodo.choices)
     referencia = models.CharField(max_length=100, blank=True)
-    estado = models.CharField(
-        max_length=10, choices=Estado.choices, default=Estado.PENDIENTE
-    )
+    estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.PENDIENTE)
     fecha_registro = models.DateTimeField(default=timezone.now)
     fecha_revision = models.DateTimeField(null=True, blank=True)
     evidencia = models.ImageField(

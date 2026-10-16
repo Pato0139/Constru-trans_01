@@ -383,7 +383,7 @@ def save_feedback(message_id, feedback, comment=None, user=None):
     try:
         message = ConversationMessage.objects.get(id=message_id)
 
-        fb = UserFeedback.objects.create(
+        UserFeedback.objects.create(
             message=message, user=user, feedback=feedback, comment=comment
         )
 

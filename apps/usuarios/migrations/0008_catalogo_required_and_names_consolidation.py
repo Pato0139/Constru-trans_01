@@ -5,9 +5,8 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('usuarios', '0007_rol_usuariorol_vehiculo_catalogo_and_more'),
+        ("usuarios", "0007_rol_usuariorol_vehiculo_catalogo_and_more"),
     ]
 
     operations = [
@@ -18,20 +17,18 @@ class Migration(migrations.Migration):
             SET catalogo_id = (SELECT codigo_catalogo FROM catalogo LIMIT 1)
             WHERE catalogo_id IS NULL;
             """,
-            reverse_sql="-- Reverse would require logging deleted data"
+            reverse_sql="-- Reverse would require logging deleted data",
         ),
-
         # Make catalogo_id NOT NULL
         migrations.AlterField(
-            model_name='materialconstruccion',
-            name='catalogo',
+            model_name="materialconstruccion",
+            name="catalogo",
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.SET_NULL,
-                related_name='materiales',
-                to='usuarios.catalogo'
+                related_name="materiales",
+                to="usuarios.catalogo",
             ),
         ),
-
         # Consolidate nombres/apellidos from first_name/last_name
         migrations.RunSQL(
             sql="""
@@ -43,9 +40,8 @@ class Migration(migrations.Migration):
             SET apellidos = COALESCE(NULLIF(apellidos, ''), last_name, 'N/A')
             WHERE (apellidos IS NULL OR apellidos = '') AND last_name IS NOT NULL;
             """,
-            reverse_sql="-- No reverse needed"
+            reverse_sql="-- No reverse needed",
         ),
-
         # Remove Django legacy fields (optional - safer to keep for compatibility)
         # migrations.RemoveField(
         #     model_name='usuario',

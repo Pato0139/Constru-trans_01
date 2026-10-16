@@ -8,11 +8,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from config.utils import registrar_actividad
 from apps.usuarios.views import admin_required
+from config.utils import registrar_actividad
 
-from .forms import (CompraForm, DetalleCompraFormSet, ProveedorMaterialFormSet,
-                    ProveedorPerfilForm)
+from .forms import CompraForm, DetalleCompraFormSet, ProveedorMaterialFormSet, ProveedorPerfilForm
 from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
 
@@ -161,7 +160,9 @@ def crear_compra(request):
                     compra.id_compra,
                     f"Orden de compra creada: {compra.numero_orden}",
                 )
-                messages.success(request, f"Orden de compra {compra.numero_orden} creada con éxito.")
+                messages.success(
+                    request, f"Orden de compra {compra.numero_orden} creada con éxito."
+                )
                 return redirect("compras:detalle_compra", id=compra.id_compra)
 
             for error in errores:
@@ -338,11 +339,29 @@ def lista_proveedores(request):
         proveedores = proveedores.filter(categoria__icontains=categoria)
 
     filter_fields = [
-        {"type": "text", "name": "nombre", "placeholder": "Nombre / empresa", "value": nombre, "size": "2"},
+        {
+            "type": "text",
+            "name": "nombre",
+            "placeholder": "Nombre / empresa",
+            "value": nombre,
+            "size": "2",
+        },
         {"type": "text", "name": "nit", "placeholder": "NIT / DNI", "value": nit, "size": "2"},
-        {"type": "text", "name": "contacto", "placeholder": "Contacto", "value": contacto, "size": "2"},
+        {
+            "type": "text",
+            "name": "contacto",
+            "placeholder": "Contacto",
+            "value": contacto,
+            "size": "2",
+        },
         {"type": "text", "name": "ciudad", "placeholder": "Ciudad", "value": ciudad, "size": "2"},
-        {"type": "text", "name": "categoria", "placeholder": "Categoría", "value": categoria, "size": "2"},
+        {
+            "type": "text",
+            "name": "categoria",
+            "placeholder": "Categoría",
+            "value": categoria,
+            "size": "2",
+        },
         {
             "type": "select",
             "name": "estado",

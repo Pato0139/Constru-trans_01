@@ -8,18 +8,26 @@ from django.db import transaction
 from django.db.models import F, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
-from apps.catalogo.models import Catalogo
+from apps.catalogo.models import Catalogo, Stock, UnidadMedida
 from apps.catalogo.models import MaterialConstruccion as Material
-from apps.catalogo.models import Stock, UnidadMedida
-from config.db_preference import debe_usar_bd_remota
-from config.db_utils import select_for_update_if_supported
-from config.despacho import (CIUDADES_DESPACHO, ciudad_valida,
-                           construir_direccion_destino,
-                           separar_direccion_destino)
-from config.security import (_respuesta_no_autorizada, obtener_ip,
-                           registrar_evento, registrar_warning, role_required)
 from apps.pedidos.models import DetallePedido, Pedido
 from apps.usuarios.models import Usuario
+from config.db_preference import debe_usar_bd_remota
+from config.db_utils import select_for_update_if_supported
+from config.despacho import (
+    CIUDADES_DESPACHO,
+    ciudad_valida,
+    construir_direccion_destino,
+    separar_direccion_destino,
+)
+from config.security import (
+    _respuesta_no_autorizada,
+    obtener_ip,
+    registrar_evento,
+    registrar_warning,
+    role_required,
+)
+
 from .models import Cliente
 
 
@@ -39,6 +47,7 @@ def pedidos_visibles_para_cliente(usuario_local, usuario_remoto):
         .distinct()
         .order_by("-fecha_solicitud")
     )
+
 
 def _contexto_formulario_pedido(**extra):
     return {"ciudades_despacho": CIUDADES_DESPACHO, **extra}
@@ -237,7 +246,7 @@ def panel_cliente(request):
 @role_required(["cliente"])
 def mis_pedidos(request):
     try:
-        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
+        usuario_remoto = request.user.usuario if hasattr(request.user, "usuario") else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
@@ -266,14 +275,26 @@ def mis_pedidos(request):
     # Prepare filter fields
     filter_fields = [
         {"type": "text", "name": "q", "placeholder": "Buscar...", "value": q, "size": "3"},
-        {"type": "text", "name": "destino", "placeholder": "Destino", "value": destino, "size": "3"},
-        {"type": "select", "name": "estado", "placeholder": "Estado (Todos)", "value": estado, "size": "3",
-                 "options": [
-             {"value": "pendiente", "label": "Pendiente"},
-             {"value": "en_ruta", "label": "En Ruta"},
-             {"value": "entregado", "label": "Entregado"},
-             {"value": "cancelado", "label": "Cancelado"},
-         ]},
+        {
+            "type": "text",
+            "name": "destino",
+            "placeholder": "Destino",
+            "value": destino,
+            "size": "3",
+        },
+        {
+            "type": "select",
+            "name": "estado",
+            "placeholder": "Estado (Todos)",
+            "value": estado,
+            "size": "3",
+            "options": [
+                {"value": "pendiente", "label": "Pendiente"},
+                {"value": "en_ruta", "label": "En Ruta"},
+                {"value": "entregado", "label": "Entregado"},
+                {"value": "cancelado", "label": "Cancelado"},
+            ],
+        },
     ]
 
     has_filters = any([destino, estado, q])
@@ -290,7 +311,7 @@ def mis_pedidos(request):
 @role_required(["cliente"])
 def perfil_cliente(request):
     try:
-        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
+        usuario_remoto = request.user.usuario if hasattr(request.user, "usuario") else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except (Usuario.DoesNotExist, AttributeError):
         logout(request)
@@ -312,7 +333,7 @@ def perfil_cliente(request):
 @role_required(["cliente"])
 def seguimiento_pedidos(request):
     try:
-        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
+        usuario_remoto = request.user.usuario if hasattr(request.user, "usuario") else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
@@ -327,7 +348,7 @@ def seguimiento_pedidos(request):
 @role_required(["cliente"])
 def historial_pedidos(request):
     try:
-        usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
+        usuario_remoto = request.user.usuario if hasattr(request.user, "usuario") else request.user
         usuario = _obtener_usuario_local(usuario_remoto)
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
@@ -359,10 +380,10 @@ def historial_pedidos(request):
 
 @role_required(["cliente"])
 def crear_pedido(request):
-    usuario_remoto = request.user.usuario if hasattr(request.user, 'usuario') else request.user
+    usuario_remoto = request.user.usuario if hasattr(request.user, "usuario") else request.user
     usuario_local = _obtener_usuario_local(usuario_remoto)
 
-    cliente_local = _obtener_cliente_local(usuario_local)
+    _cliente_local = _obtener_cliente_local(usuario_local)
     materiales = Material.objects.all()
 
     if request.method == "POST":
@@ -459,12 +480,10 @@ def crear_pedido(request):
 
                     material = _obtener_material_local(m_id)
                     try:
-                        stock_obj = (
-                            select_for_update_if_supported(
-                                Stock.objects.using(db_alias),
-                                db_alias,
-                            ).get(material=material)
-                        )
+                        stock_obj = select_for_update_if_supported(
+                            Stock.objects.using(db_alias),
+                            db_alias,
+                        ).get(material=material)
                     except Stock.DoesNotExist:
                         stock_obj = Stock.objects.using(db_alias).create(
                             material=material, cantidad_actual=0
@@ -476,9 +495,7 @@ def crear_pedido(request):
                         raise ValueError(f"Cantidad inválida para {material.nombre}") from err
 
                     if cantidad <= 0:
-                        raise ValueError(
-                            f"La cantidad para {material.nombre} debe ser mayor a 0."
-                        )
+                        raise ValueError(f"La cantidad para {material.nombre} debe ser mayor a 0.")
 
                     if stock_obj.cantidad_actual < cantidad:
                         raise ValueError(
@@ -500,7 +517,10 @@ def crear_pedido(request):
                     stock_obj.cantidad_actual = F("cantidad_actual") - cantidad
                     stock_obj.save(using=db_alias)
 
-            messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente. Registra el pago para habilitar el despacho.")
+            messages.success(
+                request,
+                f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente. Registra el pago para habilitar el despacho.",
+            )
             return redirect("pagos:registrar_pago", pedido_id=nuevo_pedido.codigo_pedido)
 
         except ValueError as e:
@@ -540,7 +560,9 @@ def editar_pedido(request, id):
     db_alias = _obtener_alias_db()
     pedido = get_object_or_404(Pedido.objects.using(db_alias), codigo_pedido=id)
 
-    is_super = getattr(request.user, "is_superuser", False) or getattr(request.user, "es_superadmin", False)
+    is_super = getattr(request.user, "is_superuser", False) or getattr(
+        request.user, "es_superadmin", False
+    )
     es_admin = is_super or usuario_remoto.rol == "admin"
     usuario = _obtener_usuario_local(usuario_remoto)
     es_dueno = _es_dueno_pedido(pedido, usuario_remoto, usuario)
@@ -651,12 +673,10 @@ def editar_pedido(request, id):
             with transaction.atomic(using=db_alias):
                 for detalle in pedido.detalles.using(db_alias).all():
                     try:
-                        stock_obj = (
-                            select_for_update_if_supported(
-                                Stock.objects.using(db_alias),
-                                db_alias,
-                            ).get(material=detalle.material)
-                        )
+                        stock_obj = select_for_update_if_supported(
+                            Stock.objects.using(db_alias),
+                            db_alias,
+                        ).get(material=detalle.material)
                     except Stock.DoesNotExist:
                         stock_obj = Stock.objects.using(db_alias).create(
                             material=detalle.material,
@@ -671,12 +691,10 @@ def editar_pedido(request, id):
                 for m_id, cant in zip(materiales_ids, cantidades, strict=False):
                     material = _obtener_material_local(m_id)
                     try:
-                        stock_obj = (
-                            select_for_update_if_supported(
-                                Stock.objects.using(db_alias),
-                                db_alias,
-                            ).get(material=material)
-                        )
+                        stock_obj = select_for_update_if_supported(
+                            Stock.objects.using(db_alias),
+                            db_alias,
+                        ).get(material=material)
                     except Stock.DoesNotExist:
                         stock_obj = Stock.objects.using(db_alias).create(
                             material=material, cantidad_actual=0
@@ -729,7 +747,9 @@ def cancelar_pedido(request, id):
     pedido = get_object_or_404(Pedido, codigo_pedido=id)
 
     usuario_remoto = request.user.usuario
-    is_super = getattr(request.user, "is_superuser", False) or getattr(request.user, "es_superadmin", False)
+    is_super = getattr(request.user, "is_superuser", False) or getattr(
+        request.user, "es_superadmin", False
+    )
     es_admin = is_super or usuario_remoto.rol == "admin"
     usuario = _obtener_usuario_local(usuario_remoto)
     es_dueno = _es_dueno_pedido(pedido, usuario_remoto, usuario)
@@ -785,8 +805,7 @@ def cancelar_pedido(request, id):
             from config.utils import registrar_actividad
 
             comentario = (
-                f"Pedido #{pedido.codigo_pedido} cancelado por "
-                f"{'admin' if es_admin else 'cliente'}"
+                f"Pedido #{pedido.codigo_pedido} cancelado por {'admin' if es_admin else 'cliente'}"
             )
             registrar_actividad(
                 request,
@@ -812,32 +831,37 @@ def cancelar_pedido(request, id):
 # VISTAS DE ADMINISTRACIÓN DE CLIENTES
 # =====================================================================
 
+
 @login_required
 def lista_clientes(request):
     if request.user.rol != "admin":
         messages.error(request, "No tienes permisos para ver el listado de clientes.")
         return redirect("usuarios:panel")
-        
-    clientes = Usuario.objects.filter(rol="cliente").select_related("perfil_cliente").order_by("-date_joined")
-    
+
+    clientes = (
+        Usuario.objects.filter(rol="cliente")
+        .select_related("perfil_cliente")
+        .order_by("-date_joined")
+    )
+
     q = request.GET.get("q", "").strip()
     estado = request.GET.get("estado", "").strip()
-    
+
     if q:
         clientes = clientes.filter(
-            Q(nombres__icontains=q) | 
-            Q(apellidos__icontains=q) | 
-            Q(documento__icontains=q) | 
-            Q(email__icontains=q) |
-            Q(telefono__icontains=q) |
-            Q(username__icontains=q)
+            Q(nombres__icontains=q)
+            | Q(apellidos__icontains=q)
+            | Q(documento__icontains=q)
+            | Q(email__icontains=q)
+            | Q(telefono__icontains=q)
+            | Q(username__icontains=q)
         )
     if estado:
         clientes = clientes.filter(estado=estado)
-        
+
     has_filters = bool(q or estado)
     total_resultados = clientes.count()
-    
+
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return render(
             request,
@@ -847,7 +871,7 @@ def lista_clientes(request):
                 "has_filters": has_filters,
             },
         )
-    
+
     context = {
         "clientes": clientes,
         "q": q,
@@ -863,17 +887,17 @@ def detalle_cliente(request, id):
     if request.user.rol != "admin":
         messages.error(request, "No tienes permisos para ver este perfil.")
         return redirect("usuarios:panel")
-        
+
     usuario = get_object_or_404(Usuario, id=id, rol="cliente")
     cliente, _ = Cliente.ensure_for_user(usuario)
     pedidos = Pedido.objects.filter(usuario=usuario).order_by("-fecha_solicitud")
-    
+
     context = {
         "usuario_cliente": usuario,
         "cliente": cliente,
         "pedidos": pedidos,
         "total_gastado": pedidos.aggregate(total=Sum("total"))["total"] or 0,
-        "pedidos_entregados": pedidos.filter(estado="entregado").count()
+        "pedidos_entregados": pedidos.filter(estado="entregado").count(),
     }
     return render(request, "clientes/admin_detalle.html", context)
 
@@ -883,45 +907,51 @@ def editar_cliente(request, id):
     if request.user.rol != "admin":
         messages.error(request, "No tienes permisos para editar este cliente.")
         return redirect("usuarios:panel")
-        
+
     usuario = get_object_or_404(Usuario, id=id, rol="cliente")
     cliente, _ = Cliente.ensure_for_user(usuario)
-    
+
     if request.method == "POST":
-        cliente.direccion_principal = request.POST.get("direccion_principal", cliente.direccion_principal)
+        cliente.direccion_principal = request.POST.get(
+            "direccion_principal", cliente.direccion_principal
+        )
         cliente.direccion = request.POST.get("direccion", cliente.direccion)
         cliente.tipo_cliente = request.POST.get("tipo_cliente", cliente.tipo_cliente)
         cliente.nit = request.POST.get("nit", cliente.nit)
         cliente.nombre_empresa = request.POST.get("nombre_empresa", cliente.nombre_empresa)
-        cliente.contacto_alternativo = request.POST.get("contacto_alternativo", cliente.contacto_alternativo)
+        cliente.contacto_alternativo = request.POST.get(
+            "contacto_alternativo", cliente.contacto_alternativo
+        )
         cliente.observaciones = request.POST.get("observaciones", cliente.observaciones)
         cliente.es_vip = request.POST.get("es_vip") == "on"
-        
+
         try:
             with transaction.atomic():
                 cliente.save()
-                
+
                 telefono = request.POST.get("telefono")
                 estado = request.POST.get("estado")
-                
+
                 if telefono:
                     usuario.telefono = telefono
                 if estado:
                     usuario.estado = estado
-                    usuario.user.is_active = (estado == "activo")
+                    usuario.user.is_active = estado == "activo"
                     usuario.user.save()
-                    
+
                 usuario.save()
-                
-            messages.success(request, f"Datos del cliente {usuario.nombres} actualizados exitosamente.")
+
+            messages.success(
+                request, f"Datos del cliente {usuario.nombres} actualizados exitosamente."
+            )
             return redirect("clientes:detalle_cliente", id=usuario.id)
-            
+
         except Exception as e:
             messages.error(request, f"Error al guardar: {e}")
-            
+
     context = {
         "usuario_cliente": usuario,
         "cliente": cliente,
-        "tipos_cliente": Cliente.TIPOS_CLIENTE
+        "tipos_cliente": Cliente.TIPOS_CLIENTE,
     }
     return render(request, "clientes/admin_editar.html", context)

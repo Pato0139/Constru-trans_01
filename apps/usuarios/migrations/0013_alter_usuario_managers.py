@@ -6,16 +6,15 @@ import apps.usuarios.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('usuarios', '0012_marca_materialconstruccion_marca'),
+        ("usuarios", "0012_marca_materialconstruccion_marca"),
     ]
 
     operations = [
         migrations.AlterModelManagers(
-            name='usuario',
+            name="usuario",
             managers=[
-                ('objects', apps.usuarios.models.UsuarioManager()),
+                ("objects", apps.usuarios.models.UsuarioManager()),
             ],
         ),
     ]
