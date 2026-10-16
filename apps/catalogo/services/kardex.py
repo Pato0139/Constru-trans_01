@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from django.db import transaction
-from django.db.models import F, Sum
+from django.db.models import Sum
 
 from apps.catalogo.models import MaterialConstruccion as Material
 from apps.catalogo.models import Stock
@@ -56,21 +56,26 @@ class KardexService:
             )
 
             if tipo == "entrada":
-                stock.cantidad_actual = F("cantidad_actual") + cantidad
+                stock.cantidad_actual += cantidad
             elif tipo == "salida":
                 if stock.cantidad_actual < cantidad:
                     raise ValueError(
                         f"Stock insuficiente para {material.nombre}: "
                         f"disponible={stock.cantidad_actual}, requerido={cantidad}"
                     )
-                stock.cantidad_actual = F("cantidad_actual") - cantidad
+                stock.cantidad_actual -= cantidad
             else:
+                if cantidad < 0:
+                    raise ValueError("La cantidad de ajuste no puede ser negativa.")
                 stock.cantidad_actual = cantidad
 
             stock.save(using=db_alias)
             stock.refresh_from_db(using=db_alias)
 
-            tipo_a_guardar = "entrada" if tipo == "ajuste" else tipo
+            if tipo == "ajuste":
+                tipo_a_guardar = "salida" if cantidad < stock.cantidad_actual else "entrada"
+            else:
+                tipo_a_guardar = tipo
 
             return MovimientoInventario.objects.using(db_alias).create(
                 material=material,

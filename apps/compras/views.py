@@ -388,7 +388,8 @@ def lista_proveedores(request):
 def crear_proveedor(request):
     if request.method == "POST":
         data = request.POST.copy()
-        data["correo"] = data.get("email", "")
+        if "email" in data and "correo" not in data:
+            data["correo"] = data["email"]
         form = ProveedorForm(data)
         if form.is_valid():
             proveedor = form.save()
@@ -411,8 +412,13 @@ def crear_proveedor(request):
             {"action": "Crear", "form": form, "form_data": request.POST},
             status=400,
         )
-
-    return render(request, "compras/proveedor_form.html", {"action": "Crear"})
+    else:
+        form = ProveedorForm()
+    return render(
+        request,
+        "compras/proveedor_form.html",
+        {"action": "Crear", "form": form},
+    )
 
 
 @admin_required
@@ -420,7 +426,8 @@ def editar_proveedor(request, codigo_proveedor):
     proveedor = get_object_or_404(Proveedor, codigo_proveedor=codigo_proveedor)
     if request.method == "POST":
         data = request.POST.copy()
-        data["correo"] = data.get("email", "")
+        if "email" in data and "correo" not in data:
+            data["correo"] = data["email"]
         form = ProveedorForm(data, instance=proveedor)
         if form.is_valid():
             proveedor = form.save()
@@ -443,11 +450,12 @@ def editar_proveedor(request, codigo_proveedor):
             {"proveedor": proveedor, "action": "Editar", "form": form, "form_data": request.POST},
             status=400,
         )
-
+    else:
+        form = ProveedorForm(instance=proveedor)
     return render(
         request,
         "compras/proveedor_form.html",
-        {"proveedor": proveedor, "action": "Editar"},
+        {"form": form, "proveedor": proveedor, "action": "Editar"},
     )
 
 

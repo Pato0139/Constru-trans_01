@@ -430,3 +430,20 @@ class SecurityMiddleware:
             except Exception:
                 pass
         return None
+
+
+class SessionVersionMiddleware:
+    """Invalida sesiones activas de usuarios bloqueados o con sesión invalidada."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated:
+            session_ver = request.session.get("session_version", 0)
+            if hasattr(user, "session_version") and session_ver != user.session_version:
+                from django.contrib.auth import logout
+                logout(request)
+        return response

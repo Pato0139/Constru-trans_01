@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
 
 User = get_user_model()
@@ -46,6 +47,22 @@ logger = logging.getLogger(__name__)
 
 LOGIN_REMEMBER_COOKIE = "constru_trans_login"
 LOGIN_REMEMBER_SECONDS = 1209600
+
+from django.core.signing import TimestampSigner, BadSignature
+
+_REMEMBER_SIGNER = TimestampSigner(salt="constru-trans-remember")
+
+def _crear_token_remember(user_id, session_version=0):
+    """Crea un token firmado para la cookie remember-me."""
+    return _REMEMBER_SIGNER.sign_object({"uid": int(user_id), "sv": int(session_version)})
+
+def _verificar_token_remember(token, max_age=LOGIN_REMEMBER_SECONDS):
+    """Verifica y decodifica el token remember-me. Retorna (user_id, session_version) o (None, None)."""
+    try:
+        obj = _REMEMBER_SIGNER.unsign_object(token, max_age=max_age)
+        return obj.get("uid"), obj.get("sv", 0)
+    except (BadSignature, KeyError, TypeError):
+        return None, None
 
 def _buscar_qs_por_rol(rol, query=None):
     qs = Usuario.objects.select_related("perfil_cliente").order_by("-id")
@@ -255,6 +272,20 @@ def login_usuario(request):
     modo_local = not conexion_remota_disponible()
 
     if request.method == "POST":
+        # Rate-limiting por IP: bloquear tras 10 intentos fallidos en 5 minutos
+        from django.core.cache import cache
+        ip = obtener_ip(request)
+        rate_key = f"login_rate:{ip}"
+        intentos_ip = cache.get(rate_key, 0)
+        if intentos_ip >= 10:
+            error_message = (
+                "Demasiados intentos desde tu red. "
+                "Espera 5 minutos antes de intentar novamente."
+            )
+            messages.error(request, error_message)
+            context = {"modo_local": modo_local}
+            return render(request, "usuarios/login.html", context)
+
         form = LoginForm(request.POST)
         if form.is_valid():
             identifier = form.cleaned_data.get("username")
@@ -329,6 +360,7 @@ def login_usuario(request):
                     user.backend = "apps.usuarios.backends.EmailOrUsernameBackend"
 
                 login(request, user)
+                request.session["session_version"] = user.session_version
 
                 remember_me = form.cleaned_data.get("remember_me")
                 if remember_me:
@@ -371,7 +403,7 @@ def login_usuario(request):
                 if remember_me:
                     response.set_cookie(
                         LOGIN_REMEMBER_COOKIE,
-                        identifier,
+                        _crear_token_remember(user.pk, user.session_version),
                         max_age=LOGIN_REMEMBER_SECONDS,
                         secure=request.is_secure(),
                         httponly=True,
@@ -383,6 +415,9 @@ def login_usuario(request):
                 return response
             else:
                 error_message = "Usuario o contraseña incorrectos."
+                # Incrementar contador de intentos fallidos por IP
+                from django.core.cache import cache
+                cache.set(rate_key, intentos_ip + 1, 300)
                 if user_obj:
                     user_obj.registrar_intento_fallido()
                     if user_obj.esta_bloqueado():
@@ -1189,6 +1224,7 @@ class CustomPasswordResetView(PasswordResetView):
 # =====================================================================
 # CERRAR SESIÓN
 # =====================================================================
+@csrf_protect
 @require_POST
 def cerrar_sesion(request):
     if request.user.is_authenticated:

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Tipos de Material - ConstruTrans{% endblock %}
+{% block title %}Categorías - ConstruTrans{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/catalogo/lista.css' %}?v=1.8">
@@ -16,50 +16,31 @@
             </h2>
             <div class="d-flex align-items-center gap-2 mt-1">
                 <p class="text-muted small mb-0">Gestión de categorías y catálogos de materiales</p>
-                <span class="badge rounded-pill px-3 u-inline-b2204c9e00">{{ tipos|length }} tipos</span>
+                <span class="badge rounded-pill px-3">{{ tipos|length }} categorías</span>
             </div>
         </div>
 
-        <div class="w-100">
-            <div class="d-flex flex-column gap-2">
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <div class="search-filters-card flex-grow-1 min-width-0">
-                        {% include "partials/filter_bar.html" with filter_fields=filter_fields has_filters=has_filters %}
-                    </div>
-                    <div class="dropdown flex-shrink-0">
-                        <button class="btn btn-premium btn-premium-gold dropdown-toggle" type="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-plus-lg"></i> Agregar
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5">
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2"
-                                    href="{% url 'catalogo:crear_tipo_material' %}">
-                                    <i class="bi bi-tags text-warning"></i> Nuevo tipo de material
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+        <div class="d-flex flex-column align-items-end gap-2" style="min-width: 220px;">
+                <a href="{% url 'catalogo:crear_tipo_material' %}"
+                   class="btn btn-premium btn-premium-gold btn-main-action align-self-md-center"
+                   aria-label="Nueva categoría" data-tooltip="Nueva categoría" title="Nueva categoría">
+                    <i class="bi bi-plus-lg me-1"></i> Nueva categoría
+                </a>
             </div>
         </div>
-    </div>
 
-    <div class="table-container p-0 rounded-4 overflow-hidden shadow-sm u-inline-54085855f8" data-aos="fade-up">
+    <div class="table-container p-0 rounded-4 overflow-visible shadow-sm u-inline-54085855f8" data-aos="fade-up">
+        <div class="materiales-filter-bar">
+            {% include "partials/filter_bar.html" with filter_fields=filter_fields form_data_ajax=True %}
+        </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 no-datatable u-inline-3e7cad1772">
                 <thead>
                     <tr class="u-inline-0d59a3f53c">
-                        <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-e1986338af">
-                            Código
-                        </th>
-                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Nombre del
-                            Tipo de
-                            Material</th>
-                        <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-4125bc171b">
-                            Materiales Asociados</th>
-                        <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold u-inline-e1986338af">
-                            Acciones</th>
+                        <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold">ID</th>
+                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Nombre de la categoría</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold">Productos</th>
+                    <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -93,7 +74,15 @@
                                     <button type="submit" class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--delete"
                                             title="Eliminar">
                                         <i class="bi bi-trash"></i>
-                                    </button>
+                                        </button>
+                                </form>
+                                <form method="post" action="{% url 'catalogo:cambiar_estado_tipo' t.codigo_catalogo %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-action {{ t.boton_estado }}"
+                                            title="{% if t.activo %}Inhabilitar categoría{% else %}Habilitar categoría{% endif %}"
+                                            aria-label="{% if t.activo %}Inhabilitar categoría{% else %}Habilitar categoría{% endif %}">
+                                            <i class="bi {% if t.activo %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %}"></i>
+                                        </button>
                                 </form>
                             </div>
                         </td>
@@ -101,10 +90,10 @@
                     {% empty %}
                     <tr>
                         <td colspan="4" class="text-center py-5">
-                            <div class="py-5">
+                            <div class="empty-state py-5">
                                 <i class="bi bi-tags text-muted mb-3 d-block u-inline-8ae57e885d"></i>
-                                <p class="text-muted fw-medium mb-0">No se encontraron tipos de material.</p>
-                                <small class="text-muted">Crea uno nuevo usando el botón superior.</small>
+                                <p class="text-muted fw-medium mb-0">No se encontraron categorías.</p>
+                                <small class="text-muted">Crea una nueva usando el botón superior.</small>
                             </div>
                         </td>
                     </tr>
@@ -143,23 +132,12 @@
             border-color: var(--color-primary) !important;
             color: var(--color-primary) !important;
         }
-
-        .btn-table-action--delete {
-            color: var(--color-danger) !important;
-        }
-
-        .btn-table-action--delete:hover {
-            background: rgba(239, 68, 68, 0.12) !important;
-            border-color: var(--color-danger) !important;
-            color: var(--color-danger) !important;
-        }
-
         .btn-premium:hover {
             opacity: 0.9;
             transform: scale(1.05);
             transition: all 0.3s ease;
         }
-    </style>
+</style>
 </div>
 {% endblock %}
 

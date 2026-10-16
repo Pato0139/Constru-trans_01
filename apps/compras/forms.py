@@ -19,6 +19,7 @@ class ProveedorForm(forms.ModelForm):
             "ciudad",
             "categoria",
             "descripcion",
+            "activo",
         ]
         widgets = {
             "nombre_empresa": forms.TextInput(
@@ -33,6 +34,9 @@ class ProveedorForm(forms.ModelForm):
                     "oninput": "this.value = this.value.replace(/[^0-9\\s]/g, '')",
                 }
             ),
+            "contacto_nombre": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre de contacto"}
+            ),
             "telefono": forms.TextInput(
                 attrs={
                     "class": "form-control",
@@ -45,8 +49,23 @@ class ProveedorForm(forms.ModelForm):
             "correo": forms.EmailInput(
                 attrs={"class": "form-control", "placeholder": "empresa@correo.com"}
             ),
+            "direccion": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Calle, número, piso..."}
+            ),
+            "ciudad": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ciudad"}
+            ),
+            "categoria": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: Materiales, Repuestos, Tecnología...",
+                }
+            ),
             "descripcion": forms.Textarea(
                 attrs={"class": "form-control", "rows": 3, "placeholder": "Descripción..."}
+            ),
+            "activo": forms.CheckboxInput(
+                attrs={"class": "form-check-input mt-2"}
             ),
         }
 

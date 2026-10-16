@@ -1,6 +1,7 @@
 from django import forms
 
 from apps.pedidos.models import Pago
+from apps.pedidos.validators import validar_comprobante_imagen
 
 
 class PagoRegistroForm(forms.ModelForm):
@@ -17,9 +18,8 @@ class PagoRegistroForm(forms.ModelForm):
     def clean_comprobante(self):
         comprobante = self.cleaned_data.get("comprobante")
         if comprobante:
-            content_type = getattr(comprobante, "content_type", "")
-            if content_type not in ("image/png", "image/jpeg"):
-                raise forms.ValidationError("Solo se permiten archivos PNG o JPG.")
+            # No se confia en content_type: lo envia el cliente y se puede falsear.
+            validar_comprobante_imagen(comprobante)
         return comprobante
 
     def clean(self):
