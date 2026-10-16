@@ -19,13 +19,15 @@ def license_expired(request):
 @staff_member_required
 def license_activate(request):
     try:
-        payload = json.loads(request.body or "{}")
+        json.loads(request.body or "{}")
         inst = validate_installation()
 
-        return JsonResponse({
-            "status": inst.status,
-            "expires_at": inst.expires_at.isoformat() if inst.expires_at else None,
-        })
+        return JsonResponse(
+            {
+                "status": inst.status,
+                "expires_at": inst.expires_at.isoformat() if inst.expires_at else None,
+            }
+        )
     except json.JSONDecodeError:
         return JsonResponse({"error": "JSON inválido"}, status=400)
     except Exception:

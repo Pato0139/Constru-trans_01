@@ -8,45 +8,60 @@ import apps.usuarios.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('usuarios', '0003_add_activo_to_material_and_add_historialprecio_and_bloqueo_fields'),
+        ("usuarios", "0003_add_activo_to_material_and_add_historialprecio_and_bloqueo_fields"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='proveedor',
-            name='categoria',
-            field=models.CharField(blank=True, default='General', max_length=100),
+            model_name="proveedor",
+            name="categoria",
+            field=models.CharField(blank=True, default="General", max_length=100),
         ),
         migrations.AddField(
-            model_name='proveedor',
-            name='contacto_nombre',
+            model_name="proveedor",
+            name="contacto_nombre",
             field=models.CharField(blank=True, max_length=150),
         ),
         migrations.AddField(
-            model_name='proveedor',
-            name='direccion',
+            model_name="proveedor",
+            name="direccion",
             field=models.CharField(blank=True, max_length=255),
         ),
         migrations.AlterField(
-            model_name='conductor',
-            name='fecha_vencimiento_licencia',
+            model_name="conductor",
+            name="fecha_vencimiento_licencia",
             field=models.DateField(validators=[apps.usuarios.models.validar_fecha_no_pasada]),
         ),
         migrations.AlterField(
-            model_name='materialconstruccion',
-            name='precio_referencia',
-            field=models.DecimalField(decimal_places=2, max_digits=12, validators=[django.core.validators.MinValueValidator(0.01), django.core.validators.MaxValueValidator(9999999999.99)]),
+            model_name="materialconstruccion",
+            name="precio_referencia",
+            field=models.DecimalField(
+                decimal_places=2,
+                max_digits=12,
+                validators=[
+                    django.core.validators.MinValueValidator(0.01),
+                    django.core.validators.MaxValueValidator(9999999999.99),
+                ],
+            ),
         ),
         migrations.AlterField(
-            model_name='proveedor',
-            name='correo',
+            model_name="proveedor",
+            name="correo",
             field=models.EmailField(blank=True, max_length=254),
         ),
         migrations.AlterField(
-            model_name='usuario',
-            name='foto_perfil',
-            field=models.ImageField(blank=True, null=True, upload_to=apps.usuarios.models.foto_perfil_upload_path, validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])]),
+            model_name="usuario",
+            name="foto_perfil",
+            field=models.ImageField(
+                blank=True,
+                null=True,
+                upload_to=apps.usuarios.models.foto_perfil_upload_path,
+                validators=[
+                    django.core.validators.FileExtensionValidator(
+                        allowed_extensions=["jpg", "jpeg", "png", "webp"]
+                    )
+                ],
+            ),
         ),
     ]

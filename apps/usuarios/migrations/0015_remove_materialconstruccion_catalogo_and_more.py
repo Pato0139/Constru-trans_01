@@ -4,78 +4,77 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compras', '0008_proveedor_alter_detallecompra_material_and_more'),
-        ('usuarios', '0014_delete_metodopago'),
+        ("compras", "0008_proveedor_alter_detallecompra_material_and_more"),
+        ("usuarios", "0014_delete_metodopago"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='materialconstruccion',
-            name='catalogo',
+            model_name="materialconstruccion",
+            name="catalogo",
         ),
         migrations.RemoveField(
-            model_name='vehiculo',
-            name='catalogo',
+            model_name="vehiculo",
+            name="catalogo",
         ),
         migrations.AlterUniqueTogether(
-            name='conductorvehiculo',
+            name="conductorvehiculo",
             unique_together=None,
         ),
         migrations.RemoveField(
-            model_name='conductorvehiculo',
-            name='conductor',
+            model_name="conductorvehiculo",
+            name="conductor",
         ),
         migrations.RemoveField(
-            model_name='conductorvehiculo',
-            name='vehiculo',
+            model_name="conductorvehiculo",
+            name="vehiculo",
         ),
         migrations.RemoveField(
-            model_name='historialpreciomaterial',
-            name='material',
+            model_name="historialpreciomaterial",
+            name="material",
         ),
         migrations.RemoveField(
-            model_name='historialpreciomaterial',
-            name='usuario',
+            model_name="historialpreciomaterial",
+            name="usuario",
         ),
         migrations.RemoveField(
-            model_name='materialconstruccion',
-            name='marca',
+            model_name="materialconstruccion",
+            name="marca",
         ),
         migrations.RemoveField(
-            model_name='materialconstruccion',
-            name='unidad_medida',
+            model_name="materialconstruccion",
+            name="unidad_medida",
         ),
         migrations.RemoveField(
-            model_name='stock',
-            name='material',
+            model_name="stock",
+            name="material",
         ),
         migrations.DeleteModel(
-            name='Proveedor',
+            name="Proveedor",
         ),
         migrations.DeleteModel(
-            name='Catalogo',
+            name="Catalogo",
         ),
         migrations.DeleteModel(
-            name='ConductorVehiculo',
+            name="ConductorVehiculo",
         ),
         migrations.DeleteModel(
-            name='Vehiculo',
+            name="Vehiculo",
         ),
         migrations.DeleteModel(
-            name='HistorialPrecioMaterial',
+            name="HistorialPrecioMaterial",
         ),
         migrations.DeleteModel(
-            name='Marca',
+            name="Marca",
         ),
         migrations.DeleteModel(
-            name='UnidadMedida',
+            name="UnidadMedida",
         ),
         migrations.DeleteModel(
-            name='MaterialConstruccion',
+            name="MaterialConstruccion",
         ),
         migrations.DeleteModel(
-            name='Stock',
+            name="Stock",
         ),
     ]

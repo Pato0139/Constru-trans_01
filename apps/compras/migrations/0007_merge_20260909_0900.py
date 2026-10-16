@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compras', '0002_add_integrity_constraints'),
-        ('compras', '0006_alter_compra_options'),
+        ("compras", "0002_add_integrity_constraints"),
+        ("compras", "0006_alter_compra_options"),
     ]
 
-    operations = [
-    ]
+    operations = []

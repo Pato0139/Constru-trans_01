@@ -2,9 +2,8 @@ import re
 import unicodedata
 
 from django import forms
-from django.db.models import Q
 
-from .models import Catalogo, ESTADOS_PRODUCTO, Marca, MaterialConstruccion, Stock, UnidadMedida
+from .models import ESTADOS_PRODUCTO, Catalogo, Marca, MaterialConstruccion, Stock, UnidadMedida
 
 
 class MaterialForm(forms.ModelForm):
@@ -206,9 +205,7 @@ class MarcaForm(forms.ModelForm):
         nombre = self.cleaned_data.get("nombre", "").strip()
         if not nombre:
             raise forms.ValidationError("El nombre de la marca es obligatorio.")
-        if Marca.objects.filter(nombre__iexact=nombre).exclude(
-            pk=self.instance.pk
-        ).exists():
+        if Marca.objects.filter(nombre__iexact=nombre).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("Ya existe una marca con este nombre.")
         return nombre
 
@@ -245,9 +242,7 @@ class UnidadMedidaForm(forms.ModelForm):
                     "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
                 }
             ),
-            "activa": forms.CheckboxInput(
-                attrs={"class": "form-check-input"}
-            ),
+            "activa": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
     def clean_codigo(self):

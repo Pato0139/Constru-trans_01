@@ -35,14 +35,11 @@ def preserve_orphaned_material_codes(apps, schema_editor):
 
     with connection.cursor() as cursor:
         columns = {
-            column.name
-            for column in connection.introspection.get_table_description(cursor, table)
+            column.name for column in connection.introspection.get_table_description(cursor, table)
         }
         target_columns = {
             column.name
-            for column in connection.introspection.get_table_description(
-                cursor, target_table
-            )
+            for column in connection.introspection.get_table_description(cursor, target_table)
         }
         required_columns = {
             field.column
@@ -69,17 +66,13 @@ def preserve_orphaned_material_codes(apps, schema_editor):
             and constraint.get("foreign_key")
         ]
         expected_foreign_key = (target_table, target_field.column)
-        if any(
-            foreign_key != expected_foreign_key
-            for foreign_key in material_foreign_keys
-        ):
+        if any(foreign_key != expected_foreign_key for foreign_key in material_foreign_keys):
             raise RuntimeError(
                 f"La columna {table}.{material_field.column} ya tiene una clave "
                 "foránea hacia una tabla inesperada."
             )
         material_index_exists = any(
-            constraint.get("index")
-            and constraint.get("columns") == [material_field.column]
+            constraint.get("index") and constraint.get("columns") == [material_field.column]
             for constraint in constraints.values()
         )
         material_column = next(
@@ -139,14 +132,12 @@ def preserve_orphaned_material_codes(apps, schema_editor):
 
     for index in movement_model._meta.indexes:
         index_columns = [
-            movement_model._meta.get_field(field_name).column
-            for field_name in index.fields
+            movement_model._meta.get_field(field_name).column for field_name in index.fields
         ]
         with connection.cursor() as cursor:
             constraints = connection.introspection.get_constraints(cursor, table)
         if any(
-            constraint.get("index")
-            and constraint.get("columns") == index_columns
+            constraint.get("index") and constraint.get("columns") == index_columns
             for constraint in constraints.values()
         ):
             continue

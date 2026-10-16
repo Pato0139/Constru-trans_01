@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('clientes', '0002_alter_cliente_options_cliente_direccion_and_more'),
+        ("clientes", "0002_alter_cliente_options_cliente_direccion_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='cliente',
-            name='gasto_acumulado',
-            field=models.DecimalField(decimal_places=2, default=0, max_digits=12, verbose_name='Gasto acumulado'),
+            model_name="cliente",
+            name="gasto_acumulado",
+            field=models.DecimalField(
+                decimal_places=2, default=0, max_digits=12, verbose_name="Gasto acumulado"
+            ),
         ),
     ]

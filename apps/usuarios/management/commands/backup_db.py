@@ -36,7 +36,12 @@ class Command(BaseCommand):
                     indent=2,
                     natural_foreign=True,
                     natural_primary=True,
-                    exclude=["contenttypes", "auth.permission", "admin.logentry", "sessions.session"],
+                    exclude=[
+                        "contenttypes",
+                        "auth.permission",
+                        "admin.logentry",
+                        "sessions.session",
+                    ],
                     stdout=f,
                 )
 

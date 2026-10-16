@@ -20,6 +20,7 @@ class AdminRolePermissionBackend(ModelBackend):
     Nota: debe estar en AUTHENTICATION_BACKENDS y por eso necesita authenticate;
     antes era una clase plana sin ese metodo -> AttributeError al hacer login.
     """
+
     PROTECTED_APPS = {"auth", "contenttypes"}
     PROTECTED_MODELS = {
         ("usuarios", "permiso"),
@@ -53,7 +54,9 @@ class AdminRolePermissionBackend(ModelBackend):
             raise PermissionDenied("Solo el Administrador Global puede modificar roles y permisos.")
         if app_label == "usuarios" and model_name == "usuario":
             if action != "view":
-                raise PermissionDenied("Solo el Administrador Global puede modificar usuarios desde /admin/.")
+                raise PermissionDenied(
+                    "Solo el Administrador Global puede modificar usuarios desde /admin/."
+                )
 
         return getattr(user_obj, "rol", None) == "admin"
 

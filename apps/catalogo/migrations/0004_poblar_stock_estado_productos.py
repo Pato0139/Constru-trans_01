@@ -7,18 +7,17 @@ def poblar_stock_y_estado(apps, schema_editor):
     """Copia el stock real desde la tabla Stock y deriva 'estado' del
     booleano 'activo' para los productos que ya existían."""
     db = schema_editor.connection.alias
-    Material = apps.get_model("catalogo", "MaterialConstruccion")
-    Stock = apps.get_model("catalogo", "Stock")
+    material_model = apps.get_model("catalogo", "MaterialConstruccion")
+    stock_model = apps.get_model("catalogo", "Stock")
 
     stocks = {
-        stock.material_id: stock.cantidad_actual
-        for stock in Stock.objects.using(db).all()
+        stock.material_id: stock.cantidad_actual for stock in stock_model.objects.using(db).all()
     }
 
-    for material in Material.objects.using(db).all():
+    for material in material_model.objects.using(db).all():
         material.stock = stocks.get(material.pk, 0)
         material.estado = "activo" if material.activo else "inactivo"
-        material.save(using=db, update_fields=["stock", "estado"])
+        material.save()
 
 
 def revertir(apps, schema_editor):
@@ -27,9 +26,8 @@ def revertir(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('catalogo', '0003_materialconstruccion_estado_and_more'),
+        ("catalogo", "0003_materialconstruccion_estado_and_more"),
     ]
 
     operations = [

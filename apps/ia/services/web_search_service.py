@@ -38,8 +38,17 @@ GENERAL_PATTERNS = [
 ]
 
 SYSTEM_HINTS = [
-    r"pedido", r"factura", r"inventario", r"stock", r"proveedor", r"cliente",
-    r"veh[ií]culo", r"conductor", r"compra", r"pago", r"constru[- ]?trans",
+    r"pedido",
+    r"factura",
+    r"inventario",
+    r"stock",
+    r"proveedor",
+    r"cliente",
+    r"veh[ií]culo",
+    r"conductor",
+    r"compra",
+    r"pago",
+    r"constru[- ]?trans",
     r"mi[s]? pedidos",
 ]
 
@@ -83,8 +92,7 @@ def _buscar_brave(query, cantidad):
     respuesta.raise_for_status()
     resultados = respuesta.json().get("web", {}).get("results", [])
     return "\n".join(
-        f"- {item.get('title', '')}: {item.get('description', '')} "
-        f"(fuente: {item.get('url', '')})"
+        f"- {item.get('title', '')}: {item.get('description', '')} (fuente: {item.get('url', '')})"
         for item in resultados
     )
 
@@ -98,7 +106,6 @@ def _buscar_ddg(query, cantidad):
 
     resultados = DDGS().text(query, max_results=cantidad)
     return "\n".join(
-        f"- {item.get('title', '')}: {item.get('body', '')} "
-        f"(fuente: {item.get('href', '')})"
+        f"- {item.get('title', '')}: {item.get('body', '')} (fuente: {item.get('href', '')})"
         for item in resultados
     )

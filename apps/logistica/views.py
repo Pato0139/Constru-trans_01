@@ -7,12 +7,11 @@ from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 
-from config.permissions import requiere_funcion
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
+from config.permissions import requiere_funcion
 
-from .models import (ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento,
-                     Seguimiento, Vehiculo)
+from .models import ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento, Seguimiento, Vehiculo
 
 
 @lru_cache(maxsize=4)
@@ -61,20 +60,34 @@ def lista_vehiculos(request):
         vehiculos = vehiculos.filter(estado=estado)
     if conductor:
         vehiculos = vehiculos.filter(
-            models.Q(asignaciones_conductor__fecha_fin__isnull=True) & (
-                models.Q(asignaciones_conductor__conductor__usuario__nombres__icontains=conductor) |
-                models.Q(asignaciones_conductor__conductor__usuario__apellidos__icontains=conductor)
+            models.Q(asignaciones_conductor__fecha_fin__isnull=True)
+            & (
+                models.Q(asignaciones_conductor__conductor__usuario__nombres__icontains=conductor)
+                | models.Q(
+                    asignaciones_conductor__conductor__usuario__apellidos__icontains=conductor
+                )
             )
         ).distinct()
     if query:
         vehiculos = vehiculos.filter(
-            models.Q(placa__icontains=query)
-            | models.Q(tipo_vehiculo__icontains=query)
+            models.Q(placa__icontains=query) | models.Q(tipo_vehiculo__icontains=query)
         )
 
     filter_fields = [
-        {"type": "text", "name": "placa", "placeholder": "Placa", "value": placa or "", "size": "3"},
-        {"type": "text", "name": "tipo", "placeholder": "Tipo de vehículo", "value": tipo or "", "size": "3"},
+        {
+            "type": "text",
+            "name": "placa",
+            "placeholder": "Placa",
+            "value": placa or "",
+            "size": "3",
+        },
+        {
+            "type": "text",
+            "name": "tipo",
+            "placeholder": "Tipo de vehículo",
+            "value": tipo or "",
+            "size": "3",
+        },
         {
             "type": "select",
             "name": "estado",
@@ -84,7 +97,11 @@ def lista_vehiculos(request):
             "options": [
                 {"value": "disponible", "label": "Disponible", "selected": estado == "disponible"},
                 {"value": "en_ruta", "label": "En Ruta", "selected": estado == "en_ruta"},
-                {"value": "mantenimiento", "label": "Mantenimiento", "selected": estado == "mantenimiento"},
+                {
+                    "value": "mantenimiento",
+                    "label": "Mantenimiento",
+                    "selected": estado == "mantenimiento",
+                },
             ],
         },
     ]
@@ -138,7 +155,7 @@ def crear_vehiculo(request):
                 modelo=modelo,
                 tipo_vehiculo=tipo,
                 capacidad_carga=capacidad,
-                estado="disponible"
+                estado="disponible",
             )
 
             if conductor_id:
@@ -268,7 +285,9 @@ def cambiar_disponibilidad_vehiculo(request, id):
         vehiculo=vehiculo, estado__in=["pendiente", "en_ruta"]
     ).exists()
     if entregas_activas:
-        messages.error(request, "No se puede inhabilitar el vehículo porque tiene entregas activas.")
+        messages.error(
+            request, "No se puede inhabilitar el vehículo porque tiene entregas activas."
+        )
         return redirect("logistica:lista_vehiculos")
 
     if vehiculo.estado == "fuera_de_servicio":
@@ -278,7 +297,9 @@ def cambiar_disponibilidad_vehiculo(request, id):
         vehiculo.estado = "fuera_de_servicio"
         mensaje = "inhabilitado"
     else:
-        messages.error(request, "El vehículo debe finalizar su estado actual antes de cambiar disponibilidad.")
+        messages.error(
+            request, "El vehículo debe finalizar su estado actual antes de cambiar disponibilidad."
+        )
         return redirect("logistica:lista_vehiculos")
 
     vehiculo.save(update_fields=["estado"])

@@ -62,7 +62,13 @@ def recolectar_stackexchange(cantidad: int) -> list:
     try:
         response = requests.get(
             "https://api.stackexchange.com/2.3/questions",
-            params={"order": "desc", "sort": "activity", "site": sitio, "pagesize": min(cantidad, 30), "filter": "!nNPvSNP4Rl*"},
+            params={
+                "order": "desc",
+                "sort": "activity",
+                "site": sitio,
+                "pagesize": min(cantidad, 30),
+                "filter": "!nNPvSNP4Rl*",
+            },
             headers=UA,
             timeout=TIMEOUT,
         )
@@ -73,7 +79,18 @@ def recolectar_stackexchange(cantidad: int) -> list:
             if titulo and not titulo.endswith("?"):
                 titulo = f"¿{titulo}?"
             if titulo:
-                salida.append({"pregunta": titulo, "fuente": "stackexchange", "metadata": {"licencia": "CC BY-SA (Stack Exchange)", "sitio": sitio, "tags": ", ".join(item.get("tags", [])[:5]), "link": item.get("link", "")}})
+                salida.append(
+                    {
+                        "pregunta": titulo,
+                        "fuente": "stackexchange",
+                        "metadata": {
+                            "licencia": "CC BY-SA (Stack Exchange)",
+                            "sitio": sitio,
+                            "tags": ", ".join(item.get("tags", [])[:5]),
+                            "link": item.get("link", ""),
+                        },
+                    }
+                )
         return salida
     except Exception as exc:
         logger.warning("Stack Exchange falló: %s", exc)
@@ -85,13 +102,28 @@ def recolectar_wikipedia(cantidad: int) -> list:
     for _ in range(cantidad):
         try:
             time.sleep(2.5)
-            response = requests.get("https://es.wikipedia.org/api/rest_v1/page/random/summary", headers=UA, timeout=TIMEOUT, allow_redirects=True)
+            response = requests.get(
+                "https://es.wikipedia.org/api/rest_v1/page/random/summary",
+                headers=UA,
+                timeout=TIMEOUT,
+                allow_redirects=True,
+            )
             response.raise_for_status()
             data = response.json()
             titulo, extracto = data.get("title", ""), (data.get("extract") or "").strip()
             if not titulo or len(extracto) < 120 or data.get("type") == "disambiguation":
                 continue
-            salida.append({"pregunta": f"¿Qué es {titulo}?", "fuente": "wikipedia", "metadata": {"licencia": "CC BY-SA (Wikipedia)", "link": data.get("content_urls", {}).get("desktop", {}).get("page", ""), "texto_referencia": extracto[:1200]}})
+            salida.append(
+                {
+                    "pregunta": f"¿Qué es {titulo}?",
+                    "fuente": "wikipedia",
+                    "metadata": {
+                        "licencia": "CC BY-SA (Wikipedia)",
+                        "link": data.get("content_urls", {}).get("desktop", {}).get("page", ""),
+                        "texto_referencia": extracto[:1200],
+                    },
+                }
+            )
         except Exception as exc:
             logger.warning("Wikipedia falló: %s", exc)
     return salida
@@ -105,14 +137,39 @@ def recolectar_wikipedia_dominio(cantidad: int) -> list:
             break
         try:
             time.sleep(2.0)
-            response = requests.get("https://es.wikipedia.org/w/api.php", params={"action": "query", "generator": "categorymembers", "gcmtitle": categoria, "gcmlimit": min(por_categoria, 25), "gcmnamespace": "0", "prop": "extracts", "exintro": "1", "explaintext": "1", "format": "json"}, headers=UA, timeout=TIMEOUT)
+            response = requests.get(
+                "https://es.wikipedia.org/w/api.php",
+                params={
+                    "action": "query",
+                    "generator": "categorymembers",
+                    "gcmtitle": categoria,
+                    "gcmlimit": min(por_categoria, 25),
+                    "gcmnamespace": "0",
+                    "prop": "extracts",
+                    "exintro": "1",
+                    "explaintext": "1",
+                    "format": "json",
+                },
+                headers=UA,
+                timeout=TIMEOUT,
+            )
             response.raise_for_status()
             pages = (response.json().get("query", {}) or {}).get("pages", {})
             for page in pages.values():
                 titulo, extracto = page.get("title", ""), (page.get("extract") or "").strip()
                 if not titulo or len(extracto) < 120 or ":" in titulo:
                     continue
-                salida.append({"pregunta": f"¿Qué es {titulo}?", "fuente": "wikipedia_dominio", "metadata": {"licencia": "CC BY-SA (Wikipedia)", "categoria": categoria.replace("Categoría:", ""), "texto_referencia": extracto[:1500]}})
+                salida.append(
+                    {
+                        "pregunta": f"¿Qué es {titulo}?",
+                        "fuente": "wikipedia_dominio",
+                        "metadata": {
+                            "licencia": "CC BY-SA (Wikipedia)",
+                            "categoria": categoria.replace("Categoría:", ""),
+                            "texto_referencia": extracto[:1500],
+                        },
+                    }
+                )
                 if len(salida) >= cantidad:
                     break
         except Exception as exc:
@@ -123,7 +180,12 @@ def recolectar_wikipedia_dominio(cantidad: int) -> list:
 def recolectar(total: int, fuentes: list | None = None) -> list:
     fuentes = fuentes or ["opentdb", "stackexchange", "wikipedia", "wikipedia_dominio"]
     por_fuente = max(1, total // len(fuentes) + (1 if total % len(fuentes) else 0))
-    recolectores = {"opentdb": recolectar_opentdb, "stackexchange": recolectar_stackexchange, "wikipedia": recolectar_wikipedia, "wikipedia_dominio": recolectar_wikipedia_dominio}
+    recolectores = {
+        "opentdb": recolectar_opentdb,
+        "stackexchange": recolectar_stackexchange,
+        "wikipedia": recolectar_wikipedia,
+        "wikipedia_dominio": recolectar_wikipedia_dominio,
+    }
     preguntas = []
     for fuente in fuentes:
         recolector = recolectores.get(fuente)

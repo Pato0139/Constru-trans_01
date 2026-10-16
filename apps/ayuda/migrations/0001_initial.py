@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -16,7 +15,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="CategoriaAyuda",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
                 ("nombre", models.CharField(max_length=100)),
                 ("descripcion", models.TextField(blank=True)),
                 ("orden", models.PositiveIntegerField(default=0)),
@@ -30,7 +34,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ColorSistema",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
                 ("nombre", models.CharField(max_length=100)),
                 ("codigo_hex", models.CharField(max_length=7)),
                 ("descripcion", models.TextField(blank=True)),
@@ -46,7 +55,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="GuiaEdicion",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
                 ("titulo", models.CharField(max_length=200)),
                 ("contenido", models.TextField()),
                 ("orden", models.PositiveIntegerField(default=0)),
@@ -54,7 +68,14 @@ class Migration(migrations.Migration):
                 ("fecha_actualizacion", models.DateTimeField(auto_now=True)),
                 ("es_favorito", models.BooleanField(default=False)),
                 ("activo", models.BooleanField(default=True)),
-                ("categoria", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="guias", to="ayuda.categoriaayuda")),
+                (
+                    "categoria",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="guias",
+                        to="ayuda.categoriaayuda",
+                    ),
+                ),
             ],
             options={
                 "db_table": "guia_edicion",
@@ -66,7 +87,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ManualUsuario",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
                 ("titulo", models.CharField(max_length=200)),
                 ("version", models.CharField(max_length=50)),
                 ("archivo", models.FileField(upload_to="manuales/")),
@@ -82,13 +108,25 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="PasoGuia",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
                 ("numero_paso", models.PositiveIntegerField()),
                 ("titulo_paso", models.CharField(max_length=200)),
                 ("descripcion", models.TextField()),
                 ("imagen", models.ImageField(blank=True, null=True, upload_to="ayuda/pasos/")),
                 ("url_referencia", models.URLField(blank=True, null=True)),
-                ("guia", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="pasos", to="ayuda.guiaedicion")),
+                (
+                    "guia",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="pasos",
+                        to="ayuda.guiaedicion",
+                    ),
+                ),
             ],
             options={
                 "db_table": "paso_guia",
@@ -98,14 +136,49 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="SugerenciaRecomendacion",
             fields=[
-                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("tipo", models.CharField(choices=[("sugerencia", "Sugerencia"), ("recomendacion", "Recomendación"), ("bug", "Reporte de Error"), ("mejora", "Mejora")], max_length=20)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "tipo",
+                    models.CharField(
+                        choices=[
+                            ("sugerencia", "Sugerencia"),
+                            ("recomendacion", "Recomendación"),
+                            ("bug", "Reporte de Error"),
+                            ("mejora", "Mejora"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
                 ("titulo", models.CharField(max_length=200)),
                 ("descripcion", models.TextField()),
-                ("estado", models.CharField(choices=[("nuevo", "Nuevo"), ("en_revision", "En Revisión"), ("implementado", "Implementado"), ("rechazado", "Rechazado")], default="nuevo", max_length=20)),
+                (
+                    "estado",
+                    models.CharField(
+                        choices=[
+                            ("nuevo", "Nuevo"),
+                            ("en_revision", "En Revisión"),
+                            ("implementado", "Implementado"),
+                            ("rechazado", "Rechazado"),
+                        ],
+                        default="nuevo",
+                        max_length=20,
+                    ),
+                ),
                 ("fecha_creacion", models.DateTimeField(auto_now_add=True)),
                 ("fecha_actualizacion", models.DateTimeField(auto_now=True)),
-                ("usuario", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="sugerencias", to="usuarios.usuario")),
+                (
+                    "usuario",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="sugerencias",
+                        to="usuarios.usuario",
+                    ),
+                ),
             ],
             options={
                 "db_table": "sugerencia_recomendacion",

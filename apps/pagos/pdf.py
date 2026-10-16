@@ -16,9 +16,7 @@ def render_factura_pdf(factura):
             f"Fecha de emisión: {factura.fecha_emision:%Y-%m-%d}",
             styles["Normal"],
         ),
-        Paragraph(
-            f"Pedido: {factura.pedido.codigo_pedido}", styles["Normal"]
-        ),
+        Paragraph(f"Pedido: {factura.pedido.codigo_pedido}", styles["Normal"]),
         Spacer(1, 0.5 * cm),
     ]
     tabla = [["Descripción", "Cantidad", "Precio unitario", "Subtotal"]]

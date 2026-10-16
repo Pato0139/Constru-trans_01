@@ -1,6 +1,6 @@
 from django import forms
 
-from apps.pedidos.models import Pago
+from apps.pagos.models import Pago
 from apps.pedidos.validators import validar_comprobante_imagen
 
 

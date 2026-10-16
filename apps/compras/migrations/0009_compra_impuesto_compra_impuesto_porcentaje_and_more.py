@@ -4,30 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compras', '0008_proveedor_alter_detallecompra_material_and_more'),
+        ("compras", "0008_proveedor_alter_detallecompra_material_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='compra',
-            name='impuesto',
+            model_name="compra",
+            name="impuesto",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=12),
         ),
         migrations.AddField(
-            model_name='compra',
-            name='impuesto_porcentaje',
+            model_name="compra",
+            name="impuesto_porcentaje",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=5),
         ),
         migrations.AddField(
-            model_name='compra',
-            name='subtotal',
+            model_name="compra",
+            name="subtotal",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=12),
         ),
         migrations.AddField(
-            model_name='detallecompra',
-            name='subtotal',
+            model_name="detallecompra",
+            name="subtotal",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=12),
         ),
     ]

@@ -4,33 +4,32 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('clientes', '0001_initial'),
+        ("clientes", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='cliente',
-            options={'verbose_name': 'Cliente VIP', 'verbose_name_plural': 'Clientes VIP'},
+            name="cliente",
+            options={"verbose_name": "Cliente VIP", "verbose_name_plural": "Clientes VIP"},
         ),
         migrations.AddField(
-            model_name='cliente',
-            name='direccion',
-            field=models.CharField(default='Por definir', max_length=200),
+            model_name="cliente",
+            name="direccion",
+            field=models.CharField(default="Por definir", max_length=200),
         ),
         migrations.AddField(
-            model_name='cliente',
-            name='es_vip',
+            model_name="cliente",
+            name="es_vip",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='cliente',
-            name='fecha_vip',
+            model_name="cliente",
+            name="fecha_vip",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterModelTable(
-            name='cliente',
-            table='cliente_vip',
+            name="cliente",
+            table="cliente_vip",
         ),
     ]

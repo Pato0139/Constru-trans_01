@@ -29,9 +29,19 @@ def _extraer_urls_python(texto: str) -> list[str]:
 
 def _intentar_resolver(ref: str):
     kwargs_comunes = [
-        {}, {"id": 1}, {"pk": 1}, {"conductor_id": 1}, {"entrega_id": 1}, {"novedad_id": 1},
-        {"seguimiento_id": 1}, {"orden_id": 1}, {"uidb64": "MQ", "token": "abc-def-123"},
-        {"tipo": "clientes"}, {"codigo_proveedor": 1}, {"rol": "cliente"}, {"categoria_id": 1},
+        {},
+        {"id": 1},
+        {"pk": 1},
+        {"conductor_id": 1},
+        {"entrega_id": 1},
+        {"novedad_id": 1},
+        {"seguimiento_id": 1},
+        {"orden_id": 1},
+        {"uidb64": "MQ", "token": "abc-def-123"},
+        {"tipo": "clientes"},
+        {"codigo_proveedor": 1},
+        {"rol": "cliente"},
+        {"categoria_id": 1},
         {"guia_id": 1},
     ]
     args_list = [[], [1], [1, 1], [1, 1, 1], [1, "A", "B"]]
@@ -107,13 +117,20 @@ class TestUrlsRegistradas:
 
     def test_vistas_urls_mapeadas_existen(self):
         apps_urls = [
-"usuarios.urls", "clientes.urls", "catalogo.urls", "compras.urls",
-            "pedidos.urls", "pedidos.pagos_urls", "logistica.urls",
-            "core.auditoria_urls", "core.reportes_urls",
-            "licensing.urls", "ayuda.urls", "ia.urls",
+            "usuarios.urls",
+            "clientes.urls",
+            "catalogo.urls",
+            "compras.urls",
+            "pedidos.urls",
+            "pedidos.pagos_urls",
+            "logistica.urls",
+            "core.auditoria_urls",
+            "core.reportes_urls",
+            "licensing.urls",
+            "ayuda.urls",
+            "ia.urls",
         ]
         faltantes: list[str] = []
-        from inspect import isclass
 
         from django.urls.resolvers import URLPattern
 
@@ -135,7 +152,9 @@ class TestUrlsRegistradas:
                     if "auth" in cls.__module__:
                         continue
                     if not hasattr(views_mod, cls.__name__):
-                        faltantes.append(f"{app_label}:{name} falta view_class {cls.__name__} en views")
+                        faltantes.append(
+                            f"{app_label}:{name} falta view_class {cls.__name__} en views"
+                        )
                 else:
                     n = getattr(cb, "__name__", None)
                     if not n or n == "<lambda>":
@@ -143,6 +162,5 @@ class TestUrlsRegistradas:
                     if not hasattr(views_mod, n):
                         faltantes.append(f"{app_label}:{name} falta funcion {n} en views")
         assert not faltantes, (
-            "Faltan referencias de vistas en sus módulos views:\n  - "
-            + "\n  - ".join(faltantes)
+            "Faltan referencias de vistas en sus módulos views:\n  - " + "\n  - ".join(faltantes)
         )

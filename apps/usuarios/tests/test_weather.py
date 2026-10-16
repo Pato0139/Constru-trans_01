@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 import requests
 from django.core.cache import cache
 from django.test import SimpleTestCase, override_settings
+
 from apps.usuarios.weather import get_route_weather
 
 

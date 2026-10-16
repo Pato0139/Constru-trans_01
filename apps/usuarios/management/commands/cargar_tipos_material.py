@@ -53,10 +53,18 @@ class Command(BaseCommand):
                 )
                 if created:
                     created_count += 1
-                    self.stdout.write(self.style.SUCCESS(f"✓ Creado: {catalogo.codigo_catalogo} - {catalogo.nombre_empresa}"))
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"✓ Creado: {catalogo.codigo_catalogo} - {catalogo.nombre_empresa}"
+                        )
+                    )
                 else:
                     updated_count += 1
-                    self.stdout.write(self.style.WARNING(f"↻ Actualizado: {catalogo.codigo_catalogo} - {catalogo.nombre_empresa}"))
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"↻ Actualizado: {catalogo.codigo_catalogo} - {catalogo.nombre_empresa}"
+                        )
+                    )
 
             self.stdout.write(
                 self.style.SUCCESS(
@@ -64,4 +72,6 @@ class Command(BaseCommand):
                 )
             )
 
-        self.stdout.write(self.style.SUCCESS("\nTipos de material estándar cargados correctamente."))
+        self.stdout.write(
+            self.style.SUCCESS("\nTipos de material estándar cargados correctamente.")
+        )

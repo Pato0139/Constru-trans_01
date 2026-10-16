@@ -99,16 +99,16 @@ class MaterialConstruccion(models.Model):
         default="activo",
         help_text="Estado del producto en el catálogo",
     )
-    activo = models.BooleanField(default=True, help_text="Indica si el material está disponible para uso")
+    activo = models.BooleanField(
+        default=True, help_text="Indica si el material está disponible para uso"
+    )
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
         db_table = "material_construccion"
         verbose_name = "Material de Construcción"
         verbose_name_plural = "Materiales de Construcción"
-        permissions = (
-            ("gestionar_inventario", "Puede gestionar inventario"),
-        )
+        permissions = (("gestionar_inventario", "Puede gestionar inventario"),)
         constraints = [
             models.CheckConstraint(
                 check=models.Q(precio_referencia__gte=0),
@@ -146,12 +146,18 @@ Material = MaterialConstruccion
 
 
 class HistorialPrecioMaterial(models.Model):
-    material = models.ForeignKey(MaterialConstruccion, on_delete=models.CASCADE, related_name="historial_precios")
+    material = models.ForeignKey(
+        MaterialConstruccion, on_delete=models.CASCADE, related_name="historial_precios"
+    )
     precio_anterior = models.DecimalField(max_digits=12, decimal_places=2)
     precio_nuevo = models.DecimalField(max_digits=12, decimal_places=2)
     fecha_cambio = models.DateTimeField(auto_now_add=True)
-    usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="cambios_precios")
-    observaciones = models.TextField(blank=True, help_text="Detalles o razones del cambio de precio")
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="cambios_precios"
+    )
+    observaciones = models.TextField(
+        blank=True, help_text="Detalles o razones del cambio de precio"
+    )
     mes = models.IntegerField(editable=False)
     año = models.IntegerField(editable=False)
 

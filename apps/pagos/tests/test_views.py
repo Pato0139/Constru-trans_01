@@ -3,10 +3,10 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from apps.catalogo.models import MaterialConstruccion, UnidadMedida
-from apps.pedidos.models import DetallePedido
-from apps.pedidos.models import Pago
-from apps.pedidos.models import Pedido
+from apps.pagos.models import Pago
+from apps.pedidos.models import DetallePedido, Pedido
 from apps.usuarios.models import Usuario
+
 
 class PagoViewsTests(TestCase):
     def setUp(self):
@@ -61,7 +61,9 @@ class PagoViewsTests(TestCase):
 
     def test_cliente_registra_pago_pendiente(self):
         self.client.login(username="clientepagoview", password="password123")
-        comprobante = SimpleUploadedFile("recibo.pdf", b"%PDF-1.4 test", content_type="application/pdf")
+        comprobante = SimpleUploadedFile(
+            "recibo.pdf", b"%PDF-1.4 test", content_type="application/pdf"
+        )
         response = self.client.post(
             reverse("pagos:registrar_pago", args=[self.pedido.codigo_pedido]),
             {"metodo": Pago.METODO_NEQUI, "monto": "120000", "comprobante": comprobante},

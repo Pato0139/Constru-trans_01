@@ -6,15 +6,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('usuarios', '0015_remove_materialconstruccion_catalogo_and_more'),
+        ("usuarios", "0015_remove_materialconstruccion_catalogo_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='usuario',
-            name='foto_perfil',
-            field=models.ImageField(blank=True, null=True, upload_to=apps.usuarios.models.foto_perfil_upload_path, validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])]),
+            model_name="usuario",
+            name="foto_perfil",
+            field=models.ImageField(
+                blank=True,
+                null=True,
+                upload_to=apps.usuarios.models.foto_perfil_upload_path,
+                validators=[
+                    django.core.validators.FileExtensionValidator(
+                        allowed_extensions=["jpg", "jpeg", "png", "webp"]
+                    )
+                ],
+            ),
         ),
     ]
