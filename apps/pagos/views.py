@@ -40,7 +40,13 @@ def _cliente_es_dueno(usuario, pedido):
 
 def _monto_pedido(pedido):
     if pedido.detalles.exists():
-        return sum((detalle.subtotal for detalle in pedido.detalles.all()), Decimal("0"))
+        return sum(
+            (
+                Decimal(detalle.cantidad) * detalle.precio_unitario
+                for detalle in pedido.detalles.all()
+            ),
+            Decimal("0"),
+        )
 
     return pedido.total or pedido.precio or Decimal("0")
 
@@ -116,6 +122,7 @@ def registrar_pago_pedido(request, pedido_id):
             "Revisa los materiales y sus precios antes de continuar.",
         )
         return redirect("clientes:mis_pedidos")
+    pedido.total = monto_pedido
 
     pago = pedido.pago_actual
     if pago and pago.estado == Pago.APROBADO:
