@@ -1,12 +1,11 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from apps.usuarios.utils import limpiar_telefono
-
+from config.forms import StrictModelForm
 from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
 
-class ProveedorForm(forms.ModelForm):
+class ProveedorForm(StrictModelForm):
     class Meta:
         model = Proveedor
         fields = [
@@ -28,10 +27,7 @@ class ProveedorForm(forms.ModelForm):
             "nit": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "9000000000",
-                    "pattern": "[0-9\\s]*",
-                    "title": "Solo se admiten números y espacios",
-                    "oninput": "this.value = this.value.replace(/[^0-9\\s]/g, '')",
+                    "placeholder": "900000000-1",
                 }
             ),
             "contacto_nombre": forms.TextInput(
@@ -41,9 +37,6 @@ class ProveedorForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "placeholder": "3001234567",
-                    "pattern": "[0-9\\s]*",
-                    "title": "Solo se admiten números y espacios",
-                    "oninput": "this.value = this.value.replace(/[^0-9\\s]/g, '')",
                 }
             ),
             "correo": forms.EmailInput(
@@ -71,14 +64,14 @@ class ProveedorForm(forms.ModelForm):
 
     def clean_nit(self):
         nit = self.cleaned_data.get("nit")
-        return limpiar_telefono(nit)
+        return nit.strip() if nit else ""
 
     def clean_telefono(self):
         telefono = self.cleaned_data.get("telefono")
-        return limpiar_telefono(telefono)
+        return telefono.strip() if telefono else ""
 
 
-class ProveedorPerfilForm(forms.ModelForm):
+class ProveedorPerfilForm(StrictModelForm):
     class Meta:
         model = Proveedor
         fields = [
@@ -95,7 +88,7 @@ class ProveedorPerfilForm(forms.ModelForm):
         ]
 
 
-class ProveedorMaterialForm(forms.ModelForm):
+class ProveedorMaterialForm(StrictModelForm):
     class Meta:
         model = ProveedorMaterial
         fields = ["material", "precio_actual", "referencia_proveedor", "observaciones", "activo"]
@@ -110,7 +103,7 @@ ProveedorMaterialFormSet = inlineformset_factory(
 )
 
 
-class CompraForm(forms.ModelForm):
+class CompraForm(StrictModelForm):
     class Meta:
         model = Compra
         fields = ["proveedor", "observaciones"]
@@ -126,7 +119,7 @@ class CompraForm(forms.ModelForm):
         self.fields["proveedor"].queryset = Proveedor.objects.all()
 
 
-class DetalleCompraForm(forms.ModelForm):
+class DetalleCompraForm(StrictModelForm):
     class Meta:
         model = DetalleCompra
         fields = ["material", "cantidad", "precio_unitario"]

@@ -1,10 +1,17 @@
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxLengthValidator, MinValueValidator
 from django.db import models
+from django.db.models import Sum
 from django.utils import timezone
+
+from config.state_machine import TransicionMixin
+from config.validators import ArchivoValidator, monto_positivo, no_negativo, no_solo_espacios
+
+OBSERVACIONES_MAX = 1000
 
 
 def comprobante_upload_to(instance, filename):
@@ -18,7 +25,7 @@ def _evidencia_upload_to(instance, filename):
     return f"comprobantes/factura_{factura_id}/{ts}/{filename}"
 
 
-class Pago(models.Model):
+class Pago(TransicionMixin, models.Model):
     METODO_NEQUI = "nequi"
     METODO_DAVIPLATA = "daviplata"
     METODO_BANCOLOMBIA = "bancolombia"
@@ -43,6 +50,11 @@ class Pago(models.Model):
         (APROBADO, "Aprobado"),
         (RECHAZADO, "Rechazado"),
     ]
+    TRANSICIONES = {
+        PENDIENTE: {APROBADO, RECHAZADO},
+        RECHAZADO: {PENDIENTE},  # el cliente reenvía comprobante
+        APROBADO: set(),
+    }
 
     pedido = models.OneToOneField(
         "pedidos.Pedido",
@@ -61,6 +73,7 @@ class Pago(models.Model):
         null=True,
         blank=True,
         db_column="comprobante",
+        validators=[ArchivoValidator(("png", "jpg", "jpeg"), max_mb=5)],
     )
     estado = models.CharField(
         max_length=20, choices=ESTADOS, default=PENDIENTE, db_column="estado_pago"
@@ -75,7 +88,9 @@ class Pago(models.Model):
         related_name="pagos_revisados",
         db_column="revisado_por_id",
     )
-    observaciones = models.TextField(blank=True, db_column="motivo_rechazo")
+    observaciones = models.TextField(
+        blank=True, db_column="motivo_rechazo", validators=[MaxLengthValidator(OBSERVACIONES_MAX)]
+    )
 
     class Meta:
         db_table = "pago_pedido"
@@ -101,13 +116,18 @@ class Pago(models.Model):
         return self.estado == self.APROBADO
 
     def clean(self):
+        errores = {}
         if self.requiere_comprobante() and not self.comprobante:
-            raise ValidationError({"comprobante": "Este método de pago requiere comprobante."})
+            errores["comprobante"] = "Este método de pago requiere comprobante."
+        if self.estado == self.RECHAZADO and not (self.observaciones or "").strip():
+            errores["observaciones"] = "Indica el motivo del rechazo."
+        if errores:
+            raise ValidationError(errores)
 
     def marcar_revision(self, *, estado, revisor, observaciones=""):
         if estado not in (self.APROBADO, self.RECHAZADO):
             raise ValueError("La revisión solo admite aprobado o rechazado.")
-        self.estado = estado
+        self.transicionar(estado)
         self.revisado_por = revisor
         self.observaciones = observaciones or ""
         self.fecha_revision = timezone.now()
@@ -120,7 +140,7 @@ class DetallePago(models.Model):
         related_name="detalles",
         db_column="pago_id",
     )
-    concepto = models.CharField(max_length=200, db_column="concepto")
+    concepto = models.CharField(max_length=200, db_column="concepto", validators=[no_solo_espacios])
     monto = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -130,18 +150,29 @@ class DetallePago(models.Model):
 
     class Meta:
         db_table = "detalle_pago"
+        constraints = [
+            models.CheckConstraint(check=models.Q(monto__gte=0), name="chk_detalle_pago_monto_gte_0"),
+        ]
 
     def __str__(self):
         return f"Detalle {self.concepto} - ${self.monto}"
 
 
-class Factura(models.Model):
+class Factura(TransicionMixin, models.Model):
     class Estado(models.TextChoices):
         EMITIDA = "emitida", "Emitida"
         PARCIAL = "parcial", "Pago parcial"
         PAGADA = "pagada", "Pagada"
         VENCIDA = "vencida", "Vencida"
         ANULADA = "anulada", "Anulada"
+
+    TRANSICIONES = {
+        Estado.EMITIDA: {Estado.PARCIAL, Estado.PAGADA, Estado.VENCIDA, Estado.ANULADA},
+        Estado.PARCIAL: {Estado.EMITIDA, Estado.PAGADA, Estado.VENCIDA, Estado.ANULADA},
+        Estado.VENCIDA: {Estado.PARCIAL, Estado.PAGADA, Estado.ANULADA},
+        Estado.PAGADA: set(),
+        Estado.ANULADA: set(),
+    }
 
     numero = models.CharField(max_length=20, unique=True, editable=False)
     pedido = models.OneToOneField(
@@ -155,9 +186,9 @@ class Factura(models.Model):
         related_name="facturas",
     )
     fecha_emision = models.DateTimeField(default=timezone.now)
-    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    impuestos = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
+    impuestos = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
     estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.EMITIDA)
     uuid_publico = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
 
@@ -169,44 +200,59 @@ class Factura(models.Model):
             ("emitir_factura", "Puede emitir facturas"),
             ("registrar_pago_admin", "Puede registrar un pago en nombre del cliente"),
         )
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(subtotal__gte=0) & models.Q(impuestos__gte=0) & models.Q(total__gte=0),
+                name="chk_factura_montos_gte_0",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.numero} — ${self.total}"
 
+    def clean(self):
+        if self.subtotal is not None and self.impuestos is not None and self.total is not None:
+            if self.total != self.subtotal + self.impuestos:
+                raise ValidationError(
+                    {"total": "El total debe ser igual a subtotal + impuestos."}
+                )
+
     def save(self, *args, **kwargs):
         if not self.numero:
-            self.numero = self._generar_numero()
-        super().save(*args, **kwargs)
+            # El cliente nunca envía el número: se genera con contador bloqueado.
+            from config.sequences import numero_factura
 
-    def _generar_numero(self):
-        año = timezone.now().year
-        correlativo = Factura.objects.filter(fecha_emision__year=año).count() + 1
-        return f"F-{año}-{correlativo:05d}"
+            using = kwargs.get("using") or self._state.db or "default"
+            anio = (self.fecha_emision or timezone.now()).year
+            self.numero = numero_factura(anio, using=using)
+        super().save(*args, **kwargs)
 
     @property
     def monto_pagado(self):
-        return sum(
-            float(p.monto) for p in self.pagos_factura.filter(estado=PagoFactura.Estado.APROBADO)
-        )
+        total = self.pagos_factura.filter(estado=PagoFactura.Estado.APROBADO).aggregate(
+            s=Sum("monto")
+        )["s"]
+        return total or Decimal("0.00")
 
     @property
     def saldo_pendiente(self):
-        return float(self.total or 0) - self.monto_pagado
+        return (self.total or Decimal("0.00")) - self.monto_pagado
 
     def recalcular_estado(self):
-        pagado = self.monto_pagado
         if self.estado == self.Estado.ANULADA:
             return
+        pagado = self.monto_pagado
         if pagado <= 0:
-            self.estado = self.Estado.EMITIDA
-        elif pagado < float(self.total):
-            self.estado = self.Estado.PARCIAL
+            nuevo = self.Estado.EMITIDA
+        elif pagado < (self.total or 0):
+            nuevo = self.Estado.PARCIAL
         else:
-            self.estado = self.Estado.PAGADA
+            nuevo = self.Estado.PAGADA
+        self.transicionar(nuevo)
         self.save(update_fields=["estado"])
 
 
-class PagoFactura(models.Model):
+class PagoFactura(TransicionMixin, models.Model):
     class Metodo(models.TextChoices):
         EFECTIVO = "efectivo", "Efectivo"
         TRANSFERENCIA = "transferencia", "Transferencia"
@@ -220,11 +266,19 @@ class PagoFactura(models.Model):
 
     factura = models.ForeignKey(Factura, on_delete=models.CASCADE, related_name="pagos_factura")
     monto = models.DecimalField(
-        max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)]
+        max_digits=12, decimal_places=2, validators=[monto_positivo]
     )
     metodo = models.CharField(max_length=20, choices=Metodo.choices)
     referencia = models.CharField(max_length=100, blank=True)
-    estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.PENDIENTE)
+
+    TRANSICIONES = {
+        Estado.PENDIENTE: {Estado.APROBADO, Estado.RECHAZADO},
+        Estado.APROBADO: set(),
+        Estado.RECHAZADO: set(),
+    }
+    estado = models.CharField(
+        max_length=10, choices=Estado.choices, default=Estado.PENDIENTE
+    )
     fecha_registro = models.DateTimeField(default=timezone.now)
     fecha_revision = models.DateTimeField(null=True, blank=True)
     evidencia = models.ImageField(
@@ -232,6 +286,7 @@ class PagoFactura(models.Model):
         null=True,
         blank=True,
         help_text="Evidencia fotográfica del comprobante",
+        validators=[ArchivoValidator(("png", "jpg", "jpeg"), max_mb=5)],
     )
     registrado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -246,11 +301,15 @@ class PagoFactura(models.Model):
         blank=True,
         related_name="+",
     )
-    observaciones = models.TextField(blank=True)
+    observaciones = models.TextField(blank=True, validators=[MaxLengthValidator(OBSERVACIONES_MAX)])
 
     class Meta:
         db_table = "pago_factura"
         ordering = ["-fecha_registro"]
+        constraints = [
+            models.CheckConstraint(check=models.Q(monto__gt=0), name="chk_pago_factura_monto_gt_0"),
+        ]
+        indexes = [models.Index(fields=["factura", "estado"], name="idx_pago_factura_fac_estado")]
 
     def __str__(self):
         return f"Pago #{self.pk} {self.factura.numero} — ${self.monto}"

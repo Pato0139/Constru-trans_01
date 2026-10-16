@@ -184,9 +184,16 @@ MIDDLEWARE = [
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Captura centralizada de ValidationError e IntegrityError para respuestas uniformes
+    "config.middleware_errores.ValidationErrorMiddleware",
     # Licencia: último paso antes de servir la app
     "apps.licensing.middleware.LicenseEnforcementMiddleware",
 ]
+
+# Límites de carga y seguridad de payload (evitar DoS y desbordes)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024       # 5 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024      # 10 MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
 
 # ============================================================
 # SEGURIDAD — Control de acceso + Bloqueo IP

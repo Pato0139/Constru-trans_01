@@ -1,16 +1,20 @@
 from decimal import Decimal
 
 from django.conf import settings
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.exceptions import ValidationError
 from django.db import models
 
-numeric_and_space_validator = RegexValidator(
-    r"^[0-9 ]+$",
-    message="Este campo solo puede contener números y espacios.",
-)
-
-
 from apps.catalogo.models import MaterialConstruccion
+from config.state_machine import TransicionMixin
+from config.validators import (
+    cantidad_validators,
+    monto_positivo,
+    nit_validator,
+    no_negativo,
+    no_solo_espacios,
+    porcentaje_validators,
+    telefono_validator,
+)
 
 
 # =====================================================================
@@ -18,14 +22,14 @@ from apps.catalogo.models import MaterialConstruccion
 # =====================================================================
 class Proveedor(models.Model):
     codigo_proveedor = models.AutoField(primary_key=True)
-    nombre_empresa = models.CharField(max_length=150)
-    nit = models.CharField(max_length=20, unique=True, validators=[numeric_and_space_validator])
-    contacto_nombre = models.CharField(max_length=150, blank=True)
-    telefono = models.CharField(max_length=20, validators=[numeric_and_space_validator])
+    nombre_empresa = models.CharField(max_length=150, validators=[no_solo_espacios])
+    nit = models.CharField(max_length=20, unique=True, validators=[nit_validator])
+    contacto_nombre = models.CharField(max_length=150, blank=True, validators=[no_solo_espacios])
+    telefono = models.CharField(max_length=20, validators=[telefono_validator])
     correo = models.EmailField(blank=True)
-    direccion = models.CharField(max_length=255, blank=True)
-    ciudad = models.CharField(max_length=100, blank=True)
-    categoria = models.CharField(max_length=100, blank=True, default="General")
+    direccion = models.CharField(max_length=255, blank=True, validators=[no_solo_espacios])
+    ciudad = models.CharField(max_length=100, blank=True, validators=[no_solo_espacios])
+    categoria = models.CharField(max_length=100, blank=True, default="General", validators=[no_solo_espacios])
     descripcion = models.TextField(blank=True)
     activo = models.BooleanField(default=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
@@ -69,16 +73,22 @@ class Proveedor(models.Model):
 # =====================================================================
 # COMPRA
 # =====================================================================
-class Compra(models.Model):
+class Compra(TransicionMixin, models.Model):
     ESTADOS = [("pendiente", "Pendiente"), ("recibida", "Recibida"), ("cancelada", "Cancelada")]
+    ESTADO_CAMPO = "estado"
+    TRANSICIONES = {
+        "pendiente": ["recibida", "cancelada"],
+        "recibida": [],
+        "cancelada": [],
+    }
 
     id_compra = models.AutoField(primary_key=True)
     proveedor = models.ForeignKey(Proveedor, on_delete=models.PROTECT, db_column="codigo_proveedor")
     fecha_compra = models.DateTimeField(auto_now_add=True)
-    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    impuesto = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    impuesto_porcentaje = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    total_compra = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
+    impuesto = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
+    impuesto_porcentaje = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=porcentaje_validators)
+    total_compra = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -104,6 +114,18 @@ class Compra(models.Model):
                 check=models.Q(total_compra__gte=0),
                 name="chk_compra_total_compra_gte_0",
             ),
+            models.CheckConstraint(
+                check=models.Q(subtotal__gte=0),
+                name="chk_compra_subtotal_gte_0",
+            ),
+            models.CheckConstraint(
+                check=models.Q(impuesto__gte=0),
+                name="chk_compra_impuesto_gte_0",
+            ),
+            models.CheckConstraint(
+                check=models.Q(impuesto_porcentaje__gte=0) & models.Q(impuesto_porcentaje__lte=100),
+                name="chk_compra_impuesto_pct_rango",
+            ),
         ]
 
     def __str__(self):
@@ -112,6 +134,17 @@ class Compra(models.Model):
     @property
     def numero_orden(self):
         return f"OC-{self.fecha_compra.year}-{self.id_compra:04d}"
+
+    def clean(self):
+        super().clean()
+        if self.subtotal is not None and self.subtotal < 0:
+            raise ValidationError({"subtotal": "El subtotal no puede ser negativo."})
+        if self.impuesto is not None and self.impuesto < 0:
+            raise ValidationError({"impuesto": "El impuesto no puede ser negativo."})
+        if self.impuesto_porcentaje is not None and not (0 <= self.impuesto_porcentaje <= 100):
+            raise ValidationError({"impuesto_porcentaje": "El porcentaje de impuesto debe estar entre 0 y 100."})
+        if self.total_compra is not None and self.total_compra < 0:
+            raise ValidationError({"total_compra": "El total no puede ser negativo."})
 
     def calcular_total(self, using=None):
         if using is None:
@@ -137,7 +170,7 @@ class ProveedorMaterial(models.Model):
         MaterialConstruccion, on_delete=models.PROTECT, related_name="proveedores_ofertantes"
     )
     precio_actual = models.DecimalField(
-        max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)]
+        max_digits=12, decimal_places=2, validators=[monto_positivo]
     )
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     referencia_proveedor = models.CharField(max_length=100, blank=True)
@@ -150,7 +183,11 @@ class ProveedorMaterial(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["proveedor", "material"], name="unique_material_por_proveedor"
-            )
+            ),
+            models.CheckConstraint(
+                check=models.Q(precio_actual__gt=0),
+                name="chk_provmat_precio_actual_gt_0",
+            ),
         ]
 
     def __str__(self):
@@ -176,11 +213,9 @@ class DetalleCompra(models.Model):
     material = models.ForeignKey(
         MaterialConstruccion, on_delete=models.PROTECT, db_column="cod_material"
     )
-    cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
-    precio_unitario = models.DecimalField(
-        max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)]
-    )
-    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    cantidad = models.PositiveIntegerField(validators=cantidad_validators)
+    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, validators=[monto_positivo])
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
 
     class Meta:
         db_table = "detalle_compra"
@@ -190,8 +225,12 @@ class DetalleCompra(models.Model):
                 name="chk_detalle_compra_cantidad_gt_0",
             ),
             models.CheckConstraint(
-                check=models.Q(precio_unitario__gte=0),
-                name="chk_detalle_compra_precio_unitario_gte_0",
+                check=models.Q(precio_unitario__gt=0),
+                name="chk_detalle_compra_precio_unitario_gt_0",
+            ),
+            models.CheckConstraint(
+                check=models.Q(subtotal__gte=0),
+                name="chk_detalle_compra_subtotal_gte_0",
             ),
             models.UniqueConstraint(
                 fields=["compra", "material"],
@@ -202,8 +241,16 @@ class DetalleCompra(models.Model):
     def __str__(self):
         return f"{self.cantidad} x {self.material.nombre}"
 
+    def clean(self):
+        super().clean()
+        if self.cantidad is not None and self.cantidad <= 0:
+            raise ValidationError({"cantidad": "La cantidad debe ser mayor a 0."})
+        if self.precio_unitario is not None and self.precio_unitario <= Decimal("0"):
+            raise ValidationError({"precio_unitario": "El precio unitario debe ser mayor a 0."})
+
     def save(self, *args, **kwargs):
         using = kwargs.get("using", self._state.db)
+        self.full_clean()
         self.subtotal = Decimal(self.cantidad) * Decimal(str(self.precio_unitario))
         super().save(*args, **kwargs)
         self.compra.calcular_total(using=using)

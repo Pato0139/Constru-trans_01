@@ -29,8 +29,17 @@ from config.security import (
 )
 from config.utils import registrar_actividad
 
-from .models import DetallePedido, DetalleSolicitudPedido, Pedido, SolicitudPedido
+from .forms import AgregarMaterialForm, CambioEstadoPedidoForm, FiltroPedidosForm
+from .models import (DetallePedido, DetalleSolicitudPedido, Pedido,
+                     SolicitudPedido)
 from .utils import liberar_vehiculo_pedido, revertir_stock_pedido
+from django.core.exceptions import ValidationError
+from config.errors import formatear_errores
+
+
+def _mensajes_error(request, origen):
+    for d in formatear_errores(origen):
+        messages.error(request, d["mensaje"])
 
 logger = logging.getLogger(__name__)
 
@@ -86,54 +95,50 @@ def agregar_materiales(request, id):
     detalles = orden.detalles.all()
 
     if request.method == "POST":
-        material_id = request.POST.get("material")
-        try:
-            cantidad = int(request.POST.get("cantidad", 0) or 0)
-        except (TypeError, ValueError):
-            messages.error(request, "La cantidad debe ser un entero.")
+        form = AgregarMaterialForm(request.POST)
+        if not form.is_valid():
+            _mensajes_error(request, form.errors)
             return redirect("pedidos:agregar_materiales", id=orden.codigo_pedido)
+        cantidad = form.cleaned_data["cantidad"]
+        material = get_object_or_404(MaterialConstruccion, pk=form.cleaned_data["material"])
 
-        if cantidad < 1:
-            messages.error(request, "La cantidad mínima es 1.")
-            return redirect("pedidos:agregar_materiales", id=orden.codigo_pedido)
-        if cantidad > 100000:
-            messages.error(request, "La cantidad no puede superar 100000.")
-            return redirect("pedidos:agregar_materiales", id=orden.codigo_pedido)
-
-        if material_id:
-            material = get_object_or_404(MaterialConstruccion, pk=material_id)
-            stock_obj = Stock.objects.get(material=material)
-
-            if stock_obj.cantidad_actual >= cantidad:
-                with transaction.atomic():
-                    detalle, created = DetallePedido.objects.get_or_create(
-                        pedido=orden,
-                        material=material,
-                        defaults={
-                            "cantidad": cantidad,
-                            "precio_unitario": material.precio_referencia,
-                        },
-                    )
-                    if not created:
-                        detalle.cantidad += cantidad
-                        detalle.save()
-
-                    stock_obj.cantidad_actual = F("cantidad_actual") - cantidad
-                    stock_obj.save()
-
-                    MovimientoInventario.objects.create(
-                        material=material,
-                        tipo_movimiento="salida",
-                        cantidad=cantidad,
-                        observacion=f"Agregado a pedido #{orden.codigo_pedido}",
-                        pedido=orden,
-                        usuario=request.user,
-                    )
-
-                    orden.calcular_total()
-                    messages.success(request, f"Se agregaron {cantidad} de {material.nombre}")
-            else:
+        with transaction.atomic():
+            orden = Pedido.objects.select_for_update().get(pk=orden.pk)
+            if orden.estado != Pedido.PENDIENTE:
+                messages.error(request, "Solo se pueden modificar pedidos pendientes.")
+                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+            stock_obj = Stock.objects.select_for_update().get(material=material)
+            if stock_obj.cantidad_actual < cantidad:
                 messages.error(request, "Stock insuficiente")
+                return redirect("pedidos:agregar_materiales", id=orden.codigo_pedido)
+
+            detalle, created = DetallePedido.objects.get_or_create(
+                pedido=orden,
+                material=material,
+                defaults={
+                    "cantidad": cantidad,
+                    "precio_unitario": material.precio_referencia,
+                },
+            )
+            if not created:
+                detalle.cantidad += cantidad
+                detalle.full_clean(exclude=["pedido", "material"])
+                detalle.save()
+
+            stock_obj.cantidad_actual = F("cantidad_actual") - cantidad
+            stock_obj.save()
+
+            MovimientoInventario.objects.create(
+                material=material,
+                tipo_movimiento="salida",
+                cantidad=cantidad,
+                observacion=f"Agregado a pedido #{orden.codigo_pedido}",
+                pedido=orden,
+                usuario=request.user,
+            )
+
+            orden.calcular_total()
+            messages.success(request, f"Se agregaron {cantidad} de {material.nombre}")
 
         return redirect("pedidos:agregar_materiales", id=orden.codigo_pedido)
 
@@ -178,12 +183,19 @@ def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=No
 
 @admin_required
 def _render_lista_por_estado(request, estado, titulo):
-    cliente_query = request.GET.get("cliente", "").strip()
-    fecha_query = request.GET.get("fecha", "").strip()
-    q = request.GET.get("q", "").strip()
-    estado_query = request.GET.get("estado", "").strip()
+    filtro = FiltroPedidosForm(request.GET)
+    if filtro.is_valid():
+        datos = filtro.cleaned_data
+    else:
+        _mensajes_error(request, filtro.errors)
+        datos = {k: v for k, v in (filtro.cleaned_data or {}).items()}
+    cliente_query = datos.get("cliente") or ""
+    fecha_valor = datos.get("fecha")
+    fecha_query = fecha_valor.isoformat() if fecha_valor else ""
+    q = datos.get("q") or ""
+    estado_query = datos.get("estado") or ""
 
-    pedidos = buscar_pedidos_admin(cliente_query=cliente_query, fecha_query=fecha_query, q=q)
+    pedidos = buscar_pedidos_admin(cliente_query=cliente_query, fecha_query=fecha_valor, q=q)
     if estado:
         if isinstance(estado, (list, tuple, set)):
             pedidos = pedidos.filter(estado__in=estado)
@@ -356,18 +368,25 @@ def ver_pedido_admin(request, id):
             if accion == "confirmar":
                 if orden.estado != Pedido.ENTREGADO:
                     with transaction.atomic():
+                        orden = Pedido.objects.select_for_update().get(pk=orden.pk)
                         entrega = orden.entregas.filter(conductor=perfil_conductor).first()
+                        if entrega and not orden.puede_transicionar(Pedido.ENTREGADO):
+                            messages.error(
+                                request,
+                                "Solo se puede confirmar la entrega de un pedido en ruta.",
+                            )
+                            return redirect("usuarios:panel")
                         if entrega:
                             ahora = timezone.now()
                             entrega.estado = "entregado"
                             entrega.fecha_entrega = entrega.fecha_entrega or ahora
                             entrega.save(update_fields=["estado", "fecha_entrega"])
 
-                            orden.estado = Pedido.ENTREGADO
+                            orden.transicionar(Pedido.ENTREGADO)
                             orden.fecha_entrega_real = orden.fecha_entrega_real or ahora
                             orden.save(update_fields=["estado", "fecha_entrega_real"])
 
-                            observacion = request.POST.get("observacion", "").strip()
+                            observacion = request.POST.get("observacion", "").strip()[:2000]
                             if observacion:
                                 Novedad.objects.create(
                                     entrega=entrega,
@@ -408,7 +427,7 @@ def ver_pedido_admin(request, id):
                                 orden, request.user, "Cancelación (Conductor)", using=db_alias
                             )
 
-                        orden.estado = Pedido.CANCELADO
+                        orden.transicionar(Pedido.CANCELADO)
                         orden.save()
 
                         registrar_actividad(
@@ -424,57 +443,51 @@ def ver_pedido_admin(request, id):
                 return redirect("usuarios:panel")
 
         elif es_admin:
-            if (
-                orden.estado == Pedido.CANCELADO
-                and nuevo_estado
-                and nuevo_estado != Pedido.CANCELADO
-            ):
-                messages.info(request, "El pedido está cancelado. Solo se permite su consulta.")
+            form = CambioEstadoPedidoForm(request.POST)
+            if not form.is_valid():
+                _mensajes_error(request, form.errors)
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-            if nuevo_estado and nuevo_estado not in dict(Pedido.ESTADOS):
-                messages.error(request, "El estado seleccionado no es válido.")
-                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+            nuevo_estado = form.cleaned_data["estado"]
             db_alias = "remota" if debe_usar_bd_remota() else "default"
-            if nuevo_estado:
-                estados_requieren_pago = {
-                    Pedido.AUTORIZADO_DESPACHO,
-                    Pedido.VEHICULO_ASIGNADO,
-                    Pedido.EN_RUTA,
-                }
-                if nuevo_estado in estados_requieren_pago and not orden.puede_despacharse:
-                    messages.error(
-                        request,
-                        "No se autoriza el despacho sin un pago aprobado.",
-                    )
-                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+            try:
                 with transaction.atomic():
-                    if nuevo_estado == Pedido.ENTREGADO and orden.estado != Pedido.ENTREGADO:
-                        entrega = orden.entregas.first()
-                        if entrega:
-                            entrega.estado = "entregado"
-                            if not entrega.fecha_entrega:
-                                entrega.fecha_entrega = timezone.now()
-                            entrega.save()
-                            orden.estado = Pedido.ENTREGADO
-                            orden.fecha_entrega_real = timezone.now()
-                            orden.save()
-                        else:
-                            messages.error(
-                                request, "Para marcar como entregado primero asigna una entrega."
-                            )
-                            return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-                    else:
-                        if nuevo_estado == Pedido.CANCELADO and orden.estado != Pedido.CANCELADO:
-                            with transaction.atomic(using=db_alias):
-                                liberar_vehiculo_pedido(orden)
-                                revertir_stock_pedido(
-                                    orden, request.user, "Cancelación (Admin)", using=db_alias
-                                )
+                    # Bloqueo: evita que dos admins cambien el estado a la vez.
+                    orden = Pedido.objects.select_for_update().get(pk=orden.pk)
+                    if nuevo_estado == orden.estado:
+                        messages.info(request, "El pedido ya se encuentra en ese estado.")
+                        return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+                    if (
+                        nuevo_estado in Pedido.ESTADOS_REQUIEREN_PAGO
+                        and not orden.puede_despacharse
+                    ):
+                        raise ValidationError(
+                            {"estado": "No se autoriza el despacho sin un pago aprobado."}
+                        )
+                    # Lanza ValidationError si la transición no está permitida.
+                    orden.transicionar(nuevo_estado)
 
-                        orden.estado = nuevo_estado
-                        if nuevo_estado == Pedido.EN_RUTA and not orden.fecha_toma_entrega:
-                            orden.fecha_toma_entrega = timezone.now()
-                        orden.save()
+                    if nuevo_estado == Pedido.ENTREGADO:
+                        entrega = orden.entregas.first()
+                        if not entrega:
+                            raise ValidationError(
+                                {"estado": "Para marcar como entregado primero asigna una entrega."}
+                            )
+                        entrega.estado = "entregado"
+                        if not entrega.fecha_entrega:
+                            entrega.fecha_entrega = timezone.now()
+                        entrega.save()
+                        orden.fecha_entrega_real = timezone.now()
+                    elif nuevo_estado == Pedido.CANCELADO:
+                        with transaction.atomic(using=db_alias):
+                            liberar_vehiculo_pedido(orden)
+                            revertir_stock_pedido(
+                                orden, request.user, "Cancelación (Admin)", using=db_alias
+                            )
+                    elif nuevo_estado == Pedido.EN_RUTA and not orden.fecha_toma_entrega:
+                        orden.fecha_toma_entrega = timezone.now()
+
+                    orden.full_clean(exclude=["fecha_entrega_programada"])
+                    orden.save()
 
                     registrar_actividad(
                         request,
@@ -483,11 +496,14 @@ def ver_pedido_admin(request, id):
                         orden.codigo_pedido,
                         f"Estado de pedido cambiado por admin a: {nuevo_estado}",
                     )
-                    messages.success(
-                        request,
-                        f"Estado del pedido #{orden.codigo_pedido} actualizado a {nuevo_estado}.",
-                    )
+            except ValidationError as exc:
+                _mensajes_error(request, exc)
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+            messages.success(
+                request,
+                f"Estado del pedido #{orden.codigo_pedido} actualizado a {orden.get_estado_display()}.",
+            )
+            return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
     context = {
         "orden": orden,
@@ -524,6 +540,13 @@ def crear_entrega(request, orden_id):
 
         if conductor_id:
             with transaction.atomic():
+                orden = Pedido.objects.select_for_update().get(pk=orden.pk)
+                if not orden.puede_transicionar(Pedido.EN_RUTA):
+                    messages.error(
+                        request,
+                        f"No se puede asignar transporte a un pedido en estado «{orden.get_estado_display()}».",
+                    )
+                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
                 usuario_conductor = get_object_or_404(Usuario, pk=conductor_id, rol="conductor")
                 try:
                     conductor_perfil = usuario_conductor.perfil_conductor
@@ -579,7 +602,7 @@ def crear_entrega(request, orden_id):
                     entrega.direccion_entrega = orden.direccion_destino
                     entrega.save()
 
-                orden.estado = Pedido.EN_RUTA
+                orden.transicionar(Pedido.EN_RUTA)
                 orden.conductor = conductor_perfil
                 if not orden.fecha_toma_entrega:
                     orden.fecha_toma_entrega = timezone.now()
@@ -624,11 +647,11 @@ def eliminar_orden(request, id):
             liberar_vehiculo_pedido(orden)
     except DatabaseError as exc:
         logger.error("Error BD al limpiar pedido %s: %s", order_id, exc)
-        messages.error(request, f"Error de base de datos: {exc}")
+        messages.error(request, "No fue posible eliminar el pedido por un error de base de datos.")
         return redirect("pedidos:lista_pedidos_admin")
     except Exception as exc:
         logger.error("Error limpiando pedido %s: %s", order_id, exc, exc_info=True)
-        messages.error(request, f"Error al limpiar antes de eliminar: {exc}")
+        messages.error(request, "No fue posible preparar el pedido para su eliminación.")
         return redirect("pedidos:lista_pedidos_admin")
 
     registrar_actividad(
@@ -791,9 +814,9 @@ def detalle_pedido(request, pk):
 @require_POST
 @transaction.atomic
 def aprobar_pedido(request, pk):
-    pedido = get_object_or_404(SolicitudPedido, pk=pk)
-    if pedido.estado == "pendiente":
-        pedido.estado = "aprobado"
+    pedido = get_object_or_404(SolicitudPedido.objects.select_for_update(), pk=pk)
+    if pedido.puede_transicionar("aprobado") and pedido.estado != "aprobado":
+        pedido.transicionar("aprobado")
         pedido.save()
         messages.success(request, f"Solicitud #{pedido.id} aprobada.")
     else:
@@ -806,8 +829,8 @@ def aprobar_pedido(request, pk):
 @require_POST
 @transaction.atomic
 def cancelar_pedido(request, pk):
-    pedido = get_object_or_404(SolicitudPedido, pk=pk)
-    if pedido.estado not in ["cancelado", "entregado"]:
+    pedido = get_object_or_404(SolicitudPedido.objects.select_for_update(), pk=pk)
+    if pedido.puede_transicionar("cancelado") and pedido.estado != "cancelado":
         for detalle in pedido.detalles.all():
             stock_obj = select_for_update_if_supported(Stock.objects, "default").get(
                 material=detalle.material
@@ -815,7 +838,7 @@ def cancelar_pedido(request, pk):
             stock_obj.cantidad_actual += detalle.cantidad
             stock_obj.save()
 
-        pedido.estado = "cancelado"
+        pedido.transicionar("cancelado")
         pedido.save()
         messages.success(request, f"Solicitud #{pedido.id} cancelada y stock devuelto.")
     else:
