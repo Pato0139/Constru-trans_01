@@ -40,10 +40,10 @@ nit_validator = RegexValidator(
     code="nit_invalido",
 )
 
-# Placas Colombia: ABC123 (carro) o ABC12D (moto).
+# Placas Colombia y códigos de flota (ABC123, ABC-123, ABC12D, CTV0336, EXTRA01).
 placa_validator = RegexValidator(
-    r"^[A-Z]{3}\d{2}[A-Z0-9]$",
-    message="La placa debe tener el formato ABC123 o ABC12D.",
+    r"^(?:[A-Z]{3}[- ]?\d{3,4}|[A-Z]{3}[- ]?\d{2}[A-Z0-9]|[A-Z0-9]{5,8})$",
+    message="La placa debe ser un identificador alfanumérico válido (ej. ABC123, ABC-123, CTV0336).",
     code="placa_invalida",
 )
 

@@ -1,14 +1,18 @@
 import logging
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 
+from config.state_machine import TransicionMixin
+from config.validators import no_solo_espacios, placa_validator
+
 logger = logging.getLogger(__name__)
 
 
-class Vehiculo(models.Model):
+class Vehiculo(TransicionMixin, models.Model):
     id_vehiculo = models.AutoField(primary_key=True)
     catalogo = models.ForeignKey(
         "catalogo.Catalogo",
@@ -18,10 +22,10 @@ class Vehiculo(models.Model):
         related_name="vehiculos",
         db_column="codigo_catalogo",
     )
-    placa = models.CharField(max_length=10, unique=True)
-    marca = models.CharField(max_length=50)
-    modelo = models.CharField(max_length=50)
-    tipo_vehiculo = models.CharField(max_length=50)
+    placa = models.CharField(max_length=10, unique=True, validators=[placa_validator])
+    marca = models.CharField(max_length=50, validators=[no_solo_espacios])
+    modelo = models.CharField(max_length=50, validators=[no_solo_espacios])
+    tipo_vehiculo = models.CharField(max_length=50, validators=[no_solo_espacios])
     capacidad_carga = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)]
     )
@@ -33,6 +37,12 @@ class Vehiculo(models.Model):
         ("mantenimiento", "Mantenimiento"),
         ("fuera_de_servicio", "Fuera de Servicio"),
     ]
+    TRANSICIONES = {
+        "disponible": {"en_ruta", "mantenimiento", "fuera_de_servicio"},
+        "en_ruta": {"disponible", "mantenimiento", "fuera_de_servicio"},
+        "mantenimiento": {"disponible", "fuera_de_servicio"},
+        "fuera_de_servicio": {"disponible", "mantenimiento"},
+    }
     estado = models.CharField(max_length=20, choices=ESTADOS_VEHICULO, default="disponible")
 
     sincronizado = models.BooleanField(default=False)
@@ -90,9 +100,37 @@ class ConductorVehiculo(models.Model):
     def __str__(self):
         return f"{self.conductor} - {self.vehiculo.placa}"
 
+    def clean(self):
+        super().clean()
+        if self.conductor_id and self.fecha_fin is None:
+            qs = ConductorVehiculo.objects.filter(conductor=self.conductor, fecha_fin__isnull=True)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                raise ValidationError("Este conductor ya tiene una asignación de vehículo activa.")
 
-class Entrega(models.Model):
-    ESTADOS = [("pendiente", "Pendiente"), ("en_ruta", "En Ruta"), ("entregado", "Entregado")]
+    def save(self, *args, **kwargs):
+        if self.conductor_id and self.fecha_fin is None and not self.pk:
+            ConductorVehiculo.objects.filter(
+                conductor=self.conductor, fecha_fin__isnull=True
+            ).update(fecha_fin=timezone.now())
+        super().save(*args, **kwargs)
+
+
+class Entrega(TransicionMixin, models.Model):
+    ESTADOS = [
+        ("pendiente", "Pendiente"),
+        ("en_ruta", "En Ruta"),
+        ("entregado", "Entregado"),
+        ("cancelado", "Cancelado"),
+    ]
+
+    TRANSICIONES = {
+        "pendiente": {"en_ruta", "cancelado"},
+        "en_ruta": {"entregado", "pendiente", "cancelado"},
+        "entregado": set(),
+        "cancelado": set(),
+    }
 
     id_entrega = models.AutoField(primary_key=True)
     pedido = models.ForeignKey("pedidos.Pedido", on_delete=models.CASCADE, related_name="entregas")

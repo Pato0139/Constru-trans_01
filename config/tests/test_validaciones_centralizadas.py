@@ -144,3 +144,92 @@ class ValidacionesCentralizadasTests(TestCase):
         sec1 = int(num1.split("-")[-1])
         sec2 = int(num2.split("-")[-1])
         self.assertEqual(sec2, sec1 + 1)
+
+    # -------------------------------------------------------------------------
+    # LOGÍSTICA
+    # -------------------------------------------------------------------------
+    def test_vehiculo_transiciones_y_placa_invalida(self):
+        """Vehiculo debe validar el formato de placa y transiciones de estado."""
+        from apps.logistica.models import Vehiculo
+
+        # Placa inválida (con caracteres extraños o minúsculas)
+        vehiculo = Vehiculo(
+            placa="123",  # Demasiado corta
+            marca="Chevrolet",
+            modelo="NPR",
+            tipo_vehiculo="Camión",
+            capacidad_carga=Decimal("5.0"),
+            estado="disponible",
+        )
+        with self.assertRaises(ValidationError):
+            vehiculo.full_clean()
+
+        # Placa válida
+        vehiculo.placa = "CTV0336"
+        vehiculo.full_clean()
+        vehiculo.save()
+
+        # Transición de estado permitida
+        vehiculo.transicionar("en_ruta")
+        vehiculo.save()
+        self.assertEqual(vehiculo.estado, "en_ruta")
+
+        # Transición válida de vuelta a disponible
+        vehiculo.transicionar("disponible")
+        vehiculo.save()
+        self.assertEqual(vehiculo.estado, "disponible")
+
+    def test_entrega_transiciones(self):
+        """Entrega debe bloquear transiciones ilegales."""
+        from apps.logistica.models import Entrega
+
+        entrega = Entrega(
+            estado="pendiente",
+            direccion_entrega="Av Principal 123",
+        )
+        # Transición legal
+        entrega.transicionar("en_ruta")
+        self.assertEqual(entrega.estado, "en_ruta")
+
+        entrega.transicionar("entregado")
+        self.assertEqual(entrega.estado, "entregado")
+
+        # Transición prohibida desde entregado (estado terminal)
+        with self.assertRaises(ValidationError):
+            entrega.transicionar("pendiente")
+
+    # -------------------------------------------------------------------------
+    # CATÁLOGO
+    # -------------------------------------------------------------------------
+    def test_material_form_rechaza_campos_extra_y_precios_negativos(self):
+        """MaterialForm (StrictModelForm) debe rechazar inyección de parámetros y valores negativos."""
+        from apps.catalogo.forms import MaterialForm
+        from apps.catalogo.models import UnidadMedida
+
+        unidad, _ = UnidadMedida.objects.get_or_create(
+            codigo="UND", defaults={"nombre": "Unidad", "abreviatura": "und", "activa": True}
+        )
+
+        # 1. Parámetro no permitido (Mass Assignment)
+        form_extra = MaterialForm(
+            data={
+                "nombre": "Cemento Gris",
+                "unidad_medida": unidad.pk,
+                "precio_referencia": "25000",
+                "parametro_falso_hacker": "inyeccion",
+            }
+        )
+        self.assertFalse(form_extra.is_valid())
+        self.assertIn("parametro_falso_hacker", str(form_extra.errors))
+
+        # 2. Precio negativo
+        form_negativo = MaterialForm(
+            data={
+                "nombre": "Cemento Gris",
+                "unidad_medida": unidad.pk,
+                "precio_referencia": "-100",
+            }
+        )
+        self.assertFalse(form_negativo.is_valid())
+        self.assertIn("precio_referencia", form_negativo.errors)
+

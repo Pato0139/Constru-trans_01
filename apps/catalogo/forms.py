@@ -3,10 +3,11 @@ import unicodedata
 
 from django import forms
 
+from config.forms_base import StrictModelForm
 from .models import ESTADOS_PRODUCTO, Catalogo, Marca, MaterialConstruccion, Stock, UnidadMedida
 
 
-class MaterialForm(forms.ModelForm):
+class MaterialForm(StrictModelForm):
     _MARCA_PALABRAS_PROHIBIDAS = {
         "cabron",
         "cojones",
@@ -148,6 +149,24 @@ class MaterialForm(forms.ModelForm):
 
         return marca_nombre
 
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get("nombre", "").strip()
+        if not nombre:
+            raise forms.ValidationError("El nombre del material es obligatorio.")
+        return nombre
+
+    def clean_precio_referencia(self):
+        precio = self.cleaned_data.get("precio_referencia")
+        if precio is not None and precio < 0:
+            raise forms.ValidationError("El precio no puede ser negativo.")
+        return precio
+
+    def clean_stock(self):
+        stock = self.cleaned_data.get("stock")
+        if stock is not None and stock < 0:
+            raise forms.ValidationError("El stock no puede ser negativo.")
+        return stock
+
     def save(self, commit=True):
         material = super().save(commit=False)
         tipo = self.cleaned_data.get("tipo")
@@ -186,7 +205,7 @@ class MaterialForm(forms.ModelForm):
         return material
 
 
-class MarcaForm(forms.ModelForm):
+class MarcaForm(StrictModelForm):
     class Meta:
         model = Marca
         fields = ["nombre"]
@@ -210,7 +229,7 @@ class MarcaForm(forms.ModelForm):
         return nombre
 
 
-class UnidadMedidaForm(forms.ModelForm):
+class UnidadMedidaForm(StrictModelForm):
     class Meta:
         model = UnidadMedida
         fields = ["codigo", "nombre", "abreviatura", "activa"]
@@ -260,7 +279,7 @@ class UnidadMedidaForm(forms.ModelForm):
         return nombre
 
 
-class CatalogoForm(forms.ModelForm):
+class CatalogoForm(StrictModelForm):
     class Meta:
         model = Catalogo
         fields = ["codigo_catalogo", "nombre_empresa"]
