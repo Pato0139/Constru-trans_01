@@ -8,6 +8,7 @@ from django.db.utils import OperationalError
 from django.utils import timezone
 
 from apps.catalogo.models import MaterialConstruccion
+from apps.pagos.models import Pago, comprobante_upload_to  # noqa: F401, E402
 from apps.usuarios.models import Usuario
 from config.state_machine import TransicionMixin
 from config.validators import cantidad_validators, no_negativo, no_solo_espacios, porcentaje_validators
