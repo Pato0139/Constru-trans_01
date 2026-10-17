@@ -34,7 +34,7 @@ class SmokeViewsTests(TestCase):
         pedido = Pedido.objects.create(usuario=self.admin, estado="pendiente")
         self.client.force_login(self.admin)
 
-        response = self.client.get(
+        response = self.client.post(
             reverse("clientes:cancelar_pedido", args=[pedido.codigo_pedido])
         )
 

@@ -154,7 +154,7 @@ class Cliente(models.Model):
         return mirrored_user
 
     def save(self, *args, **kwargs):
-        if not self.direccion_principal and self.direccion:
+        if (not self.direccion_principal or self.direccion_principal == "Por definir") and self.direccion:
             self.direccion_principal = self.direccion
         super().save(*args, **kwargs)
 

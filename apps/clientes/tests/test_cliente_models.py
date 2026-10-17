@@ -21,6 +21,7 @@ class ClienteModelTests(TestCase):
         )
 
     def test_ensure_for_user_crea_perfil(self):
+        Cliente.objects.filter(usuario=self.user).delete()
         cliente, created = Cliente.ensure_for_user(self.user)
         self.assertTrue(created)
         self.assertEqual(cliente.usuario_id, self.user.pk)
