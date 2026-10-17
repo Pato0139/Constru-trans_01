@@ -373,7 +373,7 @@ def ver_pedido_admin(request, id):
                         if entrega and not orden.puede_transicionar(Pedido.ENTREGADO):
                             messages.error(
                                 request,
-                                "Solo se puede confirmar la entrega de un pedido en ruta.",
+                                "Solo se puede confirmar la entrega de un pedido asignado o en ruta.",
                             )
                             return redirect("usuarios:panel")
                         if entrega:

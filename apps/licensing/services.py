@@ -46,7 +46,7 @@ def _verificar_superadmin(actor, accion: str):
         )
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 EXCLUDED_DIR_NAMES = {
     ".git",
     ".venv",
@@ -96,7 +96,7 @@ def calculate_build_hash() -> str:
         PROJECT_ROOT / "requirements.txt",
         PROJECT_ROOT / "pyproject.toml",
         PROJECT_ROOT / "manage.py",
-        PROJECT_ROOT / "core" / "settings" / "base.py",
+        PROJECT_ROOT / "config" / "settings" / "base.py",
     ]
 
     for file_path in checked_files:

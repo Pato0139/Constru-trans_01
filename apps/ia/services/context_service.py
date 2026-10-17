@@ -29,7 +29,7 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
                 return cached
 
         try:
-            from compras.models import Compra, Proveedor
+            from apps.compras.models import Compra, Proveedor
             from django.db.models import Count
 
             from apps.catalogo.models import MaterialConstruccion, Stock

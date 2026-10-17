@@ -44,6 +44,7 @@ from config.security import (
     role_required,
 )
 from config.superadmin_lock import es_superadmin_global
+from config.sync import sync_all_usuarios
 from config.utils import conexion_remota_disponible, registrar_actividad
 
 from .forms import CustomPasswordResetForm, FotoPerfilForm, LoginForm, RegistroForm
