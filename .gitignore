@@ -50,6 +50,7 @@ media/*
 # --- IDEs / SO ---
 .vscode/
 .idea/
+pyrightconfig.json
 *.swp
 *.swo
 .DS_Store
