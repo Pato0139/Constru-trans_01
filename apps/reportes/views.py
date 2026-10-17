@@ -10,15 +10,14 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import (Paragraph, SimpleDocTemplate, Spacer, Table,
-                                TableStyle)
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from config.utils import registrar_actividad
 from apps.catalogo.models import MaterialConstruccion as Material
 from apps.logistica.models import Vehiculo
 from apps.pedidos.models import Pedido
 from apps.usuarios.models import Usuario
 from apps.usuarios.views import admin_required
+from config.utils import registrar_actividad
 
 
 @admin_required
@@ -253,7 +252,9 @@ def exportar_reporte_excel(request, tipo):
                 if (o.cliente and o.cliente.usuario)
                 else "N/A"
             )
-            ws.append([o.id, cliente_nombre, fecha_str, format_money_raw(o.total or o.precio), o.estado])
+            ws.append(
+                [o.id, cliente_nombre, fecha_str, format_money_raw(o.total or o.precio), o.estado]
+            )
 
     elif tipo == "pedidos":
         headers = ["ID", "Cliente", "Materiales", "Total", "Estado"]
@@ -271,7 +272,9 @@ def exportar_reporte_excel(request, tipo):
                 if (o.cliente and o.cliente.usuario)
                 else "N/A"
             )
-            ws.append([o.id, cliente_nombre, materiales, format_money_raw(o.total or o.precio), o.estado])
+            ws.append(
+                [o.id, cliente_nombre, materiales, format_money_raw(o.total or o.precio), o.estado]
+            )
 
     for cell in ws[1]:
         cell.font = header_font

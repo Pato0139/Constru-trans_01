@@ -6,38 +6,73 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('compras', '0002_initial'),
-        ('usuarios', '0004_proveedor_categoria_proveedor_contacto_nombre_and_more'),
+        ("compras", "0002_initial"),
+        ("usuarios", "0004_proveedor_categoria_proveedor_contacto_nombre_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='detallecompra',
-            name='cantidad',
-            field=models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)]),
+            model_name="detallecompra",
+            name="cantidad",
+            field=models.PositiveIntegerField(
+                validators=[django.core.validators.MinValueValidator(1)]
+            ),
         ),
         migrations.AlterField(
-            model_name='detallecompra',
-            name='precio_unitario',
-            field=models.DecimalField(decimal_places=2, max_digits=12, validators=[django.core.validators.MinValueValidator(0.01)]),
+            model_name="detallecompra",
+            name="precio_unitario",
+            field=models.DecimalField(
+                decimal_places=2,
+                max_digits=12,
+                validators=[django.core.validators.MinValueValidator(0.01)],
+            ),
         ),
         migrations.CreateModel(
-            name='ProveedorMaterial',
+            name="ProveedorMaterial",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('precio_proveedor', models.DecimalField(decimal_places=2, max_digits=12, validators=[django.core.validators.MinValueValidator(0.01)])),
-                ('referencia_proveedor', models.CharField(blank=True, max_length=100)),
-                ('observaciones', models.CharField(blank=True, max_length=255)),
-                ('activo', models.BooleanField(default=True)),
-                ('material', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='proveedores_ofertantes', to='usuarios.materialconstruccion')),
-                ('proveedor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='materiales_ofertados', to='usuarios.proveedor')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "precio_proveedor",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=12,
+                        validators=[django.core.validators.MinValueValidator(0.01)],
+                    ),
+                ),
+                ("referencia_proveedor", models.CharField(blank=True, max_length=100)),
+                ("observaciones", models.CharField(blank=True, max_length=255)),
+                ("activo", models.BooleanField(default=True)),
+                (
+                    "material",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="proveedores_ofertantes",
+                        to="usuarios.materialconstruccion",
+                    ),
+                ),
+                (
+                    "proveedor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="materiales_ofertados",
+                        to="usuarios.proveedor",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'proveedor_material',
-                'ordering': ['proveedor__nombre_empresa', 'material__nombre'],
-                'constraints': [models.UniqueConstraint(fields=('proveedor', 'material'), name='unique_material_por_proveedor')],
+                "db_table": "proveedor_material",
+                "ordering": ["proveedor__nombre_empresa", "material__nombre"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("proveedor", "material"), name="unique_material_por_proveedor"
+                    )
+                ],
             },
         ),
     ]

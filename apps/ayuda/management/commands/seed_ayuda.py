@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+
 from apps.ayuda.models import CategoriaAyuda, ColorSistema, GuiaEdicion, PasoGuia
 
 GUIAS = [
@@ -77,9 +78,7 @@ class Command(BaseCommand):
     help = "Carga guías iniciales y colores del centro de ayuda"
 
     def handle(self, *args, **options):
-        for nombre, descripcion, orden in {
-            item["categoria"] for item in GUIAS
-        }:
+        for nombre, descripcion, orden in {item["categoria"] for item in GUIAS}:
             CategoriaAyuda.objects.get_or_create(
                 nombre=nombre,
                 defaults={"descripcion": descripcion, "orden": orden},

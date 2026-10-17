@@ -1,10 +1,11 @@
 from django import forms
 from django.db.models import Q
 
+from config.forms_base import StrictForm
 from .models import ConductorVehiculo, Vehiculo
 
 
-class AsignarVehiculoForm(forms.Form):
+class AsignarVehiculoForm(StrictForm):
     vehiculo = forms.ModelChoiceField(
         queryset=Vehiculo.objects.none(),
         label="Vehículo",

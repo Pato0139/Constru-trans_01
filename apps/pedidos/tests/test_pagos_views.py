@@ -61,9 +61,13 @@ class PagoViewsTests(TestCase):
 
     def test_cliente_registra_pago_pendiente(self):
         self.client.login(username="clientepagoview", password="password123")
-        comprobante = SimpleUploadedFile("recibo.pdf", b"%PDF-1.4 test", content_type="application/pdf")
+        comprobante = SimpleUploadedFile(
+            "recibo.png",
+            b"\x89PNG\r\n\x1a\n",
+            content_type="image/png",
+        )
         response = self.client.post(
-            reverse("pagos:registrar_pago", args=[self.pedido.codigo_pedido]),
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
             {"metodo": Pago.METODO_NEQUI, "monto": "120000", "comprobante": comprobante},
         )
         self.assertEqual(response.status_code, 302)
@@ -86,12 +90,14 @@ class PagoViewsTests(TestCase):
         self.client.force_login(self.cliente)
 
         response = self.client.get(
-            reverse("pagos:registrar_pago", args=[self.pedido.codigo_pedido])
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido])
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["pedido"].total, 120000)
         self.assertContains(response, "120.000")
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.total, 0)
 
     def test_no_permite_registrar_pago_si_el_pedido_no_tiene_valor(self):
         self.pedido.total = 0
@@ -100,7 +106,7 @@ class PagoViewsTests(TestCase):
         self.client.force_login(self.cliente)
 
         response = self.client.post(
-            reverse("pagos:registrar_pago", args=[self.pedido.codigo_pedido]),
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
             {"metodo": Pago.METODO_CONTRAENTREGA, "monto": "0"},
         )
 
@@ -116,7 +122,7 @@ class PagoViewsTests(TestCase):
         )
         self.client.login(username="adminpago", password="password123")
         response = self.client.post(
-            reverse("pagos:revisar_pago", args=[pago.pk]),
+            reverse("pagos:revisar_pago_pedido", args=[pago.pk]),
             {"accion": "aprobar", "observaciones": "Validado"},
         )
         self.assertEqual(response.status_code, 302)
@@ -134,7 +140,7 @@ class PagoViewsTests(TestCase):
         )
         self.client.login(username="adminpago", password="password123")
         response = self.client.post(
-            reverse("pagos:revisar_pago", args=[pago.pk]),
+            reverse("pagos:revisar_pago_pedido", args=[pago.pk]),
             {"accion": "rechazar", "observaciones": "Comprobante ilegible"},
         )
         self.assertEqual(response.status_code, 302)
@@ -151,4 +157,4 @@ class PagoViewsTests(TestCase):
         )
         self.client.login(username="otropago", password="password123")
         response = self.client.get(reverse("pagos:detalle_pago", args=[pago.pk]))
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 403)

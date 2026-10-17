@@ -3,7 +3,6 @@ from unittest.mock import Mock, patch
 
 import requests
 from django.contrib.auth.views import PasswordResetView
-from django.core.mail import EmailMultiAlternatives
 from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, override_settings
 
@@ -17,8 +16,8 @@ class PasswordResetViewTests(SimpleTestCase):
 
         with (
             patch.object(CustomPasswordResetView, "get", return_value=HttpResponse("ok")),
-            patch("usuarios.views.sync_all_usuarios") as sync_users,
-            patch("usuarios.views.conexion_remota_disponible") as remote_available,
+            patch("apps.usuarios.views.sync_all_usuarios") as sync_users,
+            patch("apps.usuarios.views.conexion_remota_disponible") as remote_available,
         ):
             response = CustomPasswordResetView.as_view()(request)
 
@@ -35,8 +34,8 @@ class PasswordResetViewTests(SimpleTestCase):
         query.using.return_value = iter([user_with_email, user_without_email])
 
         with (
-            patch("usuarios.forms.User.objects.filter", return_value=query),
-            patch("core.utils.conexion_remota_disponible", return_value=False),
+            patch("apps.usuarios.forms.User.objects.filter", return_value=query),
+            patch("config.utils.conexion_remota_disponible", return_value=False),
         ):
             users = list(CustomPasswordResetForm().get_users("registered"))
 
@@ -52,10 +51,10 @@ class PasswordResetViewTests(SimpleTestCase):
 
         with (
             patch(
-                "usuarios.forms.loader.render_to_string",
+                "apps.usuarios.forms.loader.render_to_string",
                 side_effect=["Reset password", "Plain body", "<p>HTML body</p>"],
             ),
-            patch("usuarios.forms.requests.post", return_value=response) as post,
+            patch("apps.usuarios.forms.requests.post", return_value=response) as post,
         ):
             sent = CustomPasswordResetForm().send_mail(
                 "subject.txt",
@@ -85,14 +84,14 @@ class PasswordResetViewTests(SimpleTestCase):
         email_message = Mock()
         with (
             patch(
-                "usuarios.forms.loader.render_to_string",
+                "apps.usuarios.forms.loader.render_to_string",
                 side_effect=["Reset password", "Plain body", "<p>HTML body</p>"],
             ),
             patch(
-                "usuarios.forms.EmailMultiAlternatives",
+                "apps.usuarios.forms.EmailMultiAlternatives",
                 return_value=email_message,
             ) as email_factory,
-            patch("usuarios.forms.requests.post") as resend_post,
+            patch("apps.usuarios.forms.requests.post") as resend_post,
         ):
             sent = CustomPasswordResetForm().send_mail(
                 "subject.txt",
@@ -126,11 +125,11 @@ class PasswordResetViewTests(SimpleTestCase):
 
         with (
             patch(
-                "usuarios.forms.loader.render_to_string",
+                "apps.usuarios.forms.loader.render_to_string",
                 side_effect=["Reset password", "Plain body"],
             ),
             patch(
-                "usuarios.forms.requests.post",
+                "apps.usuarios.forms.requests.post",
                 side_effect=response_error,
             ),
         ):
@@ -205,9 +204,7 @@ class PasswordResetViewTests(SimpleTestCase):
         with patch.object(
             PasswordResetView,
             "form_valid",
-            side_effect=smtplib.SMTPAuthenticationError(
-                535, b"authentication failed"
-            ),
+            side_effect=smtplib.SMTPAuthenticationError(535, b"authentication failed"),
         ):
             response = view.form_valid(form)
 

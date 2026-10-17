@@ -5,28 +5,38 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('usuarios', '0011_alter_materialconstruccion_catalogo'),
+        ("usuarios", "0011_alter_materialconstruccion_catalogo"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Marca',
+            name="Marca",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nombre', models.CharField(max_length=100, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("nombre", models.CharField(max_length=100, unique=True)),
             ],
             options={
-                'verbose_name': 'Marca',
-                'verbose_name_plural': 'Marcas',
-                'db_table': 'marca',
-                'ordering': ['nombre'],
+                "verbose_name": "Marca",
+                "verbose_name_plural": "Marcas",
+                "db_table": "marca",
+                "ordering": ["nombre"],
             },
         ),
         migrations.AddField(
-            model_name='materialconstruccion',
-            name='marca',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='materiales', to='usuarios.marca'),
+            model_name="materialconstruccion",
+            name="marca",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="materiales",
+                to="usuarios.marca",
+            ),
         ),
     ]

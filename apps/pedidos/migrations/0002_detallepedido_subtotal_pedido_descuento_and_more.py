@@ -4,50 +4,42 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('pedidos', '0001_initial'),
-        ('pagos', '0001_initial'),
+        ("pedidos", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='detallepedido',
-            name='subtotal',
+            model_name="detallepedido",
+            name="subtotal",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=12),
         ),
         migrations.AddField(
-            model_name='pedido',
-            name='descuento',
+            model_name="pedido",
+            name="descuento",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=12),
         ),
         migrations.AddField(
-            model_name='pedido',
-            name='impuesto',
+            model_name="pedido",
+            name="impuesto",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=12),
         ),
         migrations.AddField(
-            model_name='pedido',
-            name='impuesto_porcentaje',
+            model_name="pedido",
+            name="impuesto_porcentaje",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=5),
         ),
         migrations.AddField(
-            model_name='pedido',
-            name='observacion_admin',
-            field=models.TextField(blank=True, default=''),
+            model_name="pedido",
+            name="observacion_admin",
+            field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name='pedido',
-            name='subtotal',
+            model_name="pedido",
+            name="subtotal",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=12),
         ),
-        # Pago moved to pagos; retain its table when removing the legacy model state.
-        migrations.SeparateDatabaseAndState(
-            database_operations=[],
-            state_operations=[
-                migrations.DeleteModel(
-                    name='Pago',
-                ),
-            ],
+        migrations.DeleteModel(
+            name="Pago",
         ),
     ]

@@ -25,7 +25,9 @@ def _format_number(value):
 
 
 def _extraer_codigo_pedido(mensaje):
-    match = re.search(r"(?:pedido|orden)\s*(?:n[úu]mero|n[º°]|#)?\s*(\d+)", mensaje or "", re.IGNORECASE)
+    match = re.search(
+        r"(?:pedido|orden)\s*(?:n[úu]mero|n[º°]|#)?\s*(\d+)", mensaje or "", re.IGNORECASE
+    )
     if not match:
         match = re.search(r"\b(\d{1,6})\b", mensaje or "")
     return int(match.group(1)) if match else None
@@ -34,7 +36,12 @@ def _extraer_codigo_pedido(mensaje):
 def consultar_pedido(codigo):
     from apps.pedidos.models import Pedido
 
-    pedido = Pedido.objects.filter(codigo_pedido=codigo).select_related("cliente", "usuario").prefetch_related("detalles__material").first()
+    pedido = (
+        Pedido.objects.filter(codigo_pedido=codigo)
+        .select_related("cliente", "usuario")
+        .prefetch_related("detalles__material")
+        .first()
+    )
     if not pedido:
         return None
     detalles = []
@@ -54,7 +61,9 @@ def consultar_pedido(codigo):
         "Materiales: " + ("; ".join(detalles) if detalles else "sin detalles registrados"),
     ]
     if pedido.fecha_entrega_programada:
-        partes.append(f"Entrega programada: {pedido.fecha_entrega_programada.strftime('%d/%m/%Y %H:%M')}")
+        partes.append(
+            f"Entrega programada: {pedido.fecha_entrega_programada.strftime('%d/%m/%Y %H:%M')}"
+        )
     if pedido.direccion_destino:
         partes.append(f"Destino: {pedido.direccion_destino}")
     return "\n".join(partes)
@@ -63,8 +72,15 @@ def consultar_pedido(codigo):
 def consultar_materiales(mensaje):
     from apps.catalogo.models import MaterialConstruccion
 
-    query = re.sub(r"(cuales|cuáles|qué|que|materiales|tienes|hay|manejan|lista|catalogo|catálogo|precio)", "", mensaje or "", flags=re.IGNORECASE).strip()
-    materiales = MaterialConstruccion.objects.filter(activo=True).select_related("unidad_medida", "marca")
+    query = re.sub(
+        r"(cuales|cuáles|qué|que|materiales|tienes|hay|manejan|lista|catalogo|catálogo|precio)",
+        "",
+        mensaje or "",
+        flags=re.IGNORECASE,
+    ).strip()
+    materiales = MaterialConstruccion.objects.filter(activo=True).select_related(
+        "unidad_medida", "marca"
+    )
     if 3 <= len(query) <= 60:
         filtrados = materiales.filter(nombre__icontains=query)
         if filtrados.exists():
@@ -82,7 +98,11 @@ def consultar_pedidos_cliente(mensaje, usuario):
     from apps.pedidos.models import Pedido
 
     consulta = Pedido.objects.all().order_by("-fecha_solicitud")
-    if usuario and usuario.is_authenticated and getattr(usuario, "rol", None) not in {"admin", "empleado", "administrador"}:
+    if (
+        usuario
+        and usuario.is_authenticated
+        and getattr(usuario, "rol", None) not in {"admin", "empleado", "administrador"}
+    ):
         consulta = consulta.filter(usuario=usuario)
     mensaje_lower = (mensaje or "").lower()
     if "pendiente" in mensaje_lower:

@@ -22,10 +22,12 @@ class Installation(models.Model):
 
     def __str__(self):
         return f"Installation {self.instance_id} ({self.status})"
-    
+
+
 # =========================================================================
 # Licencias por USUARIO (complementan Installation, no la reemplazan)
 # =========================================================================
+
 
 class Licencia(models.Model):
     ESTADOS = [
@@ -64,7 +66,8 @@ class Licencia(models.Model):
     revocada_en = models.DateTimeField(null=True, blank=True)
     revocada_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        null=True, blank=True,
+        null=True,
+        blank=True,
         on_delete=models.SET_NULL,
         related_name="licencias_revocadas",
     )
@@ -83,6 +86,7 @@ class Licencia(models.Model):
     @property
     def esta_vigente(self) -> bool:
         from django.utils.timezone import now
+
         return self.estado == "activa" and self.fecha_expiracion > now()
 
 
@@ -102,7 +106,8 @@ class UsuarioLicencia(models.Model):
     motivo_desasignacion = models.TextField(blank=True, default="")
     asignada_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        null=True, on_delete=models.SET_NULL,
+        null=True,
+        on_delete=models.SET_NULL,
         related_name="licencias_asignadas_por",
     )
     ip_asignacion = models.GenericIPAddressField(null=True, blank=True)
@@ -133,17 +138,22 @@ class AuditoriaLicencia(models.Model):
         ("INTENTO_SWITCH_ROLE", "Intento de cambio libre de rol"),
     ]
     licencia = models.ForeignKey(
-        Licencia, null=True, blank=True,
-        on_delete=models.SET_NULL, related_name="auditoria",
+        Licencia,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="auditoria",
     )
     usuario_afectado = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        null=True, on_delete=models.SET_NULL,
+        null=True,
+        on_delete=models.SET_NULL,
         related_name="eventos_licencia",
     )
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        null=True, on_delete=models.SET_NULL,
+        null=True,
+        on_delete=models.SET_NULL,
         related_name="cambios_licencia_realizados",
     )
     accion = models.CharField(max_length=30, choices=ACCIONES)
@@ -152,6 +162,9 @@ class AuditoriaLicencia(models.Model):
     user_agent = models.CharField(max_length=255, blank=True, default="")
     exitosa = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.accion} - {self.created_at}"
 
     class Meta:
         db_table = "licencia_auditoria"

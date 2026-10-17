@@ -53,8 +53,7 @@ def consultar_pedido(codigo):
     entrega = []
     if pedido.fecha_entrega_programada:
         entrega.append(
-            "Entrega programada: "
-            f"{pedido.fecha_entrega_programada.strftime('%d/%m/%Y %H:%M')}"
+            f"Entrega programada: {pedido.fecha_entrega_programada.strftime('%d/%m/%Y %H:%M')}"
         )
     if pedido.direccion_destino:
         entrega.append(f"Destino: {pedido.direccion_destino}")
@@ -73,7 +72,9 @@ def consultar_pedido(codigo):
 def consultar_materiales(mensaje):
     from apps.catalogo.models import MaterialConstruccion
 
-    palabras = r"(cuales|cuáles|qué|que|materiales|tienes|hay|manejan|lista|catalogo|catálogo|precio)"
+    palabras = (
+        r"(cuales|cuáles|qué|que|materiales|tienes|hay|manejan|lista|catalogo|catálogo|precio)"
+    )
     query = re.sub(palabras, "", mensaje or "", flags=re.IGNORECASE).strip()
     materiales = MaterialConstruccion.objects.filter(activo=True).select_related(
         "unidad_medida", "marca"
@@ -97,11 +98,16 @@ def consultar_pedidos_cliente(mensaje, usuario):
     from apps.pedidos.models import Pedido
 
     consulta = Pedido.objects.all().order_by("-fecha_solicitud")
-    if usuario and usuario.is_authenticated and getattr(usuario, "rol", None) not in {
-        "admin",
-        "empleado",
-        "administrador",
-    }:
+    if (
+        usuario
+        and usuario.is_authenticated
+        and getattr(usuario, "rol", None)
+        not in {
+            "admin",
+            "empleado",
+            "administrador",
+        }
+    ):
         consulta = consulta.filter(usuario=usuario)
 
     mensaje_lower = (mensaje or "").lower()

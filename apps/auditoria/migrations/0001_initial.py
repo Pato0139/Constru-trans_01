@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -16,27 +15,87 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Historial',
+            name="Historial",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('accion', models.CharField(choices=[('crear', 'Crear'), ('editar', 'Editar'), ('eliminar', 'Eliminar'), ('login', 'Inicio de sesión'), ('logout', 'Cierre de sesión'), ('otro', 'Otro')], max_length=20, verbose_name='Acción')),
-                ('tabla', models.CharField(blank=True, max_length=50, null=True, verbose_name='Tabla')),
-                ('registro_id', models.IntegerField(blank=True, null=True, verbose_name='ID del Registro')),
-                ('fecha', models.DateTimeField(default=django.utils.timezone.now, verbose_name='Fecha')),
-                ('ip', models.GenericIPAddressField(blank=True, null=True, verbose_name='Dirección IP')),
-                ('sincronizado', models.BooleanField(default=False)),
-                ('modulo', models.CharField(blank=True, max_length=50, null=True, verbose_name='Módulo')),
-                ('elemento_id', models.CharField(blank=True, max_length=50, null=True, verbose_name='ID Legacy')),
-                ('descripcion', models.TextField(blank=True, null=True, verbose_name='Descripción detallada')),
-                ('fecha_hora', models.DateTimeField(blank=True, default=django.utils.timezone.now, null=True, verbose_name='Fecha y Hora')),
-                ('ip_address', models.GenericIPAddressField(blank=True, null=True, verbose_name='IP Legacy')),
-                ('usuario', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='auditoria', to=settings.AUTH_USER_MODEL, verbose_name='Usuario')),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                (
+                    "accion",
+                    models.CharField(
+                        choices=[
+                            ("crear", "Crear"),
+                            ("editar", "Editar"),
+                            ("eliminar", "Eliminar"),
+                            ("login", "Inicio de sesión"),
+                            ("logout", "Cierre de sesión"),
+                            ("otro", "Otro"),
+                        ],
+                        max_length=20,
+                        verbose_name="Acción",
+                    ),
+                ),
+                (
+                    "tabla",
+                    models.CharField(blank=True, max_length=50, null=True, verbose_name="Tabla"),
+                ),
+                (
+                    "registro_id",
+                    models.IntegerField(blank=True, null=True, verbose_name="ID del Registro"),
+                ),
+                (
+                    "fecha",
+                    models.DateTimeField(default=django.utils.timezone.now, verbose_name="Fecha"),
+                ),
+                (
+                    "ip",
+                    models.GenericIPAddressField(
+                        blank=True, null=True, verbose_name="Dirección IP"
+                    ),
+                ),
+                ("sincronizado", models.BooleanField(default=False)),
+                (
+                    "modulo",
+                    models.CharField(blank=True, max_length=50, null=True, verbose_name="Módulo"),
+                ),
+                (
+                    "elemento_id",
+                    models.CharField(
+                        blank=True, max_length=50, null=True, verbose_name="ID Legacy"
+                    ),
+                ),
+                (
+                    "descripcion",
+                    models.TextField(blank=True, null=True, verbose_name="Descripción detallada"),
+                ),
+                (
+                    "fecha_hora",
+                    models.DateTimeField(
+                        blank=True,
+                        default=django.utils.timezone.now,
+                        null=True,
+                        verbose_name="Fecha y Hora",
+                    ),
+                ),
+                (
+                    "ip_address",
+                    models.GenericIPAddressField(blank=True, null=True, verbose_name="IP Legacy"),
+                ),
+                (
+                    "usuario",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="auditoria",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Usuario",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Historial de Actividad',
-                'verbose_name_plural': 'Historial de Actividades',
-                'db_table': 'historial',
-                'ordering': ['-fecha'],
+                "verbose_name": "Historial de Actividad",
+                "verbose_name_plural": "Historial de Actividades",
+                "db_table": "historial",
+                "ordering": ["-fecha"],
             },
         ),
     ]

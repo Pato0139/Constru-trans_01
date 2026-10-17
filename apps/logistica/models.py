@@ -1,14 +1,18 @@
 import logging
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 
+from config.state_machine import TransicionMixin
+from config.validators import no_solo_espacios, placa_validator
+
 logger = logging.getLogger(__name__)
 
 
-class Vehiculo(models.Model):
+class Vehiculo(TransicionMixin, models.Model):
     id_vehiculo = models.AutoField(primary_key=True)
     catalogo = models.ForeignKey(
         "catalogo.Catalogo",
@@ -18,10 +22,10 @@ class Vehiculo(models.Model):
         related_name="vehiculos",
         db_column="codigo_catalogo",
     )
-    placa = models.CharField(max_length=10, unique=True)
-    marca = models.CharField(max_length=50)
-    modelo = models.CharField(max_length=50)
-    tipo_vehiculo = models.CharField(max_length=50)
+    placa = models.CharField(max_length=10, unique=True, validators=[placa_validator])
+    marca = models.CharField(max_length=50, validators=[no_solo_espacios])
+    modelo = models.CharField(max_length=50, validators=[no_solo_espacios])
+    tipo_vehiculo = models.CharField(max_length=50, validators=[no_solo_espacios])
     capacidad_carga = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)]
     )
@@ -33,6 +37,12 @@ class Vehiculo(models.Model):
         ("mantenimiento", "Mantenimiento"),
         ("fuera_de_servicio", "Fuera de Servicio"),
     ]
+    TRANSICIONES = {
+        "disponible": {"en_ruta", "mantenimiento", "fuera_de_servicio"},
+        "en_ruta": {"disponible", "mantenimiento", "fuera_de_servicio"},
+        "mantenimiento": {"disponible", "fuera_de_servicio"},
+        "fuera_de_servicio": {"disponible", "mantenimiento"},
+    }
     estado = models.CharField(max_length=20, choices=ESTADOS_VEHICULO, default="disponible")
 
     sincronizado = models.BooleanField(default=False)
@@ -90,9 +100,37 @@ class ConductorVehiculo(models.Model):
     def __str__(self):
         return f"{self.conductor} - {self.vehiculo.placa}"
 
+    def clean(self):
+        super().clean()
+        if self.conductor_id and self.fecha_fin is None:
+            qs = ConductorVehiculo.objects.filter(conductor=self.conductor, fecha_fin__isnull=True)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                raise ValidationError("Este conductor ya tiene una asignación de vehículo activa.")
 
-class Entrega(models.Model):
-    ESTADOS = [("pendiente", "Pendiente"), ("en_ruta", "En Ruta"), ("entregado", "Entregado")]
+    def save(self, *args, **kwargs):
+        if self.conductor_id and self.fecha_fin is None and not self.pk:
+            ConductorVehiculo.objects.filter(
+                conductor=self.conductor, fecha_fin__isnull=True
+            ).update(fecha_fin=timezone.now())
+        super().save(*args, **kwargs)
+
+
+class Entrega(TransicionMixin, models.Model):
+    ESTADOS = [
+        ("pendiente", "Pendiente"),
+        ("en_ruta", "En Ruta"),
+        ("entregado", "Entregado"),
+        ("cancelado", "Cancelado"),
+    ]
+
+    TRANSICIONES = {
+        "pendiente": {"en_ruta", "cancelado"},
+        "en_ruta": {"entregado", "pendiente", "cancelado"},
+        "entregado": set(),
+        "cancelado": set(),
+    }
 
     id_entrega = models.AutoField(primary_key=True)
     pedido = models.ForeignKey("pedidos.Pedido", on_delete=models.CASCADE, related_name="entregas")
@@ -140,24 +178,25 @@ class Entrega(models.Model):
             except AttributeError as exc:
                 logger.warning(
                     "No se pudo resolver usuario de entrega en pedido %s: %s",
-                    getattr(self.pedido, "codigo_pedido", "?"), exc,
+                    getattr(self.pedido, "codigo_pedido", "?"),
+                    exc,
                 )
         super().save(*args, **kwargs)
 
 
 class Novedad(models.Model):
     TIPOS = [
-        ("demora",              "Demora en entrega"),
-        ("producto_danado",     "Producto dañado"),
+        ("demora", "Demora en entrega"),
+        ("producto_danado", "Producto dañado"),
         ("cantidad_incorrecta", "Cantidad incorrecta"),
-        ("devolucion",          "Devolución"),
-        ("observacion",         "Observación"),
+        ("devolucion", "Devolución"),
+        ("observacion", "Observación"),
     ]
     ESTADOS = [
-        ("abierta",     "Abierta"),
+        ("abierta", "Abierta"),
         ("en_atencion", "En atención"),
-        ("cerrada",     "Cerrada"),
-        ("rechazada",   "Rechazada"),
+        ("cerrada", "Cerrada"),
+        ("rechazada", "Rechazada"),
     ]
     id_novedad = models.BigAutoField(primary_key=True)
 
@@ -173,11 +212,13 @@ class Novedad(models.Model):
     reportado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="novedades_reportadas"
     )
+
     class Meta:
         db_table = "novedad"
         permissions = (("registrar_novedad", "Puede registrar novedades"),)
         ordering = ["-fecha_generada"]
         indexes = [models.Index(fields=["estado"]), models.Index(fields=["tipo"])]
+
     def __str__(self):
         return f"Novedad #{self.id_novedad} - {self.tipo} ({self.estado})"
 
@@ -193,31 +234,35 @@ class Novedad(models.Model):
 
 class Seguimiento(models.Model):
     ESTADOS = [
-        ("pendiente",  "Pendiente"),
+        ("pendiente", "Pendiente"),
         ("respondida", "Respondida"),
-        ("escalado",   "Escalado"),
+        ("escalado", "Escalado"),
     ]
     id_seguimiento = models.BigAutoField(primary_key=True)
     novedad = models.ForeignKey(Novedad, on_delete=models.CASCADE, related_name="seguimientos")
     atendido_por = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
         related_name="seguimientos_atendidos",
     )
     fecha_seguimiento = models.DateTimeField(auto_now_add=True)
     comentario = models.TextField()
     estado = models.CharField(max_length=15, choices=ESTADOS, default="pendiente")
+
     class Meta:
         db_table = "seguimiento"
         permissions = (("responder_seguimiento", "Puede responder seguimientos"),)
         ordering = ["-fecha_seguimiento"]
+
     def __str__(self):
         return f"Seguimiento #{self.id_seguimiento} de Novedad {self.novedad_id}"
 
 
 class RespuestaSeguimiento(models.Model):
     ESTADOS = [
-        ("aceptada",   "Aceptada"),
-        ("rechazada",  "Rechazada"),
+        ("aceptada", "Aceptada"),
+        ("rechazada", "Rechazada"),
         ("en_gestion", "En gestión"),
     ]
     id_respuesta = models.BigAutoField(primary_key=True)
@@ -230,8 +275,10 @@ class RespuestaSeguimiento(models.Model):
     fecha_respuesta = models.DateTimeField(auto_now_add=True)
     texto = models.TextField()
     estado = models.CharField(max_length=15, choices=ESTADOS, default="aceptada")
+
     class Meta:
         db_table = "respuesta_seguimiento"
         ordering = ["-fecha_respuesta"]
+
     def __str__(self):
         return f"Respuesta a {self.seguimiento}"

@@ -17,7 +17,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # These tables already exist from usuarios; transfer state without recreating them.
+        # Las tablas 'catalogo', 'marca', 'material_construccion', 'unidad_medida',
+        # 'historial_precio_material' y 'stock' ya fueron creadas por las migraciones
+        # legacy de la app 'usuarios' (0001, 0003, 0007, 0012), incluidos el campo
+        # unidad_medida y las restricciones CHECK. Se adoptan aquí únicamente a nivel
+        # de estado para no duplicar el DDL en bases nuevas.
         migrations.SeparateDatabaseAndState(
             database_operations=[],
             state_operations=[
@@ -31,11 +35,6 @@ class Migration(migrations.Migration):
                         'db_table': 'catalogo',
                     },
                 ),
-            ],
-        ),
-        migrations.SeparateDatabaseAndState(
-            database_operations=[],
-            state_operations=[
                 migrations.CreateModel(
                     name='Marca',
                     fields=[
@@ -49,11 +48,6 @@ class Migration(migrations.Migration):
                         'ordering': ['nombre'],
                     },
                 ),
-            ],
-        ),
-        migrations.SeparateDatabaseAndState(
-            database_operations=[],
-            state_operations=[
                 migrations.CreateModel(
                     name='MaterialConstruccion',
                     fields=[
@@ -73,11 +67,6 @@ class Migration(migrations.Migration):
                         'permissions': (('gestionar_inventario', 'Puede gestionar inventario'),),
                     },
                 ),
-            ],
-        ),
-        migrations.SeparateDatabaseAndState(
-            database_operations=[],
-            state_operations=[
                 migrations.CreateModel(
                     name='UnidadMedida',
                     fields=[
@@ -97,29 +86,6 @@ class Migration(migrations.Migration):
                         'ordering': ['orden', 'nombre'],
                     },
                 ),
-            ],
-        ),
-        migrations.CreateModel(
-            name='LoteMaterial',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('codigo_lote', models.CharField(db_index=True, max_length=50, unique=True)),
-                ('cantidad', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)])),
-                ('fecha_entrada', models.DateTimeField(auto_now_add=True)),
-                ('fecha_vencimiento', models.DateField(blank=True, db_index=True, null=True, validators=[apps.catalogo.models.lotes.validar_fecha_no_pasada])),
-                ('activo', models.BooleanField(default=True)),
-                ('material', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lotes', to='catalogo.materialconstruccion')),
-            ],
-            options={
-                'verbose_name': 'Lote de Material',
-                'verbose_name_plural': 'Lotes de Material',
-                'db_table': 'lote_material',
-                'ordering': ['-fecha_entrada'],
-            },
-        ),
-        migrations.SeparateDatabaseAndState(
-            database_operations=[],
-            state_operations=[
                 migrations.CreateModel(
                     name='HistorialPrecioMaterial',
                     fields=[
@@ -140,7 +106,49 @@ class Migration(migrations.Migration):
                         'ordering': ['-fecha_cambio'],
                     },
                 ),
+                migrations.AddField(
+                    model_name='materialconstruccion',
+                    name='unidad_medida',
+                    field=models.ForeignKey(help_text='Seleccione una unidad de medida estándar', on_delete=django.db.models.deletion.PROTECT, related_name='materiales', to='catalogo.unidadmedida'),
+                ),
+                migrations.CreateModel(
+                    name='Stock',
+                    fields=[
+                        ('material', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='stock_info', serialize=False, to='catalogo.materialconstruccion')),
+                        ('cantidad_actual', models.IntegerField(default=0, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(100000)])),
+                        ('stock_minimo', models.IntegerField(default=10, validators=[django.core.validators.MinValueValidator(0)])),
+                        ('ubicacion', models.CharField(blank=True, default='', max_length=120)),
+                        ('fecha_actualizacion', models.DateTimeField(auto_now=True)),
+                    ],
+                    options={
+                        'db_table': 'stock',
+                        'constraints': [models.CheckConstraint(condition=models.Q(('cantidad_actual__gte', 0)), name='chk_stock_cantidad_actual_gte_0'), models.CheckConstraint(condition=models.Q(('stock_minimo__gte', 0)), name='chk_stock_minimo_gte_0')],
+                    },
+                ),
+                migrations.AddConstraint(
+                    model_name='materialconstruccion',
+                    constraint=models.CheckConstraint(condition=models.Q(('precio_referencia__gte', 0)), name='chk_material_precio_referencia_gte_0'),
+                ),
             ],
+        ),
+        # Tablas propias de la app catalogo (no duplicadas en usuarios): DDL real.
+        migrations.CreateModel(
+            name='LoteMaterial',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('codigo_lote', models.CharField(db_index=True, max_length=50, unique=True)),
+                ('cantidad', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1)])),
+                ('fecha_entrada', models.DateTimeField(auto_now_add=True)),
+                ('fecha_vencimiento', models.DateField(blank=True, db_index=True, null=True, validators=[apps.catalogo.models.lotes.validar_fecha_no_pasada])),
+                ('activo', models.BooleanField(default=True)),
+                ('material', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lotes', to='catalogo.materialconstruccion')),
+            ],
+            options={
+                'verbose_name': 'Lote de Material',
+                'verbose_name_plural': 'Lotes de Material',
+                'db_table': 'lote_material',
+                'ordering': ['-fecha_entrada'],
+            },
         ),
         migrations.CreateModel(
             name='SesionConteo',
@@ -160,35 +168,6 @@ class Migration(migrations.Migration):
                 'ordering': ['-fecha_inicio'],
             },
         ),
-        migrations.SeparateDatabaseAndState(
-            database_operations=[],
-            state_operations=[
-                migrations.AddField(
-                    model_name='materialconstruccion',
-                    name='unidad_medida',
-                    field=models.ForeignKey(help_text='Seleccione una unidad de medida estándar', on_delete=django.db.models.deletion.PROTECT, related_name='materiales', to='catalogo.unidadmedida'),
-                ),
-            ],
-        ),
-        migrations.SeparateDatabaseAndState(
-            database_operations=[],
-            state_operations=[
-                migrations.CreateModel(
-                    name='Stock',
-                    fields=[
-                        ('material', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='stock_info', serialize=False, to='catalogo.materialconstruccion')),
-                        ('cantidad_actual', models.IntegerField(default=0, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(100000)])),
-                        ('stock_minimo', models.IntegerField(default=10, validators=[django.core.validators.MinValueValidator(0)])),
-                        ('ubicacion', models.CharField(blank=True, default='', max_length=120)),
-                        ('fecha_actualizacion', models.DateTimeField(auto_now=True)),
-                    ],
-                    options={
-                        'db_table': 'stock',
-                        'constraints': [models.CheckConstraint(condition=models.Q(('cantidad_actual__gte', 0)), name='chk_stock_cantidad_actual_gte_0'), models.CheckConstraint(condition=models.Q(('stock_minimo__gte', 0)), name='chk_stock_minimo_gte_0')],
-                    },
-                ),
-            ],
-        ),
         migrations.CreateModel(
             name='ConteoItem',
             fields=[
@@ -207,14 +186,5 @@ class Migration(migrations.Migration):
                 'db_table': 'conteo_item',
                 'unique_together': {('sesion', 'material')},
             },
-        ),
-        migrations.SeparateDatabaseAndState(
-            database_operations=[],
-            state_operations=[
-                migrations.AddConstraint(
-                    model_name='materialconstruccion',
-                    constraint=models.CheckConstraint(condition=models.Q(('precio_referencia__gte', 0)), name='chk_material_precio_referencia_gte_0'),
-                ),
-            ],
         ),
     ]

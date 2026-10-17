@@ -1,13 +1,14 @@
 """
 Preferencia de base de datos (local / remota) por sesión de usuario.
-El middleware establece el valor en thread-local para que el router lo use.     
+El middleware establece el valor en thread-local para que el router lo use.
 """
+
 import sys
 import threading
 
-PREF_LOCAL = 'local'
-PREF_REMOTA = 'remota'
-PREF_AUTO = 'auto'
+PREF_LOCAL = "local"
+PREF_REMOTA = "remota"
+PREF_AUTO = "auto"
 
 VALID_PREFS = frozenset({PREF_LOCAL, PREF_REMOTA, PREF_AUTO})
 
@@ -15,26 +16,27 @@ _local = threading.local()
 
 
 def set_db_preference(preference: str) -> None:
-    _local.preference = preference if preference in VALID_PREFS else PREF_AUTO  
+    _local.preference = preference if preference in VALID_PREFS else PREF_AUTO
 
 
 def get_db_preference() -> str:
-    return getattr(_local, 'preference', PREF_AUTO)
+    return getattr(_local, "preference", PREF_AUTO)
 
 
 def clear_db_preference() -> None:
-    if hasattr(_local, 'preference'):
+    if hasattr(_local, "preference"):
         del _local.preference
 
 
 def debe_usar_bd_remota() -> bool:
     from django.conf import settings
+
     from config.utils import conexion_remota_disponible
 
     if "test" in sys.argv:
         return False
 
-    if 'remota' not in settings.DATABASES:
+    if "remota" not in settings.DATABASES:
         return False
 
     preference = get_db_preference()
@@ -49,4 +51,5 @@ def debe_usar_bd_remota() -> bool:
 
 def invalidate_connection_cache() -> None:
     from config.utils import conexion_remota_disponible_cached
+
     conexion_remota_disponible_cached.cache_clear()

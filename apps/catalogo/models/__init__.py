@@ -7,10 +7,15 @@ from apps.usuarios.models import Usuario
 
 numeric_and_space_validator = []
 
+# Estados posibles de un registro habilitable (productos y categorías)
+ESTADOS_PRODUCTO = [("activo", "Activo"), ("inactivo", "Inactivo")]
+
 
 class Catalogo(models.Model):
     codigo_catalogo = models.CharField(max_length=20, primary_key=True)
     nombre_empresa = models.CharField(max_length=150)
+    activo = models.BooleanField(default=True)
+    estado = models.CharField(max_length=10, choices=ESTADOS_PRODUCTO, default="activo")
 
     class Meta:
         db_table = "catalogo"
@@ -46,6 +51,12 @@ class UnidadMedida(models.Model):
 
 class Marca(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
+    activo = models.BooleanField(default=True)
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS_PRODUCTO,
+        default="activo",
+    )
 
     class Meta:
         db_table = "marca"
@@ -55,12 +66,6 @@ class Marca(models.Model):
 
     def __str__(self):
         return self.nombre
-
-
-ESTADOS_PRODUCTO = [
-    ("activo", "Activo"),
-    ("inactivo", "Inactivo"),
-]
 
 
 class MaterialConstruccion(models.Model):
@@ -99,16 +104,16 @@ class MaterialConstruccion(models.Model):
         default="activo",
         help_text="Estado del producto en el catálogo",
     )
-    activo = models.BooleanField(default=True, help_text="Indica si el material está disponible para uso")
+    activo = models.BooleanField(
+        default=True, help_text="Indica si el material está disponible para uso"
+    )
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
         db_table = "material_construccion"
         verbose_name = "Material de Construcción"
         verbose_name_plural = "Materiales de Construcción"
-        permissions = (
-            ("gestionar_inventario", "Puede gestionar inventario"),
-        )
+        permissions = (("gestionar_inventario", "Puede gestionar inventario"),)
         constraints = [
             models.CheckConstraint(
                 check=models.Q(precio_referencia__gte=0),
@@ -146,12 +151,18 @@ Material = MaterialConstruccion
 
 
 class HistorialPrecioMaterial(models.Model):
-    material = models.ForeignKey(MaterialConstruccion, on_delete=models.CASCADE, related_name="historial_precios")
+    material = models.ForeignKey(
+        MaterialConstruccion, on_delete=models.CASCADE, related_name="historial_precios"
+    )
     precio_anterior = models.DecimalField(max_digits=12, decimal_places=2)
     precio_nuevo = models.DecimalField(max_digits=12, decimal_places=2)
     fecha_cambio = models.DateTimeField(auto_now_add=True)
-    usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="cambios_precios")
-    observaciones = models.TextField(blank=True, help_text="Detalles o razones del cambio de precio")
+    usuario = models.ForeignKey(
+        Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="cambios_precios"
+    )
+    observaciones = models.TextField(
+        blank=True, help_text="Detalles o razones del cambio de precio"
+    )
     mes = models.IntegerField(editable=False)
     año = models.IntegerField(editable=False)
 

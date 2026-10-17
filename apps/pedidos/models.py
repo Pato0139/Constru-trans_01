@@ -1,15 +1,17 @@
 import datetime
 import logging
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxLengthValidator, MinValueValidator
 from django.db import models
 from django.db.utils import OperationalError
 from django.utils import timezone
 
 from apps.catalogo.models import MaterialConstruccion
+from apps.pagos.models import Pago, comprobante_upload_to  # noqa: F401, E402
 from apps.usuarios.models import Usuario
+from config.state_machine import TransicionMixin
+from config.validators import cantidad_validators, no_negativo, no_solo_espacios, porcentaje_validators
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ def validar_fecha_no_pasada(value):
         raise ValidationError("La fecha no puede ser en el pasado.")
 
 
-class Pedido(models.Model):
+class Pedido(TransicionMixin, models.Model):
     ESTADOS = [
         ("pendiente", "Pendiente"),
         ("autorizado_despacho", "Autorizado para despacho"),
@@ -37,6 +39,17 @@ class Pedido(models.Model):
     EN_RUTA = "en_ruta"
     ENTREGADO = "entregado"
     CANCELADO = "cancelado"
+
+    # Fuente de verdad del flujo. "entregado" y "cancelado" son finales.
+    TRANSICIONES = {
+        PENDIENTE: {AUTORIZADO_DESPACHO, CANCELADO},
+        AUTORIZADO_DESPACHO: {VEHICULO_ASIGNADO, EN_RUTA, CANCELADO, PENDIENTE},
+        VEHICULO_ASIGNADO: {EN_RUTA, CANCELADO, PENDIENTE},
+        EN_RUTA: {ENTREGADO, CANCELADO},
+        ENTREGADO: set(),
+        CANCELADO: set(),
+    }
+    ESTADOS_REQUIEREN_PAGO = {AUTORIZADO_DESPACHO, VEHICULO_ASIGNADO, EN_RUTA}
 
     codigo_pedido = models.AutoField(primary_key=True)
     catalogo = models.ForeignKey(
@@ -57,16 +70,20 @@ class Pedido(models.Model):
     total = models.DecimalField(
         max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)]
     )
-    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    impuesto = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    impuesto_porcentaje = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    descuento = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    observacion_admin = models.TextField(blank=True, default="")
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
+    impuesto = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
+    impuesto_porcentaje = models.DecimalField(
+        max_digits=5, decimal_places=2, default=0, validators=porcentaje_validators
+    )
+    descuento = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
+    observacion_admin = models.TextField(blank=True, default="", validators=[MaxLengthValidator(2000)])
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
 
-    direccion_origen = models.CharField(max_length=200, default="Bodega Central")
-    direccion_destino = models.CharField(max_length=200, default="")
-    fecha_entrega_programada = models.DateTimeField(null=True, blank=True, validators=[validar_fecha_no_pasada])
+    direccion_origen = models.CharField(max_length=200, default="Bodega Central", validators=[no_solo_espacios])
+    direccion_destino = models.CharField(max_length=200, default="", validators=[no_solo_espacios])
+    fecha_entrega_programada = models.DateTimeField(
+        null=True, blank=True, validators=[validar_fecha_no_pasada]
+    )
     fecha = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     precio = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True)
     conductor = models.ForeignKey(
@@ -106,10 +123,71 @@ class Pedido(models.Model):
                 check=models.Q(precio__gte=0) | models.Q(precio__isnull=True),
                 name="chk_pedido_precio_gte_0",
             ),
+            models.CheckConstraint(
+                check=models.Q(subtotal__gte=0) & models.Q(impuesto__gte=0) & models.Q(descuento__gte=0),
+                name="chk_pedido_montos_gte_0",
+            ),
+            models.CheckConstraint(
+                check=models.Q(impuesto_porcentaje__gte=0) & models.Q(impuesto_porcentaje__lte=100),
+                name="chk_pedido_impuesto_pct_0_100",
+            ),
+            models.CheckConstraint(
+                check=models.Q(fecha_entrega_real__isnull=True)
+                | models.Q(fecha_toma_entrega__isnull=True)
+                | models.Q(fecha_entrega_real__gte=models.F("fecha_toma_entrega")),
+                name="chk_pedido_entrega_real_gte_toma",
+            ),
+            models.CheckConstraint(
+                check=models.Q(estado__in=[
+                    "pendiente", "autorizado_despacho", "vehiculo_asignado",
+                    "en_ruta", "entregado", "cancelado",
+                ]),
+                name="chk_pedido_estado_valido",
+            ),
         ]
 
     def __str__(self):
         return f"Pedido {self.codigo_pedido} - {self.estado}"
+
+    def clean(self):
+        super().clean()
+        errores = {}
+        if (
+            self.fecha_toma_entrega
+            and self.fecha_entrega_real
+            and self.fecha_entrega_real < self.fecha_toma_entrega
+        ):
+            errores["fecha_entrega_real"] = "La fecha de entrega no puede ser anterior a la toma de la entrega."
+        if self.estado == self.ENTREGADO and not self.fecha_entrega_real:
+            errores["fecha_entrega_real"] = "Un pedido entregado debe tener fecha de entrega real."
+        if self.estado in (self.EN_RUTA, self.ENTREGADO) and not (
+            self.direccion_destino or ""
+        ).strip():
+            errores["direccion_destino"] = "La dirección de destino es obligatoria para despachar."
+
+        if self.impuesto_porcentaje is not None and not (0 <= self.impuesto_porcentaje <= 100):
+            errores["impuesto_porcentaje"] = "El porcentaje de impuesto debe estar entre 0 y 100."
+        if self.subtotal is not None and self.subtotal < 0:
+            errores["subtotal"] = "El subtotal no puede ser negativo."
+        if self.impuesto is not None and self.impuesto < 0:
+            errores["impuesto"] = "El impuesto no puede ser negativo."
+        if self.descuento is not None and self.descuento < 0:
+            errores["descuento"] = "El descuento no puede ser negativo."
+        if self.total is not None and self.total < 0:
+            errores["total"] = "El total no puede ser negativo."
+
+        if (
+            self.subtotal is not None
+            and self.impuesto is not None
+            and self.descuento is not None
+            and self.total is not None
+        ):
+            esperado = self.subtotal + self.impuesto - self.descuento
+            if self.total != esperado:
+                errores["total"] = f"El total ({self.total}) debe coincidir con subtotal + impuesto - descuento ({esperado})."
+
+        if errores:
+            raise ValidationError(errores)
 
     def calcular_total(self, using=None):
         if using is None:
@@ -160,12 +238,14 @@ class Pedido(models.Model):
             except AttributeError as exc:
                 logger.warning(
                     "No se pudo resolver usuario legacy del conductor en pedido %s: %s",
-                    getattr(self, "codigo_pedido", "?"), exc,
+                    getattr(self, "codigo_pedido", "?"),
+                    exc,
                 )
             except OperationalError as exc:
                 logger.error(
                     "Error operativo resolviendo conductor_usuario_legacy en pedido %s: %s",
-                    getattr(self, "codigo_pedido", "?"), exc,
+                    getattr(self, "codigo_pedido", "?"),
+                    exc,
                 )
         super().save(*args, **kwargs)
 
@@ -173,8 +253,10 @@ class Pedido(models.Model):
 class DetallePedido(models.Model):
     id_detalle_pedido = models.AutoField(primary_key=True)
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="detalles")
-    material = models.ForeignKey("catalogo.MaterialConstruccion", on_delete=models.PROTECT, db_column="cod_material")
-    cantidad = models.IntegerField(validators=[MinValueValidator(1)])
+    material = models.ForeignKey(
+        "catalogo.MaterialConstruccion", on_delete=models.PROTECT, db_column="cod_material"
+    )
+    cantidad = models.IntegerField(validators=cantidad_validators)
     precio_unitario = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)]
     )
@@ -220,7 +302,7 @@ Orden = Pedido
 DetalleOrden = DetallePedido
 
 
-class SolicitudPedido(models.Model):
+class SolicitudPedido(TransicionMixin, models.Model):
     ESTADO_CHOICES = [
         ("pendiente", "Pendiente"),
         ("aprobado", "Aprobado"),
@@ -228,6 +310,13 @@ class SolicitudPedido(models.Model):
         ("en_camino", "En camino"),
         ("entregado", "Entregado"),
     ]
+    TRANSICIONES = {
+        "pendiente": {"aprobado", "cancelado"},
+        "aprobado": {"en_camino", "cancelado"},
+        "en_camino": {"entregado", "cancelado"},
+        "entregado": set(),
+        "cancelado": set(),
+    }
 
     cliente = models.ForeignKey(
         Usuario,
@@ -262,6 +351,12 @@ class SolicitudPedido(models.Model):
         verbose_name = "Solicitud de Pedido"
         verbose_name_plural = "Solicitudes de Pedido"
         ordering = ["-fecha_creacion"]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(descuento__gte=0) & models.Q(total__gte=0),
+                name="chk_solicitud_descuento_total_gte_0",
+            ),
+        ]
 
     def __str__(self):
         return f"Solicitud #{self.id} – {self.cliente}"
@@ -282,7 +377,7 @@ class DetalleSolicitudPedido(models.Model):
         help_text="Material solicitado.",
     )
     cantidad = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)], help_text="Cantidad solicitada."
+        validators=cantidad_validators, help_text="Cantidad solicitada."
     )
     precio_unitario = models.DecimalField(
         max_digits=10,
@@ -309,7 +404,5 @@ class DetalleSolicitudPedido(models.Model):
 
         super().save(*args, **kwargs)
         self.pedido.calcular_total()
-
-
-from apps.pagos.models import Pago, comprobante_upload_to
-
+# Re-export obligatorio: 0001_initial referencia apps.pedidos.models.comprobante_upload_to
+from apps.pagos.models import Pago, comprobante_upload_to  # noqa: F401, E402

@@ -4,11 +4,16 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import Resolver404, resolve
 
-from config.db_preference import (PREF_AUTO, PREF_REMOTA, clear_db_preference,
-                                set_db_preference)
-from config.security import (BloqueoIP, SecurityEvent, _respuesta_no_autorizada,
-                           contar_warnings_ventana, ip_esta_bloqueada,
-                           obtener_ip, registrar_evento, registrar_warning)
+from config.db_preference import PREF_AUTO, PREF_REMOTA, clear_db_preference, set_db_preference
+from config.security import (
+    BloqueoIP,
+    _respuesta_no_autorizada,
+    contar_warnings_ventana,
+    ip_esta_bloqueada,
+    obtener_ip,
+    registrar_evento,
+    registrar_warning,
+)
 from config.superadmin_lock import es_superadmin_global
 from config.utils import conexion_remota_disponible
 
@@ -40,9 +45,21 @@ def _namespace_from_path(path):
     if not parts:
         return "inicio"
     first = parts[0]
-    if first in {"usuarios", "clientes", "catalogo", "compras", "pedidos",
-                  "pagos", "reportes", "auditoria", "logistica",
-                  "ia", "ayuda", "licensing", "inicio"}:
+    if first in {
+        "usuarios",
+        "clientes",
+        "catalogo",
+        "compras",
+        "pedidos",
+        "pagos",
+        "reportes",
+        "auditoria",
+        "logistica",
+        "ia",
+        "ayuda",
+        "licensing",
+        "inicio",
+    }:
         return first
     return None
 
@@ -183,7 +200,6 @@ _URLNAMES_BY_ROLE_EXTRA = {
         "descargar_factura": {"admin", "cliente"},
         "descargar_factura_pedido": {"admin", "cliente"},
     },
-
 }
 
 
@@ -247,7 +263,9 @@ class RoleNamespaceMiddleware:
                 and not (allowed_roles_url and user_role in allowed_roles_url)
             ):
                 return self._violacion(
-                    request, ip, user_role,
+                    request,
+                    ip,
+                    user_role,
                     detalle={
                         "causa": "namespace_restringido",
                         "namespace": namespace,
@@ -265,19 +283,28 @@ class RoleNamespaceMiddleware:
                             if path.startswith(old_prefix):
                                 logger.error(
                                     "[MW-DEPRECATED] Path '%s' usa PREFIJO OBSOLETO '%s' — debe migrarse a '%s'. path=%s",
-                                    path, old_prefix, new_prefix, path,
+                                    path,
+                                    old_prefix,
+                                    new_prefix,
+                                    path,
                                 )
                         if app_name in _NAMESPACES_OBSOLETOS:
                             logger.error(
                                 "[MW-DEPRECATED] Namespace OBSOLETO '%s' detectado en request — migrar a '%s'. path=%s url=%s:%s",
-                                app_name, _NAMESPACES_OBSOLETOS[app_name], path, app_name, url_name,
+                                app_name,
+                                _NAMESPACES_OBSOLETOS[app_name],
+                                path,
+                                app_name,
+                                url_name,
                             )
                 except Exception:
                     pass
 
                 if allowed_roles_url and user_role not in allowed_roles_url:
                     return self._violacion(
-                        request, ip, user_role,
+                        request,
+                        ip,
+                        user_role,
                         detalle={
                             "causa": "url_restringida",
                             "app_name": app_name,
@@ -331,7 +358,9 @@ class RoleNamespaceMiddleware:
                 },
             )
         except Exception as exc:
-            logger.error("_respuesta_no_autorizada no renderizó (¿template no encontrado?): %s", exc)
+            logger.error(
+                "_respuesta_no_autorizada no renderizó (¿template no encontrado?): %s", exc
+            )
             return HttpResponseForbidden(
                 "Acceso no autorizado. Intento registrado en el sistema de seguridad."
             )
@@ -401,7 +430,9 @@ class SecurityMiddleware:
                     "horas_restantes": horas,
                 }
                 try:
-                    response = render(request, "errors/ip_blocked.html", context=context, status=403)
+                    response = render(
+                        request, "errors/ip_blocked.html", context=context, status=403
+                    )
                 except Exception:
                     response = HttpResponseForbidden(
                         f"Tu IP ({ip}) ha sido bloqueada temporalmente por medidas de seguridad. "
@@ -430,3 +461,20 @@ class SecurityMiddleware:
             except Exception:
                 pass
         return None
+
+
+class SessionVersionMiddleware:
+    """Invalida sesiones activas de usuarios bloqueados o con sesión invalidada."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        user = getattr(request, "user", None)
+        if user and user.is_authenticated:
+            session_ver = request.session.get("session_version", 0)
+            if hasattr(user, "session_version") and session_ver != user.session_version:
+                from django.contrib.auth import logout
+                logout(request)
+        return response

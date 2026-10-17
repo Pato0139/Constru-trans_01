@@ -15,7 +15,7 @@
     z-index: 1300;
 }
 
-.modal-backdrop {
+.inventory-entry-modal .modal-backdrop {
     z-index: 1290;
     background-color: #000 !important;
     opacity: 0.86 !important;

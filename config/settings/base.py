@@ -149,8 +149,8 @@ LOCAL_APPS = [
     "apps.clientes",
     "apps.catalogo",
     "apps.compras",
-    "apps.pedidos",
     "apps.pagos",
+    "apps.pedidos",
     "apps.reportes",
     "apps.inicio",
     "apps.auditoria",
@@ -179,21 +179,29 @@ MIDDLEWARE = [
     "config.middleware.SecurityMiddleware",
     # Seguridad propia: validación a nivel de URL namespace / url_name ANTES de la vista
     "config.middleware.RoleNamespaceMiddleware",
+    "config.middleware.SessionVersionMiddleware",
     "config.middleware.DatabasePreferenceMiddleware",
     "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Captura centralizada de ValidationError e IntegrityError para respuestas uniformes
+    "config.middleware_errores.ValidationErrorMiddleware",
     # Licencia: último paso antes de servir la app
     "apps.licensing.middleware.LicenseEnforcementMiddleware",
 ]
+
+# Límites de carga y seguridad de payload (evitar DoS y desbordes)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024       # 5 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024      # 10 MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
 
 # ============================================================
 # SEGURIDAD — Control de acceso + Bloqueo IP
 # ============================================================
 
-SECURITY_MAX_WARNINGS = 5          # Intentos no autorizados antes de bloquear
-SECURITY_BLOCK_HOURS = 24          # Duración bloqueo IP (horas)
-SECURITY_WARNING_WINDOW = 60       # Ventana de gracia para contar warnings (minutos)
+SECURITY_MAX_WARNINGS = 5  # Intentos no autorizados antes de bloquear
+SECURITY_BLOCK_HOURS = 24  # Duración bloqueo IP (horas)
+SECURITY_WARNING_WINDOW = 60  # Ventana de gracia para contar warnings (minutos)
 
 ROOT_URLCONF = "config.urls"
 
@@ -317,6 +325,8 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = DATABASES["default"]["ENGINE"] != "django.db.backends.sqlite3"
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 CSRF_COOKIE_HTTPONLY = False
 CSRF_USE_SESSIONS = False

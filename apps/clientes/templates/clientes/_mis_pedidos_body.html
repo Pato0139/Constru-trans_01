@@ -39,12 +39,13 @@
                 title="Editar">
                 <i class="bi bi-pencil-square"></i>
             </a>
-            <a href="{% url 'clientes:cancelar_pedido' pedido.id %}"
-                class="btn-action text-danger confirm-delete" title="Cancelar"
-                data-title="¿Cancelar pedido?"
-                data-text="¿Estás seguro de que deseas cancelar el pedido #CT-{{ pedido.id }}?">
-                <i class="bi bi-x-circle"></i>
-            </a>
+            <form action="{% url 'clientes:cancelar_pedido' pedido.id %}" method="post"
+                onsubmit="return confirm('¿Estás seguro de que deseas cancelar el pedido #CT-{{ pedido.id }}?')">
+                {% csrf_token %}
+                <button type="submit" class="btn-action text-danger" title="Cancelar">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </form>
             {% endif %}
         </div>
     </td>

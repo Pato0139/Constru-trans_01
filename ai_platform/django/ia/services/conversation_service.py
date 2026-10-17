@@ -24,7 +24,6 @@ def get_conversation(usuario=None, session_id=None):
             )
         else:
             conv = ConversationHistory.objects.using(db_alias).create(user=None, session_id="")
-            created = True
 
         return conv
     except Exception:

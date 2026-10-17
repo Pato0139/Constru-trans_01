@@ -1,4 +1,6 @@
 from django.test import TestCase
+from django.db.models import F
+
 from apps.catalogo.forms import MaterialForm
 from apps.catalogo.models import MaterialConstruccion, Stock, UnidadMedida
 
@@ -6,50 +8,58 @@ from apps.catalogo.models import MaterialConstruccion, Stock, UnidadMedida
 class CatalogoModelsTests(TestCase):
     def test_crear_unidad_medida(self):
         unidad = UnidadMedida.objects.create(
-            codigo="M3",
-            nombre="Metros cúbicos",
-            abreviatura="m3",
-            activa=True
+            codigo="M3", nombre="Metros cúbicos", abreviatura="m3", activa=True
         )
         self.assertEqual(unidad.codigo, "M3")
         self.assertEqual(unidad.abreviatura, "m3")
 
     def test_crear_material(self):
-        unidad = UnidadMedida.objects.create(
-            codigo="M3",
-            nombre="Metros cúbicos",
-            abreviatura="m3"
-        )
+        unidad = UnidadMedida.objects.create(codigo="M3", nombre="Metros cúbicos", abreviatura="m3")
         material = MaterialConstruccion.objects.create(
             nombre="Arena",
             unidad_medida=unidad,
             descripcion="Arena gruesa",
-            precio_referencia=50000
+            precio_referencia=50000,
         )
         self.assertEqual(material.nombre, "Arena")
         self.assertEqual(material.unidad_medida, unidad)
 
     def test_crear_stock(self):
-        unidad = UnidadMedida.objects.create(
-            codigo="M3",
-            nombre="Metros cúbicos",
-            abreviatura="m3"
-        )
+        unidad = UnidadMedida.objects.create(codigo="M3", nombre="Metros cúbicos", abreviatura="m3")
         material = MaterialConstruccion.objects.create(
             nombre="Arena",
             unidad_medida=unidad,
             descripcion="Arena gruesa",
-            precio_referencia=50000
+            precio_referencia=50000,
         )
         stock = Stock.objects.create(
-            material=material,
-            cantidad_actual=100,
-            stock_minimo=10,
-            ubicacion="Almacén 1"
+            material=material, cantidad_actual=100, stock_minimo=10, ubicacion="Almacén 1"
         )
         self.assertEqual(stock.material, material)
         self.assertEqual(stock.cantidad_actual, 100)
         self.assertEqual(stock.id, material.cod_material)
+
+    def test_stock_con_actualizacion_atomica_sincroniza_material(self):
+        unidad = UnidadMedida.objects.create(
+            codigo="UND",
+            nombre="Unidad",
+            abreviatura="u",
+        )
+        material = MaterialConstruccion.objects.create(
+            nombre="Bloque",
+            unidad_medida=unidad,
+            descripcion="Bloque de prueba",
+            precio_referencia=5000,
+        )
+        stock = Stock.objects.create(material=material, cantidad_actual=4)
+
+        stock.cantidad_actual = F("cantidad_actual") + 3
+        stock.save()
+
+        material.refresh_from_db()
+        stock.refresh_from_db()
+        self.assertEqual(stock.cantidad_actual, 7)
+        self.assertEqual(material.stock, 7)
 
     def test_formulario_material_crea_stock_y_ubicacion(self):
         unidad = UnidadMedida.objects.create(

@@ -7,16 +7,29 @@ from django.db.models import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST, require_http_methods
 
 from config.utils import registrar_actividad
 from config.security import (role_required, _respuesta_no_autorizada,
                              obtener_ip, registrar_evento, registrar_warning)
 from apps.usuarios.views import admin_required
 
-from apps.pagos.models import Factura, PagoFactura
+from .models import Factura, PagoFactura
+from .forms import PagoFacturaRegistroForm, PagoFacturaRevisionForm
+from .pdf import render_factura_pdf
+from apps.pagos.models import Factura, Pago, PagoFactura
 from apps.pagos.pdf import render_factura_pdf
 from apps.pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
-from apps.pedidos.models import Pago, Pedido
+from apps.pedidos.models import Pedido
+from apps.usuarios.views import admin_required
+from config.security import (
+    _respuesta_no_autorizada,
+    obtener_ip,
+    registrar_evento,
+    registrar_warning,
+    role_required,
+)
+from config.utils import registrar_actividad
 
 
 def _usuario_actual(request):
@@ -38,14 +51,15 @@ def _cliente_es_dueno(usuario, pedido):
 
 def _monto_pedido(pedido):
     if pedido.detalles.exists():
-        return pedido.calcular_total(using=pedido._state.db)
+        return sum(
+            (
+                Decimal(detalle.cantidad) * detalle.precio_unitario
+                for detalle in pedido.detalles.all()
+            ),
+            Decimal("0"),
+        )
 
-    monto = pedido.total or pedido.precio or Decimal("0")
-    if monto > 0 and (pedido.total != monto or pedido.precio != monto):
-        pedido.total = monto
-        pedido.precio = monto
-        pedido.save(update_fields=["total", "precio"])
-    return monto
+    return pedido.total or pedido.precio or Decimal("0")
 
 
 @role_required(["admin", "cliente"])
@@ -55,10 +69,9 @@ def lista_pagos(request):
     estado = request.GET.get("estado", "").strip()
     metodo = request.GET.get("metodo", "").strip()
 
-    pagos = (
-        Pago.objects.select_related("pedido", "pedido__usuario", "pedido__cliente", "revisado_por")
-        .order_by("-fecha_registro")
-    )
+    pagos = Pago.objects.select_related(
+        "pedido", "pedido__usuario", "pedido__cliente", "revisado_por"
+    ).order_by("-fecha_registro")
 
     if getattr(usuario, "rol", "") == "cliente":
         pagos = pagos.filter(Q(pedido__usuario=usuario) | Q(pedido__cliente__usuario=usuario))
@@ -119,6 +132,7 @@ def registrar_pago_pedido(request, pedido_id):
             "Revisa los materiales y sus precios antes de continuar.",
         )
         return redirect("clientes:mis_pedidos")
+    pedido.total = monto_pedido
 
     pago = pedido.pago_actual
     if pago and pago.estado == Pago.APROBADO:
@@ -129,13 +143,18 @@ def registrar_pago_pedido(request, pedido_id):
         form = PagoRegistroForm(request.POST, request.FILES, instance=pago)
         if form.is_valid():
             with transaction.atomic():
+                if pago and pago.pk:
+                    bloqueado = Pago.objects.select_for_update().get(pk=pago.pk)
+                    if bloqueado.estado == Pago.APROBADO:
+                        messages.info(request, "Este pedido ya tiene un pago aprobado.")
+                        return redirect("pagos:detalle_pago", pk=pago.pk)
                 pago = form.save(commit=False)
                 pago.pedido = pedido
-                pago.estado = Pago.PENDIENTE
+                pago.transicionar(Pago.PENDIENTE)  # rechazado -> pendiente
                 pago.revisado_por = None
                 pago.fecha_revision = None
                 pago.observaciones = ""
-                pago.monto = monto_pedido
+                pago.monto = monto_pedido  # el monto lo fija el servidor, nunca el cliente
                 pago.save()
                 registrar_actividad(
                     request,
@@ -192,6 +211,7 @@ def detalle_pago(request, pk):
 
 
 @admin_required
+@require_http_methods(["GET", "POST"])
 def revisar_pago_pedido(request, pk):
     pago = get_object_or_404(
         Pago.objects.select_related("pedido"),
@@ -201,70 +221,80 @@ def revisar_pago_pedido(request, pk):
 
     if request.method == "POST":
         form = PagoRevisionForm(request.POST)
-        accion = request.POST.get("accion")
-        if form.is_valid() and accion in ("aprobar", "rechazar"):
-            observaciones = form.cleaned_data.get("observaciones", "")
-            if accion == "rechazar" and not observaciones.strip():
-                messages.error(request, "Indica el motivo del rechazo.")
-                return render(
-                    request,
-                    "pagos/revisar.html",
-                    {"form": form, "pago": pago, "pedido": pedido},
-                )
-            revisor = _revisor_en_base_del_pago(request.user, pago)
-            with transaction.atomic():
-                if accion == "aprobar":
-                    pago.marcar_revision(
-                        estado=Pago.APROBADO,
-                        revisor=revisor,
-                        observaciones=observaciones,
-                    )
-                    pago.save()
-                    if pedido.estado == Pedido.PENDIENTE:
-                        pedido.estado = Pedido.AUTORIZADO_DESPACHO
-                        pedido.save(update_fields=["estado"])
-                    registrar_actividad(
-                        request,
-                        "editar",
-                        "pagos",
-                        pago.pk,
-                        f"Pago del pedido #{pedido.codigo_pedido} aprobado",
-                    )
-                    messages.success(
-                        request,
-                        f"Pago aprobado. El pedido #{pedido.codigo_pedido} queda autorizado para despacho.",
-                    )
-                else:
-                    if pedido.estado in (Pedido.EN_RUTA, Pedido.ENTREGADO):
-                        messages.error(
-                            request,
-                            "No se puede rechazar el pago de un pedido que ya está en ruta o entregado.",
-                        )
-                        return redirect("pagos:detalle_pago", pk=pago.pk)
-                    pago.marcar_revision(
-                        estado=Pago.RECHAZADO,
-                        revisor=revisor,
-                        observaciones=observaciones,
-                    )
-                    pago.save()
-                    if pedido.estado in (
-                        Pedido.AUTORIZADO_DESPACHO,
-                        Pedido.VEHICULO_ASIGNADO,
-                    ):
-                        pedido.estado = Pedido.PENDIENTE
-                        pedido.save(update_fields=["estado"])
-                    registrar_actividad(
-                        request,
-                        "editar",
-                        "pagos",
-                        pago.pk,
-                        f"Pago del pedido #{pedido.codigo_pedido} rechazado",
-                    )
-                    messages.warning(
-                        request,
-                        f"Pago rechazado. El pedido #{pedido.codigo_pedido} no avanza a despacho.",
-                    )
+        if pago.estado != Pago.PENDIENTE:
+            messages.error(request, "Este pago ya fue revisado y no puede volver a cambiarse.")
             return redirect("pagos:detalle_pago", pk=pago.pk)
+        if not form.is_valid():
+            for errores in form.errors.values():
+                for e in errores:
+                    messages.error(request, e)
+            return render(
+                request,
+                "pagos/revisar.html",
+                {"form": form, "pago": pago, "pedido": pedido},
+            )
+        accion = form.cleaned_data["accion"]
+        observaciones = form.cleaned_data.get("observaciones", "")
+        revisor = _revisor_en_base_del_pago(request.user, pago)
+        with transaction.atomic():
+            # Bloqueo para evitar doble revisión concurrente.
+            pago = Pago.objects.select_for_update().get(pk=pago.pk)
+            pedido = Pedido.objects.select_for_update().get(pk=pago.pedido_id)
+            if pago.estado != Pago.PENDIENTE:
+                messages.error(request, "Este pago ya fue revisado y no puede volver a cambiarse.")
+                return redirect("pagos:detalle_pago", pk=pago.pk)
+            if accion == "aprobar":
+                pago.marcar_revision(
+                    estado=Pago.APROBADO,
+                    revisor=revisor,
+                    observaciones=observaciones,
+                )
+                pago.save()
+                if pedido.estado == Pedido.PENDIENTE:
+                    pedido.transicionar(Pedido.AUTORIZADO_DESPACHO)
+                    pedido.save(update_fields=["estado"])
+                registrar_actividad(
+                    request,
+                    "editar",
+                    "pagos",
+                    pago.pk,
+                    f"Pago del pedido #{pedido.codigo_pedido} aprobado",
+                )
+                messages.success(
+                    request,
+                    f"Pago aprobado. El pedido #{pedido.codigo_pedido} queda autorizado para despacho.",
+                )
+            else:
+                if pedido.estado in (Pedido.EN_RUTA, Pedido.ENTREGADO):
+                    messages.error(
+                        request,
+                        "No se puede rechazar el pago de un pedido que ya está en ruta o entregado.",
+                    )
+                    return redirect("pagos:detalle_pago", pk=pago.pk)
+                pago.marcar_revision(
+                    estado=Pago.RECHAZADO,
+                    revisor=revisor,
+                    observaciones=observaciones,
+                )
+                pago.save()
+                if pedido.estado in (
+                    Pedido.AUTORIZADO_DESPACHO,
+                    Pedido.VEHICULO_ASIGNADO,
+                ):
+                    pedido.transicionar(Pedido.PENDIENTE)
+                    pedido.save(update_fields=["estado"])
+                registrar_actividad(
+                    request,
+                    "editar",
+                    "pagos",
+                    pago.pk,
+                    f"Pago del pedido #{pedido.codigo_pedido} rechazado",
+                )
+                messages.warning(
+                    request,
+                    f"Pago rechazado. El pedido #{pedido.codigo_pedido} no avanza a despacho.",
+                )
+        return redirect("pagos:detalle_pago", pk=pago.pk)
     else:
         form = PagoRevisionForm(initial={"observaciones": pago.observaciones})
 
@@ -279,38 +309,37 @@ def revisar_pago_pedido(request, pk):
 # Consolidado desde la app de facturacion (ahora dentro de pagos)
 # ======================
 
+
 @admin_required
+@require_http_methods(["GET", "POST"])
 def registrar_pago(request, pk):
     factura = get_object_or_404(Factura, pk=pk)
     if request.method == "POST":
-        try:
-            monto_raw = request.POST.get("monto", "0").replace(",", ".")
-            monto = float(monto_raw)
-        except ValueError:
-            monto = 0
-        saldo = factura.saldo_pendiente
-        if monto <= 0 or monto > saldo + 0.001:
-            messages.error(request, "Monto inválido o superior al saldo pendiente.")
-            return redirect("pagos:registrar_pago", pk=pk)
-
-        with transaction.atomic():
-            pago = PagoFactura.objects.create(
-                factura=factura,
-                monto=monto,
-                metodo=request.POST.get("metodo", PagoFactura.Metodo.EFECTIVO),
-                referencia=request.POST.get("referencia", "").strip(),
-                evidencia=request.FILES.get("evidencia"),
-                registrado_por=request.user,
-            )
-            registrar_actividad(
-                request,
-                "crear",
-                "pagos",
-                pago.pk,
-                f"Pago registrado a factura {factura.numero}",
-            )
-        messages.success(request, "Pago registrado y pendiente de revisión.")
-        return redirect("pagos:detalle_factura", pk=pk)
+        form = PagoFacturaRegistroForm(request.POST, request.FILES, factura=factura)
+        if form.is_valid():
+            with transaction.atomic():
+                factura_bloqueada = Factura.objects.select_for_update().get(pk=pk)
+                pago = form.save(commit=False)
+                if pago.monto > factura_bloqueada.saldo_pendiente:
+                    form.add_error("monto", "El saldo de la factura cambió; verifica el monto.")
+                else:
+                    pago.factura = factura_bloqueada
+                    pago.registrado_por = request.user
+                    pago.save()
+                    registrar_actividad(
+                        request,
+                        "crear",
+                        "pagos",
+                        pago.pk,
+                        f"Pago registrado a factura {factura.numero}",
+                    )
+                    messages.success(request, "Pago registrado y pendiente de revisión.")
+                    return redirect("pagos:detalle_factura", pk=pk)
+    else:
+        form = PagoFacturaRegistroForm(
+            factura=factura,
+            initial={"monto": factura.saldo_pendiente},
+        )
 
     return render(
         request,
@@ -319,6 +348,7 @@ def registrar_pago(request, pk):
             "factura": factura,
             "saldo_pendiente": factura.saldo_pendiente,
             "metodos": PagoFactura.Metodo.choices,
+            "form": form,
         },
     )
 
@@ -326,28 +356,28 @@ def registrar_pago(request, pk):
 @role_required(["cliente"])
 def mis_facturas(request):
     usuario = _usuario_actual(request)
-    facturas = Factura.objects.select_related("pedido").filter(
-        cliente__usuario=usuario
-    ).order_by("-fecha_emision")
-    return render(
-        request, "pagos/mis_facturas.html", {"facturas": facturas}
+    facturas = (
+        Factura.objects.select_related("pedido")
+        .filter(cliente__usuario=usuario)
+        .order_by("-fecha_emision")
     )
+    return render(request, "pagos/mis_facturas.html", {"facturas": facturas})
 
 
 @role_required(["cliente"])
 def mis_pagos(request):
     usuario = _usuario_actual(request)
-    pagos = PagoFactura.objects.select_related("factura__pedido").filter(
-        factura__cliente__usuario=usuario
-    ).order_by("-fecha_registro")
+    pagos = (
+        PagoFactura.objects.select_related("factura__pedido")
+        .filter(factura__cliente__usuario=usuario)
+        .order_by("-fecha_registro")
+    )
     return render(request, "pagos/mis_pagos.html", {"pagos": pagos})
 
 
 @role_required(["admin", "cliente"])
 def detalle_factura(request, pk):
-    factura = get_object_or_404(
-        Factura.objects.select_related("pedido", "cliente__usuario"), pk=pk
-    )
+    factura = get_object_or_404(Factura.objects.select_related("pedido", "cliente__usuario"), pk=pk)
     usuario = _usuario_actual(request)
     es_cliente = getattr(usuario, "rol", "") == "cliente"
     if es_cliente and factura.cliente.usuario_id != usuario.pk:
@@ -366,6 +396,9 @@ def detalle_factura(request, pk):
 @role_required(["admin", "cliente"])
 def descargar_pdf(request, pk):
     factura = get_object_or_404(Factura, pk=pk)
+    usuario = _usuario_actual(request)
+    if getattr(usuario, "rol", "") == "cliente" and factura.cliente.usuario_id != usuario.pk:
+        raise Http404()
     pdf_bytes = render_factura_pdf(factura)
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="{factura.numero}.pdf"'
@@ -379,28 +412,40 @@ def descargar_factura_pedido(request, pedido_id):
 
 
 @admin_required
+@require_POST
 def revisar_pago(request, pk, pago_id):
     pago = get_object_or_404(PagoFactura, pk=pago_id, factura_id=pk)
-    accion = request.POST.get("accion")
-    if request.method == "POST" and accion in ("aprobar", "rechazar"):
-        pago.estado = (
-            PagoFactura.Estado.APROBADO
-            if accion == "aprobar"
-            else PagoFactura.Estado.RECHAZADO
+    form = PagoFacturaRevisionForm(request.POST)
+    if not form.is_valid():
+        for errores in form.errors.values():
+            for e in errores:
+                messages.error(request, e)
+        return render(request, "pagos/revisar_pago_factura.html", {"pago": pago, "form": form})
+
+    accion = form.cleaned_data["accion"]
+    with transaction.atomic():
+        Factura.objects.select_for_update().get(pk=pk)
+        pago = PagoFactura.objects.select_for_update().get(pk=pago_id, factura_id=pk)
+        if pago.estado != PagoFactura.Estado.PENDIENTE:
+            messages.error(request, "Este pago ya fue revisado.")
+        if accion == "aprobar" and pago.monto > pago.factura.saldo_pendiente:
+            messages.error(request, "El pago supera el saldo pendiente de la factura.")
+            return redirect("pagos:detalle_factura", pk=pk)
+        pago.transicionar(
+            PagoFactura.Estado.APROBADO if accion == "aprobar" else PagoFactura.Estado.RECHAZADO
         )
         pago.revisado_por = request.user
         pago.fecha_revision = timezone.now()
-        pago.observaciones = request.POST.get("observaciones", "")
+        pago.observaciones = form.cleaned_data.get("observaciones", "")
         pago.save()
         if accion == "aprobar":
             pago.factura.recalcular_estado()
-        registrar_actividad(
-            request,
-            "editar",
-            "pagos",
-            pago.pk,
-            f"Pago {pago.pk} {pago.estado} — factura {pago.factura.numero}",
-        )
-        messages.success(request, f"Pago {pago.estado}.")
-        return redirect("pagos:lista_pagos")
-    return render(request, "pagos/revisar_pago_factura.html", {"pago": pago})
+    registrar_actividad(
+        request,
+        "editar",
+        "pagos",
+        pago.pk,
+        f"Pago {pago.pk} {pago.estado} — factura {pago.factura.numero}",
+    )
+    messages.success(request, f"Pago {pago.estado}.")
+    return redirect("pagos:lista_pagos")

@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("compras", "0003_alter_detallecompra_cantidad_and_more"),
     ]

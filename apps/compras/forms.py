@@ -1,15 +1,25 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from apps.usuarios.utils import limpiar_telefono
-
+from config.forms import StrictModelForm
 from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
 
-class ProveedorForm(forms.ModelForm):
+class ProveedorForm(StrictModelForm):
     class Meta:
         model = Proveedor
-        fields = ["nombre_empresa", "nit", "telefono", "correo", "descripcion"]
+        fields = [
+            "nombre_empresa",
+            "contacto_nombre",
+            "nit",
+            "telefono",
+            "correo",
+            "direccion",
+            "ciudad",
+            "categoria",
+            "descripcion",
+            "activo",
+        ]
         widgets = {
             "nombre_empresa": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Nombre Legal"}
@@ -17,39 +27,51 @@ class ProveedorForm(forms.ModelForm):
             "nit": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "9000000000",
-                    "pattern": "[0-9\\s]*",
-                    "title": "Solo se admiten números y espacios",
-                    "oninput": "this.value = this.value.replace(/[^0-9\\s]/g, '')",
+                    "placeholder": "900000000-1",
                 }
+            ),
+            "contacto_nombre": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre de contacto"}
             ),
             "telefono": forms.TextInput(
                 attrs={
                     "class": "form-control",
                     "placeholder": "3001234567",
-                    "pattern": "[0-9\\s]*",
-                    "title": "Solo se admiten números y espacios",
-                    "oninput": "this.value = this.value.replace(/[^0-9\\s]/g, '')",
                 }
             ),
             "correo": forms.EmailInput(
                 attrs={"class": "form-control", "placeholder": "empresa@correo.com"}
             ),
+            "direccion": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Calle, número, piso..."}
+            ),
+            "ciudad": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ciudad"}
+            ),
+            "categoria": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: Materiales, Repuestos, Tecnología...",
+                }
+            ),
             "descripcion": forms.Textarea(
                 attrs={"class": "form-control", "rows": 3, "placeholder": "Descripción..."}
+            ),
+            "activo": forms.CheckboxInput(
+                attrs={"class": "form-check-input mt-2"}
             ),
         }
 
     def clean_nit(self):
         nit = self.cleaned_data.get("nit")
-        return limpiar_telefono(nit)
+        return nit.strip() if nit else ""
 
     def clean_telefono(self):
         telefono = self.cleaned_data.get("telefono")
-        return limpiar_telefono(telefono)
+        return telefono.strip() if telefono else ""
 
 
-class ProveedorPerfilForm(forms.ModelForm):
+class ProveedorPerfilForm(StrictModelForm):
     class Meta:
         model = Proveedor
         fields = [
@@ -66,7 +88,7 @@ class ProveedorPerfilForm(forms.ModelForm):
         ]
 
 
-class ProveedorMaterialForm(forms.ModelForm):
+class ProveedorMaterialForm(StrictModelForm):
     class Meta:
         model = ProveedorMaterial
         fields = ["material", "precio_actual", "referencia_proveedor", "observaciones", "activo"]
@@ -81,7 +103,7 @@ ProveedorMaterialFormSet = inlineformset_factory(
 )
 
 
-class CompraForm(forms.ModelForm):
+class CompraForm(StrictModelForm):
     class Meta:
         model = Compra
         fields = ["proveedor", "observaciones"]
@@ -97,7 +119,7 @@ class CompraForm(forms.ModelForm):
         self.fields["proveedor"].queryset = Proveedor.objects.all()
 
 
-class DetalleCompraForm(forms.ModelForm):
+class DetalleCompraForm(StrictModelForm):
     class Meta:
         model = DetalleCompra
         fields = ["material", "cantidad", "precio_unitario"]
@@ -105,7 +127,12 @@ class DetalleCompraForm(forms.ModelForm):
             "material": forms.Select(attrs={"class": "form-control select2 material-select"}),
             "cantidad": forms.NumberInput(attrs={"class": "form-control cantidad-input", "min": 1}),
             "precio_unitario": forms.NumberInput(
-                attrs={"class": "form-control precio-input", "step": "0.01", "min": 0, "readonly": True}
+                attrs={
+                    "class": "form-control precio-input",
+                    "step": "0.01",
+                    "min": 0,
+                    "readonly": True,
+                }
             ),
         }
 

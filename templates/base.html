@@ -330,6 +330,26 @@
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
 }
+
+:root:root[data-daltonism="protanopia"] body {
+    filter: url(#protanopia-filter) !important;
+}
+
+:root:root[data-daltonism="deuteranopia"] body {
+    filter: url(#deuteranopia-filter) !important;
+}
+
+:root:root[data-daltonism="tritanopia"] body {
+    filter: url(#tritanopia-filter) !important;
+}
+
+:root:root[data-daltonism="achromatopsia"] body {
+    filter: grayscale(100%) !important;
+}
+
+:root:root[data-daltonism="none"] body {
+    filter: none !important;
+}
 </style>
 
 </body>

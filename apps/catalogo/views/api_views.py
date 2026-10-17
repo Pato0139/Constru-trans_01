@@ -4,11 +4,11 @@ from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.urls import reverse
 
-from apps.catalogo.models import Catalogo
 from apps.catalogo.models import MaterialConstruccion as Material
-from config.datatables import apply_search, build_dt_response, get_dt_params
 from apps.usuarios.templatetags.currency_tags import currency
 from apps.usuarios.views import admin_required
+from config.datatables import apply_search, build_dt_response, get_dt_params
+
 
 @admin_required
 def api_materiales(request):
@@ -49,12 +49,16 @@ def api_materiales_listado(request):
         qs = qs.filter(id__icontains=id_query)
 
     filtrados = qs.count()
-    materiales = qs.order_by("nombre")[params["start"]: params["start"] + params["length"]]
+    materiales = qs.order_by("nombre")[params["start"] : params["start"] + params["length"]]
 
     data = []
     for material in materiales:
         nombre_seguro = escape(material.nombre)
-        stock_actual = material.stock_info.cantidad_actual if hasattr(material, "stock_info") else material.stock
+        stock_actual = (
+            material.stock_info.cantidad_actual
+            if hasattr(material, "stock_info")
+            else material.stock
+        )
         stock_minimo = material.stock_info.stock_minimo if hasattr(material, "stock_info") else 0
         data.append(
             {
@@ -70,15 +74,15 @@ def api_materiales_listado(request):
                 "activo": material.activo,
                 "acciones": f'''
                     <div class="d-flex justify-content-center gap-2">
-                        <a href="{reverse('catalogo:editar_material', args=[material.id])}" class="btn-action" title="Editar">
+                        <a href="{reverse("catalogo:editar_material", args=[material.id])}" class="btn-action" title="Editar">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <form method="post" action="{reverse('catalogo:cambiar_estado_material', args=[material.id])}" class="d-inline">
+                        <form method="post" action="{reverse("catalogo:cambiar_estado_material", args=[material.id])}" class="d-inline">
                             <input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">
-                            <button type="submit" class="btn-action {'btn-action--success' if material.activo else 'btn-action--danger'}"
-                                    title="{'Inhabilitar' if material.activo else 'Habilitar'} material"
-                                    aria-label="{'Inhabilitar' if material.activo else 'Habilitar'} {nombre_seguro}">
-                                <i class="bi {'bi-check-circle-fill' if material.activo else 'bi-x-circle-fill'}"></i>
+                            <button type="submit" class="btn-action {"btn-action--success" if material.activo else "btn-action--danger"}"
+                                    title="{"Inhabilitar" if material.activo else "Habilitar"} material"
+                                    aria-label="{"Inhabilitar" if material.activo else "Habilitar"} {nombre_seguro}">
+                                <i class="bi {"bi-check-circle-fill" if material.activo else "bi-x-circle-fill"}"></i>
                             </button>
                         </form>
                     </div>

@@ -16,7 +16,7 @@ def enviar_a_ai_service(
     user_name: str | None,
     user_role: str | None,
     business_context: dict,
-    auditoria: list | None = None,
+    historial: list | None = None,
     use_rag: bool = True,
 ):
     payload = {

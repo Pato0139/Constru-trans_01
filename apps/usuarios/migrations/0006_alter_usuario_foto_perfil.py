@@ -3,21 +3,19 @@
 from django.db import migrations, models
 
 import apps.usuarios.models
-from django.db import migrations, models
-
-import apps.usuarios.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('usuarios', '0005_proveedor_estado_perfil'),
+        ("usuarios", "0005_proveedor_estado_perfil"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='usuario',
-            name='foto_perfil',
-            field=models.FileField(blank=True, null=True, upload_to=apps.usuarios.models.foto_perfil_upload_path),
+            model_name="usuario",
+            name="foto_perfil",
+            field=models.FileField(
+                blank=True, null=True, upload_to=apps.usuarios.models.foto_perfil_upload_path
+            ),
         ),
     ]

@@ -14,7 +14,7 @@ def registrar_cambio_precio(sender, instance, **kwargs):
                     material=instance,
                     precio_anterior=material_anterior.precio_referencia,
                     precio_nuevo=instance.precio_referencia,
-                    observaciones=f"Cambio de precio desde {material_anterior.precio_referencia} hasta {instance.precio_referencia}"
+                    observaciones=f"Cambio de precio desde {material_anterior.precio_referencia} hasta {instance.precio_referencia}",
                 )
         except MaterialConstruccion.DoesNotExist:
             pass
@@ -25,6 +25,9 @@ def sincronizar_stock_producto(sender, instance, **kwargs):
     """Mantiene la columna 'stock' del producto igualada con su registro
     de Stock (movimientos de inventario, edición de stock, etc.)."""
     db = instance._state.db or "default"
+    cantidad_actual = sender.objects.using(db).values_list(
+        "cantidad_actual", flat=True
+    ).get(pk=instance.pk)
     MaterialConstruccion.objects.using(db).filter(pk=instance.material_id).update(
-        stock=instance.cantidad_actual
+        stock=cantidad_actual
     )
