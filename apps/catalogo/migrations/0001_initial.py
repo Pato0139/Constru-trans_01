@@ -13,7 +13,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('usuarios', '0014_delete_metodopago'),
     ]
 
     operations = [

@@ -63,6 +63,4 @@ class Migration(migrations.Migration):
             name='proveedor',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='materiales_ofertados', to='compras.proveedor'),
         ),
-            ],
-        ),
     ]
