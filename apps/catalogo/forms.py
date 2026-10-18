@@ -312,3 +312,24 @@ class CatalogoForm(StrictModelForm):
             if not self.instance.pk and Catalogo.objects.filter(codigo_catalogo=codigo).exists():
                 raise forms.ValidationError("Ya existe un tipo de material con este código.")
         return codigo
+
+
+class StockForm(StrictModelForm):
+    cantidad = forms.IntegerField(min_value=0, max_value=100000, required=False)
+
+    class Meta:
+        model = Stock
+        fields = ["cantidad_actual", "ubicacion"]
+
+    def clean_ubicacion(self):
+        ubicacion = (self.cleaned_data.get("ubicacion") or "").strip()
+        if len(ubicacion) > 120:
+            raise forms.ValidationError("La ubicación no puede superar 120 caracteres.")
+        return ubicacion
+
+    def clean(self):
+        cleaned = super().clean()
+        if "cantidad" in cleaned and cleaned["cantidad"] is not None:
+            cleaned["cantidad_actual"] = cleaned["cantidad"]
+            self.instance.cantidad_actual = cleaned["cantidad"]
+        return cleaned

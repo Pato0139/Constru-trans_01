@@ -17,24 +17,27 @@ from django.template import loader
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
+from config.forms_base import StrictForm, StrictModelForm
+from config.validators import imagen_validator
+
 from .models import Usuario
 from .utils import limpiar_documento, limpiar_telefono
 
 
-class FotoPerfilForm(forms.Form):
+class FotoPerfilForm(StrictForm):
     foto_perfil = forms.ImageField(
         required=False,
-        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"])],
+        validators=[imagen_validator],
     )
 
     def clean_foto_perfil(self):
         foto = self.cleaned_data.get("foto_perfil")
-        if foto and foto.size > 5 * 1024 * 1024:
-            raise forms.ValidationError("La foto debe pesar máximo 5 MB.")
+        if foto:
+            imagen_validator(foto)
         return foto
 
 
-class UsuarioForm(forms.ModelForm):
+class UsuarioForm(StrictModelForm):
     class Meta:
         model = Usuario
         fields = [
@@ -74,7 +77,7 @@ class UsuarioForm(forms.ModelForm):
         return telefono
 
 
-class LoginForm(forms.Form):
+class LoginForm(StrictForm):
     username = forms.CharField(
         label="Usuario o Correo",
         widget=forms.TextInput(attrs={"class": "input-custom", "placeholder": "Usuario o Correo"}),
@@ -95,7 +98,7 @@ class LoginForm(forms.Form):
     )
 
 
-class RegistroForm(forms.ModelForm):
+class RegistroForm(StrictModelForm):
     CODIGOS_PAIS = ("+57", "+1", "+52", "+54", "+34", "+56")
 
     correo = forms.EmailField(

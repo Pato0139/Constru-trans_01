@@ -1041,13 +1041,29 @@ def editar_cliente(request, id):
                 status=400,
             )
 
-        cliente.direccion_principal = request.POST.get("direccion_principal", cliente.direccion_principal)
         cliente.direccion_principal = request.POST.get(
             "direccion_principal", cliente.direccion_principal
         )
         cliente.direccion = request.POST.get("direccion", cliente.direccion)
         cliente.tipo_cliente = tipo_cliente
-        cliente.nit = request.POST.get("nit", cliente.nit)
+        nit = (request.POST.get("nit") or "").strip()
+        if nit:
+            from config.validators import nit_validator
+            try:
+                nit_validator(nit)
+                cliente.nit = nit
+            except ValidationError as err:
+                messages.error(request, f"NIT inválido: {err.message}")
+                return render(
+                    request,
+                    "clientes/admin_editar.html",
+                    {
+                        "usuario_cliente": usuario,
+                        "cliente": cliente,
+                        "tipos_cliente": Cliente.TIPOS_CLIENTE,
+                    },
+                    status=400,
+                )
         cliente.nombre_empresa = request.POST.get("nombre_empresa", cliente.nombre_empresa)
         cliente.contacto_alternativo = request.POST.get(
             "contacto_alternativo", cliente.contacto_alternativo
@@ -1057,20 +1073,20 @@ def editar_cliente(request, id):
 
         try:
             with transaction.atomic():
+                cliente.full_clean()
                 cliente.save()
 
                 telefono = request.POST.get("telefono")
-                estado = request.POST.get("estado")
-
                 if telefono:
+                    from config.validators import telefono_validator
+                    telefono = telefono.strip()
+                    telefono_validator(telefono)
                     usuario.telefono = telefono
                 if estado:
                     usuario.estado = estado
-                    usuario.user.is_active = estado == "activo"
-                    usuario.user.save()
-                cliente.full_clean()
-                usuario.full_clean()
+                    usuario.is_active = (estado == "activo")
 
+                usuario.full_clean()
                 usuario.save()
 
             messages.success(
@@ -1078,8 +1094,11 @@ def editar_cliente(request, id):
             )
             return redirect("clientes:detalle_cliente", id=usuario.id)
 
-        except Exception as e:
-            messages.error(request, f"Error al guardar: {e}")
+        except ValidationError as val_err:
+            messages.error(request, "Revisa los campos ingresados.")
+        except Exception:
+            logger.exception("Error al editar cliente %s", usuario.id)
+            messages.error(request, "Error al guardar los datos del cliente. Verifique la información ingresada.")
 
     context = {
         "usuario_cliente": usuario,

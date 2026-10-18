@@ -22,3 +22,5 @@ CACHES = {
     }
 }
 
+SECURITY_MAX_WARNINGS = 999999
+

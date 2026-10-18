@@ -16,13 +16,15 @@ OBSERVACIONES_MAX = 1000
 
 def comprobante_upload_to(instance, filename):
     pedido_id = getattr(instance, "pedido_id", None) or "sin_pedido"
-    return f"comprobantes/pedido_{pedido_id}/{filename}"
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    return f"comprobantes/pedido_{pedido_id}/{uuid.uuid4().hex}.{ext}"
 
 
 def _evidencia_upload_to(instance, filename):
     factura_id = getattr(instance, "factura_id", None) or "sin_factura"
     ts = timezone.now().strftime("%Y/%m")
-    return f"comprobantes/factura_{factura_id}/{ts}/{filename}"
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    return f"comprobantes/factura_{factura_id}/{ts}/{uuid.uuid4().hex}.{ext}"
 
 
 class Pago(TransicionMixin, models.Model):

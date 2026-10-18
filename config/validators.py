@@ -154,4 +154,4 @@ class ArchivoValidator:
         )
 
 
-imagen_validator = ArchivoValidator(("png", "jpg", "jpeg"), max_mb=5)
+imagen_validator = ArchivoValidator(("png", "jpg", "jpeg", "webp"), max_mb=5)

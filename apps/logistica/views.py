@@ -15,6 +15,7 @@ from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
 from config.permissions import requiere_funcion
 
+from .forms import VehiculoForm
 from .models import ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento, Seguimiento, Vehiculo
 
 
@@ -145,38 +146,42 @@ def crear_vehiculo(request):
     )
 
     if request.method == "POST":
-        placa = request.POST.get("placa")
-        tipo = request.POST.get("tipo")
-        marca = request.POST.get("marca", "").strip()
-        modelo = request.POST.get("modelo", "").strip()
-        capacidad = request.POST.get("capacidad")
-        conductor_id = request.POST.get("conductor")
+        form = VehiculoForm(request.POST)
+        if not form.is_valid():
+            messages.error(request, "Revisa los datos del vehículo y el conductor seleccionado.")
+            return render(
+                request,
+                "logistica/form.html",
+                {"action": "crear", "conductores": conductores_disponibles, "form": form},
+                status=400,
+            )
+
+        conductor_id = form.cleaned_data.get("conductor")
+        vehiculo = form.instance
+        vehiculo.estado = "disponible"
 
         try:
-            vehiculo = Vehiculo(
-                placa=placa,
-                marca=marca,
-                modelo=modelo,
-                tipo_vehiculo=tipo,
-                capacidad_carga=capacidad,
-                estado="disponible",
-            )
-            vehiculo.full_clean()
-
+            conductor_perfil = None
             if conductor_id:
                 conductor_usuario = conductores_disponibles.filter(pk=conductor_id).first()
                 if conductor_usuario is None:
-                    raise ValueError("El conductor seleccionado no está disponible.")
+                    messages.error(request, "El conductor seleccionado no está disponible.")
+                    return render(
+                        request,
+                        "logistica/form.html",
+                        {"action": "crear", "conductores": conductores_disponibles, "form": form},
+                        status=400,
+                    )
                 conductor_perfil, _ = Conductor.ensure_for_user(conductor_usuario)
 
             with transaction.atomic():
                 vehiculo.save()
-                if conductor_id:
+                if conductor_perfil:
                     ConductorVehiculo.objects.create(
                         conductor=conductor_perfil,
                         vehiculo=vehiculo,
                     )
-            messages.success(request, f"Vehículo {placa} registrado correctamente.")
+            messages.success(request, f"Vehículo {vehiculo.placa} registrado correctamente.")
             return redirect("logistica:lista_vehiculos")
         except IntegrityError:
             messages.error(
@@ -184,8 +189,9 @@ def crear_vehiculo(request):
             )
         except (ValidationError, ValueError):
             messages.error(request, "Revisa los datos del vehículo y el conductor seleccionado.")
-        except Exception as e:
-            messages.error(request, f"Error: {str(e)}")
+        except Exception:
+            logger.exception("Error al crear vehículo")
+            messages.error(request, "Error al procesar la solicitud. Verifique los datos.")
 
     context = {"action": "crear", "conductores": conductores_disponibles}
 
@@ -248,23 +254,17 @@ def editar_vehiculo(request, id):
                     "No se puede desactivar el vehículo porque tiene entregas pendientes o en curso.",
                 )
             else:
-                vehiculo.placa = request.POST.get("placa")
-                vehiculo.tipo_vehiculo = request.POST.get("tipo")
-                vehiculo.marca = request.POST.get("marca", "").strip()
-                vehiculo.modelo = request.POST.get("modelo", "").strip()
-                capacidad = request.POST.get("capacidad", "").replace(",", ".")
-                vehiculo.capacidad_carga = capacidad
-                vehiculo.estado = nuevo_estado
-                try:
-                    vehiculo.full_clean()
-                except ValidationError:
+                form = VehiculoForm(request.POST, instance=vehiculo)
+                if not form.is_valid():
                     messages.error(request, "Revisa los datos del vehículo.")
                     return render(
                         request,
                         "logistica/form.html",
-                        {"vehiculo": vehiculo, "action": "editar", "conductores": conductores},
+                        {"vehiculo": vehiculo, "action": "editar", "conductores": conductores, "form": form},
                         status=400,
                     )
+                vehiculo = form.save(commit=False)
+                vehiculo.estado = nuevo_estado
                 vehiculo.save()
 
                 try:
