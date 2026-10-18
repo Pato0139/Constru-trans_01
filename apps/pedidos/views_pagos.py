@@ -1,20 +1,23 @@
+import logging
 from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import router, transaction
 from django.db.models import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from apps.usuarios.views import admin_required
-from config.security import role_required
-from config.utils import registrar_actividad
 from apps.pagos.models import Factura, Pago, PagoFactura
 from apps.pagos.pdf import render_factura_pdf
 from apps.pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
 from apps.pedidos.models import Pedido
+from apps.usuarios.views import admin_required
+from config.security import role_required
+from config.utils import registrar_actividad
+
+logger = logging.getLogger(__name__)
 
 
 def _usuario_actual(request):
@@ -113,24 +116,58 @@ def registrar_pago_pedido(request, pedido_id):
     if request.method == "POST":
         form = PagoRegistroForm(request.POST, request.FILES, instance=pago)
         if form.is_valid():
-            with transaction.atomic():
-                pago = form.save(commit=False)
-                pago.pedido = pedido
-                pago.estado = Pago.PENDIENTE
-                pago.revisado_por = None
-                pago.fecha_revision = None
-                pago.observaciones = ""
-                pago.monto = monto_pedido
-                pago.save()
-                registrar_actividad(
-                    request,
-                    "crear",
-                    "pagos",
-                    pago.pk,
-                    f"Cliente registró pago del pedido #{pedido.codigo_pedido}",
+            using = router.db_for_write(Pago, instance=pago)
+            try:
+                with transaction.atomic(using=using):
+                    pedido_bloqueado = (
+                        Pedido.objects.using(using).select_for_update().get(pk=pedido.pk)
+                    )
+                    pago_existente = (
+                        Pago.objects.using(using)
+                        .select_for_update()
+                        .filter(pedido=pedido_bloqueado)
+                        .first()
+                    )
+
+                    if pago_existente and pago_existente.estado == Pago.APROBADO:
+                        messages.info(request, "Este pedido ya tiene un pago aprobado.")
+                        return redirect("pagos:detalle_pago", pk=pago_existente.pk)
+
+                    if pago_existente:
+                        instancia_pago = pago_existente
+                        instancia_pago.metodo = form.cleaned_data["metodo"]
+                        if form.cleaned_data.get("comprobante"):
+                            instancia_pago.comprobante = form.cleaned_data["comprobante"]
+                    else:
+                        instancia_pago = form.save(commit=False)
+                        instancia_pago.pedido = pedido_bloqueado
+
+                    instancia_pago.transicionar(Pago.PENDIENTE)
+                    instancia_pago.revisado_por = None
+                    instancia_pago.fecha_revision = None
+                    instancia_pago.observaciones = ""
+                    instancia_pago.monto = monto_pedido
+                    instancia_pago.save(using=using)
+
+                    registrar_actividad(
+                        request,
+                        "crear",
+                        "pagos",
+                        instancia_pago.pk,
+                        f"Cliente registró pago del pedido #{pedido.codigo_pedido}",
+                    )
+
+                messages.success(request, "Pago registrado. Queda pendiente de revisión.")
+                return redirect("pagos:detalle_pago", pk=instancia_pago.pk)
+            except Exception as exc:
+                logger.exception(
+                    "Error al registrar pago del pedido #%s: %s", pedido.codigo_pedido, exc
                 )
-            messages.success(request, "Pago registrado. Queda pendiente de revisión.")
-            return redirect("pagos:detalle_pago", pk=pago.pk)
+                messages.error(
+                    request,
+                    "Ocurrió un error al procesar el registro del pago. "
+                    "Por favor intenta nuevamente o contacta a soporte.",
+                )
     else:
         form = PagoRegistroForm(
             instance=pago,
@@ -366,8 +403,8 @@ def mis_facturas(request):
 def mis_pagos(request):
     usuario = _usuario_actual(request)
     pagos = (
-        PagoFactura.objects.select_related("factura__pedido")
-        .filter(factura__cliente__usuario=usuario)
+        Pago.objects.select_related("pedido", "pedido__usuario", "pedido__cliente")
+        .filter(Q(pedido__usuario=usuario) | Q(pedido__cliente__usuario=usuario))
         .order_by("-fecha_registro")
     )
     return render(request, "pagos/mis_pagos.html", {"pagos": pagos})

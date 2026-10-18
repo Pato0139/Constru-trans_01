@@ -10,6 +10,7 @@ urlpatterns = [
     path("", views.lista_pagos, name="lista_pagos"),
     path("registrar/<int:pedido_id>/", views.registrar_pago_pedido, name="registrar_pago_pedido"),
     path("<int:pk>/", views.detalle_pago, name="detalle_pago"),
+    path("<int:pk>/comprobante/", views.ver_comprobante_pago, name="ver_comprobante_pago"),
     path("<int:pk>/revisar/", views.revisar_pago_pedido, name="revisar_pago_pedido"),
     # Facturación y pagos consolidados
     path("facturas/", views_pagos.lista_facturas, name="lista_facturas"),

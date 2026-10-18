@@ -20,46 +20,46 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm p-3 mb-4 mx-4 filter-bar-card" data-aos="fade-down">
-        <form method="GET" class="standard-filter-form row g-3 align-items-center" id="filtros-mis-pedidos">
-            <div class="col-auto">
-                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+    <div class="card border-0 shadow-sm p-3 mb-4 filter-bar-card" data-aos="fade-down">
+        <form method="GET" class="standard-filter-form row g-2 align-items-center" id="filtros-mis-pedidos">
+            <div class="col-12 col-md-auto d-flex align-items-center">
+                <span class="text-accent small fw-bold text-nowrap"><i class="bi bi-funnel-fill text-gold me-1"></i> FILTROS:</span>
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-sm-6 col-md-3">
                 <input type="text" name="q"
-                    class="form-control form-control-sm bg-surface text-white" placeholder="Buscar..." value="{{ q }}" autocomplete="off">
+                    class="form-control form-control-sm bg-surface text-white" placeholder="Buscar por código..." value="{{ q }}" autocomplete="off">
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-md-3">
                 <input type="text" name="destino"
-                    class="form-control form-control-sm bg-surface text-white" placeholder="Destino" value="{{ destino }}" autocomplete="off">
+                    class="form-control form-control-sm bg-surface text-white" placeholder="Destino..." value="{{ destino }}" autocomplete="off">
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-md-3">
                 <select name="estado" class="form-select form-select-sm bg-surface text-white">
                     <option value="">Estado (Todos)</option>
                     <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="autorizado_despacho" {% if estado == 'autorizado_despacho' %}selected{% endif %}>Autorizado Despacho</option>
+                    <option value="vehiculo_asignado" {% if estado == 'vehiculo_asignado' %}selected{% endif %}>Vehículo Asignado</option>
                     <option value="en_ruta" {% if estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
-                    <option value="entregado" {% if estado == 'entregado' %}selected{% endif %}>Entregado</option>
-                    <option value="cancelado" {% if estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
                 </select>
             </div>
-            <div class="col-auto ms-auto d-flex gap-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-limpiar-filtros" {% if not has_filters %}disabled{% endif %}
+            <div class="col-12 col-sm-6 col-md-auto ms-auto d-flex gap-2 justify-content-end">
+                <button type="button" class="btn btn-sm btn-outline-secondary px-3" id="btn-limpiar-filtros" {% if not has_filters %}disabled{% endif %}
                     title="Limpiar filtros">
-                    <i class="bi bi-x-circle"></i> Limpiar
+                    <i class="bi bi-arrow-counterclockwise"></i> Limpiar
                 </button>
             </div>
         </form>
     </div>
 
     <div class="table-responsive">
-        <table class="table table-hover align-middle">
+        <table class="table table-hover align-middle no-datatable mb-0">
             <thead>
                 <tr>
                     <th>ID Pedido</th>
-                    <th>Destino</th>
-                    <th>Fecha</th>
+                    <th>Destino de entrega</th>
+                    <th>Fecha del pedido</th>
                     <th>Total</th>
-                    <th>Estado</th>
+                    <th>Estado actual</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>

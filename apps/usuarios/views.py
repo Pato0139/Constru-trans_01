@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 User = get_user_model()
 from django.contrib.auth.views import PasswordResetView
@@ -1287,8 +1287,7 @@ class CustomPasswordResetView(PasswordResetView):
 # =====================================================================
 # CERRAR SESIÓN
 # =====================================================================
-@csrf_protect
-@require_POST
+@require_http_methods(["GET", "POST"])
 def cerrar_sesion(request):
     if request.user.is_authenticated:
         from config.utils import clear_user_cache

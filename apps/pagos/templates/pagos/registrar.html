@@ -8,31 +8,72 @@
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-7">
-            <div class="table-container p-4">
-                <h3 class="text-white mb-3">Pago del pedido #{{ pedido.codigo_pedido }}</h3>
-                <p class="text-muted">Valor real del pedido: <strong class="text-white">{{ pedido.total|currency }}</strong></p>
-                <form method="post" enctype="multipart/form-data">
+            <div class="table-container p-4 p-md-5">
+                <!-- Header con resumen destacado y legible -->
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                    <div>
+                        <span class="text-uppercase tracking-wider small fw-bold text-warning d-block mb-1">
+                            <i class="bi bi-shield-lock-fill me-1"></i> Pasarela de Pago Segura
+                        </span>
+                        <h2 class="text-white fw-bold mb-0">Pago del pedido #{{ pedido.codigo_pedido }}</h2>
+                    </div>
+                    <div class="payment-total-box px-4 py-2 rounded-3 text-end">
+                        <span class="small d-block payment-total-label">Total a pagar</span>
+                        <span class="fs-4 fw-extrabold text-warning payment-total-amount">{{ pedido.total|currency }}</span>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="form-registro-pago">
                     {% csrf_token %}
                     {{ form.non_field_errors }}
+
                     <!-- Método de pago -->
                     <div class="mb-4">
-                        <label class="form-label text-white fw-bold">
-                            <i class="bi bi-credit-card me-1"></i> Método de pago
+                        <label class="form-label text-white fw-bold fs-6 mb-2 d-flex align-items-center justify-content-between">
+                            <span><i class="bi bi-wallet2 text-warning me-2"></i> Selecciona tu método de pago</span>
+                            <span class="small text-light-high fw-normal">Toca para elegir</span>
                         </label>
-                        <div class="row g-3 mt-2">
+                        <div class="row g-3">
                             {% for choice in form.metodo %}
                             {% if choice.data.value %}
-                            <div class="col-md-6">
-                                <div class="form-check payment-option p-3 rounded-3 border {% if choice.data.selected %}is-selected{% endif %}">
-                                    <input class="form-check-input" type="radio" name="{{ form.metodo.html_name }}" id="{{ choice.id_for_label }}" value="{{ choice.data.value }}" {% if choice.data.selected %}checked{% endif %} required>
-                                    <label class="form-check-label text-white fw-semibold" for="{{ choice.id_for_label }}">
-                                        {% if choice.data.value == 'nequi' %}<i class="bi bi-phone me-2 text-info"></i>
-                                        {% elif choice.data.value == 'daviplata' %}<i class="bi bi-wallet2 me-2 text-success"></i>
-                                        {% elif choice.data.value == 'bancolombia' %}<i class="bi bi-bank me-2 text-danger"></i>
-                                        {% elif choice.data.value == 'contraentrega' %}<i class="bi bi-cash-stack me-2 text-warning"></i>
-                                        {% endif %}
-                                        {{ choice.choice_label }}
-                                    </label>
+                            <div class="col-sm-6">
+                                <div class="payment-option position-relative p-3 rounded-3 border d-flex align-items-center justify-content-between w-100 {% if choice.data.selected or forloop.first and not form.metodo.value %}is-selected{% endif %}" 
+                                     data-metodo="{{ choice.data.value }}" 
+                                     role="button" 
+                                     tabindex="0"
+                                     aria-pressed="{% if choice.data.selected or forloop.first and not form.metodo.value %}true{% else %}false{% endif %}">
+                                    
+                                    <!-- Input oculto: no hay círculo visible, el clic lo maneja la tarjeta -->
+                                    <input class="d-none" type="radio" name="{{ form.metodo.html_name }}" id="metodo_{{ choice.data.value }}" value="{{ choice.data.value }}" {% if choice.data.selected or forloop.first and not form.metodo.value %}checked{% endif %} required>
+                                    
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="payment-icon-wrapper rounded-3 d-flex align-items-center justify-content-center">
+                                            {% if choice.data.value == 'nequi' %}
+                                                <i class="bi bi-phone-fill fs-4 text-nequi"></i>
+                                            {% elif choice.data.value == 'daviplata' %}
+                                                <i class="bi bi-wallet-fill fs-4 text-daviplata"></i>
+                                            {% elif choice.data.value == 'bancolombia' %}
+                                                <i class="bi bi-bank2 fs-4 text-bancolombia"></i>
+                                            {% elif choice.data.value == 'contraentrega' %}
+                                                <i class="bi bi-cash-stack fs-4 text-warning"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <div class="payment-option-title fw-bold text-white mb-0">{{ choice.choice_label }}</div>
+                                            <div class="payment-option-sub text-light-high small">
+                                                {% if choice.data.value == 'nequi' %}App Nequi
+                                                {% elif choice.data.value == 'daviplata' %}App DaviPlata
+                                                {% elif choice.data.value == 'bancolombia' %}Transferencia
+                                                {% elif choice.data.value == 'contraentrega' %}Efectivo en entrega
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Indicador de seleccionado (Checkmark sin círculo invasivo) -->
+                                    <div class="payment-check-mark">
+                                        <i class="bi bi-check2 fs-4 fw-bold"></i>
+                                    </div>
                                 </div>
                             </div>
                             {% endif %}
@@ -40,162 +81,438 @@
                         </div>
                         {{ form.metodo.errors }}
                     </div>
-                    <!-- Número de cuenta destino (solo lectura) -->
+
+                    <!-- Número de cuenta destino (solo lectura para transferencias) -->
                     <div class="mb-4 d-none" id="cuenta-section">
-                        <label class="form-label text-white fw-bold">
-                            <i class="bi bi-hash me-1"></i> Número de cuenta para depositar
-                        </label>
-                        <input type="text" class="form-control fw-bold" id="numero-cuenta" readonly>
-                        <div class="form-text mt-2">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Usa este número de cuenta para realizar tu transferencia.
+                        <div class="p-3 rounded-3 cuenta-card">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-label text-warning fw-bold mb-0">
+                                    <i class="bi bi-credit-card-2-front me-1"></i> Número de cuenta para transferir
+                                </label>
+                                <span class="badge bg-warning text-dark px-2 py-1 fw-bold" id="banco-nombre-badge">Nequi</span>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" class="form-control form-control-lg fw-bold font-monospace bg-dark text-warning border-secondary" id="numero-cuenta" readonly>
+                                <button class="btn btn-warning fw-semibold px-3" type="button" id="copy-cuenta-btn" title="Copiar al portapapeles">
+                                    <i class="bi bi-clipboard me-1" id="copy-icon"></i> <span id="copy-text">Copiar</span>
+                                </button>
+                            </div>
+                            <div class="cuenta-help-text mt-2 d-flex align-items-center gap-2">
+                                <i class="bi bi-info-circle-fill text-warning flex-shrink-0"></i>
+                                <span>Realiza la transferencia por el valor exacto a este número y adjunta la captura abajo.</span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Comprobante -->
                     <div class="mb-4" id="comprobante-section">
-                        <label class="form-label text-white fw-bold">
-                            <i class="bi bi-upload me-1"></i> Comprobante de pago
+                        <label class="form-label text-white fw-bold fs-6 d-flex align-items-center justify-content-between mb-2">
+                            <span><i class="bi bi-file-earmark-arrow-up text-warning me-2"></i> Comprobante de pago</span>
+                            <span class="badge fw-semibold" id="comprobante-badge-status">Obligatorio</span>
                         </label>
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-file-earmark-image"></i>
-                            </span>
-                            {{ form.comprobante }}
+
+                        <div class="comprobante-input-wrapper">
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-warning">
+                                    <i class="bi bi-file-earmark-image fs-5"></i>
+                                </span>
+                                {{ form.comprobante }}
+                            </div>
+
+                            <!-- Preview dinámico del archivo seleccionado -->
+                            <div id="file-chosen-info" class="file-chosen-box d-none mt-2 p-2 rounded-2 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 small">
+                                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                    <span>Archivo seleccionado: <strong id="file-name-text" class="text-white"></strong></span>
+                                </div>
+                                <button type="button" class="btn btn-sm text-light p-0 border-0" id="clear-file-btn" title="Quitar archivo">
+                                    <i class="bi bi-x-circle-fill text-white-50 fs-5"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-text">Obligatorio para Nequi, DaviPlata y Bancolombia. No aplica en contraentrega.</div>
+
+                        <!-- Nota explicativa legible para transferencias (alta visibilidad) -->
+                        <div id="transferencia-alert" class="info-banner-visible p-3 rounded-3 mt-3 d-flex align-items-start gap-2">
+                            <i class="bi bi-info-circle-fill text-info fs-5 mt-0 flex-shrink-0"></i>
+                            <div class="small lh-base info-text-visible">
+                                <strong class="d-block text-white mb-1">Comprobante obligatorio para transferencias</strong>
+                                Sube una foto o captura legible del comprobante emitido por tu banco (Nequi, DaviPlata o Bancolombia). Formatos válidos: <span class="badge bg-dark border border-secondary text-white">JPG</span> <span class="badge bg-dark border border-secondary text-white">PNG</span>
+                            </div>
+                        </div>
+
+                        <!-- Banner explicativo legible para contraentrega -->
+                        <div id="contraentrega-alert" class="contraentrega-banner-visible p-3 rounded-3 mt-3 d-none d-flex align-items-start gap-2">
+                            <i class="bi bi-cash-stack text-warning fs-4 mt-0 flex-shrink-0"></i>
+                            <div class="small lh-base">
+                                <strong class="d-block text-white mb-1">Modalidad seleccionada: Contraentrega</strong>
+                                <span class="contraentrega-text-visible">No requieres subir ningún comprobante ahora. Pagarás el total del pedido en efectivo o con el transportador en el momento de la entrega de tus materiales.</span>
+                            </div>
+                        </div>
+
                         {{ form.comprobante.errors }}
                     </div>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-gold">Enviar pago</button>
-                        <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light">Cancelar</a>
+
+                    <!-- Botones de acción -->
+                    <div class="d-flex flex-wrap gap-2 pt-3 border-top border-secondary border-opacity-25">
+                        <button type="submit" class="btn btn-gold px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" id="submit-pago-btn">
+                            <i class="bi bi-send-fill"></i>
+                            <span id="submit-btn-text">Enviar pago</span>
+                        </button>
+                        <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light px-4 py-2">
+                            Cancelar
+                        </a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
 <style>
-    /* Radio buttons de método de pago */
+    /* Estructura y contenedor */
+    .table-container {
+        border-radius: 1.25rem;
+        background-color: var(--item-bg, #1a2232);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Caja de total */
+    .payment-total-box {
+        background: rgba(255, 193, 7, 0.08);
+        border: 1px solid rgba(255, 193, 7, 0.25);
+    }
+    .payment-total-label {
+        color: #cbd5e1 !important; /* Texto claro y legible */
+        font-weight: 500;
+    }
+    .payment-total-amount {
+        color: #ffc107 !important;
+        letter-spacing: 0.5px;
+    }
+
+    /* Textos secundarios de alta visibilidad (adiós letras invisibles) */
+    .text-light-high {
+        color: #cbd5e1 !important;
+    }
+
+    /* Tarjetas de método de pago interactivas (sin círculos de radio) */
     .payment-option {
         cursor: pointer;
-        transition: all 0.2s ease;
-        color: var(--color-text) !important;
-        background-color: var(--item-bg) !important;
-        border-color: var(--color-border-strong) !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+        user-select: none;
+        min-height: 72px;
     }
-    .payment-option .form-check-label {
-        color: var(--color-text) !important;
+
+    .payment-icon-wrapper {
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.05);
+        transition: transform 0.2s ease;
     }
+
+    /* Colores temáticos */
+    .text-nequi { color: #ff007a !important; }
+    .text-daviplata { color: #ef4444 !important; }
+    .text-bancolombia { color: #38bdf8 !important; }
+
+    /* Hover en tarjeta */
     .payment-option:hover {
-        border-color: #ffc107 !important;
-        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.15);
+        border-color: rgba(255, 193, 7, 0.5) !important;
+        background-color: rgba(255, 255, 255, 0.06) !important;
         transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     }
+
+    /* Tarjeta seleccionada: Resaltado dorado nítido y checkmark activo */
     .payment-option.is-selected {
         border-color: #ffc107 !important;
-        background-color: rgba(255, 193, 7, 0.1) !important;
+        background-color: rgba(255, 193, 7, 0.12) !important;
+        box-shadow: 0 0 0 1px #ffc107, 0 8px 24px rgba(255, 193, 7, 0.15) !important;
     }
-    .payment-option .form-check-input {
-        margin-top: 0.3rem;
-        position: absolute;
-        opacity: 0;
+    .payment-option.is-selected .payment-icon-wrapper {
+        background: rgba(255, 193, 7, 0.15);
+        transform: scale(1.05);
     }
 
-    /* Botones grandes */
-    .btn-lg {
-        padding: 0.75rem 1.5rem;
-        font-size: 1.1rem;
+    /* Checkmark indicador (sin círculo) */
+    .payment-check-mark {
+        opacity: 0;
+        transform: scale(0.6);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #ffc107;
     }
-    .table-container {
-        border-radius: 1rem;
+    .payment-option.is-selected .payment-check-mark {
+        opacity: 1;
+        transform: scale(1);
     }
-    .input-group-text {
-        border-top-left-radius: 0.375rem;
-        border-bottom-left-radius: 0.375rem;
+
+    /* Cuenta para transferir */
+    .cuenta-card {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 193, 7, 0.35);
     }
+    .cuenta-help-text {
+        color: #cbd5e1 !important; /* Muy legible */
+        font-size: 0.875rem;
+    }
+
+    /* Subida de comprobante y mensajes claros */
     #comprobante-section .input-group-text {
-        background-color: var(--item-bg) !important;
-        border-color: var(--color-border) !important;
-        color: var(--color-text) !important;
+        background-color: rgba(15, 23, 42, 0.8) !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
     }
-    #comprobante-section.contraentrega-disabled {
-        opacity: 0.75;
-        border-radius: 0.75rem;
+    #comprobante-section input[type="file"] {
+        background-color: rgba(15, 23, 42, 0.5) !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+        color: #f1f5f9 !important;
     }
-    #comprobante-section.contraentrega-disabled .input-group,
-    #comprobante-section.contraentrega-disabled .input-group-text,
-    #comprobante-section.contraentrega-disabled input {
-        border-color: transparent !important;
-        box-shadow: none !important;
-        background-color: rgba(255,255,255,0.02) !important;
+
+    .file-chosen-box {
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.35);
+        color: #86efac;
+    }
+
+    /* Banners informativos con contraste óptimo */
+    .info-banner-visible {
+        background: rgba(14, 116, 144, 0.15);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+    .info-text-visible {
+        color: #bae6fd !important; /* Celeste claro, contraste 8:1 */
+    }
+
+    .contraentrega-banner-visible {
+        background: rgba(234, 179, 8, 0.12);
+        border: 1px solid rgba(234, 179, 8, 0.4);
+    }
+    .contraentrega-text-visible {
+        color: #fef08a !important; /* Amarillo claro, contraste 9:1 */
+    }
+
+    /* Estado cuando contraentrega está seleccionado */
+    #comprobante-section.contraentrega-disabled .comprobante-input-wrapper {
+        opacity: 0.4;
+        pointer-events: none;
     }
 </style>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    var paymentOptions = document.querySelectorAll('.payment-option');
-    paymentOptions.forEach(function(option) {
-        option.addEventListener('click', function() {
-            var radio = this.querySelector('input[type="radio"]');
-            if (radio && !radio.checked) {
-                radio.click();
+(function() {
+    function initPaymentOptions() {
+        var paymentOptions = document.querySelectorAll('.payment-option');
+        var metodoRadios = document.querySelectorAll('input[name="metodo"]');
+        var cuentaSection = document.getElementById('cuenta-section');
+        var numeroCuenta = document.getElementById('numero-cuenta');
+        var bancoNombreBadge = document.getElementById('banco-nombre-badge');
+        var comprobanteSection = document.getElementById('comprobante-section');
+        var comprobanteInput = document.getElementById('id_comprobante');
+        var comprobanteBadge = document.getElementById('comprobante-badge-status');
+        var transferenciaAlert = document.getElementById('transferencia-alert');
+        var contraentregaAlert = document.getElementById('contraentrega-alert');
+        var submitBtn = document.getElementById('submit-pago-btn');
+        var submitBtnText = document.getElementById('submit-btn-text');
+        var copyBtn = document.getElementById('copy-cuenta-btn');
+        var copyIcon = document.getElementById('copy-icon');
+        var copyText = document.getElementById('copy-text');
+        var fileChosenInfo = document.getElementById('file-chosen-info');
+        var fileNameText = document.getElementById('file-name-text');
+        var clearFileBtn = document.getElementById('clear-file-btn');
+
+        var cuentas = {
+            'nequi': '3001234567',
+            'daviplata': '3109876543',
+            'bancolombia': '1234567890'
+        };
+
+        var nombresMetodo = {
+            'nequi': 'Nequi',
+            'daviplata': 'DaviPlata',
+            'bancolombia': 'Bancolombia',
+            'contraentrega': 'Contraentrega'
+        };
+
+        function actualizarComprobantePorMetodo() {
+            var metodoSeleccionado = document.querySelector('input[name="metodo"]:checked');
+            var metodo = metodoSeleccionado ? metodoSeleccionado.value : '';
+            var esContraentrega = (metodo === 'contraentrega');
+
+            // Actualizar estilo visual de las opciones de pago
+            paymentOptions.forEach(function(option) {
+                var radio = option.querySelector('input[type="radio"]');
+                var isChecked = radio ? radio.checked : false;
+                option.classList.toggle('is-selected', isChecked);
+                option.setAttribute('aria-pressed', isChecked ? 'true' : 'false');
+            });
+
+            // Sección de número de cuenta para transferencias
+            if (cuentaSection && numeroCuenta) {
+                if (cuentas[metodo]) {
+                    numeroCuenta.value = cuentas[metodo];
+                    if (bancoNombreBadge) {
+                        bancoNombreBadge.textContent = nombresMetodo[metodo] || metodo.toUpperCase();
+                    }
+                    cuentaSection.classList.remove('d-none');
+                } else {
+                    cuentaSection.classList.add('d-none');
+                    numeroCuenta.value = '';
+                }
             }
-        });
-    });
 
-    var cuentas = {
-        'nequi': '3001234567',
-        'daviplata': '3109876543',
-        'bancolombia': '1234567890'
-    };
-    var metodoRadios = document.querySelectorAll('input[name="metodo"]');
-    var cuentaSection = document.getElementById('cuenta-section');
-    var numeroCuenta = document.getElementById('numero-cuenta');
-    var comprobanteSection = document.getElementById('comprobante-section');
-    var comprobanteInput = document.getElementById('id_comprobante');
+            // Sección de comprobante
+            if (comprobanteSection) {
+                comprobanteSection.classList.toggle('contraentrega-disabled', esContraentrega);
+            }
 
-    function actualizarOpcionSeleccionada() {
-        paymentOptions.forEach(function(option) {
-            var radio = option.querySelector('input[type="radio"]');
-            option.classList.toggle('is-selected', radio.checked);
-        });
-    }
+            if (comprobanteBadge) {
+                if (esContraentrega) {
+                    comprobanteBadge.textContent = 'No requerido';
+                    comprobanteBadge.className = 'badge bg-secondary-subtle text-warning border border-warning border-opacity-25 fw-semibold';
+                } else {
+                    comprobanteBadge.textContent = 'Obligatorio';
+                    comprobanteBadge.className = 'badge bg-danger-subtle text-danger border border-danger border-opacity-25 fw-semibold';
+                }
+            }
 
-    function actualizarComprobantePorMetodo() {
-        var metodoSeleccionado = document.querySelector('input[name="metodo"]:checked');
-        var metodo = metodoSeleccionado ? metodoSeleccionado.value : '';
-        var esContraentrega = metodo === 'contraentrega';
+            if (transferenciaAlert) {
+                transferenciaAlert.classList.toggle('d-none', esContraentrega);
+            }
+            if (contraentregaAlert) {
+                contraentregaAlert.classList.toggle('d-none', !esContraentrega);
+            }
 
-        actualizarOpcionSeleccionada();
+            if (comprobanteInput) {
+                comprobanteInput.disabled = esContraentrega;
+                comprobanteInput.required = !esContraentrega;
+                comprobanteInput.classList.remove('is-invalid', 'is-valid');
 
-        if (cuentas[metodo]) {
-            numeroCuenta.value = cuentas[metodo];
-            cuentaSection.classList.remove('d-none');
-        } else {
-            cuentaSection.classList.add('d-none');
-            numeroCuenta.value = '';
+                if (esContraentrega) {
+                    comprobanteInput.value = '';
+                    if (fileChosenInfo) fileChosenInfo.classList.add('d-none');
+                }
+            }
+
+            // Botón de envío
+            if (submitBtnText) {
+                if (esContraentrega) {
+                    submitBtnText.textContent = 'Confirmar pedido contraentrega';
+                } else {
+                    submitBtnText.textContent = 'Enviar comprobante de pago';
+                }
+            }
         }
 
-        if (comprobanteSection) {
-            comprobanteSection.classList.toggle('contraentrega-disabled', esContraentrega);
+        // Selección al hacer clic en la tarjeta (solo picarle y ya)
+        paymentOptions.forEach(function(card) {
+            function selectCard() {
+                var radio = card.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    radio.dispatchEvent(new Event('change', { bubbles: true }));
+                    actualizarComprobantePorMetodo();
+                }
+            }
+
+            card.onclick = function(e) {
+                selectCard();
+            };
+
+            card.onkeydown = function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectCard();
+                }
+            };
+        });
+
+        metodoRadios.forEach(function(radio) {
+            radio.onchange = actualizarComprobantePorMetodo;
+        });
+
+        // Botón copiar cuenta
+        if (copyBtn && numeroCuenta) {
+            copyBtn.onclick = function() {
+                var text = numeroCuenta.value;
+                if (!text) return;
+                
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        showCopySuccess();
+                    }).catch(function() {
+                        fallbackCopy(text);
+                    });
+                } else {
+                    fallbackCopy(text);
+                }
+            };
         }
 
+        function fallbackCopy(text) {
+            try {
+                numeroCuenta.select();
+                document.execCommand('copy');
+                showCopySuccess();
+            } catch (err) {
+                console.error('No se pudo copiar el texto', err);
+            }
+        }
+
+        function showCopySuccess() {
+            if (!copyIcon || !copyText) return;
+            var originalIcon = copyIcon.className;
+            var originalText = copyText.textContent;
+            copyIcon.className = 'bi bi-check-lg me-1 text-success';
+            copyText.textContent = '¡Copiado!';
+            setTimeout(function() {
+                copyIcon.className = originalIcon;
+                copyText.textContent = originalText;
+            }, 2000);
+        }
+
+        // Preview del nombre de archivo cargado
         if (comprobanteInput) {
-            comprobanteInput.disabled = esContraentrega;
-            comprobanteInput.required = !esContraentrega;
-            comprobanteInput.classList.remove('is-invalid', 'is-valid');
-
-            if (esContraentrega) {
-                comprobanteInput.value = '';
-            }
+            comprobanteInput.onchange = function() {
+                if (this.files && this.files.length > 0) {
+                    var file = this.files[0];
+                    if (fileNameText) {
+                        fileNameText.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+                    }
+                    if (fileChosenInfo) {
+                        fileChosenInfo.classList.remove('d-none');
+                    }
+                } else {
+                    if (fileChosenInfo) {
+                        fileChosenInfo.classList.add('d-none');
+                    }
+                }
+            };
         }
+
+        if (clearFileBtn && comprobanteInput) {
+            clearFileBtn.onclick = function() {
+                comprobanteInput.value = '';
+                if (fileChosenInfo) {
+                    fileChosenInfo.classList.add('d-none');
+                }
+            };
+        }
+
+        actualizarComprobantePorMetodo();
     }
 
-    metodoRadios.forEach(function(radio) {
-        radio.addEventListener('change', actualizarComprobantePorMetodo);
-    });
+    if (window.AppPageLifecycle && typeof window.AppPageLifecycle.onPageLoad === 'function') {
+        window.AppPageLifecycle.onPageLoad(initPaymentOptions);
+    }
+    document.addEventListener('app:page-loaded', initPaymentOptions);
 
-    actualizarComprobantePorMetodo();
-});
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPaymentOptions);
+    } else {
+        initPaymentOptions();
+    }
+})();
 </script>
 {% endblock %}

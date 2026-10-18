@@ -3,233 +3,830 @@
 {% load currency_tags %}
 {% load static %}
 
-{% block title %}Detalle del Pedido - Constru-trans{% endblock %}
+{% block title %}Detalle del Pedido #CT-{{ orden.codigo_pedido }} - Constru-trans{% endblock %}
 
-{% block header_title %}Información del Pedido #CT-{{ orden.id }}{% endblock %}
+{% block header_title %}Información del Pedido #CT-{{ orden.codigo_pedido }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pedidos/detalle.css' %}?v=1.2">
+<link rel="stylesheet" href="{% static 'css/pedidos/detalle.css' %}?v=2.0">
 {% endblock %}
 
 {% block content %}
+<style>
+/* Estilos embebidos para garantizar renderizado inmediato bajo AJAX navigation */
+.order-detail-card {
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.25rem;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+}
+
+.order-section-card {
+    background: rgba(20, 29, 51, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.order-section-card:hover {
+    background: rgba(26, 37, 66, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.badge-live-pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    position: relative;
+    display: inline-block;
+}
+
+.pulse-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: rgba(16, 185, 129, 0.4);
+    animation: pulseGlow 1.8s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+.badge-order-status {
+    padding: 0.45rem 1.15rem;
+    border-radius: 2rem;
+    font-size: 0.825rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.badge-order-status.pendiente {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-order-status.autorizado_despacho {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.badge-order-status.vehiculo_asignado {
+    background: rgba(129, 140, 248, 0.15);
+    color: #a5b4fc;
+    border: 1px solid rgba(129, 140, 248, 0.3);
+}
+
+.badge-order-status.en_ruta {
+    background: rgba(249, 115, 22, 0.15);
+    color: #fb923c;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.badge-order-status.entregado {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-order-status.cancelado {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Stepper horizontal */
+.tracking-hero-card {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.8) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    position: relative;
+}
+
+.tracking-hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #10b981, #f59e0b, #38bdf8, #10b981);
+    background-size: 200% 100%;
+    animation: gradientShift 6s linear infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+.stepper-timeline {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 2rem 0 0.5rem;
+}
+
+.stepper-track-bg {
+    position: absolute;
+    top: 26px;
+    left: 10%;
+    right: 10%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    z-index: 1;
+}
+
+.stepper-track-fill {
+    position: absolute;
+    top: 26px;
+    left: 10%;
+    height: 4px;
+    background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #38bdf8 100%);
+    border-radius: 2px;
+    z-index: 2;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+}
+
+.stepper-node {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    flex: 1;
+    padding: 0 0.5rem;
+}
+
+.stepper-node-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    margin: 0 auto 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    background: #0f172a;
+    border: 2px solid #334155;
+    color: #64748b;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.stepper-node.completed .stepper-node-circle {
+    background: #10b981;
+    border-color: #34d399;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+    transform: translateY(-2px);
+}
+
+.stepper-node.active .stepper-node-circle {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border-color: #fbbf24;
+    color: #ffffff;
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.6);
+    transform: translateY(-3px) scale(1.08);
+    animation: activeGlow 2s infinite alternate;
+}
+
+@keyframes activeGlow {
+    from { box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+    to { box-shadow: 0 0 28px rgba(245, 158, 11, 0.7); }
+}
+
+.stepper-node.danger .stepper-node-circle {
+    background: #ef4444;
+    border-color: #f87171;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+}
+
+.stepper-node-title {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: #f1f5f9;
+    margin-bottom: 0.25rem;
+}
+
+.stepper-node-badge {
+    display: inline-block;
+    font-size: 0.725rem;
+    font-weight: 600;
+    padding: 0.15rem 0.6rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    line-height: 1.3;
+}
+
+.stepper-node.completed .stepper-node-badge {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+.stepper-node.active .stepper-node-badge {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
+
+.stepper-node.danger .stepper-node-badge {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+/* Route timeline */
+.route-path-box {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.route-path-box::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 14px;
+    bottom: 14px;
+    width: 2px;
+    background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0, rgba(255, 255, 255, 0.3) 4px, transparent 4px, transparent 8px);
+}
+
+.route-point {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+
+.route-point:last-child {
+    margin-bottom: 0;
+}
+
+.route-point-dot {
+    position: absolute;
+    left: -2rem;
+    top: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+
+.route-point-dot.origin {
+    background: rgba(56, 189, 248, 0.2);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.5);
+}
+
+.route-point-dot.destination {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.5);
+}
+
+.plate-badge {
+    background: #0f172a;
+    border: 2px solid #fbbf24;
+    color: #f8fafc;
+    font-family: monospace, sans-serif;
+    font-weight: 800;
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.35rem;
+    letter-spacing: 0.05em;
+    font-size: 0.85rem;
+    display: inline-block;
+}
+
+.total-highlight-card {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(15, 23, 42, 0.5) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+}
+
+.total-amount-display {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #fbbf24;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+}
+
+@media (max-width: 768px) {
+    .stepper-timeline {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .stepper-track-bg,
+    .stepper-track-fill {
+        display: none;
+    }
+    .stepper-node {
+        display: flex;
+        align-items: center;
+        text-align: left;
+        gap: 1.25rem;
+        padding: 0;
+    }
+    .stepper-node-circle {
+        margin: 0;
+        flex-shrink: 0;
+    }
+}
+</style>
 
 <div class="row justify-content-center">
     <div class="col-lg-12">
-        <div class="table-container p-3 p-md-4">
-            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-secondary">
+        <div class="order-detail-card p-3 p-md-4 mb-4">
+            
+            <!-- HEADER DE LA ORDEN -->
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25 flex-wrap gap-3">
                 <div>
-                    <h3 class="fw-800 text-white mb-1">Orden de Entrega</h3>
-                    <p class="text-muted small mb-0">Referencia: #CT-{{ orden.id }}</p>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h3 class="fw-800 text-white mb-0">Orden de Pedido #CT-{{ orden.codigo_pedido }}</h3>
+                        <span class="badge-live-pulse" title="Actualización automática de estado">
+                            <span class="pulse-dot"></span>
+                            <span>En vivo</span>
+                        </span>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-calendar-event me-1"></i>Registrado el {{ orden.fecha_solicitud|date:"d M, Y H:i" }} &bull; Destino: <span class="text-white fw-600">{{ orden.direccion_destino }}</span>
+                    </p>
                 </div>
-                <div class="text-end">
-                    {% if orden.estado == "pendiente" %}
-                    <span class="badge-tipo badge-tipo-pendiente">Pendiente</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span id="live-order-badge" class="badge-order-status {{ orden.estado }}">
+                        <i class="bi {% if orden.estado == 'entregado' %}bi-check-circle-fill{% elif orden.estado == 'cancelado' %}bi-x-circle-fill{% elif orden.estado == 'en_ruta' %}bi-truck{% elif orden.estado == 'vehiculo_asignado' %}bi-pin-map-fill{% elif orden.estado == 'autorizado_despacho' %}bi-box-seam-fill{% else %}bi-hourglass-split{% endif %} me-1"></i>
+                        <span id="live-order-text">{{ orden.get_estado_display }}</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- HERO STEPPER: PROGRESO DEL PEDIDO EN TIEMPO REAL -->
+            <div class="tracking-hero-card" id="tracking-card">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <h6 class="fw-800 text-accent text-uppercase small mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-diagram-3-fill text-gold"></i>
+                        <span>Progreso del Pedido</span>
+                    </h6>
+                    <span id="live-sync-indicator" class="text-muted x-small d-flex align-items-center gap-1">
+                        <i class="bi bi-arrow-repeat text-success"></i> Sincronizado en tiempo real
+                    </span>
+                </div>
+
+                <div class="stepper-timeline" id="stepper-timeline">
+                    <!-- Barra de progreso -->
+                    <div class="stepper-track-bg"></div>
+                    <div class="stepper-track-fill" id="stepper-progress-fill" style="width: {% if orden.estado == 'entregado' %}80%{% elif orden.estado == 'en_ruta' %}55%{% elif orden.estado == 'vehiculo_asignado' or orden.estado == 'autorizado_despacho' %}40%{% elif pago and pago.estado == 'aprobado' %}25%{% elif orden.estado == 'cancelado' %}15%{% else %}10%{% endif %};"></div>
+
+                    <!-- Etapa 1: Registrado -->
+                    <div class="stepper-node completed" id="step-node-1">
+                        <div class="stepper-node-circle">
+                            <i class="bi bi-file-earmark-check"></i>
+                        </div>
+                        <div class="stepper-node-title">1. Registrado</div>
+                        <div class="stepper-node-badge">{{ orden.fecha_solicitud|date:"d/m/Y H:i" }}</div>
+                    </div>
+
+                    <!-- Etapa 2: Pago -->
+                    {% if orden.estado == "cancelado" and not pago.estado == "aprobado" %}
+                    <div class="stepper-node danger" id="step-node-2">
+                        <div class="stepper-node-circle"><i class="bi bi-x-lg"></i></div>
+                        <div class="stepper-node-title">2. Pago</div>
+                        <div class="stepper-node-badge">Cancelado</div>
+                    </div>
+                    {% elif pago and pago.estado == "aprobado" or orden.estado in "autorizado_despacho,vehiculo_asignado,en_ruta,entregado" %}
+                    <div class="stepper-node completed" id="step-node-2">
+                        <div class="stepper-node-circle"><i class="bi bi-check-circle-fill"></i></div>
+                        <div class="stepper-node-title">2. Pago Aprobado</div>
+                        <div class="stepper-node-badge">{% if pago.fecha_revision %}{{ pago.fecha_revision|date:"d/m/Y H:i" }}{% else %}Verificado{% endif %}</div>
+                    </div>
+                    {% elif pago and pago.estado == "rechazado" %}
+                    <div class="stepper-node danger" id="step-node-2">
+                        <div class="stepper-node-circle"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                        <div class="stepper-node-title">2. Pago Rechazado</div>
+                        <div class="stepper-node-badge">Revisión requerida</div>
+                    </div>
+                    {% elif pago and pago.estado == "pendiente" %}
+                    <div class="stepper-node active" id="step-node-2">
+                        <div class="stepper-node-circle"><i class="bi bi-hourglass-split"></i></div>
+                        <div class="stepper-node-title">2. En Revisión</div>
+                        <div class="stepper-node-badge">Verificando comprobante</div>
+                    </div>
+                    {% else %}
+                    <div class="stepper-node" id="step-node-2">
+                        <div class="stepper-node-circle"><i class="bi bi-wallet2"></i></div>
+                        <div class="stepper-node-title">2. Pago</div>
+                        <div class="stepper-node-badge">Pendiente de pago</div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Etapa 3: En Ruta -->
+                    {% if orden.estado == "entregado" %}
+                    <div class="stepper-node completed" id="step-node-3">
+                        <div class="stepper-node-circle"><i class="bi bi-check-circle-fill"></i></div>
+                        <div class="stepper-node-title">3. En Ruta</div>
+                        <div class="stepper-node-badge">{% if orden.fecha_toma_entrega %}{{ orden.fecha_toma_entrega|date:"d/m/Y H:i" }}{% else %}Completado{% endif %}</div>
+                    </div>
                     {% elif orden.estado == "en_ruta" %}
-                    <span class="badge-tipo badge-tipo-en-ruta">En ruta</span>
-                    {% elif orden.estado == "entregado" %}
-                    <span class="badge-tipo badge-tipo-entregado">Entregado</span>
+                    <div class="stepper-node active" id="step-node-3">
+                        <div class="stepper-node-circle"><i class="bi bi-truck"></i></div>
+                        <div class="stepper-node-title">3. En Ruta</div>
+                        <div class="stepper-node-badge">En despacho</div>
+                    </div>
+                    {% elif orden.estado == "vehiculo_asignado" %}
+                    <div class="stepper-node active" id="step-node-3">
+                        <div class="stepper-node-circle"><i class="bi bi-pin-map-fill"></i></div>
+                        <div class="stepper-node-title">3. Vehículo Asignado</div>
+                        <div class="stepper-node-badge">Listo para ruta</div>
+                    </div>
+                    {% elif orden.estado == "autorizado_despacho" %}
+                    <div class="stepper-node active" id="step-node-3">
+                        <div class="stepper-node-circle"><i class="bi bi-box-seam"></i></div>
+                        <div class="stepper-node-title">3. Autorizado Despacho</div>
+                        <div class="stepper-node-badge">Asignando transporte</div>
+                    </div>
+                    {% elif orden.estado == "cancelado" %}
+                    <div class="stepper-node" id="step-node-3">
+                        <div class="stepper-node-circle"><i class="bi bi-truck"></i></div>
+                        <div class="stepper-node-title">3. En Ruta</div>
+                        <div class="stepper-node-badge">—</div>
+                    </div>
+                    {% else %}
+                    <div class="stepper-node" id="step-node-3">
+                        <div class="stepper-node-circle"><i class="bi bi-truck"></i></div>
+                        <div class="stepper-node-title">3. En Ruta</div>
+                        <div class="stepper-node-badge">Pendiente</div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Etapa 4: Entregado -->
+                    {% if orden.estado == "entregado" %}
+                    <div class="stepper-node completed" id="step-node-4">
+                        <div class="stepper-node-circle"><i class="bi bi-house-check-fill"></i></div>
+                        <div class="stepper-node-title">4. Entregado</div>
+                        <div class="stepper-node-badge">{% if orden.fecha_entrega_real %}{{ orden.fecha_entrega_real|date:"d/m/Y H:i" }}{% else %}Completado{% endif %}</div>
+                    </div>
+                    {% elif orden.estado == "cancelado" %}
+                    <div class="stepper-node danger" id="step-node-4">
+                        <div class="stepper-node-circle"><i class="bi bi-x-circle-fill"></i></div>
+                        <div class="stepper-node-title">4. Estado Final</div>
+                        <div class="stepper-node-badge">Cancelado</div>
+                    </div>
+                    {% else %}
+                    <div class="stepper-node" id="step-node-4">
+                        <div class="stepper-node-circle"><i class="bi bi-house-door"></i></div>
+                        <div class="stepper-node-title">4. Entregado</div>
+                        <div class="stepper-node-badge">Pendiente</div>
+                    </div>
                     {% endif %}
                 </div>
             </div>
 
+            <!-- CONTENIDO EN DOS COLUMNAS -->
             <div class="row g-4">
-                <!-- Información -->
-                <div class="col-md-6">
-                    <div class="mb-4">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-2ecb5783f5">Datos del Cliente</h6>
-                        <div class="d-flex align-items-center p-2 rounded-4 u-inline-a07baf5f39">
-                            <div class="bg-accent rounded-circle p-2 me-3 u-inline-c5c190eb0b">
-                                <i class="bi bi-person-fill text-dark fs-5"></i>
+                
+                <!-- COLUMNA IZQUIERDA: LOGÍSTICA & TRANSPORTE -->
+                <div class="col-lg-6">
+                    
+                    <!-- Tarjeta: Datos del Cliente -->
+                    <div class="order-section-card">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                            <i class="bi bi-person-circle me-2"></i>Datos del Cliente
+                        </h6>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="driver-avatar" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+                                <i class="bi bi-person-fill"></i>
                             </div>
                             <div>
-                                <h6 class="fw-700 text-white mb-0">{{ orden.cliente.usuario.nombres }} {{ orden.cliente.usuario.apellidos }}</h6>
-                                <p class="text-muted small mb-0">{{ orden.cliente.usuario.user.email }}</p>
+                                <h6 class="fw-700 text-white mb-0">
+                                    {{ orden.cliente.usuario.nombres|default:orden.usuario.nombres }} {{ orden.cliente.usuario.apellidos|default:orden.usuario.apellidos }}
+                                </h6>
+                                <p class="text-muted small mb-0">{{ orden.cliente.usuario.email|default:orden.usuario.email }}</p>
+                                {% if orden.usuario.telefono %}
+                                <p class="text-accent x-small mb-0"><i class="bi bi-telephone me-1"></i>{{ orden.usuario.telefono }}</p>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-2ecb5783f5">Logística de Entrega</h6>
-                        <div class="space-y-3">
-                            <div class="d-flex gap-2">
-                                <div class="text-accent fs-5"><i class="bi bi-geo-alt"></i></div>
-                                <div>
-                                    <p class="text-muted small mb-0">Dirección de Origen</p>
-                                    <p class="text-white fw-600 mb-0 small">{{ orden.direccion_origen }}</p>
+                    <!-- Tarjeta: Trayecto y Logística de Entrega -->
+                    <div class="order-section-card">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                            <i class="bi bi-geo-alt-fill me-2"></i>Trayecto de Entrega
+                        </h6>
+                        <div class="route-path-box">
+                            <div class="route-point">
+                                <div class="route-point-dot origin"><i class="bi bi-building"></i></div>
+                                <p class="text-muted small mb-0">Punto de Origen</p>
+                                <p class="text-white fw-600 mb-0 small">{{ orden.direccion_origen|default:"Bodega Central" }}</p>
+                            </div>
+                            <div class="route-point">
+                                <div class="route-point-dot destination"><i class="bi bi-geo-alt-fill"></i></div>
+                                <p class="text-muted small mb-0">Destino de Entrega</p>
+                                <p class="text-white fw-700 mb-0 small">{{ orden.direccion_destino }}</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-top border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
+                            <span class="text-muted small"><i class="bi bi-calendar-check me-1"></i>Fecha Programada:</span>
+                            <span class="text-white fw-700 small">
+                                {% if orden.fecha_entrega_programada %}
+                                    {{ orden.fecha_entrega_programada|date:"d M, Y H:i" }}
+                                {% else %}
+                                    Por programar
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta: Asignación de Transporte -->
+                    <div class="order-section-card" id="transport-assignment-card">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                            <i class="bi bi-truck-front-fill me-2"></i>Asignación de Transporte
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="transport-card h-100">
+                                    <p class="text-muted small mb-2"><i class="bi bi-person-badge text-gold me-1"></i>Conductor Asignado</p>
+                                    <div id="conductor-info-block">
+                                        {% if conductor_usuario %}
+                                            <p class="text-white fw-700 mb-1">{{ conductor_usuario.nombres }} {{ conductor_usuario.apellidos }}</p>
+                                            {% if conductor_usuario.telefono %}
+                                            <a href="tel:{{ conductor_usuario.telefono }}" class="text-accent x-small text-decoration-none">
+                                                <i class="bi bi-telephone-fill me-1"></i>{{ conductor_usuario.telefono }}
+                                            </a>
+                                            {% endif %}
+                                        {% else %}
+                                            <p class="text-muted small mb-0 fst-italic"><i class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
-                            <div class="d-flex gap-2">
-                                <div class="text-accent fs-5"><i class="bi bi-geo-fill"></i></div>
-                                <div>
-                                    <p class="text-muted small mb-0">Dirección de Destino</p>
-                                    <p class="text-white fw-600 mb-0 small">{{ orden.direccion_destino }}</p>
-                                </div>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <div class="text-accent fs-5"><i class="bi bi-calendar-check"></i></div>
-                                <div>
-                                    <p class="text-muted small mb-0">Fecha Programada</p>
-                                    <p class="text-white fw-600 mb-0 small">{{ orden.fecha|date:"d M, Y" }} - {{ orden.fecha_entrega_programada|date:"H:i"|default:"Pendiente" }}</p>
+                            <div class="col-sm-6">
+                                <div class="transport-card h-100">
+                                    <p class="text-muted small mb-2"><i class="bi bi-truck text-info me-1"></i>Vehículo Asignado</p>
+                                    <div id="vehiculo-info-block">
+                                        {% if vehiculo %}
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <span class="plate-badge">{{ vehiculo.placa }}</span>
+                                                <span class="text-white fw-600 small">{{ vehiculo.marca }} {{ vehiculo.modelo }}</span>
+                                            </div>
+                                            <p class="text-muted x-small mb-0">{{ vehiculo.tipo_vehiculo }} &bull; Capacidad: {{ vehiculo.capacidad_carga }} t</p>
+                                        {% else %}
+                                            <p class="text-muted small mb-0 fst-italic"><i class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
 
-                <!-- Materiales y Pago -->
-                <div class="col-md-6">
-                    <div class="mb-4">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-2ecb5783f5">Resumen de Materiales</h6>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle no-datatable mb-0">
+                <!-- COLUMNA DERECHA: MATERIALES, PAGO & GESTIÓN -->
+                <div class="col-lg-6">
+                    
+                    <!-- Tarjeta: Resumen de Materiales -->
+                    <div class="order-section-card">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                            <i class="bi bi-box-seam-fill me-2"></i>Resumen de Materiales Solicitados
+                        </h6>
+                        <div class="table-responsive rounded-3 border border-secondary border-opacity-25 mb-3">
+                            <table class="table materials-table align-middle text-white mb-0 no-datatable">
                                 <thead>
-                                    <tr class="text-muted small border-bottom border-secondary">
-                                        <th class="ps-0">Material</th>
+                                    <tr>
+                                        <th>Material / Producto</th>
                                         <th class="text-center">Cant.</th>
-                                        <th class="text-end pe-0">Subtotal</th>
+                                        <th class="text-end">Precio Unit.</th>
+                                        <th class="text-end">Subtotal</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for detalle in orden.detalles.all %}
-                                    <tr class="border-bottom border-white-5">
-                                        <td class="ps-0 text-white fw-600">
-                                            {{ detalle.material.nombre }}
-                                            <div class="text-muted x-small text-uppercase mt-1">{{ detalle.material.tipo }}</div>
+                                    {% for item in orden.detalles.all %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-700 text-white">{{ item.material.nombre|default:"Material no disponible" }}</div>
+                                            {% if item.material.unidad_medida %}
+                                            <span class="badge bg-secondary bg-opacity-25 text-muted x-small">{{ item.material.unidad_medida.nombre }} ({{ item.material.unidad_medida.abreviatura }})</span>
+                                            {% endif %}
                                         </td>
-                                        <td class="text-center text-muted fw-700">{{ detalle.cantidad }}</td>
-                                        <td class="text-end pe-0 text-accent fw-800">{{ detalle.subtotal|currency }}</td>
+                                        <td class="text-center fw-600">{{ item.cantidad }}</td>
+                                        <td class="text-end text-muted small">{{ item.precio_unitario|currency }}</td>
+                                        <td class="text-end fw-700 text-accent">{{ item.subtotal|currency }}</td>
                                     </tr>
                                     {% empty %}
-                                        {% if orden.material %}
-                                        <tr class="border-bottom border-white-5">
-                                            <td class="ps-0 text-white fw-600">{{ orden.material.nombre }} (Unificado)</td>
-                                            <td class="text-center text-muted fw-700">{{ orden.cantidad }}</td>
-                                            <td class="text-end pe-0 text-accent fw-800">{{ orden.precio|currency }}</td>
-                                        </tr>
-                                        {% else %}
-                                        <tr>
-                                            <td colspan="3" class="text-center py-5 text-muted">
-                                                <i class="bi bi-cart-x fs-2 d-block mb-2 opacity-25"></i>
-                                                No hay detalles registrados.
-                                            </td>
-                                        </tr>
-                                        {% endif %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-3">No hay materiales registrados en esta orden.</td>
+                                    </tr>
                                     {% endfor %}
                                 </tbody>
-                                <tfoot class="border-top-0 u-inline-762163235e">
-                                    <tr class="u-inline-762163235e">
-                                        <td colspan="2" class="ps-0 pt-4 fw-800 text-uppercase u-inline-bfe2d8575b">Total de la Orden</td>
-                                        <td class="pe-0 pt-4 text-end u-inline-d3a4ab8539">
-                                            <h2 class="fw-900 text-white mb-0 u-inline-f5c79ab02d">{{ orden.precio|currency }}</h2>
-                                        </td>
-                                    </tr>
-                                </tfoot>
                             </table>
+                        </div>
+
+                        <!-- TOTAL DESTACADO -->
+                        <div class="total-highlight-card d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-muted small text-uppercase fw-700 d-block">Total de la Orden</span>
+                                <span class="text-white-50 x-small">Precios validados en sistema</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="total-amount-display">{{ orden.total|currency }}</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Sección para Modificar/Cancelar -->
+                    <!-- Tarjeta: Información del Pago -->
+                    <div class="order-section-card" id="payment-status-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-800 text-accent text-uppercase small mb-0">
+                                <i class="bi bi-credit-card-2-front-fill me-2"></i>Estado del Pago
+                            </h6>
+                            {% if pago %}
+                                {% if pago.estado == 'aprobado' %}
+                                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-2 py-1 small fw-bold">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Aprobado
+                                </span>
+                                {% elif pago.estado == 'rechazado' %}
+                                <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25 px-2 py-1 small fw-bold">
+                                    <i class="bi bi-x-circle-fill me-1"></i>Rechazado
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 px-2 py-1 small fw-bold">
+                                    <i class="bi bi-hourglass-split me-1"></i>En Revisión
+                                </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary bg-opacity-25 text-muted border border-secondary border-opacity-25 px-2 py-1 small">
+                                    Sin Registrar
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if pago %}
+                            <div class="row g-2 mb-2 small">
+                                <div class="col-6">
+                                    <span class="text-muted d-block x-small">Método de Pago:</span>
+                                    <span class="text-white fw-600">{{ pago.get_metodo_display|default:pago.metodo }}</span>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <span class="text-muted d-block x-small">Monto Registrado:</span>
+                                    <span class="text-accent fw-700">{{ pago.monto|currency }}</span>
+                                </div>
+                            </div>
+                            {% if pago.estado == 'rechazado' and pago.observaciones %}
+                            <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-white p-2 rounded-3 small mb-2">
+                                <strong class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Motivo del Rechazo:</strong>
+                                <p class="mb-0 mt-1 small">{{ pago.observaciones }}</p>
+                            </div>
+                            {% endif %}
+
+                            <div class="d-flex gap-2 mt-3">
+                                <a href="{% url 'pagos:detalle_pago' pago.pk %}" class="btn btn-sm btn-outline-info rounded-pill px-3 flex-grow-1">
+                                    <i class="bi bi-receipt me-1"></i> Ver Detalle de Pago
+                                </a>
+                                {% if pago.comprobante %}
+                                <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                    <i class="bi bi-file-earmark-image me-1"></i> Comprobante
+                                </a>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted small mb-3">Aún no se ha cargado ningún comprobante para este pedido.</p>
+                            {% if orden.estado == 'pendiente' %}
+                            <a href="{% url 'pagos:registrar_pago_pedido' orden.codigo_pedido %}" class="btn btn-gold btn-sm w-100 rounded-pill py-2 fw-700">
+                                <i class="bi bi-wallet2 me-1"></i> Registrar Pago Ahora
+                            </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <!-- GESTIÓN DEL PEDIDO Y ACCIONES -->
                     {% if orden.estado == "pendiente" %}
                         {% if user.usuario.rol == "admin" or user.usuario.rol == "cliente" %}
-                        <div class="p-3 rounded-4 mb-3 u-inline-a07baf5f39">
-                            <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-271fec847f">Gestión del Pedido</h6>
-                            <div class="d-grid gap-2">
+                        <div class="order-section-card">
+                            <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                                <i class="bi bi-sliders me-2"></i>Gestión del Pedido
+                            </h6>
+                            <div class="d-flex flex-column gap-2">
                                 {% if user.usuario.rol == "admin" %}
-                                    <a href="{% url 'pedidos:crear_entrega' orden.id %}" class="btn btn-gold rounded-pill py-2 fw-800 shadow-sm mb-1 small">
+                                    <a href="{% url 'pedidos:crear_entrega' orden.codigo_pedido %}" class="btn btn-gold rounded-pill py-2 fw-800 shadow-sm small">
                                         <i class="bi bi-person-plus-fill me-1"></i> Asignar Conductor
                                     </a>
                                 {% endif %}
-                                <a href="{% url 'clientes:editar_pedido' orden.id %}" class="btn btn-outline-warning rounded-pill py-2 fw-700 small" aria-label="Editar" data-tooltip="Editar" title="Editar">
-                                    <i class="bi bi-pencil-square me-1"></i> Modificar
+                                <a href="{% url 'clientes:editar_pedido' orden.codigo_pedido %}" class="btn btn-outline-warning rounded-pill py-2 fw-700 small">
+                                    <i class="bi bi-pencil-square me-1"></i> Modificar Pedido
                                 </a>
-                                <form action="{% url 'clientes:cancelar_pedido' orden.id %}" method="post"
-                                    onsubmit="return confirm('¿Estás seguro de cancelar este pedido?')">
+                                <form action="{% url 'clientes:cancelar_pedido' orden.codigo_pedido %}" method="post" class="d-inline m-0">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-danger rounded-pill py-2 fw-700 small">
-                                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                                    <button type="button" class="btn btn-outline-danger rounded-pill py-2 fw-700 w-100 small confirm-delete-btn"
+                                        data-title="¿Cancelar Pedido?"
+                                        data-text="¿Estás seguro de que deseas cancelar la orden #CT-{{ orden.codigo_pedido }}? Se devolverán los materiales al stock disponible.">
+                                        <i class="bi bi-x-circle me-1"></i> Cancelar Pedido
                                     </button>
                                 </form>
                             </div>
                         </div>
                         {% endif %}
                     {% elif orden.estado == "en_ruta" and user.usuario.rol == "admin" %}
-                    <div class="p-3 rounded-4 mb-3 u-inline-a07baf5f39">
-                            <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-271fec847f">Gestión del Pedido (Admin)</h6>
-                            <div class="d-grid gap-2">
-                                <a href="{% url 'pedidos:crear_entrega' orden.id %}" class="btn btn-outline-info rounded-pill py-2 fw-800 shadow-sm mb-1 small">
-                                    <i class="bi bi-person-gear me-1"></i> Reasignar Conductor
-                                </a>
-                            </div>
+                        <div class="order-section-card">
+                            <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                                <i class="bi bi-truck-flatbed me-2"></i>Gestión de Ruta (Admin)
+                            </h6>
+                            <a href="{% url 'pedidos:crear_entrega' orden.codigo_pedido %}" class="btn btn-outline-info rounded-pill py-2 fw-800 w-100 small">
+                                <i class="bi bi-person-gear me-1"></i> Reasignar Conductor / Vehículo
+                            </a>
                         </div>
                     {% endif %}
 
-                    <!-- Cambio de Estado Manual -->
+                    <!-- CONTROL MAESTRO ADMIN -->
                     {% if user.usuario.rol == "admin" %}
-                    <div class="p-3 rounded-4 mb-3 u-inline-a07baf5f39">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-2 u-inline-271fec847f">Control Maestro (Admin)</h6>
+                    <div class="order-section-card">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                            <i class="bi bi-shield-lock-fill me-2"></i>Control Maestro de Estado (Admin)
+                        </h6>
                         <form method="POST">
                             {% csrf_token %}
-                            <div class="mb-2">
-                                <div class="order-master-select-wrap">
-                                    <select id="order-master-state" name="estado" class="form-select rounded-pill border-0 px-3 small u-inline-a3e311813a">
-                                        <option value="pendiente" {% if orden.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                                        <option value="en_ruta" {% if orden.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
-                                        <option value="entregado" {% if orden.estado == 'entregado' %}selected{% endif %}>Entregado</option>
-                                        <option value="cancelado" {% if orden.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
-                                    </select>
-                                    <span id="order-master-state-label" class="order-master-select-label" aria-hidden="true">{{ orden.get_estado_display }}</span>
-                                </div>
+                            <div class="mb-3">
+                                <select id="order-master-state" name="estado" class="form-select bg-surface text-white rounded-pill px-3 small border-secondary">
+                                    <option value="pendiente" {% if orden.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                    <option value="autorizado_despacho" {% if orden.estado == 'autorizado_despacho' %}selected{% endif %}>Autorizado Despacho</option>
+                                    <option value="vehiculo_asignado" {% if orden.estado == 'vehiculo_asignado' %}selected{% endif %}>Vehículo Asignado</option>
+                                    <option value="en_ruta" {% if orden.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
+                                    <option value="entregado" {% if orden.estado == 'entregado' %}selected{% endif %}>Entregado</option>
+                                    <option value="cancelado" {% if orden.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                                </select>
                             </div>
-                            <button type="submit" class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm small" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
-                                <i class="bi bi-save me-1"></i> Aplicar
+                            <button type="submit" class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm small">
+                                <i class="bi bi-save me-1"></i> Aplicar Cambio de Estado
                             </button>
                         </form>
                     </div>
                     {% endif %}
 
-                    <!-- Sección para el Conductor -->
+                    <!-- PANEL CONDUCTOR -->
                     {% if puede_confirmar_entrega %}
-                    <div class="p-4 rounded-4 u-inline-a07baf5f39">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-3 u-inline-2ecb5783f5">Panel del Conductor</h6>
-                        <p class="text-muted small mb-4">Confirma la entrega cuando hayas llegado al destino. Puedes añadir una observación opcional.</p>
-                        <form method="POST" class="d-grid gap-3">
+                    <div class="order-section-card">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                            <i class="bi bi-check2-circle me-2"></i>Confirmación del Conductor
+                        </h6>
+                        <form method="POST" class="d-grid gap-2">
                             {% csrf_token %}
-                            <div>
-                                <label for="observacion-entrega" class="form-label text-white fw-semibold">Observación (opcional)</label>
-                                <textarea id="observacion-entrega" name="observacion" class="form-control" rows="3" maxlength="2000" placeholder="Ej.: Entregado a la persona encargada, sin novedades."></textarea>
+                            <div class="mb-2">
+                                <label for="observacion-entrega" class="form-label text-white small">Observación de entrega (opcional):</label>
+                                <textarea id="observacion-entrega" name="observacion" class="form-control bg-surface text-white small" rows="2" maxlength="2000" placeholder="Ej.: Entregado con remisión firmada."></textarea>
                             </div>
-                            <button type="submit" name="accion" value="confirmar" class="btn btn-success rounded-pill py-3 fw-800 d-flex align-items-center justify-content-center gap-2 shadow-sm" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
-                                <i class="bi bi-check-circle-fill"></i> Confirmar Entrega
-                            </button>
-                            <button type="submit" name="accion" value="cancelar" class="btn btn-outline-danger rounded-pill py-2 fw-700 confirm-delete-btn" data-title="¿Estás seguro de cancelar esta entrega?">
-                                <i class="bi bi-x-circle me-2"></i> Cancelar Entrega
+                            <button type="submit" name="accion" value="confirmar" class="btn btn-success rounded-pill py-2 fw-800">
+                                <i class="bi bi-check-circle-fill me-1"></i> Confirmar Entrega Realizada
                             </button>
                         </form>
                     </div>
                     {% endif %}
+
                 </div>
             </div>
 
-            {% for entrega in orden.entregas.all %}
-                {% for novedad in entrega.novedades.all %}
-                    {% if novedad.tipo == "observacion" %}
-                    <div class="alert alert-info mt-3 mb-0">
-                        <div class="fw-bold"><i class="bi bi-chat-left-text me-2"></i>Observación de entrega</div>
-                        <p class="mb-1 mt-2">{{ novedad.descripcion }}</p>
-                        <small>{{ novedad.fecha_generada|date:"d/m/Y H:i" }}</small>
-                    </div>
-                    {% endif %}
-                {% endfor %}
-            {% endfor %}
-
-            <div class="mt-4 pt-3 border-top border-secondary d-flex justify-content-between align-items-center">
-                <a href="javascript:history.back()" class="btn btn-outline-light rounded-pill px-3 small" aria-label="Volver" data-tooltip="Volver" title="Volver">
-                    <i class="bi bi-arrow-left me-1"></i> Volver
+            <!-- FOOTER CON BOTONES DE NAVEGACIÓN -->
+            <div class="mt-4 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-secondary rounded-pill px-4 small">
+                    <i class="bi bi-arrow-left me-1"></i> Volver a Mis Pedidos
                 </a>
-                <button class="btn btn-outline-light rounded-pill px-3 small" id="print-btn">
-                    <i class="bi bi-printer me-1"></i> Imprimir
+                <button class="btn btn-outline-light rounded-pill px-4 small" id="print-btn">
+                    <i class="bi bi-printer me-1"></i> Imprimir Orden
                 </button>
             </div>
+
         </div>
     </div>
 </div>
@@ -238,27 +835,163 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const select = document.getElementById('order-master-state');
-        const label = document.getElementById('order-master-state-label');
-        if (!select || !label) return;
-
-        const updateLabel = function () {
-            label.textContent = select.selectedOptions[0]?.textContent.trim() || '';
-        };
-
-        select.addEventListener('change', updateLabel);
-        updateLabel();
-    });
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+window.AppPageLifecycle.onPageLoad(function () {
+    // 1. Botón Imprimir
     const printBtn = document.getElementById('print-btn');
     if (printBtn) {
-        printBtn.addEventListener('click', function() {
+        printBtn.addEventListener('click', function () {
             window.print();
         });
     }
+
+    // 2. POLLING EN TIEMPO REAL DEL PROGRESO
+    const orderId = "{{ orden.codigo_pedido }}";
+    const statusApiUrl = "{% url 'pedidos:estado_pedido_api' orden.codigo_pedido %}";
+    let currentOrderState = "{{ orden.estado }}";
+    let currentPaymentState = "{{ pago.estado|default:'' }}";
+    let pollInterval = null;
+
+    function renderStepper(data) {
+        const fillEl = document.getElementById('stepper-progress-fill');
+        const node1 = document.getElementById('step-node-1');
+        const node2 = document.getElementById('step-node-2');
+        const node3 = document.getElementById('step-node-3');
+        const node4 = document.getElementById('step-node-4');
+        const orderBadge = document.getElementById('live-order-badge');
+        const orderText = document.getElementById('live-order-text');
+
+        if (!node1 || !node2 || !node3 || !node4) return;
+
+        // Actualizar Badge del Header
+        if (orderBadge && orderText) {
+            orderBadge.className = `badge-order-status ${data.estado}`;
+            orderText.textContent = data.estado_display;
+        }
+
+        // Calcular porcentaje y clases de etapas
+        let fillWidth = '10%';
+
+        if (data.estado === 'entregado') {
+            fillWidth = '80%';
+            node2.className = 'stepper-node completed';
+            node3.className = 'stepper-node completed';
+            node4.className = 'stepper-node completed';
+        } else if (data.estado === 'en_ruta') {
+            fillWidth = '55%';
+            node2.className = 'stepper-node completed';
+            node3.className = 'stepper-node active';
+            node4.className = 'stepper-node';
+        } else if (data.estado === 'vehiculo_asignado' || data.estado === 'autorizado_despacho') {
+            fillWidth = '40%';
+            node2.className = 'stepper-node completed';
+            node3.className = 'stepper-node active';
+            node4.className = 'stepper-node';
+        } else if (data.pago && data.pago.estado === 'aprobado') {
+            fillWidth = '25%';
+            node2.className = 'stepper-node completed';
+            node3.className = 'stepper-node';
+            node4.className = 'stepper-node';
+        } else if (data.pago && data.pago.estado === 'rechazado') {
+            fillWidth = '15%';
+            node2.className = 'stepper-node danger';
+            node3.className = 'stepper-node';
+            node4.className = 'stepper-node';
+        } else if (data.pago && data.pago.estado === 'pendiente') {
+            fillWidth = '15%';
+            node2.className = 'stepper-node active';
+            node3.className = 'stepper-node';
+            node4.className = 'stepper-node';
+        } else if (data.estado === 'cancelado') {
+            fillWidth = '15%';
+            node2.className = 'stepper-node danger';
+            node3.className = 'stepper-node';
+            node4.className = 'stepper-node danger';
+        } else {
+            fillWidth = '10%';
+            node2.className = 'stepper-node';
+            node3.className = 'stepper-node';
+            node4.className = 'stepper-node';
+        }
+
+        if (fillEl) {
+            fillEl.style.width = fillWidth;
+        }
+
+        // Actualizar asignación de transporte si cambió
+        if (data.logistica && data.logistica.conductor) {
+            const condBlock = document.getElementById('conductor-info-block');
+            if (condBlock) {
+                condBlock.innerHTML = `
+                    <p class="text-white fw-700 mb-1">${data.logistica.conductor}</p>
+                    ${data.logistica.conductor_telefono ? `<a href="tel:${data.logistica.conductor_telefono}" class="text-accent x-small text-decoration-none"><i class="bi bi-telephone-fill me-1"></i>${data.logistica.conductor_telefono}</a>` : ''}
+                `;
+            }
+        }
+        if (data.logistica && data.logistica.vehiculo_placa) {
+            const vehBlock = document.getElementById('vehiculo-info-block');
+            if (vehBlock) {
+                vehBlock.innerHTML = `
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="plate-badge">${data.logistica.vehiculo_placa}</span>
+                        <span class="text-white fw-600 small">${data.logistica.vehiculo_desc || ''}</span>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    function checkOrderStatus() {
+        if (document.hidden) return; // Pausar cuando la pestaña esté oculta
+
+        fetch(statusApiUrl, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error al consultar estado');
+            return response.json();
+        })
+        .then(data => {
+            // Verificar si hubo un cambio de estado
+            if (data.estado !== currentOrderState || (data.pago && data.pago.estado !== currentPaymentState)) {
+                const prev = currentOrderState;
+                currentOrderState = data.estado;
+                currentPaymentState = data.pago ? data.pago.estado : '';
+
+                renderStepper(data);
+
+                // Notificación visual de actualización en tiempo real
+                if (window.Swal) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: 'Progreso Actualizado',
+                        text: `El pedido cambió a: ${data.estado_display}`,
+                        showConfirmButton: false,
+                        timer: 4500,
+                        timerProgressBar: true,
+                        background: '#0f172a',
+                        color: '#ffffff',
+                        customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
+                    });
+                }
+            }
+        })
+        .catch(err => {
+            // Fallo silencioso en red para no incomodar al usuario
+            console.debug('Polling error:', err);
+        });
+    }
+
+    // Polling cada 6 segundos
+    pollInterval = setInterval(checkOrderStatus, 6000);
+
+    // Limpieza al desmontar página o navegar
+    document.addEventListener('app:page-loaded', function () {
+        if (pollInterval) clearInterval(pollInterval);
+    }, { once: true });
 });
 </script>
 {% endblock %}

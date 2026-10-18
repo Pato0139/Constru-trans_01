@@ -1,70 +1,88 @@
 {% extends "base.html" %}
+{% load humanize %}
+{% load currency_tags %}
 {% load static %}
-{% block title %}Mis pagos{% endblock %}
-{% block content %}
-<div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0">
-      <i class="bi bi-credit-card text-primary me-2"></i>Mis pagos
-    </h1>
-  </div>
 
-  <div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Fecha</th>
-              <th>Factura</th>
-              <th>Pedido</th>
-              <th>Monto</th>
-              <th>Método</th>
-              <th>Referencia</th>
-              <th>Estado</th>
-              <th>Comprobante</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in pagos %}
-            <tr>
-              <td>{{ p.fecha_registro|date:"Y-m-d H:i" }}</td>
-              <td class="fw-semibold">{{ p.factura.numero }}</td>
-              <td>#{{ p.factura.pedido.codigo_pedido }}</td>
-              <td>${{ p.monto }}</td>
-              <td>{{ p.get_metodo_display }}</td>
-              <td>{{ p.referencia|default:"—" }}</td>
-              <td>
-                {% if p.estado == "pendiente" %}
-                  <span class="badge bg-warning text-dark">Pendiente</span>
-                {% elif p.estado == "aprobado" %}
-                  <span class="badge bg-success">Aprobado</span>
-                {% elif p.estado == "rechazado" %}
-                  <span class="badge bg-danger">Rechazado</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if p.evidencia %}
-                  <a href="{{ p.evidencia.url }}" target="_blank" class="btn btn-sm btn-outline-info">
-                    <i class="bi bi-image me-1"></i>Ver
-                  </a>
-                {% else %}
-                  <span class="text-muted">—</span>
-                {% endif %}
-              </td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="8" class="text-center py-5 text-muted">
-                <i class="bi bi-inbox display-4 d-block mb-2"></i>
-                Aún no tienes pagos registrados.
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+{% block title %}Mis Pagos - Constru-trans{% endblock %}
+{% block header_title %}Control de Pagos{% endblock %}
+
+{% block content %}
+<div class="table-container p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 px-2 flex-wrap gap-3">
+        <div>
+            <h5 class="fw-800 m-0 text-white">Mis Pagos Registrados</h5>
+            <p class="text-muted small mb-0">Consulta el estado de revisión y comprobantes asociados a tus pedidos.</p>
+        </div>
     </div>
-  </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>ID Pago</th>
+                    <th>Pedido Asociado</th>
+                    <th>Fecha de Registro</th>
+                    <th>Importe</th>
+                    <th>Estado del Pago</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pagos %}
+                <tr>
+                    <td class="fw-700 text-accent">#PAG-{{ p.id }}</td>
+                    <td>
+                        <a href="{% url 'pedidos:ver_pedido_admin' p.pedido.codigo_pedido %}" class="fw-600 text-white text-decoration-none hover-accent">
+                            #CT-{{ p.pedido.codigo_pedido }}
+                        </a>
+                    </td>
+                    <td class="text-muted small">{{ p.fecha_registro|date:"d M, Y H:i" }}</td>
+                    <td class="price-tag">{{ p.monto|currency }}</td>
+                    <td>
+                        {% if p.estado == "pendiente" %}
+                        <span class="badge-tipo badge-tipo-pendiente">
+                            <i class="bi bi-hourglass-split me-1"></i>Pendiente de revisión
+                        </span>
+                        {% elif p.estado == "aprobado" %}
+                        <span class="badge-tipo badge-tipo-entregado">
+                            <i class="bi bi-check-circle-fill me-1"></i>Aprobado
+                        </span>
+                        {% elif p.estado == "rechazado" %}
+                        <span class="badge-tipo badge-tipo-cancelado" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Rechazado
+                        </span>
+                        {% else %}
+                        <span class="badge-tipo">{{ p.get_estado_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="{% url 'pagos:detalle_pago' p.id %}" class="btn-action" title="Ver Detalle del Pago">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% if p.comprobante %}
+                            <a href="{% url 'pagos:ver_comprobante_pago' p.id %}" target="_blank" rel="noopener" class="btn-action text-info" title="Ver comprobante adjunto">
+                                <i class="bi bi-paperclip"></i>
+                            </a>
+                            {% endif %}
+                            {% if p.estado == "rechazado" %}
+                            <a href="{% url 'pagos:registrar_pago_pedido' p.pedido.codigo_pedido %}" class="btn-action text-warning" title="Volver a presentar comprobante">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-wallet2 display-6 d-block mb-2 opacity-50"></i>
+                        No tienes pagos registrados aún.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

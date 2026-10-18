@@ -1,11 +1,17 @@
+import logging
 import re
 from datetime import datetime
+
+from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F, Q, Sum
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -210,12 +216,24 @@ def parse_fecha_entrega(value):
         try:
             dt = datetime.strptime(normalized, fmt)
             if fmt in ("%d/%m/%Y", "%Y/%m/%d"):
-                return dt.replace(hour=0, minute=0)
+                dt = dt.replace(hour=0, minute=0)
             return dt
         except ValueError:
             continue
 
     return None
+
+
+def _es_fecha_pasada(fecha_str):
+    """
+    Verifica si el valor de fecha proporcionado corresponde a una fecha
+    anterior a la fecha actual (hoy). Regresa True si es pasado.
+    """
+    fecha = parse_fecha_entrega(fecha_str)
+    if fecha is None:
+        return False
+    today = timezone.localtime(timezone.now()).date()
+    return fecha.date() < today
 
 
 def _normalizar_items_pedido(materiales_ids, cantidades):
@@ -279,12 +297,18 @@ def mis_pedidos(request):
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
 
+    # Solo pedidos activos (no en estado final: entregado o cancelado)
+    pedidos = (
+        pedidos_visibles_para_cliente(usuario, usuario_remoto)
+        .exclude(estado__in=["entregado", "cancelado"])
+        .select_related("pago")
+        .prefetch_related("detalles__material")
+    )
+
     # Get filter parameters
     destino = request.GET.get("destino", "")
     estado = request.GET.get("estado", "")
     q = request.GET.get("q", "")
-
-    pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto)
 
     # Apply filters
     if destino:
@@ -317,9 +341,9 @@ def mis_pedidos(request):
             "size": "3",
             "options": [
                 {"value": "pendiente", "label": "Pendiente"},
+                {"value": "autorizado_despacho", "label": "Autorizado Despacho"},
+                {"value": "vehiculo_asignado", "label": "Vehículo Asignado"},
                 {"value": "en_ruta", "label": "En Ruta"},
-                {"value": "entregado", "label": "Entregado"},
-                {"value": "cancelado", "label": "Cancelado"},
             ],
         },
     ]
@@ -330,7 +354,12 @@ def mis_pedidos(request):
         "filter_fields": filter_fields,
         "has_filters": has_filters,
         "q": q,
+        "destino": destino,
+        "estado": estado,
     }
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return render(request, "clientes/_mis_pedidos_body.html", {"pedidos": pedidos})
 
     return render(request, "clientes/mis_pedidos.html", context)
 
@@ -366,10 +395,8 @@ def seguimiento_pedidos(request):
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
 
-    pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto)
-    context = {"pedidos": pedidos}
-
-    return render(request, "clientes/seguimiento.html", context)
+    messages.info(request, "El seguimiento se consulta directamente desde el detalle de cada pedido.")
+    return redirect("clientes:mis_pedidos")
 
 
 @role_required(["cliente"])
@@ -383,8 +410,14 @@ def historial_pedidos(request):
 
     q = request.GET.get("q", "").strip()
     fecha = request.GET.get("fecha", "").strip()
+    estado = request.GET.get("estado", "").strip()
 
-    pedidos = pedidos_visibles_para_cliente(usuario, usuario_remoto).filter(estado="entregado")
+    # Historial: pedidos que ya finalizaron (entregado o cancelado)
+    pedidos = (
+        pedidos_visibles_para_cliente(usuario, usuario_remoto)
+        .filter(estado__in=["entregado", "cancelado"])
+        .prefetch_related("detalles__material")
+    )
 
     if q:
         pedidos = pedidos.filter(
@@ -393,13 +426,18 @@ def historial_pedidos(request):
             | Q(direccion_destino__icontains=q)
         ).distinct()
     if fecha:
-        pedidos = pedidos.filter(fecha_solicitud__date=fecha)
+        pedidos = pedidos.filter(
+            Q(fecha_entrega_real__date=fecha) | Q(fecha_solicitud__date=fecha)
+        )
+    if estado in ["entregado", "cancelado"]:
+        pedidos = pedidos.filter(estado=estado)
 
     context = {
         "pedidos": pedidos,
         "q": q,
         "fecha": fecha,
-        "has_filters": bool(q or fecha),
+        "estado": estado,
+        "has_filters": bool(q or fecha or estado),
     }
 
     return render(request, "clientes/historial.html", context)
@@ -423,10 +461,16 @@ def crear_pedido(request):
         fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
 
         if fecha_entrega_raw and not fecha_entrega:
-            messages.error(
-                request,
-                "Formato de fecha inválido. Usa DD/MM/YYYY HH:MM, DD-MM-YYYY HH:MM o 2026-12-31 15:30.",
-            )
+            if _es_fecha_pasada(fecha_entrega_raw):
+                messages.error(
+                    request,
+                    "Solo se aceptan fechas a partir de hoy en adelante.",
+                )
+            else:
+                messages.error(
+                    request,
+                    "Formato de fecha inválido. Usa DD/MM/YYYY HH:MM, DD-MM-YYYY HH:MM o 2026-12-31 15:30.",
+                )
             return render(
                 request,
                 "clientes/form.html",
@@ -515,7 +559,7 @@ def crear_pedido(request):
                         )
 
                     try:
-                        cantidad = int(cant)
+                        cantidad = int(cantidad)
                     except (ValueError, TypeError) as err:
                         raise ValueError(f"Cantidad inválida para {material.nombre}") from err
 
@@ -544,11 +588,6 @@ def crear_pedido(request):
 
             messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente. Registra el pago para habilitar el despacho.")
             return redirect("pagos:registrar_pago_pedido", pedido_id=nuevo_pedido.codigo_pedido)
-            messages.success(
-                request,
-                f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente. Registra el pago para habilitar el despacho.",
-            )
-            return redirect("pagos:registrar_pago", pedido_id=nuevo_pedido.codigo_pedido)
 
         except ValueError as e:
             messages.error(request, str(e))
@@ -560,8 +599,12 @@ def crear_pedido(request):
                     action="crear",
                 ),
             )
-        except Exception as e:
-            messages.error(request, f"Error interno: {e}")
+        except Exception:
+            logger.exception("Error inesperado al crear pedido")
+            messages.error(
+                request,
+                "Ocurrió un error inesperado al procesar el pedido. Por favor intenta nuevamente.",
+            )
             return render(
                 request,
                 "clientes/form.html",
@@ -645,10 +688,16 @@ def editar_pedido(request, id):
         fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
 
         if fecha_entrega_raw and not fecha_entrega:
-            messages.error(
-                request,
-                "Formato de fecha inválido. Usa DD/MM/YYYY HH:MM, DD-MM-YYYY HH:MM o 2026-12-31 15:30.",
-            )
+            if _es_fecha_pasada(fecha_entrega_raw):
+                messages.error(
+                    request,
+                    "Solo se aceptan fechas a partir de hoy en adelante.",
+                )
+            else:
+                messages.error(
+                    request,
+                    "Formato de fecha inválido. Usa DD/MM/YYYY HH:MM, DD-MM-YYYY HH:MM o 2026-12-31 15:30.",
+                )
             return render(
                 request,
                 "clientes/form.html",
@@ -766,8 +815,12 @@ def editar_pedido(request, id):
                 return redirect("pedidos:lista_pedidos_admin")
             return redirect("clientes:mis_pedidos")
 
-        except Exception as e:
-            messages.error(request, f"Error al actualizar el pedido: {e}")
+        except Exception:
+            logger.exception("Error al actualizar el pedido %s", id)
+            messages.error(
+                request,
+                "Ocurrió un error inesperado al actualizar el pedido. Por favor intenta nuevamente.",
+            )
 
     ciudad_ini, detalle_ini = separar_direccion_destino(pedido.direccion_destino)
     return render(
@@ -830,16 +883,22 @@ def cancelar_pedido(request, id):
         with transaction.atomic(using=db_alias):
             for detalle in pedido.detalles.using(db_alias).all():
                 try:
-                    stock_obj = select_for_update_if_supported(
-                        Stock.objects.using(db_alias),
-                        db_alias,
-                    ).get(material=detalle.material)
-                except Stock.DoesNotExist:
-                    stock_obj = Stock.objects.using(db_alias).create(
-                        material=detalle.material, cantidad_actual=0
-                    )
-                stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
-                stock_obj.save(using=db_alias)
+                    material_obj = detalle.material
+                except ObjectDoesNotExist:
+                    material_obj = None
+
+                if material_obj is not None:
+                    try:
+                        stock_obj = select_for_update_if_supported(
+                            Stock.objects.using(db_alias),
+                            db_alias,
+                        ).get(material=material_obj)
+                    except Stock.DoesNotExist:
+                        stock_obj = Stock.objects.using(db_alias).create(
+                            material=material_obj, cantidad_actual=0
+                        )
+                    stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
+                    stock_obj.save(using=db_alias)
 
             pedido.estado = "cancelado"
             pedido.save(using=db_alias, update_fields=["estado"])
@@ -861,8 +920,12 @@ def cancelar_pedido(request, id):
             request,
             f"Pedido #{pedido.codigo_pedido} ha sido cancelado y el stock ha sido devuelto.",
         )
-    except Exception as e:
-        messages.error(request, f"Error al cancelar el pedido: {e}")
+    except Exception:
+        logger.exception("Error al cancelar el pedido %s", id)
+        messages.error(
+            request,
+            "Ocurrió un error inesperado al cancelar el pedido. Por favor intenta nuevamente.",
+        )
 
     if es_admin:
         return redirect("pedidos:lista_pedidos_admin")

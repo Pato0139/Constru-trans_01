@@ -173,3 +173,142 @@ class PagoViewsTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, factura.numero)
+
+    def test_registro_pago_contraentrega_asigna_fechas_correctas(self):
+        self.client.force_login(self.cliente)
+        response = self.client.post(
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
+            {"metodo": Pago.METODO_CONTRAENTREGA},
+        )
+        self.assertEqual(response.status_code, 302)
+        pago = Pago.objects.get(pedido=self.pedido)
+        self.assertEqual(pago.estado, Pago.PENDIENTE)
+        self.assertEqual(pago.metodo, Pago.METODO_CONTRAENTREGA)
+        self.assertIsNotNone(pago.fecha_registro)
+        self.assertIsNone(pago.fecha_revision)
+        self.assertIsNone(pago.revisado_por)
+        self.assertFalse(bool(pago.comprobante))
+
+    def test_registro_pago_daviplata_con_jpg(self):
+        self.client.force_login(self.cliente)
+        comprobante = SimpleUploadedFile(
+            "comprobante.jpg",
+            b"\xff\xd8\xff\xe0" + b"\x00" * 32,
+            content_type="image/jpeg",
+        )
+        response = self.client.post(
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
+            {"metodo": Pago.METODO_DAVIPLATA, "comprobante": comprobante},
+        )
+        self.assertEqual(response.status_code, 302)
+        pago = Pago.objects.get(pedido=self.pedido)
+        self.assertEqual(pago.estado, Pago.PENDIENTE)
+        self.assertEqual(pago.metodo, Pago.METODO_DAVIPLATA)
+        self.assertIsNotNone(pago.fecha_registro)
+        self.assertIsNone(pago.fecha_revision)
+
+    def test_registro_pago_bancolombia_con_png(self):
+        self.client.force_login(self.cliente)
+        comprobante = SimpleUploadedFile(
+            "recibo_banco.png",
+            b"\x89PNG\r\n\x1a\n" + b"\x00" * 32,
+            content_type="image/png",
+        )
+        response = self.client.post(
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
+            {"metodo": Pago.METODO_BANCOLOMBIA, "comprobante": comprobante},
+        )
+        self.assertEqual(response.status_code, 302)
+        pago = Pago.objects.get(pedido=self.pedido)
+        self.assertEqual(pago.estado, Pago.PENDIENTE)
+        self.assertEqual(pago.metodo, Pago.METODO_BANCOLOMBIA)
+        self.assertIsNotNone(pago.fecha_registro)
+        self.assertIsNone(pago.fecha_revision)
+
+    def test_metodos_con_comprobante_exigen_archivo(self):
+        self.client.force_login(self.cliente)
+        for metodo in (Pago.METODO_NEQUI, Pago.METODO_DAVIPLATA, Pago.METODO_BANCOLOMBIA):
+            response = self.client.post(
+                reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
+                {"metodo": metodo},
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertFalse(Pago.objects.filter(pedido=self.pedido).exists())
+            self.assertIn(
+                "Este método de pago requiere comprobante.",
+                response.context["form"].errors.get("comprobante", []),
+            )
+
+    def test_rechazo_comprobante_invalido_bytes_falsos(self):
+        self.client.force_login(self.cliente)
+        archivo_falso = SimpleUploadedFile(
+            "comprobante.png",
+            b"ESTO NO ES UN ARCHIVO PNG REAL",
+            content_type="image/png",
+        )
+        response = self.client.post(
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
+            {"metodo": Pago.METODO_NEQUI, "comprobante": archivo_falso},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Pago.objects.filter(pedido=self.pedido).exists())
+
+    def test_reenvio_pago_despues_de_rechazo_resetea_fecha_revision(self):
+        pago = Pago.objects.create(
+            pedido=self.pedido,
+            metodo=Pago.METODO_CONTRAENTREGA,
+            monto=120000,
+            estado=Pago.PENDIENTE,
+        )
+        # Admin rechaza
+        self.client.force_login(self.admin)
+        self.client.post(
+            reverse("pagos:revisar_pago_pedido", args=[pago.pk]),
+            {"accion": "rechazar", "observaciones": "Dirección incompleta"},
+        )
+        pago.refresh_from_db()
+        self.assertEqual(pago.estado, Pago.RECHAZADO)
+        self.assertIsNotNone(pago.fecha_revision)
+        self.assertEqual(pago.revisado_por, self.admin)
+
+        # Cliente reenvía pago corregido
+        self.client.force_login(self.cliente)
+        response = self.client.post(
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
+            {"metodo": Pago.METODO_CONTRAENTREGA},
+        )
+        self.assertEqual(response.status_code, 302)
+        pago.refresh_from_db()
+        self.assertEqual(pago.estado, Pago.PENDIENTE)
+        self.assertIsNone(pago.fecha_revision)
+        self.assertIsNone(pago.revisado_por)
+        self.assertEqual(pago.observaciones, "")
+
+    def test_prevencion_pagos_duplicados_mismo_pedido(self):
+        self.client.force_login(self.cliente)
+        # Primer envío
+        res1 = self.client.post(
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
+            {"metodo": Pago.METODO_CONTRAENTREGA},
+        )
+        self.assertEqual(res1.status_code, 302)
+        self.assertEqual(Pago.objects.filter(pedido=self.pedido).count(), 1)
+        primer_pago_id = Pago.objects.get(pedido=self.pedido).pk
+
+        # Segundo envío repetido (ej. doble clic o retry)
+        res2 = self.client.post(
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
+            {"metodo": Pago.METODO_CONTRAENTREGA},
+        )
+        self.assertEqual(res2.status_code, 302)
+        self.assertEqual(Pago.objects.filter(pedido=self.pedido).count(), 1)
+        self.assertEqual(Pago.objects.get(pedido=self.pedido).pk, primer_pago_id)
+
+    def test_cliente_no_puede_registrar_pago_pedido_ajeno(self):
+        self.client.force_login(self.otro)
+        response = self.client.post(
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
+            {"metodo": Pago.METODO_CONTRAENTREGA},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Pago.objects.filter(pedido=self.pedido).exists())

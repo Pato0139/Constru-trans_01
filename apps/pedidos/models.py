@@ -192,7 +192,8 @@ class Pedido(TransicionMixin, models.Model):
     def calcular_total(self, using=None):
         if using is None:
             using = self._state.db
-        self.total = sum(d.subtotal for d in self.detalles.using(using).all())
+        self.subtotal = sum(d.subtotal for d in self.detalles.using(using).all())
+        self.total = self.subtotal + (self.impuesto or 0) - (self.descuento or 0)
         self.precio = self.total
         self.save(using=using)
         return self.total

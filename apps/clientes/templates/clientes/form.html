@@ -39,7 +39,7 @@
                 </div>
             {% endif %}
 
-            <form method="POST" id="form-pedido">
+            <form method="POST" id="form-pedido" data-ajax="false">
                 {% csrf_token %}
 
                 <div class="mb-5 p-4 rounded-4 shadow-sm pedido-section">
@@ -141,16 +141,16 @@
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase pedido-input-label">Fecha y Hora Programada</label>
-                            <div class="input-group pedido-picker-wrapper">
-                                <button id="btn-fecha-entrega" type="button" class="input-group-text border-0 pedido-input-icon" aria-label="Seleccionar fecha de entrega" data-tooltip="Seleccionar fecha de entrega" title="Seleccionar fecha de entrega">
-                                    <i class="bi bi-calendar-event"></i>
-                                </button>
-                                <input id="fecha_entrega_text" type="text" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2 pedido-input-bg" inputmode="numeric" placeholder="DD/MM/YYYY HH:MM" value="{% if fecha_entrega %}{{ fecha_entrega }}{% elif orden and orden.fecha_entrega_programada %}{{ orden.fecha_entrega_programada|date:'d/m/Y H:i' }}{% endif %}">
-                                <input id="fecha_entrega_picker" type="datetime-local" class="pedido-picker-hidden" aria-hidden="false">
-                            </div>
-                            <div class="form-text text-white-50 small mt-2">Selecciona fecha y hora con el calendario.</div>
-                        </div>
+                                                    <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase pedido-input-label">Fecha y Hora Programada</label>
+                                                    <div class="input-group pedido-picker-wrapper">
+                                                        <button id="btn-fecha-entrega" type="button" class="input-group-text border-0 pedido-input-icon" aria-label="Seleccionar fecha de entrega" data-tooltip="Seleccionar fecha de entrega" title="Seleccionar fecha de entrega">
+                                                            <i class="bi bi-calendar-event"></i>
+                                                        </button>
+                                                        <input id="fecha_entrega_text" type="text" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2 pedido-input-bg" inputmode="numeric" placeholder="DD/MM/YYYY HH:MM" value="{% if fecha_entrega %}{{ fecha_entrega }}{% elif orden and orden.fecha_entrega_programada %}{{ orden.fecha_entrega_programada|date:'d/m/Y H:i' }}{% endif %}">
+                                                        <input id="fecha_entrega_picker" type="datetime-local" class="pedido-picker-hidden" aria-hidden="false" min="{% now "Y-m-d" %}T00:00:00" max="2099-12-31T23:59">
+                                                    </div>
+                                                    <div class="form-text text-white-50 small mt-2">Selecciona fecha y hora con el calendario.</div>
+                                                </div>
                     </div>
                 </div>
 
