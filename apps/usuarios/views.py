@@ -380,6 +380,7 @@ def login_usuario(request):
                     user = authenticate(request, username=user_obj.username, password=password)
 
             if user is not None:
+                cache.delete(rate_key)
                 user.reiniciar_intentos()
                 if user.rol in {"cliente", "conductor"}:
                     user.ensure_profile_for_role()
@@ -477,6 +478,7 @@ def login_usuario(request):
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
                     return JsonResponse({"status": "error", "message": error_message}, status=400)
         else:
+            cache.set(rate_key, intentos_ip + 1, 300)
             error_message = "Por favor corrige los errores en el formulario."
             for field, errors in form.errors.items():
                 for error in errors:
@@ -1307,8 +1309,17 @@ def cerrar_sesion(request):
         except Exception as e:
             logger.error("Fallo registrando logout: %s", e)
 
+        try:
+            request.user.session_version += 1
+            request.user.save(update_fields=["session_version"])
+        except Exception as exc:
+            logger.warning("No se pudo incrementar session_version en logout: %s", exc)
+
+    request.session.flush()
     logout(request)
-    return redirect("usuarios:login")
+    response = redirect("usuarios:login")
+    response.delete_cookie(LOGIN_REMEMBER_COOKIE, samesite="Lax")
+    return response
 
 
 # =====================================================================

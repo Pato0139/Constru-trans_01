@@ -47,11 +47,23 @@ CACHE_PREFIX = "sec:"
 # Helpers genéricos
 # ============================================================
 def obtener_ip(request):
-    """Obtiene la IP real del cliente (considerando proxies)."""
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        return x_forwarded_for.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "0.0.0.0")
+    """Obtiene la IP real del cliente con protección contra spoofing.
+
+    Solo confía en HTTP_X_FORWARDED_FOR si el proxy remoto está en TRUSTED_PROXIES
+    o si se ha habilitado explícitamente USE_PROXY_IP_HEADERS (por ejemplo en producción
+    detrás de Cloudflare/Heroku/AWS). De lo contrario usa REMOTE_ADDR.
+    """
+    remote_addr = request.META.get("REMOTE_ADDR", "0.0.0.0")
+    trusted_proxies = getattr(settings, "TRUSTED_PROXIES", None)
+    use_proxy_headers = getattr(settings, "USE_PROXY_IP_HEADERS", not getattr(settings, "DEBUG", True))
+
+    if (trusted_proxies and remote_addr in trusted_proxies) or (trusted_proxies is None and use_proxy_headers):
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            ips = [ip.strip() for ip in x_forwarded_for.split(",") if ip.strip()]
+            if ips:
+                return ips[0]
+    return remote_addr
 
 
 def _cache_key_warnings(ip):
