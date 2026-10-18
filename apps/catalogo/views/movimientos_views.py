@@ -36,7 +36,11 @@ def registrar_entrada(request):
     except Material.DoesNotExist:
         return JsonResponse({"error": "Material no existe"}, status=404)
     except ValueError as e:
-        return JsonResponse({"error": str(e)}, status=400)
+        logger.warning("Error de validación en registrar_entrada: %s", e)
+        return JsonResponse({"error": "Parámetros inválidos para registrar movimiento."}, status=400)
+    except Exception:
+        logger.exception("Error inesperado en registrar_entrada")
+        return JsonResponse({"error": "Error interno del servidor."}, status=500)
 
 
 @admin_required
