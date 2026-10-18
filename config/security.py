@@ -66,6 +66,22 @@ def obtener_ip(request):
     return remote_addr
 
 
+def enmascarar_dato_sensible(valor: str, tipo: str = "token") -> str:
+    """Enmascara datos sensibles para logging y auditoría.
+
+    - token / password: solo primeros 4 caracteres seguidos de '***'.
+    - tarjeta / cuenta / pago: solo últimos 4 caracteres precedidos de '***'.
+    """
+    if not valor:
+        return ""
+    valor_str = str(valor).strip()
+    if len(valor_str) <= 4:
+        return "***"
+    if tipo in ("cuenta", "tarjeta", "pago"):
+        return f"***{valor_str[-4:]}"
+    return f"{valor_str[:4]}***"
+
+
 def _cache_key_warnings(ip):
     return f"{CACHE_PREFIX}w:{ip}"
 

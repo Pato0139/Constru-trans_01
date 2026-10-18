@@ -1,3 +1,4 @@
+import logging
 import uuid
 from decimal import Decimal
 
@@ -10,6 +11,8 @@ from django.utils import timezone
 
 from config.state_machine import TransicionMixin
 from config.validators import ArchivoValidator, monto_positivo, no_negativo, no_solo_espacios
+
+logger = logging.getLogger(__name__)
 
 OBSERVACIONES_MAX = 1000
 
@@ -129,10 +132,19 @@ class Pago(TransicionMixin, models.Model):
     def marcar_revision(self, *, estado, revisor, observaciones=""):
         if estado not in (self.APROBADO, self.RECHAZADO):
             raise ValueError("La revisión solo admite aprobado o rechazado.")
-        self.transicionar(estado)
+        estado_previo = self.estado
+        self.transicionar(estado, usuario=revisor)
         self.revisado_por = revisor
         self.observaciones = observaciones or ""
         self.fecha_revision = timezone.now()
+        logger.info(
+            "Revision de pago (pk=%s, pedido=%s): %s -> %s | revisor=%s",
+            self.pk,
+            self.pedido_id,
+            estado_previo,
+            estado,
+            getattr(revisor, "username", str(revisor)),
+        )
 
 
 class DetallePago(models.Model):

@@ -26,7 +26,7 @@ class TransicionMixin:
         actual = getattr(self, self.CAMPO_ESTADO)
         return sorted(self.TRANSICIONES.get(actual, set()))
 
-    def transicionar(self, nuevo):
+    def transicionar(self, nuevo, usuario=None):
         field = self._meta.get_field(self.CAMPO_ESTADO)
         validos = {c[0] for c in field.choices or ()}
         if validos and nuevo not in validos:
@@ -46,4 +46,15 @@ class TransicionMixin:
                 },
                 code="transicion_invalida",
             )
+        estado_previo = getattr(self, self.CAMPO_ESTADO)
         setattr(self, self.CAMPO_ESTADO, nuevo)
+        import logging
+        logger = logging.getLogger("auditoria")
+        logger.info(
+            "Transicion de estado en %s (pk=%s): %s -> %s | usuario=%s",
+            self.__class__.__name__,
+            getattr(self, "pk", "?"),
+            estado_previo,
+            nuevo,
+            getattr(usuario, "username", str(usuario)) if usuario else "sistema",
+        )
