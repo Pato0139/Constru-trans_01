@@ -366,10 +366,10 @@ def exportar_reporte_xml(request, tipo):
                 ET.SubElement(det, "material").text = d.material.nombre
                 ET.SubElement(det, "cantidad").text = str(d.cantidad)
 
-    # Convertir a string indentado
-    from xml.dom import minidom
+    # Convertir a string indentado de forma segura con defusedxml
+    from defusedxml.minidom import parseString as defused_parseString
 
-    xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="   ")
+    xmlstr = defused_parseString(ET.tostring(root)).toprettyxml(indent="   ")
 
     response = HttpResponse(xmlstr, content_type="application/xml")
     response["Content-Disposition"] = (

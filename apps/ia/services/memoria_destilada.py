@@ -25,7 +25,10 @@ def normalizar(texto: str) -> str:
 
 
 def hash_pregunta(pregunta: str) -> str:
-    return hashlib.sha1(normalizar(pregunta).encode("utf-8")).hexdigest()
+    # Hash no criptográfico para deduplicación y clave de caché de preguntas
+    return hashlib.sha1(
+        normalizar(pregunta).encode("utf-8"), usedforsecurity=False
+    ).hexdigest()
 
 
 def _cargar_vistos() -> set:

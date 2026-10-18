@@ -53,7 +53,7 @@ def obtener_ip(request):
     o si se ha habilitado explícitamente USE_PROXY_IP_HEADERS (por ejemplo en producción
     detrás de Cloudflare/Heroku/AWS). De lo contrario usa REMOTE_ADDR.
     """
-    remote_addr = request.META.get("REMOTE_ADDR", "0.0.0.0")
+    remote_addr = request.META.get("REMOTE_ADDR", "127.0.0.1")
     trusted_proxies = getattr(settings, "TRUSTED_PROXIES", None)
     use_proxy_headers = getattr(settings, "USE_PROXY_IP_HEADERS", not getattr(settings, "DEBUG", True))
 
