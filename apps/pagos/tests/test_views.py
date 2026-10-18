@@ -158,7 +158,7 @@ class PagoViewsTests(TestCase):
         )
         self.client.login(username="otropago", password="password123")
         response = self.client.get(reverse("pagos:detalle_pago", args=[pago.pk]))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404)
 
     def test_cliente_puede_ver_sus_facturas(self):
         factura = Factura.objects.create(

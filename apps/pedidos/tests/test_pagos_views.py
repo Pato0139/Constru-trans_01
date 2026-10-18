@@ -157,4 +157,4 @@ class PagoViewsTests(TestCase):
         )
         self.client.login(username="otropago", password="password123")
         response = self.client.get(reverse("pagos:detalle_pago", args=[pago.pk]))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404)

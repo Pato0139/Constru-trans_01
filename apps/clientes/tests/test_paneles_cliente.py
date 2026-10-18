@@ -196,10 +196,10 @@ class PanelesClienteTests(TestCase):
 
         self.client.force_login(self.user1)
         resp_detalle = self.client.get(reverse("pagos:detalle_pago", args=[pago2.pk]))
-        self.assertIn(resp_detalle.status_code, [403, 302])
+        self.assertEqual(resp_detalle.status_code, 404)
 
         resp_comprobante = self.client.get(reverse("pagos:ver_comprobante_pago", args=[pago2.pk]))
-        self.assertIn(resp_comprobante.status_code, [403, 302])
+        self.assertEqual(resp_comprobante.status_code, 404)
 
     def test_pago_rechazado_muestra_motivo_en_detalle(self):
         pedido1 = Pedido.objects.create(

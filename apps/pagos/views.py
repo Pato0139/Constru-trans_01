@@ -225,23 +225,19 @@ def _puede_ver_pago_por_id(request, pago_id):
             gravedad="high",
             detalles={"causa": "ver_pago_ajeno", "pago_id": pago.pk},
         )
-        return None
+        raise Http404("Pago no encontrado.")
     return pago
 
 
 @role_required(["admin", "cliente"])
 def detalle_pago(request, pk):
     pago = _puede_ver_pago_por_id(request, pk)
-    if pago is None:
-        return _respuesta_no_autorizada(request)
     return render(request, "pagos/detalle.html", {"pago": pago, "pedido": pago.pedido})
 
 
 @role_required(["admin", "cliente"])
 def ver_comprobante_pago(request, pk):
     pago = _puede_ver_pago_por_id(request, pk)
-    if pago is None:
-        return _respuesta_no_autorizada(request)
     if not pago.comprobante:
         raise Http404("Comprobante no encontrado.")
     try:

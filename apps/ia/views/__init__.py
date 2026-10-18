@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -6,6 +7,8 @@ from django.shortcuts import render
 from django.views.decorators.http import require_POST
 
 from ..services import preguntar_ia, save_feedback
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -19,9 +22,16 @@ def chat_ia(request):
 
         respuesta, message_id = preguntar_ia(mensaje, request.user, historial, session_id)
         return JsonResponse({"respuesta": respuesta, "message_id": message_id, "status": "ok"})
-    except Exception as e:
+    except json.JSONDecodeError:
         return JsonResponse(
-            {"respuesta": f"Lo siento, ocurrió un error: {str(e)}", "status": "error"}
+            {"respuesta": "Formato de solicitud inválido.", "status": "error"},
+            status=400,
+        )
+    except Exception:
+        logger.exception("Error en chat_ia")
+        return JsonResponse(
+            {"respuesta": "Lo siento, ocurrió un error interno al procesar su solicitud.", "status": "error"},
+            status=500,
         )
 
 
@@ -34,7 +44,27 @@ def feedback_ia(request):
         feedback = data.get("feedback")
         comment = data.get("comment", None)
 
+        if not message_id or not feedback:
+            return JsonResponse(
+                {"success": False, "status": "error", "message": "Datos incompletos."},
+                status=400,
+            )
+
         success = save_feedback(message_id, feedback, comment, request.user)
-        return JsonResponse({"success": success, "status": "ok"})
-    except Exception as e:
-        return JsonResponse({"success": False, "status": "error", "message": str(e)})
+        if not success:
+            return JsonResponse(
+                {"success": False, "status": "error", "message": "Mensaje no encontrado o no autorizado."},
+                status=404,
+            )
+        return JsonResponse({"success": True, "status": "ok"})
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {"success": False, "status": "error", "message": "JSON inválido."},
+            status=400,
+        )
+    except Exception:
+        logger.exception("Error procesando feedback de IA")
+        return JsonResponse(
+            {"success": False, "status": "error", "message": "Error interno del servidor."},
+            status=500,
+        )
