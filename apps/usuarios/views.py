@@ -186,6 +186,20 @@ def buscar_conductores(query=None):
 
 def registro(request):
     if request.method == "POST":
+        # Rate-limiting por IP: máximo 5 intentos de registro por cada 15 minutos
+        from django.core.cache import cache
+        from config.security import registrar_evento
+        ip = obtener_ip(request)
+        rate_key = f"registro_rate:{ip}"
+        intentos_registro = cache.get(rate_key, 0)
+        if intentos_registro >= 5:
+            error_msg = "Demasiadas solicitudes de registro desde tu red. Intenta nuevamente en 15 minutos."
+            messages.error(request, error_msg)
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"status": "error", "message": error_msg}, status=429)
+            return render(request, "usuarios/registro.html", {"form": RegistroForm(request.POST)}, status=429)
+        cache.set(rate_key, intentos_registro + 1, 900)
+
         form = RegistroForm(request.POST)
         if not form.is_valid():
             error_msg = "Revise los datos ingresados e intente nuevamente."
@@ -228,6 +242,19 @@ def registro(request):
                 documento=documento,
                 estado="activo",
                 sincronizado=False,
+            )
+
+            # Registro de auditoría persistente de aceptación de términos y condiciones
+            registrar_evento(
+                request,
+                "terminos_aceptados",
+                gravedad="info",
+                detalles={
+                    "usuario_id": nuevo_usuario.pk,
+                    "email": nuevo_usuario.email,
+                    "version_terminos": "v1.0",
+                    "fecha_aceptacion": timezone.now().isoformat(),
+                },
             )
 
             # Cerrar cualquier sesión previa para evitar confusiones de rol (ej. admin previo)
@@ -324,60 +351,16 @@ def login_usuario(request):
                 except User.DoesNotExist:
                     pass
 
-            if user_obj:
-                if user_obj.esta_bloqueado():
-                    tiempo_restante = user_obj.obtener_tiempo_restante_bloqueo()
-                    error_message = (
-                        f"Tu cuenta está bloqueada por {tiempo_restante}. "
-                        "Intenta más tarde o contacta a soporte."
-                    )
-                    messages.error(request, error_message)
-                    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                        return JsonResponse(
-                            {"status": "error", "message": error_message}, status=403
-                        )
-                    context = {"form": form, "modo_local": modo_local}
-                    return render(request, "usuarios/login.html", context)
-
-            # Usa EmailOrUsernameBackend primero (username O email); fallback por email luego.
-            user = authenticate(request, username=identifier, password=password)
+            if user_obj and user_obj.esta_bloqueado():
+                user = None
+            else:
+                # Usa EmailOrUsernameBackend primero (username O email); fallback por email luego.
+                user = authenticate(request, username=identifier, password=password)
 
             if user is None and user_obj is not None:
-                # Usuario existía pero authenticate devolvió None.
-                # Determinamos la causa real para no penalizar (no contar intento fallido
-                # si la contraseña SÍ era correcta y el problema es estado/is_active).
-                password_correcto = user_obj.check_password(password)
-                if password_correcto:
-                    # Contraseña correcta, pero el usuario no pudo pasar por estado.
-                    estado = getattr(user_obj, "estado", "activo")
-                    is_active = getattr(user_obj, "is_active", True)
-                    if estado != "activo" or not is_active:
-                        if estado == "suspendido":
-                            error_message = (
-                                "Tu cuenta se encuentra suspendida. "
-                                "Por favor contacta a soporte para más información."
-                            )
-                        elif estado == "inactivo" or not is_active:
-                            error_message = (
-                                "Tu cuenta está desactivada. "
-                                "Por favor contacta a soporte para reactivarla."
-                            )
-                        else:
-                            error_message = (
-                                "Tu cuenta no está disponible actualmente. "
-                                "Por favor contacta a soporte."
-                            )
-                        messages.error(request, error_message)
-                        if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                            return JsonResponse(
-                                {"status": "error", "message": error_message}, status=403
-                            )
-                        context = {"form": form, "modo_local": modo_local}
-                        return render(request, "usuarios/login.html", context)
-                else:
-                    # Fallback: autenticar usando username del user_obj por si identifier
-                    # fue email y backend fallback ModelBackend no acepta email directo.
-                    user = authenticate(request, username=user_obj.username, password=password)
+                # Fallback: autenticar usando username del user_obj por si identifier
+                # fue email y backend fallback ModelBackend no acepta email directo.
+                user = authenticate(request, username=user_obj.username, password=password)
 
             if user is not None:
                 cache.delete(rate_key)
@@ -453,30 +436,20 @@ def login_usuario(request):
 
                 return response
             else:
+                # SEC-02: Mitigación de enumeración y oráculo de tiempo
                 error_message = "Usuario o contraseña incorrectos."
-                # Incrementar contador de intentos fallidos por IP
                 from django.core.cache import cache
                 cache.set(rate_key, intentos_ip + 1, 300)
                 if user_obj:
                     user_obj.registrar_intento_fallido()
-                    if user_obj.esta_bloqueado():
-                        tiempo_restante = user_obj.obtener_tiempo_restante_bloqueo()
-                        error_message = f"Demasiados intentos fallidos. Tu cuenta está bloqueada por {tiempo_restante}."
-                        messages.error(request, error_message)
-                    else:
-                        intentos_restantes = (
-                            3 - user_obj.intentos_fallidos if user_obj.intentos_fallidos < 3 else 0
-                        )
-                        if intentos_restantes > 0:
-                            error_message = f"Usuario o contraseña incorrectos. Te quedan {intentos_restantes} intento(s)."
-                            messages.error(request, error_message)
-                        else:
-                            messages.error(request, error_message)
                 else:
-                    messages.error(request, error_message)
+                    User().check_password(password)
 
+                messages.error(request, error_message)
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
                     return JsonResponse({"status": "error", "message": error_message}, status=400)
+                context = {"form": form, "modo_local": modo_local}
+                return render(request, "usuarios/login.html", context, status=400)
         else:
             cache.set(rate_key, intentos_ip + 1, 300)
             error_message = "Por favor corrige los errores en el formulario."

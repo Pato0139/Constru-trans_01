@@ -39,18 +39,26 @@ class PagoAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return bool(request.user.is_superuser)
 
+    def save_model(self, request, obj, form, change):
+        obj.full_clean()
+        super().save_model(request, obj, form, change)
+
 
 @admin.register(Factura)
 class FacturaAdmin(admin.ModelAdmin):
     list_display = ["numero", "pedido", "cliente", "fecha_emision", "total", "estado"]
     list_filter = ["estado", "fecha_emision"]
     search_fields = ["numero", "pedido__codigo_pedido", "cliente__usuario__nombres"]
-    readonly_fields = ["numero", "uuid_publico"]
+    readonly_fields = ["numero", "uuid_publico", "total", "fecha_emision"]
     inlines = [PagoFacturaInline]
     list_select_related = ("pedido", "cliente__usuario")
 
     def has_delete_permission(self, request, obj=None):
         return bool(request.user.is_superuser)
+
+    def save_model(self, request, obj, form, change):
+        obj.full_clean()
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(PagoFactura)
@@ -74,3 +82,7 @@ class PagoFacturaAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return bool(request.user.is_superuser)
+
+    def save_model(self, request, obj, form, change):
+        obj.full_clean()
+        super().save_model(request, obj, form, change)

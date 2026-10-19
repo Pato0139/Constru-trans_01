@@ -28,11 +28,12 @@
 """
 
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
-SUPERADMIN_EMAIL = "edwardf5432@gmail.com"
-SUPERADMIN_USERNAME = "Edward_Fonseca"
+SUPERADMIN_EMAIL = os.getenv("SUPERADMIN_EMAIL", "edwardf5432@gmail.com").strip()
+SUPERADMIN_USERNAME = os.getenv("SUPERADMIN_USERNAME", "Edward_Fonseca").strip()
 
 EMAILS_AUTORIZADOS = {SUPERADMIN_EMAIL.lower()}
 USERNAMES_AUTORIZADOS = {SUPERADMIN_USERNAME.lower()}

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connections, models, router, transaction
 from django.db.models import Prefetch
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 from django.views.decorators.http import require_POST, require_http_methods
@@ -365,15 +366,16 @@ def desactivar_vehiculo(request, id):
 @require_http_methods(["GET", "POST"])
 def crear_novedad(request, entrega_id):
     entrega = get_object_or_404(
-        Entrega.objects.select_related("pedido"),
+        Entrega.objects.select_related("pedido", "conductor"),
         pk=entrega_id,
     )
+    if (
+        request.user.rol == "conductor"
+        and entrega.conductor.usuario_id != request.user.pk
+    ):
+        raise Http404("Entrega no encontrada.")
+
     if request.method == "POST":
-        if (
-            request.user.rol == "conductor"
-            and entrega.conductor.usuario_id != request.user.pk
-        ):
-            return _respuesta_no_autorizada(request)
         novedad = Novedad(
             entrega=entrega,
             tipo=request.POST.get("tipo"),
