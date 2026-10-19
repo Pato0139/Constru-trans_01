@@ -23,6 +23,11 @@ from config.sequences import numero_factura
 
 class SeguridadArea9ConcurrenciaTests(TransactionTestCase):
     def setUp(self):
+        if connection.vendor != "postgresql":
+            self.skipTest(
+                f"[AVISO VISIBLE CONCURRENCIA] Prueba multihilo saltada: motor actual es '{connection.vendor}'. "
+                f"Las pruebas de concurrencia y select_for_update requieren conexión real a PostgreSQL (connection.vendor == 'postgresql')."
+            )
         self.usuario = Usuario.objects.create_user(
             username="cliente_concurrencia@test.com",
             email="cliente_concurrencia@test.com",

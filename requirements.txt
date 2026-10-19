@@ -1,26 +1,55 @@
-# ==== PRODUCCIÓN ====
-Django==5.1.5
+# ============================================================
+# CONSTRU-TRANS_01 — DEPENDENCIAS FIJAS DE PRODUCCIÓN (PINNED)
+# ============================================================
+
+# --- Core Framework ---
+Django==5.2.17
 django-otp==1.5.4
 django-environ==0.11.2
 dj-database-url==2.2.0
 psycopg2-binary==2.9.12
 whitenoise==6.7.0
 gunicorn==23.0.0
-Pillow==12.2.0
+
+# --- Seguridad y Criptografía ---
 argon2-cffi==23.1.0
+argon2-cffi-bindings==25.1.0
 cryptography==50.0.0
-openai==1.51.2
-httpx==0.28.1
-requests==2.32.3
-celery==5.4.0
-reportlab==4.4.10
-openpyxl==3.1.5
-qrcode==8.0
-twilio==9.3.4
 defusedxml==0.7.1
 django-csp==3.8
 
-# ==== OPCIONALES (descomentar al activar) ====
+# --- Archivos, Multimedia y Reportes ---
+Pillow==12.3.0
+reportlab==4.4.10
+openpyxl==3.1.5
+qrcode==8.0
+
+# --- HTTP, API y Clientes Externos ---
+requests==2.33.0
+urllib3==2.8.0
+httpx==0.28.1
+openai==1.51.2
+twilio==9.3.4
+geopy==2.5.0
+anyio==4.14.2
+
+# --- Tareas Asíncronas y Procesamiento ---
+celery==5.4.0
+sqlparse==0.6.0
+python-dotenv==1.2.2
+
+# ============================================================
+# PAQUETES CON ADVISORIES AUDITADOS Y MARCADOS PARA ELIMINACIÓN
+# (No son consumidos por el código de Constru-trans_01)
+# ============================================================
+# aiohttp: NO USADO en apps/ ni config/ (desinstalado / eliminado de producción)
+# djangorestframework: NO USADO (vistas estándar y JsonResponse nativo / eliminado)
+# pyjwt: NO USADO (sesiones criptográficas y TimestampSigner nativo / eliminado)
+# virtualenv: Herramienta de desarrollo local, no es runtime de servidor
+
+# ============================================================
+# OPCIONALES (descomentar solo si se activan en producción)
+# ============================================================
 # django-storages==1.14.4
 # boto3==1.35.36
 # django-axes==7.0.0

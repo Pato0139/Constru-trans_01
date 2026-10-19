@@ -56,6 +56,18 @@ class Vehiculo(TransicionMixin, models.Model):
             ),
         ]
 
+    def clean(self):
+        super().clean()
+        if self.placa:
+            import re
+            self.placa = re.sub(r"[\s\-]", "", self.placa).strip().upper()
+
+    def save(self, *args, **kwargs):
+        if self.placa:
+            import re
+            self.placa = re.sub(r"[\s\-]", "", self.placa).strip().upper()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.placa} ({self.marca} {self.modelo})"
 

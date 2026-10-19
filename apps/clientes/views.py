@@ -250,12 +250,14 @@ def _normalizar_items_pedido(materiales_ids, cantidades):
         material_pk = int(material_id)
         if material_pk in ids_vistos:
             return None, "El pedido contiene materiales inválidos o repetidos."
-        if not cantidad_raw or not cantidad_raw.isdecimal():
-            return None, "Las cantidades deben ser números enteros positivos."
+        try:
+            from decimal import Decimal, InvalidOperation
+            cantidad = Decimal(str(cantidad_raw).strip())
+        except (ValueError, TypeError, InvalidOperation):
+            return None, "Las cantidades deben ser números válidos mayores a cero."
 
-        cantidad = int(cantidad_raw)
-        if not 1 <= cantidad <= 100000:
-            return None, "Cada cantidad debe estar entre 1 y 100000."
+        if not (Decimal("0.01") <= cantidad <= Decimal("100000")):
+            return None, "Cada cantidad debe estar entre 0.01 y 100000."
 
         ids_vistos.add(material_pk)
         items.append((material_pk, cantidad))
@@ -559,8 +561,9 @@ def crear_pedido(request):
                         )
 
                     try:
-                        cantidad = int(cantidad)
-                    except (ValueError, TypeError) as err:
+                        from decimal import Decimal, InvalidOperation
+                        cantidad = Decimal(str(cantidad).strip())
+                    except (ValueError, TypeError, InvalidOperation) as err:
                         raise ValueError(f"Cantidad inválida para {material.nombre}") from err
 
                     if cantidad <= 0:

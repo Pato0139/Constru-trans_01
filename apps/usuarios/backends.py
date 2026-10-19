@@ -98,6 +98,7 @@ class EmailOrUsernameBackend(ModelBackend):
             return None
 
         if user is None:
+            User().set_password(password)
             return None
 
         if not user.check_password(password):

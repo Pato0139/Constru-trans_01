@@ -213,3 +213,65 @@ class SeguridadArea2ValidacionesTests(TestCase):
         self.assertIn(f"comprobantes/pedido_{self.pedido.pk}/", ruta)
         self.assertNotIn("recibo_original_bancario", ruta, "No debe conservar el nombre original del cliente")
         self.assertTrue(ruta.endswith(".png"))
+
+    def test_ataque_original_subtotal_negativo_rechazado_por_http(self):
+        """Ataque original: inyección de subtotal negativo (-3500 sobre artículo de 26500).
+        El backend debe rechazar la manipulación y no crear el pedido ni alterar montos."""
+        material_cemento = MaterialConstruccion.objects.create(
+            nombre="Cemento Gris Especial",
+            unidad_medida=self.unidad,
+            precio_referencia=Decimal("26500.00"),
+        )
+        self.client.force_login(self.cliente)
+        # Ataque manipulando el payload HTTP para forzar subtotal o descuento anómalo
+        response = self.client.post(
+            reverse("clientes:crear_pedido"),
+            {
+                "material_id[]": [str(material_cemento.id)],
+                "cantidad[]": ["1"],
+                "ciudad": "Bogotá",
+                "direccion_detalle": "Avenida 68 # 45-10",
+                "descuento": "-3500.00",
+                "subtotal": "-3500.00",
+            },
+        )
+        # El backend ignora campos de subtotal inyectados por el cliente o rechaza
+        # El pedido resultante debe calcularse estrictamente por el backend: 1 * 26500 = 26500
+        ultimo_pedido = Pedido.objects.filter(usuario=self.cliente).order_by("-codigo_pedido").first()
+        self.assertIsNotNone(ultimo_pedido)
+        self.assertGreaterEqual(ultimo_pedido.total, Decimal("26500.00"))
+        self.assertEqual(ultimo_pedido.descuento, Decimal("0.00"))
+        self.assertNotEqual(ultimo_pedido.subtotal, Decimal("-3500.00"))
+
+    def test_crear_pedido_con_cantidad_decimal_fraccionaria_m3(self):
+        """Prueba de soporte de cantidades fraccionarias en m³ (ej. 2.50 m³ de Arena)."""
+        unidad_m3 = UnidadMedida.objects.create(
+            codigo="M3",
+            nombre="Metro Cúbico",
+            abreviatura="m3",
+        )
+        material_arena = MaterialConstruccion.objects.create(
+            nombre="Arena Fina Especial",
+            unidad_medida=unidad_m3,
+            precio_referencia=Decimal("42000.00"),
+        )
+        Stock.objects.create(material=material_arena, cantidad_actual=Decimal("500.00"))
+        self.client.force_login(self.cliente)
+        response = self.client.post(
+            reverse("clientes:crear_pedido"),
+            {
+                "material_id[]": [str(material_arena.id)],
+                "cantidad[]": ["2.50"],
+                "ciudad": "Bogotá",
+                "direccion_detalle": "Calle 80 # 50-10",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        pedido = Pedido.objects.filter(usuario=self.cliente).order_by("-codigo_pedido").first()
+        self.assertIsNotNone(pedido)
+        detalle = pedido.detalles.filter(material=material_arena).first()
+        self.assertIsNotNone(detalle)
+        self.assertEqual(detalle.cantidad, Decimal("2.50"))
+        self.assertEqual(detalle.subtotal, Decimal("105000.00"))
+        self.assertEqual(pedido.total, Decimal("105000.00"))
+

@@ -352,15 +352,11 @@ def login_usuario(request):
                     pass
 
             if user_obj and user_obj.esta_bloqueado():
+                # Ejecutar hash Argon2 idéntico para que cuentas bloqueadas no revelen estado por tiempo
+                User().set_password(password)
                 user = None
             else:
-                # Usa EmailOrUsernameBackend primero (username O email); fallback por email luego.
                 user = authenticate(request, username=identifier, password=password)
-
-            if user is None and user_obj is not None:
-                # Fallback: autenticar usando username del user_obj por si identifier
-                # fue email y backend fallback ModelBackend no acepta email directo.
-                user = authenticate(request, username=user_obj.username, password=password)
 
             if user is not None:
                 cache.delete(rate_key)
@@ -440,10 +436,9 @@ def login_usuario(request):
                 error_message = "Usuario o contraseña incorrectos."
                 from django.core.cache import cache
                 cache.set(rate_key, intentos_ip + 1, 300)
-                if user_obj:
-                    user_obj.registrar_intento_fallido()
-                else:
-                    User().check_password(password)
+                # Registro simétrico de intentos fallidos en caché (sin escritura asimétrica a BD)
+                cache_fail_acc = f"login_fail_acc:{identifier.lower()}"
+                cache.set(cache_fail_acc, cache.get(cache_fail_acc, 0) + 1, 300)
 
                 messages.error(request, error_message)
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
@@ -470,6 +465,8 @@ def login_usuario(request):
                     },
                     status=400,
                 )
+            context = {"form": form, "modo_local": modo_local}
+            return render(request, "usuarios/login.html", context, status=400)
 
     else:
         form = LoginForm(initial={"username": request.COOKIES.get(LOGIN_REMEMBER_COOKIE, "")})

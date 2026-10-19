@@ -494,3 +494,11 @@ LICENSE_SERVER_URL = env("LICENSE_SERVER_URL")
 LICENSE_PUBLIC_KEY = env("LICENSE_PUBLIC_KEY")
 LICENSE_HEARTBEAT_MINUTES = env("LICENSE_HEARTBEAT_MINUTES")
 LICENSE_MAX_AGE_DAYS = env("LICENSE_MAX_AGE_DAYS")
+
+# ============================================================
+# POLÍTICAS DE PEDIDOS (CONFIGURACIÓN PARAMÉTRICA)
+# ============================================================
+from decimal import Decimal
+
+PEDIDOS_ANTICIPACION_MINIMA_DIAS = env.int("PEDIDOS_ANTICIPACION_MINIMA_DIAS", default=0)
+PEDIDOS_TOPE_DESCUENTO_MAX_PCT = Decimal(str(env("PEDIDOS_TOPE_DESCUENTO_MAX_PCT", default="0.00")))

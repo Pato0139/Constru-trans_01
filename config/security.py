@@ -43,27 +43,56 @@ WARNING_WINDOW_MINUTES = getattr(settings, "SECURITY_WARNING_WINDOW", 60)
 CACHE_PREFIX = "sec:"
 
 
-# ============================================================
-# Helpers genéricos
-# ============================================================
-def obtener_ip(request):
-    """Obtiene la IP real del cliente con protección contra spoofing.
+import ipaddress
 
-    Solo confía en HTTP_X_FORWARDED_FOR si el proxy remoto está en TRUSTED_PROXIES
-    o si se ha habilitado explícitamente USE_PROXY_IP_HEADERS (por ejemplo en producción
-    detrás de Cloudflare/Heroku/AWS). De lo contrario usa REMOTE_ADDR.
+
+def _ip_en_redes_confiables(ip_str: str, redes_confiables: list[str]) -> bool:
+    """Verifica si una dirección IP pertenece a una lista de IPs o subredes CIDR."""
+    if not ip_str or not redes_confiables:
+        return False
+    try:
+        ip = ipaddress.ip_address(ip_str.strip())
+        for red in redes_confiables:
+            red_limpia = red.strip()
+            if "/" in red_limpia:
+                if ip in ipaddress.ip_network(red_limpia, strict=False):
+                    return True
+            else:
+                if ip == ipaddress.ip_address(red_limpia):
+                    return True
+    except ValueError:
+        return False
+    return False
+
+
+def obtener_ip(request):
+    """Obtiene la IP real del cliente con protección contra spoofing y soporte CIDR.
+
+    Solo confía en HTTP_X_FORWARDED_FOR si REMOTE_ADDR proviene de un proxy confiable
+    (TRUSTED_PROXIES). Recorre X-Forwarded-For de derecha a izquierda descartando
+    proxies intermedios para evitar que un atacante inyecte una IP falsa en el primer elemento.
     """
     remote_addr = request.META.get("REMOTE_ADDR", "127.0.0.1")
-    trusted_proxies = getattr(settings, "TRUSTED_PROXIES", None)
-    use_proxy_headers = getattr(settings, "USE_PROXY_IP_HEADERS", not getattr(settings, "DEBUG", True))
+    trusted_proxies = getattr(
+        settings,
+        "TRUSTED_PROXIES",
+        ["127.0.0.1", "::1", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+    )
 
-    if (trusted_proxies and remote_addr in trusted_proxies) or (trusted_proxies is None and use_proxy_headers):
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            ips = [ip.strip() for ip in x_forwarded_for.split(",") if ip.strip()]
-            if ips:
-                return ips[0]
-    return remote_addr
+    if not _ip_en_redes_confiables(remote_addr, trusted_proxies):
+        return remote_addr
+
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if not x_forwarded_for:
+        return remote_addr
+
+    ips = [ip.strip() for ip in x_forwarded_for.split(",") if ip.strip()]
+    # Recorrer de derecha a izquierda: el primer IP no perteneciente a proxies es el cliente real
+    for ip in reversed(ips):
+        if not _ip_en_redes_confiables(ip, trusted_proxies):
+            return ip
+
+    return ips[0] if ips else remote_addr
 
 
 def enmascarar_dato_sensible(valor: str, tipo: str = "token") -> str:
