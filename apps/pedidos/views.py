@@ -505,8 +505,20 @@ def ver_pedido_admin(request, id):
             )
             return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
+    entrega = orden.entregas.select_related("conductor__usuario", "vehiculo").first()
+    conductor_usuario = (
+        (entrega.conductor.usuario if entrega and entrega.conductor else None)
+        or orden.conductor_usuario
+    )
+    vehiculo = entrega.vehiculo if entrega else None
+    pago = orden.pago_actual
+
     context = {
         "orden": orden,
+        "entrega": entrega,
+        "conductor_usuario": conductor_usuario,
+        "vehiculo": vehiculo,
+        "pago": pago,
         "puede_confirmar_entrega": (
             usuario_actual.rol == "conductor"
             and conductor_asignado
@@ -847,4 +859,90 @@ def cancelar_pedido(request, pk):
     return redirect("pedidos:detalle_solicitud", pk=pk)
 
 
+@login_required
+def estado_pedido_api(request, id):
+    orden = get_object_or_404(Pedido, codigo_pedido=id)
+    usuario_actual = request.user
+    is_super = getattr(usuario_actual, "is_superuser", False) or getattr(
+        usuario_actual, "es_superadmin", False
+    )
+    es_admin = is_super or getattr(usuario_actual, "rol", "") == "admin"
+    cliente_dueno = (orden.usuario_id == usuario_actual.pk) or (
+        orden.cliente is not None and orden.cliente.usuario_id == usuario_actual.pk
+    )
+    perfil_conductor = (
+        getattr(usuario_actual, "conductor_profile", None)
+        if getattr(usuario_actual, "rol", "") == "conductor"
+        else None
+    )
+    conductor_asignado = bool(
+        orden.conductor_usuario_legacy_id == usuario_actual.pk
+        or (
+            perfil_conductor is not None
+            and (
+                orden.conductor_id == perfil_conductor.pk
+                or orden.entregas.filter(conductor_id=perfil_conductor.pk).exists()
+            )
+        )
+    )
+
+    if not (es_admin or cliente_dueno or conductor_asignado):
+        return JsonResponse({"error": "No autorizado"}, status=403)
+
+    entrega = orden.entregas.select_related("conductor__usuario", "vehiculo").first()
+    conductor_usuario = (
+        (entrega.conductor.usuario if entrega and entrega.conductor else None)
+        or orden.conductor_usuario
+    )
+    vehiculo = entrega.vehiculo if entrega else None
+    pago = orden.pago_actual
+
+    data = {
+        "codigo_pedido": orden.codigo_pedido,
+        "estado": orden.estado,
+        "estado_display": orden.get_estado_display(),
+        "fecha_solicitud": (
+            orden.fecha_solicitud.strftime("%d/%m/%Y %H:%M") if orden.fecha_solicitud else ""
+        ),
+        "pago": {
+            "existe": bool(pago),
+            "estado": pago.estado if pago else None,
+            "estado_display": pago.get_estado_display() if pago else "Sin registrar",
+            "metodo": pago.metodo if pago else "",
+            "metodo_display": pago.get_metodo_display() if pago else "",
+            "fecha_revision": (
+                pago.fecha_revision.strftime("%d/%m/%Y %H:%M")
+                if (pago and pago.fecha_revision)
+                else ""
+            ),
+        },
+        "logistica": {
+            "fecha_toma_entrega": (
+                orden.fecha_toma_entrega.strftime("%d/%m/%Y %H:%M")
+                if orden.fecha_toma_entrega
+                else ""
+            ),
+            "fecha_entrega_real": (
+                orden.fecha_entrega_real.strftime("%d/%m/%Y %H:%M")
+                if orden.fecha_entrega_real
+                else ""
+            ),
+            "conductor": (
+                f"{conductor_usuario.nombres} {conductor_usuario.apellidos}"
+                if conductor_usuario
+                else None
+            ),
+            "conductor_telefono": (
+                getattr(conductor_usuario, "telefono", "") if conductor_usuario else ""
+            ),
+            "vehiculo_placa": vehiculo.placa if vehiculo else None,
+            "vehiculo_desc": (
+                f"{vehiculo.marca} {vehiculo.modelo}" if vehiculo else None
+            ),
+        },
+    }
+    return JsonResponse(data)
+
+
 from apps.pedidos.views_pagos import *  # noqa: F401,F403
+

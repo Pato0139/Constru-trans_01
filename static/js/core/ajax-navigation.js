@@ -284,6 +284,11 @@ window.AppAjaxNavigation = (() => {
                 return false;
             }
         }
+        if (typeof window.cleanupOrphanTooltips === 'function') {
+            window.cleanupOrphanTooltips();
+        } else {
+            document.querySelectorAll('.tooltip').forEach((t) => t.remove());
+        }
         window.AppPageLifecycle.beginNavigation();
         currentContent.replaceWith(nextContent);
 

@@ -4,7 +4,7 @@ import socket
 from functools import lru_cache
 
 from django.core.cache import cache
-from django.db import connections
+from django.db import connections, router, transaction
 from django.db.utils import ConnectionDoesNotExist, OperationalError
 
 logger = logging.getLogger(__name__)
@@ -142,17 +142,18 @@ def registrar_actividad(request, accion, modulo, elemento_id=None, descripcion="
 
     # Intentar registrar en la base de datos de auditoría.
     # La tabla 'historial' puede no existir en SQLite local (solo en Neon/PostgreSQL).
-    # Ignorar el error de auditoría para no romper la operación del usuario.
+    # Se usa transaction.atomic() como savepoint para evitar invalidar transacciones activas en PostgreSQL.
+    using = router.db_for_write(Historial)
     try:
-        Historial.objects.create(**datos)
+        with transaction.atomic(using=using):
+            Historial.objects.using(using).create(**datos)
     except Exception:
         try:
-            datos["usuario"] = None
-            Historial.objects.create(**datos)
+            with transaction.atomic(using=using):
+                datos["usuario"] = None
+                Historial.objects.using(using).create(**datos)
         except Exception:
             pass  # Auditoría opcional: no bloquear la operación del usuario
-            # Último recurso: la auditoría nunca debe tumbar la operación
-            # del usuario (un toggle, un login, etc.).
             logger.error(
                 "No se pudo registrar la actividad en el historial: %s/%s",
                 accion,

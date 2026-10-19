@@ -4,37 +4,14 @@ from apps.pagos.models import Factura, PagoFactura
 from apps.pedidos.models import Pago
 from apps.pagos.models import Pago
 from apps.pedidos.validators import validar_comprobante_imagen
-from apps.pedidos.forms_pagos import PagoRevisionForm as _PagoRevisionBase
+from apps.pedidos.forms_pagos import (
+    PagoRegistroForm as _PagoRegistroBase,
+    PagoRevisionForm as _PagoRevisionBase,
+)
 from config.forms_base import StrictModelForm
 
+PagoRegistroForm = _PagoRegistroBase
 PagoRevisionForm = _PagoRevisionBase
-
-
-class PagoRegistroForm(forms.ModelForm):
-    class Meta:
-        model = Pago
-        fields = ["metodo", "comprobante"]
-        widgets = {
-            "metodo": forms.Select(attrs={"class": "form-select"}),
-            "comprobante": forms.ClearableFileInput(attrs={"class": "form-control"}),
-        }
-
-    def clean_comprobante(self):
-        comprobante = self.cleaned_data.get("comprobante")
-        if comprobante:
-            validar_comprobante_imagen(comprobante)
-        return comprobante
-
-    def clean(self):
-        cleaned = super().clean()
-        metodo = cleaned.get("metodo")
-        comprobante = cleaned.get("comprobante")
-        if metodo in Pago.METODOS_CON_COMPROBANTE and not comprobante:
-            self.add_error("comprobante", "Este método de pago requiere comprobante.")
-        return cleaned
-
-
-# PagoRevisionForm: se reexporta (arriba) la versión estricta de apps.pedidos.forms_pagos.
 
 
 class PagoFacturaRegistroForm(StrictModelForm):

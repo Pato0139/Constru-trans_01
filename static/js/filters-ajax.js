@@ -131,7 +131,9 @@
         }
 
         function reinjectTooltips() {
-            if (global.bootstrap && typeof global.bootstrap.Tooltip !== 'undefined') {
+            if (typeof global.initAppTooltips === 'function') {
+                global.initAppTooltips();
+            } else if (global.bootstrap && typeof global.bootstrap.Tooltip !== 'undefined') {
                 document.querySelectorAll('[data-tooltip], [data-bs-toggle="tooltip"]').forEach((el) => {
                     try { new global.bootstrap.Tooltip(el); } catch (_) {}
                 });
@@ -164,6 +166,11 @@
                 if (!res.ok) throw new Error('Status ' + res.status);
                 const html = await res.text();
                 if (tbody) {
+                    if (typeof global.cleanupOrphanTooltips === 'function') {
+                        global.cleanupOrphanTooltips();
+                    } else {
+                        document.querySelectorAll('.tooltip').forEach((t) => t.remove());
+                    }
                     tbody.innerHTML = html;
                 }
                 const currentSearch = window.location.search || '';
