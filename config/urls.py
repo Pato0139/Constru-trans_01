@@ -41,19 +41,19 @@ urlpatterns = [
         lambda r: redirect("usuarios:password_reset_complete"),
         name="password_reset_complete",
     ),
-    # ===== Bloqueo de acceso directo a comprobantes privados =====
+    # ===== Bloqueo de acceso directo a comprobantes privados (404 Not Found) =====
     path(
         "media/comprobantes/<path:path>",
-        lambda r, path="": core_views.error_403(
+        lambda r, path="": core_views.error_404(
             r,
-            Exception("Acceso prohibido: los comprobantes solo se consultan por la vista protegida."),
+            Exception("Recurso no encontrado."),
         ),
     ),
     path(
         "media/comprobantes/",
-        lambda r: core_views.error_403(
+        lambda r: core_views.error_404(
             r,
-            Exception("Acceso prohibido: los comprobantes solo se consultan por la vista protegida."),
+            Exception("Recurso no encontrado."),
         ),
     ),
 ]
