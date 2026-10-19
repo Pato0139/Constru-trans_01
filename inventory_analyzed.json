@@ -1,0 +1,2654 @@
+[
+  {
+    "url": "licensing/expired/",
+    "name": "license_expired",
+    "callback_name": "license_expired",
+    "module": "apps.licensing.views",
+    "file": "apps/licensing/views.py",
+    "line": 14,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "licensing/activate/",
+    "name": "license_activate",
+    "callback_name": "license_activate",
+    "module": "apps.licensing.views",
+    "file": "apps/licensing/views.py",
+    "line": 18,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/login/",
+    "name": "login",
+    "callback_name": "login_usuario",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 285,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "LoginForm"
+    ],
+    "strict_status": "No",
+    "accepts_files": false,
+    "query_params": [
+      "next"
+    ],
+    "body_fields": [
+      "username",
+      "password",
+      "remember_me"
+    ]
+  },
+  {
+    "url": "usuarios/registro/",
+    "name": "registro",
+    "callback_name": "registro",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 187,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "RegistroForm"
+    ],
+    "strict_status": "No",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/panel/",
+    "name": "panel",
+    "callback_name": "panel",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 511,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/logout/",
+    "name": "logout",
+    "callback_name": "cerrar_sesion",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 1290,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/usuarios/",
+    "name": "lista_usuarios",
+    "callback_name": "lista_usuarios",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 139,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "q",
+      "tab"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/usuarios/crear/",
+    "name": "crear_usuario",
+    "callback_name": "crear_usuario",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 841,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "FotoPerfilForm"
+    ],
+    "strict_status": "No",
+    "accepts_files": true,
+    "query_params": [],
+    "body_fields": [
+      "foto_perfil",
+      "nombres",
+      "apellidos",
+      "email",
+      "password",
+      "telefono",
+      "rol",
+      "tipo_doc",
+      "documento"
+    ]
+  },
+  {
+    "url": "usuarios/usuarios/eliminar/<int:id>/",
+    "name": "eliminar_usuario",
+    "callback_name": "eliminar_usuario",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 1003,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/usuarios/toggle-estado/<int:id>/",
+    "name": "toggle_estado_usuario",
+    "callback_name": "toggle_estado_usuario",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 979,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/usuarios/editar/<int:id>/",
+    "name": "editar_usuario",
+    "callback_name": "editar_usuario",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 1017,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "FotoPerfilForm"
+    ],
+    "strict_status": "No",
+    "accepts_files": true,
+    "query_params": [],
+    "body_fields": [
+      "foto_perfil",
+      "nombres",
+      "apellidos",
+      "telefono",
+      "rol"
+    ]
+  },
+  {
+    "url": "usuarios/perfil/admin/",
+    "name": "perfil_admin",
+    "callback_name": "perfil_admin",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 655,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/perfil/editar/",
+    "name": "editar_perfil",
+    "callback_name": "editar_perfil",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 676,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "FotoPerfilForm"
+    ],
+    "strict_status": "No",
+    "accepts_files": true,
+    "query_params": [],
+    "body_fields": [
+      "foto_perfil",
+      "action",
+      "nombres",
+      "apellidos",
+      "telefono",
+      "email"
+    ]
+  },
+  {
+    "url": "usuarios/conductores/",
+    "name": "lista_conductores",
+    "callback_name": "lista_conductores",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 1146,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/conductores/asignar-vehiculo/<int:conductor_id>/",
+    "name": "asignar_vehiculo_conductor",
+    "callback_name": "asignar_vehiculo_conductor",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 1165,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "AsignarVehiculoForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/panel-conductor/",
+    "name": "panel_conductor",
+    "callback_name": "panel_conductor",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 551,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/perfil-conductor/",
+    "name": "perfil_conductor",
+    "callback_name": "perfil_conductor",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 1221,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "id"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/pedidos-conductor/",
+    "name": "pedidos_conductor",
+    "callback_name": "pedidos_conductor",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 579,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "id_pedido",
+      "origen",
+      "destino",
+      "fecha",
+      "estado"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/mis-entregas/",
+    "name": "mis_entregas",
+    "callback_name": "mis_entregas",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 617,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "id_pedido",
+      "origen",
+      "destino",
+      "fecha",
+      "estado"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/notificaciones/",
+    "name": "notificaciones",
+    "callback_name": "lista_notificaciones",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 1317,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/notificaciones/marcar-leida/<int:id>/",
+    "name": "marcar_notificacion_leida",
+    "callback_name": "marcar_notificacion_leida",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 1324,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/configuraciones/",
+    "name": "configuraciones",
+    "callback_name": "configuraciones_usuario",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 1345,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "usuarios/bd/cambiar/",
+    "name": "cambiar_modo_bd",
+    "callback_name": "cambiar_modo_bd",
+    "module": "apps.usuarios.views",
+    "file": "apps/usuarios/views.py",
+    "line": 1355,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "modo"
+    ]
+  },
+  {
+    "url": "usuarios/recuperar/",
+    "name": "password_reset",
+    "callback_name": "dispatch",
+    "module": "django.contrib.auth.views",
+    "file": "C:/Users/User/AppData/Local/Python/pythoncore-3.14-64/Lib/site-packages/django/contrib/auth/views.py",
+    "line": 227,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "clientes/panel/",
+    "name": "panel_cliente",
+    "callback_name": "panel_cliente",
+    "module": "apps.clientes.views",
+    "file": "apps/clientes/views.py",
+    "line": 265,
+    "role": "superuser",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "clientes/perfil/",
+    "name": "perfil_cliente",
+    "callback_name": "perfil_cliente",
+    "module": "apps.clientes.views",
+    "file": "apps/clientes/views.py",
+    "line": 367,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "clientes/pedido/crear/",
+    "name": "crear_pedido",
+    "callback_name": "crear_pedido",
+    "module": "apps.clientes.views",
+    "file": "apps/clientes/views.py",
+    "line": 446,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "ciudad",
+      "direccion_detalle",
+      "fecha_entrega"
+    ]
+  },
+  {
+    "url": "clientes/pedido/editar/<int:id>/",
+    "name": "editar_pedido",
+    "callback_name": "editar_pedido",
+    "module": "apps.clientes.views",
+    "file": "apps/clientes/views.py",
+    "line": 627,
+    "role": "superuser",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "ciudad",
+      "direccion_detalle",
+      "fecha_entrega"
+    ]
+  },
+  {
+    "url": "clientes/mis-pedidos/",
+    "name": "mis_pedidos",
+    "callback_name": "mis_pedidos",
+    "module": "apps.clientes.views",
+    "file": "apps/clientes/views.py",
+    "line": 291,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "destino",
+      "estado",
+      "q"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "clientes/mis-pagos/",
+    "name": "mis_pagos",
+    "callback_name": "mis_pagos",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 415,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "clientes/seguimiento/",
+    "name": "seguimiento_pedidos",
+    "callback_name": "seguimiento_pedidos",
+    "module": "apps.clientes.views",
+    "file": "apps/clientes/views.py",
+    "line": 389,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "clientes/historial/",
+    "name": "historial_pedidos",
+    "callback_name": "historial_pedidos",
+    "module": "apps.clientes.views",
+    "file": "apps/clientes/views.py",
+    "line": 402,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "q",
+      "fecha",
+      "estado"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "clientes/orden/cancelar/<int:id>/",
+    "name": "cancelar_pedido",
+    "callback_name": "cancelar_pedido",
+    "module": "apps.clientes.views",
+    "file": "apps/clientes/views.py",
+    "line": 839,
+    "role": "superuser",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "clientes/admin/lista/",
+    "name": "lista_clientes",
+    "callback_name": "lista_clientes",
+    "module": "apps.clientes.views",
+    "file": "apps/clientes/views.py",
+    "line": 944,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "q",
+      "estado"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "clientes/admin/detalle/<int:id>/",
+    "name": "detalle_cliente",
+    "callback_name": "detalle_cliente",
+    "module": "apps.clientes.views",
+    "file": "apps/clientes/views.py",
+    "line": 994,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "clientes/admin/editar/<int:id>/",
+    "name": "editar_cliente",
+    "callback_name": "editar_cliente",
+    "module": "apps.clientes.views",
+    "file": "apps/clientes/views.py",
+    "line": 1015,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "tipo_cliente",
+      "estado",
+      "direccion_principal",
+      "direccion",
+      "nit",
+      "nombre_empresa",
+      "observaciones",
+      "es_vip",
+      "telefono"
+    ]
+  },
+  {
+    "url": "catalogo/materiales/",
+    "name": "materiales_lista",
+    "callback_name": "materiales_lista",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "apps/catalogo/views/materiales_views.py",
+    "line": 14,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "material",
+      "tipo",
+      "id"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/materiales/crear/",
+    "name": "crear_material",
+    "callback_name": "crear_material",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "apps/catalogo/views/materiales_views.py",
+    "line": 62,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "MaterialForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/materiales/editar/<int:id>/",
+    "name": "editar_material",
+    "callback_name": "editar_material",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "apps/catalogo/views/materiales_views.py",
+    "line": 98,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "MaterialForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/materiales/estado/<int:id>/",
+    "name": "cambiar_estado_material",
+    "callback_name": "cambiar_estado_material",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "apps/catalogo/views/materiales_views.py",
+    "line": 143,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/materiales/eliminar/<int:id>/",
+    "name": "eliminar_material",
+    "callback_name": "eliminar_material",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "apps/catalogo/views/materiales_views.py",
+    "line": 117,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/stock/",
+    "name": "stock_lista",
+    "callback_name": "stock_lista",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "apps/catalogo/views/materiales_views.py",
+    "line": 161,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "material",
+      "ubicacion",
+      "stock_actual",
+      "q"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/stock/editar/<int:id>/",
+    "name": "editar_stock",
+    "callback_name": "editar_stock",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "apps/catalogo/views/materiales_views.py",
+    "line": 205,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "ubicacion",
+      "cantidad"
+    ]
+  },
+  {
+    "url": "catalogo/movimientos/",
+    "name": "movimientos_lista",
+    "callback_name": "movimientos_lista",
+    "module": "apps.catalogo.views.movimientos_views",
+    "file": "apps/catalogo/views/movimientos_views.py",
+    "line": 42,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "q",
+      "tipo",
+      "fecha",
+      "usuario"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/entrada/",
+    "name": "registrar_entrada",
+    "callback_name": "registrar_entrada",
+    "module": "apps.catalogo.views.movimientos_views",
+    "file": "apps/catalogo/views/movimientos_views.py",
+    "line": 13,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "material_id",
+      "cantidad",
+      "motivo"
+    ]
+  },
+  {
+    "url": "catalogo/tipos/",
+    "name": "tipos_material_lista",
+    "callback_name": "tipos_material_lista",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 12,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "codigo",
+      "nombre",
+      "materiales_asociados",
+      "q"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/tipos/crear/",
+    "name": "crear_tipo_material",
+    "callback_name": "crear_tipo_material",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 76,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "CatalogoForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/tipos/editar/<str:codigo>/",
+    "name": "editar_tipo_material",
+    "callback_name": "editar_tipo_material",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 101,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "CatalogoForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/tipos/estado/<str:codigo>/",
+    "name": "cambiar_estado_tipo",
+    "callback_name": "cambiar_estado_tipo",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 124,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/tipos/eliminar/<str:codigo>/",
+    "name": "eliminar_tipo_material",
+    "callback_name": "eliminar_tipo_material",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 137,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/tipos/eliminar/<str:codigo>/",
+    "name": "eliminar_tipo_material",
+    "callback_name": "eliminar_tipo_material",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 137,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/unidades/",
+    "name": "unidades_medida_lista",
+    "callback_name": "unidades_medida_lista",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 158,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "q"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/unidades/crear/",
+    "name": "crear_unidad_medida",
+    "callback_name": "crear_unidad_medida",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 182,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "UnidadMedidaForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/unidades/editar/<int:id>/",
+    "name": "editar_unidad_medida",
+    "callback_name": "editar_unidad_medida",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 206,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "UnidadMedidaForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/unidades/estado/<int:id>/",
+    "name": "cambiar_estado_unidad_medida",
+    "callback_name": "cambiar_estado_unidad_medida",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 228,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/unidades/eliminar/<int:id>/",
+    "name": "eliminar_unidad_medida",
+    "callback_name": "eliminar_unidad_medida",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 245,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/marcas/",
+    "name": "marcas_lista",
+    "callback_name": "marcas_lista",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 271,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "q"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/marcas/crear/",
+    "name": "crear_marca",
+    "callback_name": "crear_marca",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 308,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "MarcaForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/marcas/editar/<int:id>/",
+    "name": "editar_marca",
+    "callback_name": "editar_marca",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 332,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "MarcaForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/marcas/eliminar/<int:id>/",
+    "name": "eliminar_marca",
+    "callback_name": "eliminar_marca",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 373,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/marcas/estado/<int:id>/",
+    "name": "cambiar_estado_marca",
+    "callback_name": "cambiar_estado_marca",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "apps/catalogo/views/catalogo_views.py",
+    "line": 354,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/api/materiales/",
+    "name": "api_materiales",
+    "callback_name": "api_materiales",
+    "module": "apps.catalogo.views.api_views",
+    "file": "apps/catalogo/views/api_views.py",
+    "line": 13,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "catalogo/api/materiales/listado/",
+    "name": "api_materiales_listado",
+    "callback_name": "api_materiales_listado",
+    "module": "apps.catalogo.views.api_views",
+    "file": "apps/catalogo/views/api_views.py",
+    "line": 32,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "tipo",
+      "material",
+      "id"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "compras/",
+    "name": "lista_compras",
+    "callback_name": "lista_compras",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 22,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "proveedor",
+      "fecha_compra",
+      "material"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "compras/crear/",
+    "name": "crear_compra",
+    "callback_name": "crear_compra",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 145,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "CompraForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [
+      "proveedor"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "compras/detalle/<int:id>/",
+    "name": "detalle_compra",
+    "callback_name": "detalle_compra",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 201,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "compras/editar/<int:id>/",
+    "name": "editar_compra",
+    "callback_name": "editar_compra",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 234,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "CompraForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "compras/estado/<int:id>/",
+    "name": "cambiar_estado_compra",
+    "callback_name": "cambiar_estado_compra",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 210,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "estado"
+    ]
+  },
+  {
+    "url": "compras/proveedores/",
+    "name": "lista_proveedores",
+    "callback_name": "lista_proveedores",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 320,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "q",
+      "nombre",
+      "nit",
+      "contacto",
+      "ciudad",
+      "estado",
+      "categoria"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "compras/proveedores/crear/",
+    "name": "crear_proveedor",
+    "callback_name": "crear_proveedor",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 413,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "ProveedorForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "compras/proveedores/editar/<int:codigo_proveedor>/",
+    "name": "editar_proveedor",
+    "callback_name": "editar_proveedor",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 450,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "ProveedorForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "compras/proveedores/contactar/<int:codigo_proveedor>/",
+    "name": "contactar_proveedor",
+    "callback_name": "contactar_proveedor",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 278,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "asunto",
+      "mensaje"
+    ]
+  },
+  {
+    "url": "compras/proveedores/estado/<int:codigo_proveedor>/",
+    "name": "cambiar_estado_proveedor",
+    "callback_name": "cambiar_estado_proveedor",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 521,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "next"
+    ]
+  },
+  {
+    "url": "compras/proveedores/perfil/<int:codigo_proveedor>/",
+    "name": "perfil_proveedor",
+    "callback_name": "perfil_proveedor",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 488,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "ProveedorPerfilForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "compras/proveedores/<int:codigo_proveedor>/materiales/",
+    "name": "materiales_proveedor_json",
+    "callback_name": "materiales_proveedor_json",
+    "module": "apps.compras.views",
+    "file": "apps/compras/views.py",
+    "line": 546,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pedidos/lista/",
+    "name": "lista_pedidos_admin",
+    "callback_name": "lista_pedidos_admin",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 231,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pedidos/entregas/",
+    "name": "lista_entregas_admin",
+    "callback_name": "lista_entregas_admin",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 244,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pedidos/detalle/<int:id>/",
+    "name": "ver_pedido_admin",
+    "callback_name": "ver_pedido_admin",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 249,
+    "role": "superuser",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "CambioEstadoPedidoForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "accion",
+      "estado",
+      "observacion"
+    ]
+  },
+  {
+    "url": "pedidos/api/estado/<int:id>/",
+    "name": "estado_pedido_api",
+    "callback_name": "estado_pedido_api",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 862,
+    "role": "superuser",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pedidos/entregas/crear/<int:orden_id>/",
+    "name": "crear_entrega",
+    "callback_name": "crear_entrega",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 531,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "conductor"
+    ]
+  },
+  {
+    "url": "pedidos/eliminar/<int:id>/",
+    "name": "eliminar_orden",
+    "callback_name": "eliminar_orden",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 648,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pedidos/agregar-materiales/<int:id>/",
+    "name": "agregar_materiales",
+    "callback_name": "agregar_materiales",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 88,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "AgregarMaterialForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pedidos/eliminar-detalle/<int:id>/",
+    "name": "eliminar_detalle",
+    "callback_name": "eliminar_detalle",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 54,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pedidos/calcular-total/<int:id>/",
+    "name": "calcular_total",
+    "callback_name": "calcular_total",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 47,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pedidos/solicitudes/crear/",
+    "name": "crear_solicitud",
+    "callback_name": "crear_pedido",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 719,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "descuento"
+    ]
+  },
+  {
+    "url": "pedidos/solicitudes/",
+    "name": "lista_solicitudes",
+    "callback_name": "listar_pedidos",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 802,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pedidos/solicitudes/<int:pk>/",
+    "name": "detalle_solicitud",
+    "callback_name": "detalle_pedido",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 813,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pedidos/solicitudes/<int:pk>/aprobar/",
+    "name": "aprobar_solicitud",
+    "callback_name": "aprobar_pedido",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 825,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pedidos/solicitudes/<int:pk>/cancelar/",
+    "name": "cancelar_solicitud",
+    "callback_name": "cancelar_pedido",
+    "module": "apps.pedidos.views",
+    "file": "apps/pedidos/views.py",
+    "line": 840,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/",
+    "name": "lista_pagos",
+    "callback_name": "lista_pagos",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 62,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "q",
+      "estado",
+      "metodo"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/registrar/<int:pedido_id>/",
+    "name": "registrar_pago_pedido",
+    "callback_name": "registrar_pago_pedido",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 111,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "PagoRegistroForm"
+    ],
+    "strict_status": "No",
+    "accepts_files": true,
+    "query_params": [],
+    "body_fields": [
+      "comprobante"
+    ]
+  },
+  {
+    "url": "pagos/<int:pk>/",
+    "name": "detalle_pago",
+    "callback_name": "detalle_pago",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 232,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/<int:pk>/comprobante/",
+    "name": "ver_comprobante_pago",
+    "callback_name": "ver_comprobante_pago",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 240,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/<int:pk>/revisar/",
+    "name": "revisar_pago_pedido",
+    "callback_name": "revisar_pago_pedido",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 257,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "PagoRevisionForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "observaciones"
+    ]
+  },
+  {
+    "url": "pagos/facturas/",
+    "name": "lista_facturas",
+    "callback_name": "lista_facturas",
+    "module": "apps.pedidos.views_pagos",
+    "file": "apps/pedidos/views_pagos.py",
+    "line": 296,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "q",
+      "estado"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/gestion/",
+    "name": "gestion_pagos",
+    "callback_name": "gestion_pagos",
+    "module": "apps.pedidos.views_pagos",
+    "file": "apps/pedidos/views_pagos.py",
+    "line": 366,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "estado"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/historial/",
+    "name": "historial_pagos",
+    "callback_name": "historial_pagos",
+    "module": "apps.pedidos.views_pagos",
+    "file": "apps/pedidos/views_pagos.py",
+    "line": 381,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/facturas/<int:pk>/",
+    "name": "detalle_factura",
+    "callback_name": "detalle_factura",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 426,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/facturas/<int:pk>/pago/",
+    "name": "registrar_pago",
+    "callback_name": "registrar_pago",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 361,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "PagoFacturaRegistroForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": true,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/facturas/<int:pk>/pago/<int:pago_id>/revisar/",
+    "name": "revisar_pago",
+    "callback_name": "revisar_pago",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 462,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "PagoFacturaRevisionForm"
+    ],
+    "strict_status": "Sí",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "observaciones"
+    ]
+  },
+  {
+    "url": "pagos/facturas/<int:pk>/pdf/",
+    "name": "descargar_factura",
+    "callback_name": "descargar_pdf",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 444,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/pedido/<int:pedido_id>/pdf/",
+    "name": "descargar_factura_pedido",
+    "callback_name": "descargar_factura_pedido",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 456,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/mis-facturas/",
+    "name": "mis_facturas",
+    "callback_name": "mis_facturas",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 404,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "pagos/mis-pagos/",
+    "name": "mis_pagos",
+    "callback_name": "mis_pagos",
+    "module": "apps.pagos.views",
+    "file": "apps/pagos/views.py",
+    "line": 415,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "reportes/admin/",
+    "name": "reportes_admin",
+    "callback_name": "reportes_admin",
+    "module": "apps.reportes.views",
+    "file": "apps/reportes/views.py",
+    "line": 23,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "reportes/exportar/<str:tipo>/",
+    "name": "exportar_reporte_pdf",
+    "callback_name": "exportar_reporte_pdf",
+    "module": "apps.reportes.views",
+    "file": "apps/reportes/views.py",
+    "line": 101,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "reportes/exportar/excel/<str:tipo>/",
+    "name": "exportar_reporte_excel",
+    "callback_name": "exportar_reporte_excel",
+    "module": "apps.reportes.views",
+    "file": "apps/reportes/views.py",
+    "line": 216,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "reportes/exportar/xml/<str:tipo>/",
+    "name": "exportar_reporte_xml",
+    "callback_name": "exportar_reporte_xml",
+    "module": "apps.reportes.views",
+    "file": "apps/reportes/views.py",
+    "line": 308,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "auditoria/lista/",
+    "name": "lista_historial",
+    "callback_name": "lista_historial",
+    "module": "apps.auditoria.views",
+    "file": "apps/auditoria/views.py",
+    "line": 9,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "format",
+      "draw",
+      "start",
+      "length",
+      "usuario",
+      "accion",
+      "modulo",
+      "fecha_inicio",
+      "fecha_fin"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "logistica/vehiculos/",
+    "name": "lista_vehiculos",
+    "callback_name": "lista_vehiculos",
+    "module": "apps.logistica.views",
+    "file": "apps/logistica/views.py",
+    "line": 37,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [
+      "id_vehiculo",
+      "placa",
+      "tipo",
+      "estado",
+      "conductor",
+      "q"
+    ],
+    "body_fields": []
+  },
+  {
+    "url": "logistica/vehiculos/crear/",
+    "name": "crear_vehiculo",
+    "callback_name": "crear_vehiculo",
+    "module": "apps.logistica.views",
+    "file": "apps/logistica/views.py",
+    "line": 136,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "placa",
+      "tipo",
+      "marca",
+      "modelo",
+      "capacidad",
+      "conductor"
+    ]
+  },
+  {
+    "url": "logistica/vehiculos/editar/<int:id>/",
+    "name": "editar_vehiculo",
+    "callback_name": "editar_vehiculo",
+    "module": "apps.logistica.views",
+    "file": "apps/logistica/views.py",
+    "line": 195,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "estado",
+      "conductor",
+      "placa",
+      "tipo",
+      "marca",
+      "modelo",
+      "capacidad"
+    ]
+  },
+  {
+    "url": "logistica/vehiculos/desactivar/<int:id>/",
+    "name": "desactivar_vehiculo",
+    "callback_name": "desactivar_vehiculo",
+    "module": "apps.logistica.views",
+    "file": "apps/logistica/views.py",
+    "line": 345,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "logistica/vehiculos/disponibilidad/<int:id>/",
+    "name": "cambiar_disponibilidad_vehiculo",
+    "callback_name": "cambiar_disponibilidad_vehiculo",
+    "module": "apps.logistica.views",
+    "file": "apps/logistica/views.py",
+    "line": 312,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "logistica/vehiculos/eliminar/<int:id>/",
+    "name": "eliminar_vehiculo",
+    "callback_name": "eliminar_vehiculo",
+    "module": "apps.logistica.views",
+    "file": "apps/logistica/views.py",
+    "line": 294,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "logistica/novedades/crear/<int:entrega_id>/",
+    "name": "crear_novedad",
+    "callback_name": "crear_novedad",
+    "module": "apps.logistica.views",
+    "file": "apps/logistica/views.py",
+    "line": 363,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "tipo",
+      "descripcion"
+    ]
+  },
+  {
+    "url": "logistica/novedades/<int:novedad_id>/seguimiento/",
+    "name": "agregar_seguimiento",
+    "callback_name": "agregar_seguimiento",
+    "module": "apps.logistica.views",
+    "file": "apps/logistica/views.py",
+    "line": 403,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "comentario"
+    ]
+  },
+  {
+    "url": "logistica/novedades/<int:seguimiento_id>/responder/",
+    "name": "responder_seguimiento",
+    "callback_name": "responder_seguimiento",
+    "module": "apps.logistica.views",
+    "file": "apps/logistica/views.py",
+    "line": 437,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "texto",
+      "estado"
+    ]
+  },
+  {
+    "url": "ia/chat/",
+    "name": "chat_ia",
+    "callback_name": "chat_ia",
+    "module": "apps.ia.views",
+    "file": "apps/ia/views/__init__.py",
+    "line": 11,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "mensaje",
+      "historial",
+      "session_id"
+    ]
+  },
+  {
+    "url": "ia/feedback/",
+    "name": "feedback_ia",
+    "callback_name": "feedback_ia",
+    "module": "apps.ia.views",
+    "file": "apps/ia/views/__init__.py",
+    "line": 28,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": [
+      "message_id",
+      "feedback",
+      "comment"
+    ]
+  },
+  {
+    "url": "ayuda/",
+    "name": "index",
+    "callback_name": "index_ayuda",
+    "module": "apps.ayuda.views",
+    "file": "apps/ayuda/views.py",
+    "line": 14,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "ayuda/guias/",
+    "name": "lista_guias",
+    "callback_name": "lista_guias",
+    "module": "apps.ayuda.views",
+    "file": "apps/ayuda/views.py",
+    "line": 33,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "ayuda/guias/categoria/<int:categoria_id>/",
+    "name": "lista_guias_categoria",
+    "callback_name": "lista_guias",
+    "module": "apps.ayuda.views",
+    "file": "apps/ayuda/views.py",
+    "line": 33,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "ayuda/guias/<int:guia_id>/",
+    "name": "detalle_guia",
+    "callback_name": "detalle_guia",
+    "module": "apps.ayuda.views",
+    "file": "apps/ayuda/views.py",
+    "line": 53,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "ayuda/sugerencias/crear/",
+    "name": "crear_sugerencia",
+    "callback_name": "crear_sugerencia",
+    "module": "apps.ayuda.views",
+    "file": "apps/ayuda/views.py",
+    "line": 66,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "decorators": [],
+    "forms_used": [
+      "SugerenciaForm"
+    ],
+    "strict_status": "No",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "ayuda/colores/",
+    "name": "lista_colores",
+    "callback_name": "lista_colores",
+    "module": "apps.ayuda.views",
+    "file": "apps/ayuda/views.py",
+    "line": 86,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "",
+    "name": "inicio",
+    "callback_name": "inicio",
+    "module": "config.views",
+    "file": "config/views.py",
+    "line": 6,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "password-reset/",
+    "name": "password_reset",
+    "callback_name": "<lambda>",
+    "module": "config.urls",
+    "file": "config/urls.py",
+    "line": 32,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "password-reset/done/",
+    "name": "password_reset_done",
+    "callback_name": "<lambda>",
+    "module": "config.urls",
+    "file": "config/urls.py",
+    "line": 35,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "reset/<uidb64>/<token>/",
+    "name": "password_reset_confirm",
+    "callback_name": "redirect_password_reset_confirm",
+    "module": "config.urls",
+    "file": "config/urls.py",
+    "line": 10,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  },
+  {
+    "url": "reset/done/",
+    "name": "password_reset_complete",
+    "callback_name": "<lambda>",
+    "module": "config.urls",
+    "file": "config/urls.py",
+    "line": 41,
+    "role": "Público / Autenticado",
+    "methods": [
+      "GET"
+    ],
+    "decorators": [],
+    "forms_used": [],
+    "strict_status": "N/A",
+    "accepts_files": false,
+    "query_params": [],
+    "body_fields": []
+  }
+]
