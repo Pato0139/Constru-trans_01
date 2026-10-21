@@ -430,7 +430,10 @@ def detalle_factura(request, pk):
 
 @role_required(["admin", "cliente"])
 def descargar_pdf(request, pk):
-    factura = get_object_or_404(Factura, pk=pk)
+    factura = get_object_or_404(Factura.objects.select_related("cliente__usuario"), pk=pk)
+    usuario = _usuario_actual(request)
+    if getattr(usuario, "rol", "") == "cliente" and factura.cliente.usuario_id != usuario.pk:
+        raise Http404("Factura no encontrada.")
     pdf_bytes = render_factura_pdf(factura)
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'inline; filename="{factura.numero}.pdf"'

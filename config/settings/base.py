@@ -169,6 +169,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "csp.middleware.CSPMiddleware",
     "django.middleware.gzip.GZipMiddleware",
     "django.middleware.http.ConditionalGetMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -294,7 +295,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-        "OPTIONS": {"min_length": 8},
+        "OPTIONS": {"min_length": 10},
     },
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -332,10 +333,43 @@ CSRF_COOKIE_HTTPONLY = False
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_SAMESITE = "Lax"
 
-# Cabeceras de seguridad
-SECURE_BROWSER_X_FRAME_OPTIONS = "DENY"
+# Cabeceras de seguridad estándar de Django
+X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# Content Security Policy (modo Report-Only para monitoreo sin romper assets)
+CSP_REPORT_ONLY = True
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = (
+    "'self'",
+    "'unsafe-inline'",
+    "https://cdn.jsdelivr.net",
+    "https://cdnjs.cloudflare.com",
+    "https://fonts.googleapis.com",
+    "https://www.gstatic.com",
+    "https://www.google.com",
+)
+CSP_STYLE_SRC = (
+    "'self'",
+    "'unsafe-inline'",
+    "https://cdn.jsdelivr.net",
+    "https://cdnjs.cloudflare.com",
+    "https://fonts.googleapis.com",
+    "https://fonts.gstatic.com",
+)
+CSP_FONT_SRC = (
+    "'self'",
+    "https://fonts.gstatic.com",
+    "https://cdn.jsdelivr.net",
+    "https://cdnjs.cloudflare.com",
+)
+CSP_IMG_SRC = ("'self'", "data:", "https:", "http:")
+CSP_CONNECT_SRC = (
+    "'self'",
+    "https://api.open-meteo.com",
+    "https://cdn.jsdelivr.net",
+)
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = False
@@ -460,3 +494,11 @@ LICENSE_SERVER_URL = env("LICENSE_SERVER_URL")
 LICENSE_PUBLIC_KEY = env("LICENSE_PUBLIC_KEY")
 LICENSE_HEARTBEAT_MINUTES = env("LICENSE_HEARTBEAT_MINUTES")
 LICENSE_MAX_AGE_DAYS = env("LICENSE_MAX_AGE_DAYS")
+
+# ============================================================
+# POLÍTICAS DE PEDIDOS (CONFIGURACIÓN PARAMÉTRICA)
+# ============================================================
+from decimal import Decimal
+
+PEDIDOS_ANTICIPACION_MINIMA_DIAS = env.int("PEDIDOS_ANTICIPACION_MINIMA_DIAS", default=0)
+PEDIDOS_TOPE_DESCUENTO_MAX_PCT = Decimal(str(env("PEDIDOS_TOPE_DESCUENTO_MAX_PCT", default="0.00")))

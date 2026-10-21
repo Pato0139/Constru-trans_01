@@ -740,17 +740,17 @@ def crear_pedido(request):
         vistos = set()
         try:
             for material_id, cantidad_raw in zip(materiales_ids, cantidades, strict=True):
-                if (
-                    not material_id.isdecimal()
-                    or not cantidad_raw.isdecimal()
-                ):
+                if not str(material_id).strip().isdecimal():
                     raise ValueError("El formulario contiene materiales o cantidades inválidos.")
                 material_pk = int(material_id)
                 if material_pk in vistos:
                     raise ValueError("El formulario contiene materiales o cantidades inválidos.")
-                cantidad = int(cantidad_raw)
-                if not 1 <= cantidad <= 100000:
-                    raise ValueError("Cada cantidad debe estar entre 1 y 100000.")
+                try:
+                    cantidad = Decimal(str(cantidad_raw).strip())
+                except Exception:
+                    raise ValueError("Las cantidades deben ser números válidos mayores a cero.")
+                if not (Decimal("0.01") <= cantidad <= Decimal("100000")):
+                    raise ValueError("Cada cantidad debe estar entre 0.01 y 100000.")
                 vistos.add(material_pk)
                 items.append((material_pk, cantidad))
 

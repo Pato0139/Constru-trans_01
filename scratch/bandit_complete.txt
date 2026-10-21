@@ -1,0 +1,1754 @@
+Run started:2026-10-19 00:50:39.069201+00:00
+
+Test results:
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\auditoria\tests\test_historial_smoke.py:13:21
+12	            email="adminsmoke@test.com",
+13	            password="password123",
+14	            nombres="Admin",
+15	            apellidos="Smoke",
+16	            documento="555444333",
+17	            tipo_documento="CC",
+18	            rol="admin",
+19	        )
+20	
+21	    def test_ruta_carga(self):
+22	        self.client.login(username="adminsmoke", password="password123")
+23	        response = self.client.get(reverse("auditoria:lista_historial"))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\auditoria\tests\test_historial_smoke.py:22:8
+21	    def test_ruta_carga(self):
+22	        self.client.login(username="adminsmoke", password="password123")
+23	        response = self.client.get(reverse("auditoria:lista_historial"))
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: apps\catalogo\management\commands\sincronizar.py:344:32
+343	                    try:
+344	                        sql = f"SELECT setval(pg_get_serial_sequence('{tabla}', '{columna}'), (SELECT MAX({columna}) FROM {tabla}));"
+345	                        cursor.execute(sql)
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: apps\catalogo\management\commands\sincronizar.py:346:20
+345	                        cursor.execute(sql)
+346	                    except Exception:
+347	                        continue
+348	            self.stdout.write(self.style.SUCCESS("  [OK] Secuencias de la nube corregidas."))
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Medium
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: apps\catalogo\migrations\0002_movimientoinventario.py:108:14
+107	        cursor.execute(
+108	            f"UPDATE {quote(table)} "
+109	            f"SET {quote(original_code_field.column)} = "
+110	            f"COALESCE({quote(original_code_field.column)}, {quote(material_field.column)}), "
+111	            f"{quote(material_field.column)} = NULL "
+112	            f"WHERE {quote(material_field.column)} IS NOT NULL "
+113	            f"AND NOT EXISTS ("
+114	            f"SELECT 1 FROM {quote(target_table)} "
+115	            f"WHERE {quote(target_table)}.{quote(target_field.column)} = "
+116	            f"{quote(table)}.{quote(material_field.column)})"
+117	        )
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_cliente_models.py:15:20
+14	            email="cliente.model@example.com",
+15	            password="testpass123",
+16	            nombres="Ana",
+17	            apellidos="Gomez",
+18	            documento="12345678",
+19	            tipo_documento="CC",
+20	            rol="cliente",
+21	        )
+22	
+23	    def test_ensure_for_user_crea_perfil(self):
+24	        Cliente.objects.filter(usuario=self.user).delete()
+25	        cliente, created = Cliente.ensure_for_user(self.user)
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'test123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_cliente_models.py:79:16
+78	            email="nuevo@example.com",
+79	            password="test123",
+80	            nombres="Nuevo",
+81	            apellidos="Cliente",
+82	            documento="87654321",
+83	            rol="cliente",
+84	        )
+85	        self.assertTrue(Cliente.objects.filter(usuario=nuevo).exists())
+86	
+87	    def test_signal_no_crea_perfil_para_no_cliente(self):
+88	        nuevo = Usuario.objects.create_user(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'test123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_cliente_models.py:91:16
+90	            email="admin.nocliente@example.com",
+91	            password="test123",
+92	            nombres="Admin",
+93	            apellidos="NoCliente",
+94	            documento="11111111",
+95	            rol="admin",
+96	        )
+97	        self.assertFalse(Cliente.objects.filter(usuario=nuevo).exists())
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123!'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_crear_pedido_flujo.py:19:28
+18	            email="cliente_test@constru-trans.com",
+19	            password="Password123!",
+20	            nombres="Juan",
+21	            apellidos="Pérez",
+22	            documento="1010202030",
+23	            tipo_documento="CC",
+24	            rol="cliente",
+25	        )
+26	        self.cliente_profile, _ = Cliente.ensure_for_user(
+27	            self.cliente_user,
+28	            defaults={"direccion": "Calle 10 # 20-30", "telefono": "3001234567"},
+29	        )
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123!'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_crear_pedido_flujo.py:33:26
+32	            email="admin_test@constru-trans.com",
+33	            password="Password123!",
+34	            nombres="Carlos",
+35	            apellidos="Admin",
+36	            documento="9090808070",
+37	            tipo_documento="CC",
+38	            rol="admin",
+39	            is_staff=True,
+40	        )
+41	
+42	        self.unidad = UnidadMedida.objects.create(
+43	            codigo="UND",
+44	            nombre="Unidad",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'secret123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_models.py:12:15
+11	            email="cliente.test@example.com",
+12	            password="secret123",
+13	            nombres="Cliente",
+14	            apellidos="Prueba",
+15	            documento="12345678",
+16	            tipo_documento="CC",
+17	            rol="cliente",
+18	        )
+19	
+20	        Cliente.objects.filter(usuario=user).delete()
+21	
+22	        cliente, created = Cliente.ensure_for_user(user)
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'secret123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_models.py:32:15
+31	            email="cliente.eliminado@example.com",
+32	            password="secret123",
+33	            nombres="Cliente",
+34	            apellidos="Eliminado",
+35	            documento="87654321",
+36	            tipo_documento="CC",
+37	            rol="cliente",
+38	        )
+39	        user.delete()
+40	
+41	        with self.assertRaises(ValueError):
+42	            Cliente.ensure_for_user(user)
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_paneles_cliente.py:22:21
+21	            email="cliente1@test.com",
+22	            password="password123",
+23	            nombres="Juan",
+24	            apellidos="Perez",
+25	            documento="111222333",
+26	            tipo_documento="CC",
+27	            telefono="3001234567",
+28	            rol="cliente",
+29	        )
+30	        self.cliente1, _ = Cliente.ensure_for_user(self.user1)
+31	        self.cliente1.direccion = "Calle 10 # 20-30"
+32	        self.cliente1.save()
+33	
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_paneles_cliente.py:38:21
+37	            email="cliente2@test.com",
+38	            password="password123",
+39	            nombres="Maria",
+40	            apellidos="Gomez",
+41	            documento="444555666",
+42	            tipo_documento="CC",
+43	            telefono="3009876543",
+44	            rol="cliente",
+45	        )
+46	        self.cliente2, _ = Cliente.ensure_for_user(self.user2)
+47	        self.cliente2.direccion = "Carrera 40 # 50-60"
+48	        self.cliente2.save()
+49	
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_paneles_cliente.py:54:25
+53	            email="conductor1@test.com",
+54	            password="password123",
+55	            nombres="Carlos",
+56	            apellidos="Rueda",
+57	            documento="777888999",
+58	            tipo_documento="CC",
+59	            telefono="3110001122",
+60	            rol="conductor",
+61	        )
+62	        self.conductor, _ = Conductor.ensure_for_user(self.user_cond)
+63	
+64	        # Vehiculo
+65	        self.vehiculo = Vehiculo.objects.create(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_views.py:15:21
+14	            email="adminsmoke@test.com",
+15	            password="password123",
+16	            nombres="Admin",
+17	            apellidos="Smoke",
+18	            documento="555444333",
+19	            tipo_documento="CC",
+20	            rol="cliente",
+21	        )
+22	
+23	    def test_ruta_carga(self):
+24	        self.client.login(username="adminsmoke", password="password123")
+25	        response = self.client.get(reverse("clientes:mis_pedidos"))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\clientes\tests\test_views.py:24:8
+23	    def test_ruta_carga(self):
+24	        self.client.login(username="adminsmoke", password="password123")
+25	        response = self.client.get(reverse("clientes:mis_pedidos"))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\compras\tests\test_models.py:14:23
+13	            email="compras@test.com",
+14	            password="password123",
+15	            nombres="Admin",
+16	            apellidos="Compras",
+17	            documento="123123123",
+18	            tipo_documento="CC",
+19	            rol="admin",
+20	        )
+21	        self.unidad = UnidadMedida.objects.create(
+22	            codigo="UND",
+23	            nombre="Unidad",
+24	            abreviatura="u",
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: apps\ia\services\assistant_service.py:985:27
+984	        ]
+985	        return f"{saludo} {random.choice(respuestas_bienvenida)}".strip()
+986	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: apps\ia\services\assistant_service.py:1023:23
+1022	
+1023	    return f"{saludo} {random.choice(respuestas_por_defecto)}".strip()
+1024	
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\ia\tests\test_ia.py:18:26
+17	            email="admin@test.com",
+18	            password="testpass123",
+19	            nombres="Admin",
+20	            apellidos="Test",
+21	            rol="admin",
+22	            estado="activo",
+23	        )
+24	        self.cliente_user = User.objects.create_user(
+25	            email="cliente@test.com",
+26	            password="testpass123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\ia\tests\test_ia.py:26:28
+25	            email="cliente@test.com",
+26	            password="testpass123",
+27	            nombres="Cliente",
+28	            apellidos="Test",
+29	            rol="cliente",
+30	            estado="activo",
+31	        )
+32	        self.conductor_user = User.objects.create_user(
+33	            email="conductor@test.com",
+34	            password="testpass123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\ia\tests\test_ia.py:34:30
+33	            email="conductor@test.com",
+34	            password="testpass123",
+35	            nombres="Conductor",
+36	            apellidos="Test",
+37	            rol="conductor",
+38	            estado="activo",
+39	        )
+40	
+41	    def test_chat_ia_requiere_login(self):
+42	        response = self.client.post(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\ia\tests\test_ia.py:88:26
+87	            email="admin@test.com",
+88	            password="testpass123",
+89	            nombres="Admin",
+90	            apellidos="Test",
+91	            rol="admin",
+92	            estado="activo",
+93	        )
+94	        self.cliente_user = User.objects.create_user(
+95	            email="cliente@test.com",
+96	            password="testpass123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\ia\tests\test_ia.py:96:28
+95	            email="cliente@test.com",
+96	            password="testpass123",
+97	            nombres="Cliente",
+98	            apellidos="Test",
+99	            rol="cliente",
+100	            estado="activo",
+101	        )
+102	        self.conductor_user = User.objects.create_user(
+103	            email="conductor@test.com",
+104	            password="testpass123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'testpass123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\ia\tests\test_ia.py:104:30
+103	            email="conductor@test.com",
+104	            password="testpass123",
+105	            nombres="Conductor",
+106	            apellidos="Test",
+107	            rol="conductor",
+108	            estado="activo",
+109	        )
+110	
+111	    def test_datos_globales_solo_para_admin(self):
+112	        datos_admin = context_service.obtener_contexto_datos(usuario=self.admin_user)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: apps\ia\training\recolector_preguntas.py:61:12
+60	def recolectar_stackexchange(cantidad: int) -> list:
+61	    sitio = random.choice(SITES_STACK)
+62	    try:
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\licensing\tests\test_licensing_smoke.py:17:21
+16	            email="adminsmoke@test.com",
+17	            password="password123",
+18	            nombres="Admin",
+19	            apellidos="Smoke",
+20	            documento="555444333",
+21	            tipo_documento="CC",
+22	            rol="admin",
+23	        )
+24	
+25	    def test_ruta_carga(self):
+26	        self.client.login(username="adminsmoke", password="password123")
+27	        response = self.client.get(reverse("licensing:license_expired"))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\licensing\tests\test_licensing_smoke.py:26:8
+25	    def test_ruta_carga(self):
+26	        self.client.login(username="adminsmoke", password="password123")
+27	        response = self.client.get(reverse("licensing:license_expired"))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\logistica\tests\test_transporte_smoke.py:13:21
+12	            email="adminsmoke@test.com",
+13	            password="password123",
+14	            nombres="Admin",
+15	            apellidos="Smoke",
+16	            documento="555444333",
+17	            tipo_documento="CC",
+18	            rol="admin",
+19	        )
+20	
+21	    def test_ruta_carga(self):
+22	        self.client.login(username="adminsmoke", password="password123")
+23	        response = self.client.get(reverse("logistica:lista_vehiculos"))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\logistica\tests\test_transporte_smoke.py:22:8
+21	    def test_ruta_carga(self):
+22	        self.client.login(username="adminsmoke", password="password123")
+23	        response = self.client.get(reverse("logistica:lista_vehiculos"))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'TestPassword-123!'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pagos\tests\test_models.py:16:23
+15	            email="clientepago@test.com",
+16	            password="TestPassword-123!",
+17	            nombres="Cliente",
+18	            apellidos="Pago",
+19	            documento="1098765432",
+20	            tipo_documento="CC",
+21	            rol="cliente",
+22	        )
+23	        self.pedido = Pedido.objects.create(
+24	            usuario=self.cliente,
+25	            direccion_destino="Tunja",
+26	            estado=Pedido.PENDIENTE,
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pagos\tests\test_views.py:18:23
+17	            email="clientepagoview@test.com",
+18	            password="password123",
+19	            nombres="Cliente",
+20	            apellidos="Vista",
+21	            documento="1098000001",
+22	            tipo_documento="CC",
+23	            rol="cliente",
+24	        )
+25	        self.otro = Usuario.objects.create_user(
+26	            username="otropago",
+27	            email="otropago@test.com",
+28	            password="password123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pagos\tests\test_views.py:28:20
+27	            email="otropago@test.com",
+28	            password="password123",
+29	            nombres="Otro",
+30	            apellidos="Cliente",
+31	            documento="1098000002",
+32	            tipo_documento="CC",
+33	            rol="cliente",
+34	        )
+35	        self.admin = Usuario.objects.create_user(
+36	            username="adminpago",
+37	            email="adminpago@test.com",
+38	            password="password123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pagos\tests\test_views.py:38:21
+37	            email="adminpago@test.com",
+38	            password="password123",
+39	            nombres="Admin",
+40	            apellidos="Pago",
+41	            documento="1098000003",
+42	            tipo_documento="CC",
+43	            rol="admin",
+44	        )
+45	        self.pedido = Pedido.objects.create(
+46	            usuario=self.cliente,
+47	            direccion_destino="Tunja",
+48	            estado=Pedido.PENDIENTE,
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pagos\tests\test_views.py:64:8
+63	    def test_cliente_registra_pago_pendiente(self):
+64	        self.client.login(username="clientepagoview", password="password123")
+65	        comprobante = SimpleUploadedFile(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pagos\tests\test_views.py:124:8
+123	        )
+124	        self.client.login(username="adminpago", password="password123")
+125	        response = self.client.post(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pagos\tests\test_views.py:142:8
+141	        )
+142	        self.client.login(username="adminpago", password="password123")
+143	        response = self.client.post(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pagos\tests\test_views.py:159:8
+158	        )
+159	        self.client.login(username="otropago", password="password123")
+160	        response = self.client.get(reverse("pagos:detalle_pago", args=[pago.pk]))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'test-password'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_driver_order_access.py:14:23
+13	            email="cliente-ruta@test.com",
+14	            password="test-password",
+15	            nombres="Cliente",
+16	            apellidos="Ruta",
+17	            documento="880001",
+18	            tipo_documento="CC",
+19	            rol="cliente",
+20	        )
+21	        self.conductor = Usuario.objects.create_user(
+22	            username="conductor-asignado@test.com",
+23	            email="conductor-asignado@test.com",
+24	            password="test-password",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'test-password'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_driver_order_access.py:24:25
+23	            email="conductor-asignado@test.com",
+24	            password="test-password",
+25	            nombres="Conductor",
+26	            apellidos="Asignado",
+27	            documento="880002",
+28	            tipo_documento="CC",
+29	            rol="conductor",
+30	        )
+31	        self.otro_conductor = Usuario.objects.create_user(
+32	            username="otro-conductor@test.com",
+33	            email="otro-conductor@test.com",
+34	            password="test-password",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'test-password'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_driver_order_access.py:34:30
+33	            email="otro-conductor@test.com",
+34	            password="test-password",
+35	            nombres="Otro",
+36	            apellidos="Conductor",
+37	            documento="880003",
+38	            tipo_documento="CC",
+39	            rol="conductor",
+40	        )
+41	        self.perfil_conductor, _ = Conductor.ensure_for_user(self.conductor)
+42	        self.pedido = Pedido.objects.create(
+43	            usuario=self.cliente,
+44	            conductor=self.perfil_conductor,
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_models.py:13:23
+12	            email="clienteorden@test.com",
+13	            password="password123",
+14	            nombres="Cliente",
+15	            apellidos="Orden",
+16	            documento="321321321",
+17	            tipo_documento="CC",
+18	            rol="cliente",
+19	        )
+20	        self.unidad = UnidadMedida.objects.create(
+21	            codigo="M3",
+22	            nombre="Metro cúbico",
+23	            abreviatura="m3",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'TestPassword-123!'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_pagos_models.py:16:23
+15	            email="clientepago@test.com",
+16	            password="TestPassword-123!",
+17	            nombres="Cliente",
+18	            apellidos="Pago",
+19	            documento="1098765432",
+20	            tipo_documento="CC",
+21	            rol="cliente",
+22	        )
+23	        self.pedido = Pedido.objects.create(
+24	            usuario=self.cliente,
+25	            direccion_destino="Tunja",
+26	            estado=Pedido.PENDIENTE,
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_pagos_views.py:17:23
+16	            email="clientepagoview@test.com",
+17	            password="password123",
+18	            nombres="Cliente",
+19	            apellidos="Vista",
+20	            documento="1098000001",
+21	            tipo_documento="CC",
+22	            rol="cliente",
+23	        )
+24	        self.otro = Usuario.objects.create_user(
+25	            username="otropago",
+26	            email="otropago@test.com",
+27	            password="password123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_pagos_views.py:27:20
+26	            email="otropago@test.com",
+27	            password="password123",
+28	            nombres="Otro",
+29	            apellidos="Cliente",
+30	            documento="1098000002",
+31	            tipo_documento="CC",
+32	            rol="cliente",
+33	        )
+34	        self.admin = Usuario.objects.create_user(
+35	            username="adminpago",
+36	            email="adminpago@test.com",
+37	            password="password123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_pagos_views.py:37:21
+36	            email="adminpago@test.com",
+37	            password="password123",
+38	            nombres="Admin",
+39	            apellidos="Pago",
+40	            documento="1098000003",
+41	            tipo_documento="CC",
+42	            rol="admin",
+43	        )
+44	        self.pedido = Pedido.objects.create(
+45	            usuario=self.cliente,
+46	            direccion_destino="Tunja",
+47	            estado=Pedido.PENDIENTE,
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_pagos_views.py:63:8
+62	    def test_cliente_registra_pago_pendiente(self):
+63	        self.client.login(username="clientepagoview", password="password123")
+64	        comprobante = SimpleUploadedFile(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_pagos_views.py:123:8
+122	        )
+123	        self.client.login(username="adminpago", password="password123")
+124	        response = self.client.post(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_pagos_views.py:141:8
+140	        )
+141	        self.client.login(username="adminpago", password="password123")
+142	        response = self.client.post(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_pagos_views.py:158:8
+157	        )
+158	        self.client.login(username="otropago", password="password123")
+159	        response = self.client.get(reverse("pagos:detalle_pago", args=[pago.pk]))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\pedidos\tests\test_solicitudes.py:13:23
+12	            email="clientegestion@test.com",
+13	            password="password123",
+14	            nombres="Cliente",
+15	            apellidos="Gestion",
+16	            documento="999888777",
+17	            tipo_documento="CC",
+18	            rol="cliente",
+19	        )
+20	        self.unidad = UnidadMedida.objects.create(
+21	            codigo="KG",
+22	            nombre="Kilogramo",
+23	            abreviatura="kg",
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: apps\pedidos\validators.py:35:12
+34	                archivo.seek(posicion)
+35	            except Exception:
+36	                pass
+37	    for firma, mime in FIRMAS:
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\reportes\tests\test_reportes_smoke.py:13:21
+12	            email="adminsmoke@test.com",
+13	            password="password123",
+14	            nombres="Admin",
+15	            apellidos="Smoke",
+16	            documento="555444333",
+17	            tipo_documento="CC",
+18	            rol="admin",
+19	        )
+20	
+21	    def test_ruta_carga(self):
+22	        self.client.login(username="adminsmoke", password="password123")
+23	        response = self.client.get(reverse("reportes:reportes_admin"))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\reportes\tests\test_reportes_smoke.py:22:8
+21	    def test_ruta_carga(self):
+22	        self.client.login(username="adminsmoke", password="password123")
+23	        response = self.client.get(reverse("reportes:reportes_admin"))
+
+--------------------------------------------------
+>> Issue: [B405:blacklist] Using xml.etree.ElementTree to parse untrusted XML data is known to be vulnerable to XML attacks. Replace xml.etree.ElementTree with the equivalent defusedxml package, or make sure defusedxml.defuse_stdlib() is called.
+   Severity: Low   Confidence: High
+   CWE: CWE-20 (https://cwe.mitre.org/data/definitions/20.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b405-import-xml-etree
+   Location: apps\reportes\views.py:2:0
+1	import math
+2	import xml.etree.ElementTree as ET
+3	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: apps\reportes\views.py:291:12
+290	                    max_length = len(str(cell.value))
+291	            except Exception:
+292	                pass
+293	        adjusted_width = max_length + 2
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: apps\usuarios\context_processors.py:47:8
+46	                return data
+47	        except Exception:
+48	            pass
+49	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: apps\usuarios\management\commands\llenar_datos_prueba.py:62:12
+61	                    pass  # Skip
+62	            except Exception:
+63	                pass
+64	
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'davit12345'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: apps\usuarios\management\commands\seed_data.py:20:19
+19	
+20	DEFAULT_PASSWORD = "davit12345"
+21	_router = EnrutadorInventario()
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: apps\usuarios\models_permisos.py:137:4
+136	            return True
+137	    except Exception:
+138	        pass
+139	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: apps\usuarios\models_permisos.py:146:4
+145	            return True
+146	    except Exception:
+147	        pass
+148	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: apps\usuarios\models_permisos.py:156:4
+155	                    return True
+156	    except Exception:
+157	        pass
+158	
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_forms.py:29:8
+28	            email="repetido@test.com",
+29	            password="password123",
+30	            nombres="Existente",
+31	            apellidos="Uno",
+32	            documento="111111111",
+33	            tipo_documento="CC",
+34	            rol="cliente",
+35	        )
+36	        form = RegistroForm(
+37	            data={
+38	                "nombres": "Nuevo",
+39	                "apellidos": "Usuario",
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: apps\usuarios\tests\test_forms.py:172:16
+171	                "username": "admin@test.com",
+172	                "password": "password123",
+173	            }
+174	        )
+175	        self.assertFalse(form.is_valid())
+176	        self.assertIn("captcha", form.errors)
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_models.py:13:18
+12	            email="test@example.com",
+13	            password="password123",
+14	            nombres="Test",
+15	            apellidos="User",
+16	            documento="12345678",
+17	            tipo_documento="CC",
+18	            rol="cliente",
+19	        )
+20	        self.assertEqual(usuario.username, "testuser")
+21	        self.assertEqual(usuario.email, "test@example.com")
+22	        self.assertTrue(usuario.check_password("password123"))
+23	
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_models.py:29:18
+28	            email="test@example.com",
+29	            password="password123",
+30	            nombres="Juan Carlos",
+31	            apellidos="Perez",
+32	            documento="12345678",
+33	            tipo_documento="CC",
+34	            rol="cliente",
+35	        )
+36	        self.assertEqual(usuario.iniciales, "JC")
+37	
+38	
+39	class ConductorModelTests(TestCase):
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_models.py:53:18
+52	            email="conductor@test.com",
+53	            password="password123",
+54	            nombres="Conductor",
+55	            apellidos="Test",
+56	            documento="987654",
+57	            tipo_documento="CC",
+58	            rol="conductor",
+59	        )
+60	        conductor = usuario.perfil_conductor
+61	        self.assertEqual(conductor.usuario, usuario)
+62	        self.assertEqual(conductor.numero_licencia, f"PEND-{usuario.id}")
+63	
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_models.py:68:18
+67	            email="conductor.test@example.com",
+68	            password="password123",
+69	            nombres="Conductor",
+70	            apellidos="Prueba",
+71	            documento="123456789",
+72	            tipo_documento="CC",
+73	            rol="conductor",
+74	        )
+75	
+76	        Conductor.objects.filter(usuario=usuario).delete()
+77	        conductor, created = Conductor.ensure_for_user(usuario)
+78	
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_models.py:87:18
+86	            email="conductor.eliminado@example.com",
+87	            password="password123",
+88	            nombres="Conductor",
+89	            apellidos="Eliminado",
+90	            documento="987654321",
+91	            tipo_documento="CC",
+92	            rol="conductor",
+93	        )
+94	        usuario.delete()
+95	
+96	        with self.assertRaises(ValueError):
+97	            Conductor.ensure_for_user(usuario)
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_models.py:121:18
+120	            email="conductor2@test.com",
+121	            password="password123",
+122	            nombres="Conductor",
+123	            apellidos="Dos",
+124	            documento="111222333",
+125	            tipo_documento="CC",
+126	            rol="conductor",
+127	        )
+128	        conductor, created = Conductor.ensure_for_user(usuario)
+129	        self.assertFalse(created)
+130	        vehiculo = Vehiculo.objects.create(
+131	            placa="DEF456",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_views.py:19:26
+18	            email="admin@test.com",
+19	            password="password123",
+20	            rol="admin",
+21	            nombres="Admin",
+22	            documento="1001",
+23	            tipo_documento="CC",
+24	        )
+25	        self.cliente_user = Usuario.objects.create_user(
+26	            username="cliente@test.com",
+27	            email="cliente@test.com",
+28	            password="password123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_views.py:28:28
+27	            email="cliente@test.com",
+28	            password="password123",
+29	            rol="cliente",
+30	            nombres="Cliente",
+31	            documento="1002",
+32	            tipo_documento="CC",
+33	        )
+34	        self.conductor_user = Usuario.objects.create_user(
+35	            username="cond@test.com",
+36	            email="cond@test.com",
+37	            password="password123",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_views.py:37:30
+36	            email="cond@test.com",
+37	            password="password123",
+38	            rol="conductor",
+39	            nombres="Conductor",
+40	            documento="1003",
+41	            tipo_documento="CC",
+42	        )
+43	        self.conductor_profile, _ = Conductor.ensure_for_user(
+44	            self.conductor_user,
+45	            defaults={
+46	                "numero_licencia": "LIC-1003",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_views.py:63:8
+62	        """Prueba de login y restricción de admin_required"""
+63	        self.client.login(username="admin@test.com", password="password123")
+64	        # No tenemos reportes en todas las instalaciones, probamos acceso básico
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_views.py:90:8
+89	        """El administrador puede asignar y cambiar vehículos de un conductor."""
+90	        self.client.login(username="admin@test.com", password="password123")
+91	        Vehiculo.objects.create(
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: apps\usuarios\tests\test_views.py:109:8
+108	    def test_lista_conductores_muestra_datos(self):
+109	        self.client.login(username="admin@test.com", password="password123")
+110	        response = self.client.get(reverse("usuarios:lista_conductores"))
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: apps\usuarios\views.py:1379:8
+1378	            cache.clear()
+1379	        except Exception:
+1380	            pass
+1381	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: config\__init__.py:47:0
+46	    LogEntryManager.log_actions = _safe_log_actions
+47	except Exception:
+48	    # No detener el arranque si falla el parche
+49	    pass
+50	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: config\middleware.py:300:16
+299	                            )
+300	                except Exception:
+301	                    pass
+302	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: config\middleware.py:329:8
+328	            registrar_warning(ip)
+329	        except Exception:
+330	            pass
+331	        try:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: config\middleware.py:338:8
+337	            )
+338	        except Exception:
+339	            pass
+340	        try:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: config\middleware.py:350:8
+349	            )
+350	        except Exception:
+351	            pass
+352	        try:
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: config\middleware.py:452:8
+451	                    response["X-Security-Alert"] = "1"
+452	        except Exception:
+453	            pass
+454	
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: config\middleware.py:461:12
+460	                registrar_evento(request, "security_warning", gravedad="warning")
+461	            except Exception:
+462	                pass
+463	        return None
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_auditoria.py:13:21
+12	            email="adminsmoke@test.com",
+13	            password="password123",
+14	            nombres="Admin",
+15	            apellidos="Smoke",
+16	            documento="555444333",
+17	            tipo_documento="CC",
+18	            rol="admin",
+19	        )
+20	
+21	    def test_ruta_carga(self):
+22	        self.client.login(username="adminsmoke", password="password123")
+23	        response = self.client.get(reverse("auditoria:lista_historial"))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_auditoria.py:22:8
+21	    def test_ruta_carga(self):
+22	        self.client.login(username="adminsmoke", password="password123")
+23	        response = self.client.get(reverse("auditoria:lista_historial"))
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: config\tests\test_db_helpers.py:9:4
+8	def test_sqlite_default_db_should_not_use_row_locks():
+9	    assert should_use_select_for_update("default") is False
+10	
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: config\tests\test_db_helpers.py:13:4
+12	def test_postgres_database_should_use_row_locks():
+13	    assert should_use_select_for_update("remota") is True
+14	
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: config\tests\test_db_helpers.py:49:4
+48	
+49	    assert settings_module.get_secret_key() == stable_key
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_reportes.py:13:21
+12	            email="adminsmoke@test.com",
+13	            password="password123",
+14	            nombres="Admin",
+15	            apellidos="Smoke",
+16	            documento="555444333",
+17	            tipo_documento="CC",
+18	            rol="admin",
+19	        )
+20	
+21	    def test_ruta_carga(self):
+22	        self.client.login(username="adminsmoke", password="password123")
+23	        response = self.client.get(reverse("reportes:reportes_admin"))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'password123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_reportes.py:22:8
+21	    def test_ruta_carga(self):
+22	        self.client.login(username="adminsmoke", password="password123")
+23	        response = self.client.get(reverse("reportes:reportes_admin"))
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area2_validaciones.py:36:23
+35	            email="cliente_sec@test.com",
+36	            password="Password123*",
+37	            nombres="Cliente",
+38	            apellidos="Seguridad",
+39	            documento="77112233",
+40	            tipo_documento="CC",
+41	            rol="cliente",
+42	        )
+43	        self.admin = Usuario.objects.create_user(
+44	            username="admin_sec@test.com",
+45	            email="admin_sec@test.com",
+46	            password="Password123*",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area2_validaciones.py:46:21
+45	            email="admin_sec@test.com",
+46	            password="Password123*",
+47	            nombres="Admin",
+48	            apellidos="Seguridad",
+49	            documento="77112244",
+50	            tipo_documento="CC",
+51	            rol="admin",
+52	        )
+53	        self.pedido = Pedido.objects.create(
+54	            usuario=self.cliente,
+55	            direccion_destino="Calle 100 # 15-20, Bogotá",
+56	            estado=Pedido.PENDIENTE,
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area3_idor.py:41:25
+40	            email="victima_idor@test.com",
+41	            password="Password123*",
+42	            nombres="Víctima",
+43	            apellidos="IDOR",
+44	            documento="99001122",
+45	            tipo_documento="CC",
+46	            rol="cliente",
+47	        )
+48	        self.cliente_a, _ = Cliente.objects.get_or_create(
+49	            usuario=self.usuario_a,
+50	            defaults={"nombre_empresa": "Cliente A SAS"},
+51	        )
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area3_idor.py:56:25
+55	            email="atacante_idor@test.com",
+56	            password="Password123*",
+57	            nombres="Atacante",
+58	            apellidos="IDOR",
+59	            documento="99001133",
+60	            tipo_documento="CC",
+61	            rol="cliente",
+62	        )
+63	        self.cliente_b, _ = Cliente.objects.get_or_create(
+64	            usuario=self.usuario_b,
+65	            defaults={"nombre_empresa": "Cliente B SAS"},
+66	        )
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area3_idor.py:111:29
+110	            email="conductor1@test.com",
+111	            password="Password123*",
+112	            nombres="Conductor",
+113	            apellidos="Uno",
+114	            documento="88001122",
+115	            tipo_documento="CC",
+116	            rol="conductor",
+117	        )
+118	        self.conductor_1, _ = Conductor.objects.get_or_create(
+119	            usuario=self.u_conductor_1,
+120	            defaults={"licencia_conduccion": "LIC-001", "categoria_licencia": "C2"},
+121	        )
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area3_idor.py:125:29
+124	            email="conductor2@test.com",
+125	            password="Password123*",
+126	            nombres="Conductor",
+127	            apellidos="Dos",
+128	            documento="88001133",
+129	            tipo_documento="CC",
+130	            rol="conductor",
+131	        )
+132	        self.conductor_2, _ = Conductor.objects.get_or_create(
+133	            usuario=self.u_conductor_2,
+134	            defaults={"licencia_conduccion": "LIC-002", "categoria_licencia": "C2"},
+135	        )
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'PasswordSeguro123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area4_auth.py:33:20
+32	            email="cliente_auth@test.com",
+33	            password="PasswordSeguro123*",
+34	            nombres="Cliente",
+35	            apellidos="Auth",
+36	            documento="88776655",
+37	            tipo_documento="CC",
+38	            rol="cliente",
+39	        )
+40	
+41	    def test_password_validator_min_length_es_al_menos_10(self):
+42	        """La longitud mínima configurada debe ser de al menos 10 caracteres."""
+43	        min_length = None
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'WrongPassword999*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: config\tests\test_seguridad_area4_auth.py:91:59
+90	                reverse("usuarios:login"),
+91	                data={"username": "cliente_auth@test.com", "password": "WrongPassword999*"},
+92	            )
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'WrongPassword999*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: config\tests\test_seguridad_area4_auth.py:98:55
+97	            reverse("usuarios:login"),
+98	            data={"username": "cliente_auth@test.com", "password": "WrongPassword999*"},
+99	        )
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area6_admin.py:27:31
+26	            email="staff_conductor@test.com",
+27	            password="Password123*",
+28	            nombres="Staff",
+29	            apellidos="Conductor",
+30	            documento="11223344",
+31	            tipo_documento="CC",
+32	            rol="conductor",
+33	            is_staff=True,
+34	        )
+35	        # Usuario admin regular (con is_staff=True y rol='admin')
+36	        self.admin_staff = User.objects.create_user(
+37	            username="admin_regular@test.com",
+38	            email="admin_regular@test.com",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area6_admin.py:39:27
+38	            email="admin_regular@test.com",
+39	            password="Password123*",
+40	            nombres="Admin",
+41	            apellidos="Regular",
+42	            documento="22334455",
+43	            tipo_documento="CC",
+44	            rol="admin",
+45	            is_staff=True,
+46	        )
+47	        # Superusuario global legítimo
+48	        self.superuser = User.objects.create_superuser(
+49	            username="Edward_Fonseca",
+50	            email="edwardf5432@gmail.com",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area6_admin.py:51:25
+50	            email="edwardf5432@gmail.com",
+51	            password="Password123*",
+52	            nombres="Edward",
+53	            apellidos="Fonseca",
+54	            documento="33445566",
+55	            tipo_documento="CC",
+56	            rol="admin",
+57	        )
+58	
+59	    def test_staff_con_rol_distinto_de_admin_no_tiene_permiso_en_admin_site(self):
+60	        """Un usuario con is_staff=True pero rol conductor o cliente no debe acceder al admin."""
+61	        request = self.factory.get("/admin/")
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area7_auditoria.py:26:21
+25	            email="admin_audit@test.com",
+26	            password="Password123*",
+27	            nombres="Admin",
+28	            apellidos="Audit",
+29	            documento="55667788",
+30	            tipo_documento="CC",
+31	            rol="admin",
+32	            is_staff=True,
+33	        )
+34	        self.cliente = User.objects.create_user(
+35	            username="cliente_audit@test.com",
+36	            email="cliente_audit@test.com",
+37	            password="Password123*",
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area7_auditoria.py:37:23
+36	            email="cliente_audit@test.com",
+37	            password="Password123*",
+38	            nombres="Cliente",
+39	            apellidos="Audit",
+40	            documento="66778899",
+41	            tipo_documento="CC",
+42	            rol="cliente",
+43	        )
+44	        self.pedido = Pedido.objects.create(
+45	            usuario=self.cliente,
+46	            direccion_destino="Calle 1 # 2-3, Tunja",
+47	            estado=Pedido.PENDIENTE,
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.secret'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: config\tests\test_seguridad_area7_auditoria.py:59:16
+58	        """Verifica que tokens y cuentas se enmascaren dejando solo prefijo o sufijo según el caso."""
+59	        token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.secret"
+60	        cuenta = "1234567890123456"
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123*'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_seguridad_area9_concurrencia.py:29:23
+28	            email="cliente_concurrencia@test.com",
+29	            password="Password123*",
+30	            nombres="Cliente",
+31	            apellidos="Concurrencia",
+32	            documento="77889900",
+33	            tipo_documento="CC",
+34	            rol="cliente",
+35	        )
+36	        self.cliente, _ = Cliente.objects.get_or_create(
+37	            usuario=self.usuario,
+38	            defaults={"nombre_empresa": "Constructora Concurrente SAS"},
+39	        )
+
+--------------------------------------------------
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'abc-def-123'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
+   Location: config\tests\test_url_namespaces.py:40:25
+39	        {"orden_id": 1},
+40	        {"uidb64": "MQ", "token": "abc-def-123"},
+41	        {"tipo": "clientes"},
+
+--------------------------------------------------
+>> Issue: [B112:try_except_continue] Try, Except, Continue detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b112_try_except_continue.html
+   Location: config\tests\test_url_namespaces.py:75:12
+74	                texto = ruta.read_text(encoding="utf-8", errors="ignore")
+75	            except Exception:
+76	                continue
+77	            refs = fn_extract(texto)
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: config\tests\test_url_namespaces.py:97:8
+96	                    errores.append(f"[{ruta}] '{ref}' :: {exc}".replace(str(_RAIZ), ""))
+97	        assert not errores, (
+98	            f"Se encontraron {len(errores)} referencias de URL no resolubles en templates:\n  - "
+99	            + "\n  - ".join(errores)
+100	        )
+101	
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: config\tests\test_url_namespaces.py:113:8
+112	                    errores.append(f"[{ruta}] '{ref}' :: {exc}".replace(str(_RAIZ), ""))
+113	        assert not errores, (
+114	            f"Se encontraron {len(errores)} referencias de URL no resolubles en código Python:\n  - "
+115	            + "\n  - ".join(errores)
+116	        )
+117	
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: config\tests\test_url_namespaces.py:164:8
+163	                        faltantes.append(f"{app_label}:{name} falta funcion {n} en views")
+164	        assert not faltantes, (
+165	            "Faltan referencias de vistas en sus módulos views:\n  - " + "\n  - ".join(faltantes)
+166	        )
+
+--------------------------------------------------
+>> Issue: [B106:hardcoded_password_funcarg] Possible hardcoded password: 'Password123!'
+   Severity: Low   Confidence: Medium
+   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b106_hardcoded_password_funcarg.html
+   Location: config\tests\test_validaciones_centralizadas.py:19:31
+18	            email="cliente_test@constru.com",
+19	            password="Password123!",
+20	            nombres="Carlos",
+21	            apellidos="Perez",
+22	            documento="1020304050",
+23	            tipo_documento="CC",
+24	            rol="cliente",
+25	        )
+26	        self.cliente = Cliente.objects.get(usuario=self.usuario_cliente)
+27	
+28	    # -------------------------------------------------------------------------
+29	    # PEDIDOS
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: config\validators.py:143:16
+142	                    archivo.seek(pos)
+143	                except Exception:
+144	                    pass
+145	        if ext == "webp":
+
+--------------------------------------------------
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: config\views_reportes.py:290:12
+289	                    max_length = len(str(cell.value))
+290	            except Exception:
+291	                pass
+292	        adjusted_width = max_length + 2
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 27533
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 114
+		Medium: 2
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 1
+		Medium: 86
+		High: 29
+Files skipped (0):

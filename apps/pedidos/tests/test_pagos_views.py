@@ -68,7 +68,7 @@ class PagoViewsTests(TestCase):
         )
         response = self.client.post(
             reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
-            {"metodo": Pago.METODO_NEQUI, "monto": "120000", "comprobante": comprobante},
+            {"metodo": Pago.METODO_NEQUI, "comprobante": comprobante},
         )
         self.assertEqual(response.status_code, 302)
         pago = Pago.objects.get(pedido=self.pedido)
@@ -107,7 +107,7 @@ class PagoViewsTests(TestCase):
 
         response = self.client.post(
             reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
-            {"metodo": Pago.METODO_CONTRAENTREGA, "monto": "0"},
+            {"metodo": Pago.METODO_CONTRAENTREGA},
         )
 
         self.assertEqual(response.status_code, 302)
@@ -157,4 +157,4 @@ class PagoViewsTests(TestCase):
         )
         self.client.login(username="otropago", password="password123")
         response = self.client.get(reverse("pagos:detalle_pago", args=[pago.pk]))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404)

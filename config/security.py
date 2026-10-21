@@ -43,15 +43,72 @@ WARNING_WINDOW_MINUTES = getattr(settings, "SECURITY_WARNING_WINDOW", 60)
 CACHE_PREFIX = "sec:"
 
 
-# ============================================================
-# Helpers genéricos
-# ============================================================
+import ipaddress
+
+
+def _ip_en_redes_confiables(ip_str: str, redes_confiables: list[str]) -> bool:
+    """Verifica si una dirección IP pertenece a una lista de IPs o subredes CIDR."""
+    if not ip_str or not redes_confiables:
+        return False
+    try:
+        ip = ipaddress.ip_address(ip_str.strip())
+        for red in redes_confiables:
+            red_limpia = red.strip()
+            if "/" in red_limpia:
+                if ip in ipaddress.ip_network(red_limpia, strict=False):
+                    return True
+            else:
+                if ip == ipaddress.ip_address(red_limpia):
+                    return True
+    except ValueError:
+        return False
+    return False
+
+
 def obtener_ip(request):
-    """Obtiene la IP real del cliente (considerando proxies)."""
+    """Obtiene la IP real del cliente con protección contra spoofing y soporte CIDR.
+
+    Solo confía en HTTP_X_FORWARDED_FOR si REMOTE_ADDR proviene de un proxy confiable
+    (TRUSTED_PROXIES). Recorre X-Forwarded-For de derecha a izquierda descartando
+    proxies intermedios para evitar que un atacante inyecte una IP falsa en el primer elemento.
+    """
+    remote_addr = request.META.get("REMOTE_ADDR", "127.0.0.1")
+    trusted_proxies = getattr(
+        settings,
+        "TRUSTED_PROXIES",
+        ["127.0.0.1", "::1", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+    )
+
+    if not _ip_en_redes_confiables(remote_addr, trusted_proxies):
+        return remote_addr
+
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        return x_forwarded_for.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "0.0.0.0")
+    if not x_forwarded_for:
+        return remote_addr
+
+    ips = [ip.strip() for ip in x_forwarded_for.split(",") if ip.strip()]
+    # Recorrer de derecha a izquierda: el primer IP no perteneciente a proxies es el cliente real
+    for ip in reversed(ips):
+        if not _ip_en_redes_confiables(ip, trusted_proxies):
+            return ip
+
+    return ips[0] if ips else remote_addr
+
+
+def enmascarar_dato_sensible(valor: str, tipo: str = "token") -> str:
+    """Enmascara datos sensibles para logging y auditoría.
+
+    - token / password: solo primeros 4 caracteres seguidos de '***'.
+    - tarjeta / cuenta / pago: solo últimos 4 caracteres precedidos de '***'.
+    """
+    if not valor:
+        return ""
+    valor_str = str(valor).strip()
+    if len(valor_str) <= 4:
+        return "***"
+    if tipo in ("cuenta", "tarjeta", "pago"):
+        return f"***{valor_str[-4:]}"
+    return f"{valor_str[:4]}***"
 
 
 def _cache_key_warnings(ip):

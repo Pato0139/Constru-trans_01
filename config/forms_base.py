@@ -7,7 +7,22 @@
 from django import forms
 
 # Campos que el navegador/Django agregan y no son datos de negocio.
-CAMPOS_SISTEMA = {"csrfmiddlewaretoken", "accion", "submit", "next"}
+CAMPOS_SISTEMA = {
+    "csrfmiddlewaretoken",
+    "accion",
+    "action",
+    "submit",
+    "btn_submit",
+    "guardar",
+    "next",
+    "TOTAL_FORMS",
+    "INITIAL_FORMS",
+    "MIN_NUM_FORMS",
+    "MAX_NUM_FORMS",
+    "id",
+    "DELETE",
+    "ORDER",
+}
 
 
 class StrictFormMixin:

@@ -41,7 +41,27 @@ urlpatterns = [
         lambda r: redirect("usuarios:password_reset_complete"),
         name="password_reset_complete",
     ),
+    # ===== Bloqueo de acceso directo a comprobantes privados (404 Not Found) =====
+    path(
+        "media/comprobantes/<path:path>",
+        lambda r, path="": core_views.error_404(
+            r,
+            Exception("Recurso no encontrado."),
+        ),
+    ),
+    path(
+        "media/comprobantes/",
+        lambda r: core_views.error_404(
+            r,
+            Exception("Recurso no encontrado."),
+        ),
+    ),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+handler400 = "config.views.error_400"
+handler403 = "config.views.error_403"
+handler404 = "config.views.error_404"
+handler500 = "config.views.error_500"

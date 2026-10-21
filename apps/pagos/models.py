@@ -1,3 +1,4 @@
+import logging
 import uuid
 from decimal import Decimal
 
@@ -11,18 +12,22 @@ from django.utils import timezone
 from config.state_machine import TransicionMixin
 from config.validators import ArchivoValidator, monto_positivo, no_negativo, no_solo_espacios
 
+logger = logging.getLogger(__name__)
+
 OBSERVACIONES_MAX = 1000
 
 
 def comprobante_upload_to(instance, filename):
     pedido_id = getattr(instance, "pedido_id", None) or "sin_pedido"
-    return f"comprobantes/pedido_{pedido_id}/{filename}"
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    return f"comprobantes/pedido_{pedido_id}/{uuid.uuid4().hex}.{ext}"
 
 
 def _evidencia_upload_to(instance, filename):
     factura_id = getattr(instance, "factura_id", None) or "sin_factura"
     ts = timezone.now().strftime("%Y/%m")
-    return f"comprobantes/factura_{factura_id}/{ts}/{filename}"
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    return f"comprobantes/factura_{factura_id}/{ts}/{uuid.uuid4().hex}.{ext}"
 
 
 class Pago(TransicionMixin, models.Model):
@@ -127,10 +132,19 @@ class Pago(TransicionMixin, models.Model):
     def marcar_revision(self, *, estado, revisor, observaciones=""):
         if estado not in (self.APROBADO, self.RECHAZADO):
             raise ValueError("La revisión solo admite aprobado o rechazado.")
-        self.transicionar(estado)
+        estado_previo = self.estado
+        self.transicionar(estado, usuario=revisor)
         self.revisado_por = revisor
         self.observaciones = observaciones or ""
         self.fecha_revision = timezone.now()
+        logger.info(
+            "Revision de pago (pk=%s, pedido=%s): %s -> %s | revisor=%s",
+            self.pk,
+            self.pedido_id,
+            estado_previo,
+            estado,
+            getattr(revisor, "username", str(revisor)),
+        )
 
 
 class DetallePago(models.Model):

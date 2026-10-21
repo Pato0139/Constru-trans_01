@@ -1145,7 +1145,10 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
 def save_feedback(message_id, feedback, comment=None, user=None):
     """Guarda el feedback y actualiza la base de conocimiento"""
     try:
-        message = ConversationMessage.objects.get(id=message_id)
+        queryset = ConversationMessage.objects.all()
+        if user and not getattr(user, "is_staff", False):
+            queryset = queryset.filter(conversation__user=user)
+        message = queryset.get(id=message_id)
 
         UserFeedback.objects.create(
             message=message, user=user, feedback=feedback, comment=comment
@@ -1163,6 +1166,13 @@ def save_feedback(message_id, feedback, comment=None, user=None):
             template.update_success_rate()
 
         return True
+    except ConversationMessage.DoesNotExist:
+        logger.warning(
+            "Intento de feedback sobre mensaje inexistente o no autorizado: id=%s user=%s",
+            message_id,
+            user,
+        )
+        return False
     except Exception:
         logger.exception("Error en save_feedback")
         return False

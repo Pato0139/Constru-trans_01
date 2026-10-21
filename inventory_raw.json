@@ -1,0 +1,1050 @@
+[
+  {
+    "url": "licensing/expired/",
+    "name": "license_expired",
+    "callback": "license_expired",
+    "module": "apps.licensing.views",
+    "file": "D:\\Mis documentos\\Documentos\\Constru-trans_01\\apps\\licensing\\views.py",
+    "line": 14
+  },
+  {
+    "url": "licensing/activate/",
+    "name": "license_activate",
+    "callback": "license_activate",
+    "module": "apps.licensing.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\views\\decorators\\http.py",
+    "line": 18
+  },
+  {
+    "url": "usuarios/login/",
+    "name": "login",
+    "callback": "login_usuario",
+    "module": "apps.usuarios.views",
+    "file": "D:\\Mis documentos\\Documentos\\Constru-trans_01\\apps\\usuarios\\views.py",
+    "line": 285
+  },
+  {
+    "url": "usuarios/registro/",
+    "name": "registro",
+    "callback": "registro",
+    "module": "apps.usuarios.views",
+    "file": "D:\\Mis documentos\\Documentos\\Constru-trans_01\\apps\\usuarios\\views.py",
+    "line": 187
+  },
+  {
+    "url": "usuarios/panel/",
+    "name": "panel",
+    "callback": "panel",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 511
+  },
+  {
+    "url": "usuarios/logout/",
+    "name": "logout",
+    "callback": "cerrar_sesion",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\views\\decorators\\http.py",
+    "line": 1290
+  },
+  {
+    "url": "usuarios/usuarios/",
+    "name": "lista_usuarios",
+    "callback": "lista_usuarios",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 139
+  },
+  {
+    "url": "usuarios/usuarios/crear/",
+    "name": "crear_usuario",
+    "callback": "crear_usuario",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 841
+  },
+  {
+    "url": "usuarios/usuarios/eliminar/<int:id>/",
+    "name": "eliminar_usuario",
+    "callback": "eliminar_usuario",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 1003
+  },
+  {
+    "url": "usuarios/usuarios/toggle-estado/<int:id>/",
+    "name": "toggle_estado_usuario",
+    "callback": "toggle_estado_usuario",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 979
+  },
+  {
+    "url": "usuarios/usuarios/editar/<int:id>/",
+    "name": "editar_usuario",
+    "callback": "editar_usuario",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 1017
+  },
+  {
+    "url": "usuarios/perfil/admin/",
+    "name": "perfil_admin",
+    "callback": "perfil_admin",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 655
+  },
+  {
+    "url": "usuarios/perfil/editar/",
+    "name": "editar_perfil",
+    "callback": "editar_perfil",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 676
+  },
+  {
+    "url": "usuarios/conductores/",
+    "name": "lista_conductores",
+    "callback": "lista_conductores",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 1146
+  },
+  {
+    "url": "usuarios/conductores/asignar-vehiculo/<int:conductor_id>/",
+    "name": "asignar_vehiculo_conductor",
+    "callback": "asignar_vehiculo_conductor",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 1165
+  },
+  {
+    "url": "usuarios/panel-conductor/",
+    "name": "panel_conductor",
+    "callback": "panel_conductor",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 551
+  },
+  {
+    "url": "usuarios/perfil-conductor/",
+    "name": "perfil_conductor",
+    "callback": "perfil_conductor",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 1221
+  },
+  {
+    "url": "usuarios/pedidos-conductor/",
+    "name": "pedidos_conductor",
+    "callback": "pedidos_conductor",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 579
+  },
+  {
+    "url": "usuarios/mis-entregas/",
+    "name": "mis_entregas",
+    "callback": "mis_entregas",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 617
+  },
+  {
+    "url": "usuarios/notificaciones/",
+    "name": "notificaciones",
+    "callback": "lista_notificaciones",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 1317
+  },
+  {
+    "url": "usuarios/notificaciones/marcar-leida/<int:id>/",
+    "name": "marcar_notificacion_leida",
+    "callback": "marcar_notificacion_leida",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 1324
+  },
+  {
+    "url": "usuarios/configuraciones/",
+    "name": "configuraciones",
+    "callback": "configuraciones_usuario",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 1345
+  },
+  {
+    "url": "usuarios/bd/cambiar/",
+    "name": "cambiar_modo_bd",
+    "callback": "cambiar_modo_bd",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 1355
+  },
+  {
+    "url": "usuarios/recuperar/",
+    "name": "password_reset",
+    "callback": "view",
+    "module": "apps.usuarios.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\views\\generic\\base.py",
+    "line": 227
+  },
+  {
+    "url": "clientes/panel/",
+    "name": "panel_cliente",
+    "callback": "panel_cliente",
+    "module": "apps.clientes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 265
+  },
+  {
+    "url": "clientes/perfil/",
+    "name": "perfil_cliente",
+    "callback": "perfil_cliente",
+    "module": "apps.clientes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 367
+  },
+  {
+    "url": "clientes/pedido/crear/",
+    "name": "crear_pedido",
+    "callback": "crear_pedido",
+    "module": "apps.clientes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 446
+  },
+  {
+    "url": "clientes/pedido/editar/<int:id>/",
+    "name": "editar_pedido",
+    "callback": "editar_pedido",
+    "module": "apps.clientes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 627
+  },
+  {
+    "url": "clientes/mis-pedidos/",
+    "name": "mis_pedidos",
+    "callback": "mis_pedidos",
+    "module": "apps.clientes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 291
+  },
+  {
+    "url": "clientes/mis-pagos/",
+    "name": "mis_pagos",
+    "callback": "mis_pagos",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 415
+  },
+  {
+    "url": "clientes/seguimiento/",
+    "name": "seguimiento_pedidos",
+    "callback": "seguimiento_pedidos",
+    "module": "apps.clientes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 389
+  },
+  {
+    "url": "clientes/historial/",
+    "name": "historial_pedidos",
+    "callback": "historial_pedidos",
+    "module": "apps.clientes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 402
+  },
+  {
+    "url": "clientes/orden/cancelar/<int:id>/",
+    "name": "cancelar_pedido",
+    "callback": "cancelar_pedido",
+    "module": "apps.clientes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 839
+  },
+  {
+    "url": "clientes/admin/lista/",
+    "name": "lista_clientes",
+    "callback": "lista_clientes",
+    "module": "apps.clientes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 944
+  },
+  {
+    "url": "clientes/admin/detalle/<int:id>/",
+    "name": "detalle_cliente",
+    "callback": "detalle_cliente",
+    "module": "apps.clientes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 994
+  },
+  {
+    "url": "clientes/admin/editar/<int:id>/",
+    "name": "editar_cliente",
+    "callback": "editar_cliente",
+    "module": "apps.clientes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 1015
+  },
+  {
+    "url": "catalogo/materiales/",
+    "name": "materiales_lista",
+    "callback": "materiales_lista",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 14
+  },
+  {
+    "url": "catalogo/materiales/crear/",
+    "name": "crear_material",
+    "callback": "crear_material",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 62
+  },
+  {
+    "url": "catalogo/materiales/editar/<int:id>/",
+    "name": "editar_material",
+    "callback": "editar_material",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 98
+  },
+  {
+    "url": "catalogo/materiales/estado/<int:id>/",
+    "name": "cambiar_estado_material",
+    "callback": "cambiar_estado_material",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 143
+  },
+  {
+    "url": "catalogo/materiales/eliminar/<int:id>/",
+    "name": "eliminar_material",
+    "callback": "eliminar_material",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 117
+  },
+  {
+    "url": "catalogo/stock/",
+    "name": "stock_lista",
+    "callback": "stock_lista",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 161
+  },
+  {
+    "url": "catalogo/stock/editar/<int:id>/",
+    "name": "editar_stock",
+    "callback": "editar_stock",
+    "module": "apps.catalogo.views.materiales_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 205
+  },
+  {
+    "url": "catalogo/movimientos/",
+    "name": "movimientos_lista",
+    "callback": "movimientos_lista",
+    "module": "apps.catalogo.views.movimientos_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 42
+  },
+  {
+    "url": "catalogo/entrada/",
+    "name": "registrar_entrada",
+    "callback": "registrar_entrada",
+    "module": "apps.catalogo.views.movimientos_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 13
+  },
+  {
+    "url": "catalogo/tipos/",
+    "name": "tipos_material_lista",
+    "callback": "tipos_material_lista",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 12
+  },
+  {
+    "url": "catalogo/tipos/crear/",
+    "name": "crear_tipo_material",
+    "callback": "crear_tipo_material",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 76
+  },
+  {
+    "url": "catalogo/tipos/editar/<str:codigo>/",
+    "name": "editar_tipo_material",
+    "callback": "editar_tipo_material",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 101
+  },
+  {
+    "url": "catalogo/tipos/estado/<str:codigo>/",
+    "name": "cambiar_estado_tipo",
+    "callback": "cambiar_estado_tipo",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 124
+  },
+  {
+    "url": "catalogo/tipos/eliminar/<str:codigo>/",
+    "name": "eliminar_tipo_material",
+    "callback": "eliminar_tipo_material",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 137
+  },
+  {
+    "url": "catalogo/tipos/eliminar/<str:codigo>/",
+    "name": "eliminar_tipo_material",
+    "callback": "eliminar_tipo_material",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 137
+  },
+  {
+    "url": "catalogo/unidades/",
+    "name": "unidades_medida_lista",
+    "callback": "unidades_medida_lista",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 158
+  },
+  {
+    "url": "catalogo/unidades/crear/",
+    "name": "crear_unidad_medida",
+    "callback": "crear_unidad_medida",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 182
+  },
+  {
+    "url": "catalogo/unidades/editar/<int:id>/",
+    "name": "editar_unidad_medida",
+    "callback": "editar_unidad_medida",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 206
+  },
+  {
+    "url": "catalogo/unidades/estado/<int:id>/",
+    "name": "cambiar_estado_unidad_medida",
+    "callback": "cambiar_estado_unidad_medida",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 228
+  },
+  {
+    "url": "catalogo/unidades/eliminar/<int:id>/",
+    "name": "eliminar_unidad_medida",
+    "callback": "eliminar_unidad_medida",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 245
+  },
+  {
+    "url": "catalogo/marcas/",
+    "name": "marcas_lista",
+    "callback": "marcas_lista",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 271
+  },
+  {
+    "url": "catalogo/marcas/crear/",
+    "name": "crear_marca",
+    "callback": "crear_marca",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 308
+  },
+  {
+    "url": "catalogo/marcas/editar/<int:id>/",
+    "name": "editar_marca",
+    "callback": "editar_marca",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 332
+  },
+  {
+    "url": "catalogo/marcas/eliminar/<int:id>/",
+    "name": "eliminar_marca",
+    "callback": "eliminar_marca",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 373
+  },
+  {
+    "url": "catalogo/marcas/estado/<int:id>/",
+    "name": "cambiar_estado_marca",
+    "callback": "cambiar_estado_marca",
+    "module": "apps.catalogo.views.catalogo_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 354
+  },
+  {
+    "url": "catalogo/api/materiales/",
+    "name": "api_materiales",
+    "callback": "api_materiales",
+    "module": "apps.catalogo.views.api_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 13
+  },
+  {
+    "url": "catalogo/api/materiales/listado/",
+    "name": "api_materiales_listado",
+    "callback": "api_materiales_listado",
+    "module": "apps.catalogo.views.api_views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 32
+  },
+  {
+    "url": "compras/",
+    "name": "lista_compras",
+    "callback": "lista_compras",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 22
+  },
+  {
+    "url": "compras/crear/",
+    "name": "crear_compra",
+    "callback": "crear_compra",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 145
+  },
+  {
+    "url": "compras/detalle/<int:id>/",
+    "name": "detalle_compra",
+    "callback": "detalle_compra",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 201
+  },
+  {
+    "url": "compras/editar/<int:id>/",
+    "name": "editar_compra",
+    "callback": "editar_compra",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 234
+  },
+  {
+    "url": "compras/estado/<int:id>/",
+    "name": "cambiar_estado_compra",
+    "callback": "cambiar_estado_compra",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 210
+  },
+  {
+    "url": "compras/proveedores/",
+    "name": "lista_proveedores",
+    "callback": "lista_proveedores",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 320
+  },
+  {
+    "url": "compras/proveedores/crear/",
+    "name": "crear_proveedor",
+    "callback": "crear_proveedor",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 413
+  },
+  {
+    "url": "compras/proveedores/editar/<int:codigo_proveedor>/",
+    "name": "editar_proveedor",
+    "callback": "editar_proveedor",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 450
+  },
+  {
+    "url": "compras/proveedores/contactar/<int:codigo_proveedor>/",
+    "name": "contactar_proveedor",
+    "callback": "contactar_proveedor",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 278
+  },
+  {
+    "url": "compras/proveedores/estado/<int:codigo_proveedor>/",
+    "name": "cambiar_estado_proveedor",
+    "callback": "cambiar_estado_proveedor",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 521
+  },
+  {
+    "url": "compras/proveedores/perfil/<int:codigo_proveedor>/",
+    "name": "perfil_proveedor",
+    "callback": "perfil_proveedor",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 488
+  },
+  {
+    "url": "compras/proveedores/<int:codigo_proveedor>/materiales/",
+    "name": "materiales_proveedor_json",
+    "callback": "materiales_proveedor_json",
+    "module": "apps.compras.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 546
+  },
+  {
+    "url": "pedidos/lista/",
+    "name": "lista_pedidos_admin",
+    "callback": "lista_pedidos_admin",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 231
+  },
+  {
+    "url": "pedidos/entregas/",
+    "name": "lista_entregas_admin",
+    "callback": "lista_entregas_admin",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 244
+  },
+  {
+    "url": "pedidos/detalle/<int:id>/",
+    "name": "ver_pedido_admin",
+    "callback": "ver_pedido_admin",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 249
+  },
+  {
+    "url": "pedidos/api/estado/<int:id>/",
+    "name": "estado_pedido_api",
+    "callback": "estado_pedido_api",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 862
+  },
+  {
+    "url": "pedidos/entregas/crear/<int:orden_id>/",
+    "name": "crear_entrega",
+    "callback": "crear_entrega",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 531
+  },
+  {
+    "url": "pedidos/eliminar/<int:id>/",
+    "name": "eliminar_orden",
+    "callback": "eliminar_orden",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 648
+  },
+  {
+    "url": "pedidos/agregar-materiales/<int:id>/",
+    "name": "agregar_materiales",
+    "callback": "agregar_materiales",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 88
+  },
+  {
+    "url": "pedidos/eliminar-detalle/<int:id>/",
+    "name": "eliminar_detalle",
+    "callback": "eliminar_detalle",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 54
+  },
+  {
+    "url": "pedidos/calcular-total/<int:id>/",
+    "name": "calcular_total",
+    "callback": "calcular_total",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 47
+  },
+  {
+    "url": "pedidos/solicitudes/crear/",
+    "name": "crear_solicitud",
+    "callback": "crear_pedido",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 719
+  },
+  {
+    "url": "pedidos/solicitudes/",
+    "name": "lista_solicitudes",
+    "callback": "listar_pedidos",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 802
+  },
+  {
+    "url": "pedidos/solicitudes/<int:pk>/",
+    "name": "detalle_solicitud",
+    "callback": "detalle_pedido",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 813
+  },
+  {
+    "url": "pedidos/solicitudes/<int:pk>/aprobar/",
+    "name": "aprobar_solicitud",
+    "callback": "aprobar_pedido",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 825
+  },
+  {
+    "url": "pedidos/solicitudes/<int:pk>/cancelar/",
+    "name": "cancelar_solicitud",
+    "callback": "cancelar_pedido",
+    "module": "apps.pedidos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 840
+  },
+  {
+    "url": "pagos/",
+    "name": "lista_pagos",
+    "callback": "lista_pagos",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 62
+  },
+  {
+    "url": "pagos/registrar/<int:pedido_id>/",
+    "name": "registrar_pago_pedido",
+    "callback": "registrar_pago_pedido",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 111
+  },
+  {
+    "url": "pagos/<int:pk>/",
+    "name": "detalle_pago",
+    "callback": "detalle_pago",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 232
+  },
+  {
+    "url": "pagos/<int:pk>/comprobante/",
+    "name": "ver_comprobante_pago",
+    "callback": "ver_comprobante_pago",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 240
+  },
+  {
+    "url": "pagos/<int:pk>/revisar/",
+    "name": "revisar_pago_pedido",
+    "callback": "revisar_pago_pedido",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 257
+  },
+  {
+    "url": "pagos/facturas/",
+    "name": "lista_facturas",
+    "callback": "lista_facturas",
+    "module": "apps.pedidos.views_pagos",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 296
+  },
+  {
+    "url": "pagos/gestion/",
+    "name": "gestion_pagos",
+    "callback": "gestion_pagos",
+    "module": "apps.pedidos.views_pagos",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 366
+  },
+  {
+    "url": "pagos/historial/",
+    "name": "historial_pagos",
+    "callback": "historial_pagos",
+    "module": "apps.pedidos.views_pagos",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 381
+  },
+  {
+    "url": "pagos/facturas/<int:pk>/",
+    "name": "detalle_factura",
+    "callback": "detalle_factura",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 426
+  },
+  {
+    "url": "pagos/facturas/<int:pk>/pago/",
+    "name": "registrar_pago",
+    "callback": "registrar_pago",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 361
+  },
+  {
+    "url": "pagos/facturas/<int:pk>/pago/<int:pago_id>/revisar/",
+    "name": "revisar_pago",
+    "callback": "revisar_pago",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 462
+  },
+  {
+    "url": "pagos/facturas/<int:pk>/pdf/",
+    "name": "descargar_factura",
+    "callback": "descargar_pdf",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 444
+  },
+  {
+    "url": "pagos/pedido/<int:pedido_id>/pdf/",
+    "name": "descargar_factura_pedido",
+    "callback": "descargar_factura_pedido",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 456
+  },
+  {
+    "url": "pagos/mis-facturas/",
+    "name": "mis_facturas",
+    "callback": "mis_facturas",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 404
+  },
+  {
+    "url": "pagos/mis-pagos/",
+    "name": "mis_pagos",
+    "callback": "mis_pagos",
+    "module": "apps.pagos.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 415
+  },
+  {
+    "url": "reportes/admin/",
+    "name": "reportes_admin",
+    "callback": "reportes_admin",
+    "module": "apps.reportes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 23
+  },
+  {
+    "url": "reportes/exportar/<str:tipo>/",
+    "name": "exportar_reporte_pdf",
+    "callback": "exportar_reporte_pdf",
+    "module": "apps.reportes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 101
+  },
+  {
+    "url": "reportes/exportar/excel/<str:tipo>/",
+    "name": "exportar_reporte_excel",
+    "callback": "exportar_reporte_excel",
+    "module": "apps.reportes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 216
+  },
+  {
+    "url": "reportes/exportar/xml/<str:tipo>/",
+    "name": "exportar_reporte_xml",
+    "callback": "exportar_reporte_xml",
+    "module": "apps.reportes.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 308
+  },
+  {
+    "url": "auditoria/lista/",
+    "name": "lista_historial",
+    "callback": "lista_historial",
+    "module": "apps.auditoria.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 9
+  },
+  {
+    "url": "logistica/vehiculos/",
+    "name": "lista_vehiculos",
+    "callback": "lista_vehiculos",
+    "module": "apps.logistica.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 37
+  },
+  {
+    "url": "logistica/vehiculos/crear/",
+    "name": "crear_vehiculo",
+    "callback": "crear_vehiculo",
+    "module": "apps.logistica.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 136
+  },
+  {
+    "url": "logistica/vehiculos/editar/<int:id>/",
+    "name": "editar_vehiculo",
+    "callback": "editar_vehiculo",
+    "module": "apps.logistica.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 195
+  },
+  {
+    "url": "logistica/vehiculos/desactivar/<int:id>/",
+    "name": "desactivar_vehiculo",
+    "callback": "desactivar_vehiculo",
+    "module": "apps.logistica.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 345
+  },
+  {
+    "url": "logistica/vehiculos/disponibilidad/<int:id>/",
+    "name": "cambiar_disponibilidad_vehiculo",
+    "callback": "cambiar_disponibilidad_vehiculo",
+    "module": "apps.logistica.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 312
+  },
+  {
+    "url": "logistica/vehiculos/eliminar/<int:id>/",
+    "name": "eliminar_vehiculo",
+    "callback": "eliminar_vehiculo",
+    "module": "apps.logistica.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 294
+  },
+  {
+    "url": "logistica/novedades/crear/<int:entrega_id>/",
+    "name": "crear_novedad",
+    "callback": "crear_novedad",
+    "module": "apps.logistica.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 363
+  },
+  {
+    "url": "logistica/novedades/<int:novedad_id>/seguimiento/",
+    "name": "agregar_seguimiento",
+    "callback": "agregar_seguimiento",
+    "module": "apps.logistica.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 403
+  },
+  {
+    "url": "logistica/novedades/<int:seguimiento_id>/responder/",
+    "name": "responder_seguimiento",
+    "callback": "responder_seguimiento",
+    "module": "apps.logistica.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 437
+  },
+  {
+    "url": "ia/chat/",
+    "name": "chat_ia",
+    "callback": "chat_ia",
+    "module": "apps.ia.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 11
+  },
+  {
+    "url": "ia/feedback/",
+    "name": "feedback_ia",
+    "callback": "feedback_ia",
+    "module": "apps.ia.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 28
+  },
+  {
+    "url": "ayuda/",
+    "name": "index",
+    "callback": "index_ayuda",
+    "module": "apps.ayuda.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 14
+  },
+  {
+    "url": "ayuda/guias/",
+    "name": "lista_guias",
+    "callback": "lista_guias",
+    "module": "apps.ayuda.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 33
+  },
+  {
+    "url": "ayuda/guias/categoria/<int:categoria_id>/",
+    "name": "lista_guias_categoria",
+    "callback": "lista_guias",
+    "module": "apps.ayuda.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 33
+  },
+  {
+    "url": "ayuda/guias/<int:guia_id>/",
+    "name": "detalle_guia",
+    "callback": "detalle_guia",
+    "module": "apps.ayuda.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 53
+  },
+  {
+    "url": "ayuda/sugerencias/crear/",
+    "name": "crear_sugerencia",
+    "callback": "crear_sugerencia",
+    "module": "apps.ayuda.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 66
+  },
+  {
+    "url": "ayuda/colores/",
+    "name": "lista_colores",
+    "callback": "lista_colores",
+    "module": "apps.ayuda.views",
+    "file": "C:\\Users\\User\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\django\\contrib\\auth\\decorators.py",
+    "line": 86
+  },
+  {
+    "url": "",
+    "name": "inicio",
+    "callback": "inicio",
+    "module": "config.views",
+    "file": "D:\\Mis documentos\\Documentos\\Constru-trans_01\\config\\views.py",
+    "line": 6
+  },
+  {
+    "url": "password-reset/",
+    "name": "password_reset",
+    "callback": "<lambda>",
+    "module": "config.urls",
+    "file": "D:\\Mis documentos\\Documentos\\Constru-trans_01\\config\\urls.py",
+    "line": 32
+  },
+  {
+    "url": "password-reset/done/",
+    "name": "password_reset_done",
+    "callback": "<lambda>",
+    "module": "config.urls",
+    "file": "D:\\Mis documentos\\Documentos\\Constru-trans_01\\config\\urls.py",
+    "line": 35
+  },
+  {
+    "url": "reset/<uidb64>/<token>/",
+    "name": "password_reset_confirm",
+    "callback": "redirect_password_reset_confirm",
+    "module": "config.urls",
+    "file": "D:\\Mis documentos\\Documentos\\Constru-trans_01\\config\\urls.py",
+    "line": 10
+  },
+  {
+    "url": "reset/done/",
+    "name": "password_reset_complete",
+    "callback": "<lambda>",
+    "module": "config.urls",
+    "file": "D:\\Mis documentos\\Documentos\\Constru-trans_01\\config\\urls.py",
+    "line": 41
+  }
+]

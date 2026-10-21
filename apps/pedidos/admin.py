@@ -19,8 +19,16 @@ class PedidoAdmin(admin.ModelAdmin):
         "usuario__apellidos",
         "usuario__documento",
     )
-    readonly_fields = ("total", "fecha_solicitud")
+    readonly_fields = ("codigo_pedido", "total", "fecha_solicitud")
     inlines = [DetallePedidoInline]
+    list_select_related = ("usuario",)
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
+
+    def save_model(self, request, obj, form, change):
+        obj.full_clean()
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(DetallePedido)
@@ -35,6 +43,10 @@ class DetallePedidoAdmin(admin.ModelAdmin):
     )
     list_filter = ("pedido", "material")
     readonly_fields = ("subtotal",)
+    list_select_related = ("pedido", "material")
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
 
 
 @admin.register(SolicitudPedido)
@@ -43,6 +55,10 @@ class SolicitudPedidoAdmin(admin.ModelAdmin):
     list_filter = ("estado", "fecha_creacion")
     search_fields = ("cliente__nombres", "cliente__apellidos")
     readonly_fields = ("total", "fecha_creacion")
+    list_select_related = ("cliente",)
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
 
 
 @admin.register(DetalleSolicitudPedido)
@@ -50,3 +66,7 @@ class DetalleSolicitudPedidoAdmin(admin.ModelAdmin):
     list_display = ("pedido", "material", "cantidad", "precio_unitario", "subtotal")
     search_fields = ("material__nombre",)
     raw_id_fields = ("pedido",)
+    list_select_related = ("pedido", "material")
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)

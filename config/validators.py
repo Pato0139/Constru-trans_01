@@ -40,10 +40,14 @@ nit_validator = RegexValidator(
     code="nit_invalido",
 )
 
-# Placas Colombia y códigos de flota (ABC123, ABC-123, ABC12D, CTV0336, EXTRA01).
+# Placas Colombia endurecidas según normativa RUNT / Ministerio de Transporte:
+# - Carro particular y servicio público: ABC123, ABC-123
+# - Formato servicio público 4 dígitos: CTV0336
+# - Motocicletas: ABC12D
+# - Remolques y semirremolques: R12345, S12345
 placa_validator = RegexValidator(
-    r"^(?:[A-Z]{3}[- ]?\d{3,4}|[A-Z]{3}[- ]?\d{2}[A-Z0-9]|[A-Z0-9]{5,8})$",
-    message="La placa debe ser un identificador alfanumérico válido (ej. ABC123, ABC-123, CTV0336).",
+    r"^(?:[A-Z]{3}[- ]?\d{3,4}|[A-Z]{3}[- ]?\d{2}[A-Z]|[RS]\d{5})$",
+    message="La placa debe corresponder a un formato vehicular colombiano válido (ej. ABC123, ABC-123, ABC12D, R12345).",
     code="placa_invalida",
 )
 
@@ -75,8 +79,8 @@ porcentaje_validators = [
     MaxValueValidator(Decimal("100"), message="El porcentaje no puede superar 100."),
 ]
 cantidad_validators = [
-    MinValueValidator(1, message="La cantidad mínima es 1."),
-    MaxValueValidator(CANTIDAD_MAXIMA, message=f"La cantidad no puede superar {CANTIDAD_MAXIMA}."),
+    MinValueValidator(Decimal("0.01"), message="La cantidad mínima es 0.01."),
+    MaxValueValidator(Decimal(str(CANTIDAD_MAXIMA)), message=f"La cantidad no puede superar {CANTIDAD_MAXIMA}."),
 ]
 
 # ---------------------------------------------------------------------------
@@ -154,4 +158,4 @@ class ArchivoValidator:
         )
 
 
-imagen_validator = ArchivoValidator(("png", "jpg", "jpeg"), max_mb=5)
+imagen_validator = ArchivoValidator(("png", "jpg", "jpeg", "webp"), max_mb=5)

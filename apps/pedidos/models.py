@@ -24,31 +24,72 @@ def validar_fecha_no_pasada(value):
         raise ValidationError("La fecha no puede ser en el pasado.")
 
 
-class Pedido(TransicionMixin, models.Model):
-    ESTADOS = [
-        ("pendiente", "Pendiente"),
-        ("autorizado_despacho", "Autorizado para despacho"),
-        ("vehiculo_asignado", "Vehículo asignado"),
-        ("en_ruta", "En Ruta"),
-        ("entregado", "Entregado"),
-        ("cancelado", "Cancelado"),
-    ]
-    PENDIENTE = "pendiente"
-    AUTORIZADO_DESPACHO = "autorizado_despacho"
-    VEHICULO_ASIGNADO = "vehiculo_asignado"
-    EN_RUTA = "en_ruta"
-    ENTREGADO = "entregado"
-    CANCELADO = "cancelado"
+class EstadoPedido(models.TextChoices):
+    PENDIENTE = "pendiente", "Pendiente"
+    AUTORIZADO_DESPACHO = "autorizado_despacho", "Autorizado para despacho"
+    VEHICULO_ASIGNADO = "vehiculo_asignado", "Vehículo asignado"
+    EN_RUTA = "en_ruta", "En ruta"
+    ENTREGADO = "entregado", "Entregado"
+    CANCELADO = "cancelado", "Cancelado"
 
-    # Fuente de verdad del flujo. "entregado" y "cancelado" son finales.
-    TRANSICIONES = {
-        PENDIENTE: {AUTORIZADO_DESPACHO, CANCELADO},
-        AUTORIZADO_DESPACHO: {VEHICULO_ASIGNADO, EN_RUTA, CANCELADO, PENDIENTE},
-        VEHICULO_ASIGNADO: {EN_RUTA, ENTREGADO, CANCELADO, PENDIENTE},
-        EN_RUTA: {ENTREGADO, CANCELADO},
-        ENTREGADO: set(),
-        CANCELADO: set(),
-    }
+
+ETIQUETAS_ESTADO_POR_ROL = {
+    "cliente": {
+        EstadoPedido.PENDIENTE: "Recibido / En revisión",
+        EstadoPedido.AUTORIZADO_DESPACHO: "Pago verificado / En preparación",
+        EstadoPedido.VEHICULO_ASIGNADO: "Vehículo asignado / Próximo a despacho",
+        EstadoPedido.EN_RUTA: "En camino a su dirección",
+        EstadoPedido.ENTREGADO: "Entregado con éxito",
+        EstadoPedido.CANCELADO: "Cancelado",
+    },
+    "conductor": {
+        EstadoPedido.PENDIENTE: "No disponible (En revisión)",
+        EstadoPedido.AUTORIZADO_DESPACHO: "En bodega / Sin asignar",
+        EstadoPedido.VEHICULO_ASIGNADO: "Asignado a mi vehículo",
+        EstadoPedido.EN_RUTA: "En mi ruta de entrega",
+        EstadoPedido.ENTREGADO: "Completado y firmado",
+        EstadoPedido.CANCELADO: "Anulado",
+    },
+    "admin": {
+        EstadoPedido.PENDIENTE: "Pendiente de verificación",
+        EstadoPedido.AUTORIZADO_DESPACHO: "Autorizado para despacho",
+        EstadoPedido.VEHICULO_ASIGNADO: "Vehículo asignado",
+        EstadoPedido.EN_RUTA: "En ruta de entrega",
+        EstadoPedido.ENTREGADO: "Entregado",
+        EstadoPedido.CANCELADO: "Cancelado",
+    },
+}
+
+TRANSICIONES_VALIDAS_POR_ROL = {
+    "admin": {
+        EstadoPedido.PENDIENTE: {EstadoPedido.AUTORIZADO_DESPACHO, EstadoPedido.CANCELADO},
+        EstadoPedido.AUTORIZADO_DESPACHO: {EstadoPedido.VEHICULO_ASIGNADO, EstadoPedido.CANCELADO, EstadoPedido.PENDIENTE},
+        EstadoPedido.VEHICULO_ASIGNADO: {EstadoPedido.EN_RUTA, EstadoPedido.ENTREGADO, EstadoPedido.CANCELADO, EstadoPedido.AUTORIZADO_DESPACHO, EstadoPedido.PENDIENTE},
+        EstadoPedido.EN_RUTA: {EstadoPedido.ENTREGADO, EstadoPedido.CANCELADO},
+        EstadoPedido.ENTREGADO: set(),
+        EstadoPedido.CANCELADO: set(),
+    },
+    "conductor": {
+        EstadoPedido.VEHICULO_ASIGNADO: {EstadoPedido.EN_RUTA, EstadoPedido.ENTREGADO},
+        EstadoPedido.EN_RUTA: {EstadoPedido.ENTREGADO},
+    },
+    "cliente": {
+        EstadoPedido.PENDIENTE: {EstadoPedido.CANCELADO},
+    },
+}
+
+
+class Pedido(TransicionMixin, models.Model):
+    ESTADOS = EstadoPedido.choices
+    PENDIENTE = EstadoPedido.PENDIENTE.value
+    AUTORIZADO_DESPACHO = EstadoPedido.AUTORIZADO_DESPACHO.value
+    VEHICULO_ASIGNADO = EstadoPedido.VEHICULO_ASIGNADO.value
+    EN_RUTA = EstadoPedido.EN_RUTA.value
+    ENTREGADO = EstadoPedido.ENTREGADO.value
+    CANCELADO = EstadoPedido.CANCELADO.value
+
+    # Fuente de verdad global del flujo
+    TRANSICIONES = TRANSICIONES_VALIDAS_POR_ROL["admin"]
     ESTADOS_REQUIEREN_PAGO = {AUTORIZADO_DESPACHO, VEHICULO_ASIGNADO, EN_RUTA}
 
     codigo_pedido = models.AutoField(primary_key=True)
@@ -104,6 +145,12 @@ class Pedido(TransicionMixin, models.Model):
     )
     fecha_toma_entrega = models.DateTimeField(null=True, blank=True)
     fecha_entrega_real = models.DateTimeField(null=True, blank=True)
+    motivo_cancelacion = models.TextField(
+        blank=True,
+        default="",
+        validators=[MaxLengthValidator(1000)],
+        help_text="Motivo obligatorio al cancelar un pedido.",
+    )
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
@@ -138,13 +185,43 @@ class Pedido(TransicionMixin, models.Model):
                 name="chk_pedido_entrega_real_gte_toma",
             ),
             models.CheckConstraint(
-                check=models.Q(estado__in=[
-                    "pendiente", "autorizado_despacho", "vehiculo_asignado",
-                    "en_ruta", "entregado", "cancelado",
-                ]),
+                check=models.Q(estado__in=EstadoPedido.values),
                 name="chk_pedido_estado_valido",
             ),
         ]
+
+    def transicionar_estado(self, nuevo_estado, usuario, motivo="", ip_origen=None):
+        """Transiciona el estado con validación estricta de rol, propiedad y registro de bitácora."""
+        if not usuario or not usuario.is_authenticated:
+            raise ValidationError("Se requiere autenticación para transicionar el estado del pedido.")
+        rol = getattr(usuario, "rol", "cliente")
+        validas = TRANSICIONES_VALIDAS_POR_ROL.get(rol, {}).get(self.estado, set())
+        if nuevo_estado not in validas:
+            raise ValidationError(
+                f"El rol '{rol}' no tiene autorización para cambiar el estado de '{self.estado}' a '{nuevo_estado}'."
+            )
+        if rol == "conductor" and self.conductor_usuario != usuario:
+            raise ValidationError("Solo el conductor asignado puede actualizar este pedido.")
+        if rol == "cliente" and self.cliente_usuario != usuario:
+            raise ValidationError("Solo el cliente propietario puede cancelar este pedido.")
+        if nuevo_estado == EstadoPedido.CANCELADO:
+            if not motivo or len(motivo.strip()) < 5:
+                raise ValidationError("Debe proporcionar un motivo de cancelación de al menos 5 caracteres.")
+            self.motivo_cancelacion = motivo.strip()
+
+        estado_anterior = self.estado
+        self.estado = nuevo_estado
+        self.save()
+
+        HistorialEstadoPedido.objects.create(
+            pedido=self,
+            estado_anterior=estado_anterior,
+            estado_nuevo=nuevo_estado,
+            usuario=usuario,
+            motivo=motivo or "",
+            ip_origen=ip_origen,
+        )
+
 
     def __str__(self):
         return f"Pedido {self.codigo_pedido} - {self.estado}"
@@ -251,13 +328,32 @@ class Pedido(TransicionMixin, models.Model):
         super().save(*args, **kwargs)
 
 
+class HistorialEstadoPedido(models.Model):
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="historial_estados")
+    estado_anterior = models.CharField(max_length=30)
+    estado_nuevo = models.CharField(max_length=30)
+    usuario = models.ForeignKey(
+        "usuarios.Usuario", on_delete=models.SET_NULL, null=True, blank=True, related_name="transiciones_pedido"
+    )
+    fecha = models.DateTimeField(auto_now_add=True)
+    motivo = models.TextField(blank=True, default="")
+    ip_origen = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        db_table = "pedidos_historial_estado"
+        ordering = ["-fecha"]
+
+    def __str__(self):
+        return f"Pedido #{self.pedido_id}: {self.estado_anterior} -> {self.estado_nuevo} ({self.fecha})"
+
+
 class DetallePedido(models.Model):
     id_detalle_pedido = models.AutoField(primary_key=True)
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="detalles")
     material = models.ForeignKey(
         "catalogo.MaterialConstruccion", on_delete=models.PROTECT, db_column="cod_material"
     )
-    cantidad = models.IntegerField(validators=cantidad_validators)
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2, validators=cantidad_validators)
     precio_unitario = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)]
     )
@@ -377,8 +473,11 @@ class DetalleSolicitudPedido(models.Model):
         related_name="detalles_pedidos_gestion",
         help_text="Material solicitado.",
     )
-    cantidad = models.PositiveIntegerField(
-        validators=cantidad_validators, help_text="Cantidad solicitada."
+    cantidad = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=cantidad_validators,
+        help_text="Cantidad solicitada.",
     )
     precio_unitario = models.DecimalField(
         max_digits=10,

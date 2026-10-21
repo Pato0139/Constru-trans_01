@@ -28,11 +28,21 @@
 """
 
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
-SUPERADMIN_EMAIL = "edwardf5432@gmail.com"
-SUPERADMIN_USERNAME = "Edward_Fonseca"
+from django.core.exceptions import ImproperlyConfigured
+
+_raw_superadmin_email = os.getenv("SUPERADMIN_EMAIL")
+if not _raw_superadmin_email or not _raw_superadmin_email.strip():
+    raise ImproperlyConfigured("La variable de entorno SUPERADMIN_EMAIL es obligatoria y no tiene valor por defecto.")
+SUPERADMIN_EMAIL = _raw_superadmin_email.strip()
+
+_raw_superadmin_username = os.getenv("SUPERADMIN_USERNAME")
+if not _raw_superadmin_username or not _raw_superadmin_username.strip():
+    raise ImproperlyConfigured("La variable de entorno SUPERADMIN_USERNAME es obligatoria y no tiene valor por defecto.")
+SUPERADMIN_USERNAME = _raw_superadmin_username.strip()
 
 EMAILS_AUTORIZADOS = {SUPERADMIN_EMAIL.lower()}
 USERNAMES_AUTORIZADOS = {SUPERADMIN_USERNAME.lower()}

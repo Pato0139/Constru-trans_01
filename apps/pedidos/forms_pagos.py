@@ -2,10 +2,10 @@ from django import forms
 
 from apps.pagos.models import Pago
 from apps.pedidos.validators import validar_comprobante_imagen
-from config.forms_base import StrictForm
+from config.forms_base import StrictForm, StrictModelForm
 
 
-class PagoRegistroForm(forms.ModelForm):
+class PagoRegistroForm(StrictModelForm):
     class Meta:
         model = Pago
         fields = ["metodo", "comprobante"]

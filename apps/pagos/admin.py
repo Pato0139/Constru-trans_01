@@ -7,6 +7,10 @@ from .models import DetallePago, Factura, Pago, PagoFactura
 class DetallePagoAdmin(admin.ModelAdmin):
     list_display = ("id", "pago", "concepto", "monto")
     search_fields = ("concepto", "pago__pedido__codigo_pedido")
+    list_select_related = ("pago",)
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
 
 
 class PagoFacturaInline(admin.TabularInline):
@@ -30,6 +34,14 @@ class PagoAdmin(admin.ModelAdmin):
     list_filter = ("estado", "metodo", "fecha_registro")
     search_fields = ("pedido__codigo_pedido", "observaciones")
     readonly_fields = ("fecha_registro", "fecha_revision")
+    list_select_related = ("pedido", "revisado_por")
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
+
+    def save_model(self, request, obj, form, change):
+        obj.full_clean()
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Factura)
@@ -37,8 +49,16 @@ class FacturaAdmin(admin.ModelAdmin):
     list_display = ["numero", "pedido", "cliente", "fecha_emision", "total", "estado"]
     list_filter = ["estado", "fecha_emision"]
     search_fields = ["numero", "pedido__codigo_pedido", "cliente__usuario__nombres"]
-    readonly_fields = ["numero", "uuid_publico"]
+    readonly_fields = ["numero", "uuid_publico", "total", "fecha_emision"]
     inlines = [PagoFacturaInline]
+    list_select_related = ("pedido", "cliente__usuario")
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
+
+    def save_model(self, request, obj, form, change):
+        obj.full_clean()
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(PagoFactura)
@@ -58,3 +78,11 @@ class PagoFacturaAdmin(admin.ModelAdmin):
         "factura__pedido__codigo_pedido",
     ]
     readonly_fields = ["fecha_registro", "fecha_revision"]
+    list_select_related = ("factura", "registrado_por")
+
+    def has_delete_permission(self, request, obj=None):
+        return bool(request.user.is_superuser)
+
+    def save_model(self, request, obj, form, change):
+        obj.full_clean()
+        super().save_model(request, obj, form, change)
