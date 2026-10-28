@@ -61,9 +61,14 @@ class BloqueoIP(models.Model):
             from django.db import OperationalError as _OpErr
             from django.db import ProgrammingError as _ProgErr
 
-            return cls.objects.get(ip=ip, activo=True)
-        except cls.DoesNotExist:
-            return None
+            bloqueo = cls.objects.filter(ip=ip, activo=True).order_by("-creado_en").first()
+            if not bloqueo:
+                return None
+            if not bloqueo.esta_vigente:
+                bloqueo.activo = False
+                bloqueo.save(update_fields=["activo"])
+                return None
+            return bloqueo
         except (_ProgErr, _OpErr, Exception) as exc:
             import logging as _log
 
