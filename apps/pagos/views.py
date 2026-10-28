@@ -17,6 +17,7 @@ from apps.pagos.pdf import render_factura_pdf
 from apps.pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
 from apps.pedidos.models import Pedido
 from apps.usuarios.views import admin_required
+from config.db_utils import select_for_update_if_supported
 from config.security import (
     _respuesta_no_autorizada,
     obtener_ip,
@@ -108,13 +109,16 @@ def lista_pagos(request):
     )
 
 
-@role_required(["cliente"])
+@role_required(["admin", "cliente"])
 def registrar_pago_pedido(request, pedido_id):
     usuario = _usuario_actual(request)
     pedido = get_object_or_404(Pedido, codigo_pedido=pedido_id)
 
-    if not _cliente_es_dueno(usuario, pedido):
+    es_admin = getattr(usuario, "rol", "") == "admin"
+    if not (es_admin or _cliente_es_dueno(usuario, pedido)):
         messages.error(request, "No puedes registrar el pago de un pedido ajeno.")
+        if es_admin:
+            return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
         return redirect("clientes:mis_pedidos")
 
     if pedido.estado == Pedido.CANCELADO:
@@ -143,15 +147,12 @@ def registrar_pago_pedido(request, pedido_id):
             try:
                 with transaction.atomic(using=using):
                     # Bloquear el pedido para evitar condiciones de carrera por envíos repetidos
-                    pedido_bloqueado = (
-                        Pedido.objects.using(using).select_for_update().get(pk=pedido.pk)
-                    )
-                    pago_existente = (
-                        Pago.objects.using(using)
-                        .select_for_update()
-                        .filter(pedido=pedido_bloqueado)
-                        .first()
-                    )
+                    pedido_bloqueado = select_for_update_if_supported(
+                        Pedido.objects.using(using), using
+                    ).get(pk=pedido.pk)
+                    pago_existente = select_for_update_if_supported(
+                        Pago.objects.using(using).filter(pedido=pedido_bloqueado), using
+                    ).first()
 
                     if pago_existente and pago_existente.estado == Pago.APROBADO:
                         messages.info(request, "Este pedido ya tiene un pago aprobado.")
@@ -167,21 +168,45 @@ def registrar_pago_pedido(request, pedido_id):
                         instancia_pago.pedido = pedido_bloqueado
 
                     instancia_pago.transicionar(Pago.PENDIENTE)
-                    instancia_pago.revisado_por = None
-                    instancia_pago.fecha_revision = None
-                    instancia_pago.observaciones = ""
-                    instancia_pago.monto = monto_pedido  # el monto lo fija el servidor, nunca el cliente
+                    instancia_pago.monto = monto_pedido
+                    if es_admin:
+                        instancia_pago.marcar_revision(
+                            estado=Pago.APROBADO,
+                            revisor=getattr(request.user, "usuario", request.user),
+                            observaciones="Aprobado por administrador al registrar el pago.",
+                        )
+                        if pedido_bloqueado.estado == Pedido.PENDIENTE:
+                            pedido_bloqueado.transicionar(Pedido.AUTORIZADO_DESPACHO)
+                    else:
+                        instancia_pago.revisado_por = None
+                        instancia_pago.fecha_revision = None
+                        instancia_pago.observaciones = ""
                     instancia_pago.save(using=using)
+                    pedido_bloqueado.save(using=using, update_fields=["estado"])
 
-                registrar_actividad(
-                    request,
-                    "crear",
-                    "pagos",
-                    instancia_pago.pk,
-                    f"Cliente registró pago del pedido #{pedido.codigo_pedido}",
-                )
+                try:
+                    registrar_actividad(
+                        request,
+                        "crear",
+                        "pagos",
+                        instancia_pago.pk,
+                        f"{'Administrador' if es_admin else 'Cliente'} registró y {'aprobó' if es_admin else 'envió'} pago del pedido #{pedido.codigo_pedido}",
+                    )
+                except Exception:
+                    logger.warning(
+                        "No fue posible registrar la actividad del pago %s del pedido %s",
+                        getattr(instancia_pago, "pk", None),
+                        pedido.codigo_pedido,
+                        exc_info=True,
+                    )
 
-                messages.success(request, "Pago registrado. Queda pendiente de revisión.")
+                if es_admin:
+                    messages.success(
+                        request,
+                        "Pago registrado y aprobado automáticamente. El pedido queda autorizado para despacho.",
+                    )
+                else:
+                    messages.success(request, "Pago registrado. Queda pendiente de revisión.")
                 return redirect("pagos:detalle_pago", pk=instancia_pago.pk)
             except Exception as exc:
                 logger.exception(
@@ -283,8 +308,8 @@ def revisar_pago_pedido(request, pk):
         using = pago._state.db or router.db_for_write(Pago, instance=pago)
         with transaction.atomic(using=using):
             # Bloqueo para evitar doble revisión concurrente.
-            pago = Pago.objects.using(using).select_for_update().get(pk=pago.pk)
-            pedido = Pedido.objects.using(using).select_for_update().get(pk=pago.pedido_id)
+            pago = select_for_update_if_supported(Pago.objects.using(using), using).get(pk=pago.pk)
+            pedido = select_for_update_if_supported(Pedido.objects.using(using), using).get(pk=pago.pedido_id)
             if pago.estado != Pago.PENDIENTE:
                 messages.error(request, "Este pago ya fue revisado y no puede volver a cambiarse.")
                 return redirect("pagos:detalle_pago", pk=pago.pk)
@@ -366,7 +391,7 @@ def registrar_pago(request, pk):
         form = PagoFacturaRegistroForm(request.POST, request.FILES, factura=factura)
         if form.is_valid():
             with transaction.atomic():
-                factura_bloqueada = Factura.objects.select_for_update().get(pk=pk)
+                factura_bloqueada = select_for_update_if_supported(Factura.objects, "default").get(pk=pk)
                 pago = form.save(commit=False)
                 if pago.monto > factura_bloqueada.saldo_pendiente:
                     form.add_error("monto", "El saldo de la factura cambió; verifica el monto.")
@@ -472,8 +497,10 @@ def revisar_pago(request, pk, pago_id):
 
     accion = form.cleaned_data["accion"]
     with transaction.atomic():
-        Factura.objects.select_for_update().get(pk=pk)
-        pago = PagoFactura.objects.select_for_update().get(pk=pago_id, factura_id=pk)
+        select_for_update_if_supported(Factura.objects, "default").get(pk=pk)
+        pago = select_for_update_if_supported(PagoFactura.objects, "default").get(
+            pk=pago_id, factura_id=pk
+        )
         if pago.estado != PagoFactura.Estado.PENDIENTE:
             messages.error(request, "Este pago ya fue revisado.")
         if accion == "aprobar" and pago.monto > pago.factura.saldo_pendiente:
