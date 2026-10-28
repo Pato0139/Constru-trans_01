@@ -12,10 +12,6 @@ from django.views.decorators.http import require_POST
 
 from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
-from config.db_preference import debe_usar_bd_remota
-from config.db_utils import select_for_update_if_supported
-from config.security import (_respuesta_no_autorizada, obtener_ip,
-                           registrar_evento, registrar_warning, role_required)
 from apps.logistica.models import Entrega, Novedad
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
@@ -26,6 +22,7 @@ from config.security import (
     obtener_ip,
     registrar_evento,
     registrar_warning,
+    role_required,
 )
 from config.utils import registrar_actividad
 
@@ -103,11 +100,11 @@ def agregar_materiales(request, id):
         material = get_object_or_404(MaterialConstruccion, pk=form.cleaned_data["material"])
 
         with transaction.atomic():
-            orden = Pedido.objects.select_for_update().get(pk=orden.pk)
+            orden = select_for_update_if_supported(Pedido.objects, "default").get(pk=orden.pk)
             if orden.estado != Pedido.PENDIENTE:
                 messages.error(request, "Solo se pueden modificar pedidos pendientes.")
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-            stock_obj = Stock.objects.select_for_update().get(material=material)
+            stock_obj = select_for_update_if_supported(Stock.objects, "default").get(material=material)
             if stock_obj.cantidad_actual < cantidad:
                 messages.error(request, "Stock insuficiente")
                 return redirect("pedidos:agregar_materiales", id=orden.codigo_pedido)
@@ -368,7 +365,7 @@ def ver_pedido_admin(request, id):
             if accion == "confirmar":
                 if orden.estado != Pedido.ENTREGADO:
                     with transaction.atomic():
-                        orden = Pedido.objects.select_for_update().get(pk=orden.pk)
+                        orden = select_for_update_if_supported(Pedido.objects, "default").get(pk=orden.pk)
                         entrega = orden.entregas.filter(conductor=perfil_conductor).first()
                         if entrega and not orden.puede_transicionar(Pedido.ENTREGADO):
                             messages.error(
@@ -452,7 +449,7 @@ def ver_pedido_admin(request, id):
             try:
                 with transaction.atomic():
                     # Bloqueo: evita que dos admins cambien el estado a la vez.
-                    orden = Pedido.objects.select_for_update().get(pk=orden.pk)
+                    orden = select_for_update_if_supported(Pedido.objects, "default").get(pk=orden.pk)
                     if nuevo_estado == orden.estado:
                         messages.info(request, "El pedido ya se encuentra en ese estado.")
                         return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
@@ -552,7 +549,7 @@ def crear_entrega(request, orden_id):
 
         if conductor_id:
             with transaction.atomic():
-                orden = Pedido.objects.select_for_update().get(pk=orden.pk)
+                orden = select_for_update_if_supported(Pedido.objects, "default").get(pk=orden.pk)
                 if not orden.puede_transicionar(Pedido.EN_RUTA):
                     messages.error(
                         request,
@@ -826,7 +823,7 @@ def detalle_pedido(request, pk):
 @require_POST
 @transaction.atomic
 def aprobar_pedido(request, pk):
-    pedido = get_object_or_404(SolicitudPedido.objects.select_for_update(), pk=pk)
+    pedido = get_object_or_404(select_for_update_if_supported(SolicitudPedido.objects, "default"), pk=pk)
     if pedido.puede_transicionar("aprobado") and pedido.estado != "aprobado":
         pedido.transicionar("aprobado")
         pedido.save()
@@ -841,7 +838,7 @@ def aprobar_pedido(request, pk):
 @require_POST
 @transaction.atomic
 def cancelar_pedido(request, pk):
-    pedido = get_object_or_404(SolicitudPedido.objects.select_for_update(), pk=pk)
+    pedido = get_object_or_404(select_for_update_if_supported(SolicitudPedido.objects, "default"), pk=pk)
     if pedido.puede_transicionar("cancelado") and pedido.estado != "cancelado":
         for detalle in pedido.detalles.all():
             stock_obj = select_for_update_if_supported(Stock.objects, "default").get(
