@@ -57,7 +57,7 @@ class DriverOrderAccessTests(TestCase):
         self.assertEqual(response.context["orden"], self.pedido)
         self.assertTrue(response.context["puede_confirmar_entrega"])
         self.assertContains(response, "Confirmar Entrega")
-        self.assertContains(response, "Observación (opcional)")
+        self.assertContains(response, "Observación de entrega (opcional)")
 
     def test_otro_conductor_no_puede_ver_pedido(self):
         self.client.force_login(self.otro_conductor)

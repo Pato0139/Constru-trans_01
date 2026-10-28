@@ -11,7 +11,12 @@ from apps.catalogo.models import MaterialConstruccion
 from apps.pagos.models import Pago, comprobante_upload_to  # noqa: F401, E402
 from apps.usuarios.models import Usuario
 from config.state_machine import TransicionMixin
-from config.validators import cantidad_validators, no_negativo, no_solo_espacios, porcentaje_validators
+from config.validators import (
+    cantidad_validators,
+    no_negativo,
+    no_solo_espacios,
+    porcentaje_validators,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -406,4 +411,3 @@ class DetalleSolicitudPedido(models.Model):
         super().save(*args, **kwargs)
         self.pedido.calcular_total()
 # Re-export obligatorio: 0001_initial referencia apps.pedidos.models.comprobante_upload_to
-from apps.pagos.models import Pago, comprobante_upload_to  # noqa: F401, E402

@@ -3,10 +3,9 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from apps.catalogo.models import MaterialConstruccion, UnidadMedida
-from apps.pedidos.models import DetallePedido
-from apps.pedidos.models import Pago
-from apps.pedidos.models import Pedido
+from apps.pedidos.models import DetallePedido, Pago, Pedido
 from apps.usuarios.models import Usuario
+
 
 class PagoViewsTests(TestCase):
     def setUp(self):
