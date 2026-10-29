@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.db.models import Count, Q, Case, When, Value, CharField
+from django.db.models import Case, CharField, Count, Q, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 

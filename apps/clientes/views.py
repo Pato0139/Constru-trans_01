@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import F, Q, Sum
-from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -939,7 +939,7 @@ def cancelar_pedido(request, id):
 @role_required(["admin"])
 def lista_clientes(request):
     clientes = Usuario.objects.filter(rol="cliente").select_related("perfil_cliente").order_by("-date_joined")
-    
+
 
 @login_required
 def lista_clientes(request):
@@ -993,7 +993,7 @@ def lista_clientes(request):
 
 @role_required(["admin"])
 def detalle_cliente(request, id):
-        
+
     if request.user.rol != "admin":
         messages.error(request, "No tienes permisos para ver este perfil.")
         return redirect("usuarios:panel")
@@ -1014,7 +1014,7 @@ def detalle_cliente(request, id):
 
 @role_required(["admin"])
 def editar_cliente(request, id):
-        
+
     if request.user.rol != "admin":
         messages.error(request, "No tienes permisos para editar este cliente.")
         return redirect("usuarios:panel")

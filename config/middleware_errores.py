@@ -11,7 +11,12 @@ from django.db import IntegrityError
 from django.http import HttpResponseRedirect
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from .errors import formatear_errores, mensaje_integrity_error, respuesta_integridad, respuesta_validacion
+from .errors import (
+    formatear_errores,
+    mensaje_integrity_error,
+    respuesta_integridad,
+    respuesta_validacion,
+)
 
 
 def _espera_json(request):

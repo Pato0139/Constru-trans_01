@@ -3,6 +3,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.http import JsonResponse
@@ -12,11 +13,12 @@ from django.views.decorators.http import require_POST
 
 from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
-from apps.logistica.models import Entrega, Novedad
+from apps.logistica.models import Novedad
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
 from config.db_preference import debe_usar_bd_remota
 from config.db_utils import select_for_update_if_supported
+from config.errors import formatear_errores
 from config.security import (
     _respuesta_no_autorizada,
     obtener_ip,
@@ -27,11 +29,8 @@ from config.security import (
 from config.utils import registrar_actividad
 
 from .forms import AgregarMaterialForm, CambioEstadoPedidoForm, FiltroPedidosForm
-from .models import (DetallePedido, DetalleSolicitudPedido, Pedido,
-                     SolicitudPedido)
+from .models import DetallePedido, DetalleSolicitudPedido, Pedido, SolicitudPedido
 from .utils import liberar_vehiculo_pedido, revertir_stock_pedido
-from django.core.exceptions import ValidationError
-from config.errors import formatear_errores
 
 
 def _mensajes_error(request, origen):
@@ -100,11 +99,11 @@ def agregar_materiales(request, id):
         material = get_object_or_404(MaterialConstruccion, pk=form.cleaned_data["material"])
 
         with transaction.atomic():
-            orden = select_for_update_if_supported(Pedido.objects, "default").get(pk=orden.pk)
+            orden = Pedido.objects.select_for_update().get(pk=orden.pk)
             if orden.estado != Pedido.PENDIENTE:
                 messages.error(request, "Solo se pueden modificar pedidos pendientes.")
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-            stock_obj = select_for_update_if_supported(Stock.objects, "default").get(material=material)
+            stock_obj = Stock.objects.select_for_update().get(material=material)
             if stock_obj.cantidad_actual < cantidad:
                 messages.error(request, "Stock insuficiente")
                 return redirect("pedidos:agregar_materiales", id=orden.codigo_pedido)
@@ -365,7 +364,7 @@ def ver_pedido_admin(request, id):
             if accion == "confirmar":
                 if orden.estado != Pedido.ENTREGADO:
                     with transaction.atomic():
-                        orden = select_for_update_if_supported(Pedido.objects, "default").get(pk=orden.pk)
+                        orden = Pedido.objects.select_for_update().get(pk=orden.pk)
                         entrega = orden.entregas.filter(conductor=perfil_conductor).first()
                         if entrega and not orden.puede_transicionar(Pedido.ENTREGADO):
                             messages.error(
@@ -449,7 +448,7 @@ def ver_pedido_admin(request, id):
             try:
                 with transaction.atomic():
                     # Bloqueo: evita que dos admins cambien el estado a la vez.
-                    orden = select_for_update_if_supported(Pedido.objects, "default").get(pk=orden.pk)
+                    orden = Pedido.objects.select_for_update().get(pk=orden.pk)
                     if nuevo_estado == orden.estado:
                         messages.info(request, "El pedido ya se encuentra en ese estado.")
                         return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
@@ -549,7 +548,7 @@ def crear_entrega(request, orden_id):
 
         if conductor_id:
             with transaction.atomic():
-                orden = select_for_update_if_supported(Pedido.objects, "default").get(pk=orden.pk)
+                orden = Pedido.objects.select_for_update().get(pk=orden.pk)
                 if not orden.puede_transicionar(Pedido.EN_RUTA):
                     messages.error(
                         request,
@@ -823,7 +822,7 @@ def detalle_pedido(request, pk):
 @require_POST
 @transaction.atomic
 def aprobar_pedido(request, pk):
-    pedido = get_object_or_404(select_for_update_if_supported(SolicitudPedido.objects, "default"), pk=pk)
+    pedido = get_object_or_404(SolicitudPedido.objects.select_for_update(), pk=pk)
     if pedido.puede_transicionar("aprobado") and pedido.estado != "aprobado":
         pedido.transicionar("aprobado")
         pedido.save()
@@ -838,7 +837,7 @@ def aprobar_pedido(request, pk):
 @require_POST
 @transaction.atomic
 def cancelar_pedido(request, pk):
-    pedido = get_object_or_404(select_for_update_if_supported(SolicitudPedido.objects, "default"), pk=pk)
+    pedido = get_object_or_404(SolicitudPedido.objects.select_for_update(), pk=pk)
     if pedido.puede_transicionar("cancelado") and pedido.estado != "cancelado":
         for detalle in pedido.detalles.all():
             stock_obj = select_for_update_if_supported(Stock.objects, "default").get(

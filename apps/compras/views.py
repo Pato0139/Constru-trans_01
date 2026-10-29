@@ -14,9 +14,13 @@ from apps.usuarios.views import admin_required
 from config.db_utils import select_for_update_if_supported
 from config.utils import registrar_actividad
 
-from .forms import (CompraForm, DetalleCompraFormSet, ProveedorForm,
-                    ProveedorMaterialFormSet, ProveedorPerfilForm)
-from .forms import CompraForm, DetalleCompraFormSet, ProveedorMaterialFormSet, ProveedorPerfilForm
+from .forms import (
+    CompraForm,
+    DetalleCompraFormSet,
+    ProveedorForm,
+    ProveedorMaterialFormSet,
+    ProveedorPerfilForm,
+)
 from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
 

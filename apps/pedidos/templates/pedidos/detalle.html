@@ -819,6 +819,33 @@
                     </div>
                     {% endif %}
 
+                    <!-- NOVEDADES / OBSERVACIONES DE LA ENTREGA -->
+                    {% if entrega and entrega.novedades.all %}
+                    <div class="order-section-card">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                            <i class="bi bi-chat-left-text me-2"></i>Novedades y observaciones de la entrega
+                        </h6>
+                        <ul class="list-unstyled mb-0 d-grid gap-2">
+                            {% for novedad in entrega.novedades.all %}
+                            <li class="border border-secondary border-opacity-25 rounded-3 p-3">
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                    <span class="badge bg-secondary-subtle text-light border border-secondary-subtle rounded-pill">
+                                        {{ novedad.get_tipo_display }}
+                                    </span>
+                                    <small class="text-muted">{{ novedad.fecha_generada|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                <p class="mb-1 text-white small">{{ novedad.descripcion }}</p>
+                                <small class="text-muted">
+                                    Reportado por:
+                                    {{ novedad.reportado_por.nombres|default:novedad.reportado_por.username }}
+                                    &middot; Estado: {{ novedad.get_estado_display }}
+                                </small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
                 </div>
             </div>
 
