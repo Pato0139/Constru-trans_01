@@ -2,6 +2,7 @@ from django.test import TestCase
 
 from apps.usuarios.forms import LoginForm, RegistroForm
 from apps.usuarios.models import Usuario
+from apps.usuarios.utils import normalizar_telefono
 
 
 class RegistroFormTests(TestCase):
@@ -162,6 +163,13 @@ class RegistroFormTests(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("aceptar_terminos", form.errors)
+
+
+class TelefonoUtilsTests(TestCase):
+    def test_normalizar_telefono_agrega_codigo_pais_sin_duplicar(self):
+        self.assertEqual(normalizar_telefono("+57", "3001234567"), "+573001234567")
+        self.assertEqual(normalizar_telefono("+57", "+573001234567"), "+573001234567")
+        self.assertEqual(normalizar_telefono("+57", "57 300 123 4567"), "+573001234567")
 
 
 class LoginFormTests(TestCase):

@@ -46,10 +46,11 @@ from config.sync import (
     sync_all_usuarios,  # noqa: F401 (usado por apps/usuarios/tests/test_password_reset.py)
 )
 from config.utils import conexion_remota_disponible, registrar_actividad
+from config.validators import telefono_validator
 
 from .forms import CustomPasswordResetForm, FotoPerfilForm, LoginForm, RegistroForm
 from .models import Conductor, Usuario
-from .utils import limpiar_documento, limpiar_telefono
+from .utils import limpiar_documento, limpiar_telefono, normalizar_telefono
 
 logger = logging.getLogger(__name__)
 
@@ -1058,7 +1059,8 @@ def editar_perfil(request):
 
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
-        telefono = limpiar_telefono(request.POST.get("telefono"))
+        pais_codigo = request.POST.get("pais_codigo") or "+57"
+        telefono = normalizar_telefono(pais_codigo, request.POST.get("telefono"))
         email = (request.POST.get("email") or "").strip().casefold()
         nombres = (nombres or "").strip()
         apellidos = (apellidos or "").strip()
@@ -1104,6 +1106,17 @@ def editar_perfil(request):
         foto_nueva = foto_form.cleaned_data.get("foto_perfil")
         if foto_nueva:
             usuario.foto_perfil = foto_nueva
+
+        try:
+            telefono_validator(telefono)
+        except ValidationError:
+            messages.error(request, "El número de teléfono no es válido.")
+            return render(
+                request,
+                "usuarios/editar_perfil.html",
+                {"usuario": usuario, "foto_form": FotoPerfilForm()},
+                status=400,
+            )
 
         usuario.nombres = nombres
         usuario.apellidos = apellidos
