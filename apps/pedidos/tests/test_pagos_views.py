@@ -77,6 +77,24 @@ class PagoViewsTests(TestCase):
         self.pedido.refresh_from_db()
         self.assertEqual(self.pedido.estado, Pedido.PENDIENTE)
 
+    def test_admin_puede_registrar_pago_para_pedido_ajeno(self):
+        self.client.force_login(self.admin)
+        comprobante = SimpleUploadedFile(
+            "recibo-admin.png",
+            b"\x89PNG\r\n\x1a\n",
+            content_type="image/png",
+        )
+
+        response = self.client.post(
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
+            {"metodo": Pago.METODO_NEQUI, "monto": "120000", "comprobante": comprobante},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        pago = Pago.objects.get(pedido=self.pedido)
+        self.assertEqual(pago.estado, Pago.PENDIENTE)
+        self.assertEqual(pago.monto, self.pedido.total)
+
     def test_recalcula_pedido_desde_detalles_antes_de_registrar_pago(self):
         DetallePedido.objects.create(
             pedido=self.pedido,

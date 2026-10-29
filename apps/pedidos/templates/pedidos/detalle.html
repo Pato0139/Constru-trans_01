@@ -12,6 +12,7 @@
 {% endblock %}
 
 {% block content %}
+{% with user_rol=user.usuario.rol|default:user.rol|default:'' %}
 <style>
 /* Estilos embebidos para garantizar renderizado inmediato bajo AJAX navigation */
 .order-detail-card {
@@ -725,22 +726,24 @@
                         {% else %}
                             <p class="text-muted small mb-3">Aún no se ha cargado ningún comprobante para este pedido.</p>
                             {% if orden.estado == 'pendiente' %}
-                            <a href="{% url 'pagos:registrar_pago_pedido' orden.codigo_pedido %}" class="btn btn-gold btn-sm w-100 rounded-pill py-2 fw-700">
-                                <i class="bi bi-wallet2 me-1"></i> Registrar Pago Ahora
-                            </a>
+                                {% if user_rol == 'admin' or user_rol == 'cliente' %}
+                                <a href="{% url 'pagos:registrar_pago_pedido' orden.codigo_pedido %}" class="btn btn-gold btn-sm w-100 rounded-pill py-2 fw-700">
+                                    <i class="bi bi-wallet2 me-1"></i> Registrar Pago Ahora
+                                </a>
+                                {% endif %}
                             {% endif %}
                         {% endif %}
                     </div>
 
                     <!-- GESTIÓN DEL PEDIDO Y ACCIONES -->
                     {% if orden.estado == "pendiente" %}
-                        {% if user.usuario.rol == "admin" or user.usuario.rol == "cliente" %}
+                        {% if user_rol == "admin" or user_rol == "cliente" %}
                         <div class="order-section-card">
                             <h6 class="fw-800 text-accent text-uppercase small mb-3">
                                 <i class="bi bi-sliders me-2"></i>Gestión del Pedido
                             </h6>
                             <div class="d-flex flex-column gap-2">
-                                {% if user.usuario.rol == "admin" %}
+                                {% if user_rol == "admin" %}
                                     <a href="{% url 'pedidos:crear_entrega' orden.codigo_pedido %}" class="btn btn-gold rounded-pill py-2 fw-800 shadow-sm small">
                                         <i class="bi bi-person-plus-fill me-1"></i> Asignar Conductor
                                     </a>
@@ -759,7 +762,7 @@
                             </div>
                         </div>
                         {% endif %}
-                    {% elif orden.estado == "en_ruta" and user.usuario.rol == "admin" %}
+                    {% elif orden.estado == "en_ruta" and user_rol == "admin" %}
                         <div class="order-section-card">
                             <h6 class="fw-800 text-accent text-uppercase small mb-3">
                                 <i class="bi bi-truck-flatbed me-2"></i>Gestión de Ruta (Admin)
@@ -771,7 +774,7 @@
                     {% endif %}
 
                     <!-- CONTROL MAESTRO ADMIN -->
-                    {% if user.usuario.rol == "admin" %}
+                    {% if user_rol == "admin" %}
                     <div class="order-section-card">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3">
                             <i class="bi bi-shield-lock-fill me-2"></i>Control Maestro de Estado (Admin)
@@ -831,6 +834,7 @@
     </div>
 </div>
 
+{% endwith %}
 {% endblock %}
 
 {% block extra_js %}

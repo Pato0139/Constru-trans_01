@@ -108,12 +108,12 @@ def lista_pagos(request):
     )
 
 
-@role_required(["cliente"])
+@role_required(["admin", "cliente"])
 def registrar_pago_pedido(request, pedido_id):
     usuario = _usuario_actual(request)
     pedido = get_object_or_404(Pedido, codigo_pedido=pedido_id)
 
-    if not _cliente_es_dueno(usuario, pedido):
+    if getattr(usuario, "rol", "") != "admin" and not _cliente_es_dueno(usuario, pedido):
         messages.error(request, "No puedes registrar el pago de un pedido ajeno.")
         return redirect("clientes:mis_pedidos")
 

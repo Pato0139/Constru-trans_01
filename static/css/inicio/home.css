@@ -85,7 +85,14 @@ main {
   background-position: center;
   opacity: 0;
   transform: scale(1.08);
-  animation: inicioHeroSlide 25s infinite;
+  transition: opacity 1.2s ease, transform 1.8s ease;
+  z-index: 0;
+}
+
+.inicio-hero-slide.is-active {
+  opacity: 1;
+  transform: scale(1.02);
+  z-index: 1;
 }
 
 .inicio-hero-slide::after {
@@ -99,42 +106,22 @@ main {
 
 .inicio-hero-slide.slide-1 {
   background-image: url('../../img/Obra.jpeg');
-  animation-delay: 0s;
 }
 
 .inicio-hero-slide.slide-2 {
   background-image: url('../../img/Trabajadores.jpeg');
-  animation-delay: 5s;
 }
 
 .inicio-hero-slide.slide-3 {
   background-image: url('../../img/Excavadora.png');
-  animation-delay: 10s;
 }
 
 .inicio-hero-slide.slide-4 {
   background-image: url('../../img/ladrillos.jpg');
-  animation-delay: 15s;
 }
 
 .inicio-hero-slide.slide-5 {
   background-image: url('../../img/obra-construccion.jpg');
-  animation-delay: 20s;
-}
-
-@keyframes inicioHeroSlide {
-  0%, 16% {
-    opacity: 0;
-    transform: scale(1.08);
-  }
-  22%, 38% {
-    opacity: 1;
-    transform: scale(1.02);
-  }
-  48%, 100% {
-    opacity: 0;
-    transform: scale(1.08);
-  }
 }
 
 .inicio-hero-section::after {
