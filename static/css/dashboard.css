@@ -4,24 +4,10 @@
 }
 
 /* =========================================================
-   GLOBAL BLUR / BACKDROP-FILTER / MASK KILL
-   NUNCA más blur que imite degradados blancos / sombras /
-   halos que el usuario perciba como "degradado feo".
-   Aplica a TODOS los elementos del DOM, sin excepción.
+   Corregido: no se aplica un kill-switch global a todos los
+   elementos del DOM, porque anula estilos de hover, pseudo-
+   elementos y estados visuales del sistema de acceso.
    ========================================================= */
-*,
-*::before,
-*::after {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    filter: none !important;
-    -webkit-filter: none !important;
-    -webkit-mask-image: none !important;
-    mask-image: none !important;
-    background-blend-mode: normal !important;
-    mix-blend-mode: normal !important;
-    text-shadow: none !important;
-}
 
 /* =========================================================
    CORRECCIÓN EXACTA DE POSICIÓN Y ANCHO DEL NAVBAR
@@ -30,10 +16,6 @@
 .app-navbar,
 .app-topbar,
 .navbar-premium {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    filter: none !important;
-    -webkit-filter: none !important;
     background-color: var(--navbar-bg) !important;
     background: var(--navbar-bg) !important;
     background-image: none !important;
@@ -127,11 +109,10 @@ body {
 
 .app-main::before,
 .app-main::after {
-    display: none !important;
-    content: none !important;
-    background: none !important;
-    width: 0 !important;
-    height: 0 !important;
+    content: "";
+    background: none;
+    width: 0;
+    height: 0;
 }
 
 .app-topbar::before,

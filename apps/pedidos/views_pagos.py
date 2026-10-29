@@ -14,6 +14,7 @@ from apps.pagos.pdf import render_factura_pdf
 from apps.pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
 from apps.pedidos.models import Pedido
 from apps.usuarios.views import admin_required
+from config.db_utils import select_for_update_if_supported
 from config.security import role_required
 from config.utils import registrar_actividad
 
@@ -86,13 +87,16 @@ def lista_pagos(request):
     )
 
 
-@role_required(["cliente"])
+@role_required(["admin", "cliente"])
 def registrar_pago_pedido(request, pedido_id):
     usuario = _usuario_actual(request)
     pedido = get_object_or_404(Pedido, codigo_pedido=pedido_id)
 
-    if not _cliente_es_dueno(usuario, pedido):
+    es_admin = getattr(usuario, "rol", "") == "admin"
+    if not (es_admin or _cliente_es_dueno(usuario, pedido)):
         messages.error(request, "No puedes registrar el pago de un pedido ajeno.")
+        if es_admin:
+            return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
         return redirect("clientes:mis_pedidos")
 
     if pedido.estado == Pedido.CANCELADO:
@@ -119,15 +123,12 @@ def registrar_pago_pedido(request, pedido_id):
             using = router.db_for_write(Pago, instance=pago)
             try:
                 with transaction.atomic(using=using):
-                    pedido_bloqueado = (
-                        Pedido.objects.using(using).select_for_update().get(pk=pedido.pk)
-                    )
-                    pago_existente = (
-                        Pago.objects.using(using)
-                        .select_for_update()
-                        .filter(pedido=pedido_bloqueado)
-                        .first()
-                    )
+                    pedido_bloqueado = select_for_update_if_supported(
+                        Pedido.objects.using(using), using
+                    ).get(pk=pedido.pk)
+                    pago_existente = select_for_update_if_supported(
+                        Pago.objects.using(using).filter(pedido=pedido_bloqueado), using
+                    ).first()
 
                     if pago_existente and pago_existente.estado == Pago.APROBADO:
                         messages.info(request, "Este pedido ya tiene un pago aprobado.")
@@ -143,21 +144,45 @@ def registrar_pago_pedido(request, pedido_id):
                         instancia_pago.pedido = pedido_bloqueado
 
                     instancia_pago.transicionar(Pago.PENDIENTE)
-                    instancia_pago.revisado_por = None
-                    instancia_pago.fecha_revision = None
-                    instancia_pago.observaciones = ""
                     instancia_pago.monto = monto_pedido
+                    if es_admin:
+                        instancia_pago.marcar_revision(
+                            estado=Pago.APROBADO,
+                            revisor=getattr(request.user, "usuario", request.user),
+                            observaciones="Aprobado por administrador al registrar el pago.",
+                        )
+                        if pedido_bloqueado.estado == Pedido.PENDIENTE:
+                            pedido_bloqueado.transicionar(Pedido.AUTORIZADO_DESPACHO)
+                    else:
+                        instancia_pago.revisado_por = None
+                        instancia_pago.fecha_revision = None
+                        instancia_pago.observaciones = ""
                     instancia_pago.save(using=using)
+                    pedido_bloqueado.save(using=using, update_fields=["estado"])
 
+                try:
                     registrar_actividad(
                         request,
                         "crear",
                         "pagos",
                         instancia_pago.pk,
-                        f"Cliente registró pago del pedido #{pedido.codigo_pedido}",
+                        f"{'Administrador' if es_admin else 'Cliente'} registró y {'aprobó' if es_admin else 'envió'} pago del pedido #{pedido.codigo_pedido}",
+                    )
+                except Exception:
+                    logger.warning(
+                        "No fue posible registrar la actividad del pago %s del pedido %s",
+                        getattr(instancia_pago, "pk", None),
+                        pedido.codigo_pedido,
+                        exc_info=True,
                     )
 
-                messages.success(request, "Pago registrado. Queda pendiente de revisión.")
+                if es_admin:
+                    messages.success(
+                        request,
+                        "Pago registrado y aprobado automáticamente. El pedido queda autorizado para despacho.",
+                    )
+                else:
+                    messages.success(request, "Pago registrado. Queda pendiente de revisión.")
                 return redirect("pagos:detalle_pago", pk=instancia_pago.pk)
             except Exception as exc:
                 logger.exception(

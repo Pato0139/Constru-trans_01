@@ -79,6 +79,50 @@ p { font-size: var(--font-size-base); }
 small { font-size: var(--font-size-sm); }
 
 .btn { font-size: var(--font-size-sm); padding: 0.5rem 1rem; }
+.theme-btn.active,
+.language-btn.active,
+.font-size-btn.active,
+.daltonism-btn.active,
+.theme-option.active,
+.daltonism-option.active {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-on-accent, #ffffff) !important;
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2) !important;
+}
+
+[data-theme="accessibility"] .theme-btn.active,
+[data-theme="accessibility"] .language-btn.active,
+[data-theme="accessibility"] .font-size-btn.active,
+[data-theme="accessibility"] .daltonism-btn.active,
+[data-theme="accessibility"] .theme-option.active,
+[data-theme="accessibility"] .daltonism-option.active {
+  background-color: #facc15 !important;
+  border-color: #facc15 !important;
+  color: #05070b !important;
+  box-shadow: 0 0 0 0.2rem rgba(250, 204, 21, 0.35) !important;
+}
+
+[data-theme="accessibility"] .theme-btn:not(.active),
+[data-theme="accessibility"] .language-btn:not(.active),
+[data-theme="accessibility"] .font-size-btn:not(.active),
+[data-theme="accessibility"] .daltonism-btn:not(.active),
+[data-theme="accessibility"] .theme-option:not(.active),
+[data-theme="accessibility"] .daltonism-option:not(.active) {
+  background-color: transparent !important;
+  border-color: rgba(255, 255, 255, 0.9) !important;
+  color: #f8fafc !important;
+}
+
+.theme-btn:not(.active):hover,
+.language-btn:not(.active):hover,
+.font-size-btn:not(.active):hover,
+.daltonism-btn:not(.active):hover {
+  border-color: var(--color-primary) !important;
+  color: var(--color-text) !important;
+  background-color: rgba(37, 99, 235, 0.08) !important;
+}
+
 .form-control, .form-select, input, select, textarea { font-size: var(--font-size-base); padding: 0.5rem 0.75rem; }
 
 .table { font-size: var(--font-size-sm); }

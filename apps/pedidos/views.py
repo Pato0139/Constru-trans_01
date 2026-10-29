@@ -3,6 +3,7 @@ from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
 from django.http import JsonResponse
@@ -17,24 +18,24 @@ from config.db_utils import select_for_update_if_supported
 from config.security import (_respuesta_no_autorizada, obtener_ip,
                            registrar_evento, registrar_warning, role_required)
 from apps.logistica.models import ConductorVehiculo, Entrega, Novedad, Vehiculo
+from apps.logistica.models import Novedad
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
 from config.db_preference import debe_usar_bd_remota
 from config.db_utils import select_for_update_if_supported
+from config.errors import formatear_errores
 from config.security import (
     _respuesta_no_autorizada,
     obtener_ip,
     registrar_evento,
     registrar_warning,
+    role_required,
 )
 from config.utils import registrar_actividad
 
 from .forms import AgregarMaterialForm, CambioEstadoPedidoForm, FiltroPedidosForm
-from .models import (DetallePedido, DetalleSolicitudPedido, Pedido,
-                     SolicitudPedido)
+from .models import DetallePedido, DetalleSolicitudPedido, Pedido, SolicitudPedido
 from .utils import liberar_vehiculo_pedido, revertir_stock_pedido
-from django.core.exceptions import ValidationError
-from config.errors import formatear_errores
 
 
 def _mensajes_error(request, origen):

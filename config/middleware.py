@@ -1,10 +1,18 @@
 import logging
 
+from django.conf import settings
+from django.db import connections
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import Resolver404, resolve
 
-from config.db_preference import PREF_AUTO, PREF_REMOTA, clear_db_preference, set_db_preference
+from config.db_preference import (
+    PREF_AUTO,
+    PREF_LOCAL,
+    PREF_REMOTA,
+    clear_db_preference,
+    set_db_preference,
+)
 from config.security import (
     BloqueoIP,
     _respuesta_no_autorizada,
@@ -189,7 +197,7 @@ _URLNAMES_BY_ROLE_EXTRA = {
     },
     "pagos": {
         "lista_pagos": {"admin", "cliente"},
-        "registrar_pago_pedido": {"cliente"},
+        "registrar_pago_pedido": {"admin", "cliente"},
         "revisar_pago_pedido": {"admin"},
         "gestion_pagos": {"admin"},
         "historial_pagos": {"admin"},
@@ -383,12 +391,34 @@ class DatabasePreferenceMiddleware:
             if not pref:
                 pref = request.session.get("bd_preferida", PREF_AUTO)
 
+        preferencia_solicitada = pref
         if pref == PREF_AUTO and conexion_remota_disponible():
             pref = PREF_REMOTA
 
+        if pref == PREF_LOCAL and "local" in settings.DATABASES:
+            from apps.pedidos.models import Pedido
+
+            tablas_locales = connections["local"].introspection.table_names()
+            if Pedido._meta.db_table not in tablas_locales and conexion_remota_disponible():
+                logger.warning(
+                    "La base local no contiene la tabla %s; se usará la base remota.",
+                    Pedido._meta.db_table,
+                )
+                pref = PREF_REMOTA
+
         set_db_preference(pref)
         try:
-            return self.get_response(request)
+            response = self.get_response(request)
+            if pref == PREF_REMOTA and preferencia_solicitada == PREF_LOCAL:
+                request.session["bd_preferida"] = PREF_REMOTA
+                response.set_cookie(
+                    "bd_preferida",
+                    PREF_REMOTA,
+                    max_age=31536000,
+                    httponly=True,
+                    samesite="Lax",
+                )
+            return response
         finally:
             clear_db_preference()
 

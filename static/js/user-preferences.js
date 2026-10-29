@@ -312,24 +312,34 @@
         var language = getPref('language');
 
         document.querySelectorAll('.theme-btn').forEach(function (btn) {
-            btn.classList.toggle('active', btn.dataset.theme === theme);
+            var isActive = btn.dataset.theme === theme;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
         document.querySelectorAll('.theme-option').forEach(function (item) {
-            item.classList.toggle('active', item.dataset.themeValue === theme);
-            item.setAttribute('aria-current', item.dataset.themeValue === theme ? 'true' : 'false');
+            var isActive = item.dataset.themeValue === theme;
+            item.classList.toggle('active', isActive);
+            item.setAttribute('aria-current', isActive ? 'true' : 'false');
         });
         document.querySelectorAll('.daltonism-btn').forEach(function (btn) {
-            btn.classList.toggle('active', btn.dataset.daltonism === daltonism);
+            var isActive = btn.dataset.daltonism === daltonism;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
         document.querySelectorAll('.daltonism-option').forEach(function (item) {
-            item.classList.toggle('active', item.dataset.daltonismValue === daltonism);
-            item.setAttribute('aria-current', item.dataset.daltonismValue === daltonism ? 'true' : 'false');
+            var isActive = item.dataset.daltonismValue === daltonism;
+            item.classList.toggle('active', isActive);
+            item.setAttribute('aria-current', isActive ? 'true' : 'false');
         });
         document.querySelectorAll('.font-size-btn').forEach(function (btn) {
-            btn.classList.toggle('active', btn.dataset.size === fontSize);
+            var isActive = btn.dataset.size === fontSize;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
         document.querySelectorAll('.language-btn').forEach(function (btn) {
-            btn.classList.toggle('active', btn.dataset.lang === language);
+            var isActive = btn.dataset.lang === language;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         });
     }
 

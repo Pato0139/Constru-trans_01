@@ -15,11 +15,16 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from apps.usuarios.views import admin_required
+from config.db_utils import select_for_update_if_supported
 from config.utils import registrar_actividad
 
-from .forms import (CompraForm, DetalleCompraFormSet, ProveedorForm,
-                    ProveedorMaterialFormSet, ProveedorPerfilForm)
-from .forms import CompraForm, DetalleCompraFormSet, ProveedorMaterialFormSet, ProveedorPerfilForm
+from .forms import (
+    CompraForm,
+    DetalleCompraFormSet,
+    ProveedorForm,
+    ProveedorMaterialFormSet,
+    ProveedorPerfilForm,
+)
 from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
 
@@ -216,7 +221,9 @@ def cambiar_estado_compra(request, id):
     if request.method == "POST":
         nuevo_estado = request.POST.get("estado")
         with transaction.atomic():
-            compra = get_object_or_404(Compra.objects.select_for_update(), id_compra=id)
+            compra = get_object_or_404(
+                select_for_update_if_supported(Compra.objects, "default"), id_compra=id
+            )
             try:
                 compra.transicionar(nuevo_estado)
                 compra.save(update_fields=["estado"])

@@ -5,19 +5,17 @@ import requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
-from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth.password_validation import validate_password
 from django.views.decorators.http import require_http_methods, require_POST
 
 User = get_user_model()
 from django.contrib.auth.views import PasswordResetView
-from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.validators import validate_email
 from django.db import DatabaseError, IntegrityError, transaction
 from django.db.models import Prefetch, Q, Sum
-from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -44,7 +42,7 @@ from config.security import (
     role_required,
 )
 from config.superadmin_lock import es_superadmin_global
-from config.sync import sync_all_usuarios
+from config.sync import sync_all_usuarios  # noqa: F401 (usado por apps/usuarios/tests/test_password_reset.py)
 from config.utils import conexion_remota_disponible, registrar_actividad
 
 from .forms import CustomPasswordResetForm, FotoPerfilForm, LoginForm, RegistroForm
@@ -56,7 +54,7 @@ logger = logging.getLogger(__name__)
 LOGIN_REMEMBER_COOKIE = "constru_trans_login"
 LOGIN_REMEMBER_SECONDS = 1209600
 
-from django.core.signing import TimestampSigner, BadSignature
+from django.core.signing import BadSignature, TimestampSigner
 
 _REMEMBER_SIGNER = TimestampSigner(salt="constru-trans-remember")
 

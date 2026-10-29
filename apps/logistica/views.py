@@ -7,13 +7,17 @@ from django.db import IntegrityError, connections, models, router, transaction
 from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
-from django.views.decorators.http import require_POST, require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
 from config.permissions import requiere_funcion
 from config.security import _respuesta_no_autorizada, role_required
 from config.utils import registrar_actividad
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
+from apps.usuarios.models import Conductor, Usuario
+from apps.usuarios.views import admin_required
+from config.permissions import requiere_funcion
+from config.security import _respuesta_no_autorizada
 
 from .models import ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento, Seguimiento, Vehiculo
 

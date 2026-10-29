@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.urls import reverse
 
 from apps.clientes.models import Cliente
 from apps.usuarios.models import Usuario

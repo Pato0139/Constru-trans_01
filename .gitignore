@@ -81,3 +81,4 @@ _reorganizar.py
 
 # Archivos comprimidos y paquetes locales
 *.zip
+coord/

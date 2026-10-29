@@ -3,10 +3,9 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from apps.catalogo.models import MaterialConstruccion, UnidadMedida
-from apps.pedidos.models import DetallePedido
-from apps.pedidos.models import Pago
-from apps.pedidos.models import Pedido
+from apps.pedidos.models import DetallePedido, Pago, Pedido
 from apps.usuarios.models import Usuario
+
 
 class PagoViewsTests(TestCase):
     def setUp(self):
@@ -76,6 +75,24 @@ class PagoViewsTests(TestCase):
         self.assertEqual(pago.monto, self.pedido.total)
         self.pedido.refresh_from_db()
         self.assertEqual(self.pedido.estado, Pedido.PENDIENTE)
+
+    def test_admin_registra_pago_en_nombre_del_cliente(self):
+        self.client.login(username="adminpago", password="123456")
+        comprobante = SimpleUploadedFile(
+            "recibo-admin.png",
+            b"\x89PNG\r\n\x1a\n",
+            content_type="image/png",
+        )
+
+        response = self.client.post(
+            reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido]),
+            {"metodo": Pago.METODO_BANCOLOMBIA, "monto": "120000", "comprobante": comprobante},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        pago = Pago.objects.get(pedido=self.pedido)
+        self.assertEqual(pago.estado, Pago.PENDIENTE)
+        self.assertEqual(pago.metodo, Pago.METODO_BANCOLOMBIA)
 
     def test_recalcula_pedido_desde_detalles_antes_de_registrar_pago(self):
         DetallePedido.objects.create(
