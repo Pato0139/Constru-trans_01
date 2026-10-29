@@ -554,6 +554,38 @@ def panel(request):
     return redirect("usuarios:login")
 
 
+@role_required(["admin"])
+def descargar_backup_db(request):
+    """Genera un backup actualizado y lo descarga."""
+    from django.core.management import call_command
+    from django.http import FileResponse, Http404
+    from pathlib import Path
+    
+    destino = Path(settings.BASE_DIR) / "backups"
+    destino.mkdir(exist_ok=True)
+    
+    # Generar backup fresco antes de descargar
+    try:
+        call_command("backup_db", destino="backups", format="sql")
+    except Exception as e:
+        messages.error(request, f"Error al generar backup: {e}")
+        return redirect("usuarios:panel")
+    
+    # Buscar el archivo SQL más reciente en la carpeta backups
+    files = list(destino.glob("*.sql"))
+    if not files:
+        # Reintentar con JSON si no hay SQL
+        files = list(destino.glob("*.json"))
+    
+    if not files:
+        raise Http404("No se encontró ningún archivo de backup.")
+        
+    latest_file = max(files, key=lambda x: x.stat().st_mtime)
+    
+    response = FileResponse(open(latest_file, "rb"), as_attachment=True)
+    response["Content-Disposition"] = f'attachment; filename="{latest_file.name}"'
+    return response
+
 # =====================================================================
 # CONDUCTOR
 # =====================================================================
