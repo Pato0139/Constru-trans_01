@@ -66,3 +66,6 @@ class Historial(models.Model):
         if self.fecha is None and self.fecha_hora:
             self.fecha = self.fecha_hora
         super().save(*args, **kwargs)
+
+
+Bitacora = Historial

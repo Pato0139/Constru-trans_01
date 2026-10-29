@@ -15,6 +15,8 @@ urlpatterns = [
         name="cambiar_disponibilidad_vehiculo",
     ),
     path("vehiculos/eliminar/<int:id>/", views.eliminar_vehiculo, name="eliminar_vehiculo"),
+    path("novedades/", views.lista_novedades_admin, name="lista_novedades_admin"),
+    path("novedades/mis-novedades/", views.mis_novedades, name="mis_novedades"),
     path("novedades/crear/<int:entrega_id>/", views.crear_novedad, name="crear_novedad"),
     path(
         "novedades/<int:novedad_id>/seguimiento/",

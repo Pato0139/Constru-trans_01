@@ -1,59 +1,79 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block title %}Logística - ConstruTrans{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/catalogo/lista.css' %}?v=1.8">
+<link rel="stylesheet" href="{% static 'css/catalogo/theme.css' %}?v=1.0">
+{% endblock %}
+
 {% block content %}
-
-<div class="mb-4" data-sticky-header data-aos="fade-down">
-    <h2 class="fw-bold text-white mb-1">
-        <i class="bi bi-cart-check text-accent me-2"></i>{{ titulo_panel|default:"Control de Pedidos" }}
-    </h2>
-</div>
-
-<div class="card border-0 shadow-sm p-3 mb-4 filter-bar-card" data-aos="fade-down">
-    <div class="row g-3 align-items-center">
-        <div class="col-auto">
-            <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
-        </div>
-        <div class="col-md-2">
-            <input type="text" id="filter-id" class="form-control form-control-sm bg-surface text-white filter-input"
-                placeholder="ID">
-        </div>
-        <div class="col-md-3">
-            <input type="text" id="filter-cliente"
-                class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Cliente">
-        </div>
-        <div class="col-md-3">
-            <input type="text" id="filter-destino"
-                class="form-control form-control-sm bg-surface text-white filter-input" placeholder="Destino">
-        </div>
-        <div class="col-md-2">
-            <select id="filter-estado" class="form-select form-select-sm bg-surface text-white filter-select">
-                <option value="">Estado (Todos)</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="en_ruta">En Ruta</option>
-                <option value="entregado">Entregado</option>
-            </select>
-        </div>
-        <div class="col-auto ms-auto">
-            <button class="btn btn-sm btn-outline-secondary" id="clear-filters" type="button" title="Limpiar filtros">
-                <i class="bi bi-x-circle"></i>
-            </button>
+<div class="inventory-materials-page">
+    <div class="inventory-page d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3 standard-page-header"
+        data-aos="fade-down">
+        <div>
+            <h2 class="fw-bold mb-0 text-white">
+                <i class="bi bi-cart-check text-accent me-2"></i>{{ titulo_panel|default:"Control de Entregas y Envíos" }}
+            </h2>
+            <div class="d-flex align-items-center gap-2 mt-1">
+                <p class="page-subtitle small mb-0">Control de despachos, rutas y seguimiento de pedidos</p>
+                <span class="badge rounded-pill px-3 u-inline-b2204c9e00">{{ pedidos|length }} registros</span>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="table-container orders-list-table-container u-inline-ab87d0b2ff">
-    <div class="table-responsive orders-list-scroll">
-        <table class="table table-dark mb-0 orders-list-table">
+    <!-- Contenedor integrado: filtros + tabla en la misma tarjeta -->
+    <div class="inventory-page table-container orders-list-table-container inventory-materials-container rounded-4 overflow-hidden shadow-sm u-inline-ab87d0b2ff"
+        data-aos="fade-up">
+
+        <!-- Barra de filtros DENTRO del contenedor de la tabla -->
+        <div class="materiales-filter-bar">
+            <div class="card bg-surface border-0 shadow-sm p-3 mb-0 filter-bar-card standard-filter-bar">
+                <div class="standard-filter-layout">
+                    <div class="standard-filter-label">
+                        <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+                    </div>
+                    <div class="standard-filter-field" style="flex: 0 1 120px; min-width: 90px;">
+                        <input type="text" id="filter-id" class="form-control form-control-sm bg-surface text-main filter-input"
+                            placeholder="ID Pedido...">
+                    </div>
+                    <div class="standard-filter-field">
+                        <input type="text" id="filter-cliente"
+                            class="form-control form-control-sm bg-surface text-main filter-input" placeholder="Cliente...">
+                    </div>
+                    <div class="standard-filter-field">
+                        <input type="text" id="filter-destino"
+                            class="form-control form-control-sm bg-surface text-main filter-input" placeholder="Destino...">
+                    </div>
+                    <div class="standard-filter-field" style="flex: 1 1 160px; min-width: 140px;">
+                        <select id="filter-estado" class="form-select form-select-sm bg-surface text-main filter-select">
+                            <option value="">Estado (Todos)</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="en_ruta">En Ruta</option>
+                            <option value="entregado">Entregado</option>
+                        </select>
+                    </div>
+                    <div class="standard-filter-actions">
+                        <button class="btn btn-sm btn-outline-secondary filter-clear-btn" id="clear-filters" type="button" title="Limpiar filtros" aria-label="Limpiar filtros">
+                            <i class="bi bi-x-circle fs-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive orders-list-scroll">
+        <table class="table table-hover align-middle mb-0 orders-list-table">
             <thead>
-                <tr class="u-inline-e91738c112">
-                    <th class="p-4 text-muted small fw-bold">ID</th>
-                    <th class="p-4 text-muted small fw-bold">Cliente</th>
-                    <th class="p-4 text-muted small fw-bold">Destino</th>
-                    <th class="p-4 text-muted small fw-bold">Estado</th>
-                    <th class="p-4 text-muted small fw-bold">Fecha</th>
-                    <th class="p-4 text-muted small fw-bold">Acciones</th>
+                <tr class="u-inline-e91738c112" style="border-bottom: 1px solid var(--color-border); background: var(--item-bg);">
+                    <th class="p-3 text-muted small fw-bold">ID</th>
+                    <th class="p-3 text-muted small fw-bold">Cliente</th>
+                    <th class="p-3 text-muted small fw-bold">Destino</th>
+                    <th class="p-3 text-muted small fw-bold">Estado</th>
+                    <th class="p-3 text-muted small fw-bold">Fecha</th>
+                    <th class="p-3 text-muted small fw-bold text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -111,6 +131,7 @@
         </table>
     </div>
 </div>
+</div>
 
 {% endblock %}
 
@@ -147,4 +168,13 @@
         }, 150);
     });
 </script>
+
+<style>
+.text-main {
+    color: var(--color-text) !important;
+}
+.text-accent {
+    color: var(--color-accent, #ffd600) !important;
+}
+</style>
 {% endblock %}

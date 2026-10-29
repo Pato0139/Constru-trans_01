@@ -106,8 +106,21 @@ class Pago(TransicionMixin, models.Model):
             ),
         ]
 
-    def __str__(self):
-        return f"Pago pedido {self.pedido_id} ({self.get_estado_display()})"
+    @property
+    def metodo_pago(self):
+        return self.metodo
+
+    @metodo_pago.setter
+    def metodo_pago(self, value):
+        self.metodo = value
+
+    @property
+    def estado_pago(self):
+        return self.estado
+
+    @estado_pago.setter
+    def estado_pago(self, value):
+        self.estado = value
 
     def requiere_comprobante(self):
         return self.metodo in self.METODOS_CON_COMPROBANTE

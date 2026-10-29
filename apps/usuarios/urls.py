@@ -24,6 +24,15 @@ urlpatterns = [
     path("perfil/admin/", views.perfil_admin, name="perfil_admin"),
     path("perfil/editar/", views.editar_perfil, name="editar_perfil"),
     path("conductores/", views.lista_conductores, name="lista_conductores"),
+    path("conductores/crear/", views.crear_conductor, name="crear_conductor"),
+    path("conductores/editar/<int:id>/", views.editar_conductor, name="editar_conductor"),
+    path("conductores/detalle/<int:id>/", views.detalle_conductor, name="detalle_conductor"),
+    path(
+        "conductores/toggle-estado/<int:id>/",
+        views.toggle_estado_conductor,
+        name="toggle_estado_conductor",
+    ),
+    path("conductores/eliminar/<int:id>/", views.eliminar_conductor, name="eliminar_conductor"),
     path(
         "conductores/asignar-vehiculo/<int:conductor_id>/",
         views.asignar_vehiculo_conductor,
@@ -34,6 +43,13 @@ urlpatterns = [
     path("perfil-conductor/", views.perfil_conductor, name="perfil_conductor"),
     path("pedidos-conductor/", views.pedidos_conductor, name="pedidos_conductor"),
     path("mis-entregas/", views.mis_entregas, name="mis_entregas"),
+    path("entregas/iniciar/<int:entrega_id>/", views.iniciar_entrega, name="iniciar_entrega"),
+    path("entregas/finalizar/<int:entrega_id>/", views.finalizar_entrega, name="finalizar_entrega"),
+    path(
+        "entregas/detalle/<int:entrega_id>/",
+        views.detalle_entrega_conductor,
+        name="detalle_entrega_conductor",
+    ),
     # Notificaciones
     path("notificaciones/", views.lista_notificaciones, name="notificaciones"),
     path(

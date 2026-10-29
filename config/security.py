@@ -71,17 +71,21 @@ def contar_warnings_ventana(ip):
     return len(recientes), recientes
 
 
+import ipaddress
+
+LOOPBACK_IPS = {"127.0.0.1", "::1"}
+EXEMPT_HOSTS = {"127.0.0.1", "::1", "localhost", "testserver"}
+
+
 def registrar_warning(ip):
+    exempt_ips = EXEMPT_HOSTS | set(getattr(settings, "INTERNAL_IPS", []))
+    if getattr(settings, "DEBUG", False) and ip in exempt_ips:
+        return
     cache_key = _cache_key_warnings(ip)
     data = cache.get(cache_key) or []
     data.append(timezone.now())
     cache.set(cache_key, data, timeout=WARNING_WINDOW_MINUTES * 60 + 60)
 
-
-import ipaddress
-
-LOOPBACK_IPS = {"127.0.0.1", "::1"}
-EXEMPT_HOSTS = {"127.0.0.1", "::1", "localhost", "testserver"}
 
 
 def _es_ip_valida(ip_str):
@@ -206,8 +210,8 @@ def _respuesta_no_autorizada(request, detalles=None, need_block=False):
         "X-Security-Will-Block": "1" if will_block else "0",
     }
 
-    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest" or request.accepts(
-        "application/json"
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest" or (
+        request.accepts("application/json") and not request.accepts("text/html")
     )
 
     if will_block:

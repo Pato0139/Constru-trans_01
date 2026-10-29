@@ -1,64 +1,168 @@
 {% extends "base.html" %}
-{% load humanize %}
-{% load currency_tags %}
 
-{% block title %}Pedidos Asignados - Constru-trans{% endblock %}
+{% block title %}Envíos Asignados - ConstruTrans{% endblock %}
 
 {% block header_title %}Mi Ruta de Entregas{% endblock %}
 
 {% block content %}
+<!-- Standardized Filter Bar -->
+<div class="card bg-surface border-0 shadow-sm p-3 mb-4 filter-bar-card standard-filter-bar" data-aos="fade-down">
+    <form method="GET" class="w-100 standard-filter-form">
+        <div class="standard-filter-layout">
+            <div class="standard-filter-label">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            <div class="standard-filter-field">
+                <input type="text" name="id_pedido" value="{{ id_pedido|default:'' }}"
+                    class="form-control form-control-sm bg-surface text-main filter-input"
+                    placeholder="Código de pedido...">
+            </div>
+            <div class="standard-filter-field">
+                <input type="text" name="destino" value="{{ destino|default:'' }}"
+                    class="form-control form-control-sm bg-surface text-main filter-input"
+                    placeholder="Dirección o destino...">
+            </div>
+            <div class="standard-filter-field">
+                <select name="estado" class="form-select form-select-sm bg-surface text-main filter-select">
+                    <option value="">Estado (Todos)</option>
+                    {% for val, label in estados %}
+                        {% if val != 'entregado' %}
+                        <option value="{{ val }}" {% if estado == val %}selected{% endif %}>{{ label }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="standard-filter-actions">
+                <button type="submit" class="btn btn-sm btn-primary px-3 fw-bold" title="Aplicar filtros">
+                    <i class="bi bi-search me-1"></i>Filtrar
+                </button>
+                <a href="{% url 'usuarios:pedidos_conductor' %}" class="btn btn-sm btn-outline-secondary filter-clear-btn" title="Limpiar filtros" aria-label="Limpiar filtros">
+                    <i class="bi bi-x-circle fs-5"></i>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
 
+<!-- Main Table Container -->
 <div class="table-container p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
-        <h5 class="fw-800 m-0 text-white">Entregas por Realizar</h5>
-        <span class="badge-tipo u-inline-611ca6a6fa">
-            {{ pedidos|length }} Pedidos Asignados
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h5 class="fw-800 m-0 text-main">Envíos Asignados Activos</h5>
+            <p class="text-muted small mb-0">Gestión de despachos pendientes y en trayecto.</p>
+        </div>
+        <span class="badge bg-warning text-dark px-3 py-2 fw-bold">
+            {{ entregas|length }} Envíos Listados
         </span>
     </div>
 
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
-                <tr>
-                    <th>ID Pedido</th>
-                    <th>Origen</th>
-                    <th>Destino</th>
+                <tr class="text-muted small text-uppercase">
+                    <th>Envío / Pedido</th>
+                    <th>Destino & Cliente</th>
+                    <th>Vehículo</th>
+                    <th>Materiales</th>
                     <th>Estado</th>
-                    <th>Precio</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for pedido in pedidos %}
+                {% for entrega in entregas %}
                 <tr>
-                    <td class="fw-700 text-accent">#CT-{{ pedido.id }}</td>
-                    <td class="text-muted small">
-                        <i class="bi bi-geo-alt text-success me-1"></i> {{ pedido.direccion_origen }}
-                    </td>
-                    <td class="fw-600 text-white">
-                        <i class="bi bi-geo-fill text-danger me-1"></i> {{ pedido.direccion_destino }}
-                    </td>
                     <td>
-                        {% if pedido.estado == "pendiente" %}
-                        <span class="badge-tipo u-inline-2167e5ffe5">Pendiente</span>
-                        {% elif pedido.estado == "en_ruta" %}
-                        <span class="badge-tipo u-inline-503ec04587">En ruta</span>
-                        {% elif pedido.estado == "entregado" %}
-                        <span class="badge-tipo u-inline-a9b2e7691f">Entregado</span>
+                        <div class="fw-700 text-accent">#ENV-{{ entrega.id_entrega }}</div>
+                        <div class="small text-muted">Pedido #CT-{{ entrega.pedido.codigo_pedido }}</div>
+                        {% if entrega.fecha_salida %}
+                        <div class="small text-muted" style="font-size: 0.72rem;">
+                            <i class="bi bi-clock me-1"></i>Salida: {{ entrega.fecha_salida|date:"d/m H:i" }}
+                        </div>
                         {% endif %}
                     </td>
-                    <td class="price-tag">{{ pedido.precio|currency }}</td>
+                    <td>
+                        <div class="fw-600 text-main">
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                            {{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}
+                        </div>
+                        <div class="small text-muted">
+                            <i class="bi bi-person me-1"></i>{{ entrega.pedido.usuario.get_full_name|default:entrega.pedido.usuario.username }}
+                            {% if entrega.pedido.usuario.telefono %}
+                            <span class="ms-1">(Tel: {{ entrega.pedido.usuario.telefono }})</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if entrega.vehiculo %}
+                        <div class="fw-600 text-main">{{ entrega.vehiculo.placa }}</div>
+                        <div class="small text-muted">{{ entrega.vehiculo.modelo }} ({{ entrega.vehiculo.get_tipo_display }})</div>
+                        {% else %}
+                        <span class="text-muted small">No asignado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="small text-main" style="max-width: 220px;">
+                            {% for detalle in entrega.pedido.detalles.all|slice:":2" %}
+                            <div>• {{ detalle.cantidad }}x {{ detalle.material.nombre }}</div>
+                            {% empty %}
+                            <span class="text-muted">Sin detalles</span>
+                            {% endfor %}
+                            {% if entrega.pedido.detalles.count > 2 %}
+                            <span class="text-muted font-monospace" style="font-size: 0.72rem;">+{{ entrega.pedido.detalles.count|add:"-2" }} más...</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if entrega.estado == 'pendiente' %}
+                        <span class="badge bg-warning text-dark px-2 py-1">
+                            <i class="bi bi-clock me-1"></i>Pendiente
+                        </span>
+                        {% elif entrega.estado == 'en_ruta' %}
+                        <span class="badge bg-primary px-2 py-1">
+                            <i class="bi bi-truck me-1"></i>En Ruta
+                        </span>
+                        {% elif entrega.estado == 'entregado' %}
+                        <span class="badge bg-success px-2 py-1">
+                            <i class="bi bi-check-circle me-1"></i>Entregado
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary px-2 py-1">{{ entrega.get_estado_display }}</span>
+                        {% endif %}
+                    </td>
                     <td class="text-center">
-                        <a href="{% url 'pedidos:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalles">
-                            <i class="bi bi-eye"></i>
-                        </a>
+                        <div class="d-inline-flex gap-1 align-items-center">
+                            <!-- Ver Detalle (Conductor-Safe) -->
+                            <a href="{% url 'usuarios:detalle_entrega_conductor' entrega.id_entrega %}" class="btn btn-sm btn-outline-info" title="Ver Detalle Completo">
+                                <i class="bi bi-eye"></i>
+                            </a>
+
+                            {% if entrega.estado == 'pendiente' %}
+                            <!-- Iniciar Recorrido -->
+                            <form action="{% url 'usuarios:iniciar_entrega' entrega.id_entrega %}" method="POST" class="d-inline" onsubmit="return confirm('¿Confirmas que inicias el trayecto para este envío?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success fw-bold" title="Iniciar Recorrido">
+                                    <i class="bi bi-play-fill me-1"></i>Iniciar
+                                </button>
+                            </form>
+                            {% elif entrega.estado == 'en_ruta' %}
+                            <!-- Finalizar Entrega Modal -->
+                            <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalFinalizar{{ entrega.id_entrega }}" title="Finalizar Entrega">
+                                <i class="bi bi-check-lg me-1"></i>Finalizar
+                            </button>
+
+                            <!-- Reportar Novedad -->
+                            <a href="{% url 'logistica:crear_novedad' entrega.id_entrega %}" class="btn btn-sm btn-outline-warning" title="Reportar Novedad">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </a>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
                     <td colspan="6" class="text-center py-5 text-muted">
-                        <i class="bi bi-inbox fs-2 mb-3 d-block"></i>
-                        No tienes pedidos asignados actualmente.
+                        <i class="bi bi-inbox fs-2 mb-3 d-block text-secondary"></i>
+                        No tienes envíos asignados que coincidan con la búsqueda.
                     </td>
                 </tr>
                 {% endfor %}
@@ -67,11 +171,71 @@
     </div>
 </div>
 
+<!-- Modales de Finalizar Entrega fuera de la tabla para evitar que el backdrop los cubra -->
+{% for entrega in entregas %}
+    {% if entrega.estado == 'en_ruta' %}
+    <div class="modal fade text-start" id="modalFinalizar{{ entrega.id_entrega }}" tabindex="-1" aria-labelledby="modalLabel{{ entrega.id_entrega }}" aria-hidden="true" style="z-index: 1065;">
+        <div class="modal-dialog modal-dialog-centered" style="z-index: 1066;">
+            <div class="modal-content border-0 shadow-lg" style="background: var(--color-surface); color: var(--color-text); border-radius: var(--radius-xl);">
+                <form action="{% url 'usuarios:finalizar_entrega' entrega.id_entrega %}" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-header" style="border-bottom: 1px solid var(--color-border);">
+                        <h5 class="modal-title fw-bold" id="modalLabel{{ entrega.id_entrega }}">
+                            <i class="bi bi-check2-circle text-success me-2"></i>Finalizar Entrega #ENV-{{ entrega.id_entrega }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <p class="mb-3 text-main">
+                            ¿Confirmas que los materiales del <strong>Pedido #CT-{{ entrega.pedido.codigo_pedido }}</strong> fueron entregados satisfactoriamente en destino?
+                        </p>
+                        <div class="p-3 rounded-3 mb-3" style="background: var(--item-bg); border: 1px solid var(--color-border);">
+                            <span class="text-muted small d-block mb-1">
+                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>Dirección Destino:
+                            </span>
+                            <strong class="text-main">{{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}</strong>
+                            <div class="small text-muted mt-1">
+                                Cliente: {{ entrega.pedido.usuario.get_full_name|default:entrega.pedido.usuario.username }}
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label for="obs{{ entrega.id_entrega }}" class="form-label small fw-bold text-muted">Observaciones de entrega (Opcional):</label>
+                            <textarea name="observacion" id="obs{{ entrega.id_entrega }}" class="form-control" rows="2" placeholder="Ej: Recibido por maestro de obra con remisión." style="background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-md);"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid var(--color-border);">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
+                            <i class="bi bi-check-circle me-1"></i>Confirmar Entrega
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
 <style>
     .fw-800 { font-weight: 800; }
     .fw-700 { font-weight: 700; }
     .fw-600 { font-weight: 600; }
-    .text-accent { color: var(--color-accent) !important; }
+    .text-accent { color: var(--color-accent, #ffd600) !important; }
+    .text-main { color: var(--color-text) !important; }
+    .modal { z-index: 1065 !important; }
+    .modal-backdrop { z-index: 1060 !important; }
 </style>
 
+<script>
+    // Garantiza que cuando se abra un modal se posicione en body para nunca quedar detrás del backdrop
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.modal').forEach(function (modalEl) {
+            modalEl.addEventListener('show.bs.modal', function () {
+                if (modalEl.parentElement !== document.body) {
+                    document.body.appendChild(modalEl);
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

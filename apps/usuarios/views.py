@@ -408,31 +408,42 @@ def login_usuario(request):
                 messages.success(request, f"¡Bienvenido de nuevo, {user.nombres}!")
 
                 next_url = request.GET.get("next")
-                redirect_target = (
-                    next_url
-                    if next_url
-                    and url_has_allowed_host_and_scheme(
-                        url=next_url,
-                        allowed_hosts={request.get_host()},
-                        require_https=request.is_secure(),
-                    )
-                    else (
-                        "usuarios:panel"
-                        if user.rol == "admin"
-                        else "clientes:panel_cliente"
-                        if user.rol == "cliente"
-                        else "usuarios:panel_conductor"
-                        if user.rol == "conductor"
-                        else "usuarios:panel"
-                    )
+                default_target = (
+                    "usuarios:panel"
+                    if user.rol == "admin"
+                    else "clientes:panel_cliente"
+                    if user.rol == "cliente"
+                    else "usuarios:panel_conductor"
+                    if user.rol == "conductor"
+                    else "usuarios:panel"
                 )
 
+                redirect_target = default_target
+                if next_url and url_has_allowed_host_and_scheme(
+                    url=next_url,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure(),
+                ):
+                    # Evitar redirigir a URLs incompatibles con el rol
+                    if user.rol == "cliente" and (
+                        next_url.startswith("/usuarios/") or next_url.startswith("/admin/")
+                    ):
+                        redirect_target = default_target
+                    elif user.rol == "conductor" and next_url.startswith("/clientes/"):
+                        redirect_target = default_target
+                    else:
+                        redirect_target = next_url
+
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                    try:
+                        resolved_redirect = reverse(redirect_target)
+                    except Exception:
+                        resolved_redirect = redirect_target
                     response = JsonResponse(
                         {
                             "status": "success",
                             "message": f"¡Bienvenido de nuevo, {user.nombres}!",
-                            "redirect_url": reverse(redirect_target),
+                            "redirect_url": resolved_redirect,
                         }
                     )
                 else:
@@ -548,108 +559,380 @@ def panel(request):
 # =====================================================================
 
 
-@role_required(["conductor"])
+@role_required(["conductor", "admin"])
 def panel_conductor(request):
+    if not request.user.is_active or request.user.estado != "activo":
+        messages.error(
+            request, "Tu cuenta de conductor se encuentra inactiva. Contacta al administrador."
+        )
+        return redirect("usuarios:login")
+
     conductor, _ = Conductor.ensure_for_user(request.user)
-    pedidos_asignados = (
-        Pedido.objects.filter(conductor=conductor)
-        .select_related("usuario", "cliente__usuario")
-        .exclude(estado="entregado")
-    )
-    proxima_entrega = (
-        pedidos_asignados.exclude(estado=Pedido.CANCELADO)
-        .order_by("fecha_entrega_programada", "fecha_solicitud")
-        .first()
-    )
+    if request.user.rol != "admin" and conductor.estado != "activo":
+        messages.error(
+            request, "Tu perfil de conductor está inactivo. No puedes acceder al panel logístico."
+        )
+        return redirect("usuarios:login")
+
+    from apps.logistica.models import Entrega, Novedad
+
+    # Contadores desde la BD (globales si es admin para supervisión, o específicos si es conductor)
+    if request.user.rol == "admin":
+        envios_pendientes = Entrega.objects.filter(estado="pendiente").count()
+        entregas_en_ruta = Entrega.objects.filter(estado="en_ruta").count()
+        entregas_completadas = Entrega.objects.filter(estado="entregado").count()
+        novedades_registradas = Novedad.objects.count()
+        entregas_activas = (
+            Entrega.objects.filter(estado__in=["pendiente", "en_ruta"])
+            .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario", "conductor__usuario")
+            .prefetch_related("pedido__detalles__material")
+            .order_by("fecha_salida", "pedido__fecha_solicitud")
+        )
+    else:
+        envios_pendientes = Entrega.objects.filter(conductor=conductor, estado="pendiente").count()
+        entregas_en_ruta = Entrega.objects.filter(conductor=conductor, estado="en_ruta").count()
+        entregas_completadas = Entrega.objects.filter(conductor=conductor, estado="entregado").count()
+        novedades_registradas = Novedad.objects.filter(entrega__conductor=conductor).count()
+        entregas_activas = (
+            Entrega.objects.filter(conductor=conductor, estado__in=["pendiente", "en_ruta"])
+            .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario")
+            .prefetch_related("pedido__detalles__material")
+            .order_by("fecha_salida", "pedido__fecha_solicitud")
+        )
+
+    # Próxima entrega para pronóstico del clima
+    proxima_entrega = entregas_activas.first()
+    clima_ruta = None
+    if proxima_entrega:
+        direccion_destino = (
+            proxima_entrega.direccion_entrega or proxima_entrega.pedido.direccion_destino
+        )
+        fecha_prog = proxima_entrega.pedido.fecha_entrega_programada
+        clima_ruta = get_route_weather(direccion_destino, fecha_prog)
+
     context = {
-        "pedidos": pedidos_asignados,
+        "conductor": conductor,
+        "entregas": entregas_activas,
         "proxima_entrega": proxima_entrega,
-        "clima_ruta": (
-            get_route_weather(
-                proxima_entrega.direccion_destino,
-                proxima_entrega.fecha_entrega_programada,
-            )
-            if proxima_entrega
-            else None
-        ),
+        "clima_ruta": clima_ruta,
+        "envios_pendientes_count": envios_pendientes,
+        "entregas_en_ruta_count": entregas_en_ruta,
+        "entregas_completadas_count": entregas_completadas,
+        "novedades_registradas_count": novedades_registradas,
     }
     return render(request, "usuarios/panel-conductor.html", context)
 
 
-@role_required(["conductor"])
-def pedidos_conductor(request):
+@role_required(["conductor", "admin"])
+@require_POST
+def iniciar_entrega(request, entrega_id):
+    if not request.user.is_active or request.user.estado != "activo":
+        messages.error(request, "Tu cuenta no está activa.")
+        return redirect("usuarios:login")
+
     conductor, _ = Conductor.ensure_for_user(request.user)
-    pedidos = (
-        Pedido.objects.filter(conductor=conductor)
-        .exclude(estado="entregado")
-        .select_related("usuario", "cliente__usuario")
+    if request.user.rol != "admin" and conductor.estado != "activo":
+        messages.error(request, "Tu perfil de conductor no está activo.")
+        return redirect("usuarios:login")
+
+    from apps.logistica.models import Entrega
+
+    with transaction.atomic():
+        entrega = (
+            Entrega.objects.select_for_update()
+            .select_related("pedido", "vehiculo")
+            .filter(pk=entrega_id)
+            .first()
+        )
+        if not entrega:
+            messages.error(request, "El envío especificado no existe.")
+            return redirect("usuarios:panel_conductor")
+
+        # Comprobación de propiedad estricta (admin exento)
+        if (
+            request.user.rol != "admin"
+            and entrega.conductor_id != conductor.pk
+            and entrega.conductor_usuario_id != request.user.pk
+        ):
+            ip = obtener_ip(request)
+            registrar_warning(ip)
+            registrar_evento(
+                request,
+                "role_violation",
+                gravedad="high",
+                detalles={"causa": "iniciar_entrega_ajena", "entrega_id": entrega_id},
+            )
+            return _respuesta_no_autorizada(request)
+
+        # Validación de estado previo
+        if entrega.estado != "pendiente":
+            messages.warning(
+                request,
+                f"No se puede iniciar el recorrido porque el envío se encuentra en estado «{entrega.get_estado_display()}».",
+            )
+            return redirect("usuarios:panel_conductor")
+
+        ahora = now()
+        entrega.transicionar("en_ruta")
+        entrega.fecha_salida = ahora
+        entrega.save(update_fields=["estado", "fecha_salida"])
+
+        pedido = entrega.pedido
+        if pedido.puede_transicionar(Pedido.EN_RUTA):
+            pedido.transicionar(Pedido.EN_RUTA)
+        else:
+            pedido.estado = Pedido.EN_RUTA
+        if not pedido.fecha_toma_entrega:
+            pedido.fecha_toma_entrega = ahora
+        pedido.conductor = conductor
+        pedido.save(update_fields=["estado", "fecha_toma_entrega", "conductor"])
+
+        if entrega.vehiculo:
+            if entrega.vehiculo.estado != "en_ruta":
+                entrega.vehiculo.estado = "en_ruta"
+                entrega.vehiculo.save(update_fields=["estado"])
+
+        registrar_actividad(
+            request,
+            "editar",
+            "entrega",
+            entrega.id_entrega,
+            f"Conductor {request.user.nombre_mostrar} inició entrega del pedido #{pedido.codigo_pedido}",
+        )
+
+        messages.success(
+            request,
+            f"¡Has iniciado el recorrido del pedido #{pedido.codigo_pedido}! Conduce con precaución.",
+        )
+    return redirect("usuarios:panel_conductor")
+
+
+@role_required(["conductor", "admin"])
+@require_POST
+def finalizar_entrega(request, entrega_id):
+    if not request.user.is_active or request.user.estado != "activo":
+        messages.error(request, "Tu cuenta no está activa.")
+        return redirect("usuarios:login")
+
+    conductor, _ = Conductor.ensure_for_user(request.user)
+    if request.user.rol != "admin" and conductor.estado != "activo":
+        messages.error(request, "Tu perfil de conductor no está activo.")
+        return redirect("usuarios:login")
+
+    from apps.logistica.models import Entrega, Novedad
+
+    observacion = (
+        request.POST.get("observacion")
+        or request.POST.get("observaciones")
+        or ""
+    ).strip()[:2000]
+
+    with transaction.atomic():
+        entrega = (
+            Entrega.objects.select_for_update()
+            .select_related("pedido", "vehiculo")
+            .filter(pk=entrega_id)
+            .first()
+        )
+        if not entrega:
+            messages.error(request, "El envío especificado no existe.")
+            return redirect("usuarios:panel_conductor")
+
+        # Comprobación de propiedad estricta (admin exento)
+        if (
+            request.user.rol != "admin"
+            and entrega.conductor_id != conductor.pk
+            and entrega.conductor_usuario_id != request.user.pk
+        ):
+            ip = obtener_ip(request)
+            registrar_warning(ip)
+            registrar_evento(
+                request,
+                "role_violation",
+                gravedad="high",
+                detalles={"causa": "finalizar_entrega_ajena", "entrega_id": entrega_id},
+            )
+            return _respuesta_no_autorizada(request)
+
+        # Validación de estado
+        if entrega.estado == "entregado":
+            messages.info(request, "Este envío ya fue finalizado y confirmado anteriormente.")
+            return redirect("usuarios:panel_conductor")
+
+        if entrega.estado not in ("en_ruta", "pendiente"):
+            messages.error(
+                request,
+                f"No se puede finalizar un envío en estado «{entrega.get_estado_display()}».",
+            )
+            return redirect("usuarios:panel_conductor")
+
+        ahora = now()
+        entrega.transicionar("entregado")
+        entrega.fecha_entrega = ahora
+        entrega.save(update_fields=["estado", "fecha_entrega"])
+
+        pedido = entrega.pedido
+        if pedido.puede_transicionar(Pedido.ENTREGADO):
+            pedido.transicionar(Pedido.ENTREGADO)
+        else:
+            pedido.estado = Pedido.ENTREGADO
+        pedido.fecha_entrega_real = ahora
+        pedido.save(update_fields=["estado", "fecha_entrega_real"])
+
+        if entrega.vehiculo:
+            entrega.vehiculo.estado = "disponible"
+            entrega.vehiculo.save(update_fields=["estado"])
+
+        if observacion:
+            Novedad.objects.create(
+                entrega=entrega,
+                tipo="observacion",
+                descripcion=observacion,
+                reportado_por=request.user,
+            )
+
+        registrar_actividad(
+            request,
+            "confirmar_entrega",
+            "entrega",
+            entrega.id_entrega,
+            f"Conductor {request.user.nombre_mostrar} finalizó entrega del pedido #{pedido.codigo_pedido}"
+            + (f". Nota: {observacion}" if observacion else ""),
+        )
+
+        messages.success(
+            request,
+            f"¡Excelente! La entrega del pedido #{pedido.codigo_pedido} ha sido confirmada como entregada.",
+        )
+    referer = request.META.get("HTTP_REFERER")
+    if referer and ("pedidos-conductor" in referer or "panel-conductor" in referer or "detalles-entrega" in referer):
+        return redirect(referer)
+    return redirect("usuarios:panel_conductor")
+
+
+@role_required(["conductor", "admin"])
+def detalle_entrega_conductor(request, entrega_id):
+    conductor, _ = Conductor.ensure_for_user(request.user)
+    from apps.logistica.models import Entrega
+
+    entrega = get_object_or_404(
+        Entrega.objects.select_related(
+            "pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario"
+        ).prefetch_related("pedido__detalles__material", "novedades__seguimientos"),
+        pk=entrega_id,
     )
 
-    id_pedido = request.GET.get("id_pedido")
-    origen = request.GET.get("origen")
-    destino = request.GET.get("destino")
-    fecha = request.GET.get("fecha")
-    estado = request.GET.get("estado")
-
-    if id_pedido:
-        pedidos = pedidos.filter(codigo_pedido__icontains=id_pedido)
-    if origen:
-        pedidos = pedidos.filter(direccion_origen__icontains=origen)
-    if destino:
-        pedidos = pedidos.filter(direccion_destino__icontains=destino)
-    if fecha:
-        pedidos = pedidos.filter(fecha_solicitud__date=fecha)
-    if estado:
-        pedidos = pedidos.filter(estado=estado)
+    if (
+        request.user.rol != "admin"
+        and entrega.conductor_id != conductor.pk
+        and entrega.conductor_usuario_id != request.user.pk
+    ):
+        ip = obtener_ip(request)
+        registrar_warning(ip)
+        registrar_evento(
+            request,
+            "role_violation",
+            gravedad="high",
+            detalles={"causa": "ver_entrega_ajena", "entrega_id": entrega_id},
+        )
+        return _respuesta_no_autorizada(request)
 
     context = {
-        "pedidos": pedidos,
-        "estados": Pedido.ESTADOS,
-        "id_pedido": id_pedido,
-        "origen": origen,
-        "destino": destino,
-        "fecha": fecha,
-        "estado": estado,
+        "entrega": entrega,
+        "pedido": entrega.pedido,
+        "detalles": entrega.pedido.detalles.all(),
+        "vehiculo": entrega.vehiculo,
+        "novedades": entrega.novedades.all(),
     }
-    return render(request, "usuarios/pedidos_conductor.html", context)
+    return render(request, "usuarios/detalle_entrega_conductor.html", context)
 
 
-@role_required(["conductor"])
-def mis_entregas(request):
-    conductor, _ = Conductor.ensure_for_user(request.user)
-    entregas = (
-        Pedido.objects.filter(conductor=conductor)
-        .select_related("usuario", "cliente__usuario")
-        .order_by("-fecha_solicitud")
-    )
+@role_required(["conductor", "admin"])
+def pedidos_conductor(request):
+    from apps.logistica.models import Entrega
+
+    if request.user.rol == "admin":
+        entregas = (
+            Entrega.objects.all()
+            .exclude(estado="entregado")
+            .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario", "conductor__usuario")
+            .prefetch_related("pedido__detalles__material")
+            .order_by("fecha_salida", "pedido__fecha_solicitud")
+        )
+    else:
+        conductor, _ = Conductor.ensure_for_user(request.user)
+        entregas = (
+            Entrega.objects.filter(conductor=conductor)
+            .exclude(estado="entregado")
+            .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario")
+            .prefetch_related("pedido__detalles__material")
+            .order_by("fecha_salida", "pedido__fecha_solicitud")
+        )
 
     id_pedido = request.GET.get("id_pedido")
-    origen = request.GET.get("origen")
     destino = request.GET.get("destino")
-    fecha = request.GET.get("fecha")
     estado = request.GET.get("estado")
 
     if id_pedido:
-        entregas = entregas.filter(codigo_pedido__icontains=id_pedido)
-    if origen:
-        entregas = entregas.filter(direccion_origen__icontains=origen)
+        entregas = entregas.filter(pedido__codigo_pedido__icontains=id_pedido)
     if destino:
-        entregas = entregas.filter(direccion_destino__icontains=destino)
-    if fecha:
-        entregas = entregas.filter(fecha_solicitud__date=fecha)
+        entregas = entregas.filter(
+            Q(direccion_entrega__icontains=destino) | Q(pedido__direccion_destino__icontains=destino)
+        )
     if estado:
         entregas = entregas.filter(estado=estado)
 
     context = {
         "entregas": entregas,
-        "estados": Pedido.ESTADOS,
+        "estados": Entrega.ESTADOS,
         "id_pedido": id_pedido,
-        "origen": origen,
         "destino": destino,
-        "fecha": fecha,
         "estado": estado,
     }
+    return render(request, "usuarios/pedidos_conductor.html", context)
+
+
+@role_required(["conductor", "admin"])
+def mis_entregas(request):
+    from apps.logistica.models import Entrega
+
+    if request.user.rol == "admin":
+        entregas = (
+            Entrega.objects.filter(estado="entregado")
+            .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario", "conductor__usuario")
+            .prefetch_related("pedido__detalles__material", "novedades")
+            .order_by("-fecha_entrega")
+        )
+    else:
+        conductor, _ = Conductor.ensure_for_user(request.user)
+        entregas = (
+            Entrega.objects.filter(conductor=conductor, estado="entregado")
+            .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario")
+            .prefetch_related("pedido__detalles__material", "novedades")
+            .order_by("-fecha_entrega")
+        )
+
+    id_pedido = request.GET.get("id_pedido")
+    destino = request.GET.get("destino")
+    fecha = request.GET.get("fecha")
+
+    if id_pedido:
+        entregas = entregas.filter(pedido__codigo_pedido__icontains=id_pedido)
+    if destino:
+        entregas = entregas.filter(
+            Q(direccion_entrega__icontains=destino) | Q(pedido__direccion_destino__icontains=destino)
+        )
+    if fecha:
+        entregas = entregas.filter(fecha_entrega__date=fecha)
+
+    context = {
+        "entregas": entregas,
+        "id_pedido": id_pedido,
+        "destino": destino,
+        "fecha": fecha,
+    }
     return render(request, "usuarios/mis-entregas.html", context)
+
 
 
 @login_required
@@ -1145,21 +1428,506 @@ def editar_usuario(request, id):
 
 @admin_required
 def lista_conductores(request):
+    from apps.logistica.models import Entrega
+
+    query = request.GET.get("q", "").strip()
+    nombre = request.GET.get("nombre", "").strip()
+    documento = request.GET.get("documento", "").strip()
+    correo = request.GET.get("correo", "").strip()
+    licencia = request.GET.get("licencia", "").strip()
+    categoria = request.GET.get("categoria", "").strip()
+    estado = request.GET.get("estado", "").strip()
+    vehiculo = request.GET.get("vehiculo", "").strip()
+
+    asignaciones_activas = Prefetch(
+        "perfil_conductor__asignaciones_vehiculo",
+        queryset=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related(
+            "vehiculo"
+        ),
+        to_attr="asignaciones_activas",
+    )
+    entregas_activas = Prefetch(
+        "perfil_conductor__entregas",
+        queryset=Entrega.objects.filter(estado__in=["pendiente", "en_ruta"]),
+        to_attr="entregas_activas",
+    )
+
     conductores = (
         Usuario.objects.filter(rol="conductor")
         .select_related("perfil_conductor")
-        .prefetch_related(
-            Prefetch(
-                "perfil_conductor__asignaciones_vehiculo",
-                queryset=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related(
-                    "vehiculo"
-                ),
-                to_attr="asignaciones_activas",
-            )
-        )
+        .prefetch_related(asignaciones_activas, entregas_activas)
+        .order_by("-id")
     )
-    context = {"conductores": conductores}
+
+    if query:
+        conductores = conductores.filter(
+            Q(nombres__icontains=query)
+            | Q(apellidos__icontains=query)
+            | Q(documento__icontains=query)
+            | Q(email__icontains=query)
+            | Q(perfil_conductor__numero_licencia__icontains=query)
+        )
+    if nombre:
+        conductores = conductores.filter(
+            Q(nombres__icontains=nombre) | Q(apellidos__icontains=nombre)
+        )
+    if documento:
+        conductores = conductores.filter(documento__icontains=documento)
+    if correo:
+        conductores = conductores.filter(email__icontains=correo)
+    if licencia:
+        conductores = conductores.filter(perfil_conductor__numero_licencia__icontains=licencia)
+    if categoria:
+        conductores = conductores.filter(perfil_conductor__categoria_licencia__iexact=categoria)
+    if estado:
+        if estado.lower() == "activo":
+            conductores = conductores.filter(estado="activo", perfil_conductor__estado="activo")
+        elif estado.lower() == "inactivo":
+            conductores = conductores.filter(Q(estado="inactivo") | Q(perfil_conductor__estado="inactivo"))
+        else:
+            conductores = conductores.filter(estado=estado)
+    if vehiculo:
+        conductores = conductores.filter(
+            perfil_conductor__asignaciones_vehiculo__fecha_fin__isnull=True,
+            perfil_conductor__asignaciones_vehiculo__vehiculo__placa__icontains=vehiculo,
+        )
+
+    conductores = list(conductores)
+    for c in conductores:
+        # Calcular vehículo asignado actual
+        asig = getattr(c.conductor_profile, "asignaciones_activas", None) if c.conductor_profile else None
+        c.vehiculo_asignado_obj = asig[0].vehiculo if asig else None
+        # Envíos activos en curso
+        entregas = getattr(c.conductor_profile, "entregas_activas", None) if c.conductor_profile else None
+        c.envios_activos_count = len(entregas) if entregas else 0
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return render(request, "usuarios/_conductores_body.html", {"conductores": conductores})
+
+    context = {
+        "conductores": conductores,
+        "query": query,
+        "nombre": nombre,
+        "documento": documento,
+        "correo": correo,
+        "licencia": licencia,
+        "categoria": categoria,
+        "estado": estado,
+        "vehiculo": vehiculo,
+    }
     return render(request, "usuarios/conductores_lista.html", context)
+
+
+@admin_required
+def crear_conductor(request):
+    form_data = {}
+    if request.method == "POST":
+        nombres = (request.POST.get("nombres") or "").strip()
+        apellidos = (request.POST.get("apellidos") or "").strip()
+        email = (request.POST.get("email") or "").strip().casefold()
+        password = request.POST.get("password") or ""
+        telefono = limpiar_telefono(request.POST.get("telefono"))
+        tipo_doc = request.POST.get("tipo_doc") or "CC"
+        documento = limpiar_documento(request.POST.get("documento"))
+        numero_licencia = (request.POST.get("numero_licencia") or "").strip()
+        categoria_licencia = (request.POST.get("categoria_licencia") or "B1").strip()
+        fecha_vencimiento_licencia = request.POST.get("fecha_vencimiento_licencia")
+        telefono_empresarial = limpiar_telefono(request.POST.get("telefono_empresarial"))
+        estado = request.POST.get("estado") or "activo"
+
+        form_data = request.POST.copy()
+        form_data.pop("password", None)
+
+        if not all([nombres, apellidos, email, password, telefono, tipo_doc, documento, numero_licencia]):
+            messages.error(request, "Por favor completa todos los campos requeridos.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"form_data": form_data, "action": "crear"},
+                status=400,
+            )
+
+        try:
+            validate_email(email)
+            validate_password(password)
+        except ValidationError as e:
+            messages.error(request, f"Validación: {' '.join(e.messages)}")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"form_data": form_data, "action": "crear"},
+                status=400,
+            )
+
+        if Usuario.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).exists():
+            messages.error(request, "El correo electrónico ya se encuentra registrado.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"form_data": form_data, "action": "crear"},
+                status=400,
+            )
+
+        if Usuario.objects.filter(tipo_documento=tipo_doc, documento=documento).exists():
+            messages.error(request, f"Ya existe un usuario con {tipo_doc} número {documento}.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"form_data": form_data, "action": "crear"},
+                status=400,
+            )
+
+        if Conductor.objects.filter(numero_licencia__iexact=numero_licencia).exists():
+            messages.error(request, f"El número de licencia «{numero_licencia}» ya pertenece a otro conductor.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"form_data": form_data, "action": "crear"},
+                status=400,
+            )
+
+        fecha_venc = None
+        if fecha_vencimiento_licencia:
+            try:
+                import datetime
+
+                fecha_venc = datetime.date.fromisoformat(fecha_vencimiento_licencia)
+                if fecha_venc < now().date():
+                    messages.error(request, "La fecha de vencimiento de la licencia no puede estar en el pasado.")
+                    return render(
+                        request,
+                        "usuarios/conductor_form.html",
+                        {"form_data": form_data, "action": "crear"},
+                        status=400,
+                    )
+            except ValueError:
+                messages.error(request, "Formato de fecha de vencimiento inválido.")
+                return render(
+                    request,
+                    "usuarios/conductor_form.html",
+                    {"form_data": form_data, "action": "crear"},
+                    status=400,
+                )
+        else:
+            import datetime
+
+            fecha_venc = now().date() + datetime.timedelta(days=365)
+
+        try:
+            with transaction.atomic():
+                user = Usuario.objects.create_user(
+                    username=email,
+                    email=email,
+                    password=password,
+                    nombres=nombres,
+                    apellidos=apellidos,
+                    telefono=telefono,
+                    rol="conductor",
+                    tipo_documento=tipo_doc,
+                    documento=documento,
+                    estado=estado,
+                    is_active=(estado == "activo"),
+                )
+
+                Conductor.objects.create(
+                    usuario=user,
+                    numero_licencia=numero_licencia,
+                    categoria_licencia=categoria_licencia,
+                    fecha_vencimiento_licencia=fecha_venc,
+                    telefono_empresarial=telefono_empresarial,
+                    estado=estado,
+                    fecha_ingreso=now().date(),
+                )
+
+                registrar_actividad(
+                    request,
+                    "crear",
+                    "conductor",
+                    user.pk,
+                    f"Admin registró al conductor {user.nombre_mostrar} ({numero_licencia})",
+                )
+
+            messages.success(request, f"Conductor {user.nombre_mostrar} registrado exitosamente.")
+            return redirect("usuarios:lista_conductores")
+        except IntegrityError as exc:
+            logger.exception("Conflicto al crear conductor: %s", exc)
+            messages.error(request, "Error de integridad: correo, documento o licencia ya existentes.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"form_data": form_data, "action": "crear"},
+                status=400,
+            )
+        except Exception as exc:
+            logger.exception("Fallo al crear conductor: %s", exc)
+            messages.error(request, f"No se pudo completar el registro: {str(exc)}")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"form_data": form_data, "action": "crear"},
+                status=500,
+            )
+
+    return render(request, "usuarios/conductor_form.html", {"form_data": {}, "action": "crear"})
+
+
+@admin_required
+def editar_conductor(request, id):
+    conductor_user = get_object_or_404(
+        Usuario.objects.select_related("perfil_conductor"), id=id, rol="conductor"
+    )
+    perfil, _ = Conductor.ensure_for_user(conductor_user)
+
+    if request.method == "POST":
+        nombres = (request.POST.get("nombres") or "").strip()
+        apellidos = (request.POST.get("apellidos") or "").strip()
+        email = (request.POST.get("email") or "").strip().casefold()
+        telefono = limpiar_telefono(request.POST.get("telefono"))
+        tipo_doc = request.POST.get("tipo_doc") or "CC"
+        documento = limpiar_documento(request.POST.get("documento"))
+        numero_licencia = (request.POST.get("numero_licencia") or "").strip()
+        categoria_licencia = (request.POST.get("categoria_licencia") or perfil.categoria_licencia).strip()
+        fecha_vencimiento_licencia = request.POST.get("fecha_vencimiento_licencia")
+        telefono_empresarial = limpiar_telefono(request.POST.get("telefono_empresarial"))
+        estado = request.POST.get("estado") or perfil.estado
+
+        if not all([nombres, apellidos, email, telefono, tipo_doc, documento, numero_licencia]):
+            messages.error(request, "Por favor completa todos los campos requeridos.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"conductor_user": conductor_user, "perfil": perfil, "action": "editar"},
+                status=400,
+            )
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, "Correo electrónico no válido.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"conductor_user": conductor_user, "perfil": perfil, "action": "editar"},
+                status=400,
+            )
+
+        if (
+            Usuario.objects.filter(Q(email__iexact=email) | Q(username__iexact=email))
+            .exclude(pk=conductor_user.pk)
+            .exists()
+        ):
+            messages.error(request, "El correo electrónico ya pertenece a otro usuario.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"conductor_user": conductor_user, "perfil": perfil, "action": "editar"},
+                status=400,
+            )
+
+        if (
+            Usuario.objects.filter(tipo_documento=tipo_doc, documento=documento)
+            .exclude(pk=conductor_user.pk)
+            .exists()
+        ):
+            messages.error(request, f"Ya existe otro usuario con {tipo_doc} número {documento}.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"conductor_user": conductor_user, "perfil": perfil, "action": "editar"},
+                status=400,
+            )
+
+        if (
+            Conductor.objects.filter(numero_licencia__iexact=numero_licencia)
+            .exclude(pk=perfil.pk)
+            .exists()
+        ):
+            messages.error(request, f"La licencia «{numero_licencia}» ya pertenece a otro conductor.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"conductor_user": conductor_user, "perfil": perfil, "action": "editar"},
+                status=400,
+            )
+
+        fecha_venc = perfil.fecha_vencimiento_licencia
+        if fecha_vencimiento_licencia:
+            try:
+                import datetime
+
+                fecha_venc = datetime.date.fromisoformat(fecha_vencimiento_licencia)
+            except ValueError:
+                messages.error(request, "Fecha de vencimiento no válida.")
+                return render(
+                    request,
+                    "usuarios/conductor_form.html",
+                    {"conductor_user": conductor_user, "perfil": perfil, "action": "editar"},
+                    status=400,
+                )
+
+        try:
+            with transaction.atomic():
+                conductor_user.nombres = nombres
+                conductor_user.apellidos = apellidos
+                conductor_user.email = email
+                conductor_user.username = email
+                conductor_user.telefono = telefono
+                conductor_user.tipo_documento = tipo_doc
+                conductor_user.documento = documento
+                conductor_user.estado = estado
+                conductor_user.is_active = (estado == "activo")
+                conductor_user.save()
+
+                perfil.numero_licencia = numero_licencia
+                perfil.categoria_licencia = categoria_licencia
+                perfil.fecha_vencimiento_licencia = fecha_venc
+                perfil.telefono_empresarial = telefono_empresarial
+                perfil.estado = estado
+                perfil.save()
+
+                if estado != "activo":
+                    conductor_user.invalidar_sesiones()
+
+                registrar_actividad(
+                    request,
+                    "editar",
+                    "conductor",
+                    conductor_user.pk,
+                    f"Admin actualizó datos del conductor {conductor_user.nombre_mostrar}",
+                )
+
+            messages.success(request, f"Conductor {conductor_user.nombre_mostrar} actualizado con éxito.")
+            return redirect("usuarios:lista_conductores")
+        except Exception as exc:
+            logger.exception("Error actualizando conductor %s: %s", conductor_user.pk, exc)
+            messages.error(request, f"Error al guardar los cambios: {str(exc)}")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"conductor_user": conductor_user, "perfil": perfil, "action": "editar"},
+                status=500,
+            )
+
+    context = {"conductor_user": conductor_user, "perfil": perfil, "action": "editar"}
+    return render(request, "usuarios/conductor_form.html", context)
+
+
+@admin_required
+@require_POST
+def toggle_estado_conductor(request, id):
+    conductor_user = get_object_or_404(Usuario, id=id, rol="conductor")
+    perfil, _ = Conductor.ensure_for_user(conductor_user)
+
+    from apps.logistica.models import Entrega
+
+    nuevo_estado = "inactivo" if conductor_user.estado == "activo" else "activo"
+    envios_activos = Entrega.objects.filter(
+        conductor=perfil, estado__in=["pendiente", "en_ruta"]
+    ).count()
+
+    with transaction.atomic():
+        conductor_user.estado = nuevo_estado
+        conductor_user.is_active = (nuevo_estado == "activo")
+        conductor_user.save(update_fields=["estado", "is_active"])
+
+        perfil.estado = nuevo_estado
+        perfil.save(update_fields=["estado"])
+
+        if nuevo_estado == "inactivo":
+            conductor_user.invalidar_sesiones()
+
+        accion = "desactivado" if nuevo_estado == "inactivo" else "activado"
+        registrar_actividad(
+            request,
+            "editar",
+            "conductor",
+            conductor_user.pk,
+            f"Conductor {conductor_user.nombre_mostrar} {accion} por admin",
+        )
+
+    msg = f"Conductor {conductor_user.nombre_mostrar} {accion} correctamente."
+    if nuevo_estado == "inactivo" and envios_activos > 0:
+        msg += f" (Atención: tiene {envios_activos} entrega(s) en curso)."
+    messages.success(request, msg)
+    return redirect("usuarios:lista_conductores")
+
+
+@admin_required
+@require_POST
+def eliminar_conductor(request, id):
+    conductor_user = get_object_or_404(Usuario, id=id, rol="conductor")
+    perfil = getattr(conductor_user, "perfil_conductor", None)
+
+    from apps.logistica.models import Entrega
+
+    tiene_historial = False
+    if perfil:
+        tiene_historial = (
+            Entrega.objects.filter(conductor=perfil).exists()
+            or Pedido.objects.filter(conductor=perfil).exists()
+            or ConductorVehiculo.objects.filter(conductor=perfil).exists()
+        )
+    else:
+        tiene_historial = (
+            Entrega.objects.filter(conductor_usuario_id=conductor_user.pk).exists()
+            or Pedido.objects.filter(conductor_usuario_legacy_id=conductor_user.pk).exists()
+        )
+
+    if tiene_historial:
+        messages.error(
+            request,
+            f"No es posible eliminar físicamente al conductor {conductor_user.nombre_mostrar} "
+            "porque posee historial de entregas o vehículos asociados. Utiliza la opción de "
+            "desactivar cuenta para restringir su acceso.",
+        )
+        return redirect("usuarios:lista_conductores")
+
+    nombre = conductor_user.nombre_mostrar
+    with transaction.atomic():
+        if perfil:
+            perfil.delete()
+        conductor_user.delete()
+        registrar_actividad(
+            request,
+            "eliminar",
+            "conductor",
+            id,
+            f"Admin eliminó conductor sin historial: {nombre}",
+        )
+
+    messages.success(request, f"Conductor {nombre} eliminado correctamente.")
+    return redirect("usuarios:lista_conductores")
+
+
+@admin_required
+def detalle_conductor(request, id):
+    conductor_user = get_object_or_404(
+        Usuario.objects.select_related("perfil_conductor"), id=id, rol="conductor"
+    )
+    perfil, _ = Conductor.ensure_for_user(conductor_user)
+
+    from apps.logistica.models import Entrega, Novedad
+
+    entregas = (
+        Entrega.objects.filter(conductor=perfil)
+        .select_related("pedido", "vehiculo")
+        .order_by("-fecha_salida")
+    )
+    novedades = Novedad.objects.filter(entrega__conductor=perfil).order_by("-fecha_generada")
+    vehiculo_actual = perfil.vehiculo_actual
+    historial_vehiculos = perfil.asignaciones_vehiculo.select_related("vehiculo").order_by(
+        "-fecha_asignacion"
+    )
+
+    context = {
+        "conductor_user": conductor_user,
+        "perfil": perfil,
+        "vehiculo_actual": vehiculo_actual,
+        "entregas": entregas,
+        "novedades": novedades,
+        "historial_vehiculos": historial_vehiculos,
+    }
+    return render(request, "usuarios/conductor_detalle.html", context)
 
 
 @admin_required
@@ -1216,6 +1984,7 @@ def asignar_vehiculo_conductor(request, conductor_id):
         "historial": historial,
     }
     return render(request, "usuarios/asignar_vehiculo_conductor.html", context)
+
 
 
 @login_required

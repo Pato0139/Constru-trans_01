@@ -4,16 +4,16 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connections, models, router, transaction
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 from django.views.decorators.http import require_POST, require_http_methods
 
 from config.permissions import requiere_funcion
-from config.security import _respuesta_no_autorizada
+from config.security import _respuesta_no_autorizada, role_required
+from config.utils import registrar_actividad
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
-from config.permissions import requiere_funcion
 
 from .models import ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento, Seguimiento, Vehiculo
 
@@ -106,6 +106,11 @@ def lista_vehiculos(request):
                     "label": "Mantenimiento",
                     "selected": estado == "mantenimiento",
                 },
+                {
+                    "value": "fuera_de_servicio",
+                    "label": "Fuera de Servicio",
+                    "selected": estado == "fuera_de_servicio",
+                },
             ],
         },
     ]
@@ -139,7 +144,7 @@ def crear_vehiculo(request):
         "conductor__usuario_id", flat=True
     )
     conductores_disponibles = (
-        Usuario.objects.filter(rol="conductor")
+        Usuario.objects.filter(rol="conductor", estado="activo", is_active=True)
         .exclude(id__in=conductor_activos)
         .order_by("nombres", "apellidos")
     )
@@ -196,7 +201,8 @@ def crear_vehiculo(request):
 def editar_vehiculo(request, id):
     vehiculo = get_object_or_404(Vehiculo, pk=id)
     conductores_disponibles = (
-        Conductor.objects.exclude(
+        Conductor.objects.filter(estado="activo", usuario__estado="activo", usuario__is_active=True)
+        .exclude(
             usuario_id__in=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values_list(
                 "conductor__usuario_id", flat=True
             )
@@ -296,15 +302,26 @@ def editar_vehiculo(request, id):
 def eliminar_vehiculo(request, id):
     vehiculo = get_object_or_404(Vehiculo, pk=id)
 
-    entregas_activas = Entrega.objects.filter(
-        vehiculo=vehiculo, estado__in=["pendiente", "en_ruta"]
-    ).exists()
-    if entregas_activas:
-        messages.error(request, "No se puede eliminar el vehículo porque tiene entregas activas.")
+    tiene_historial = Entrega.objects.filter(vehiculo=vehiculo).exists()
+    if tiene_historial:
+        messages.error(
+            request,
+            f"No es posible eliminar el vehículo con placa «{vehiculo.placa}» porque cuenta con un historial "
+            "de entregas registradas en el sistema. Puedes cambiar su estado a «Fuera de Servicio» o «Mantenimiento».",
+        )
         return redirect("logistica:lista_vehiculos")
 
     placa = vehiculo.placa
-    vehiculo.delete()
+    with transaction.atomic():
+        vehiculo.asignaciones_conductor.all().delete()
+        vehiculo.delete()
+        registrar_actividad(
+            request,
+            "eliminar",
+            "vehiculo",
+            id,
+            f"Admin eliminó vehículo {placa} sin historial de entregas",
+        )
     messages.success(request, f"Vehículo {placa} eliminado correctamente.")
     return redirect("logistica:lista_vehiculos")
 
@@ -361,23 +378,38 @@ def desactivar_vehiculo(request, id):
 
 
 @login_required
-@requiere_funcion("registrar_novedad")
 @require_http_methods(["GET", "POST"])
 def crear_novedad(request, entrega_id):
     entrega = get_object_or_404(
-        Entrega.objects.select_related("pedido"),
+        Entrega.objects.select_related("pedido", "conductor__usuario"),
         pk=entrega_id,
     )
-    if request.method == "POST":
+
+    es_conductor = request.user.rol == "conductor"
+    if es_conductor:
         if (
-            request.user.rol == "conductor"
-            and entrega.conductor.usuario_id != request.user.pk
+            entrega.conductor.usuario_id != request.user.pk
+            and entrega.conductor_usuario_id != request.user.pk
         ):
             return _respuesta_no_autorizada(request)
+
+    if request.method == "POST":
+        tipo = request.POST.get("tipo")
+        descripcion = request.POST.get("descripcion", "").strip()
+
+        if not tipo or not descripcion:
+            messages.error(request, "El tipo y la descripción de la novedad son obligatorios.")
+            return render(
+                request,
+                "logistica/crear.html",
+                {"entrega": entrega, "pedido": entrega.pedido},
+                status=400,
+            )
+
         novedad = Novedad(
             entrega=entrega,
-            tipo=request.POST.get("tipo"),
-            descripcion=request.POST.get("descripcion", "").strip(),
+            tipo=tipo,
+            descripcion=descripcion,
             reportado_por=request.user,
         )
         try:
@@ -391,13 +423,100 @@ def crear_novedad(request, entrega_id):
                 status=400,
             )
         novedad.save()
-        messages.success(request, "Novedad registrada.")
-        return redirect("pedidos:ver_pedido_admin", id=entrega.pedido_id)
+
+        registrar_actividad(
+            request,
+            "crear",
+            "novedad",
+            novedad.pk,
+            f"Novedad «{novedad.get_tipo_display()}» reportada por {request.user.nombre_mostrar} en entrega #{entrega.id_entrega}",
+        )
+
+        messages.success(request, "Novedad registrada correctamente.")
+        if es_conductor:
+            return redirect("logistica:mis_novedades")
+        return redirect("logistica:lista_novedades_admin")
+
     return render(
         request,
         "logistica/crear.html",
         {"entrega": entrega, "pedido": entrega.pedido},
     )
+
+
+@login_required
+@role_required(["conductor", "admin"])
+def mis_novedades(request):
+    usuario = request.user
+    if usuario.rol == "conductor":
+        conductor, _ = Conductor.ensure_for_user(usuario)
+        novedades = (
+            Novedad.objects.filter(entrega__conductor=conductor)
+            .select_related("entrega", "entrega__pedido", "reportado_por")
+            .prefetch_related("seguimientos__respuesta")
+            .order_by("-fecha_generada")
+        )
+    else:
+        novedades = (
+            Novedad.objects.select_related(
+                "entrega", "entrega__pedido", "reportado_por", "entrega__conductor__usuario"
+            )
+            .prefetch_related("seguimientos__respuesta")
+            .order_by("-fecha_generada")
+        )
+
+    estado = request.GET.get("estado", "").strip()
+    tipo = request.GET.get("tipo", "").strip()
+    if estado:
+        novedades = novedades.filter(estado=estado)
+    if tipo:
+        novedades = novedades.filter(tipo=tipo)
+
+    context = {
+        "novedades": novedades,
+        "estado_actual": estado,
+        "tipo_actual": tipo,
+        "tipos": Novedad.TIPOS,
+        "estados": Novedad.ESTADOS,
+    }
+    return render(request, "logistica/mis_novedades.html", context)
+
+
+@admin_required
+def lista_novedades_admin(request):
+    novedades = (
+        Novedad.objects.select_related(
+            "entrega", "entrega__pedido", "reportado_por", "entrega__conductor__usuario"
+        )
+        .prefetch_related("seguimientos__respuesta")
+        .order_by("-fecha_generada")
+    )
+
+    estado = request.GET.get("estado", "").strip()
+    tipo = request.GET.get("tipo", "").strip()
+    query = request.GET.get("q", "").strip()
+
+    if estado:
+        novedades = novedades.filter(estado=estado)
+    if tipo:
+        novedades = novedades.filter(tipo=tipo)
+    if query:
+        novedades = novedades.filter(
+            Q(descripcion__icontains=query)
+            | Q(entrega__pedido__codigo_pedido__icontains=query)
+            | Q(reportado_por__nombres__icontains=query)
+            | Q(reportado_por__apellidos__icontains=query)
+        )
+
+    context = {
+        "novedades": novedades,
+        "estado_actual": estado,
+        "tipo_actual": tipo,
+        "query": query,
+        "tipos": Novedad.TIPOS,
+        "estados": Novedad.ESTADOS,
+    }
+    return render(request, "logistica/lista_novedades.html", context)
 
 
 @login_required

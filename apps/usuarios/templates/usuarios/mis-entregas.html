@@ -1,49 +1,125 @@
 {% extends "base.html" %}
 
-{% block title %}Historial de Entregas - Constru-trans{% endblock %}
+{% block title %}Historial de Entregas - ConstruTrans{% endblock %}
 
 {% block header_title %}Mi Historial de Entregas{% endblock %}
 
 {% block content %}
+<!-- Standardized Filter Bar -->
+<div class="card bg-surface border-0 shadow-sm p-3 mb-4 filter-bar-card standard-filter-bar" data-aos="fade-down">
+    <form method="GET" class="w-100 standard-filter-form">
+        <div class="standard-filter-layout">
+            <div class="standard-filter-label">
+                <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+            </div>
+            <div class="standard-filter-field">
+                <input type="text" name="id_pedido" value="{{ id_pedido|default:'' }}"
+                    class="form-control form-control-sm bg-surface text-main filter-input"
+                    placeholder="Código de pedido...">
+            </div>
+            <div class="standard-filter-field">
+                <input type="text" name="destino" value="{{ destino|default:'' }}"
+                    class="form-control form-control-sm bg-surface text-main filter-input"
+                    placeholder="Dirección o destino...">
+            </div>
+            <div class="standard-filter-field">
+                <input type="date" name="fecha" value="{{ fecha|default:'' }}"
+                    class="form-control form-control-sm bg-surface text-main filter-input"
+                    title="Fecha de entrega">
+            </div>
+            <div class="standard-filter-actions">
+                <button type="submit" class="btn btn-sm btn-primary px-3 fw-bold" title="Aplicar filtros">
+                    <i class="bi bi-search me-1"></i>Filtrar
+                </button>
+                <a href="{% url 'usuarios:mis_entregas' %}" class="btn btn-sm btn-outline-secondary filter-clear-btn" title="Limpiar filtros" aria-label="Limpiar filtros">
+                    <i class="bi bi-x-circle fs-5"></i>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
 
+<!-- Main Table Container -->
 <div class="table-container p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
-        <h5 class="fw-800 m-0 text-white">Entregas Realizadas</h5>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h5 class="fw-800 m-0 text-main">Histórico de Entregas Finalizadas</h5>
+            <p class="text-muted small mb-0">Trazabilidad de todos los envíos entregados con éxito.</p>
+        </div>
+        <span class="badge bg-success px-3 py-2 fw-bold">
+            {{ entregas|length }} Entregas Completadas
+        </span>
     </div>
 
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
-                <tr>
-                    <th>ID Pedido</th>
-                    <th>Origen</th>
-                    <th>Destino</th>
-                    <th>Fecha</th>
+                <tr class="text-muted small text-uppercase">
+                    <th>Envío / Pedido</th>
+                    <th>Destino & Cliente</th>
+                    <th>Vehículo</th>
+                    <th>Fecha de Entrega</th>
+                    <th>Novedades</th>
                     <th>Estado</th>
                     <th class="text-center">Acción</th>
                 </tr>
             </thead>
             <tbody>
-                {% for orden in entregas %}
+                {% for entrega in entregas %}
                 <tr>
-                    <td class="fw-700 text-accent">#CT-{{ orden.id }}</td>
-                    <td class="text-muted small">{{ orden.direccion_origen }}</td>
-                    <td class="fw-600 text-white">{{ orden.direccion_destino }}</td>
-                    <td class="text-muted small">{{ orden.fecha|date:"d M, Y" }}</td>
                     <td>
-                        <span class="badge-tipo u-inline-a9b2e7691f">
+                        <div class="fw-700 text-accent">#ENV-{{ entrega.id_entrega }}</div>
+                        <div class="small text-muted">Pedido #CT-{{ entrega.pedido.codigo_pedido }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-600 text-main">
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                            {{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}
+                        </div>
+                        <div class="small text-muted">
+                            <i class="bi bi-person me-1"></i>{{ entrega.pedido.usuario.get_full_name|default:entrega.pedido.usuario.username }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if entrega.vehiculo %}
+                        <div class="fw-600 text-main">{{ entrega.vehiculo.placa }}</div>
+                        <div class="small text-muted">{{ entrega.vehiculo.modelo }}</div>
+                        {% else %}
+                        <span class="text-muted small">No registrado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="fw-600 text-main">{{ entrega.fecha_entrega|date:"d/m/Y H:i"|default:"Finalizado" }}</div>
+                        {% if entrega.fecha_salida %}
+                        <div class="small text-muted" style="font-size: 0.72rem;">Salida: {{ entrega.fecha_salida|date:"d/m/Y H:i" }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% with nov_count=entrega.novedades.count %}
+                        {% if nov_count > 0 %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-flag-fill me-1"></i>{{ nov_count }} novedad{{ nov_count|pluralize:"es" }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary opacity-75">Sin novedades</span>
+                        {% endif %}
+                        {% endwith %}
+                    </td>
+                    <td>
+                        <span class="badge bg-success px-2 py-1">
                             <i class="bi bi-check-circle-fill me-1"></i> Entregado
                         </span>
                     </td>
                     <td class="text-center">
-                        <a href="{% url 'pedidos:ver_pedido_admin' orden.id %}" class="btn-action" title="Ver Detalles">
+                        <a href="{% url 'usuarios:detalle_entrega_conductor' entrega.id_entrega %}" class="btn btn-sm btn-outline-info" title="Ver Detalle de la Entrega">
                             <i class="bi bi-eye"></i>
                         </a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">No tienes entregas registradas aún.</td>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-archive fs-2 mb-3 d-block text-secondary"></i>
+                        No tienes entregas finalizadas registradas aún en el sistema.
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -54,7 +130,8 @@
 <style>
     .fw-800 { font-weight: 800; }
     .fw-700 { font-weight: 700; }
-    .text-accent { color: var(--color-accent) !important; }
+    .fw-600 { font-weight: 600; }
+    .text-accent { color: var(--color-accent, #ffd600) !important; }
+    .text-main { color: var(--color-text) !important; }
 </style>
-
 {% endblock %}

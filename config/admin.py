@@ -1,8 +1,6 @@
 from django.contrib import admin
 
 from config.models import BloqueoIP, SecurityEvent
-
-
 from config.security import desbloquear_ip
 
 
