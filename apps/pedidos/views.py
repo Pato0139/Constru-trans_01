@@ -13,12 +13,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
-from config.db_preference import debe_usar_bd_remota
-from config.db_utils import select_for_update_if_supported
-from config.security import (_respuesta_no_autorizada, obtener_ip,
-                           registrar_evento, registrar_warning, role_required)
 from apps.logistica.models import ConductorVehiculo, Entrega, Novedad, Vehiculo
-from apps.logistica.models import Novedad
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
 from config.db_preference import debe_usar_bd_remota
