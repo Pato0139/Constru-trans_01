@@ -16,16 +16,16 @@
             <p class="supplier-subtitle">{{ proveedor.descripcion|default:"Proveedor registrado para abastecimiento de inventario." }}</p>
         </div>
         <div class="supplier-profile-actions">
-            <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light" aria-label="Volver a proveedores" data-tooltip="Volver a proveedores" title="Volver a proveedores">
-                <i class="bi bi-arrow-left"></i>
+            <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light rounded-pill px-3" aria-label="Volver a proveedores" data-tooltip="Volver a proveedores" title="Volver a proveedores">
+                <i class="bi bi-arrow-left me-1"></i>
                 Volver
             </a>
-            <a href="#catalog-editor" class="btn btn-outline-info" aria-label="Registrar material al proveedor" data-tooltip="Registrar material al proveedor" title="Registrar material al proveedor">
-                <i class="bi bi-box-seam"></i>
+            <a href="#catalog-editor" class="btn btn-outline-info rounded-pill px-3" aria-label="Registrar material al proveedor" data-tooltip="Registrar material al proveedor" title="Registrar material al proveedor">
+                <i class="bi bi-box-seam me-1"></i>
                 Registrar material
             </a>
-            <a href="{% url 'compras:crear_compra' %}?proveedor={{ proveedor.codigo_proveedor }}" class="btn btn-warning" aria-label="Crear orden de compra" data-tooltip="Crear orden de compra" title="Crear orden de compra">
-                <i class="bi bi-bag-plus"></i>
+            <a href="{% url 'compras:crear_compra' %}?proveedor={{ proveedor.codigo_proveedor }}" class="btn btn-premium btn-premium-gold rounded-pill px-3 fw-bold" aria-label="Crear orden de compra" data-tooltip="Crear orden de compra" title="Crear orden de compra">
+                <i class="bi bi-bag-plus me-1"></i>
                 Crear orden de compra
             </a>
         </div>

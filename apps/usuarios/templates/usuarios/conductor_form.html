@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if action == 'crear' %}Registrar Conductor{% else %}Editar Conductor{% endif %} - ConstruTrans
+{% endblock %}
+
+{% block header_title %}
+    {% if action == 'crear' %}Registrar Conductor{% else %}Editar Conductor{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="table-container p-4 p-md-5 border-0 shadow-lg">
+            <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3" style="border-color: var(--color-border) !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle p-3 d-flex align-items-center justify-content-center shadow-sm" style="background: var(--color-primary); width: 56px; height: 56px;">
+                        <i class="bi bi-person-badge-fill text-white fs-3"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold text-main mb-0">
+                            {% if action == 'crear' %}Registrar Conductor{% else %}Editar Conductor: {{ conductor_user.nombre_mostrar }}{% endif %}
+                        </h2>
+                        <p class="text-muted small mb-0">Gestión de conductores de flota logística</p>
+                    </div>
+                </div>
+                <a href="{% url 'usuarios:lista_conductores' %}" class="btn btn-outline-secondary rounded-pill px-3 py-2 small">
+                    <i class="bi bi-arrow-left me-1"></i> Volver a la lista
+                </a>
+            </div>
+
+            <form method="POST" autocomplete="off">
+                {% csrf_token %}
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <h6 class="text-accent fw-bold text-uppercase small mb-2">
+                            <i class="bi bi-person-fill me-1"></i> Datos Personales
+                        </h6>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Nombres <span class="text-danger">*</span></label>
+                        <input type="text" name="nombres" class="form-control"
+                               placeholder="Ej: Carlos"
+                               value="{% if conductor_user %}{{ conductor_user.nombres }}{% else %}{{ form_data.nombres|default:'' }}{% endif %}" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Apellidos <span class="text-danger">*</span></label>
+                        <input type="text" name="apellidos" class="form-control"
+                               placeholder="Ej: Gómez Pérez"
+                               value="{% if conductor_user %}{{ conductor_user.apellidos }}{% else %}{{ form_data.apellidos|default:'' }}{% endif %}" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Tipo de Documento <span class="text-danger">*</span></label>
+                        <select name="tipo_doc" class="form-select" required>
+                            <option value="CC" {% if conductor_user.tipo_documento == 'CC' or form_data.tipo_doc == 'CC' %}selected{% endif %}>Cédula de Ciudadanía (CC)</option>
+                            <option value="CE" {% if conductor_user.tipo_documento == 'CE' or form_data.tipo_doc == 'CE' %}selected{% endif %}>Cédula de Extranjería (CE)</option>
+                            <option value="PA" {% if conductor_user.tipo_documento == 'PA' or form_data.tipo_doc == 'PA' %}selected{% endif %}>Pasaporte (PA)</option>
+                            <option value="PPT" {% if conductor_user.tipo_documento == 'PPT' or form_data.tipo_doc == 'PPT' %}selected{% endif %}>PPT</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Número de Documento <span class="text-danger">*</span></label>
+                        <input type="text" name="documento" class="form-control"
+                               placeholder="Ej: 1020304050"
+                               value="{% if conductor_user %}{{ conductor_user.documento }}{% else %}{{ form_data.documento|default:'' }}{% endif %}" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Teléfono Personal <span class="text-danger">*</span></label>
+                        <input type="text" name="telefono" class="form-control"
+                               placeholder="Ej: 3001234567"
+                               value="{% if conductor_user %}{{ conductor_user.telefono }}{% else %}{{ form_data.telefono|default:'' }}{% endif %}" required>
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <h6 class="text-accent fw-bold text-uppercase small mb-2">
+                            <i class="bi bi-shield-lock-fill me-1"></i> Cuenta de Usuario y Acceso
+                        </h6>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Correo Electrónico <span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control"
+                               placeholder="conductor@constru-trans.com"
+                               value="{% if conductor_user %}{{ conductor_user.email }}{% else %}{{ form_data.email|default:'' }}{% endif %}" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">
+                            Contraseña {% if action == 'crear' %}<span class="text-danger">*</span>{% else %}(Dejar en blanco para conservar actual){% endif %}
+                        </label>
+                        <input type="password" name="password" class="form-control"
+                               placeholder="{% if action == 'crear' %}Mínimo 8 caracteres, números y letras{% else %}Sin cambios{% endif %}"
+                               {% if action == 'crear' %}required{% endif %}>
+                    </div>
+
+                    <div class="col-12 mt-4">
+                        <h6 class="text-accent fw-bold text-uppercase small mb-2">
+                            <i class="bi bi-card-heading me-1"></i> Perfil Operativo y Licencia
+                        </h6>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Número de Licencia <span class="text-danger">*</span></label>
+                        <input type="text" name="numero_licencia" class="form-control"
+                               placeholder="Ej: LIC-987654"
+                               value="{% if perfil %}{{ perfil.numero_licencia }}{% else %}{{ form_data.numero_licencia|default:'' }}{% endif %}" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Categoría Licencia <span class="text-danger">*</span></label>
+                        <select name="categoria_licencia" class="form-select" required>
+                            <option value="B1" {% if perfil.categoria_licencia == 'B1' or form_data.categoria_licencia == 'B1' %}selected{% endif %}>B1 - Automóviles / Camionetas</option>
+                            <option value="B2" {% if perfil.categoria_licencia == 'B2' or form_data.categoria_licencia == 'B2' %}selected{% endif %}>B2 - Camiones Rígidos</option>
+                            <option value="C1" {% if perfil.categoria_licencia == 'C1' or form_data.categoria_licencia == 'C1' %}selected{% endif %}>C1 - Servicio Público Liviano</option>
+                            <option value="C2" {% if perfil.categoria_licencia == 'C2' or form_data.categoria_licencia == 'C2' or not perfil and not form_data %}selected{% endif %}>C2 - Camiones / Volquetas Rígidas</option>
+                            <option value="C3" {% if perfil.categoria_licencia == 'C3' or form_data.categoria_licencia == 'C3' %}selected{% endif %}>C3 - Articulados y Pesados</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Vencimiento Licencia <span class="text-danger">*</span></label>
+                        <input type="date" name="fecha_vencimiento_licencia" class="form-control"
+                               value="{% if perfil %}{{ perfil.fecha_vencimiento_licencia|date:'Y-m-d' }}{% else %}{{ form_data.fecha_vencimiento_licencia|default:'' }}{% endif %}" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Teléfono de Flota / Empresarial</label>
+                        <input type="text" name="telefono_empresarial" class="form-control"
+                               placeholder="Ej: 3109876543 (Opcional)"
+                               value="{% if perfil %}{{ perfil.telefono_empresarial }}{% else %}{{ form_data.telefono_empresarial|default:'' }}{% endif %}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Estado de la Cuenta</label>
+                        <select name="estado" class="form-select">
+                            <option value="activo" {% if conductor_user.estado == 'activo' or not conductor_user and not form_data %}selected{% endif %}>Activo (Habilitado para asignaciones)</option>
+                            <option value="inactivo" {% if conductor_user.estado == 'inactivo' or form_data.estado == 'inactivo' %}selected{% endif %}>Inactivo (Desactivado temporalmente)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 mt-5 text-end border-top pt-3" style="border-color: var(--color-border) !important;">
+                        <a href="{% url 'usuarios:lista_conductores' %}" class="btn btn-outline-secondary rounded-pill px-4 me-2">Cancelar</a>
+                        <button type="submit" class="btn btn-primary fw-bold rounded-pill px-5 shadow-sm">
+                            <i class="bi bi-save me-1"></i> {% if action == 'crear' %}Registrar Conductor{% else %}Guardar Cambios{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-accent { color: var(--color-accent, #ffd600) !important; }
+    .text-main { color: var(--color-text) !important; }
+</style>
+{% endblock %}

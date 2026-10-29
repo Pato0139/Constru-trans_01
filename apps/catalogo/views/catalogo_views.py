@@ -70,6 +70,9 @@ def tipos_material_lista(request):
         "has_filters": any([codigo, nombre, materiales_asociados, query]),
     }
 
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return render(request, "catalogo/_tipos_body.html", context)
+
     return render(request, "catalogo/tipos_lista.html", context)
 
 
@@ -175,7 +178,25 @@ def unidades_medida_lista(request):
         unidad.num_materiales = unidad.materiales.count()
         unidades_lista.append(unidad)
 
-    context = {"unidades": unidades_lista, "query": query}
+    filter_fields = [
+        {
+            "type": "text",
+            "name": "q",
+            "placeholder": "Buscar unidad de medida...",
+            "value": query,
+            "size": "4",
+        },
+    ]
+
+    context = {
+        "unidades": unidades_lista,
+        "query": query,
+        "filter_fields": filter_fields,
+        "has_filters": bool(query),
+    }
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return render(request, "catalogo/_unidades_body.html", context)
+
     return render(request, "catalogo/unidades_lista.html", context)
 
 
@@ -302,6 +323,9 @@ def marcas_lista(request):
         "filter_fields": filter_fields,
         "has_filters": bool(query),
     }
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return render(request, "catalogo/_marcas_body.html", context)
+
     return render(request, "catalogo/marcas_lista.html", context)
 
 

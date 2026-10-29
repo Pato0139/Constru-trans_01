@@ -13,6 +13,11 @@ from django.views.decorators.http import require_POST
 
 from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
+from config.db_preference import debe_usar_bd_remota
+from config.db_utils import select_for_update_if_supported
+from config.security import (_respuesta_no_autorizada, obtener_ip,
+                           registrar_evento, registrar_warning, role_required)
+from apps.logistica.models import ConductorVehiculo, Entrega, Novedad, Vehiculo
 from apps.logistica.models import Novedad
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
@@ -239,7 +244,11 @@ def lista_pedidos_admin(request):
 
 @admin_required
 def lista_entregas_admin(request):
-    return _render_lista_por_estado(request, Pedido.EN_RUTA, "Control de Entregas")
+    return _render_lista_por_estado(
+        request,
+        [Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA, Pedido.ENTREGADO],
+        "Control de Entregas y Envíos",
+    )
 
 
 @login_required
@@ -526,119 +535,211 @@ def ver_pedido_admin(request, id):
 
 @admin_required
 def crear_entrega(request, orden_id):
-    orden = get_object_or_404(Pedido, codigo_pedido=orden_id)
+    orden = get_object_or_404(
+        Pedido.objects.select_related("usuario", "cliente__usuario").prefetch_related("detalles__material"),
+        codigo_pedido=orden_id,
+    )
+
     if not orden.puede_despacharse:
         messages.error(
             request,
-            "Este pedido no tiene un pago aprobado. No se puede asignar transporte.",
+            "Este pedido no cuenta con un pago aprobado ni cumple las condiciones comerciales para despacho.",
         )
         return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
     conductores = (
         Usuario.objects.filter(
-            rol="conductor", perfil_conductor__asignaciones_vehiculo__fecha_fin__isnull=True
+            rol="conductor",
+            estado="activo",
+            is_active=True,
+            perfil_conductor__estado="activo",
         )
-        .distinct()
         .select_related("perfil_conductor")
+        .prefetch_related(
+            Prefetch(
+                "perfil_conductor__asignaciones_vehiculo",
+                queryset=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related("vehiculo"),
+                to_attr="asignaciones_activas",
+            )
+        )
         .order_by("nombres", "apellidos")
     )
 
+    vehiculos = (
+        Vehiculo.objects.filter(
+            Q(estado="disponible") | Q(entregas__pedido=orden, entregas__estado__in=["pendiente", "en_ruta"])
+        )
+        .distinct()
+        .order_by("placa")
+    )
+
+    total_peso_estimado = sum((d.cantidad for d in orden.detalles.all()), 0)
+
     if request.method == "POST":
         conductor_id = request.POST.get("conductor")
+        vehiculo_id = request.POST.get("vehiculo")
 
-        if conductor_id:
-            with transaction.atomic():
-                orden = Pedido.objects.select_for_update().get(pk=orden.pk)
-                if not orden.puede_transicionar(Pedido.EN_RUTA):
-                    messages.error(
-                        request,
-                        f"No se puede asignar transporte a un pedido en estado «{orden.get_estado_display()}».",
-                    )
-                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-                usuario_conductor = get_object_or_404(Usuario, pk=conductor_id, rol="conductor")
-                try:
-                    conductor_perfil = usuario_conductor.perfil_conductor
-                except Conductor.DoesNotExist:
-                    messages.error(
-                        request,
-                        f"El usuario {usuario_conductor.nombres} no tiene perfil de conductor.",
-                    )
-                    context = {"orden": orden, "conductores": conductores}
-                    return render(request, "pedidos/asignar_entrega.html", context)
+        if not conductor_id:
+            messages.error(request, "Por favor selecciona un conductor activo.")
+            return render(
+                request,
+                "pedidos/asignar_entrega.html",
+                {
+                    "orden": orden,
+                    "conductores": conductores,
+                    "vehiculos": vehiculos,
+                    "total_peso": total_peso_estimado,
+                },
+                status=400,
+            )
 
-                vehiculo = conductor_perfil.vehiculo_actual
+        usuario_conductor = get_object_or_404(
+            Usuario, pk=conductor_id, rol="conductor", estado="activo", is_active=True
+        )
+        try:
+            conductor_perfil = usuario_conductor.perfil_conductor
+        except Conductor.DoesNotExist:
+            messages.error(
+                request, f"El usuario {usuario_conductor.nombre_mostrar} no tiene perfil de conductor activo."
+            )
+            return render(
+                request,
+                "pedidos/asignar_entrega.html",
+                {
+                    "orden": orden,
+                    "conductores": conductores,
+                    "vehiculos": vehiculos,
+                    "total_peso": total_peso_estimado,
+                },
+                status=400,
+            )
 
-                if not vehiculo:
-                    messages.error(
-                        request,
-                        f"El conductor {usuario_conductor.nombres} no tiene un vehículo asignado. "
-                        "Por favor, asígnale uno en la gestión de usuarios.",
-                    )
-                    context = {"orden": orden, "conductores": conductores}
-                    return render(request, "pedidos/asignar_entrega.html", context)
-
-                if orden.conductor_id and orden.conductor_id != conductor_perfil.pk:
-                    vehiculo_anterior = orden.conductor.vehiculo_actual
-                    if vehiculo_anterior:
-                        vehiculo_anterior.estado = "disponible"
-                        vehiculo_anterior.save()
-
-                from apps.logistica.models import Entrega
-
-                entrega, created = Entrega.objects.get_or_create(
-                    pedido=orden,
-                    defaults={
-                        "conductor": conductor_perfil,
-                        "vehiculo": vehiculo,
-                        "estado": "en_ruta",
-                        "direccion_entrega": orden.direccion_destino,
-                    },
-                )
-
-                if not created:
-                    if entrega.estado == "entregado":
-                        messages.warning(
-                            request,
-                            f"La entrega del pedido #{orden.codigo_pedido} ya fue marcada como entregada. "
-                            "No se puede reasignar automáticamente.",
-                        )
-                        return redirect("pedidos:lista_pedidos_admin")
-
-                    entrega.conductor = conductor_perfil
-                    entrega.vehiculo = vehiculo
-                    entrega.estado = "en_ruta"
-                    entrega.direccion_entrega = orden.direccion_destino
-                    entrega.save()
-
-                orden.transicionar(Pedido.EN_RUTA)
-                orden.conductor = conductor_perfil
-                if not orden.fecha_toma_entrega:
-                    orden.fecha_toma_entrega = timezone.now()
-                orden.save()
-
-                vehiculo.estado = "en_ruta"
-                vehiculo.save()
-
-                accion = "reasignado" if not created else "asignado"
-                registrar_actividad(
-                    request,
-                    "editar",
-                    "pedidos",
-                    orden.codigo_pedido,
-                    f"Pedido {accion} a conductor: {usuario_conductor.nombres} con vehículo {vehiculo.placa}",
-                )
-                messages.success(
-                    request,
-                    f"Pedido #{orden.codigo_pedido} {accion} con éxito a {usuario_conductor.nombres}.",
-                )
-                return redirect("pedidos:lista_pedidos_admin")
+        if vehiculo_id:
+            vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_id)
         else:
-            messages.error(request, "Por favor selecciona un conductor con vehículo asignado.")
-            context = {"orden": orden, "conductores": conductores}
-            return render(request, "pedidos/asignar_entrega.html", context)
+            vehiculo = conductor_perfil.vehiculo_actual
 
-    context = {"orden": orden, "conductores": conductores}
+        if not vehiculo:
+            messages.error(
+                request,
+                f"El conductor {usuario_conductor.nombre_mostrar} no tiene un vehículo asignado. "
+                "Por favor selecciona un vehículo de la flota disponible.",
+            )
+            return render(
+                request,
+                "pedidos/asignar_entrega.html",
+                {
+                    "orden": orden,
+                    "conductores": conductores,
+                    "vehiculos": vehiculos,
+                    "total_peso": total_peso_estimado,
+                },
+                status=400,
+            )
+
+        with transaction.atomic():
+            orden_bloqueada = Pedido.objects.select_for_update().get(pk=orden.pk)
+            vehiculo_bloqueado = Vehiculo.objects.select_for_update().get(pk=vehiculo.pk)
+
+            # Prevenir colisión concurrente: comprobar si otro proceso ocupó el vehículo
+            otra_entrega = (
+                Entrega.objects.filter(vehiculo=vehiculo_bloqueado, estado__in=["pendiente", "en_ruta"])
+                .exclude(pedido=orden_bloqueada)
+                .first()
+            )
+            if otra_entrega:
+                messages.error(
+                    request,
+                    f"El vehículo {vehiculo_bloqueado.placa} ya fue asignado a otra entrega activa "
+                    f"(#CT-{otra_entrega.pedido_id}). Selecciona otro vehículo disponible.",
+                )
+                return render(
+                    request,
+                    "pedidos/asignar_entrega.html",
+                    {
+                        "orden": orden,
+                        "conductores": conductores,
+                        "vehiculos": vehiculos,
+                        "total_peso": total_peso_estimado,
+                    },
+                    status=400,
+                )
+
+            entrega, created = Entrega.objects.get_or_create(
+                pedido=orden_bloqueada,
+                defaults={
+                    "conductor": conductor_perfil,
+                    "conductor_usuario": usuario_conductor,
+                    "vehiculo": vehiculo_bloqueado,
+                    "estado": "pendiente",
+                    "direccion_entrega": orden_bloqueada.direccion_destino,
+                },
+            )
+
+            if not created:
+                if entrega.estado == "entregado":
+                    messages.warning(
+                        request,
+                        f"El pedido #{orden.codigo_pedido} ya fue completado y entregado. No se puede reasignar.",
+                    )
+                    return redirect("pedidos:lista_pedidos_admin")
+
+                entrega.conductor = conductor_perfil
+                entrega.conductor_usuario = usuario_conductor
+                entrega.vehiculo = vehiculo_bloqueado
+                entrega.estado = "pendiente"
+                entrega.direccion_entrega = orden_bloqueada.direccion_destino
+                entrega.save()
+
+            if orden_bloqueada.puede_transicionar(Pedido.VEHICULO_ASIGNADO):
+                orden_bloqueada.transicionar(Pedido.VEHICULO_ASIGNADO)
+            elif (
+                orden_bloqueada.estado == Pedido.PENDIENTE
+                and orden_bloqueada.puede_transicionar(Pedido.AUTORIZADO_DESPACHO)
+            ):
+                orden_bloqueada.transicionar(Pedido.AUTORIZADO_DESPACHO)
+                if orden_bloqueada.puede_transicionar(Pedido.VEHICULO_ASIGNADO):
+                    orden_bloqueada.transicionar(Pedido.VEHICULO_ASIGNADO)
+
+            orden_bloqueada.conductor = conductor_perfil
+            orden_bloqueada.save()
+
+            # Vincular conductor con vehículo en ConductorVehiculo si no es el actual
+            if (
+                not conductor_perfil.vehiculo_actual
+                or conductor_perfil.vehiculo_actual.pk != vehiculo_bloqueado.pk
+            ):
+                ConductorVehiculo.objects.filter(
+                    conductor=conductor_perfil, fecha_fin__isnull=True
+                ).update(fecha_fin=timezone.now())
+                ConductorVehiculo.objects.create(
+                    conductor=conductor_perfil, vehiculo=vehiculo_bloqueado
+                )
+
+            accion_desc = "reasignado" if not created else "asignado"
+            registrar_actividad(
+                request,
+                "editar" if not created else "crear",
+                "entrega",
+                entrega.id_entrega,
+                f"Envío de pedido #{orden.codigo_pedido} {accion_desc} a {usuario_conductor.nombre_mostrar} con vehículo {vehiculo_bloqueado.placa}",
+            )
+
+            messages.success(
+                request,
+                f"Envío del pedido #{orden.codigo_pedido} {accion_desc} correctamente a {usuario_conductor.nombre_mostrar} "
+                f"con vehículo {vehiculo_bloqueado.placa}. Queda listo para que el conductor inicie el recorrido.",
+            )
+            return redirect("pedidos:lista_pedidos_admin")
+
+    context = {
+        "orden": orden,
+        "conductores": conductores,
+        "vehiculos": vehiculos,
+        "total_peso": total_peso_estimado,
+    }
     return render(request, "pedidos/asignar_entrega.html", context)
+
 
 
 @admin_required

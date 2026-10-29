@@ -4,65 +4,65 @@
 {% load currency_tags %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row">
+<div class="container py-4">
+    <div class="row g-4">
         <div class="col-lg-8">
             <!-- Detalles del Pedido -->
-            <div class="glass-card p-4 mb-4 animate__animated animate__fadeInLeft">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="text-white mb-0">Detalle del Pedido #{{ pedido.id }}</h3>
+            <div class="card bg-surface border-0 shadow-sm p-4 mb-4 rounded-4 animate__animated animate__fadeInLeft">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2" style="border-bottom: 1px solid var(--color-border);">
+                    <h3 class="text-main fw-bold mb-0">Detalle del Pedido #{{ pedido.id }}</h3>
                     <div>
                         {% if pedido.estado == 'pendiente' %}
-                            <span class="badge bg-warning text-dark fs-6">Pendiente</span>
+                            <span class="badge bg-warning text-dark px-3 py-1 fs-6">Pendiente</span>
                         {% elif pedido.estado == 'aprobado' %}
-                            <span class="badge bg-info text-dark fs-6">Aprobado</span>
+                            <span class="badge bg-info text-dark px-3 py-1 fs-6">Aprobado</span>
                         {% elif pedido.estado == 'en_camino' %}
-                            <span class="badge bg-primary fs-6">En Camino</span>
+                            <span class="badge bg-primary px-3 py-1 fs-6">En Camino</span>
                         {% elif pedido.estado == 'entregado' %}
-                            <span class="badge bg-success fs-6">Entregado</span>
+                            <span class="badge bg-success px-3 py-1 fs-6">Entregado</span>
                         {% else %}
-                            <span class="badge bg-danger fs-6">Cancelado</span>
+                            <span class="badge bg-danger px-3 py-1 fs-6">Cancelado</span>
                         {% endif %}
                     </div>
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-dark table-borderless">
-                        <thead class="text-white-50 border-bottom border-secondary">
-                            <tr>
-                                <th>Material</th>
-                                <th class="text-center">Cantidad</th>
-                                <th class="text-end">Precio Unit.</th>
-                                <th class="text-end">Subtotal</th>
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted small text-uppercase" style="background: var(--item-bg); border-bottom: 1px solid var(--color-border);">
+                                <th class="py-2 px-3">Material</th>
+                                <th class="py-2 px-3 text-center">Cantidad</th>
+                                <th class="py-2 px-3 text-end">Precio Unit.</th>
+                                <th class="py-2 px-3 text-end">Subtotal</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for detalle in pedido.detalles.all %}
                             <tr>
-                                <td class="py-3">
-                                    <span class="text-white fw-bold">{{ detalle.material.nombre }}</span>
+                                <td class="py-3 px-3">
+                                    <span class="text-main fw-semibold">{{ detalle.material.nombre }}</span>
                                 </td>
-                                <td class="py-3 text-center">{{ detalle.cantidad }}</td>
-                                <td class="py-3 text-end">{{ detalle.precio_unitario|currency }}</td>
-                                <td class="py-3 text-end text-primary fw-bold">{{ detalle.subtotal|currency }}</td>
+                                <td class="py-3 px-3 text-center text-muted">{{ detalle.cantidad }}</td>
+                                <td class="py-3 px-3 text-end text-muted small">{{ detalle.precio_unitario|currency }}</td>
+                                <td class="py-3 px-3 text-end text-main fw-bold">{{ detalle.subtotal|currency }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
 
-                <div class="border-top border-secondary mt-3 pt-3">
+                <div class="mt-4 pt-3" style="border-top: 1px solid var(--color-border);">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-white-50">Subtotal Bruto:</span>
-                        <span class="text-white">{{ pedido.total|add:pedido.descuento|currency }}</span>
+                        <span class="text-muted">Subtotal Bruto:</span>
+                        <span class="text-main fw-semibold">{{ pedido.total|add:pedido.descuento|currency }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-white-50">Descuento:</span>
+                        <span class="text-muted">Descuento:</span>
                         <span class="text-danger">- {{ pedido.descuento|currency }}</span>
                     </div>
-                    <div class="d-flex justify-content-between mt-3">
-                        <h4 class="text-white">Total Neto:</h4>
-                        <h4 class="text-primary fw-bold">{{ pedido.total|currency }}</h4>
+                    <div class="d-flex justify-content-between mt-3 pt-2" style="border-top: 1px dashed var(--color-border);">
+                        <h4 class="text-main fw-bold mb-0">Total Neto:</h4>
+                        <h4 class="text-accent fw-bold mb-0">{{ pedido.total|currency }}</h4>
                     </div>
                 </div>
             </div>
@@ -70,35 +70,39 @@
 
         <div class="col-lg-4">
             <!-- Información del Cliente y Acciones -->
-            <div class="glass-card p-4 mb-4 animate__animated animate__fadeInRight">
-                <h5 class="text-white mb-3">Información del Cliente</h5>
+            <div class="card bg-surface border-0 shadow-sm p-4 mb-4 rounded-4 animate__animated animate__fadeInRight">
+                <h5 class="text-main fw-bold mb-3 border-bottom pb-2" style="border-color: var(--color-border) !important;">
+                    <i class="bi bi-person text-accent me-2"></i>Información del Cliente
+                </h5>
                 <div class="d-flex align-items-center mb-3">
-                    <div class="avatar-lg bg-primary rounded-circle text-center me-3 u-inline-4319dfc1c3">
+                    <div class="avatar-lg bg-warning text-dark fw-bold rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 44px; height: 44px;">
                         {{ pedido.cliente.nombres|slice:":1" }}{{ pedido.cliente.apellidos|slice:":1" }}
                     </div>
                     <div>
-                        <div class="text-white fw-bold">{{ pedido.cliente.get_full_name }}</div>
-                        <div class="text-white-50 small">{{ pedido.cliente.email }}</div>
+                        <div class="text-main fw-bold">{{ pedido.cliente.get_full_name }}</div>
+                        <div class="text-muted small">{{ pedido.cliente.email }}</div>
                     </div>
                 </div>
-                <div class="text-white-50 small mb-1">Fecha de Solicitud:</div>
-                <div class="text-white mb-3">{{ pedido.fecha_creacion|date:"d \d\e F, Y - H:i" }}</div>
+                <div class="text-muted small mb-1">Fecha de Solicitud:</div>
+                <div class="text-main mb-3 fw-semibold">{{ pedido.fecha_creacion|date:"d \d\e F, Y - H:i" }}</div>
             </div>
 
             {% if user.rol == 'admin' %}
-            <div class="glass-card p-4 animate__animated animate__fadeInRight u-inline-0f6fc7ccde">
-                <h5 class="text-white mb-3">Acciones Administrativas</h5>
+            <div class="card bg-surface border-0 shadow-sm p-4 rounded-4 animate__animated animate__fadeInRight">
+                <h5 class="text-main fw-bold mb-3 border-bottom pb-2" style="border-color: var(--color-border) !important;">
+                    <i class="bi bi-gear text-accent me-2"></i>Acciones Administrativas
+                </h5>
                 {% if pedido.estado == 'pendiente' %}
                 <form action="{% url 'pedidos:aprobar_solicitud' pedido.id %}" method="post">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success w-100 mb-2">
+                    <button type="submit" class="btn btn-success fw-bold rounded-pill w-100 py-2 mb-2 shadow-sm">
                         <i class="fas fa-check me-2"></i>Aprobar Pedido
                     </button>
                 </form>
                 {% endif %}
                 
                 {% if pedido.estado != 'cancelado' and pedido.estado != 'entregado' %}
-                <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#modalCancelar">
+                <button type="button" class="btn btn-outline-danger rounded-pill w-100 py-2" data-bs-toggle="modal" data-bs-target="#modalCancelar">
                     <i class="fas fa-times me-2"></i>Cancelar Pedido
                 </button>
                 {% endif %}
@@ -108,23 +112,27 @@
     </div>
 </div>
 
-<!-- Modal Cancelar -->
+<!-- Modal Cancelar (Standardized Theme) -->
 <div class="modal fade" id="modalCancelar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-white border-secondary">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title">Confirmar Cancelación</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content border-0 shadow-lg" style="background: var(--color-surface); color: var(--color-text); border-radius: var(--radius-xl);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--color-border);">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-exclamation-triangle text-danger me-2"></i>Confirmar Cancelación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                ¿Está seguro que desea cancelar el pedido #{{ pedido.id }}? 
+            <div class="modal-body p-4 text-main">
+                ¿Está seguro que desea cancelar el <strong>Pedido #{{ pedido.id }}</strong>? 
                 Esta acción devolverá los materiales al inventario y es irreversible.
             </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, mantener</button>
-                <form action="{% url 'pedidos:cancelar_solicitud' pedido.id %}" method="post">
+            <div class="modal-footer" style="border-top: 1px solid var(--color-border);">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">No, mantener</button>
+                <form action="{% url 'pedidos:cancelar_solicitud' pedido.id %}" method="post" class="m-0">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Sí, cancelar pedido</button>
+                    <button type="submit" class="btn btn-danger fw-bold rounded-pill px-4 shadow-sm">
+                        <i class="fas fa-times me-1"></i>Sí, cancelar pedido
+                    </button>
                 </form>
             </div>
         </div>
@@ -132,11 +140,11 @@
 </div>
 
 <style>
-    .glass-card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: var(--radius-xl);
+    .text-main {
+        color: var(--color-text) !important;
+    }
+    .text-accent {
+        color: var(--color-accent, #ffd600) !important;
     }
 </style>
 {% endblock %}

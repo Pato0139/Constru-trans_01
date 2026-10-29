@@ -6,101 +6,353 @@
 
 {% block content %}
 
-<div class="row g-4 mb-5">
-    <div class="col-12">
-        <section class="table-container p-4 driver-weather-card" aria-labelledby="driver-weather-title">
-            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
-                <div>
-                    <h5 class="fw-800 mb-1" id="driver-weather-title">
-                        <i class="bi bi-cloud-sun text-accent me-2"></i>Clima para tu próxima ruta
-                    </h5>
-                    {% if proxima_entrega %}
-                    <p class="text-muted mb-0">
-                        Pedido #CT-{{ proxima_entrega.codigo_pedido }} · {{ clima_ruta.city }}
-                        {% if proxima_entrega.fecha_entrega_programada %}
-                        · {{ proxima_entrega.fecha_entrega_programada|date:"d/m/Y H:i" }}
-                        {% endif %}
-                    </p>
-                    {% else %}
-                    <p class="text-muted mb-0">No tienes entregas activas asignadas.</p>
-                    {% endif %}
-                </div>
-                {% if clima_ruta.available %}
-                <span class="badge rounded-pill text-bg-success">Pronóstico disponible</span>
-                {% endif %}
+<!-- KPI Summary Cards (4 Cards) -->
+<div class="row g-3 mb-4">
+    <!-- 1. Envíos Pendientes -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
+            <div class="driver-kpi-icon-wrap kpi-amber">
+                <i class="bi bi-hourglass-split"></i>
             </div>
+            <div>
+                <span class="driver-kpi-label">Pendientes</span>
+                <h3 class="driver-kpi-value mb-0">{{ envios_pendientes_count|default:"0" }}</h3>
+            </div>
+        </div>
+    </div>
+    <!-- 2. Entregas en Ruta -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
+            <div class="driver-kpi-icon-wrap kpi-blue">
+                <i class="bi bi-truck"></i>
+            </div>
+            <div>
+                <span class="driver-kpi-label">En Ruta</span>
+                <h3 class="driver-kpi-value mb-0">{{ entregas_en_ruta_count|default:"0" }}</h3>
+            </div>
+        </div>
+    </div>
+    <!-- 3. Entregas Completadas -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
+            <div class="driver-kpi-icon-wrap kpi-green">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+            <div>
+                <span class="driver-kpi-label">Completadas</span>
+                <h3 class="driver-kpi-value mb-0">{{ entregas_completadas_count|default:"0" }}</h3>
+            </div>
+        </div>
+    </div>
+    <!-- 4. Novedades Registradas -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
+            <div class="driver-kpi-icon-wrap kpi-rose">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div>
+                <span class="driver-kpi-label">Novedades</span>
+                <h3 class="driver-kpi-value mb-0">{{ novedades_registradas_count|default:"0" }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
 
-            {% if clima_ruta %}
-                {% if clima_ruta.available %}
-                <div class="driver-weather-details mt-3">
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <section class="driver-weather-card shadow-lg" aria-labelledby="driver-weather-title">
+            <!-- Decorative atmospheric glows -->
+            <div class="driver-weather-ambient-glow"></div>
+            <div class="driver-weather-ambient-glow-2"></div>
+
+            <div class="driver-weather-card-inner">
+                <!-- Header -->
+                <div class="driver-weather-header d-flex flex-wrap justify-content-between align-items-center gap-3">
                     <div class="d-flex align-items-center gap-3">
-                        {% if clima_ruta.icon_url %}
-                        <img src="{{ clima_ruta.icon_url }}" alt="" width="64" height="64">
-                        {% endif %}
+                        <div class="driver-weather-icon-badge">
+                            <i class="bi bi-cloud-sun-fill"></i>
+                        </div>
                         <div>
-                            <div class="driver-weather-temperature">{{ clima_ruta.temperature }} °C</div>
-                            <div class="text-muted">{{ clima_ruta.description }} · Sensación {{ clima_ruta.feels_like }} °C</div>
+                            <h5 class="driver-weather-title mb-1" id="driver-weather-title">
+                                Clima para tu próxima ruta
+                            </h5>
+                            {% if proxima_entrega %}
+                            <div class="driver-weather-route-meta d-flex flex-wrap align-items-center gap-2">
+                                <span class="driver-weather-chip driver-weather-chip--order">
+                                    <i class="bi bi-box-seam me-1"></i>Pedido #CT-{{ proxima_entrega.pedido.codigo_pedido }}
+                                </span>
+                                <span class="driver-weather-chip driver-weather-chip--city">
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ clima_ruta.city|default:"Destino" }}
+                                </span>
+                                {% if proxima_entrega.pedido.fecha_entrega_programada %}
+                                <span class="driver-weather-chip driver-weather-chip--time">
+                                    <i class="bi bi-calendar3 me-1"></i>{{ proxima_entrega.pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted small mb-0">No tienes entregas activas asignadas actualmente.</p>
+                            {% endif %}
                         </div>
                     </div>
-                    <div class="driver-weather-metrics">
-                        <span><i class="bi bi-droplet me-1"></i>Humedad {{ clima_ruta.humidity }}%</span>
-                        <span><i class="bi bi-cloud-rain me-1"></i>Prob. lluvia {{ clima_ruta.precipitation_probability }}%</span>
-                        <span><i class="bi bi-wind me-1"></i>Viento {{ clima_ruta.wind_kmh }} km/h</span>
-                        <span><i class="bi bi-clock me-1"></i>{{ clima_ruta.forecast_time|date:"d/m H:i" }}</span>
+                    {% if clima_ruta and clima_ruta.available %}
+                    <div class="driver-weather-status">
+                        <span class="driver-weather-live-pill">
+                            <span class="driver-weather-pulse"></span>
+                            Pronóstico disponible
+                        </span>
                     </div>
-                    <p class="driver-weather-recommendation mb-0">
-                        <i class="bi bi-exclamation-triangle me-2"></i>{{ clima_ruta.recommendation }}
-                    </p>
+                    {% endif %}
                 </div>
-                <small class="text-muted d-block mt-3">
-                    Datos de
-                    <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>.
-                    Pronóstico orientativo; confirma las condiciones antes de salir.
-                </small>
-                {% else %}
-                <div class="alert alert-warning mt-3 mb-0" role="status">
-                    <i class="bi bi-info-circle me-2"></i>{{ clima_ruta.message }}
-                </div>
+
+                {% if clima_ruta %}
+                    {% if clima_ruta.available %}
+                    <!-- Main weather content -->
+                    <div class="driver-weather-content mt-4">
+                        <div class="row g-4 align-items-center">
+                            <!-- Hero Temp & Condition -->
+                            <div class="col-12 col-lg-5">
+                                <div class="driver-weather-hero d-flex align-items-center gap-3 p-3">
+                                    <div class="driver-weather-icon-circle">
+                                        {% if clima_ruta.icon_url %}
+                                        <img src="{{ clima_ruta.icon_url }}" alt="{{ clima_ruta.description }}" width="72" height="72" class="weather-art-icon" loading="lazy">
+                                        {% else %}
+                                        <i class="bi bi-cloud-sun fs-1 text-warning"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="driver-weather-temp-wrap">
+                                            <span class="driver-weather-temp-value">{{ clima_ruta.temperature }}</span>
+                                            <span class="driver-weather-temp-unit">°C</span>
+                                        </div>
+                                        <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                                            <span class="driver-weather-condition-tag">
+                                                {{ clima_ruta.description }}
+                                            </span>
+                                            <span class="driver-weather-feels-tag">
+                                                <i class="bi bi-thermometer-half me-1"></i>Sensación {{ clima_ruta.feels_like }} °C
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4 Metric Cards Grid -->
+                            <div class="col-12 col-lg-7">
+                                <div class="row g-2 driver-weather-metrics-grid">
+                                    <!-- Humidity -->
+                                    <div class="col-6 col-sm-3">
+                                        <div class="driver-metric-tile">
+                                            <div class="driver-metric-icon-wrap metric-cyan">
+                                                <i class="bi bi-droplet-half"></i>
+                                            </div>
+                                            <span class="driver-metric-label">Humedad</span>
+                                            <span class="driver-metric-val">{{ clima_ruta.humidity }}%</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Rain probability -->
+                                    <div class="col-6 col-sm-3">
+                                        <div class="driver-metric-tile">
+                                            <div class="driver-metric-icon-wrap metric-blue">
+                                                <i class="bi bi-cloud-rain-heavy-fill"></i>
+                                            </div>
+                                            <span class="driver-metric-label">Prob. lluvia</span>
+                                            <span class="driver-metric-val">{{ clima_ruta.precipitation_probability }}%</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Wind speed -->
+                                    <div class="col-6 col-sm-3">
+                                        <div class="driver-metric-tile">
+                                            <div class="driver-metric-icon-wrap metric-teal">
+                                                <i class="bi bi-wind"></i>
+                                            </div>
+                                            <span class="driver-metric-label">Viento</span>
+                                            <span class="driver-metric-val">{{ clima_ruta.wind_kmh }} <small>km/h</small></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Forecast Time -->
+                                    <div class="col-6 col-sm-3">
+                                        <div class="driver-metric-tile">
+                                            <div class="driver-metric-icon-wrap metric-amber">
+                                                <i class="bi bi-clock-history"></i>
+                                            </div>
+                                            <span class="driver-metric-label">Hora est.</span>
+                                            <span class="driver-metric-val">{{ clima_ruta.forecast_time|date:"d/m H:i" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Safety Recommendation Banner -->
+                        <div class="driver-weather-alert-card mt-4">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="driver-weather-alert-icon flex-shrink-0">
+                                    <i class="bi bi-shield-exclamation"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="driver-weather-alert-title">Aviso de seguridad para la ruta</div>
+                                    <p class="driver-weather-alert-text mb-0">
+                                        {{ clima_ruta.recommendation }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Minimal Footer Attribution -->
+                        <div class="driver-weather-footer d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 pt-2">
+                            <span class="text-muted small">
+                                <i class="bi bi-info-circle me-1"></i>Pronóstico orientativo vía
+                                <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" class="driver-weather-source-link">Open-Meteo</a>.
+                            </span>
+                            <span class="text-muted small">
+                                Confirma siempre la visibilidad antes de iniciar el trayecto.
+                            </span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Unavailable alert -->
+                    <div class="driver-weather-empty-alert mt-4">
+                        <i class="bi bi-info-circle-fill fs-4 text-warning flex-shrink-0"></i>
+                        <div>
+                            <div class="fw-bold mb-1">Pronóstico no disponible temporalmente</div>
+                            <p class="text-muted mb-0 small">{{ clima_ruta.message }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
                 {% endif %}
-            {% endif %}
+            </div>
         </section>
     </div>
 </div>
 
 <div class="table-container p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
-        <h5 class="fw-800 m-0 text-color">Mis Entregas Asignadas</h5>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h5 class="fw-800 m-0 text-color">Mis Envíos Asignados (Activos)</h5>
+            <p class="text-muted small mb-0">Entregas pendientes de despacho o actualmente en recorrido.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'usuarios:mis_entregas' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-clock-history me-1"></i>Historial de Entregas
+            </a>
+            <a href="{% url 'logistica:mis_novedades' %}" class="btn btn-sm btn-outline-warning">
+                <i class="bi bi-flag me-1"></i>Mis Novedades
+            </a>
+        </div>
     </div>
 
     <div class="table-responsive">
         <table class="table table-hover align-middle no-datatable">
             <thead>
                 <tr>
-                    <th>ID Pedido</th>
-                    <th>Destino</th>
-                    <th>Programado</th>
+                    <th>Envío / Pedido</th>
+                    <th>Destino & Cliente</th>
+                    <th>Vehículo</th>
+                    <th>Materiales</th>
                     <th>Estado</th>
-                    <th class="text-center">Acción</th>
+                    <th class="text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for pedido in pedidos %}
+                {% for entrega in entregas %}
                 <tr>
-                    <td class="fw-700 text-accent">#CT-{{ pedido.id }}</td>
-                    <td class="fw-600 text-color">{{ pedido.direccion_destino }}</td>
-                    <td class="text-muted small">{{ pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}</td>
                     <td>
-                        <span class="badge-tipo u-inline-503ec04587">{{ pedido.estado|title }}</span>
+                        <div class="fw-700 text-accent">#ENV-{{ entrega.id_entrega }}</div>
+                        <div class="small text-muted">Pedido #CT-{{ entrega.pedido.codigo_pedido }}</div>
+                        {% if entrega.fecha_salida %}
+                        <div class="small text-muted" style="font-size: 0.72rem;">
+                            <i class="bi bi-clock me-1"></i>Salida: {{ entrega.fecha_salida|date:"d/m/Y H:i" }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="fw-600 text-color">
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                            {{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}
+                        </div>
+                        <div class="small text-muted">
+                            <i class="bi bi-person me-1"></i>{{ entrega.pedido.usuario.get_full_name|default:entrega.pedido.usuario.username }}
+                            {% if entrega.pedido.usuario.telefono %}
+                            <span class="ms-1">(Tel: {{ entrega.pedido.usuario.telefono }})</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if entrega.vehiculo %}
+                        <div class="fw-600">{{ entrega.vehiculo.placa }}</div>
+                        <div class="small text-muted">{{ entrega.vehiculo.modelo }} ({{ entrega.vehiculo.get_tipo_display }})</div>
+                        {% else %}
+                        <span class="text-muted small">No asignado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="small" style="max-width: 220px;">
+                            {% for detalle in entrega.pedido.detalles.all|slice:":2" %}
+                            <div>• {{ detalle.cantidad }}x {{ detalle.material.nombre }}</div>
+                            {% empty %}
+                            <span class="text-muted">Sin detalles</span>
+                            {% endfor %}
+                            {% if entrega.pedido.detalles.count > 2 %}
+                            <span class="text-muted font-monospace" style="font-size: 0.72rem;">+{{ entrega.pedido.detalles.count|add:"-2" }} más...</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if entrega.estado == 'pendiente' %}
+                        <span class="badge bg-warning text-dark px-2 py-1">
+                            <i class="bi bi-clock me-1"></i>Pendiente
+                        </span>
+                        {% elif entrega.estado == 'en_ruta' %}
+                        <span class="badge bg-primary px-2 py-1">
+                            <i class="bi bi-truck me-1"></i>En Ruta
+                        </span>
+                        {% elif entrega.estado == 'entregado' %}
+                        <span class="badge bg-success px-2 py-1">
+                            <i class="bi bi-check-circle me-1"></i>Entregado
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary px-2 py-1">{{ entrega.get_estado_display }}</span>
+                        {% endif %}
                     </td>
                     <td class="text-center">
-                        <a href="{% url 'pedidos:ver_pedido_admin' pedido.id %}" class="btn-action" title="Ver Detalle">
-                            <i class="bi bi-eye"></i>
-                        </a>
+                        <div class="d-inline-flex gap-1 align-items-center">
+                            <!-- Ver Detalle -->
+                            <a href="{% url 'usuarios:detalle_entrega_conductor' entrega.id_entrega %}" class="btn btn-sm btn-outline-info" title="Ver Detalle Completo">
+                                <i class="bi bi-eye"></i>
+                            </a>
+
+                            {% if entrega.estado == 'pendiente' %}
+                            <!-- Iniciar Recorrido -->
+                            <form action="{% url 'usuarios:iniciar_entrega' entrega.id_entrega %}" method="POST" class="d-inline" onsubmit="return confirm('¿Confirmas que inicias el recorrido para esta entrega?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success fw-bold" title="Iniciar Recorrido">
+                                    <i class="bi bi-play-fill me-1"></i>Iniciar
+                                </button>
+                            </form>
+                            {% elif entrega.estado == 'en_ruta' %}
+                            <!-- Finalizar Entrega (Abre Modal) -->
+                            <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalFinalizar{{ entrega.id_entrega }}" title="Finalizar Entrega">
+                                <i class="bi bi-check-lg me-1"></i>Finalizar
+                            </button>
+
+                            <!-- Reportar Novedad -->
+                            <a href="{% url 'logistica:crear_novedad' entrega.id_entrega %}" class="btn btn-sm btn-outline-warning" title="Reportar Novedad">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </a>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center py-5 text-muted">No tienes entregas asignadas actualmente.</td>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                        No tienes entregas activas asignadas actualmente.
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -108,35 +360,784 @@
     </div>
 </div>
 
+<!-- Modales de Finalizar Entrega fuera de la tabla para evitar que el backdrop los cubra -->
+{% for entrega in entregas %}
+    {% if entrega.estado == 'en_ruta' %}
+    <div class="modal fade text-start" id="modalFinalizar{{ entrega.id_entrega }}" tabindex="-1" aria-labelledby="modalLabel{{ entrega.id_entrega }}" aria-hidden="true" style="z-index: 1065;">
+        <div class="modal-dialog modal-dialog-centered" style="z-index: 1066;">
+            <div class="modal-content border-0 shadow-lg" style="background: var(--color-surface); color: var(--color-text); border-radius: var(--radius-xl);">
+                <form action="{% url 'usuarios:finalizar_entrega' entrega.id_entrega %}" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-header" style="border-bottom: 1px solid var(--color-border);">
+                        <h5 class="modal-title fw-bold" id="modalLabel{{ entrega.id_entrega }}">
+                            <i class="bi bi-check2-circle text-success me-2"></i>Finalizar Entrega #ENV-{{ entrega.id_entrega }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <p class="mb-3" style="color: var(--color-text);">
+                            ¿Confirmas que los materiales del <strong>Pedido #CT-{{ entrega.pedido.codigo_pedido }}</strong> fueron entregados satisfactoriamente en destino?
+                        </p>
+                        <div class="p-3 rounded-3 mb-3" style="background: var(--item-bg); border: 1px solid var(--color-border);">
+                            <span class="text-muted small d-block mb-1">
+                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>Dirección Destino:
+                            </span>
+                            <strong style="color: var(--color-text);">{{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}</strong>
+                        </div>
+                        <div class="mb-2">
+                            <label for="observaciones{{ entrega.id_entrega }}" class="form-label small fw-bold text-muted">Observaciones / Nota de entrega (Opcional):</label>
+                            <textarea name="observacion" id="observaciones{{ entrega.id_entrega }}" class="form-control" rows="2" placeholder="Ej: Recibido por el encargado de obra en portería." style="background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-md);"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid var(--color-border);">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
+                            <i class="bi bi-check-circle me-1"></i>Confirmar Entrega
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
 <style>
     .fw-800 { font-weight: 800; }
     .fw-700 { font-weight: 700; }
     .text-accent { color: var(--color-accent) !important; }
     .text-color { color: var(--color-text) !important; }
-    .driver-weather-card {
-        background: var(--card-bg);
-        color: var(--color-text);
+
+    /* Driver KPI Cards */
+    .driver-kpi-card {
+        border-radius: 1rem;
+        background: var(--color-surface, #ffffff);
+        border: 1px solid var(--color-border, #e2e8f0);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .driver-weather-temperature {
-        color: var(--color-text);
-        font-size: 2rem;
+    .driver-kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08) !important;
+    }
+    .driver-kpi-icon-wrap {
+        width: 48px;
+        height: 48px;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        flex-shrink: 0;
+    }
+    .kpi-amber {
+        background: rgba(245, 158, 11, 0.15);
+        color: #d97706;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .kpi-blue {
+        background: rgba(59, 130, 246, 0.15);
+        color: #2563eb;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .kpi-green {
+        background: rgba(16, 185, 129, 0.15);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .kpi-rose {
+        background: rgba(244, 63, 94, 0.15);
+        color: #e11d48;
+        border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+    .driver-kpi-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--color-text-muted, #64748b);
+        letter-spacing: 0.03em;
+        display: block;
+    }
+    .driver-kpi-value {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--color-text, #1e293b);
+    }
+    [data-theme="dark"] .driver-kpi-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    [data-theme="dark"] .driver-kpi-value {
+        color: #ffffff;
+    }
+    [data-theme="accessibility"] .driver-kpi-card {
+        background: #000000 !important;
+        border: 2px solid #ffffff !important;
+    }
+    [data-theme="accessibility"] .driver-kpi-value,
+    [data-theme="accessibility"] .driver-kpi-label {
+        color: #ffffff !important;
+    }
+
+    /* ============================================================
+       Driver Weather Card - Multi-Theme (Light, Dark, A11y)
+       ============================================================ */
+    .driver-weather-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1.25rem;
+        transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    }
+
+    .driver-weather-ambient-glow {
+        position: absolute;
+        top: -60px;
+        right: -40px;
+        width: 220px;
+        height: 220px;
+        pointer-events: none;
+        filter: blur(25px);
+        transition: opacity 0.3s ease;
+    }
+
+    .driver-weather-ambient-glow-2 {
+        position: absolute;
+        bottom: -50px;
+        left: 10%;
+        width: 180px;
+        height: 180px;
+        pointer-events: none;
+        filter: blur(30px);
+        transition: opacity 0.3s ease;
+    }
+
+    .driver-weather-card-inner {
+        position: relative;
+        z-index: 1;
+        padding: 1.5rem 1.75rem;
+    }
+
+    .driver-weather-icon-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        transition: all 0.3s ease;
+    }
+
+    .driver-weather-title {
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        transition: color 0.3s ease;
+    }
+
+    .driver-weather-route-meta {
+        margin-top: 0.25rem;
+    }
+
+    .driver-weather-chip {
+        font-size: 0.78rem;
+        padding: 0.25rem 0.65rem;
+        border-radius: 2rem;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    /* Live pill badge */
+    .driver-weather-live-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        transition: all 0.3s ease;
+    }
+
+    .driver-weather-pulse {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #10b981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: weather-pulse 2s infinite;
+    }
+
+    @keyframes weather-pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Hero section */
+    .driver-weather-hero {
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .driver-weather-icon-circle {
+        width: 76px;
+        height: 76px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+    .weather-art-icon {
+        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+    }
+
+    .driver-weather-temp-wrap {
+        display: flex;
+        align-items: flex-start;
+        line-height: 1;
+    }
+
+    .driver-weather-temp-value {
+        font-size: 3rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        transition: color 0.3s ease;
+    }
+
+    .driver-weather-temp-unit {
+        font-size: 1.35rem;
+        font-weight: 600;
+        margin-left: 0.25rem;
+        margin-top: 0.25rem;
+        transition: color 0.3s ease;
+    }
+
+    .driver-weather-condition-tag {
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .driver-weather-feels-tag {
+        font-size: 0.75rem;
+        transition: color 0.3s ease;
+    }
+
+    /* Metric Tiles Grid */
+    .driver-metric-tile {
+        border-radius: 0.85rem;
+        padding: 0.85rem 0.75rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+        transition: transform 0.2s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
+    }
+
+    .driver-metric-tile:hover {
+        transform: translateY(-2px);
+    }
+
+    .driver-metric-icon-wrap {
+        width: 34px;
+        height: 34px;
+        border-radius: 0.65rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .metric-cyan {
+        background: rgba(6, 182, 212, 0.15);
+        color: #06b6d4;
+        border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .metric-blue {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .metric-teal {
+        background: rgba(20, 184, 166, 0.15);
+        color: #0d9488;
+        border: 1px solid rgba(20, 184, 166, 0.3);
+    }
+
+    .metric-amber {
+        background: rgba(245, 158, 11, 0.15);
+        color: #d97706;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .driver-metric-label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        transition: color 0.3s ease;
+    }
+
+    .driver-metric-val {
+        font-size: 1.05rem;
         font-weight: 800;
         line-height: 1.1;
+        transition: color 0.3s ease;
     }
-    .driver-weather-metrics {
+
+    .driver-metric-val small {
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    /* Alert Recommendation Banner */
+    .driver-weather-alert-card {
+        border-radius: 0.85rem;
+        padding: 0.9rem 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .driver-weather-alert-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 0.6rem;
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem 1.25rem;
-        margin-top: 0.5rem;
-        color: var(--color-muted);
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        transition: all 0.3s ease;
     }
-    .driver-weather-recommendation {
-        margin-top: 1rem;
-        padding: 0.75rem 1rem;
-        border-left: 3px solid var(--color-accent);
-        border-radius: 0.5rem;
-        background: var(--item-bg);
-        color: var(--color-text);
+
+    .driver-weather-alert-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        margin-bottom: 0.15rem;
+        transition: color 0.3s ease;
+    }
+
+    .driver-weather-alert-text {
+        font-size: 0.9rem;
+        line-height: 1.45;
+        transition: color 0.3s ease;
+    }
+
+    .driver-weather-footer {
+        transition: border-color 0.3s ease;
+    }
+
+    .driver-weather-source-link {
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.15s ease;
+    }
+
+    .driver-weather-source-link:hover {
+        text-decoration: underline;
+    }
+
+    .driver-weather-empty-alert {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+        border-radius: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+    /* ============================================================
+       TEMA CLARO (LIGHT THEME)
+       ============================================================ */
+    [data-theme="light"] .driver-weather-card {
+        background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+        color: #0f172a;
+    }
+
+    [data-theme="light"] .driver-weather-ambient-glow {
+        background: radial-gradient(circle, rgba(14, 165, 233, 0.08) 0%, rgba(14, 165, 233, 0) 70%);
+    }
+
+    [data-theme="light"] .driver-weather-ambient-glow-2 {
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, rgba(245, 158, 11, 0) 70%);
+    }
+
+    [data-theme="light"] .driver-weather-icon-badge {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.08) 100%);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        color: #d97706;
+        box-shadow: 0 2px 10px rgba(245, 158, 11, 0.15);
+    }
+
+    [data-theme="light"] .driver-weather-title {
+        color: #0f172a;
+    }
+
+    [data-theme="light"] .driver-weather-chip {
+        background: #f1f5f9;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        color: #475569;
+    }
+
+    [data-theme="light"] .driver-weather-chip--order {
+        background: rgba(245, 158, 11, 0.12);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #b45309;
+    }
+
+    [data-theme="light"] .driver-weather-chip--city {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: rgba(239, 68, 68, 0.2);
+        color: #dc2626;
+    }
+
+    [data-theme="light"] .driver-weather-chip--time {
+        color: #64748b;
+    }
+
+    [data-theme="light"] .driver-weather-live-pill {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #059669;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+    }
+
+    [data-theme="light"] .driver-weather-hero {
+        background: #ffffff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+    }
+
+    [data-theme="light"] .driver-weather-icon-circle {
+        background: radial-gradient(circle at 30% 30%, #ffffff, #f1f5f9);
+        border: 1px solid rgba(15, 23, 42, 0.1);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    }
+
+    [data-theme="light"] .driver-weather-temp-value {
+        color: #0f172a;
+    }
+
+    [data-theme="light"] .driver-weather-temp-unit {
+        color: #64748b;
+    }
+
+    [data-theme="light"] .driver-weather-condition-tag {
+        background: #f1f5f9;
+        color: #1e293b;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    [data-theme="light"] .driver-weather-feels-tag {
+        color: #64748b;
+    }
+
+    [data-theme="light"] .driver-metric-tile {
+        background: #ffffff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+    }
+
+    [data-theme="light"] .driver-metric-tile:hover {
+        background: #f8fafc;
+        border-color: rgba(15, 23, 42, 0.16);
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
+    }
+
+    [data-theme="light"] .driver-metric-label {
+        color: #64748b;
+    }
+
+    [data-theme="light"] .driver-metric-val {
+        color: #0f172a;
+    }
+
+    [data-theme="light"] .driver-metric-val small {
+        color: #64748b;
+    }
+
+    [data-theme="light"] .driver-weather-alert-card {
+        background: linear-gradient(135deg, rgba(254, 243, 199, 0.7) 0%, rgba(253, 230, 138, 0.35) 100%);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        border-left: 4px solid #d97706;
+        box-shadow: 0 4px 12px rgba(217, 119, 6, 0.08);
+    }
+
+    [data-theme="light"] .driver-weather-alert-icon {
+        background: rgba(245, 158, 11, 0.2);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        color: #b45309;
+    }
+
+    [data-theme="light"] .driver-weather-alert-title {
+        color: #b45309;
+    }
+
+    [data-theme="light"] .driver-weather-alert-text {
+        color: #451a03;
+    }
+
+    [data-theme="light"] .driver-weather-footer {
+        border-top: 1px solid rgba(15, 23, 42, 0.07);
+    }
+
+    [data-theme="light"] .driver-weather-source-link {
+        color: #0284c7;
+    }
+
+    [data-theme="light"] .driver-weather-empty-alert {
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        color: #92400e;
+    }
+
+    /* ============================================================
+       TEMA OSCURO (DARK THEME)
+       ============================================================ */
+    [data-theme="dark"] .driver-weather-card {
+        background: linear-gradient(145deg, rgba(23, 28, 38, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        color: #f1f5f9;
+    }
+
+    [data-theme="dark"] .driver-weather-ambient-glow {
+        background: radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, rgba(14, 165, 233, 0) 70%);
+    }
+
+    [data-theme="dark"] .driver-weather-ambient-glow-2 {
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0) 70%);
+    }
+
+    [data-theme="dark"] .driver-weather-icon-badge {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.1) 100%);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        color: #fbbf24;
+        box-shadow: 0 0 16px rgba(245, 158, 11, 0.2);
+    }
+
+    [data-theme="dark"] .driver-weather-title {
+        color: #ffffff;
+    }
+
+    [data-theme="dark"] .driver-weather-chip {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #cbd5e1;
+    }
+
+    [data-theme="dark"] .driver-weather-chip--order {
+        background: rgba(245, 158, 11, 0.12);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #fbbf24;
+    }
+
+    [data-theme="dark"] .driver-weather-chip--city {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.25);
+        color: #fca5a5;
+    }
+
+    [data-theme="dark"] .driver-weather-chip--time {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .driver-weather-live-pill {
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #34d399;
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+    }
+
+    [data-theme="dark"] .driver-weather-hero {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    [data-theme="dark"] .driver-weather-icon-circle {
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="dark"] .driver-weather-temp-value {
+        color: #ffffff;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="dark"] .driver-weather-temp-unit {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .driver-weather-condition-tag {
+        background: rgba(255, 255, 255, 0.08);
+        color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .driver-weather-feels-tag {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .driver-metric-tile {
+        background: rgba(255, 255, 255, 0.025);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    [data-theme="dark"] .driver-metric-tile:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    [data-theme="dark"] .driver-metric-label {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .driver-metric-val {
+        color: #ffffff;
+    }
+
+    [data-theme="dark"] .driver-metric-val small {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .driver-weather-alert-card {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.04) 100%);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        border-left: 4px solid #f59e0b;
+    }
+
+    [data-theme="dark"] .driver-weather-alert-icon {
+        background: rgba(245, 158, 11, 0.18);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        color: #fbbf24;
+    }
+
+    [data-theme="dark"] .driver-weather-alert-title {
+        color: #fbbf24;
+    }
+
+    [data-theme="dark"] .driver-weather-alert-text {
+        color: #e2e8f0;
+    }
+
+    [data-theme="dark"] .driver-weather-footer {
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    [data-theme="dark"] .driver-weather-source-link {
+        color: #38bdf8;
+    }
+
+    [data-theme="dark"] .driver-weather-empty-alert {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    /* ============================================================
+       TEMA ACCESIBILIDAD / ALTO CONTRASTE (ACCESSIBILITY THEME)
+       ============================================================ */
+    [data-theme="accessibility"] .driver-weather-card {
+        background: #000000 !important;
+        border: 2px solid #ffffff !important;
+        box-shadow: none !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-ambient-glow,
+    [data-theme="accessibility"] .driver-weather-ambient-glow-2 {
+        display: none !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-icon-badge {
+        background: #000000 !important;
+        border: 2px solid #ffd600 !important;
+        color: #ffd600 !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-title {
+        color: #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-chip {
+        background: #000000 !important;
+        border: 1px solid #ffffff !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-chip--order {
+        border-color: #ffd600 !important;
+        color: #ffd600 !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-live-pill {
+        background: #000000 !important;
+        border: 2px solid #00ff66 !important;
+        color: #00ff66 !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-hero {
+        background: #111111 !important;
+        border: 1px solid #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-icon-circle {
+        background: #000000 !important;
+        border: 2px solid #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-temp-value {
+        color: #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-condition-tag {
+        background: #000000 !important;
+        border: 1px solid #ffffff !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-metric-tile {
+        background: #111111 !important;
+        border: 1px solid #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-metric-label {
+        color: #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-metric-val {
+        color: #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-alert-card {
+        background: #000000 !important;
+        border: 2px solid #ffd600 !important;
+        border-left: 6px solid #ffd600 !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-alert-title {
+        color: #ffd600 !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-alert-text {
+        color: #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-weather-source-link {
+        color: #ffd600 !important;
+        text-decoration: underline !important;
     }
 </style>
 

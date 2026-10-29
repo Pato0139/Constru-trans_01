@@ -19,11 +19,11 @@ numeric_and_space_validator = RegexValidator(
     code="formato_numerico",
 )
 
-# Colombia: fijo (7 dígitos con indicativo) o celular (10 dígitos, inicia en 3).
-# Admite +57, espacios y guiones como separadores.
+# Colombia: celular (10 dígitos inicia en 3), fijo nacional (10 dígitos inicia en 601-608),
+# fijo local (7 dígitos) o indicativos antiguos. Admite +57, espacios y guiones como separadores.
 telefono_validator = RegexValidator(
-    r"^(\+?57[ -]?)?(3\d{2}[ -]?\d{3}[ -]?\d{4}|[1-8][ -]?\d{3}[ -]?\d{4}|\d{7})$",
-    message="Ingresa un teléfono válido (celular de 10 dígitos o fijo).",
+    r"^(\+?57[ -]?)?(3\d{2}[ -]?\d{3}[ -]?\d{4}|60[1-8][ -]?\d{3}[ -]?\d{4}|[1-8][ -]?\d{3}[ -]?\d{4}|\d{7,10})$",
+    message="Ingresa un teléfono válido (celular de 10 dígitos o fijo nacional).",
     code="telefono_invalido",
 )
 
@@ -33,10 +33,10 @@ documento_validator = RegexValidator(
     code="documento_invalido",
 )
 
-# NIT: 6-15 dígitos, opcionalmente con dígito de verificación "-N".
+# NIT o documento de identificación fiscal: 4-15 dígitos, opcionalmente con dígito de verificación "-N".
 nit_validator = RegexValidator(
-    r"^\d{6,15}(-\d)?$",
-    message="El NIT debe tener entre 6 y 15 dígitos y, opcionalmente, '-' y el dígito de verificación.",
+    r"^\d{4,15}(-\d)?$",
+    message="El NIT debe tener entre 4 y 15 dígitos y, opcionalmente, '-' y el dígito de verificación.",
     code="nit_invalido",
 )
 

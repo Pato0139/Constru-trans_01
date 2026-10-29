@@ -1,5 +1,9 @@
+import logging
+
 from django.conf import settings
 from django.contrib import messages
+
+logger = logging.getLogger(__name__)
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import transaction
@@ -367,26 +371,19 @@ def lista_proveedores(request):
         {
             "type": "text",
             "name": "nombre",
-            "placeholder": "Nombre / empresa",
+            "placeholder": "Nombre / Empresa",
             "value": nombre,
-            "size": "2",
+            "size": "3",
         },
-        {"type": "text", "name": "nit", "placeholder": "NIT / DNI", "value": nit, "size": "2"},
+        {"type": "text", "name": "nit", "placeholder": "NIT", "value": nit, "size": "2"},
         {
             "type": "text",
             "name": "contacto",
-            "placeholder": "Contacto",
+            "placeholder": "Contacto / Teléfono",
             "value": contacto,
-            "size": "2",
+            "size": "3",
         },
         {"type": "text", "name": "ciudad", "placeholder": "Ciudad", "value": ciudad, "size": "2"},
-        {
-            "type": "text",
-            "name": "categoria",
-            "placeholder": "Categoría",
-            "value": categoria,
-            "size": "2",
-        },
         {
             "type": "select",
             "name": "estado",
@@ -400,29 +397,35 @@ def lista_proveedores(request):
         },
     ]
 
-    return render(
-        request,
-        "compras/proveedores_lista.html",
-        {
-            "proveedores": proveedores,
-            "query": query,
-            "nombre": nombre,
-            "nit": nit,
-            "contacto": contacto,
-            "ciudad": ciudad,
-            "estado_actual": estado,
-            "categoria": categoria,
-            "filter_fields": filter_fields,
-        },
-    )
+    context = {
+        "proveedores": proveedores,
+        "query": query,
+        "nombre": nombre,
+        "nit": nit,
+        "contacto": contacto,
+        "ciudad": ciudad,
+        "estado_actual": estado,
+        "categoria": categoria,
+        "filter_fields": filter_fields,
+    }
+
+    if (
+        request.headers.get("x-requested-with") == "XMLHttpRequest"
+        or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    ):
+        return render(request, "compras/_proveedores_body.html", context)
+
+    return render(request, "compras/proveedores_lista.html", context)
 
 
 @admin_required
 def crear_proveedor(request):
     if request.method == "POST":
         data = request.POST.copy()
-        if "email" in data and "correo" not in data:
-            data["correo"] = data["email"]
+        if "email" in data:
+            if not data.get("correo"):
+                data["correo"] = data["email"]
+            data.pop("email", None)
         form = ProveedorForm(data)
         if form.is_valid():
             proveedor = form.save()
@@ -434,16 +437,13 @@ def crear_proveedor(request):
                 f"Proveedor creado: {proveedor.nombre_empresa}",
             )
             messages.success(request, "Proveedor registrado con éxito.")
-            return redirect(
-                "compras:perfil_proveedor",
-                codigo_proveedor=proveedor.codigo_proveedor,
-            )
+            return redirect("compras:lista_proveedores")
+        logger.warning("[PROVEEDOR_FORM_ERROR] Errores al registrar proveedor: %s | Data: %s", form.errors.as_json(), dict(data))
         messages.error(request, "Revisa los datos del proveedor e inténtalo nuevamente.")
         return render(
             request,
             "compras/proveedor_form.html",
             {"action": "Crear", "form": form, "form_data": request.POST},
-            status=400,
         )
     else:
         form = ProveedorForm()
@@ -459,8 +459,10 @@ def editar_proveedor(request, codigo_proveedor):
     proveedor = get_object_or_404(Proveedor, codigo_proveedor=codigo_proveedor)
     if request.method == "POST":
         data = request.POST.copy()
-        if "email" in data and "correo" not in data:
-            data["correo"] = data["email"]
+        if "email" in data:
+            if not data.get("correo"):
+                data["correo"] = data["email"]
+            data.pop("email", None)
         form = ProveedorForm(data, instance=proveedor)
         if form.is_valid():
             proveedor = form.save()
@@ -476,12 +478,12 @@ def editar_proveedor(request, codigo_proveedor):
                 "compras:perfil_proveedor",
                 codigo_proveedor=proveedor.codigo_proveedor,
             )
+        logger.warning("[PROVEEDOR_FORM_ERROR] Errores al editar proveedor: %s | Data: %s", form.errors.as_json(), dict(data))
         messages.error(request, "Revisa los datos del proveedor e inténtalo nuevamente.")
         return render(
             request,
             "compras/proveedor_form.html",
             {"proveedor": proveedor, "action": "Editar", "form": form, "form_data": request.POST},
-            status=400,
         )
     else:
         form = ProveedorForm(instance=proveedor)

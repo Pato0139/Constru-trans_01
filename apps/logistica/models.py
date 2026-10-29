@@ -67,8 +67,20 @@ class Vehiculo(TransicionMixin, models.Model):
     def tipo(self):
         return self.tipo_vehiculo
 
+    @tipo.setter
+    def tipo(self, value):
+        self.tipo_vehiculo = value
+
     @property
     def capacidad(self):
+        return self.capacidad_carga
+
+    @capacidad.setter
+    def capacidad(self, value):
+        self.capacidad_carga = value
+
+    @property
+    def capacidad_carga_kg(self):
         return self.capacidad_carga
 
     @property
@@ -182,6 +194,9 @@ class Entrega(TransicionMixin, models.Model):
                     exc,
                 )
         super().save(*args, **kwargs)
+
+
+Envio = Entrega
 
 
 class Novedad(models.Model):

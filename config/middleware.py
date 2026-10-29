@@ -115,9 +115,12 @@ _USUARIOS_URLNAMES_ROLES = {
     "editar_usuario": {"admin"},
     "lista_conductores": {"admin"},
     "asignar_vehiculo_conductor": {"admin"},
-    "panel_conductor": {"conductor"},
-    "pedidos_conductor": {"conductor"},
-    "mis_entregas": {"conductor"},
+    "panel_conductor": {"conductor", "admin"},
+    "pedidos_conductor": {"conductor", "admin"},
+    "mis_entregas": {"conductor", "admin"},
+    "iniciar_entrega": {"conductor", "admin"},
+    "finalizar_entrega": {"conductor", "admin"},
+    "detalle_entrega_conductor": {"conductor", "admin"},
 }
 
 

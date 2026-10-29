@@ -156,6 +156,11 @@
                             <i class="bi bi-box-arrow-in-down"></i>
                             <span data-i18n="sidebar.entregasList">Entregas</span>
                         </a>
+                        <a href="{% url 'logistica:lista_novedades_admin' %}"
+                            class="nav-link-premium {% if request.resolver_match.app_name == 'logistica' and request.resolver_match.url_name == 'lista_novedades_admin' %}active{% endif %}">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span>Novedades</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -280,6 +285,11 @@
                 class="nav-link-premium {% if request.resolver_match.url_name == 'mis_entregas' %}active{% endif %}">
                 <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-clock-history"></i></span>
                 <span data-i18n="sidebar.historial">Historial</span>
+            </a>
+            <a href="{% url 'logistica:mis_novedades' %}"
+                class="nav-link-premium {% if request.resolver_match.app_name == 'logistica' and request.resolver_match.url_name == 'mis_novedades' %}active{% endif %}">
+                <span class="nav-icon-wrap nav-icon-wrap--orange"><i class="bi bi-flag-fill"></i></span>
+                <span>Mis Novedades</span>
             </a>
             {% endif %}
         </nav>

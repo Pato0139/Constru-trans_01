@@ -71,14 +71,41 @@ def contar_warnings_ventana(ip):
     return len(recientes), recientes
 
 
+import ipaddress
+
+LOOPBACK_IPS = {"127.0.0.1", "::1"}
+EXEMPT_HOSTS = {"127.0.0.1", "::1", "localhost", "testserver"}
+
+
 def registrar_warning(ip):
+    exempt_ips = EXEMPT_HOSTS | set(getattr(settings, "INTERNAL_IPS", []))
+    if getattr(settings, "DEBUG", False) and ip in exempt_ips:
+        return
     cache_key = _cache_key_warnings(ip)
     data = cache.get(cache_key) or []
     data.append(timezone.now())
     cache.set(cache_key, data, timeout=WARNING_WINDOW_MINUTES * 60 + 60)
 
 
+
+def _es_ip_valida(ip_str):
+    if not ip_str:
+        return False
+    try:
+        ipaddress.ip_address(ip_str)
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
 def ip_esta_bloqueada(ip):
+    exempt_ips = EXEMPT_HOSTS | set(getattr(settings, "INTERNAL_IPS", []))
+    if getattr(settings, "DEBUG", False) and ip in exempt_ips:
+        return False
+
+    if not _es_ip_valida(ip):
+        return False
+
     cache_key = _cache_key_blocked_flag(ip)
     cached = cache.get(cache_key)
     if cached is True:
@@ -97,6 +124,15 @@ def ip_esta_bloqueada(ip):
 
 def bloquear_ip(ip, tipo="unauthorized_access", motivo="", duracion_horas=None, usuario=None):
     """Registra un bloqueo de IP y limpia caché."""
+    exempt_ips = EXEMPT_HOSTS | set(getattr(settings, "INTERNAL_IPS", []))
+    if getattr(settings, "DEBUG", False) and ip in exempt_ips:
+        logger.warning("[SEC] Omitiendo bloqueo de IP loopback/exenta en DEBUG=True: %s", ip)
+        return None
+
+    if not _es_ip_valida(ip):
+        logger.warning("[SEC] No se puede bloquear IP con formato inválido: %s", ip)
+        return None
+
     if duracion_horas is None:
         duracion_horas = BLOCK_DURATION_HOURS
 
@@ -118,6 +154,18 @@ def bloquear_ip(ip, tipo="unauthorized_access", motivo="", duracion_horas=None, 
     cache_key = _cache_key_blocked_flag(ip)
     cache.set(cache_key, True, timeout=duracion_horas * 3600)
     return bloqueo
+
+
+def desbloquear_ip(ip):
+    """Desactiva cualquier bloqueo activo para la IP y limpia la caché."""
+    if _es_ip_valida(ip):
+        try:
+            BloqueoIP.objects.filter(ip=ip, activo=True).update(activo=False)
+        except Exception as exc:
+            logger.warning("No se pudo desactivar BloqueoIP para %s: %s", ip, exc)
+
+    cache.delete(_cache_key_blocked_flag(ip))
+    cache.delete(_cache_key_warnings(ip))
 
 
 def registrar_evento(request, tipo, gravedad="warning", detalles=None, advertencia_mostrada=False):
@@ -162,8 +210,8 @@ def _respuesta_no_autorizada(request, detalles=None, need_block=False):
         "X-Security-Will-Block": "1" if will_block else "0",
     }
 
-    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest" or request.accepts(
-        "application/json"
+    is_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest" or (
+        request.accepts("application/json") and not request.accepts("text/html")
     )
 
     if will_block:

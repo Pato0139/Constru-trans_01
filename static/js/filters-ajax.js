@@ -171,7 +171,23 @@
                     } else {
                         document.querySelectorAll('.tooltip').forEach((t) => t.remove());
                     }
-                    tbody.innerHTML = html;
+                    if (html.includes('<!DOCTYPE') || html.includes('<html')) {
+                        try {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const matchedTbody = (tbody.id ? doc.getElementById(tbody.id) : null) || doc.querySelector('tbody');
+                            if (matchedTbody) {
+                                tbody.innerHTML = matchedTbody.innerHTML;
+                            } else {
+                                window.location.href = full;
+                                return;
+                            }
+                        } catch (_) {
+                            tbody.innerHTML = html;
+                        }
+                    } else {
+                        tbody.innerHTML = html;
+                    }
                 }
                 const currentSearch = window.location.search || '';
                 if (qs === currentSearch) {

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Control de Novedades Logísticas - ConstruTrans{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/catalogo/lista.css' %}?v=1.8">
+<link rel="stylesheet" href="{% static 'css/catalogo/theme.css' %}?v=1.0">
+{% endblock %}
+
+{% block header_title %}Control de Novedades e Incidencias Logísticas{% endblock %}
+
+{% block content %}
+<div class="inventory-materials-page">
+    <div class="inventory-page d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3 standard-page-header"
+        data-aos="fade-down">
+        <div>
+            <h2 class="fw-bold mb-0 text-white">
+                <i class="bi bi-exclamation-octagon text-accent me-2"></i>Novedades Operativas
+            </h2>
+            <div class="d-flex align-items-center gap-2 mt-1">
+                <p class="page-subtitle small mb-0">Gestión de incidencias reportadas en despachos y rutas de entrega</p>
+                <span class="badge rounded-pill px-3 u-inline-b2204c9e00">{{ novedades|length }} novedad{{ novedades|length|pluralize:"es" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor integrado: filtros + tabla en la misma tarjeta -->
+    <div class="inventory-page table-container inventory-materials-container rounded-4 overflow-hidden shadow-sm"
+        data-aos="fade-up">
+
+        <!-- Barra de filtros DENTRO del contenedor de la tabla -->
+        <div class="materiales-filter-bar">
+            <div class="card bg-surface border-0 shadow-sm p-3 mb-0 filter-bar-card standard-filter-bar">
+                <form method="GET" class="w-100 standard-filter-form">
+                    <div class="standard-filter-layout">
+                        <div class="standard-filter-label">
+                            <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
+                        </div>
+                        <div class="standard-filter-field">
+                            <input type="text" name="q" value="{{ query|default:'' }}"
+                                class="form-control form-control-sm bg-surface text-main filter-input"
+                                placeholder="Buscar pedido, conductor, texto...">
+                        </div>
+                        <div class="standard-filter-field">
+                            <select name="tipo" class="form-select form-select-sm bg-surface text-main filter-select">
+                                <option value="">Tipo (Todos)</option>
+                                {% for val, label in tipos %}
+                                <option value="{{ val }}" {% if tipo_actual == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="standard-filter-field">
+                            <select name="estado" class="form-select form-select-sm bg-surface text-main filter-select">
+                                <option value="">Estado (Todos)</option>
+                                {% for val, label in estados %}
+                                <option value="{{ val }}" {% if estado_actual == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="standard-filter-actions">
+                            <button type="submit" class="btn btn-sm btn-primary px-3 fw-bold" title="Aplicar filtros">
+                                <i class="bi bi-search me-1"></i>Filtrar
+                            </button>
+                            <a href="{% url 'logistica:lista_novedades_admin' %}" class="btn btn-sm btn-outline-secondary filter-clear-btn" title="Limpiar filtros" aria-label="Limpiar filtros">
+                                <i class="bi bi-x-circle fs-5"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0 u-inline-16fd8a5fe1">
+                <thead>
+                    <tr class="u-inline-0d59a3f53c">
+                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold">ID / Fecha</th>
+                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Envío & Pedido</th>
+                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Reportado Por</th>
+                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Tipo</th>
+                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Descripción</th>
+                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Estado</th>
+                        <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold">Acciones</th>
+                    </tr>
+                </thead>
+            <tbody>
+                {% for nov in novedades %}
+                <tr>
+                    <td>
+                        <div class="fw-700 text-accent">#NOV-{{ nov.id_novedad }}</div>
+                        <div class="small text-muted">{{ nov.fecha_generada|date:"d/m/Y H:i" }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-600 text-main">#ENV-{{ nov.entrega.id_entrega }}</div>
+                        <div class="small text-muted">Pedido #CT-{{ nov.entrega.pedido.codigo_pedido }}</div>
+                    </td>
+                    <td>
+                        <div class="fw-600 text-main">
+                            {{ nov.reportado_por.get_full_name|default:nov.reportado_por.username }}
+                        </div>
+                        <div class="small text-muted">
+                            {% if nov.entrega.conductor %}
+                            Conductor: {{ nov.entrega.conductor.nombres }} {{ nov.entrega.conductor.apellidos }}
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary text-uppercase">{{ nov.get_tipo_display }}</span>
+                    </td>
+                    <td>
+                        <div class="text-main small" style="max-width: 260px;">{{ nov.descripcion }}</div>
+                        {% if nov.respuesta_admin %}
+                        <div class="text-info small mt-1" style="font-size: 0.72rem;">
+                            <strong>Resp:</strong> {{ nov.respuesta_admin|truncatechars:60 }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if nov.estado == 'abierta' %}
+                            <span class="badge bg-danger px-2 py-1"><i class="bi bi-exclamation-circle me-1"></i>Abierta</span>
+                        {% elif nov.estado == 'en_atencion' %}
+                            <span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-arrow-repeat me-1"></i>En Atención</span>
+                        {% elif nov.estado == 'cerrada' %}
+                            <span class="badge bg-success px-2 py-1"><i class="bi bi-check2-all me-1"></i>Cerrada</span>
+                        {% else %}
+                            <span class="badge bg-secondary px-2 py-1">{{ nov.get_estado_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="d-inline-flex gap-1 align-items-center">
+                            <!-- Gestionar / Atender Seguimiento -->
+                            <a href="{% url 'logistica:agregar_seguimiento' nov.id_novedad %}" class="btn btn-sm btn-outline-warning" title="Atender / Seguimiento">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <!-- Ver Pedido Admin -->
+                            <a href="{% url 'pedidos:ver_pedido_admin' nov.entrega.pedido.id_pedido %}" class="btn btn-sm btn-outline-info" title="Ver Pedido">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-check2-circle fs-2 mb-3 d-block text-success"></i>
+                        No se encontraron incidencias registradas con los filtros aplicados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
+<style>
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+    .text-accent { color: var(--color-accent, #ffd600) !important; }
+    .text-main { color: var(--color-text) !important; }
+</style>
+{% endblock %}

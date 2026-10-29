@@ -252,7 +252,8 @@ window.AppAjaxNavigation = (() => {
         const currentShell = document.body.dataset.ajaxShell;
         const nextShell = nextDocument.body.dataset.ajaxShell;
 
-        if (!response.ok || !currentContent || !nextContent || !currentShell || currentShell !== nextShell ||
+        const isRenderableStatus = response.ok || response.status === 400 || response.status === 422;
+        if (!isRenderableStatus || !currentContent || !nextContent || !currentShell || currentShell !== nextShell ||
             !canNavigateTo(new URL(response.url || requestedUrl.href, window.location.href))) {
             window.location.assign(response.url || requestedUrl.href);
             return false;

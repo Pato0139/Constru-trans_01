@@ -6,16 +6,17 @@ from config.utils import conexion_remota_disponible
 
 
 def notificaciones_context(request):
-    if request.user.is_authenticated:
-        cache_key = f"notif_user_{request.user.id}"
+    user = getattr(request, "user", None)
+    if user and user.is_authenticated:
+        cache_key = f"notif_user_{user.id}"
         cached_data = cache.get(cache_key)
 
         if cached_data:
             return cached_data
 
         try:
-            if hasattr(request.user, "usuario"):
-                usuario = request.user.usuario
+            if hasattr(user, "usuario"):
+                usuario = user.usuario
                 unread_ids = list(
                     Notificacion.objects.filter(usuario=usuario, leida=False).values_list(
                         "id", flat=True
@@ -74,7 +75,8 @@ def modo_context(request):
     except (ImportError, Exception):
         usando_remota = False
 
-    preferencia = request.session.get("bd_preferida", "auto")
+    session = getattr(request, "session", None)
+    preferencia = session.get("bd_preferida", "auto") if session else "auto"
 
     if usando_remota:
         bd_etiqueta = "Remoto (Neon)"
@@ -85,9 +87,13 @@ def modo_context(request):
         bd_icono = "bi-hdd-network-fill"
         bd_siguiente = "remota"
 
+    user = getattr(request, "user", None)
+    user_is_auth = user.is_authenticated if user else False
+    user_has_usuario = hasattr(user, "usuario") if user else False
+
     modo_local = not usando_remota
     modo_invitado = modo_local and (
-        not request.user.is_authenticated or not hasattr(request.user, "usuario")
+        not user_is_auth or not user_has_usuario
     )
 
     return {

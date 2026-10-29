@@ -234,8 +234,14 @@ class Pedido(TransicionMixin, models.Model):
 
     @property
     def puede_despacharse(self):
+        if self.estado in (self.AUTORIZADO_DESPACHO, self.VEHICULO_ASIGNADO):
+            return True
         pago = self.pago_actual
-        return bool(pago and pago.habilita_despacho())
+        if not pago:
+            return False
+        if getattr(pago, "metodo", "") == Pago.METODO_CONTRAENTREGA:
+            return pago.estado == Pago.APROBADO
+        return bool(pago.habilita_despacho())
 
     def save(self, *args, **kwargs):
         if self.conductor_id and not self.conductor_usuario_legacy_id:

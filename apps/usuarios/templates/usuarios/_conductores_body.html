@@ -1,32 +1,50 @@
 {% for conductor in conductores %}
-<tr>
-    <td class="text-center text-muted fw-bold">#{{ conductor.id }}</td>
+<tr id="conductor-row-{{ conductor.id }}">
     <td>
         <div class="d-flex align-items-center gap-3">
-            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold text-white u-inline-229037fbee">
-                {{ conductor.iniciales }}
+            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold text-white shadow-sm" style="width: 40px; height: 40px; min-width: 40px;">
+                {% if conductor.foto_perfil %}
+                    <img src="{{ conductor.foto_perfil.url }}" alt="{{ conductor.nombre_mostrar }}" class="rounded-circle w-100 h-100 object-fit-cover">
+                {% else %}
+                    {{ conductor.iniciales }}
+                {% endif %}
             </div>
             <div>
-                <div class="fw-bold">{{ conductor.nombres }} {{ conductor.apellidos }}</div>
-                <div class="text-muted small">Conductor</div>
+                <a href="{% url 'usuarios:detalle_conductor' conductor.id %}" class="fw-bold text-main text-decoration-none hover-accent">
+                    {{ conductor.nombres }} {{ conductor.apellidos }}
+                </a>
+                <div class="text-muted small"><i class="bi bi-envelope me-1"></i>{{ conductor.email }}</div>
             </div>
         </div>
     </td>
-    <td class="text-center">{% if conductor.conductor_profile %}{{ conductor.conductor_profile.numero_licencia }}{% else %}<span class="text-muted small">Sin perfil</span>{% endif %}</td>
-    <td class="text-center">{% if conductor.conductor_profile %}{{ conductor.conductor_profile.categoria_licencia }}{% else %}<span class="text-muted small">Sin perfil</span>{% endif %}</td>
-    <td class="text-center text-capitalize">
+    <td class="text-muted small">
+        <span class="badge border text-uppercase" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border) !important;">{{ conductor.tipo_documento }}</span>
+        <span class="text-main fw-semibold">{{ conductor.documento }}</span>
+    </td>
+    <td class="text-muted small">
+        <i class="bi bi-telephone me-1 text-accent"></i>{{ conductor.telefono|default:"Sin teléfono" }}
+    </td>
+    <td class="text-center">
         {% if conductor.conductor_profile %}
-            {% if conductor.conductor_profile.estado == 'activo' %}
-                <span class="badge rounded-pill bg-success">Activo</span>
-            {% else %}
-                <span class="badge rounded-pill bg-secondary">{{ conductor.conductor_profile.estado|capfirst }}</span>
-            {% endif %}
+            <span class="badge border" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border) !important;">{{ conductor.conductor_profile.numero_licencia }}</span>
+            <span class="badge bg-secondary-subtle text-body small ms-1">{{ conductor.conductor_profile.categoria_licencia }}</span>
         {% else %}
-            <span class="badge rounded-pill bg-warning text-dark">Sin perfil</span>
+            <span class="text-muted small">Sin perfil</span>
         {% endif %}
     </td>
     <td class="text-center">
-        {% if conductor.vehiculo_actual %}
+        {% if conductor.estado == 'activo' and conductor.conductor_profile.estado == 'activo' %}
+            <span class="badge rounded-pill bg-success px-3 py-1">Activo</span>
+        {% else %}
+            <span class="badge rounded-pill bg-danger px-3 py-1">Inactivo</span>
+        {% endif %}
+    </td>
+    <td class="text-center">
+        {% if conductor.vehiculo_asignado_obj %}
+            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
+                <i class="bi bi-truck me-1"></i> {{ conductor.vehiculo_asignado_obj.placa }}
+            </span>
+        {% elif conductor.vehiculo_actual %}
             <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
                 <i class="bi bi-truck me-1"></i> {{ conductor.vehiculo_actual.placa }}
             </span>
@@ -35,17 +53,45 @@
         {% endif %}
     </td>
     <td class="text-center">
-        {% if request.user.usuario.rol == 'admin' %}
-            <a href="{% url 'usuarios:asignar_vehiculo_conductor' conductor.id %}" class="btn btn-sm btn-outline-light rounded-pill px-3 py-2" aria-label="Volver" data-tooltip="Volver" title="Volver">
-                <i class="bi bi-arrow-left-right me-1"></i> Asignar/Cambiar
-            </a>
+        {% if conductor.envios_activos_count > 0 %}
+            <span class="badge rounded-pill bg-warning text-dark px-2 py-1">
+                <i class="bi bi-box-seam me-1"></i>{{ conductor.envios_activos_count }} en curso
+            </span>
         {% else %}
-            <span class="text-muted small">Solo admin</span>
+            <span class="badge rounded-pill bg-secondary px-2 py-1">0 activos</span>
         {% endif %}
+    </td>
+    <td class="text-center">
+        <div class="d-inline-flex align-items-center gap-1">
+            <a href="{% url 'usuarios:detalle_conductor' conductor.id %}" class="btn btn-sm btn-outline-info rounded-circle p-2" title="Ver Detalle" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+                <i class="bi bi-eye"></i>
+            </a>
+            <a href="{% url 'usuarios:editar_conductor' conductor.id %}" class="btn btn-sm btn-outline-warning rounded-circle p-2" title="Editar Conductor" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'usuarios:asignar_vehiculo_conductor' conductor.id %}" class="btn btn-sm btn-outline-primary rounded-circle p-2" title="Asignar Vehículo" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+                <i class="bi bi-truck"></i>
+            </a>
+            <form method="POST" action="{% url 'usuarios:toggle_estado_conductor' conductor.id %}" class="d-inline" onsubmit="return confirm('¿Deseas cambiar el estado de este conductor?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if conductor.estado == 'activo' %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-circle p-2" title="{% if conductor.estado == 'activo' %}Desactivar Conductor{% else %}Activar Conductor{% endif %}" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="bi {% if conductor.estado == 'activo' %}bi-person-x{% else %}bi-person-check{% endif %}"></i>
+                </button>
+            </form>
+            <form method="POST" action="{% url 'usuarios:eliminar_conductor' conductor.id %}" class="d-inline" onsubmit="return confirm('¿Seguro que deseas eliminar este conductor? Si tiene historial de entregas o vehículos, el sistema lo bloqueará por seguridad.');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-circle p-2" title="Eliminar Conductor" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
     </td>
 </tr>
 {% empty %}
 <tr>
-    <td colspan="7" class="text-center py-5 text-muted">No hay conductores registrados</td>
+    <td colspan="8" class="text-center py-5 text-muted">
+        <i class="bi bi-person-x fs-1 d-block mb-2 text-secondary"></i>
+        No hay conductores registrados con los filtros seleccionados.
+    </td>
 </tr>
 {% endfor %}
