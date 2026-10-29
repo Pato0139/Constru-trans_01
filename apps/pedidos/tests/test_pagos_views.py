@@ -77,7 +77,7 @@ class PagoViewsTests(TestCase):
         self.assertEqual(self.pedido.estado, Pedido.PENDIENTE)
 
     def test_admin_registra_pago_en_nombre_del_cliente(self):
-        self.client.login(username="adminpago", password="123456")
+        self.client.login(username="adminpago", password="password123")
         comprobante = SimpleUploadedFile(
             "recibo-admin.png",
             b"\x89PNG\r\n\x1a\n",
@@ -91,7 +91,11 @@ class PagoViewsTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         pago = Pago.objects.get(pedido=self.pedido)
-        self.assertEqual(pago.estado, Pago.PENDIENTE)
+        # El administrador que registra el pago lo aprueba en el acto:
+        # la vista llama a marcar_revision(APROBADO) y autoriza el despacho.
+        self.assertEqual(pago.estado, Pago.APROBADO)
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
         self.assertEqual(pago.metodo, Pago.METODO_BANCOLOMBIA)
 
     def test_recalcula_pedido_desde_detalles_antes_de_registrar_pago(self):
