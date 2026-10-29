@@ -389,8 +389,9 @@ def perfil_cliente(request):
 @role_required(["cliente"])
 def seguimiento_pedidos(request):
     try:
-        usuario_remoto = request.user.usuario if hasattr(request.user, "usuario") else request.user
-        usuario = _obtener_usuario_local(usuario_remoto)
+        _obtener_usuario_local(
+            request.user.usuario if hasattr(request.user, "usuario") else request.user
+        )
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
@@ -935,11 +936,6 @@ def cancelar_pedido(request, id):
 # =====================================================================
 # VISTAS DE ADMINISTRACIÓN DE CLIENTES
 # =====================================================================
-
-@role_required(["admin"])
-def lista_clientes(request):
-    clientes = Usuario.objects.filter(rol="cliente").select_related("perfil_cliente").order_by("-date_joined")
-
 
 @login_required
 def lista_clientes(request):

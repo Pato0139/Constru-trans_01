@@ -275,8 +275,8 @@ def ver_comprobante_pago(request, pk):
             pago.comprobante.open("rb"),
             content_type=content_type or "application/octet-stream",
         )
-    except Exception:
-        raise Http404("El archivo del comprobante no está disponible.")
+    except Exception as exc:
+        raise Http404("El archivo del comprobante no está disponible.") from exc
 
 
 @admin_required
