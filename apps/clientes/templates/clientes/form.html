@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/clientes/form.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/clientes/form.css' %}?v=1.1">
 {% endblock %}
 
 {% block content %}
@@ -147,7 +147,7 @@
                                                             <i class="bi bi-calendar-event"></i>
                                                         </button>
                                                         <input id="fecha_entrega_text" type="text" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2 pedido-input-bg" inputmode="numeric" placeholder="DD/MM/YYYY HH:MM" value="{% if fecha_entrega %}{{ fecha_entrega }}{% elif orden and orden.fecha_entrega_programada %}{{ orden.fecha_entrega_programada|date:'d/m/Y H:i' }}{% endif %}">
-                                                        <input id="fecha_entrega_picker" type="datetime-local" class="pedido-picker-hidden" aria-hidden="false" min="{% now "Y-m-d" %}T00:00:00" max="2099-12-31T23:59">
+                                                        <input id="fecha_entrega_picker" type="datetime-local" name="fecha_entrega_picker" class="pedido-picker-hidden" aria-hidden="false" min="{% now "Y-m-d" %}T00:00" max="2099-12-31T23:59">
                                                     </div>
                                                     <div class="form-text text-white-50 small mt-2">Selecciona fecha y hora con el calendario.</div>
                                                 </div>
@@ -170,5 +170,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/clientes/form.js' %}?v=1.1"></script>
+<script src="{% static 'js/clientes/form.js' %}?v=1.2"></script>
 {% endblock %}

@@ -458,7 +458,7 @@ def crear_pedido(request):
         ciudad = request.POST.get("ciudad", "").strip()
         direccion_detalle = request.POST.get("direccion_detalle", "").strip()
         direccion = construir_direccion_destino(ciudad, direccion_detalle)
-        fecha_entrega_raw = request.POST.get("fecha_entrega")
+        fecha_entrega_raw = request.POST.get("fecha_entrega") or request.POST.get("fecha_entrega_picker")
         fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
 
         if fecha_entrega_raw and not fecha_entrega:
@@ -685,7 +685,7 @@ def editar_pedido(request, id):
         ciudad = request.POST.get("ciudad", "").strip()
         direccion_detalle = request.POST.get("direccion_detalle", "").strip()
         direccion = construir_direccion_destino(ciudad, direccion_detalle)
-        fecha_entrega_raw = request.POST.get("fecha_entrega")
+        fecha_entrega_raw = request.POST.get("fecha_entrega") or request.POST.get("fecha_entrega_picker")
         fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
 
         if fecha_entrega_raw and not fecha_entrega:

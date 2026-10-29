@@ -130,16 +130,16 @@ class RegistroForm(forms.ModelForm):
         fields = ["nombres", "apellidos", "tipo_documento", "documento", "telefono"]
         widgets = {
             "nombres": forms.TextInput(
-                attrs={"class": "input-custom", "placeholder": "Juan", "maxlength": "200"}
+                attrs={"class": "input-custom", "placeholder": "Ej: Juan", "maxlength": "200"}
             ),
             "apellidos": forms.TextInput(
-                attrs={"class": "input-custom", "placeholder": "Pérez", "maxlength": "200"}
+                attrs={"class": "input-custom", "placeholder": "Ej: Pérez", "maxlength": "200"}
             ),
             "tipo_documento": forms.Select(attrs={"class": "input-custom form-select"}),
             "documento": forms.TextInput(
                 attrs={
                     "class": "input-custom",
-                    "placeholder": "12345678",
+                    "placeholder": "Ej: 12345678",
                     "pattern": "[A-Za-z0-9\\s]*",
                     "title": "Solo se admiten letras y números",
                     "maxlength": "20",
@@ -148,7 +148,7 @@ class RegistroForm(forms.ModelForm):
             "telefono": forms.TextInput(
                 attrs={
                     "class": "input-custom",
-                    "placeholder": "3001234567",
+                    "placeholder": "Ej: 300 123 4567",
                     "pattern": "[0-9\\s]*",
                     "title": "Solo se admiten números y espacios",
                     "maxlength": "20",
