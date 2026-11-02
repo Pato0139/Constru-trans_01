@@ -23,7 +23,7 @@
                     </div>
                 </div>
 
-                <form method="post" enctype="multipart/form-data" id="form-registro-pago">
+                <form method="post" enctype="multipart/form-data" id="form-registro-pago" data-es-admin="{% if request.user.rol == 'admin' or request.user.usuario.rol == 'admin' %}true{% else %}false{% endif %}">
                     {% csrf_token %}
                     {{ form.non_field_errors }}
 
@@ -199,11 +199,23 @@
     /* Tarjetas de método de pago interactivas (sin círculos de radio) */
     .payment-option {
         cursor: pointer;
+        pointer-events: auto;
+        position: relative;
+        z-index: 1;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         background-color: rgba(255, 255, 255, 0.03) !important;
         border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
         user-select: none;
         min-height: 72px;
+    }
+
+    .payment-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+        width: 1px;
+        height: 1px;
+        margin: 0;
     }
 
     .payment-icon-wrapper {
@@ -303,7 +315,14 @@
 <script>
 (function() {
     function initPaymentOptions() {
-        var paymentOptions = document.querySelectorAll('.payment-option');
+        if (document.body.dataset.paymentOptionsReady === '1') {
+            return;
+        }
+        document.body.dataset.paymentOptionsReady = '1';
+
+    var formPago = document.getElementById('form-registro-pago');
+    var userRol = formPago ? formPago.dataset.esAdmin === 'true' ? 'admin' : 'cliente' : '';
+    var paymentOptions = document.querySelectorAll('.payment-option');
         var metodoRadios = document.querySelectorAll('input[name="metodo"]');
         var cuentaSection = document.getElementById('cuenta-section');
         var numeroCuenta = document.getElementById('numero-cuenta');
@@ -347,6 +366,28 @@
                 option.classList.toggle('is-selected', isChecked);
                 option.setAttribute('aria-pressed', isChecked ? 'true' : 'false');
             });
+
+            if (userRol === 'admin') {
+                if (cuentaSection) {
+                    cuentaSection.classList.add('d-none');
+                    numeroCuenta.value = '';
+                }
+                if (transferenciaAlert) {
+                    transferenciaAlert.classList.add('d-none');
+                }
+                if (contraentregaAlert) {
+                    contraentregaAlert.classList.add('d-none');
+                }
+                if (comprobanteBadge) {
+                    comprobanteBadge.textContent = 'Obligatorio';
+                    comprobanteBadge.className = 'badge bg-danger-subtle text-danger border border-danger border-opacity-25 fw-semibold';
+                }
+                if (comprobanteInput) {
+                    comprobanteInput.disabled = false;
+                    comprobanteInput.required = true;
+                }
+                return;
+            }
 
             // Sección de número de cuenta para transferencias
             if (cuentaSection && numeroCuenta) {
@@ -410,9 +451,16 @@
             function selectCard() {
                 var radio = card.querySelector('input[type="radio"]');
                 if (radio) {
+                    var checkedBefore = radio.checked;
+                    metodoRadios.forEach(function(item) {
+                        item.checked = false;
+                    });
                     radio.checked = true;
                     radio.dispatchEvent(new Event('change', { bubbles: true }));
                     actualizarComprobantePorMetodo();
+                    if (checkedBefore && radio.checked) {
+                        card.classList.add('is-selected');
+                    }
                 }
             }
 
@@ -429,7 +477,13 @@
         });
 
         metodoRadios.forEach(function(radio) {
-            radio.onchange = actualizarComprobantePorMetodo;
+            radio.onchange = function() {
+                paymentOptions.forEach(function(option) {
+                    var optRadio = option.querySelector('input[type="radio"]');
+                    option.classList.toggle('is-selected', optRadio && optRadio.checked);
+                });
+                actualizarComprobantePorMetodo();
+            };
         });
 
         // Botón copiar cuenta

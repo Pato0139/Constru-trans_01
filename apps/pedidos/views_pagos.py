@@ -166,7 +166,7 @@ def registrar_pago_pedido(request, pedido_id):
                         "crear",
                         "pagos",
                         instancia_pago.pk,
-                        f"{'Administrador' if es_admin else 'Cliente'} registró y {'aprobó' if es_admin else 'envió'} pago del pedido #{pedido.codigo_pedido}",
+                        f{'Administrador' if es_admin else 'Cliente'} registró y {'aprobó' if es_admin else 'envió'} pago del pedido #{pedido.codigo_pedido}",
                     )
                 except Exception:
                     logger.warning(

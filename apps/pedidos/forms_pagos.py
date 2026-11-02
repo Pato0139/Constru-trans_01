@@ -5,13 +5,17 @@ from apps.pedidos.validators import validar_comprobante_imagen
 from config.forms_base import StrictForm
 
 
+class PagoComprobanteInput(forms.ClearableFileInput):
+    template_name = "pagos/widgets/custom_clearable_file_input.html"
+
+
 class PagoRegistroForm(forms.ModelForm):
     class Meta:
         model = Pago
         fields = ["metodo", "comprobante"]
         widgets = {
             "metodo": forms.RadioSelect(attrs={"class": "form-check-input"}),
-            "comprobante": forms.ClearableFileInput(
+            "comprobante": PagoComprobanteInput(
                 attrs={"class": "form-control", "accept": "image/png,image/jpeg"}
             ),
         }

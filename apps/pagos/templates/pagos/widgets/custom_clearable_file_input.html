@@ -1,0 +1,12 @@
+{% if widget.is_initial %}
+  <div class="d-none">
+    {{ widget.initial_text }}: <a href="{{ widget.value.url }}">{{ widget.value }}</a>
+  </div>
+{% endif %}
+{% if widget.clear_checkbox_label %}
+  <div class="d-none">
+    {{ widget.clear_checkbox_label }}
+    {{ widget.clear_checkbox }}
+  </div>
+{% endif %}
+<input type="{{ widget.type }}" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>

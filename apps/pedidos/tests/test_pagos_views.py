@@ -91,8 +91,6 @@ class PagoViewsTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         pago = Pago.objects.get(pedido=self.pedido)
-        # El administrador que registra el pago lo aprueba en el acto:
-        # la vista llama a marcar_revision(APROBADO) y autoriza el despacho.
         self.assertEqual(pago.estado, Pago.APROBADO)
         self.pedido.refresh_from_db()
         self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
