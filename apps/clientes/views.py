@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import F, Q, Sum
-from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -389,8 +389,9 @@ def perfil_cliente(request):
 @role_required(["cliente"])
 def seguimiento_pedidos(request):
     try:
-        usuario_remoto = request.user.usuario if hasattr(request.user, "usuario") else request.user
-        usuario = _obtener_usuario_local(usuario_remoto)
+        _obtener_usuario_local(
+            request.user.usuario if hasattr(request.user, "usuario") else request.user
+        )
     except AttributeError:
         messages.error(request, "No tienes un perfil de cliente asociado.")
         return redirect("usuarios:panel")
@@ -936,11 +937,6 @@ def cancelar_pedido(request, id):
 # VISTAS DE ADMINISTRACIÓN DE CLIENTES
 # =====================================================================
 
-@role_required(["admin"])
-def lista_clientes(request):
-    clientes = Usuario.objects.filter(rol="cliente").select_related("perfil_cliente").order_by("-date_joined")
-    
-
 @login_required
 def lista_clientes(request):
     if request.user.rol != "admin":
@@ -993,7 +989,7 @@ def lista_clientes(request):
 
 @role_required(["admin"])
 def detalle_cliente(request, id):
-        
+
     if request.user.rol != "admin":
         messages.error(request, "No tienes permisos para ver este perfil.")
         return redirect("usuarios:panel")
@@ -1014,7 +1010,7 @@ def detalle_cliente(request, id):
 
 @role_required(["admin"])
 def editar_cliente(request, id):
-        
+
     if request.user.rol != "admin":
         messages.error(request, "No tienes permisos para editar este cliente.")
         return redirect("usuarios:panel")

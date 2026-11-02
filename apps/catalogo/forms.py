@@ -4,6 +4,7 @@ import unicodedata
 from django import forms
 
 from config.forms_base import StrictModelForm
+
 from .models import ESTADOS_PRODUCTO, Catalogo, Marca, MaterialConstruccion, Stock, UnidadMedida
 
 

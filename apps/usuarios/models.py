@@ -6,10 +6,6 @@ from pathlib import Path
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
-from django.core.validators import (
-    FileExtensionValidator,
-    RegexValidator,
-)
 from django.db import models, transaction
 from django.utils.timezone import now
 

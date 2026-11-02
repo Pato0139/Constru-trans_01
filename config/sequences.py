@@ -8,6 +8,8 @@ que la base de datos sea la última barrera.
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
+from config.db_utils import select_for_update_if_supported
+
 
 def siguiente_consecutivo(prefijo, anio=None, using="default"):
     from config.models import Consecutivo
@@ -16,7 +18,7 @@ def siguiente_consecutivo(prefijo, anio=None, using="default"):
     with transaction.atomic(using=using):
         qs = Consecutivo.objects.using(using)
         try:
-            contador = qs.select_for_update().get(prefijo=prefijo, anio=anio)
+            contador = select_for_update_if_supported(qs, using).get(prefijo=prefijo, anio=anio)
         except Consecutivo.DoesNotExist:
             try:
                 with transaction.atomic(using=using):
@@ -24,7 +26,7 @@ def siguiente_consecutivo(prefijo, anio=None, using="default"):
             except IntegrityError:
                 # Otra transacción lo creó en paralelo: bloquear la existente.
                 pass
-            contador = qs.select_for_update().get(prefijo=prefijo, anio=anio)
+            contador = select_for_update_if_supported(qs, using).get(prefijo=prefijo, anio=anio)
         contador.ultimo += 1
         contador.save(using=using, update_fields=["ultimo"])
         return contador.ultimo

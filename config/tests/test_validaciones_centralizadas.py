@@ -1,12 +1,12 @@
 from decimal import Decimal
+
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
 from apps.clientes.models import Cliente
-from apps.compras.models import Compra, DetalleCompra, Proveedor
-from apps.pagos.models import Factura, Pago, PagoFactura
-from apps.pedidos.models import DetallePedido, Pedido
+from apps.compras.models import Compra, Proveedor
+from apps.pedidos.models import Pedido
 from apps.usuarios.models import Usuario
 from config.sequences import numero_factura
 

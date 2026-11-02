@@ -16,31 +16,51 @@ const sidebar        = document.getElementById('sidebar');
 const sidebarOverlay = document.getElementById('sidebarOverlay');
 
 /** Abre el sidebar y bloquea el scroll del body */
+function openSidebar() {
+    if (!sidebar || !sidebarOverlay) return;
+    sidebar.classList.add('active');
+    sidebarOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSidebar() {
+    if (!sidebar || !sidebarOverlay) return;
+    sidebar.classList.remove('active');
+    sidebarOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
 if (sidebarToggle) {
     sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.add('active');
-        sidebarOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        const isOpen = sidebar && sidebar.classList.contains('active');
+        if (isOpen) {
+            closeSidebar();
+            return;
+        }
+        openSidebar();
     });
 }
 
 /** Cierra el sidebar desde el botón interno */
 if (sidebarClose) {
-    sidebarClose.addEventListener('click', () => {
-        sidebar.classList.remove('active');
-        sidebarOverlay.classList.remove('active');
-        document.body.style.overflow = 'auto';
-    });
+    sidebarClose.addEventListener('click', closeSidebar);
 }
 
 /** Cierra el sidebar al hacer clic en el overlay */
 if (sidebarOverlay) {
-    sidebarOverlay.addEventListener('click', () => {
-        sidebar.classList.remove('active');
-        sidebarOverlay.classList.remove('active');
-        document.body.style.overflow = 'auto';
-    });
+    sidebarOverlay.addEventListener('click', closeSidebar);
 }
+
+/** Cierra el sidebar automáticamente cuando el usuario selecciona una opción del menú móvil */
+document.addEventListener('click', (event) => {
+    const target = event.target.closest('#sidebar a');
+    if (!target || !sidebar || !sidebarOverlay) return;
+
+    const isMobileSidebar = window.innerWidth < 992;
+    if (!isMobileSidebar) return;
+
+    closeSidebar();
+});
 
 // Redirigir errores de DataTables a la consola en vez de ventanas emergentes
 $.fn.dataTable.ext.errMode = 'throw';

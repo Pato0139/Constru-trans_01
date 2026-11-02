@@ -5,19 +5,17 @@ import requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
-from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth.password_validation import validate_password
 from django.views.decorators.http import require_http_methods, require_POST
 
 User = get_user_model()
 from django.contrib.auth.views import PasswordResetView
-from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.validators import validate_email
 from django.db import DatabaseError, IntegrityError, transaction
 from django.db.models import Prefetch, Q, Sum
-from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -44,7 +42,9 @@ from config.security import (
     role_required,
 )
 from config.superadmin_lock import es_superadmin_global
-from config.sync import sync_all_usuarios
+from config.sync import (
+    sync_all_usuarios,  # noqa: F401 (usado por apps/usuarios/tests/test_password_reset.py)
+)
 from config.utils import conexion_remota_disponible, registrar_actividad
 
 from .forms import CustomPasswordResetForm, FotoPerfilForm, LoginForm, RegistroForm
@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
 LOGIN_REMEMBER_COOKIE = "constru_trans_login"
 LOGIN_REMEMBER_SECONDS = 1209600
 
-from django.core.signing import TimestampSigner, BadSignature
+from django.core.signing import BadSignature, TimestampSigner
 
 _REMEMBER_SIGNER = TimestampSigner(salt="constru-trans-remember")
 
@@ -553,6 +553,38 @@ def panel(request):
 
     return redirect("usuarios:login")
 
+
+@role_required(["admin"])
+def descargar_backup_db(request):
+    """Genera un backup actualizado y lo descarga."""
+    from django.core.management import call_command
+    from django.http import FileResponse, Http404
+    from pathlib import Path
+    
+    destino = Path(settings.BASE_DIR) / "backups"
+    destino.mkdir(exist_ok=True)
+    
+    # Generar backup fresco antes de descargar
+    try:
+        call_command("backup_db", destino="backups", format="sql")
+    except Exception as e:
+        messages.error(request, f"Error al generar backup: {e}")
+        return redirect("usuarios:panel")
+    
+    # Buscar el archivo SQL más reciente en la carpeta backups
+    files = list(destino.glob("*.sql"))
+    if not files:
+        # Reintentar con JSON si no hay SQL
+        files = list(destino.glob("*.json"))
+    
+    if not files:
+        raise Http404("No se encontró ningún archivo de backup.")
+        
+    latest_file = max(files, key=lambda x: x.stat().st_mtime)
+    
+    response = FileResponse(open(latest_file, "rb"), as_attachment=True)
+    response["Content-Disposition"] = f'attachment; filename="{latest_file.name}"'
+    return response
 
 # =====================================================================
 # CONDUCTOR

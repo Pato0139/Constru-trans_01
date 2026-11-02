@@ -1,6 +1,5 @@
 """Comando de auditoría de datos para validar integridad previa a migraciones de restricciones."""
 
-from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.db import connection
 

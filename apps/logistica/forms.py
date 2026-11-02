@@ -2,6 +2,7 @@ from django import forms
 from django.db.models import Q
 
 from config.forms_base import StrictForm
+
 from .models import ConductorVehiculo, Vehiculo
 
 

@@ -60,6 +60,7 @@ urlpatterns = [
     # Configuraciones
     path("configuraciones/", views.configuraciones_usuario, name="configuraciones"),
     path("bd/cambiar/", views.cambiar_modo_bd, name="cambiar_modo_bd"),
+    path("backup/descargar/", views.descargar_backup_db, name="descargar_backup"),
     # recuperar contraseña
     path(
         "recuperar/",

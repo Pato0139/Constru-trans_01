@@ -1,12 +1,12 @@
 from decimal import Decimal
-from django.core.files.uploadedfile import SimpleUploadedFile
+
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from apps.catalogo.models import Catalogo, MaterialConstruccion, Stock, UnidadMedida
 from apps.clientes.models import Cliente
 from apps.pagos.models import Pago
-from apps.pedidos.models import DetallePedido, Pedido
+from apps.pedidos.models import Pedido
 from apps.usuarios.models import Usuario
 
 

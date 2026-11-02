@@ -9,7 +9,7 @@ def make_fecha_actualizacion_nullable(apps, schema_editor):
                 DO $$
                 BEGIN
                     IF EXISTS (
-                        SELECT 1 FROM information_schema.columns 
+                        SELECT 1 FROM information_schema.columns
                         WHERE table_name = 'pago_pedido' AND column_name = 'fecha_actualizacion'
                     ) THEN
                         ALTER TABLE pago_pedido ALTER COLUMN fecha_actualizacion DROP NOT NULL;
