@@ -2,13 +2,33 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/inicio/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/inicio/home.css' %}?v=2.0">
 {% endblock %}
 {% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const slides = document.querySelectorAll('.inicio-hero-slide');
+    if (!slides.length) return;
+
+    let activeIndex = 0;
+    setInterval(function () {
+      slides[activeIndex].classList.remove('is-active');
+      activeIndex = (activeIndex + 1) % slides.length;
+      slides[activeIndex].classList.add('is-active');
+    }, 4000);
+  });
+</script>
 {% endblock %}
 
 {% block content %}
 <section id="inicio" class="hero-premium inicio-hero-section">
+    <div class="inicio-hero-carousel" aria-label="Carrusel de fondo" aria-live="polite">
+        <div class="inicio-hero-slide slide-1 is-active"></div>
+        <div class="inicio-hero-slide slide-2"></div>
+        <div class="inicio-hero-slide slide-3"></div>
+        <div class="inicio-hero-slide slide-4"></div>
+        <div class="inicio-hero-slide slide-5"></div>
+    </div>
     <div class="hero-bg-text">CONSTRU-TRANS</div>
     <div class="inicio-hero-grid"></div>
     <div class="inicio-hero-blob inicio-hero-blob--gold"></div>

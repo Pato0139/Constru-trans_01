@@ -68,6 +68,60 @@ main {
 
 .inicio-hero-section {
   isolation: isolate;
+  background: transparent;
+}
+
+.inicio-hero-carousel {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.inicio-hero-slide {
+  position: absolute;
+  inset: -2%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transform: scale(1.08);
+  transition: opacity 1.2s ease, transform 1.8s ease;
+  z-index: 0;
+}
+
+.inicio-hero-slide.is-active {
+  opacity: 1;
+  transform: scale(1.02);
+  z-index: 1;
+}
+
+.inicio-hero-slide::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(37, 99, 235, 0.2), transparent 30%),
+    linear-gradient(90deg, rgba(5, 7, 14, 0.72), rgba(5, 7, 14, 0.5), rgba(5, 7, 14, 0.78));
+}
+
+.inicio-hero-slide.slide-1 {
+  background-image: url('../../img/Obra.jpeg');
+}
+
+.inicio-hero-slide.slide-2 {
+  background-image: url('../../img/Trabajadores.jpeg');
+}
+
+.inicio-hero-slide.slide-3 {
+  background-image: url('../../img/Excavadora.png');
+}
+
+.inicio-hero-slide.slide-4 {
+  background-image: url('../../img/ladrillos.jpg');
+}
+
+.inicio-hero-slide.slide-5 {
+  background-image: url('../../img/obra-construccion.jpg');
 }
 
 .inicio-hero-section::after {
