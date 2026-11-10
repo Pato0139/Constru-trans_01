@@ -609,25 +609,38 @@ def panel_conductor(request):
 
     from apps.logistica.models import Entrega, Novedad
 
+    # Solo mostrar envíos cuyos pedidos fueron aprobados/autorizados para despacho
+    filtro_pedidos_aprobados = {
+        "pedido__estado__in": ["autorizado_despacho", "vehiculo_asignado", "en_ruta"],
+    }
+
     # Contadores desde la BD (globales si es admin para supervisión, o específicos si es conductor)
     if request.user.rol == "admin":
-        envios_pendientes = Entrega.objects.filter(estado="pendiente").count()
-        entregas_en_ruta = Entrega.objects.filter(estado="en_ruta").count()
+        base_qs = (
+            Entrega.objects.filter(conductor__isnull=False, **filtro_pedidos_aprobados)
+            .exclude(pedido__pago__estado__in=["pendiente", "rechazado"])
+        )
+        envios_pendientes = base_qs.filter(estado="pendiente").count()
+        entregas_en_ruta = base_qs.filter(estado="en_ruta").count()
         entregas_completadas = Entrega.objects.filter(estado="entregado").count()
         novedades_registradas = Novedad.objects.count()
         entregas_activas = (
-            Entrega.objects.filter(estado__in=["pendiente", "en_ruta"])
+            base_qs.filter(estado__in=["pendiente", "en_ruta"])
             .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario", "conductor__usuario")
             .prefetch_related("pedido__detalles__material")
             .order_by("fecha_salida", "pedido__fecha_solicitud")
         )
     else:
-        envios_pendientes = Entrega.objects.filter(conductor=conductor, estado="pendiente").count()
-        entregas_en_ruta = Entrega.objects.filter(conductor=conductor, estado="en_ruta").count()
+        base_qs = (
+            Entrega.objects.filter(conductor=conductor, **filtro_pedidos_aprobados)
+            .exclude(pedido__pago__estado__in=["pendiente", "rechazado"])
+        )
+        envios_pendientes = base_qs.filter(estado="pendiente").count()
+        entregas_en_ruta = base_qs.filter(estado="en_ruta").count()
         entregas_completadas = Entrega.objects.filter(conductor=conductor, estado="entregado").count()
         novedades_registradas = Novedad.objects.filter(entrega__conductor=conductor).count()
         entregas_activas = (
-            Entrega.objects.filter(conductor=conductor, estado__in=["pendiente", "en_ruta"])
+            base_qs.filter(estado__in=["pendiente", "en_ruta"])
             .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario")
             .prefetch_related("pedido__detalles__material")
             .order_by("fecha_salida", "pedido__fecha_solicitud")
@@ -669,74 +682,56 @@ def iniciar_entrega(request, entrega_id):
         return redirect("usuarios:login")
 
     from apps.logistica.models import Entrega
+    from apps.logistica.services import confirmar_preparacion_e_iniciar_ruta
 
-    with transaction.atomic():
-        entrega = (
-            Entrega.objects.select_for_update()
-            .select_related("pedido", "vehiculo")
-            .filter(pk=entrega_id)
-            .first()
-        )
-        if not entrega:
-            messages.error(request, "El envío especificado no existe.")
-            return redirect("usuarios:panel_conductor")
+    entrega = (
+        Entrega.objects.select_related("pedido", "vehiculo")
+        .filter(pk=entrega_id)
+        .first()
+    )
+    if not entrega:
+        messages.error(request, "El envío especificado no existe.")
+        return redirect("usuarios:panel_conductor")
 
-        # Comprobación de propiedad estricta (admin exento)
-        if (
-            request.user.rol != "admin"
-            and entrega.conductor_id != conductor.pk
-            and entrega.conductor_usuario_id != request.user.pk
-        ):
-            ip = obtener_ip(request)
-            registrar_warning(ip)
-            registrar_evento(
-                request,
-                "role_violation",
-                gravedad="high",
-                detalles={"causa": "iniciar_entrega_ajena", "entrega_id": entrega_id},
-            )
-            return _respuesta_no_autorizada(request)
-
-        # Validación de estado previo
-        if entrega.estado != "pendiente":
-            messages.warning(
-                request,
-                f"No se puede iniciar el recorrido porque el envío se encuentra en estado «{entrega.get_estado_display()}».",
-            )
-            return redirect("usuarios:panel_conductor")
-
-        ahora = now()
-        entrega.transicionar("en_ruta")
-        entrega.fecha_salida = ahora
-        entrega.save(update_fields=["estado", "fecha_salida"])
-
-        pedido = entrega.pedido
-        if pedido.puede_transicionar(Pedido.EN_RUTA):
-            pedido.transicionar(Pedido.EN_RUTA)
-        else:
-            pedido.estado = Pedido.EN_RUTA
-        if not pedido.fecha_toma_entrega:
-            pedido.fecha_toma_entrega = ahora
-        pedido.conductor = conductor
-        pedido.save(update_fields=["estado", "fecha_toma_entrega", "conductor"])
-
-        if entrega.vehiculo:
-            if entrega.vehiculo.estado != "en_ruta":
-                entrega.vehiculo.estado = "en_ruta"
-                entrega.vehiculo.save(update_fields=["estado"])
-
-        registrar_actividad(
+    # Comprobación de propiedad estricta (admin exento)
+    if (
+        request.user.rol != "admin"
+        and entrega.conductor_id != conductor.pk
+        and entrega.conductor_usuario_id != request.user.pk
+    ):
+        ip = obtener_ip(request)
+        registrar_warning(ip)
+        registrar_evento(
             request,
-            "editar",
-            "entrega",
-            entrega.id_entrega,
-            f"Conductor {request.user.nombre_mostrar} inició entrega del pedido #{pedido.codigo_pedido}",
+            "role_violation",
+            gravedad="high",
+            detalles={"causa": "iniciar_entrega_ajena", "entrega_id": entrega_id},
         )
+        return _respuesta_no_autorizada(request)
 
-        messages.success(
-            request,
-            f"¡Has iniciado el recorrido del pedido #{pedido.codigo_pedido}! Conduce con precaución.",
-        )
+    try:
+        entrega = confirmar_preparacion_e_iniciar_ruta(entrega, request.user)
+    except ValidationError as exc:
+        msg = exc.messages[0] if hasattr(exc, "messages") and exc.messages else str(exc)
+        messages.error(request, msg)
+        return redirect("usuarios:panel_conductor")
+
+    pedido = entrega.pedido
+    registrar_actividad(
+        request,
+        "editar",
+        "entrega",
+        entrega.id_entrega,
+        f"Usuario {request.user.nombre_mostrar} confirmó preparación e inició ruta del pedido #{pedido.codigo_pedido}",
+    )
+
+    messages.success(
+        request,
+        f"¡Preparación confirmada! Has iniciado la ruta del pedido #{pedido.codigo_pedido}. Conduce con precaución.",
+    )
+    referer = request.META.get("HTTP_REFERER")
+    if referer and ("pedidos-conductor" in referer or "panel-conductor" in referer or "detalles-entrega" in referer):
+        return redirect(referer)
     return redirect("usuarios:panel_conductor")
 
 
@@ -752,7 +747,8 @@ def finalizar_entrega(request, entrega_id):
         messages.error(request, "Tu perfil de conductor no está activo.")
         return redirect("usuarios:login")
 
-    from apps.logistica.models import Entrega, Novedad
+    from apps.logistica.models import Entrega
+    from apps.logistica.services import marcar_pedido_entregado
 
     observacion = (
         request.POST.get("observacion")
@@ -760,83 +756,56 @@ def finalizar_entrega(request, entrega_id):
         or ""
     ).strip()[:2000]
 
-    with transaction.atomic():
-        entrega = (
-            Entrega.objects.select_for_update()
-            .select_related("pedido", "vehiculo")
-            .filter(pk=entrega_id)
-            .first()
-        )
-        if not entrega:
-            messages.error(request, "El envío especificado no existe.")
-            return redirect("usuarios:panel_conductor")
+    entrega = (
+        Entrega.objects.select_related("pedido", "vehiculo")
+        .filter(pk=entrega_id)
+        .first()
+    )
+    if not entrega:
+        messages.error(request, "El envío especificado no existe.")
+        return redirect("usuarios:panel_conductor")
 
-        # Comprobación de propiedad estricta (admin exento)
-        if (
-            request.user.rol != "admin"
-            and entrega.conductor_id != conductor.pk
-            and entrega.conductor_usuario_id != request.user.pk
-        ):
-            ip = obtener_ip(request)
-            registrar_warning(ip)
-            registrar_evento(
-                request,
-                "role_violation",
-                gravedad="high",
-                detalles={"causa": "finalizar_entrega_ajena", "entrega_id": entrega_id},
-            )
-            return _respuesta_no_autorizada(request)
-
-        # Validación de estado
-        if entrega.estado == "entregado":
-            messages.info(request, "Este envío ya fue finalizado y confirmado anteriormente.")
-            return redirect("usuarios:panel_conductor")
-
-        if entrega.estado not in ("en_ruta", "pendiente"):
-            messages.error(
-                request,
-                f"No se puede finalizar un envío en estado «{entrega.get_estado_display()}».",
-            )
-            return redirect("usuarios:panel_conductor")
-
-        ahora = now()
-        entrega.transicionar("entregado")
-        entrega.fecha_entrega = ahora
-        entrega.save(update_fields=["estado", "fecha_entrega"])
-
-        pedido = entrega.pedido
-        if pedido.puede_transicionar(Pedido.ENTREGADO):
-            pedido.transicionar(Pedido.ENTREGADO)
-        else:
-            pedido.estado = Pedido.ENTREGADO
-        pedido.fecha_entrega_real = ahora
-        pedido.save(update_fields=["estado", "fecha_entrega_real"])
-
-        if entrega.vehiculo:
-            entrega.vehiculo.estado = "disponible"
-            entrega.vehiculo.save(update_fields=["estado"])
-
-        if observacion:
-            Novedad.objects.create(
-                entrega=entrega,
-                tipo="observacion",
-                descripcion=observacion,
-                reportado_por=request.user,
-            )
-
-        registrar_actividad(
+    # Comprobación de propiedad estricta (admin exento)
+    if (
+        request.user.rol != "admin"
+        and entrega.conductor_id != conductor.pk
+        and entrega.conductor_usuario_id != request.user.pk
+    ):
+        ip = obtener_ip(request)
+        registrar_warning(ip)
+        registrar_evento(
             request,
-            "confirmar_entrega",
-            "entrega",
-            entrega.id_entrega,
-            f"Conductor {request.user.nombre_mostrar} finalizó entrega del pedido #{pedido.codigo_pedido}"
-            + (f". Nota: {observacion}" if observacion else ""),
+            "role_violation",
+            gravedad="high",
+            detalles={"causa": "finalizar_entrega_ajena", "entrega_id": entrega_id},
         )
+        return _respuesta_no_autorizada(request)
 
-        messages.success(
-            request,
-            f"¡Excelente! La entrega del pedido #{pedido.codigo_pedido} ha sido confirmada como entregada.",
-        )
+    if entrega.estado == "entregado":
+        messages.info(request, "Este envío ya fue finalizado y confirmado anteriormente.")
+        return redirect("usuarios:panel_conductor")
+
+    try:
+        entrega = marcar_pedido_entregado(entrega, request.user, observacion=observacion)
+    except ValidationError as exc:
+        msg = exc.messages[0] if hasattr(exc, "messages") and exc.messages else str(exc)
+        messages.error(request, msg)
+        return redirect("usuarios:panel_conductor")
+
+    pedido = entrega.pedido
+    registrar_actividad(
+        request,
+        "confirmar_entrega",
+        "entrega",
+        entrega.id_entrega,
+        f"Usuario {request.user.nombre_mostrar} marcó como entregado el pedido #{pedido.codigo_pedido}"
+        + (f". Nota: {observacion}" if observacion else ""),
+    )
+
+    messages.success(
+        request,
+        f"¡Excelente! La entrega del pedido #{pedido.codigo_pedido} ha sido marcada como entregada.",
+    )
     referer = request.META.get("HTTP_REFERER")
     if referer and ("pedidos-conductor" in referer or "panel-conductor" in referer or "detalles-entrega" in referer):
         return redirect(referer)
@@ -886,8 +855,12 @@ def pedidos_conductor(request):
 
     if request.user.rol == "admin":
         entregas = (
-            Entrega.objects.all()
-            .exclude(estado="entregado")
+            Entrega.objects.filter(
+                conductor__isnull=False,
+                pedido__estado__in=["autorizado_despacho", "vehiculo_asignado", "en_ruta"],
+            )
+            .exclude(estado__in=["entregado", "cancelado"])
+            .exclude(pedido__pago__estado__in=["pendiente", "rechazado"])
             .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario", "conductor__usuario")
             .prefetch_related("pedido__detalles__material")
             .order_by("fecha_salida", "pedido__fecha_solicitud")
@@ -895,8 +868,12 @@ def pedidos_conductor(request):
     else:
         conductor, _ = Conductor.ensure_for_user(request.user)
         entregas = (
-            Entrega.objects.filter(conductor=conductor)
-            .exclude(estado="entregado")
+            Entrega.objects.filter(
+                conductor=conductor,
+                pedido__estado__in=["autorizado_despacho", "vehiculo_asignado", "en_ruta"],
+            )
+            .exclude(estado__in=["entregado", "cancelado"])
+            .exclude(pedido__pago__estado__in=["pendiente", "rechazado"])
             .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario")
             .prefetch_related("pedido__detalles__material")
             .order_by("fecha_salida", "pedido__fecha_solicitud")
@@ -2136,7 +2113,43 @@ def lista_notificaciones(request):
 
 
 @login_required
-@require_POST
+def notificaciones_estado_json(request):
+    from django.http import JsonResponse
+
+    usuario = getattr(request.user, "usuario", request.user)
+    unread_qs = Notificacion.objects.filter(usuario=usuario, leida=False).order_by("-fecha")
+    unread_count = unread_qs.count()
+    recientes = list(
+        Notificacion.objects.filter(usuario=usuario)
+        .order_by("leida", "-fecha")
+        .only("id", "titulo", "mensaje", "fecha", "leida", "tipo", "link")[:6]
+    )
+    items = []
+    for n in recientes:
+        items.append(
+            {
+                "id": n.id,
+                "titulo": n.titulo,
+                "mensaje": n.mensaje,
+                "tipo": n.tipo,
+                "leida": n.leida,
+                "fecha": timezone.localtime(n.fecha).strftime("%d/%m/%Y %H:%M") if n.fecha else "",
+                "fecha_ts": int(n.fecha.timestamp()) if n.fecha else 0,
+                "url": reverse("usuarios:marcar_notificacion_leida", args=[n.id]),
+            }
+        )
+    latest_unread = next((item for item in items if not item["leida"]), None)
+    return JsonResponse(
+        {
+            "unread_count": unread_count,
+            "latest_unread": latest_unread,
+            "items": items,
+        }
+    )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
 def marcar_notificacion_leida(request, id):
     from django.utils.http import url_has_allowed_host_and_scheme
 
@@ -2144,6 +2157,7 @@ def marcar_notificacion_leida(request, id):
         notificacion = get_object_or_404(request.user.notificaciones, id=id)
         notificacion.leida = True
         notificacion.save(update_fields=["leida"])
+        cache.delete(f"notif_user_{request.user.pk}")
 
         if notificacion.link and url_has_allowed_host_and_scheme(
             url=notificacion.link,

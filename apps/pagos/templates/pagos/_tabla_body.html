@@ -2,7 +2,11 @@
 {% for pago in pagos %}
 <tr>
     <td class="fw-bold">#{{ pago.id }}</td>
-    <td>#{{ pago.pedido.codigo_pedido }}</td>
+    <td>
+        <a href="{% url 'pedidos:ver_pedido_admin' pago.pedido.codigo_pedido %}" class="text-accent text-decoration-none fw-bold">
+            #CT-{{ pago.pedido.codigo_pedido }}
+        </a>
+    </td>
     <td>
         {% if pago.pedido.cliente %}
             {{ pago.pedido.cliente.nombres }} {{ pago.pedido.cliente.apellidos }}
@@ -16,21 +20,26 @@
         {% if pago.estado == 'aprobado' %}
         <span class="badge bg-success-subtle text-success">Aprobado</span>
         {% elif pago.estado == 'rechazado' %}
-        <span class="badge bg-danger-subtle text-danger">Rechazado</span>
+            {% if pago.requiere_correccion %}
+            <span class="badge bg-warning-subtle text-warning me-1">Requiere corrección</span>
+            {% endif %}
+            <span class="badge bg-danger-subtle text-danger">Rechazado</span>
         {% else %}
-        <span class="badge bg-warning-subtle text-warning">Pendiente</span>
+            {% if pago.fue_corregido_pendiente_revision %}
+            <span class="badge bg-info-subtle text-info me-1">
+                <i class="bi bi-bell-fill me-1"></i>Pago corregido · Por revisar
+            </span>
+            {% endif %}
+        <span class="badge bg-warning-subtle text-warning">Pendiente de revisión</span>
         {% endif %}
     </td>
     <td>{{ pago.fecha_registro|date:"d/m/Y H:i" }}</td>
     <td>
-        {% if pago.estado == 'pendiente' %}
-<a href="{% url 'pagos:revisar_pago_pedido' pago.pk %}" class="btn btn-sm btn-outline-warning" aria-label="Revisar pago" data-tooltip="Revisar pago">
-    <i class="bi bi-clipboard-check"></i> Revisar
-</a>
-        </a>
-        {% else %}
-        <span class="text-muted small">Procesado</span>
-        {% endif %}
+        <div class="d-flex gap-1 flex-wrap">
+            <a href="{% url 'pagos:detalle_pago' pago.pk %}" class="btn btn-sm btn-outline-info" aria-label="Ver detalle del pago" data-tooltip="Ver detalle del pago">
+                <i class="bi bi-eye"></i> Ver Detalle
+            </a>
+        </div>
     </td>
 </tr>
 {% empty %}
@@ -41,3 +50,4 @@
     </td>
 </tr>
 {% endfor %}
+

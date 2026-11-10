@@ -49,7 +49,7 @@ class Pedido(TransicionMixin, models.Model):
     TRANSICIONES = {
         PENDIENTE: {AUTORIZADO_DESPACHO, CANCELADO},
         AUTORIZADO_DESPACHO: {VEHICULO_ASIGNADO, EN_RUTA, CANCELADO, PENDIENTE},
-        VEHICULO_ASIGNADO: {EN_RUTA, ENTREGADO, CANCELADO, PENDIENTE},
+        VEHICULO_ASIGNADO: {EN_RUTA, CANCELADO, PENDIENTE},
         EN_RUTA: {ENTREGADO, CANCELADO},
         ENTREGADO: set(),
         CANCELADO: set(),
@@ -221,7 +221,51 @@ class Pedido(TransicionMixin, models.Model):
     def conductor_usuario(self):
         if self.conductor:
             return self.conductor.usuario
+        envio = self.envio_actual
+        if envio and envio.conductor_id and envio.conductor:
+            return envio.conductor.usuario
         return self.conductor_usuario_legacy
+
+    @property
+    def envio_actual(self):
+        if hasattr(self, "_prefetched_objects_cache") and "entregas" in self._prefetched_objects_cache:
+            entregas = self._prefetched_objects_cache["entregas"]
+            return entregas[0] if entregas else None
+        db_alias = self._state.db or "default"
+        return (
+            self.entregas.using(db_alias)
+            .select_related(
+                "conductor__usuario",
+                "vehiculo",
+                "confirmado_salida_por",
+                "entregado_por",
+            )
+            .first()
+        )
+
+    @property
+    def vehiculo_asignado_actual(self):
+        envio = self.envio_actual
+        return envio.vehiculo if envio and envio.vehiculo_id else None
+
+    @property
+    def fecha_asignacion_logistica(self):
+        envio = self.envio_actual
+        return envio.fecha_asignacion_efectiva if envio else None
+
+    @property
+    def fecha_salida_ruta(self):
+        if self.fecha_toma_entrega:
+            return self.fecha_toma_entrega
+        envio = self.envio_actual
+        return envio.fecha_salida if envio else None
+
+    @property
+    def fecha_entrega_completada(self):
+        if self.fecha_entrega_real:
+            return self.fecha_entrega_real
+        envio = self.envio_actual
+        return envio.fecha_entrega if envio else None
 
     @property
     def pago_actual(self):
@@ -233,10 +277,77 @@ class Pedido(TransicionMixin, models.Model):
             return None
 
     @property
+    def requiere_correccion_pago(self):
+        pago = self.pago_actual
+        return bool(
+            self.estado == self.PENDIENTE
+            and pago is not None
+            and pago.estado in (Pago.RECHAZADO, getattr(Pago, "REQUIERE_CORRECCION", "requiere_correccion"))
+        )
+
+    @property
+    def pago_corregido_pendiente_revision(self):
+        pago = self.pago_actual
+        return bool(
+            self.estado == self.PENDIENTE
+            and pago is not None
+            and getattr(pago, "fue_corregido_pendiente_revision", False)
+        )
+
+    @property
+    def estado_gestion_codigo(self):
+        if self.requiere_correccion_pago:
+            return "pendiente_correccion_pago"
+        return self.estado
+
+    @property
+    def estado_gestion_display(self):
+        if self.requiere_correccion_pago:
+            return "Pendiente de corrección de pago"
+        if self.estado == self.AUTORIZADO_DESPACHO:
+            return "Autorizado para despacho"
+        if self.estado == self.VEHICULO_ASIGNADO:
+            return "En preparación · Vehículo asignado"
+        return self.get_estado_display()
+
+    @property
+    def estado_logistico_display(self):
+        if self.estado == self.AUTORIZADO_DESPACHO:
+            return "Pendiente de asignación"
+        if self.estado == self.VEHICULO_ASIGNADO:
+            return "Asignado · Preparando pedido"
+        if self.estado == self.EN_RUTA:
+            return "En ruta"
+        if self.estado == self.ENTREGADO:
+            return "Entregado"
+        return self.get_estado_display()
+
+    @property
+    def motivo_cancelacion_display(self):
+        envio = self.envio_actual
+        if envio and getattr(envio, "motivo_cancelacion", ""):
+            return envio.motivo_cancelacion
+        obs = (self.observacion_admin or "").strip()
+        if "[Cancelado" in obs:
+            for linea in reversed(obs.splitlines()):
+                linea = linea.strip()
+                if linea.startswith("[Cancelado") and ":" in linea:
+                    return linea.split(":", 1)[1].rstrip("]").strip()
+        return obs
+
+    @property
     def puede_despacharse(self):
+        if self.estado == self.CANCELADO:
+            return False
+        pago = self.pago_actual
+        if pago is not None and pago.estado in (
+            Pago.PENDIENTE,
+            Pago.RECHAZADO,
+            getattr(Pago, "REQUIERE_CORRECCION", "requiere_correccion"),
+        ):
+            return False
         if self.estado in (self.AUTORIZADO_DESPACHO, self.VEHICULO_ASIGNADO):
             return True
-        pago = self.pago_actual
         if not pago:
             return False
         if getattr(pago, "metodo", "") == Pago.METODO_CONTRAENTREGA:

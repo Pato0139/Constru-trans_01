@@ -112,6 +112,28 @@ window.AppAjaxNavigation = (() => {
             const nextPanel = nextSidebar.querySelector(button.dataset.bsTarget);
             if (panel && nextPanel) panel.classList.toggle('show', nextPanel.classList.contains('show'));
         });
+
+        const currentNotif = document.getElementById('navbarNotifDropdown');
+        const nextNotif = nextDocument.getElementById('navbarNotifDropdown');
+        if (currentNotif && nextNotif) {
+            const currentBadge = currentNotif.querySelector('#navbarNotifBadge');
+            const nextBadge = nextNotif.querySelector('#navbarNotifBadge');
+            if (currentBadge && nextBadge) {
+                currentBadge.className = nextBadge.className;
+                currentBadge.textContent = nextBadge.textContent;
+            }
+            const currentHeaderBadge = currentNotif.querySelector('#navbarNotifHeaderBadge');
+            const nextHeaderBadge = nextNotif.querySelector('#navbarNotifHeaderBadge');
+            if (currentHeaderBadge && nextHeaderBadge) {
+                currentHeaderBadge.className = nextHeaderBadge.className;
+                currentHeaderBadge.textContent = nextHeaderBadge.textContent;
+            }
+            const currentList = currentNotif.querySelector('#navbarNotifList');
+            const nextList = nextNotif.querySelector('#navbarNotifList');
+            if (currentList && nextList) {
+                currentList.innerHTML = nextList.innerHTML;
+            }
+        }
     }
 
     function synchronizeMessages(nextDocument) {

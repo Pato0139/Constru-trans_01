@@ -1,3 +1,4 @@
+from datetime import timedelta
 import uuid
 from decimal import Decimal
 
@@ -45,11 +46,26 @@ class Pago(TransicionMixin, models.Model):
     PENDIENTE = "pendiente"
     APROBADO = "aprobado"
     RECHAZADO = "rechazado"
+    REQUIERE_CORRECCION = "requiere_correccion"
+    HORAS_PLAZO_CORRECCION = 12
+    MAX_RECHAZOS_PERMITIDOS = 2
     ESTADOS = [
         (PENDIENTE, "Pendiente"),
         (APROBADO, "Aprobado"),
         (RECHAZADO, "Rechazado"),
     ]
+    ESTADOS_GESTION = [
+        (PENDIENTE, "Pendientes"),
+        (APROBADO, "Aprobados"),
+        (RECHAZADO, "Rechazados"),
+        (REQUIERE_CORRECCION, "Requieren corrección"),
+    ]
+    TIPOS_RECHAZO = {
+        "comprobante_invalido": "Comprobante inválido",
+        "sin_comprobante": "Ausencia de documentación",
+        "datos_incorrectos": "Datos o importe inconsistentes",
+        "otro_motivo": "General / Otro motivo",
+    }
     TRANSICIONES = {
         PENDIENTE: {APROBADO, RECHAZADO},
         RECHAZADO: {PENDIENTE},  # el cliente reenvía comprobante
@@ -106,6 +122,9 @@ class Pago(TransicionMixin, models.Model):
             ),
         ]
 
+    def __str__(self):
+        return f"Pago pedido {self.pedido_id} ({self.get_estado_display()})"
+
     @property
     def metodo_pago(self):
         return self.metodo
@@ -122,8 +141,78 @@ class Pago(TransicionMixin, models.Model):
     def estado_pago(self, value):
         self.estado = value
 
+    @property
+    def requiere_correccion(self):
+        return (
+            self.estado == self.RECHAZADO
+            and getattr(self.pedido, "estado", None) != "cancelado"
+            and self.total_rechazos < self.MAX_RECHAZOS_PERMITIDOS
+            and not self.plazo_correccion_vencido
+        )
+
+    @property
+    def fue_corregido_pendiente_revision(self) -> bool:
+        """Indica si el cliente ya corrigió y reenvió un pago que había sido rechazado previamente."""
+        return self.estado == self.PENDIENTE and self.total_rechazos > 0
+
+    @property
+    def total_rechazos(self):
+        """Cantidad de veces que este pago ha sido rechazado en su historial."""
+        rechazos_hist = sum(1 for item in self.historial_intentos if item.get("estado") == self.RECHAZADO)
+        if rechazos_hist == 0 and self.estado == self.RECHAZADO:
+            return 1
+        return rechazos_hist
+
+    @property
+    def fecha_limite_correccion(self):
+        """Fecha y hora límite (12 horas desde la revisión) para corregir el pago rechazado."""
+        if self.estado != self.RECHAZADO or not self.fecha_revision:
+            return None
+        if getattr(self.pedido, "estado", None) == "cancelado":
+            return None
+        if self.total_rechazos >= self.MAX_RECHAZOS_PERMITIDOS:
+            return None
+        return self.fecha_revision + timedelta(hours=self.HORAS_PLAZO_CORRECCION)
+
+    @property
+    def plazo_correccion_vencido(self):
+        """Indica si ya transcurrieron las 12 horas límite sin que el cliente corrigiera el pago."""
+        limite = self.fecha_limite_correccion
+        if not limite:
+            return False
+        return timezone.now() >= limite
+
+    @property
+    def segundos_restantes_correccion(self):
+        limite = self.fecha_limite_correccion
+        if not limite:
+            return 0
+        restante = int((limite - timezone.now()).total_seconds())
+        return max(0, restante)
+
+    @property
+    def estado_gestion_display(self):
+        if self.estado == self.PENDIENTE:
+            return "Pendiente de revisión"
+        if self.estado == self.APROBADO:
+            return "Aprobado"
+        if self.estado == self.RECHAZADO:
+            if self.requiere_correccion:
+                return "Rechazado · Requiere corrección"
+            return "Rechazado"
+        return self.get_estado_display()
+
     def requiere_comprobante(self):
         return self.metodo in self.METODOS_CON_COMPROBANTE
+
+    @property
+    def comprobante_existe_en_disco(self) -> bool:
+        if not self.comprobante or not getattr(self.comprobante, "name", ""):
+            return False
+        try:
+            return bool(self.comprobante.storage.exists(self.comprobante.name))
+        except Exception:
+            return False
 
     def habilita_despacho(self):
         return self.estado == self.APROBADO
@@ -144,6 +233,102 @@ class Pago(TransicionMixin, models.Model):
         self.revisado_por = revisor
         self.observaciones = observaciones or ""
         self.fecha_revision = timezone.now()
+
+    def registrar_intento_historial(
+        self,
+        *,
+        estado_intento=None,
+        metodo=None,
+        comprobante_nombre=None,
+        revisor=None,
+        observaciones="",
+        using=None,
+    ):
+        """
+        Registra en DetallePago una entrada inmutable de trazabilidad del intento de pago
+        (conservando método, ruta del comprobante adjunto, revisor, fecha y motivo).
+        """
+        if not self.pk:
+            return None
+        db_alias = using or self._state.db or "default"
+        estado_val = estado_intento or self.estado
+        metodo_val = metodo or self.metodo or ""
+        comp_val = (
+            comprobante_nombre
+            if comprobante_nombre is not None
+            else (self.comprobante.name if self.comprobante else "")
+        )
+        rev_obj = revisor if revisor is not None else self.revisado_por
+        rev_val = getattr(rev_obj, "username", "") if rev_obj else ""
+        fecha_str = (self.fecha_revision or timezone.now()).strftime("%Y-%m-%d %H:%M")
+        obs_val = (observaciones if observaciones is not None else (self.observaciones or "")).strip()
+        obs_clean = obs_val.replace("|", "/").replace("\n", " ")
+
+        num_intento = self.detalles.using(db_alias).count() + 1
+        partes = [
+            f"INTENTO:{num_intento}",
+            f"ESTADO:{estado_val}",
+            f"METODO:{metodo_val}",
+            f"FECHA:{fecha_str}",
+            f"REV:{rev_val}",
+            f"COMP:{comp_val}",
+            f"MOTIVO:{obs_clean}",
+        ]
+        concepto = " | ".join(partes)[:200]
+        return DetallePago.objects.using(db_alias).create(
+            pago=self,
+            concepto=concepto,
+            monto=self.monto or Decimal("0.00"),
+        )
+
+    @property
+    def historial_intentos(self):
+        """Devuelve la lista cronológica de intentos registrados en DetallePago."""
+        db_alias = self._state.db or "default"
+        registros = list(self.detalles.using(db_alias).order_by("id"))
+        resultado = []
+        metodos_map = dict(self.METODOS)
+        for idx, det in enumerate(registros, start=1):
+            texto = det.concepto or ""
+            info = {
+                "id": det.pk,
+                "numero": idx,
+                "estado": "",
+                "metodo": "",
+                "metodo_display": "",
+                "fecha": "",
+                "revisor": "",
+                "comprobante": "",
+                "motivo": "",
+                "monto": det.monto,
+                "raw": texto,
+            }
+            if "ESTADO:" in texto and " | " in texto:
+                for bloque in texto.split(" | "):
+                    if ":" not in bloque:
+                        continue
+                    k, v = bloque.split(":", 1)
+                    k = k.strip().upper()
+                    v = v.strip()
+                    if k == "INTENTO" and v.isdigit():
+                        info["numero"] = int(v)
+                    elif k == "ESTADO":
+                        info["estado"] = v
+                    elif k == "METODO":
+                        info["metodo"] = v
+                        info["metodo_display"] = metodos_map.get(v, v)
+                    elif k == "FECHA":
+                        info["fecha"] = v
+                    elif k == "REV":
+                        info["revisor"] = v
+                    elif k == "COMP":
+                        info["comprobante"] = v
+                    elif k == "MOTIVO":
+                        info["motivo"] = v
+            else:
+                info["motivo"] = texto
+            resultado.append(info)
+        return resultado
 
 
 class DetallePago(models.Model):

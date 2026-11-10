@@ -53,6 +53,11 @@ urlpatterns = [
     # Notificaciones
     path("notificaciones/", views.lista_notificaciones, name="notificaciones"),
     path(
+        "notificaciones/estado-json/",
+        views.notificaciones_estado_json,
+        name="notificaciones_estado_json",
+    ),
+    path(
         "notificaciones/marcar-leida/<int:id>/",
         views.marcar_notificacion_leida,
         name="marcar_notificacion_leida",

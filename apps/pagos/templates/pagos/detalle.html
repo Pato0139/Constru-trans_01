@@ -13,7 +13,7 @@
                     <h3 class="fw-800 text-white mb-1">Pago del Pedido #CT-{{ pedido.codigo_pedido }}</h3>
                     <p class="text-muted small mb-0">Referencia de Pago: #PAG-{{ pago.pk }}</p>
                 </div>
-                <div>
+                <div class="d-flex align-items-center gap-2">
                     {% if pago.estado == "pendiente" %}
                     <span class="badge-tipo badge-tipo-pendiente">
                         <i class="bi bi-hourglass-split me-1"></i>Pendiente de revisión
@@ -23,9 +23,14 @@
                         <i class="bi bi-check-circle-fill me-1"></i>Aprobado
                     </span>
                     {% elif pago.estado == "rechazado" %}
-                    <span class="badge-tipo badge-tipo-cancelado" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i>Rechazado
-                    </span>
+                        {% if pago.requiere_correccion %}
+                        <span class="badge-tipo badge-tipo-cancelado" style="background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35);">
+                            <i class="bi bi-arrow-repeat me-1"></i>Requiere corrección
+                        </span>
+                        {% endif %}
+                        <span class="badge-tipo badge-tipo-cancelado" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Rechazado
+                        </span>
                     {% else %}
                     <span class="badge-tipo">{{ pago.get_estado_display }}</span>
                     {% endif %}
@@ -36,62 +41,108 @@
             <div class="alert alert-danger border-0 rounded-4 p-3 mb-4" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3) !important;">
                 <h6 class="fw-800 text-danger mb-2"><i class="bi bi-exclamation-circle-fill me-2"></i>Pago Rechazado por Administración</h6>
                 <p class="text-white small mb-2"><strong>Motivo del rechazo:</strong> {{ pago.observaciones|default:"No se especificó un motivo detallado." }}</p>
+                {% if pedido.estado == "cancelado" %}
+                <p class="text-white small mb-0">
+                    <strong>Estado del pedido:</strong> El pedido <strong>#CT-{{ pedido.codigo_pedido }}</strong> fue cancelado automáticamente y enviado al historial (por vencimiento del plazo de 12 horas o por segundo rechazo del comprobante). Para continuar, registra un nuevo pedido.
+                </p>
+                {% else %}
+                <p class="text-white small mb-2">
+                    <strong>Plazo límite de corrección (12 horas):</strong>
+                    {% if pago.fecha_limite_correccion %}
+                        Tienes hasta el <span class="text-warning fw-700">{{ pago.fecha_limite_correccion|date:"d/m/Y H:i" }}</span> para corregir tu pago o cargar un nuevo comprobante. Si no lo envías dentro de ese tiempo o vuelve a ser rechazado, el pedido se cancelará automáticamente.
+                    {% else %}
+                        Tienes 12 horas a partir del rechazo para corregir tu comprobante.
+                    {% endif %}
+                </p>
                 <p class="text-white small mb-3">
                     <strong>Instrucciones:</strong> Revisa el comprobante original o los datos de la transferencia bancaria. Puedes cargar un nuevo comprobante corregido para que el equipo administrativo valide y autorice el despacho de tu pedido.
                 </p>
                 {% if user.rol == "cliente" or user.usuario.rol == "cliente" %}
-                <a href="{% url 'pagos:registrar_pago_pedido' pedido.codigo_pedido %}" class="btn btn-gold btn-sm rounded-pill fw-700">
-                    <i class="bi bi-arrow-repeat me-1"></i> Corregir y volver a presentar comprobante
-                </a>
+                    <a href="{% url 'pagos:registrar_pago_pedido' pedido.codigo_pedido %}" class="btn btn-gold btn-sm rounded-pill fw-700">
+                        <i class="bi bi-arrow-repeat me-1"></i> Corregir y volver a presentar comprobante
+                    </a>
+                {% endif %}
                 {% endif %}
             </div>
             {% elif pago.estado == "pendiente" %}
-            <div class="alert alert-warning border-0 rounded-4 p-3 mb-4" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3) !important;">
-                <h6 class="fw-800 text-warning mb-1"><i class="bi bi-hourglass-split me-2"></i>En Proceso de Revisión</h6>
-                <p class="text-white small mb-0">El comprobante ha sido registrado y se encuentra en cola de verificación. Te notificaremos una vez sea validado.</p>
-            </div>
+                {% if pago.fue_corregido_pendiente_revision %}
+                <div class="alert alert-info border-0 rounded-4 p-3 mb-4" style="background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.35) !important;">
+                    <h6 class="fw-800 text-info mb-1"><i class="bi bi-bell-fill me-2"></i>Pago Corregido por el Cliente · Pendiente de Revisión</h6>
+                    <p class="text-white small mb-0">El cliente realizó la corrección de su pago y volvió a presentar el soporte tras el rechazo previo. Revisa el nuevo comprobante para aprobarlo o rechazarlo.</p>
+                </div>
+                {% else %}
+                <div class="alert alert-warning border-0 rounded-4 p-3 mb-4" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3) !important;">
+                    <h6 class="fw-800 text-warning mb-1"><i class="bi bi-hourglass-split me-2"></i>En Proceso de Revisión</h6>
+                    <p class="text-white small mb-0">El comprobante ha sido registrado y se encuentra en cola de verificación. Te notificaremos una vez sea validado.</p>
+                </div>
+                {% endif %}
             {% elif pago.estado == "aprobado" %}
             <div class="alert alert-success border-0 rounded-4 p-3 mb-4" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3) !important;">
                 <h6 class="fw-800 text-success mb-1"><i class="bi bi-check-circle-fill me-2"></i>Pago Verificado</h6>
-                <p class="text-white small mb-0">El pago fue revisado y aprobado exitosamente. El pedido se encuentra autorizado para preparación logística.</p>
+                <p class="text-white small mb-0">El pago fue revisado y aprobado exitosamente. El pedido se encuentra autorizado para despacho logístico.</p>
             </div>
             {% endif %}
 
             <div class="row g-4 mb-4">
                 <div class="col-md-6">
-                    <div class="p-3 rounded-4" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.08);">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-3">Información Financiera</h6>
+                    <div class="p-3 rounded-4 h-100" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.08);">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-3">Información Financiera y Cliente</h6>
                         <dl class="row mb-0 text-white small">
+                            <dt class="col-sm-5 text-muted">Referencia del pago:</dt>
+                            <dd class="col-sm-7 fw-700">#PAG-{{ pago.pk }}</dd>
                             <dt class="col-sm-5 text-muted">Pedido relacionado:</dt>
                             <dd class="col-sm-7 fw-700">
                                 <a href="{% url 'pedidos:ver_pedido_admin' pedido.codigo_pedido %}" class="text-accent text-decoration-none">
                                     #CT-{{ pedido.codigo_pedido }} <i class="bi bi-box-arrow-up-right ms-1"></i>
                                 </a>
                             </dd>
+                            <dt class="col-sm-5 text-muted">Cliente:</dt>
+                            <dd class="col-sm-7 fw-600">
+                                {% if pedido.cliente %}
+                                    {{ pedido.cliente.nombres }} {{ pedido.cliente.apellidos }}
+                                {% else %}
+                                    {{ pedido.usuario.nombres }} {{ pedido.usuario.apellidos }}
+                                {% endif %}
+                                <span class="d-block text-muted x-small">{{ pedido.cliente_usuario.email }}</span>
+                            </dd>
                             <dt class="col-sm-5 text-muted">Importe:</dt>
                             <dd class="col-sm-7 fw-800 fs-6 text-white">{{ pago.monto|currency }}</dd>
                             <dt class="col-sm-5 text-muted">Método de pago:</dt>
                             <dd class="col-sm-7">{{ pago.get_metodo_display }}</dd>
+                            <dt class="col-sm-5 text-muted">Estado del pago:</dt>
+                            <dd class="col-sm-7">{{ pago.estado_gestion_display }}</dd>
                         </dl>
                     </div>
                 </div>
 
                 <div class="col-md-6">
-                    <div class="p-3 rounded-4" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.08);">
+                    <div class="p-3 rounded-4 h-100" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.08);">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3">Trazabilidad de Revisión</h6>
                         <dl class="row mb-0 text-white small">
                             <dt class="col-sm-5 text-muted">Fecha de registro:</dt>
                             <dd class="col-sm-7">{{ pago.fecha_registro|date:"d/m/Y H:i" }}</dd>
                             <dt class="col-sm-5 text-muted">Fecha de revisión:</dt>
-                            <dd class="col-sm-7">{{ pago.fecha_revision|date:"d/m/Y H:i"|default:"Pendiente" }}</dd>
+                            <dd class="col-sm-7">{{ pago.fecha_revision|date:"d/m/Y H:i"|default:"Pendiente de revisión" }}</dd>
+                            <dt class="col-sm-5 text-muted">Revisado por:</dt>
+                            <dd class="col-sm-7">
+                                {% if pago.revisado_por %}
+                                    {{ pago.revisado_por.nombre_mostrar|default:pago.revisado_por.username }}
+                                {% else %}
+                                    <span class="text-muted">Sin asignar</span>
+                                {% endif %}
+                            </dd>
+                            {% if pago.estado == "rechazado" or pago.observaciones %}
+                            <dt class="col-sm-5 text-muted">Motivo / Observación:</dt>
+                            <dd class="col-sm-7 text-danger fw-600">{{ pago.observaciones|default:"No especificado" }}</dd>
+                            {% endif %}
                             <dt class="col-sm-5 text-muted">Comprobante:</dt>
                             <dd class="col-sm-7">
-                                {% if pago.comprobante %}
-                                <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1">
-                                    <i class="bi bi-paperclip me-1"></i>Ver comprobante seguro
-                                </a>
+                                {% if pago.comprobante_existe_en_disco %}
+                                    <span class="text-success fw-600"><i class="bi bi-check2-circle me-1"></i>Archivo adjunto disponible</span>
+                                {% elif pago.metodo == "contraentrega" %}
+                                    <span class="text-info"><i class="bi bi-cash-stack me-1"></i>Modalidad contraentrega (no requiere comprobante previo)</span>
                                 {% else %}
-                                <span class="text-muted">No aplica (ej. contraentrega)</span>
+                                    <span class="text-danger fw-600"><i class="bi bi-exclamation-octagon me-1"></i>No se adjuntó comprobante</span>
                                 {% endif %}
                             </dd>
                         </dl>
@@ -99,36 +150,205 @@
                 </div>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
-                {% if user.rol == "admin" or user.usuario.rol == "admin" or user.is_superuser or user.is_staff %}
-                <a href="{% url 'pagos:lista_pagos' %}" class="btn btn-outline-light rounded-pill px-3 small">
-                    <i class="bi bi-arrow-left me-1"></i> Volver a Pagos
-                </a>
-                {% else %}
-                <a href="{% url 'pagos:mis_pagos' %}" class="btn btn-outline-light rounded-pill px-3 small">
-                    <i class="bi bi-arrow-left me-1"></i> Volver a Mis Pagos
-                </a>
-                {% endif %}
-                <div class="d-flex gap-2">
-                    {% if user.rol == "admin" or user.usuario.rol == "admin" or user.is_superuser or user.is_staff %}
-                        {% if pago.estado == "pendiente" %}
-                        <a href="{% url 'pagos:revisar_pago_pedido' pago.pk %}" class="btn btn-gold rounded-pill px-4 small fw-800">
-                            <i class="bi bi-check2-square me-1"></i> Revisar Pago
+            <!-- SECCIÓN DE VISUALIZACIÓN DIRECTA DEL COMPROBANTE -->
+            <div class="p-3 rounded-4 mb-4" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.08);">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h6 class="fw-800 text-accent text-uppercase small mb-0">
+                        <i class="bi bi-file-earmark-image me-2"></i>Comprobante de Pago
+                    </h6>
+                    {% if pago.comprobante_existe_en_disco %}
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                            <i class="bi bi-arrows-fullscreen me-1"></i>Abrir en tamaño completo
                         </a>
-                        {% endif %}
-                    {% else %}
-                        {% if pago.estado == "rechazado" %}
-                        <a href="{% url 'pagos:registrar_pago_pedido' pedido.codigo_pedido %}" class="btn btn-gold rounded-pill px-4 small fw-800">
-                            <i class="bi bi-arrow-repeat me-1"></i> Volver a Presentar
+                        <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}?download=1" download class="btn btn-sm btn-outline-light rounded-pill px-3">
+                            <i class="bi bi-download me-1"></i>Descargar comprobante
                         </a>
-                        {% endif %}
+                    </div>
                     {% endif %}
-                    <a href="{% url 'pedidos:ver_pedido_admin' pedido.codigo_pedido %}" class="btn btn-outline-warning rounded-pill px-3 small">
-                        <i class="bi bi-eye me-1"></i> Ver Pedido
+                </div>
+
+                {% if pago.comprobante_existe_en_disco %}
+                <div class="text-center p-3 rounded-3" style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08);">
+                    <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}" target="_blank" rel="noopener" title="Clic para abrir en tamaño completo">
+                        <img src="{% url 'pagos:ver_comprobante_pago' pago.pk %}"
+                             alt="Vista previa del comprobante de pago #PAG-{{ pago.pk }}"
+                             class="img-fluid rounded-3 shadow"
+                             style="max-height: 420px; object-fit: contain;">
                     </a>
                 </div>
+                {% elif pago.metodo == "contraentrega" %}
+                <div class="p-3 rounded-3 text-white small d-flex align-items-center gap-2" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25);">
+                    <i class="bi bi-cash-coin text-info fs-5"></i>
+                    <span>Este pago fue registrado bajo la modalidad <strong>Contraentrega</strong>, por lo que no requiere comprobante adjunto previo.</span>
+                </div>
+                {% else %}
+                <div class="p-3 rounded-3 text-white small d-flex align-items-center gap-2" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.28);">
+                    <i class="bi bi-file-earmark-x text-danger fs-5"></i>
+                    <span><strong>No se adjuntó comprobante:</strong> No existe un archivo de soporte cargado para este pago por {{ pago.get_metodo_display }}.</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- HISTORIAL DE INTENTOS DE PAGO (TRAZABILIDAD) -->
+            {% if historial_intentos %}
+            <div class="p-3 rounded-4 mb-4" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.08);">
+                <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                    <i class="bi bi-clock-history me-2"></i>Historial de Intentos y Revisiones de Pago
+                </h6>
+                <div class="table-responsive">
+                    <table class="table table-dark table-sm align-middle mb-0 small">
+                        <thead>
+                            <tr>
+                                <th>Intento</th>
+                                <th>Fecha</th>
+                                <th>Método</th>
+                                <th>Resultado / Acción</th>
+                                <th>Revisor</th>
+                                <th>Motivo / Observación</th>
+                                <th class="text-end">Comprobante</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for intento in historial_intentos %}
+                            <tr>
+                                <td class="fw-700">#{{ forloop.revcounter }}</td>
+                                <td class="text-muted">{{ intento.fecha_evento|slice:":16"|default:"—" }}</td>
+                                <td>{{ intento.metodo_display|default:intento.metodo }}</td>
+                                <td>
+                                    {% if intento.estado == "aprobado" %}
+                                        <span class="badge bg-success-subtle text-success">Aprobado</span>
+                                    {% elif intento.estado == "rechazado" %}
+                                        <span class="badge bg-danger-subtle text-danger">Rechazado</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning">Enviado a revisión</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ intento.revisado_por|default:"—" }}</td>
+                                <td class="text-white-50">{{ intento.observaciones|default:"—" }}</td>
+                                <td class="text-end">
+                                    {% if intento.comprobante %}
+                                    <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}?intento={{ intento.id }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info rounded-pill py-0 px-2">
+                                        <i class="bi bi-eye me-1"></i>Ver
+                                    </a>
+                                    <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}?intento={{ intento.id }}&download=1" download class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">Sin archivo</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- BARRA DE ACCIONES INFERIOR (SIN BOTÓN VOLVER A PAGOS, SOLO VER PEDIDO Y ACCIONES) -->
+            <div class="d-flex justify-content-end align-items-center pt-3 border-top border-secondary flex-wrap gap-2">
+                {% if user.rol == "admin" or user.usuario.rol == "admin" or user.is_superuser or user.is_staff %}
+                    {% if pago.estado == "pendiente" and pedido.estado != "cancelado" %}
+                    <button type="button" class="btn btn-success rounded-pill px-4 small fw-800" data-bs-toggle="modal" data-bs-target="#modalAprobarPago">
+                        <i class="bi bi-check-circle-fill me-1"></i> Aprobar Pago
+                    </button>
+                    <button type="button" class="btn btn-outline-danger rounded-pill px-4 small fw-800" data-bs-toggle="modal" data-bs-target="#modalRechazarPago">
+                        <i class="bi bi-x-circle-fill me-1"></i> Rechazar Pago
+                    </button>
+                    {% endif %}
+                {% else %}
+                    {% if pago.estado == "rechazado" and pedido.estado != "cancelado" %}
+                    <a href="{% url 'pagos:registrar_pago_pedido' pedido.codigo_pedido %}" class="btn btn-gold rounded-pill px-4 small fw-800">
+                        <i class="bi bi-arrow-repeat me-1"></i> Volver a Presentar Comprobante
+                    </a>
+                    {% endif %}
+                {% endif %}
+                <a href="{% url 'pedidos:ver_pedido_admin' pedido.codigo_pedido %}" class="btn btn-outline-warning rounded-pill px-4 small fw-700">
+                    <i class="bi bi-eye me-1"></i> Ver Pedido
+                </a>
             </div>
         </div>
     </div>
 </div>
+
+{% if user.rol == "admin" or user.usuario.rol == "admin" or user.is_superuser or user.is_staff %}
+{% if pago.estado == "pendiente" and pedido.estado != "cancelado" %}
+<!-- Modal de Confirmación para Aprobar Pago -->
+<div class="modal fade" id="modalAprobarPago" tabindex="-1" aria-labelledby="modalAprobarPagoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border border-secondary rounded-4 shadow-lg">
+            <form method="post" action="{% url 'pagos:revisar_pago_pedido' pago.pk %}" id="form-aprobar-pago-modal">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="aprobar">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title fw-800 text-success" id="modalAprobarPagoLabel">
+                        <i class="bi bi-shield-check me-2"></i>¿Confirmar aprobación del pago?
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-white-50 mb-3">
+                        Al aprobar el pago <strong>#PAG-{{ pago.pk }}</strong> por <strong>{{ pago.monto|currency }}</strong>, el pedido <strong>#CT-{{ pedido.codigo_pedido }}</strong> pasará a estado <strong>Autorizado para despacho</strong> y se habilitará en <em>Logística &rarr; Envíos</em>.
+                    </p>
+                    <div class="mb-2">
+                        <label for="observaciones-aprobar" class="form-label small text-white fw-600">Observaciones de revisión (opcional):</label>
+                        <textarea name="observaciones" id="observaciones-aprobar" rows="2" class="form-control bg-surface text-white border-secondary small" placeholder="Ej.: Comprobante verificado en extracto bancario."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Volver</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-800" id="btn-confirmar-aprobacion">
+                        <i class="bi bi-check2-circle me-1"></i> Confirmar Aprobación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Rechazar Pago con Motivo Obligatorio -->
+<div class="modal fade" id="modalRechazarPago" tabindex="-1" aria-labelledby="modalRechazarPagoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border border-danger border-opacity-50 rounded-4 shadow-lg">
+            <form method="post" action="{% url 'pagos:revisar_pago_pedido' pago.pk %}" id="form-rechazar-pago-modal">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="rechazar">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title fw-800 text-danger" id="modalRechazarPagoLabel">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Rechazar pago #PAG-{{ pago.pk }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-white-50 mb-3">
+                        El pedido <strong>#CT-{{ pedido.codigo_pedido }}</strong> no será cancelado; quedará como <strong>Pendiente de corrección de pago</strong> y se notificará al cliente para que cargue un nuevo comprobante.
+                    </p>
+                    <div class="mb-3">
+                        <label for="tipo-rechazo-select" class="form-label small text-white fw-700">Causa principal del rechazo:</label>
+                        <select name="tipo_rechazo" id="tipo-rechazo-select" class="form-select bg-surface text-white border-secondary small">
+                            <option value="comprobante_invalido">Comprobante inválido o ilegible</option>
+                            <option value="sin_comprobante" {% if not pago.comprobante %}selected{% endif %}>Ausencia de documentación / Sin comprobante</option>
+                            <option value="datos_incorrectos">Datos o importe inconsistentes</option>
+                            <option value="otro_motivo">General / Otro motivo</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label for="observaciones-rechazar" class="form-label small text-white fw-700">Motivo detallado del rechazo (obligatorio):</label>
+                        <textarea name="observaciones" id="observaciones-rechazar" rows="3" required class="form-control bg-surface text-white border-secondary small" placeholder="Indica claramente al cliente qué debe corregir en el comprobante o transferencia..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Volver</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-800" id="btn-confirmar-rechazo">
+                        <i class="bi bi-x-circle me-1"></i> Confirmar Rechazo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}
 {% endblock %}
+

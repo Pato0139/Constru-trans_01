@@ -158,9 +158,19 @@
                     <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase pedido-submit-btn" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                         <i class="bi bi-check2-all me-2"></i> {% if action == 'crear' %}Confirmar y Enviar Pedido{% else %}Guardar Cambios{% endif %}
                     </button>
-                    <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-secondary-cta rounded-pill py-2" aria-label="Volver" data-tooltip="Volver" title="Volver">
+                    {% if action == 'editar' and orden %}
+                    <a href="{% url 'pedidos:ver_pedido_admin' orden.codigo_pedido %}" class="btn btn-outline-light rounded-pill py-2 fw-700 text-white pedido-cancel-btn" aria-label="Volver al pedido" data-tooltip="Volver al pedido" title="Volver al pedido">
                         <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
                     </a>
+                    {% elif user.rol == 'admin' or user.usuario.rol == 'admin' or user.is_superuser %}
+                    <a href="{% url 'pedidos:lista_pedidos_admin' %}" class="btn btn-outline-light rounded-pill py-2 fw-700 text-white pedido-cancel-btn" aria-label="Volver a pedidos" data-tooltip="Volver a pedidos" title="Volver a pedidos">
+                        <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
+                    </a>
+                    {% else %}
+                    <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light rounded-pill py-2 fw-700 text-white pedido-cancel-btn" aria-label="Volver" data-tooltip="Volver" title="Volver">
+                        <i class="bi bi-arrow-left me-2"></i> Cancelar y Volver
+                    </a>
+                    {% endif %}
                 </div>
             </form>
         </div>

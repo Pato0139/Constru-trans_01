@@ -38,12 +38,25 @@ class PagoRegistroForm(forms.ModelForm):
 
 class PagoRevisionForm(StrictForm):
     ACCIONES = (("aprobar", "Aprobar"), ("rechazar", "Rechazar"))
+    TIPOS_RECHAZO = (
+        ("", "General / Otro motivo"),
+        ("otro_motivo", "General / Otro motivo"),
+        ("comprobante_invalido", "Comprobante inválido o ilegible"),
+        ("sin_comprobante", "Ausencia de documentación / Sin comprobante"),
+        ("datos_incorrectos", "Datos o importe inconsistentes"),
+    )
     motivo_obligatorio = True
 
     accion = forms.ChoiceField(
         choices=ACCIONES,
         required=False,  # el GET inicial no la envía; se exige en clean() si hay POST
         error_messages={"invalid_choice": "La acción seleccionada no es válida."},
+    )
+    tipo_rechazo = forms.ChoiceField(
+        choices=TIPOS_RECHAZO,
+        required=False,
+        error_messages={"invalid_choice": "El tipo de rechazo seleccionado no es válido."},
+        widget=forms.Select(attrs={"class": "form-select bg-surface text-white"}),
     )
     observaciones = forms.CharField(
         required=False,

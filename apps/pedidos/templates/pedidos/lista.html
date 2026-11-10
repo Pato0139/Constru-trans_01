@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title %}Logística - ConstruTrans{% endblock %}
+{% block title %}Logística y Envíos - ConstruTrans{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/catalogo/lista.css' %}?v=1.8">
@@ -15,10 +15,10 @@
         data-aos="fade-down">
         <div>
             <h2 class="fw-bold mb-0 text-white">
-                <i class="bi bi-cart-check text-accent me-2"></i>{{ titulo_panel|default:"Control de Entregas y Envíos" }}
+                <i class="bi bi-truck text-accent me-2"></i>{{ titulo_panel|default:"Control de Entregas y Envíos" }}
             </h2>
             <div class="d-flex align-items-center gap-2 mt-1">
-                <p class="page-subtitle small mb-0">Control de despachos, rutas y seguimiento de pedidos</p>
+                <p class="page-subtitle small mb-0">Administración de despachos, asignación de conductores/vehículos y seguimiento de envíos</p>
                 <span class="badge rounded-pill px-3 u-inline-b2204c9e00">{{ pedidos|length }} registros</span>
             </div>
         </div>
@@ -31,36 +31,53 @@
         <!-- Barra de filtros DENTRO del contenedor de la tabla -->
         <div class="materiales-filter-bar">
             <div class="card bg-surface border-0 shadow-sm p-3 mb-0 filter-bar-card standard-filter-bar">
-                <div class="standard-filter-layout">
+                <form method="get" class="standard-filter-layout" id="admin-envios-filter-form">
                     <div class="standard-filter-label">
                         <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
                     </div>
-                    <div class="standard-filter-field" style="flex: 0 1 120px; min-width: 90px;">
-                        <input type="text" id="filter-id" class="form-control form-control-sm bg-surface text-main filter-input"
-                            placeholder="ID Pedido...">
+                    <div class="standard-filter-field" style="flex: 0 1 140px; min-width: 110px;">
+                        <input type="text" id="filter-id" name="q" value="{{ q }}"
+                            class="form-control form-control-sm bg-surface text-main filter-input"
+                            placeholder="N.° pedido o destino...">
                     </div>
                     <div class="standard-filter-field">
-                        <input type="text" id="filter-cliente"
+                        <input type="text" id="filter-cliente" name="cliente" value="{{ cliente_query }}"
                             class="form-control form-control-sm bg-surface text-main filter-input" placeholder="Cliente...">
                     </div>
                     <div class="standard-filter-field">
                         <input type="text" id="filter-destino"
-                            class="form-control form-control-sm bg-surface text-main filter-input" placeholder="Destino...">
+                            class="form-control form-control-sm bg-surface text-main filter-input" placeholder="Dirección...">
                     </div>
-                    <div class="standard-filter-field" style="flex: 1 1 160px; min-width: 140px;">
-                        <select id="filter-estado" class="form-select form-select-sm bg-surface text-main filter-select">
-                            <option value="">Estado (Todos)</option>
-                            <option value="pendiente">Pendiente</option>
-                            <option value="en_ruta">En Ruta</option>
-                            <option value="entregado">Entregado</option>
+                    <div class="standard-filter-field" style="flex: 1 1 190px; min-width: 160px;">
+                        <select id="filter-estado" name="estado" class="form-select form-select-sm bg-surface text-main filter-select">
+                            {% if es_historial %}
+                            <option value="">Estado final (Todos)</option>
+                            <option value="entregado" {% if estado_query == 'entregado' %}selected{% endif %}>Entregado</option>
+                            <option value="cancelado" {% if estado_query == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                            {% elif solo_autorizados_despacho %}
+                            <option value="">Estado logístico (Todos)</option>
+                            <option value="autorizado_despacho" {% if estado_query == 'autorizado_despacho' %}selected{% endif %}>Autorizado para despacho</option>
+                            <option value="vehiculo_asignado" {% if estado_query == 'vehiculo_asignado' %}selected{% endif %}>Asignado / Preparando pedido</option>
+                            <option value="en_ruta" {% if estado_query == 'en_ruta' %}selected{% endif %}>En Ruta</option>
+                            <option value="entregado" {% if estado_query == 'entregado' %}selected{% endif %}>Entregado</option>
+                            {% else %}
+                            <option value="">Estado del pedido (Todos)</option>
+                            <option value="pendiente" {% if estado_query == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                            <option value="pendiente_correccion_pago" {% if estado_query == 'pendiente_correccion_pago' %}selected{% endif %}>Pendiente de corrección de pago</option>
+                            <option value="autorizado_despacho" {% if estado_query == 'autorizado_despacho' %}selected{% endif %}>Autorizado para despacho</option>
+                            <option value="vehiculo_asignado" {% if estado_query == 'vehiculo_asignado' %}selected{% endif %}>Vehículo Asignado</option>
+                            {% endif %}
                         </select>
                     </div>
-                    <div class="standard-filter-actions">
-                        <button class="btn btn-sm btn-outline-secondary filter-clear-btn" id="clear-filters" type="button" title="Limpiar filtros" aria-label="Limpiar filtros">
-                            <i class="bi bi-x-circle fs-5"></i>
+                    <div class="standard-filter-actions d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-info" type="submit" title="Aplicar filtros">
+                            <i class="bi bi-search"></i>
                         </button>
+                        <a href="{{ request.path }}" class="btn btn-sm btn-outline-secondary filter-clear-btn" id="clear-filters" title="Limpiar filtros" aria-label="Limpiar filtros">
+                            <i class="bi bi-x-circle fs-5"></i>
+                        </a>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
 
@@ -68,65 +85,18 @@
         <table class="table table-hover align-middle mb-0 orders-list-table">
             <thead>
                 <tr class="u-inline-e91738c112" style="border-bottom: 1px solid var(--color-border); background: var(--item-bg);">
-                    <th class="p-3 text-muted small fw-bold">ID</th>
+                    <th class="p-3 text-muted small fw-bold">N.° Pedido</th>
                     <th class="p-3 text-muted small fw-bold">Cliente</th>
-                    <th class="p-3 text-muted small fw-bold">Destino</th>
-                    <th class="p-3 text-muted small fw-bold">Estado</th>
-                    <th class="p-3 text-muted small fw-bold">Fecha</th>
+                    <th class="p-3 text-muted small fw-bold">Fecha del pedido</th>
+                    <th class="p-3 text-muted small fw-bold">Dirección de entrega</th>
+                    <th class="p-3 text-muted small fw-bold">Estado logístico</th>
+                    <th class="p-3 text-muted small fw-bold">Conductor asignado</th>
+                    <th class="p-3 text-muted small fw-bold">Vehículo asignado</th>
                     <th class="p-3 text-muted small fw-bold text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for p in pedidos %}
-                <tr class="u-inline-e91738c112 orders-list-row">
-                    <td class="p-4 fw-bold" data-label="ID">#{{ p.codigo_pedido }}</td>
-                    <td class="p-4" data-label="Cliente">
-                        <div class="fw-medium">{{ p.usuario.nombres }} {{ p.usuario.apellidos }}</div>
-                        <div class="text-muted small">{{ p.usuario.user.email }}</div>
-                    </td>
-                    <td class="p-4 text-muted small" data-label="Destino">{{ p.direccion_destino|truncatechars:40 }}</td>
-                    <td class="p-4" data-label="Estado">
-                        {% if p.estado == 'pendiente' %}
-                        <span class="badge bg-warning-subtle text-warning px-3">Pendiente</span>
-                        {% elif p.estado == 'en_ruta' %}
-                        <span class="badge bg-primary-subtle text-primary px-3">En Ruta</span>
-                        {% elif p.estado == 'entregado' %}
-                        <span class="badge bg-success-subtle text-success px-3">Entregado</span>
-                        {% else %}
-                        <span class="badge bg-danger-subtle text-danger px-3">{{ p.estado|title }}</span>
-                        {% endif %}
-                    </td>
-                    <td class="p-4 text-muted small" data-label="Fecha">{{ p.fecha_solicitud|date:"d/m/Y H:i" }}</td>
-                    <td class="p-4" data-label="Acciones">
-                        <div class="d-flex gap-2">
-                            <a href="{% url 'pedidos:ver_pedido_admin' p.codigo_pedido %}"
-                                class="btn btn-sm btn-outline-info rounded-pill px-3" title="Ver Detalles">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            {% if p.estado == 'pendiente' %}
-                            <a href="{% url 'pedidos:crear_entrega' p.codigo_pedido %}"
-                                class="btn btn-sm btn-outline-warning rounded-pill px-3" title="Asignar Entrega">
-                                <i class="bi bi-truck"></i>
-                            </a>
-                            <form action="{% url 'clientes:cancelar_pedido' p.codigo_pedido %}" method="post"
-                                onsubmit="return confirm('¿Estás seguro de cancelar este pedido?')">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Cancelar">
-                                    <i class="bi bi-x-circle"></i>
-                                </button>
-                            </form>
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr class="orders-list-empty">
-                    <td colspan="6" class="text-center py-5 text-muted">
-                        <i class="bi bi-box-seam mb-3 d-block u-inline-208090be59"></i>
-                        No hay pedidos registrados en el sistema
-                    </td>
-                </tr>
-                {% endfor %}
+                {% include "pedidos/_lista_body.html" %}
             </tbody>
         </table>
     </div>
@@ -141,7 +111,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         setTimeout(function () {
             var tableEl = document.querySelector('.table-container .table');
-            if (tableEl && $.fn.DataTable.isDataTable(tableEl)) {
+            if (tableEl && window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable(tableEl)) {
                 var table = $(tableEl).DataTable();
                 var FP = (window.FocusPreserver || {
                     save: function(){return{el:document.activeElement,start:document.activeElement&&document.activeElement.selectionStart!==undefined?document.activeElement.selectionStart:null,end:document.activeElement&&document.activeElement.selectionEnd!==undefined?document.activeElement.selectionEnd:null};},
@@ -156,13 +126,18 @@
 
                 $('#filter-id').on('input', FP.debounce(function () { drawSearch(0, this.value); }, 300));
                 $('#filter-cliente').on('input', FP.debounce(function () { drawSearch(1, this.value); }, 300));
-                $('#filter-destino').on('input', FP.debounce(function () { drawSearch(2, this.value); }, 300));
-                $('#filter-estado').on('change', function () { drawSearch(3, this.value); });
-
-                $('#clear-filters').on('click', function () {
-                    $('#filter-id, #filter-cliente, #filter-destino').val('');
-                    $('#filter-estado').val('');
-                    FP.wrap(function () { table.columns().search('').draw(); });
+                $('#filter-destino').on('input', FP.debounce(function () { drawSearch(3, this.value); }, 300));
+                $('#filter-estado').on('change', function () {
+                    var labelMap = {
+                        'pendiente': 'Pendiente',
+                        'pendiente_correccion_pago': 'Pendiente de corrección de pago',
+                        'autorizado_despacho': 'Autorizado Despacho',
+                        'vehiculo_asignado': 'Vehículo Asignado',
+                        'en_ruta': 'En Ruta',
+                        'entregado': 'Entregado',
+                        'cancelado': 'Cancelado'
+                    };
+                    drawSearch(4, labelMap[this.value] || this.value);
                 });
             }
         }, 150);

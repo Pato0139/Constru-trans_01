@@ -70,6 +70,9 @@
                     <td>
                         <div class="fw-700 text-accent">#ENV-{{ entrega.id_entrega }}</div>
                         <div class="small text-muted">Pedido #CT-{{ entrega.pedido.codigo_pedido }}</div>
+                        {% if entrega.fecha_asignacion_efectiva %}
+                        <div class="small text-muted" style="font-size: 0.72rem;">Asignado: {{ entrega.fecha_asignacion_efectiva|date:"d/m/Y H:i" }}</div>
+                        {% endif %}
                     </td>
                     <td>
                         <div class="fw-600 text-main">
@@ -77,7 +80,10 @@
                             {{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}
                         </div>
                         <div class="small text-muted">
-                            <i class="bi bi-person me-1"></i>{{ entrega.pedido.usuario.get_full_name|default:entrega.pedido.usuario.username }}
+                            <i class="bi bi-person me-1"></i>{{ entrega.pedido.cliente_usuario.nombre_mostrar|default:entrega.pedido.usuario.username }}
+                            {% if entrega.pedido.cliente_usuario.telefono %}
+                            <span class="ms-1">(Tel: {{ entrega.pedido.cliente_usuario.telefono }})</span>
+                            {% endif %}
                         </div>
                     </td>
                     <td>
