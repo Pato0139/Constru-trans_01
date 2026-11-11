@@ -79,7 +79,7 @@ def lista_pagos(request):
     metodo = request.GET.get("metodo", "").strip()
 
     pagos = Pago.objects.select_related(
-        "pedido", "pedido__usuario", "pedido__cliente", "revisado_por"
+        "pedido", "pedido__usuario", "pedido__cliente__usuario", "revisado_por"
     ).order_by("-fecha_registro")
 
     if getattr(usuario, "rol", "") == "cliente":

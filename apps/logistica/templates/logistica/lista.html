@@ -71,8 +71,7 @@
                 {% for p in pages_list %}
                 <li class="page-item {% if p == page %}active{% endif %}">
                     <a class="page-link"
-                        href="?page={{ p }}{% if query %}&q={{ query }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">{{
-                        p }}</a>
+                        href="?page={{ p }}{% if query %}&q={{ query }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">{{ p }}</a>
                 </li>
                 {% endfor %}
 

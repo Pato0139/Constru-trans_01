@@ -529,7 +529,7 @@ def panel(request):
 
         from config.utils import get_cache_key
 
-        cache_key = get_cache_key("panel_admin_v2", usuario.id)
+        cache_key = get_cache_key("panel_admin_v3", usuario.id)
         context = cache.get(cache_key)
 
         if not context:
@@ -542,7 +542,7 @@ def panel(request):
                 "clientes": Usuario.objects.filter(rol="cliente").count(),
                 "pedidos_recientes": Pedido.objects.select_related(
                     "usuario", "cliente__usuario"
-                ).order_by("-fecha_solicitud")[:5],
+                ).filter(estado=Pedido.PENDIENTE).order_by("-fecha_solicitud")[:5],
             }
             cache.set(cache_key, context, 300)
 

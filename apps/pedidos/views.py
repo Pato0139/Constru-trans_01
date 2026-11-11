@@ -322,14 +322,25 @@ def _obtener_recursos_transporte_para_pedido(orden):
         except Exception:
             pass
 
-    conductores_ocupados_ids = (
+    conductores_ocupados_ids = set(
         Entrega.objects.filter(
-            estado__in=["pendiente", "en_ruta"],
-            pedido__estado__in=[Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA],
+            Q(estado="en_ruta") | Q(pedido__estado=Pedido.EN_RUTA),
             conductor__isnull=False,
         )
         .exclude(pedido=orden)
         .values_list("conductor__usuario_id", flat=True)
+    )
+    # También cubrir pedidos en ruta que aún conservan la asignación en los
+    # campos legacy del pedido, aunque no tengan una Entrega sincronizada.
+    conductores_ocupados_ids.update(
+        Pedido.objects.filter(estado=Pedido.EN_RUTA, conductor__isnull=False)
+        .exclude(pk=orden.pk)
+        .values_list("conductor__usuario_id", flat=True)
+    )
+    conductores_ocupados_ids.update(
+        Pedido.objects.filter(estado=Pedido.EN_RUTA, conductor_usuario_legacy__isnull=False)
+        .exclude(pk=orden.pk)
+        .values_list("conductor_usuario_legacy_id", flat=True)
     )
 
     conductores = (
@@ -354,7 +365,11 @@ def _obtener_recursos_transporte_para_pedido(orden):
     vehiculos_ocupados_ids = (
         Entrega.objects.filter(
             estado__in=["pendiente", "en_ruta"],
-            pedido__estado__in=[Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA],
+            pedido__estado__in=[
+                Pedido.AUTORIZADO_DESPACHO,
+                Pedido.VEHICULO_ASIGNADO,
+                Pedido.EN_RUTA,
+            ],
             vehiculo__isnull=False,
         )
         .exclude(pedido=orden)

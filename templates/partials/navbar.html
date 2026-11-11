@@ -32,7 +32,7 @@
             data-notif-endpoint="{% url 'usuarios:notificaciones_estado_json' %}">
             <button
                 class="btn btn-dark-premium rounded-circle position-relative d-flex align-items-center justify-content-center navbar-icon-btn"
-                id="navbarNotifBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                id="navbarNotifBtn" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
                 aria-label="Ver notificaciones" title="Ver notificaciones">
                 <i class="bi bi-bell fs-5 opacity-75"></i>
                 <span id="navbarNotifBadge"
@@ -46,8 +46,7 @@
                     <h6 class="mb-0 fw-bold d-flex justify-content-between align-items-center">
                         <span data-i18n="nav.notifications">Notificaciones</span>
                         <span id="navbarNotifHeaderBadge"
-                            class="badge bg-danger rounded-pill {% if not notif_unread_count %}d-none{% endif %}">{{
-                            notif_unread_count|default:0 }} nuevas</span>
+                            class="badge bg-danger rounded-pill {% if not notif_unread_count %}d-none{% endif %}">{{ notif_unread_count|default:0 }} nuevas</span>
                     </h6>
                 </li>
                 <div id="navbarNotifList">
@@ -67,8 +66,7 @@
                                 <div class="flex-grow-1 min-w-0">
                                     <p class="small mb-1 fw-bold text-white text-truncate">{{ notif.titulo }}</p>
                                     <p class="small mb-1 text-muted text-truncate">{{ notif.mensaje }}</p>
-                                    <span class="small text-muted navbar-notif-date">{{ notif.fecha|date:"d/m/Y H:i"
-                                        }}</span>
+                                    <span class="small text-muted navbar-notif-date">{{ notif.fecha|date:"d/m/Y H:i" }}</span>
                                 </div>
                             </div>
                         </a>
@@ -262,8 +260,7 @@
                 class="d-flex align-items-center gap-2 text-decoration-none dropdown-toggle navbar-user-btn p-1 rounded-3"
                 type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menú de usuario">
                 <div class="text-end d-none d-md-block">
-                    <p class="small fw-bold mb-0 text-truncate navbar-username">{{
-                        user.usuario.nombres|default:user.username }}</p>
+                    <p class="small fw-bold mb-0 text-truncate navbar-username">{{ user.usuario.nombres|default:user.username }}</p>
                     <span class="text-muted navbar-role">{{ user.usuario.get_rol_display|upper|default:"ADMIN" }}</span>
                 </div>
                 <div class="avatar-container">
