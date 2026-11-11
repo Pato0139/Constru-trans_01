@@ -5,6 +5,7 @@ import logging
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 
@@ -557,19 +558,26 @@ def asignar_conductor_y_vehiculo(pedido, conductor_usuario_o_id, vehiculo_o_id, 
         elif conductor_perfil.estado != "activo":
             raise ValidationError("El perfil del conductor seleccionado se encuentra inactivo.")
 
-        # Verificar que el conductor no esté ocupado en otro envío activo (en_ruta o pendiente de otro pedido activo)
+        # Un conductor puede recibir pedidos autorizados mientras aún no ha
+        # iniciado una entrega. Se bloquea únicamente cuando ya está en ruta.
         envios_activos_conductor = (
             Entrega.objects.using(db_alias)
             .filter(
+                Q(estado="en_ruta") | Q(pedido__estado=Pedido.EN_RUTA),
                 conductor=conductor_perfil,
-                estado__in=["pendiente", "en_ruta"],
-                pedido__estado__in=[Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA],
             )
             .exclude(pedido=orden)
         )
-        if envios_activos_conductor.exists():
+        pedido_en_ruta_legacy = (
+            Pedido.objects.using(db_alias)
+            .filter(estado=Pedido.EN_RUTA)
+            .filter(Q(conductor=conductor_perfil) | Q(conductor_usuario_legacy=conductor_user))
+            .exclude(pk=orden.pk)
+            .exists()
+        )
+        if envios_activos_conductor.exists() or pedido_en_ruta_legacy:
             raise ValidationError(
-                f"El conductor {conductor_user.nombre_mostrar} ya tiene un envío activo asignado."
+                f"El conductor {conductor_user.nombre_mostrar} ya está en ruta con otro pedido."
             )
 
         # Resolver y bloquear vehículo
@@ -601,7 +609,11 @@ def asignar_conductor_y_vehiculo(pedido, conductor_usuario_o_id, vehiculo_o_id, 
             .filter(
                 vehiculo=vehiculo_bloqueado,
                 estado__in=["pendiente", "en_ruta"],
-                pedido__estado__in=[Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA],
+                pedido__estado__in=[
+                    Pedido.AUTORIZADO_DESPACHO,
+                    Pedido.VEHICULO_ASIGNADO,
+                    Pedido.EN_RUTA,
+                ],
             )
             .exclude(pedido=orden)
         )

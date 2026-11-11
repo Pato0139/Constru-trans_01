@@ -77,14 +77,11 @@
                                 <img src="{{ orden.cliente.usuario.foto_perfil.url }}" alt="Avatar"
                                     class="u-inline-4a466668db">
                                 {% else %}
-                                {{ orden.cliente.usuario.nombres|slice:":1"|default:"C" }}{{
-                                orden.cliente.usuario.apellidos|slice:":1"|default:"L" }}
+                                {{ orden.cliente.usuario.nombres|slice:":1"|default:"C" }}{{ orden.cliente.usuario.apellidos|slice:":1"|default:"L" }}
                                 {% endif %}
                             </div>
                             <div>
-                                <p class="fw-700 text-white mb-0 u-inline-27895aa49c">{{
-                                    orden.cliente.usuario.nombres|default:"Cliente" }} {{
-                                    orden.cliente.usuario.apellidos }}</p>
+                                <p class="fw-700 text-white mb-0 u-inline-27895aa49c">{{ orden.cliente.usuario.nombres|default:"Cliente" }} {{ orden.cliente.usuario.apellidos }}</p>
                                 <p class="text-muted small mb-0">{{ orden.cliente.usuario.user.email }}</p>
                             </div>
                         </div>

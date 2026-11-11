@@ -10,6 +10,20 @@ function closeAccessibilityMenus() {
     });
 }
 
+// El dropdown puede quedar abierto tras la navegación AJAX o si otro manejador
+// interrumpe el cierre automático de Bootstrap. Fuerza el cierre al hacer clic fuera.
+document.addEventListener('click', (event) => {
+    const container = document.getElementById('navbarNotifDropdown');
+    const button = container?.querySelector('#navbarNotifBtn');
+    if (!container || !button || container.contains(event.target)) return;
+    if (window.bootstrap?.Dropdown) {
+        window.bootstrap.Dropdown.getOrCreateInstance(button).hide();
+    } else {
+        container.querySelector('#navbarNotifMenu')?.classList.remove('show');
+        button.setAttribute('aria-expanded', 'false');
+    }
+}, true);
+
 document.addEventListener('click', (event) => {
     // Manejar cambio de tema
     const themeLink = event.target.closest('.theme-option');

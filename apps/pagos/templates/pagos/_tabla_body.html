@@ -8,11 +8,7 @@
         </a>
     </td>
     <td>
-        {% if pago.pedido.cliente %}
-            {{ pago.pedido.cliente.nombres }} {{ pago.pedido.cliente.apellidos }}
-        {% else %}
-            {{ pago.pedido.usuario.nombres }} {{ pago.pedido.usuario.apellidos }}
-        {% endif %}
+        {{ pago.pedido.cliente_usuario.nombres }} {{ pago.pedido.cliente_usuario.apellidos }}
     </td>
     <td>${{ pago.monto|floatformat:2|intcomma }}</td>
     <td>{{ pago.get_metodo_display }}</td>

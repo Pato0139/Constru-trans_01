@@ -255,6 +255,7 @@ if database_url:
     if remote_database.get("ENGINE") == "django.db.backends.postgresql":
         remote_database["OPTIONS"].setdefault("connect_timeout", 5)
     remote_database["OPTIONS"].pop("options", None)
+    remote_database["DISABLE_SERVER_SIDE_CURSORS"] = True
 
 # Si existe la URL de base de datos remota, se asigna como 'default'
 DATABASES = {
