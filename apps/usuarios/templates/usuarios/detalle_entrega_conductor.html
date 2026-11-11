@@ -32,7 +32,11 @@
             <!-- Operational Action Buttons -->
             <div class="d-flex flex-wrap align-items-center gap-2">
                 {% if entrega.estado == 'pendiente' %}
-                    <form action="{% url 'usuarios:iniciar_entrega' entrega.id_entrega %}" method="POST" class="d-inline" onsubmit="return confirm('¿Confirmas que has recogido y cargado todos los materiales del pedido #CT-{{ pedido.codigo_pedido }} en el vehículo para iniciar la ruta?');">
+                    <form action="{% url 'usuarios:iniciar_entrega' entrega.id_entrega %}" method="POST" class="d-inline"
+                        data-confirmar-constru-trans
+                        data-confirm-title="Iniciar ruta"
+                        data-confirm-label="Sí, iniciar ruta"
+                        data-confirm-message="Confirma que recogiste y cargaste todos los materiales del pedido #CT-{{ pedido.codigo_pedido }} en el vehículo asignado. Al continuar, el pedido pasará a En ruta.">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
                             <i class="bi bi-play-circle-fill me-1"></i> Confirmar preparación e iniciar ruta
@@ -275,4 +279,5 @@
     .text-accent { color: var(--color-accent, #ffd600) !important; }
     .text-main { color: var(--color-text) !important; }
 </style>
+{% include "partials/confirmar_accion_modal.html" %}
 {% endblock %}

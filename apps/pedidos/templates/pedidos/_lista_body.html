@@ -88,7 +88,10 @@
             {% endif %}
             {% if p.estado == 'vehiculo_asignado' %}
             <form action="{% url 'pedidos:ver_pedido_admin' p.codigo_pedido %}" method="post" class="d-inline"
-                onsubmit="return confirm('¿Confirmar preparación de materiales e iniciar ruta del pedido #CT-{{ p.codigo_pedido }}?')">
+                data-confirmar-constru-trans
+                data-confirm-title="Iniciar ruta"
+                data-confirm-label="Sí, iniciar ruta"
+                data-confirm-message="Confirma que los materiales del pedido #CT-{{ p.codigo_pedido }} están listos y cargados en el vehículo asignado. Al continuar, iniciará la ruta.">
                 {% csrf_token %}
                 <input type="hidden" name="accion" value="iniciar_ruta">
                 <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3"

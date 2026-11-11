@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from apps.catalogo.forms import MaterialForm
@@ -82,6 +83,13 @@ def crear_material(request):
                 if request.headers.get("x-requested-with") == "XMLHttpRequest":
                     return JsonResponse({"status": "success", "message": success_msg})
                 messages.success(request, success_msg)
+                next_url = request.GET.get("next", "")
+                if url_has_allowed_host_and_scheme(
+                    next_url,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure(),
+                ):
+                    return redirect(next_url)
                 return redirect("catalogo:materiales_lista")
             except Exception as e:
                 error_msg = f"Error al crear material: {e}"

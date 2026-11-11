@@ -1,0 +1,101 @@
+<div class="modal fade" id="confirmarAccionConstruTrans" tabindex="-1" aria-labelledby="confirmarAccionTitulo" aria-describedby="confirmarAccionMensaje" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content confirmar-accion-modal rounded-4 shadow-lg">
+            <div class="modal-header border-bottom border-secondary border-opacity-25">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="confirmar-accion-icono"><i class="bi bi-shield-check"></i></span>
+                    <h5 class="modal-title fw-bold mb-0" id="confirmarAccionTitulo">Confirmar acción</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="mb-0" id="confirmarAccionMensaje"></p>
+            </div>
+            <div class="modal-footer border-top border-secondary border-opacity-25">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn confirmar-accion-boton rounded-pill px-4 fw-bold" id="confirmarAccionAceptar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #confirmarAccionConstruTrans .confirmar-accion-modal {
+        color: var(--color-text, #eef2f8);
+        background: var(--card-bg, #171e2b);
+        border: 1px solid var(--color-accent, #ffb000);
+    }
+
+    #confirmarAccionConstruTrans .confirmar-accion-icono {
+        display: inline-flex;
+        width: 2.5rem;
+        height: 2.5rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: var(--color-accent, #ffb000);
+        background: color-mix(in srgb, var(--color-accent, #ffb000) 15%, transparent);
+        font-size: 1.25rem;
+    }
+
+    #confirmarAccionConstruTrans .confirmar-accion-boton {
+        color: #171717;
+        background: var(--color-accent, #ffb000);
+        border: 1px solid var(--color-accent, #ffb000);
+    }
+
+    #confirmarAccionConstruTrans .confirmar-accion-boton:hover {
+        filter: brightness(1.08);
+    }
+
+    [data-theme="accessibility"] #confirmarAccionConstruTrans .confirmar-accion-modal {
+        color: #fff;
+        background: #000;
+        border: 2px solid #fff;
+    }
+
+    [data-theme="accessibility"] #confirmarAccionConstruTrans .confirmar-accion-boton {
+        color: #000;
+        background: #ffdf00;
+        border-color: #ffdf00;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalElement = document.getElementById('confirmarAccionConstruTrans');
+        const titleElement = document.getElementById('confirmarAccionTitulo');
+        const messageElement = document.getElementById('confirmarAccionMensaje');
+        const confirmButton = document.getElementById('confirmarAccionAceptar');
+        if (!modalElement || !window.bootstrap || !confirmButton) return;
+
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        let pendingForm = null;
+
+        document.addEventListener('submit', function (event) {
+            const form = event.target.closest('form[data-confirmar-constru-trans]');
+            if (!form || form.dataset.confirmado === 'true') return;
+
+            event.preventDefault();
+            pendingForm = form;
+            titleElement.textContent = form.dataset.confirmTitle || 'Confirmar acción';
+            messageElement.textContent = form.dataset.confirmMessage || '¿Deseas continuar?';
+            confirmButton.textContent = form.dataset.confirmLabel || 'Confirmar';
+            modal.show();
+        });
+
+        confirmButton.addEventListener('click', function () {
+            if (!pendingForm) return;
+            const form = pendingForm;
+            pendingForm = null;
+            form.dataset.confirmado = 'true';
+            modal.hide();
+            if (typeof form.requestSubmit === 'function') form.requestSubmit();
+            else HTMLFormElement.prototype.submit.call(form);
+        });
+
+        modalElement.addEventListener('hidden.bs.modal', function () {
+            pendingForm = null;
+        });
+    });
+</script>

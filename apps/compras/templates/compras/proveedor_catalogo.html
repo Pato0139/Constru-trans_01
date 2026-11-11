@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static currency_tags %}
+{% block title %}Entrada de materiales - {{ proveedor.nombre_empresa }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/compras/proveedores.css' %}?v=2.4">{% endblock %}
+{% block content %}
+<section class="supplier-page supplier-profile">
+    <header class="supplier-hero"><div><p class="supplier-eyebrow">Abastecimiento · Entrada física</p><h2 class="supplier-title">{{ proveedor.nombre_empresa }}</h2><p class="supplier-subtitle">Registra lo que llegó, actualiza el precio del producto y suma las unidades al stock.</p></div><div class="supplier-profile-actions"><a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light rounded-pill px-3"><i class="bi bi-arrow-left me-1"></i>Proveedores</a><a href="{% url 'catalogo:crear_material' %}?next={% url 'compras:catalogo_proveedor' proveedor.codigo_proveedor %}" class="btn btn-outline-info rounded-pill px-3"><i class="bi bi-plus-circle me-1"></i>Crear producto</a></div></header>
+    <section class="supplier-panel"><div class="supplier-panel__header"><i class="bi bi-box-arrow-in-down"></i>Registro de entrada al inventario</div>
+        <form method="post" class="p-3" id="supplier-catalog-form">{% csrf_token %}
+            {% if formset.non_form_errors %}<div class="alert alert-danger">{{ formset.non_form_errors }}</div>{% endif %}
+            <div class="alert alert-info mb-3"><i class="bi bi-info-circle me-2"></i>El precio actualiza el producto en el catálogo. Escribe la cantidad que llegó para sumar esas unidades al stock y registrar el movimiento. Los productos nuevos requieren una cantidad recibida.</div>
+            <div class="supplier-table-wrap"><table class="supplier-table" id="supplier-catalog-formset"><thead><tr><th>#</th><th>Producto</th><th>Cantidad recibida</th><th>Stock actual</th><th>Precio unitario</th><th>Referencia</th><th>Observaciones</th><th>Disponible</th><th>Quitar</th></tr></thead><tbody>
+                {{ formset.management_form }}
+                {% for f in formset %}
+                <tr class="supplier-formset-row">
+                    <td class="supplier-row-count" data-label="#">{{ forloop.counter }}</td>
+                    <td data-label="Producto">{{ f.non_field_errors }}{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}{{ f.material }}{{ f.material.errors }}</td>
+                    <td data-label="Cantidad recibida">{{ f.cantidad_recibida }}{{ f.cantidad_recibida.errors }}</td>
+                    <td class="supplier-stock-current" data-label="Stock actual">{{ f.instance.material.stock_info.cantidad_actual|default:f.instance.material.stock|default:0 }}</td>
+                    <td data-label="Precio unitario">{{ f.precio_actual }}{{ f.precio_actual.errors }}</td>
+                    <td data-label="Referencia">{{ f.referencia_proveedor }}{{ f.referencia_proveedor.errors }}</td>
+                    <td data-label="Observaciones">{{ f.observaciones }}{{ f.observaciones.errors }}</td>
+                    <td class="supplier-availability-cell" data-label="Disponible">{{ f.activo }}{{ f.activo.errors }}</td>
+                    <td class="supplier-remove-cell" data-label="Quitar"><span class="supplier-delete-field">{{ f.DELETE }}</span><button type="button" class="btn btn-sm btn-outline-danger supplier-remove-row" aria-label="Quitar producto" title="Quitar producto"><i class="bi bi-trash"></i></button></td>
+                </tr>
+                {% endfor %}
+            </tbody></table></div>
+            <div class="supplier-editor-actions"><button type="button" class="btn btn-outline-info" id="add-material-row"><i class="bi bi-plus-circle me-1"></i>Agregar producto</button><button type="submit" class="btn btn-warning"><i class="bi bi-box-arrow-in-down me-1"></i>Registrar entrada</button></div>
+        </form>
+    </section>
+</section>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/compras/proveedores.js' %}?v=2.5"></script>{% endblock %}

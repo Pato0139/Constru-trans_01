@@ -21,7 +21,7 @@
         </a>
     </header>
 
-    <form method="post" id="compra-form" class="purchase-layout">
+    <form method="post" id="compra-form" class="purchase-layout" data-catalog-mode="{{ catalog_mode|yesno:'true,false' }}">
         {% csrf_token %}
         <input type="hidden" id="supplier-catalog-url" value="{% url 'compras:materiales_proveedor_json' 0 %}">
 
@@ -68,11 +68,12 @@
                                 <th>Cantidad</th>
                                 <th>Precio actual</th>
                                 <th>Subtotal</th>
-                                <th>Quitar</th>
+                                {% if not catalog_mode %}<th>Quitar</th>{% endif %}
                             </tr>
                         </thead>
                         <tbody>
                             {{ formset.management_form }}
+                            {% if not catalog_mode %}
                             {% for detail_form in formset %}
                             <tr class="formset-row">
                                 <td class="counter">{{ forloop.counter }}</td>
@@ -93,16 +94,17 @@
                                 </td>
                             </tr>
                             {% endfor %}
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
 
-                <div class="purchase-panel__footer">
+                {% if not catalog_mode %}<div class="purchase-panel__footer">
                     <button type="button" class="btn btn-primary" id="add-form-row" aria-label="Agregar material" data-tooltip="Agregar material" title="Agregar material">
                         <i class="bi bi-plus-circle"></i>
                         Agregar material
                     </button>
-                </div>
+                </div>{% endif %}
             </section>
         </div>
 

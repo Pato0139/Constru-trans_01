@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import transaction
+from django.db import router
 from django.db.models import Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,6 +16,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from apps.usuarios.views import admin_required
+from apps.catalogo.models import MaterialConstruccion
+from apps.catalogo.services import KardexService
 from config.db_utils import select_for_update_if_supported
 from config.utils import registrar_actividad
 
@@ -23,7 +26,6 @@ from .forms import (
     DetalleCompraFormSet,
     ProveedorForm,
     ProveedorMaterialFormSet,
-    ProveedorPerfilForm,
 )
 from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
@@ -99,8 +101,8 @@ def _detalles_desde_post(request, proveedor):
         total_forms = int(request.POST.get("detalles-TOTAL_FORMS", 0) or 0)
     except (TypeError, ValueError):
         return [], ["El formulario contiene un número inválido de materiales."]
-    if not 0 <= total_forms <= 100:
-        return [], ["El formulario no puede contener más de 100 materiales."]
+    if not 0 <= total_forms <= 500:
+        return [], ["El formulario no puede contener más de 500 materiales."]
 
     detalles = []
     errores = []
@@ -112,7 +114,7 @@ def _detalles_desde_post(request, proveedor):
         material_id = request.POST.get(f"detalles-{index}-material")
         cantidad_raw = request.POST.get(f"detalles-{index}-cantidad")
 
-        if not material_id and not cantidad_raw:
+        if not cantidad_raw or cantidad_raw.strip() in {"0", "0.0"}:
             continue
 
         if not material_id or not material_id.isdecimal():
@@ -153,58 +155,8 @@ def _detalles_desde_post(request, proveedor):
 
 @admin_required
 def crear_compra(request):
-    if request.method == "POST":
-        form = CompraForm(request.POST)
-
-        if form.is_valid():
-            proveedor = form.cleaned_data["proveedor"]
-            detalles, errores = _detalles_desde_post(request, proveedor)
-
-            if not errores:
-                with transaction.atomic():
-                    compra = form.save(commit=False)
-                    compra.usuario = request.user
-                    compra.save()
-
-                    for material, cantidad, precio in detalles:
-                        DetalleCompra.objects.create(
-                            compra=compra,
-                            material=material,
-                            cantidad=cantidad,
-                            precio_unitario=precio,
-                        )
-
-                    compra.calcular_total()
-
-                registrar_actividad(
-                    request,
-                    "crear",
-                    "compras",
-                    compra.id_compra,
-                    f"Orden de compra creada: {compra.numero_orden}",
-                )
-                messages.success(
-                    request, f"Orden de compra {compra.numero_orden} creada con éxito."
-                )
-                return redirect("compras:detalle_compra", id=compra.id_compra)
-
-            for error in errores:
-                messages.error(request, error)
-        else:
-            messages.error(request, "Error al crear la orden de compra. Revisa los datos.")
-    else:
-        form = CompraForm(initial={"proveedor": request.GET.get("proveedor")})
-
-    return render(
-        request,
-        "compras/form.html",
-        {
-            "form": form,
-            "formset": DetalleCompraFormSet(),
-            "action": "Nueva",
-            "iva_rate": 0,
-        },
-    )
+    messages.info(request, "Registra las entradas físicas desde el catálogo de cada proveedor.")
+    return redirect("compras:lista_proveedores")
 
 
 @admin_required
@@ -437,7 +389,7 @@ def crear_proveedor(request):
                 f"Proveedor creado: {proveedor.nombre_empresa}",
             )
             messages.success(request, "Proveedor registrado con éxito.")
-            return redirect("compras:lista_proveedores")
+            return redirect("compras:catalogo_proveedor", codigo_proveedor=proveedor.codigo_proveedor)
         logger.warning("[PROVEEDOR_FORM_ERROR] Errores al registrar proveedor: %s | Data: %s", form.errors.as_json(), dict(data))
         messages.error(request, "Revisa los datos del proveedor e inténtalo nuevamente.")
         return render(
@@ -501,30 +453,83 @@ def perfil_proveedor(request, codigo_proveedor):
         codigo_proveedor=codigo_proveedor,
     )
 
-    if request.method == "POST":
-        form = ProveedorPerfilForm(request.POST, instance=proveedor)
-        formset = ProveedorMaterialFormSet(request.POST, instance=proveedor, prefix="catalogo")
-        if form.is_valid() and formset.is_valid():
-            form.save()
-            formset.save()
-            messages.success(request, "Perfil del proveedor actualizado correctamente.")
-            return redirect("compras:perfil_proveedor", codigo_proveedor=proveedor.codigo_proveedor)
-    else:
-        form = ProveedorPerfilForm(instance=proveedor)
-        formset = ProveedorMaterialFormSet(instance=proveedor, prefix="catalogo")
-
-    catalogo = proveedor.materiales_ofertados.select_related("material", "material__unidad_medida")
+    catalogo = proveedor.materiales_ofertados.select_related(
+        "material", "material__unidad_medida"
+    ).order_by("material__nombre")
 
     return render(
         request,
         "compras/proveedor_perfil.html",
         {
             "proveedor": proveedor,
-            "form": form,
-            "formset": formset,
             "catalogo": catalogo,
         },
     )
+
+
+@admin_required
+def catalogo_proveedor(request, codigo_proveedor):
+    proveedor = get_object_or_404(Proveedor, codigo_proveedor=codigo_proveedor)
+    if request.method == "POST":
+        formset = ProveedorMaterialFormSet(request.POST, instance=proveedor, prefix="catalogo")
+        if formset.is_valid():
+            db_alias = router.db_for_write(ProveedorMaterial)
+            entradas = []
+            with transaction.atomic(using=db_alias):
+                formset.save()
+                for material_form in formset.forms:
+                    datos = getattr(material_form, "cleaned_data", {})
+                    cantidad = datos.get("cantidad_recibida")
+                    oferta = material_form.instance
+                    if datos.get("DELETE") or not oferta.pk:
+                        continue
+
+                    material = MaterialConstruccion.objects.using(db_alias).get(pk=oferta.material_id)
+                    if material.precio_referencia != oferta.precio_actual:
+                        material.precio_referencia = oferta.precio_actual
+                        material.save(using=db_alias, update_fields=["precio_referencia"])
+                    if not cantidad:
+                        continue
+                    referencia = datos.get("referencia_proveedor") or ""
+                    observaciones = datos.get("observaciones") or ""
+                    motivo = (
+                        f"Entrada física de proveedor {proveedor.nombre_empresa}; "
+                        f"precio unitario {oferta.precio_actual}; referencia {referencia}; {observaciones}"
+                    ).strip(" ;")
+                    movimiento = KardexService.registrar_movimiento(
+                        material_id=material.pk,
+                        tipo="entrada",
+                        cantidad=cantidad,
+                        observacion=motivo,
+                        usuario=request.user,
+                        using=db_alias,
+                    )
+                    entradas.append((material.nombre, cantidad, movimiento.material.stock_info.cantidad_actual))
+
+            if entradas:
+                resumen = ", ".join(f"{nombre}: +{cantidad} (stock {stock})" for nombre, cantidad, stock in entradas)
+                messages.success(request, f"Entrada registrada y catálogo actualizado. {resumen}")
+                registrar_actividad(
+                    request,
+                    "crear",
+                    "inventario",
+                    proveedor.codigo_proveedor,
+                    f"Entrada física del proveedor {proveedor.nombre_empresa}: {resumen}",
+                )
+            else:
+                messages.success(request, "Catálogo del proveedor actualizado. Para ingresar stock, indica la cantidad recibida.")
+            return redirect("compras:catalogo_proveedor", codigo_proveedor=proveedor.codigo_proveedor)
+        messages.error(request, "Revisa los materiales y precios indicados.")
+    else:
+        formset = ProveedorMaterialFormSet(instance=proveedor, prefix="catalogo")
+    catalogo = proveedor.materiales_ofertados.select_related(
+        "material", "material__unidad_medida"
+    ).order_by("material__nombre")
+    return render(request, "compras/proveedor_catalogo.html", {
+        "proveedor": proveedor,
+        "formset": formset,
+        "catalogo": catalogo,
+    })
 
 
 @admin_required

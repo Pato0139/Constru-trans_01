@@ -1,6 +1,7 @@
 import re
 
 from django import forms
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms import inlineformset_factory
 
 from config.forms import StrictModelForm
@@ -142,10 +143,65 @@ class ProveedorPerfilForm(_ProveedorBaseForm):
         ]
 
 
-class ProveedorMaterialForm(StrictModelForm):
+class MaterialStockSelect(forms.Select):
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex, attrs)
+        material = getattr(value, "instance", None)
+        if material is not None:
+            stock = getattr(material, "stock", 0)
+            try:
+                stock = material.stock_info.cantidad_actual
+            except ObjectDoesNotExist:
+                pass
+            option["attrs"]["data-stock"] = stock
+        return option
+
+
+class ProveedorMaterialForm(forms.ModelForm):
+    cantidad_recibida = forms.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=100000,
+        label="Cantidad recibida",
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "min": "1",
+                "max": "100000",
+                "step": "1",
+                "placeholder": "0",
+            }
+        ),
+    )
+
     class Meta:
         model = ProveedorMaterial
         fields = ["material", "precio_actual", "referencia_proveedor", "observaciones", "activo"]
+        widgets = {
+            "material": MaterialStockSelect(attrs={"class": "form-control"}),
+            "precio_actual": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": "0",
+                    "step": "1000",
+                    "inputmode": "decimal",
+                    "placeholder": "0,00",
+                    "title": "El precio debe ser mayor que cero.",
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["material"].queryset = self.fields["material"].queryset.select_related(
+            "stock_info"
+        ).order_by("nombre")
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("material") and not self.instance.pk and not cleaned.get("cantidad_recibida"):
+            self.add_error("cantidad_recibida", "Indica cuántas unidades recibiste para agregar este material.")
+        return cleaned
 
 
 ProveedorMaterialFormSet = inlineformset_factory(
@@ -170,7 +226,7 @@ class CompraForm(StrictModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["proveedor"].queryset = Proveedor.objects.all()
+        self.fields["proveedor"].queryset = Proveedor.objects.filter(activo=True).order_by("nombre_empresa")
 
 
 class DetalleCompraForm(StrictModelForm):

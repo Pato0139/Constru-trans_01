@@ -34,6 +34,7 @@ urlpatterns = [
         views.perfil_proveedor,
         name="perfil_proveedor",
     ),
+    path("proveedores/<int:codigo_proveedor>/catalogo/", views.catalogo_proveedor, name="catalogo_proveedor"),
     path(
         "proveedores/<int:codigo_proveedor>/materiales/",
         views.materiales_proveedor_json,

@@ -14,6 +14,50 @@ window.AppPageLifecycle.onPageLoad(() => {
   if (!table || !addButton || !totalForms) return;
 
   const tbody = table.querySelector('tbody');
+  const form = table.closest('form');
+  const priceError = 'No se permiten precios negativos. Ingresa un valor mayor que cero.';
+
+  function clearPriceError(field) {
+    field.setCustomValidity('');
+  }
+
+  function showPriceError(field) {
+    field.setCustomValidity(priceError);
+    field.reportValidity();
+  }
+
+  tbody.addEventListener('paste', (event) => {
+    const field = event.target.closest('input[name$="-precio_actual"]');
+    if (!field) return;
+
+    const pastedValue = (event.clipboardData?.getData('text') || '').trim().replace(/[−–]/g, '-');
+    if (pastedValue.startsWith('-')) {
+      event.preventDefault();
+      showPriceError(field);
+      window.setTimeout(() => clearPriceError(field), 2500);
+    }
+  });
+
+  tbody.addEventListener('input', (event) => {
+    const field = event.target.closest('input[name$="-precio_actual"]');
+    if (!field) return;
+
+    if (field.valueAsNumber < 0) {
+      field.value = '';
+      showPriceError(field);
+      return;
+    }
+    clearPriceError(field);
+  });
+
+  form?.addEventListener('submit', (event) => {
+    const negativePrice = Array.from(tbody.querySelectorAll('input[name$="-precio_actual"]'))
+      .find((field) => field.value !== '' && field.valueAsNumber < 0);
+    if (negativePrice) {
+      event.preventDefault();
+      showPriceError(negativePrice);
+    }
+  });
 
   /**
    * Actualiza los contadores de fila después de agregar o eliminar
@@ -24,6 +68,22 @@ window.AppPageLifecycle.onPageLoad(() => {
       if (counter) counter.textContent = index + 1;
     });
   }
+
+  function refreshRowStock(row) {
+    const select = row.querySelector('select[name$="-material"]');
+    const stockCell = row.querySelector('.supplier-stock-current');
+    if (!select || !stockCell) return;
+
+    const selectedOption = select.selectedOptions[0];
+    stockCell.textContent = selectedOption?.dataset.stock ?? '0';
+  }
+
+  tbody.querySelectorAll('.supplier-formset-row').forEach(refreshRowStock);
+
+  tbody.addEventListener('change', (event) => {
+    const select = event.target.closest('select[name$="-material"]');
+    if (select) refreshRowStock(select.closest('.supplier-formset-row'));
+  });
 
   addButton.addEventListener('click', () => {
     const firstRow = tbody.querySelector('.supplier-formset-row');
@@ -39,12 +99,15 @@ window.AppPageLifecycle.onPageLoad(() => {
 
       if (field.type === 'checkbox') {
         field.checked = !field.name.endsWith('-DELETE');
+      } else if (field.type === 'hidden' && field.name.endsWith('-id')) {
+        field.value = '';
       } else if (field.type !== 'hidden') {
         field.value = '';
       }
     });
 
     newRow.classList.remove('d-none');
+    refreshRowStock(newRow);
     tbody.appendChild(newRow);
     totalForms.value = formCount + 1;
     refreshCounters();

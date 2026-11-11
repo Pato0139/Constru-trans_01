@@ -514,6 +514,17 @@ def asignar_conductor_y_vehiculo(pedido, conductor_usuario_o_id, vehiculo_o_id, 
             .get(pk=pedido.pk)
         )
 
+        entrega_existente = (
+            select_for_update_if_supported(Entrega.objects.using(db_alias), db_alias)
+            .filter(pedido=orden)
+            .order_by("id_entrega")
+            .first()
+        )
+        if entrega_existente and entrega_existente.conductor_id and entrega_existente.vehiculo_id:
+            raise ValidationError(
+                "Este pedido ya tiene conductor y vehículo asignados; no se permite volver a seleccionarlos."
+            )
+
         if orden.estado in (Pedido.EN_RUTA, Pedido.ENTREGADO, Pedido.CANCELADO):
             raise ValidationError(
                 f"No se puede asignar conductor/vehículo a un pedido en estado {orden.get_estado_display()}."
@@ -589,12 +600,6 @@ def asignar_conductor_y_vehiculo(pedido, conductor_usuario_o_id, vehiculo_o_id, 
         if vehiculo_bloqueado is None:
             raise ValidationError("El vehículo seleccionado no existe.")
 
-        entrega_existente = (
-            select_for_update_if_supported(Entrega.objects.using(db_alias), db_alias)
-            .filter(pedido=orden)
-            .order_by("id_entrega")
-            .first()
-        )
         mismo_vehiculo_actual = (
             entrega_existente is not None and entrega_existente.vehiculo_id == vehiculo_bloqueado.pk
         )
