@@ -133,6 +133,12 @@ class PagoViewsTests(TestCase):
         self.assertFalse(Pago.objects.filter(pedido=self.pedido).exists())
 
     def test_aprobar_pago_autoriza_despacho(self):
+        DetallePedido.objects.create(
+            pedido=self.pedido,
+            material=self.material,
+            cantidad=3,
+            precio_unitario=self.material.precio_referencia,
+        )
         pago = Pago.objects.create(
             pedido=self.pedido,
             metodo=Pago.METODO_CONTRAENTREGA,

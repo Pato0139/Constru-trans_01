@@ -2,10 +2,38 @@ import re
 
 
 def limpiar_telefono(telefono):
-    """Limpia el numero de telefono: quita espacios y caracteres especiales"""
+    """Limpia el numero de telefono: quita espacios y caracteres especiales."""
     if not telefono:
         return telefono
     return re.sub(r"[^0-9]", "", str(telefono))
+
+
+def normalizar_telefono(pais_codigo, telefono):
+    """Normaliza un teléfono con el prefijo internacional y evita duplicar +57."""
+    if telefono is None:
+        return ""
+
+    numero = str(telefono).strip()
+    if not numero:
+        return ""
+
+    codigo = (str(pais_codigo) if pais_codigo is not None else "").strip()
+    codigo_digits = re.sub(r"\D", "", codigo)
+    numero_digits = re.sub(r"\D", "", numero)
+    if not numero_digits:
+        return ""
+
+    if codigo_digits and numero_digits.startswith(codigo_digits):
+        numero_digits = numero_digits[len(codigo_digits):]
+        return f"+{codigo_digits}{numero_digits}"
+
+    if codigo_digits:
+        return f"+{codigo_digits}{numero_digits}"
+
+    if numero.startswith("+") and numero_digits:
+        return f"+{numero_digits}"
+
+    return numero_digits
 
 
 def limpiar_documento(documento):

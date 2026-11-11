@@ -168,6 +168,7 @@ def crear_vehiculo(request):
             )
             vehiculo.full_clean()
 
+            conductor_perfil = None
             if conductor_id:
                 conductor_usuario = conductores_disponibles.filter(pk=conductor_id).first()
                 if conductor_usuario is None:
@@ -176,7 +177,7 @@ def crear_vehiculo(request):
 
             with transaction.atomic():
                 vehiculo.save()
-                if conductor_id:
+                if conductor_id and conductor_perfil:
                     ConductorVehiculo.objects.create(
                         conductor=conductor_perfil,
                         vehiculo=vehiculo,

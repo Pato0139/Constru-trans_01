@@ -48,6 +48,8 @@ class FiltroPedidosForm(forms.Form):
     )
     estado = forms.ChoiceField(
         required=False,
-        choices=[("", "")] + list(Pedido.ESTADOS),
+        choices=[("", "")]
+        + list(Pedido.ESTADOS)
+        + [("pendiente_correccion_pago", "Pendiente de corrección de pago")],
         error_messages={"invalid_choice": "El estado del filtro no es válido."},
     )

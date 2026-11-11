@@ -17,33 +17,19 @@ def notificaciones_context(request):
         try:
             if hasattr(user, "usuario"):
                 usuario = user.usuario
-                unread_ids = list(
-                    Notificacion.objects.filter(usuario=usuario, leida=False).values_list(
-                        "id", flat=True
-                    )[:10]
-                )
-                unread_count = len(unread_ids)
+                unread_count = Notificacion.objects.filter(usuario=usuario, leida=False).count()
 
-                recientes_ids = list(
+                recientes = list(
                     Notificacion.objects.filter(usuario=usuario)
-                    .order_by("-fecha")
-                    .values_list("id", flat=True)[:5]
+                    .order_by("leida", "-fecha")
+                    .only("id", "titulo", "mensaje", "fecha", "leida", "tipo", "link")[:6]
                 )
-
-                if recientes_ids:
-                    recientes = list(
-                        Notificacion.objects.filter(id__in=recientes_ids).only(
-                            "id", "titulo", "mensaje", "fecha", "leida", "tipo", "link"
-                        )
-                    )
-                else:
-                    recientes = []
 
                 data = {
                     "notif_recent": recientes,
                     "notif_unread_count": unread_count,
                 }
-                cache.set(cache_key, data, 300)
+                cache.set(cache_key, data, 120)
                 return data
         except Exception:
             pass

@@ -27,6 +27,25 @@
                     {% csrf_token %}
                     {{ form.non_field_errors }}
 
+                    {% if pago and pago.estado == 'rechazado' %}
+                    <div class="alert alert-danger border-0 rounded-4 p-3 mb-4" style="background: rgba(239, 68, 68, 0.16); border: 1px solid rgba(239, 68, 68, 0.35) !important;">
+                        <h6 class="fw-bold text-danger mb-1">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Corrección de Comprobante Requerida (Plazo de 12 horas)
+                        </h6>
+                        <p class="text-white small mb-1">
+                            <strong>Motivo del rechazo anterior:</strong> {{ pago.observaciones|default:"Revisa la validez del soporte de pago." }}
+                        </p>
+                        {% if pago.fecha_limite_correccion %}
+                        <p class="text-warning small mb-1 fw-bold">
+                            <i class="bi bi-clock-history me-1"></i>Fecha límite para enviar la corrección: {{ pago.fecha_limite_correccion|date:"d/m/Y H:i" }}
+                        </p>
+                        {% endif %}
+                        <p class="text-light-high small mb-0">
+                            Carga aquí tu nuevo comprobante válido o ajusta el método de pago dentro de las 12 horas posteriores al rechazo. Ten en cuenta que este es tu único reintento disponible; si no se corrige a tiempo o vuelve a ser rechazado, el pedido #CT-{{ pedido.codigo_pedido }} se cancelará automáticamente y pasará al historial.
+                        </p>
+                    </div>
+                    {% endif %}
+
                     <!-- Método de pago -->
                     <div class="mb-4">
                         <label class="form-label text-white fw-bold fs-6 mb-2 d-flex align-items-center justify-content-between">

@@ -387,9 +387,9 @@
                     </p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span id="live-order-badge" class="badge-order-status {{ orden.estado }}">
-                        <i class="bi {% if orden.estado == 'entregado' %}bi-check-circle-fill{% elif orden.estado == 'cancelado' %}bi-x-circle-fill{% elif orden.estado == 'en_ruta' %}bi-truck{% elif orden.estado == 'vehiculo_asignado' %}bi-pin-map-fill{% elif orden.estado == 'autorizado_despacho' %}bi-box-seam-fill{% else %}bi-hourglass-split{% endif %} me-1"></i>
-                        <span id="live-order-text">{{ orden.get_estado_display }}</span>
+                    <span id="live-order-badge" class="badge-order-status {% if orden.requiere_correccion_pago %}cancelado{% else %}{{ orden.estado }}{% endif %}">
+                        <i class="bi {% if orden.estado == 'entregado' %}bi-check-circle-fill{% elif orden.estado == 'cancelado' %}bi-x-circle-fill{% elif orden.requiere_correccion_pago %}bi-exclamation-triangle-fill{% elif orden.estado == 'en_ruta' %}bi-truck{% elif orden.estado == 'vehiculo_asignado' %}bi-pin-map-fill{% elif orden.estado == 'autorizado_despacho' %}bi-box-seam-fill{% else %}bi-hourglass-split{% endif %} me-1"></i>
+                        <span id="live-order-text">{{ orden.estado_gestion_display }}</span>
                     </span>
                 </div>
             </div>
@@ -574,9 +574,89 @@
 
                     <!-- Tarjeta: Asignación de Transporte -->
                     <div class="order-section-card" id="transport-assignment-card">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
-                            <i class="bi bi-truck-front-fill me-2"></i>Asignación de Transporte
-                        </h6>
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h6 class="fw-800 text-accent text-uppercase small mb-0">
+                                <i class="bi bi-truck-front-fill me-2"></i>Asignación de Transporte
+                            </h6>
+                            {% if user_rol == "admin" %}
+                                {% if puede_asignar_transporte %}
+                                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 small">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Habilitado para asignar
+                                </span>
+                                {% elif orden.estado not in "en_ruta,entregado,cancelado" %}
+                                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 small">
+                                    <i class="bi bi-lock-fill me-1"></i>Requiere pago aprobado
+                                </span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        {% if user_rol == "admin" and puede_asignar_transporte %}
+                        <form method="POST" id="form-asignar-transporte-detalle">
+                            {% csrf_token %}
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <div class="transport-card h-100">
+                                        <p class="text-muted small mb-2"><i class="bi bi-person-badge text-gold me-1"></i>Conductor Asignado</p>
+                                        <div id="conductor-info-block" class="mb-2">
+                                            {% if conductor_usuario %}
+                                                <p class="text-white fw-700 mb-1">{{ conductor_usuario.nombres }} {{ conductor_usuario.apellidos }}</p>
+                                                {% if conductor_usuario.telefono %}
+                                                <a href="tel:{{ conductor_usuario.telefono }}" class="text-accent x-small text-decoration-none">
+                                                    <i class="bi bi-telephone-fill me-1"></i>{{ conductor_usuario.telefono }}
+                                                </a>
+                                                {% endif %}
+                                            {% else %}
+                                                <p class="text-muted small mb-0 fst-italic"><i class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
+                                            {% endif %}
+                                        </div>
+                                        <label for="select-conductor-detalle" class="form-label text-white-50 x-small mb-1">Seleccionar conductor:</label>
+                                        <select id="select-conductor-detalle" name="conductor" class="form-select form-select-sm bg-surface text-white border-secondary" required>
+                                            <option value="">-- Selecciona un conductor --</option>
+                                            {% for c in conductores_disponibles %}
+                                            <option value="{{ c.id }}"
+                                                data-vehiculo-id="{{ c.vehiculo_asignado.id_vehiculo|default:'' }}"
+                                                {% if conductor_usuario and conductor_usuario.id == c.id %}selected{% endif %}>
+                                                {{ c.nombres }} {{ c.apellidos }} (Lic. {{ c.perfil_conductor.numero_licencia|default:"ACTIVO" }})
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="transport-card h-100">
+                                        <p class="text-muted small mb-2"><i class="bi bi-truck text-info me-1"></i>Vehículo Asignado</p>
+                                        <div id="vehiculo-info-block" class="mb-2">
+                                            {% if vehiculo %}
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <span class="plate-badge">{{ vehiculo.placa }}</span>
+                                                    <span class="text-white fw-600 small">{{ vehiculo.marca }} {{ vehiculo.modelo }}</span>
+                                                </div>
+                                                <p class="text-muted x-small mb-0">{{ vehiculo.tipo_vehiculo }} &bull; Capacidad: {{ vehiculo.capacidad_carga }} t</p>
+                                            {% else %}
+                                                <p class="text-muted small mb-0 fst-italic"><i class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
+                                            {% endif %}
+                                        </div>
+                                        <label for="select-vehiculo-detalle" class="form-label text-white-50 x-small mb-1">Seleccionar vehículo:</label>
+                                        <select id="select-vehiculo-detalle" name="vehiculo" class="form-select form-select-sm bg-surface text-white border-secondary" required>
+                                            <option value="">-- Selecciona un vehículo --</option>
+                                            {% for v in vehiculos_disponibles %}
+                                            <option value="{{ v.id_vehiculo }}"
+                                                {% if vehiculo and vehiculo.id_vehiculo == v.id_vehiculo %}selected{% endif %}>
+                                                {{ v.placa }} - {{ v.tipo_vehiculo }} ({{ v.capacidad_carga }} t)
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" name="accion" value="asignar_transporte" id="btn-asignar-transporte-detalle"
+                                class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm small mt-3">
+                                <i class="bi bi-truck-front-fill me-1"></i>
+                                {% if conductor_usuario and vehiculo %}Actualizar Conductor y Vehículo Asignados{% else %}Asignar Conductor y Vehículo al Pedido{% endif %}
+                            </button>
+                        </form>
+                        {% else %}
                         <div class="row g-3">
                             <div class="col-sm-6">
                                 <div class="transport-card h-100">
@@ -593,6 +673,12 @@
                                             <p class="text-muted small mb-0 fst-italic"><i class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
                                         {% endif %}
                                     </div>
+                                    {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" %}
+                                    <select class="form-select form-select-sm bg-surface text-white-50 border-secondary mt-2" disabled aria-disabled="true"
+                                        style="pointer-events: none; opacity: 0.55; cursor: not-allowed;">
+                                        <option selected>Disponible al aprobar pago</option>
+                                    </select>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="col-sm-6">
@@ -609,8 +695,72 @@
                                             <p class="text-muted small mb-0 fst-italic"><i class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
                                         {% endif %}
                                     </div>
+                                    {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" %}
+                                    <select class="form-select form-select-sm bg-surface text-white-50 border-secondary mt-2" disabled aria-disabled="true"
+                                        style="pointer-events: none; opacity: 0.55; cursor: not-allowed;">
+                                        <option selected>Disponible al aprobar pago</option>
+                                    </select>
+                                    {% endif %}
                                 </div>
                             </div>
+                        </div>
+                        {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" %}
+                        <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 text-white p-2 rounded-3 small mt-3 mb-0">
+                            <i class="bi bi-info-circle-fill text-warning me-1"></i>
+                            Primero debes <strong>aprobar el pago</strong> del pedido para habilitar la asignación de conductor y vehículo.
+                        </div>
+                        {% endif %}
+                        {% endif %}
+
+                        <!-- Historial y Trazabilidad del Envío -->
+                        <div class="mt-3 pt-3 border-top border-secondary border-opacity-25">
+                            <p class="text-accent small fw-700 text-uppercase mb-2">
+                                <i class="bi bi-clock-history me-1"></i>Trazabilidad del Envío
+                            </p>
+                            <div class="row g-2 small">
+                                <div class="col-sm-4">
+                                    <span class="text-muted d-block x-small">Fecha de Asignación:</span>
+                                    <span class="text-white fw-600">
+                                        {% if entrega and entrega.fecha_asignacion_efectiva %}
+                                            {{ entrega.fecha_asignacion_efectiva|date:"d/m/Y H:i" }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="col-sm-4">
+                                    <span class="text-muted d-block x-small">Inicio de Ruta:</span>
+                                    <span class="text-white fw-600">
+                                        {% if orden.fecha_salida_ruta %}
+                                            {{ orden.fecha_salida_ruta|date:"d/m/Y H:i" }}
+                                            {% if entrega and entrega.confirmado_salida_por %}
+                                            <small class="text-muted d-block x-small">Por: {{ entrega.confirmado_salida_por.nombre_mostrar }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            Pendiente
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="col-sm-4">
+                                    <span class="text-muted d-block x-small">Entrega Completada:</span>
+                                    <span class="text-white fw-600">
+                                        {% if orden.fecha_entrega_completada %}
+                                            {{ orden.fecha_entrega_completada|date:"d/m/Y H:i" }}
+                                            {% if entrega and entrega.entregado_por %}
+                                            <small class="text-muted d-block x-small">Por: {{ entrega.entregado_por.nombre_mostrar }}</small>
+                                            {% endif %}
+                                        {% else %}
+                                            Pendiente
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            {% if orden.estado == "cancelado" or entrega and entrega.motivo_cancelacion %}
+                            <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-white p-2 rounded-3 small mt-2 mb-0">
+                                <strong class="text-danger"><i class="bi bi-x-octagon-fill me-1"></i>Motivo de cancelación:</strong>
+                                <span>{{ orden.motivo_cancelacion_display|default:"Cancelado" }}</span>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -709,24 +859,19 @@
                             {% if pago.estado == 'rechazado' and pago.observaciones %}
                             <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-white p-2 rounded-3 small mb-2">
                                 <strong class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Motivo del Rechazo:</strong>
-                                <p class="mb-0 mt-1 small">{{ pago.observaciones }}</p>
+                                <p class="mb-1 mt-1 small">{{ pago.observaciones }}</p>
+                                {% if orden.estado != 'cancelado' and pago.fecha_limite_correccion %}
+                                <small class="text-warning d-block fw-600">
+                                    <i class="bi bi-clock me-1"></i>Plazo de 12h para corregir vence el: {{ pago.fecha_limite_correccion|date:"d/m/Y H:i" }}
+                                </small>
+                                {% endif %}
                             </div>
                             {% endif %}
 
                             <div class="d-flex gap-2 mt-3 flex-wrap">
-                                <a href="{% url 'pagos:detalle_pago' pago.pk %}" class="btn btn-sm btn-outline-info rounded-pill px-3 flex-grow-1">
+                                <a href="{% url 'pagos:detalle_pago' pago.pk %}" class="btn btn-sm btn-outline-info rounded-pill px-3 w-100">
                                     <i class="bi bi-receipt me-1"></i> Ver Detalle de Pago
                                 </a>
-                                {% if user.usuario.rol == 'admin' and pago.estado == 'pendiente' %}
-                                <a href="{% url 'pagos:revisar_pago_pedido' pago.pk %}" class="btn btn-sm btn-warning rounded-pill px-3">
-                                    <i class="bi bi-shield-check me-1"></i> Revisar Pago
-                                </a>
-                                {% endif %}
-                                {% if pago.comprobante %}
-                                <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                                    <i class="bi bi-file-earmark-image me-1"></i> Comprobante
-                                </a>
-                                {% endif %}
                             </div>
                         {% else %}
                             <p class="text-muted small mb-3">Aún no se ha cargado ningún comprobante para este pedido.</p>
@@ -740,42 +885,75 @@
                         {% endif %}
                     </div>
 
-                    <!-- GESTIÓN DEL PEDIDO Y ACCIONES -->
-                    {% if orden.estado == "pendiente" %}
-                        {% if user_rol == "admin" or user_rol == "cliente" %}
+                    <!-- GESTIÓN DEL PEDIDO Y ACCIONES (UNIFICADA SIN REDUNDANCIAS) -->
+                    {% if orden.estado != "entregado" and orden.estado != "cancelado" %}
+                        {% if user_rol == "admin" or user_rol == "cliente" and orden.estado == "pendiente" %}
                         <div class="order-section-card">
                             <h6 class="fw-800 text-accent text-uppercase small mb-3">
                                 <i class="bi bi-sliders me-2"></i>Gestión del Pedido
                             </h6>
                             <div class="d-flex flex-column gap-2">
-                                {% if user_rol == "admin" %}
+                                {% if user_rol == "admin" and orden.estado in "autorizado_despacho,vehiculo_asignado" %}
+                                    <a href="{% url 'pedidos:crear_entrega' orden.codigo_pedido %}" class="btn btn-gold rounded-pill py-2 fw-800 w-100 shadow-sm small">
+                                        <i class="bi bi-person-plus-fill me-1"></i>
+                                        {% if orden.estado == "vehiculo_asignado" %}Reasignar Conductor / Vehículo{% else %}Asignar Conductor y Vehículo{% endif %}
+                                    </a>
+                                {% elif user_rol == "admin" and orden.estado == "pendiente" and orden.puede_despacharse %}
                                     <a href="{% url 'pedidos:crear_entrega' orden.codigo_pedido %}" class="btn btn-gold rounded-pill py-2 fw-800 shadow-sm small">
-                                        <i class="bi bi-person-plus-fill me-1"></i> Asignar Conductor
+                                        <i class="bi bi-person-plus-fill me-1"></i> Asignar Conductor y Vehículo
                                     </a>
                                 {% endif %}
-                                <a href="{% url 'clientes:editar_pedido' orden.codigo_pedido %}" class="btn btn-outline-warning rounded-pill py-2 fw-700 small">
-                                    <i class="bi bi-pencil-square me-1"></i> Modificar Pedido
-                                </a>
-                                <form action="{% url 'clientes:cancelar_pedido' orden.codigo_pedido %}" method="post" class="d-inline m-0">
-                                    {% csrf_token %}
-                                    <button type="button" class="btn btn-outline-danger rounded-pill py-2 fw-700 w-100 small confirm-delete-btn"
-                                        data-title="¿Cancelar Pedido?"
-                                        data-text="¿Estás seguro de que deseas cancelar la orden #CT-{{ orden.codigo_pedido }}? Se devolverán los materiales al stock disponible.">
-                                        <i class="bi bi-x-circle me-1"></i> Cancelar Pedido
-                                    </button>
-                                </form>
+                                {% if orden.estado == "pendiente" %}
+                                    <a href="{% url 'clientes:editar_pedido' orden.codigo_pedido %}" class="btn btn-outline-warning rounded-pill py-2 fw-700 small">
+                                        <i class="bi bi-pencil-square me-1"></i> Modificar Pedido
+                                    </a>
+                                {% endif %}
+                                <button type="button" class="btn btn-outline-danger rounded-pill py-2 fw-700 w-100 small"
+                                    data-bs-toggle="modal" data-bs-target="#modalCancelarPedido" id="btn-abrir-modal-cancelar">
+                                    <i class="bi bi-x-circle me-1"></i> Cancelar Pedido
+                                </button>
                             </div>
                         </div>
                         {% endif %}
-                    {% elif orden.estado == "en_ruta" and user_rol == "admin" %}
-                        <div class="order-section-card">
-                            <h6 class="fw-800 text-accent text-uppercase small mb-3">
-                                <i class="bi bi-truck-flatbed me-2"></i>Gestión de Ruta (Admin)
-                            </h6>
-                            <a href="{% url 'pedidos:crear_entrega' orden.codigo_pedido %}" class="btn btn-outline-info rounded-pill py-2 fw-800 w-100 small">
-                                <i class="bi bi-person-gear me-1"></i> Reasignar Conductor / Vehículo
-                            </a>
-                        </div>
+                    {% endif %}
+
+                    <!-- PREPARACIÓN E INICIO DE RUTA (CONDUCTOR O ADMIN) -->
+                    {% if puede_iniciar_ruta %}
+                    <div class="order-section-card">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-2">
+                            <i class="bi bi-box-seam-fill me-2"></i>Preparación del Pedido e Inicio de Ruta
+                        </h6>
+                        <p class="text-muted small mb-3">
+                            Verifica que todos los materiales y cantidades de la tabla superior estén recogidos y cargados en el vehículo asignado antes de iniciar la ruta.
+                        </p>
+                        <form method="POST" class="d-grid gap-2"
+                            onsubmit="return confirm('¿Confirmas que has recogido y cargado todos los materiales del pedido #CT-{{ orden.codigo_pedido }} en el vehículo para iniciar la ruta?');">
+                            {% csrf_token %}
+                            <button type="submit" name="accion" value="iniciar_ruta" class="btn btn-primary rounded-pill py-2 fw-800">
+                                <i class="bi bi-truck me-1"></i> Confirmar preparación e iniciar ruta
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    <!-- FINALIZACIÓN DE ENTREGA (CONDUCTOR O ADMIN) -->
+                    {% if puede_confirmar_entrega %}
+                    <div class="order-section-card">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                            <i class="bi bi-check2-circle me-2"></i>Finalización de Entrega
+                        </h6>
+                        <form method="POST" class="d-grid gap-2"
+                            onsubmit="return confirm('¿Confirmas que el pedido #CT-{{ orden.codigo_pedido }} ha sido entregado en su destino?');">
+                            {% csrf_token %}
+                            <div class="mb-2">
+                                <label for="observacion-entrega" class="form-label text-white small">Observación de entrega (opcional):</label>
+                                <textarea id="observacion-entrega" name="observacion" class="form-control bg-surface text-white small" rows="2" maxlength="2000" placeholder="Ej.: Entregado con remisión firmada."></textarea>
+                            </div>
+                            <button type="submit" name="accion" value="confirmar" class="btn btn-success rounded-pill py-2 fw-800">
+                                <i class="bi bi-check-circle-fill me-1"></i> Marcar como entregado
+                            </button>
+                        </form>
+                    </div>
                     {% endif %}
 
                     <!-- CONTROL MAESTRO ADMIN -->
@@ -784,6 +962,22 @@
                         <h6 class="fw-800 text-accent text-uppercase small mb-3">
                             <i class="bi bi-shield-lock-fill me-2"></i>Control Maestro de Estado (Admin)
                         </h6>
+                        {% if orden.estado == "cancelado" or orden.estado == "entregado" %}
+                        <div>
+                            <div class="mb-3">
+                                <select id="order-master-state" name="estado" disabled aria-disabled="true"
+                                    class="form-select bg-surface text-white-50 rounded-pill px-3 small border-secondary"
+                                    style="pointer-events: none; opacity: 0.6; cursor: not-allowed;">
+                                    <option value="{{ orden.estado }}" selected>{{ orden.get_estado_display }}</option>
+                                </select>
+                            </div>
+                            <button type="button" disabled aria-disabled="true"
+                                class="btn btn-secondary w-100 rounded-pill py-2 fw-800 shadow-sm small"
+                                style="pointer-events: none; opacity: 0.55; cursor: not-allowed;">
+                                <i class="bi bi-lock-fill me-1"></i> Pedido {{ orden.get_estado_display }} (Estado Final Bloqueado)
+                            </button>
+                        </div>
+                        {% else %}
                         <form method="POST">
                             {% csrf_token %}
                             <div class="mb-3">
@@ -796,29 +990,11 @@
                                     <option value="cancelado" {% if orden.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
                                 </select>
                             </div>
-                            <button type="submit" class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm small">
+                            <button type="submit" id="btn-master-state-submit" class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm small">
                                 <i class="bi bi-save me-1"></i> Aplicar Cambio de Estado
                             </button>
                         </form>
-                    </div>
-                    {% endif %}
-
-                    <!-- PANEL CONDUCTOR -->
-                    {% if puede_confirmar_entrega %}
-                    <div class="order-section-card">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
-                            <i class="bi bi-check2-circle me-2"></i>Confirmación del Conductor
-                        </h6>
-                        <form method="POST" class="d-grid gap-2">
-                            {% csrf_token %}
-                            <div class="mb-2">
-                                <label for="observacion-entrega" class="form-label text-white small">Observación de entrega (opcional):</label>
-                                <textarea id="observacion-entrega" name="observacion" class="form-control bg-surface text-white small" rows="2" maxlength="2000" placeholder="Ej.: Entregado con remisión firmada."></textarea>
-                            </div>
-                            <button type="submit" name="accion" value="confirmar" class="btn btn-success rounded-pill py-2 fw-800">
-                                <i class="bi bi-check-circle-fill me-1"></i> Confirmar Entrega Realizada
-                            </button>
-                        </form>
+                        {% endif %}
                     </div>
                     {% endif %}
 
@@ -872,6 +1048,55 @@
     </div>
 </div>
 
+<!-- MODAL ÚNICO DE CANCELACIÓN DE PEDIDO (SIN REDUNDANCIAS) -->
+{% if orden.estado != "entregado" and orden.estado != "cancelado" %}
+<div class="modal fade" id="modalCancelarPedido" tabindex="-1" aria-labelledby="modalCancelarPedidoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-white rounded-4 shadow-lg p-3" style="background: #0b1120; border: 1px solid rgba(255, 255, 255, 0.12);">
+            <form method="POST" action="{% url 'pedidos:ver_pedido_admin' orden.codigo_pedido %}" id="form-cancelar-pedido-modal" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="cancelar">
+                <div class="modal-body p-3">
+                    <h5 class="fw-800 text-white d-flex align-items-center gap-2 mb-3" id="modalCancelarPedidoLabel">
+                        <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
+                        <span>¿Está seguro de cancelar este pedido?</span>
+                    </h5>
+                    <p class="text-white-50 small mb-4">
+                        Esta acción cancelará el pedido <strong>#CT-{{ orden.codigo_pedido }}</strong> y evitará que continúe hacia el proceso de despacho. Se revertirá el inventario reservado y se liberará cualquier asignación logística activa, conservando el historial del pedido y sus comprobantes.
+                    </p>
+                    <div class="mb-4">
+                        <label for="motivo-cancelacion-modal" class="form-label fw-800 text-white mb-1">Motivo de cancelación</label>
+                        <div class="text-white-50 x-small mb-2">Campo obligatorio para registrar la razón de la cancelación.</div>
+                        <textarea id="motivo-cancelacion-modal" name="motivo" rows="3" required maxlength="500"
+                            class="form-control bg-dark text-white border-secondary rounded-3 small"
+                            placeholder="Describe la razón por la que se cancela este pedido..."></textarea>
+                        <div class="invalid-feedback" id="error-motivo-cancelacion">
+                            Debes ingresar obligatoriamente el motivo de la cancelación.
+                        </div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button type="button" class="btn w-100 rounded-3 py-2 fw-700 text-white"
+                                style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12);"
+                                data-bs-dismiss="modal" id="btn-volver-modal-cancelar">
+                                Volver
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="submit" class="btn w-100 rounded-3 py-2 fw-800 text-white"
+                                style="background: #991b1b; border: 1px solid #dc2626;"
+                                id="btn-confirmar-cancelacion-modal">
+                                Confirmar cancelación
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% endwith %}
 {% endblock %}
 
@@ -883,6 +1108,39 @@ window.AppPageLifecycle.onPageLoad(function () {
     if (printBtn) {
         printBtn.addEventListener('click', function () {
             window.print();
+        });
+    }
+
+    // 1b. Validación y protección contra doble envío en el modal de cancelación
+    const formCancelarModal = document.getElementById('form-cancelar-pedido-modal');
+    const inputMotivoModal = document.getElementById('motivo-cancelacion-modal');
+    const btnConfirmarCancelacion = document.getElementById('btn-confirmar-cancelacion-modal');
+    let cancelacionEnviada = false;
+
+    if (formCancelarModal && inputMotivoModal) {
+        formCancelarModal.addEventListener('submit', function (e) {
+            if (cancelacionEnviada) {
+                e.preventDefault();
+                return false;
+            }
+            const valor = (inputMotivoModal.value || '').trim();
+            if (!valor) {
+                e.preventDefault();
+                inputMotivoModal.classList.add('is-invalid');
+                inputMotivoModal.focus();
+                return false;
+            }
+            inputMotivoModal.classList.remove('is-invalid');
+            cancelacionEnviada = true;
+            if (btnConfirmarCancelacion) {
+                btnConfirmarCancelacion.disabled = true;
+                btnConfirmarCancelacion.textContent = 'Cancelando pedido...';
+            }
+        });
+        inputMotivoModal.addEventListener('input', function () {
+            if ((inputMotivoModal.value || '').trim()) {
+                inputMotivoModal.classList.remove('is-invalid');
+            }
         });
     }
 
@@ -906,8 +1164,24 @@ window.AppPageLifecycle.onPageLoad(function () {
 
         // Actualizar Badge del Header
         if (orderBadge && orderText) {
-            orderBadge.className = `badge-order-status ${data.estado}`;
+            orderBadge.className = `badge-order-status ${data.requiere_correccion_pago ? 'cancelado' : data.estado}`;
             orderText.textContent = data.estado_display;
+        }
+
+        // Si el pedido llegó a estado final (cancelado o entregado), bloquear el Control Maestro de Estado
+        if (data.estado === 'cancelado' || data.estado === 'entregado') {
+            const masterSelect = document.getElementById('order-master-state');
+            const masterBtn = document.getElementById('btn-master-state-submit');
+            if (masterSelect) {
+                masterSelect.disabled = true;
+                masterSelect.style.pointerEvents = 'none';
+                masterSelect.style.opacity = '0.6';
+            }
+            if (masterBtn) {
+                masterBtn.disabled = true;
+                masterBtn.style.pointerEvents = 'none';
+                masterBtn.style.opacity = '0.55';
+            }
         }
 
         // Calcular porcentaje y clases de etapas
@@ -1024,6 +1298,24 @@ window.AppPageLifecycle.onPageLoad(function () {
         .catch(err => {
             // Fallo silencioso en red para no incomodar al usuario
             console.debug('Polling error:', err);
+        });
+    }
+
+    // Auto-seleccionar vehículo asociado cuando se elige conductor en el detalle del pedido
+    const selectConductorDetalle = document.getElementById('select-conductor-detalle');
+    const selectVehiculoDetalle = document.getElementById('select-vehiculo-detalle');
+    if (selectConductorDetalle && selectVehiculoDetalle) {
+        selectConductorDetalle.addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const vehiculoId = selectedOption ? selectedOption.getAttribute('data-vehiculo-id') : '';
+            if (vehiculoId) {
+                for (let i = 0; i < selectVehiculoDetalle.options.length; i++) {
+                    if (selectVehiculoDetalle.options[i].value === vehiculoId) {
+                        selectVehiculoDetalle.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
         });
     }
 

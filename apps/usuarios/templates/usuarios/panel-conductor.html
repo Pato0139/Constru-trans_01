@@ -263,6 +263,11 @@
                     <td>
                         <div class="fw-700 text-accent">#ENV-{{ entrega.id_entrega }}</div>
                         <div class="small text-muted">Pedido #CT-{{ entrega.pedido.codigo_pedido }}</div>
+                        {% if entrega.fecha_asignacion_efectiva %}
+                        <div class="small text-muted" style="font-size: 0.72rem;">
+                            <i class="bi bi-calendar-check me-1"></i>Asignado: {{ entrega.fecha_asignacion_efectiva|date:"d/m/Y H:i" }}
+                        </div>
+                        {% endif %}
                         {% if entrega.fecha_salida %}
                         <div class="small text-muted" style="font-size: 0.72rem;">
                             <i class="bi bi-clock me-1"></i>Salida: {{ entrega.fecha_salida|date:"d/m/Y H:i" }}
@@ -275,8 +280,10 @@
                             {{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}
                         </div>
                         <div class="small text-muted">
-                            <i class="bi bi-person me-1"></i>{{ entrega.pedido.usuario.get_full_name|default:entrega.pedido.usuario.username }}
-                            {% if entrega.pedido.usuario.telefono %}
+                            <i class="bi bi-person me-1"></i>{{ entrega.pedido.cliente_usuario.nombre_mostrar|default:entrega.pedido.usuario.username }}
+                            {% if entrega.pedido.cliente_usuario.telefono %}
+                            <span class="ms-1">(Tel: {{ entrega.pedido.cliente_usuario.telefono }})</span>
+                            {% elif entrega.pedido.usuario.telefono %}
                             <span class="ms-1">(Tel: {{ entrega.pedido.usuario.telefono }})</span>
                             {% endif %}
                         </div>
@@ -303,8 +310,8 @@
                     </td>
                     <td>
                         {% if entrega.estado == 'pendiente' %}
-                        <span class="badge bg-warning text-dark px-2 py-1">
-                            <i class="bi bi-clock me-1"></i>Pendiente
+                        <span class="badge bg-info text-dark px-2 py-1">
+                            <i class="bi bi-truck-front me-1"></i>{{ entrega.estado_logistico_display }}
                         </span>
                         {% elif entrega.estado == 'en_ruta' %}
                         <span class="badge bg-primary px-2 py-1">
@@ -326,17 +333,17 @@
                             </a>
 
                             {% if entrega.estado == 'pendiente' %}
-                            <!-- Iniciar Recorrido -->
-                            <form action="{% url 'usuarios:iniciar_entrega' entrega.id_entrega %}" method="POST" class="d-inline" onsubmit="return confirm('¿Confirmas que inicias el recorrido para esta entrega?');">
+                            <!-- Confirmar preparación e iniciar ruta -->
+                            <form action="{% url 'usuarios:iniciar_entrega' entrega.id_entrega %}" method="POST" class="d-inline" onsubmit="return confirm('¿Confirmas que has recogido y cargado todos los materiales del pedido #CT-{{ entrega.pedido.codigo_pedido }} en el vehículo para iniciar la ruta?');">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-success fw-bold" title="Iniciar Recorrido">
-                                    <i class="bi bi-play-fill me-1"></i>Iniciar
+                                <button type="submit" class="btn btn-sm btn-success fw-bold" title="Confirmar preparación e iniciar ruta">
+                                    <i class="bi bi-play-fill me-1"></i>Confirmar preparación e iniciar ruta
                                 </button>
                             </form>
                             {% elif entrega.estado == 'en_ruta' %}
-                            <!-- Finalizar Entrega (Abre Modal) -->
-                            <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalFinalizar{{ entrega.id_entrega }}" title="Finalizar Entrega">
-                                <i class="bi bi-check-lg me-1"></i>Finalizar
+                            <!-- Marcar como entregado (Abre Modal) -->
+                            <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalFinalizar{{ entrega.id_entrega }}" title="Marcar como entregado">
+                                <i class="bi bi-check-lg me-1"></i>Marcar como entregado
                             </button>
 
                             <!-- Reportar Novedad -->

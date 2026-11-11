@@ -298,6 +298,11 @@ def mis_pedidos(request):
         return redirect("usuarios:panel")
 
     # Solo pedidos activos (no en estado final: entregado o cancelado)
+    from apps.logistica.services import (
+        verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago,
+    )
+
+    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
     pedidos = (
         pedidos_visibles_para_cliente(usuario, usuario_remoto)
         .exclude(estado__in=["entregado", "cancelado"])
@@ -314,7 +319,10 @@ def mis_pedidos(request):
     if destino:
         pedidos = pedidos.filter(direccion_destino__icontains=destino)
     if estado:
-        pedidos = pedidos.filter(estado=estado)
+        if estado == "pendiente_correccion_pago":
+            pedidos = pedidos.filter(estado="pendiente", pago__estado="rechazado")
+        else:
+            pedidos = pedidos.filter(estado=estado)
     if q:
         pedidos = pedidos.filter(
             Q(codigo_pedido__icontains=q)
@@ -341,6 +349,7 @@ def mis_pedidos(request):
             "size": "3",
             "options": [
                 {"value": "pendiente", "label": "Pendiente"},
+                {"value": "pendiente_correccion_pago", "label": "Pendiente de corrección de pago"},
                 {"value": "autorizado_despacho", "label": "Autorizado Despacho"},
                 {"value": "vehiculo_asignado", "label": "Vehículo Asignado"},
                 {"value": "en_ruta", "label": "En Ruta"},
@@ -414,10 +423,16 @@ def historial_pedidos(request):
     estado = request.GET.get("estado", "").strip()
 
     # Historial: pedidos que ya finalizaron (entregado o cancelado)
+    from apps.logistica.services import (
+        verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago,
+    )
+
+    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
     pedidos = (
         pedidos_visibles_para_cliente(usuario, usuario_remoto)
         .filter(estado__in=["entregado", "cancelado"])
-        .prefetch_related("detalles__material")
+        .select_related("pago")
+        .prefetch_related("detalles__material", "entregas")
     )
 
     if q:
@@ -458,7 +473,7 @@ def crear_pedido(request):
         ciudad = request.POST.get("ciudad", "").strip()
         direccion_detalle = request.POST.get("direccion_detalle", "").strip()
         direccion = construir_direccion_destino(ciudad, direccion_detalle)
-        fecha_entrega_raw = request.POST.get("fecha_entrega")
+        fecha_entrega_raw = request.POST.get("fecha_entrega") or request.POST.get("fecha_entrega_picker")
         fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
 
         if fecha_entrega_raw and not fecha_entrega:
@@ -676,7 +691,7 @@ def editar_pedido(request, id):
             "El pedido ya no se puede modificar (estado actual: {}).".format(pedido.estado),
         )
         if es_admin:
-            return redirect("pedidos:lista_pedidos_admin")
+            return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
         return redirect("clientes:mis_pedidos")
 
     if request.method == "POST":
@@ -685,7 +700,7 @@ def editar_pedido(request, id):
         ciudad = request.POST.get("ciudad", "").strip()
         direccion_detalle = request.POST.get("direccion_detalle", "").strip()
         direccion = construir_direccion_destino(ciudad, direccion_detalle)
-        fecha_entrega_raw = request.POST.get("fecha_entrega")
+        fecha_entrega_raw = request.POST.get("fecha_entrega") or request.POST.get("fecha_entrega_picker")
         fecha_entrega = parse_fecha_entrega(fecha_entrega_raw)
 
         if fecha_entrega_raw and not fecha_entrega:
@@ -813,7 +828,7 @@ def editar_pedido(request, id):
 
             messages.success(request, f"Pedido #{pedido.codigo_pedido} actualizado correctamente.")
             if es_admin:
-                return redirect("pedidos:lista_pedidos_admin")
+                return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
             return redirect("clientes:mis_pedidos")
 
         except Exception:
@@ -879,43 +894,29 @@ def cancelar_pedido(request, id):
             return redirect("pedidos:lista_pedidos_admin")
         return redirect("clientes:mis_pedidos")
 
+    motivo_raw = request.POST.get("motivo", "").strip()
+    if "motivo" in request.POST and not motivo_raw:
+        messages.error(request, "Debes indicar el motivo de la cancelación del pedido.")
+        return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
+
+    motivo = motivo_raw or f"Cancelación solicitada por {'administrador' if es_admin else 'cliente'}"
+
     db_alias = _obtener_alias_db()
     try:
-        with transaction.atomic(using=db_alias):
-            for detalle in pedido.detalles.using(db_alias).all():
-                try:
-                    material_obj = detalle.material
-                except ObjectDoesNotExist:
-                    material_obj = None
+        from apps.logistica.services import cancelar_envio_pedido
+        from config.utils import registrar_actividad
 
-                if material_obj is not None:
-                    try:
-                        stock_obj = select_for_update_if_supported(
-                            Stock.objects.using(db_alias),
-                            db_alias,
-                        ).get(material=material_obj)
-                    except Stock.DoesNotExist:
-                        stock_obj = Stock.objects.using(db_alias).create(
-                            material=material_obj, cantidad_actual=0
-                        )
-                    stock_obj.cantidad_actual = F("cantidad_actual") + detalle.cantidad
-                    stock_obj.save(using=db_alias)
-
-            pedido.estado = "cancelado"
-            pedido.save(using=db_alias, update_fields=["estado"])
-
-            from config.utils import registrar_actividad
-
-            comentario = (
-                f"Pedido #{pedido.codigo_pedido} cancelado por {'admin' if es_admin else 'cliente'}"
-            )
-            registrar_actividad(
-                request,
-                "cancelar_pedido",
-                "pedidos",
-                pedido.codigo_pedido,
-                comentario,
-            )
+        cancelar_envio_pedido(pedido, request.user, motivo=motivo, using=db_alias)
+        comentario = (
+            f"Pedido #{pedido.codigo_pedido} cancelado por {'admin' if es_admin else 'cliente'}. Motivo: {motivo}"
+        )
+        registrar_actividad(
+            request,
+            "cancelar_pedido",
+            "pedidos",
+            pedido.codigo_pedido,
+            comentario,
+        )
 
         messages.warning(
             request,

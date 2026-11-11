@@ -147,13 +147,33 @@ class Entrega(TransicionMixin, models.Model):
     id_entrega = models.AutoField(primary_key=True)
     pedido = models.ForeignKey("pedidos.Pedido", on_delete=models.CASCADE, related_name="entregas")
     conductor = models.ForeignKey(
-        "usuarios.Conductor", on_delete=models.PROTECT, related_name="entregas"
+        "usuarios.Conductor",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="entregas",
     )
     vehiculo = models.ForeignKey(
         Vehiculo, on_delete=models.SET_NULL, null=True, blank=True, related_name="entregas"
     )
+    fecha_asignacion = models.DateTimeField(null=True, blank=True)
     fecha_salida = models.DateTimeField(null=True, blank=True)
+    confirmado_salida_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="entregas_salida_confirmada",
+    )
     fecha_entrega = models.DateTimeField(null=True, blank=True)
+    entregado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="entregas_finalizadas",
+    )
+    motivo_cancelacion = models.TextField(blank=True, default="")
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
     direccion_entrega = models.CharField(max_length=200)
 
@@ -182,6 +202,37 @@ class Entrega(TransicionMixin, models.Model):
     @property
     def id(self):
         return self.id_entrega
+
+    @property
+    def fecha_asignacion_efectiva(self):
+        if self.fecha_asignacion:
+            return self.fecha_asignacion
+        db_alias = self._state.db or "default"
+        if self.conductor_id and self.vehiculo_id:
+            asig = (
+                ConductorVehiculo.objects.using(db_alias)
+                .filter(conductor_id=self.conductor_id, vehiculo_id=self.vehiculo_id)
+                .order_by("-fecha_asignacion")
+                .first()
+            )
+            if asig and asig.fecha_asignacion:
+                return asig.fecha_asignacion
+        pago = getattr(self.pedido, "pago_actual", None)
+        if pago and getattr(pago, "fecha_revision", None):
+            return pago.fecha_revision
+        return getattr(self.pedido, "fecha_solicitud", None)
+
+    @property
+    def estado_logistico_display(self):
+        if self.estado == "pendiente":
+            if self.conductor_id and self.vehiculo_id:
+                return "Vehículo Asignado"
+            if getattr(self.pedido, "estado", "") == "vehiculo_asignado":
+                return "Vehículo Asignado"
+            if getattr(self.pedido, "estado", "") == "autorizado_despacho":
+                return "Autorizado Despacho"
+            return "Pendiente"
+        return self.get_estado_display()
 
     def save(self, *args, **kwargs):
         if self.conductor_id and not self.conductor_usuario_id:
