@@ -230,6 +230,11 @@ body {
     outline: none;
 }
 
+.input-custom::placeholder {
+    color: rgba(255, 255, 255, 0.35) !important;
+    font-weight: 400 !important;
+}
+
 /* Estilo para sobrescribir el autofill del navegador (Chrome, Safari, Edge) */
 .input-custom:-webkit-autofill,
 .input-custom:-webkit-autofill:hover,

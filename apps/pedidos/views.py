@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, transaction
-from django.db.models import F, Q
+from django.db.models import F, Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -14,6 +14,14 @@ from django.views.decorators.http import require_POST
 from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
 from apps.logistica.models import ConductorVehiculo, Entrega, Novedad, Vehiculo
+from apps.logistica.services import (
+    asignar_conductor_y_vehiculo,
+    autorizar_despacho_por_pago,
+    cancelar_envio_pedido,
+    confirmar_preparacion_e_iniciar_ruta,
+    marcar_pedido_entregado,
+    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago,
+)
 from apps.usuarios.models import Conductor, Usuario
 from apps.usuarios.views import admin_required
 from config.db_preference import debe_usar_bd_remota
@@ -145,8 +153,14 @@ def agregar_materiales(request, id):
 def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=None):
     pedidos = (
         Pedido.objects.all()
-        .select_related("usuario", "cliente", "conductor")
-        .prefetch_related("detalles__material", "entregas")
+        .select_related("usuario", "cliente__usuario", "conductor__usuario", "pago")
+        .prefetch_related(
+            "detalles__material",
+            "entregas__conductor__usuario",
+            "entregas__vehiculo",
+            "entregas__confirmado_salida_por",
+            "entregas__entregado_por",
+        )
         .order_by("-fecha_solicitud")
     )
 
@@ -178,7 +192,18 @@ def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=No
 
 
 @admin_required
-def _render_lista_por_estado(request, estado, titulo):
+def _render_lista_por_estado(
+    request,
+    estado,
+    titulo,
+    *,
+    solo_autorizados_despacho=False,
+    es_historial=False,
+):
+    from apps.pagos.models import Pago
+
+    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
+
     filtro = FiltroPedidosForm(request.GET)
     if filtro.is_valid():
         datos = filtro.cleaned_data
@@ -197,8 +222,15 @@ def _render_lista_por_estado(request, estado, titulo):
             pedidos = pedidos.filter(estado__in=estado)
         else:
             pedidos = pedidos.filter(estado=estado)
+    if solo_autorizados_despacho:
+        pedidos = pedidos.exclude(
+            pago__estado__in=[Pago.PENDIENTE, Pago.RECHAZADO]
+        ).exclude(estado__in=[Pedido.PENDIENTE, Pedido.CANCELADO])
     if estado_query:
-        pedidos = pedidos.filter(estado=estado_query)
+        if estado_query == "pendiente_correccion_pago":
+            pedidos = pedidos.filter(estado=Pedido.PENDIENTE, pago__estado=Pago.RECHAZADO)
+        else:
+            pedidos = pedidos.filter(estado=estado_query)
 
     has_filters = bool(cliente_query or fecha_query or q or estado_query)
     total_resultados = pedidos.count()
@@ -207,7 +239,11 @@ def _render_lista_por_estado(request, estado, titulo):
         return render(
             request,
             "pedidos/_lista_body.html",
-            {"pedidos": pedidos},
+            {
+                "pedidos": pedidos,
+                "solo_autorizados_despacho": solo_autorizados_despacho,
+                "es_historial": es_historial,
+            },
         )
 
     context = {
@@ -220,6 +256,8 @@ def _render_lista_por_estado(request, estado, titulo):
         "has_filters": has_filters,
         "total_resultados": total_resultados,
         "estado_actual": estado,
+        "solo_autorizados_despacho": solo_autorizados_despacho,
+        "es_historial": es_historial,
     }
     return render(request, "pedidos/lista.html", context)
 
@@ -241,14 +279,105 @@ def lista_pedidos_admin(request):
 def lista_entregas_admin(request):
     return _render_lista_por_estado(
         request,
-        [Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA, Pedido.ENTREGADO],
+        [
+            Pedido.AUTORIZADO_DESPACHO,
+            Pedido.VEHICULO_ASIGNADO,
+            Pedido.EN_RUTA,
+            Pedido.ENTREGADO,
+        ],
         "Control de Entregas y Envíos",
+        solo_autorizados_despacho=True,
     )
+
+
+@admin_required
+def historial_pedidos_admin(request):
+    return _render_lista_por_estado(
+        request,
+        [
+            Pedido.ENTREGADO,
+            Pedido.CANCELADO,
+        ],
+        "Historial de Pedidos (Entregados y Cancelados)",
+        es_historial=True,
+    )
+
+
+def _obtener_recursos_transporte_para_pedido(orden):
+    """
+    Devuelve la tupla (conductores, vehiculos) disponibles para asignar a `orden`.
+    Asegura que los usuarios con rol conductor activos tengan perfil Conductor
+    y excluye recursos ocupados en otros envíos activos.
+    """
+    from apps.usuarios.models import Conductor
+
+    for u in Usuario.objects.filter(
+        rol="conductor",
+        estado="activo",
+        is_active=True,
+        perfil_conductor__isnull=True,
+    ):
+        try:
+            Conductor.ensure_for_user(u)
+        except Exception:
+            pass
+
+    conductores_ocupados_ids = (
+        Entrega.objects.filter(
+            estado__in=["pendiente", "en_ruta"],
+            pedido__estado__in=[Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA],
+            conductor__isnull=False,
+        )
+        .exclude(pedido=orden)
+        .values_list("conductor__usuario_id", flat=True)
+    )
+
+    conductores = (
+        Usuario.objects.filter(
+            rol="conductor",
+            estado="activo",
+            is_active=True,
+            perfil_conductor__estado="activo",
+        )
+        .exclude(pk__in=conductores_ocupados_ids)
+        .select_related("perfil_conductor")
+        .prefetch_related(
+            Prefetch(
+                "perfil_conductor__asignaciones_vehiculo",
+                queryset=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related("vehiculo"),
+                to_attr="asignaciones_activas",
+            )
+        )
+        .order_by("nombres", "apellidos")
+    )
+
+    vehiculos_ocupados_ids = (
+        Entrega.objects.filter(
+            estado__in=["pendiente", "en_ruta"],
+            pedido__estado__in=[Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA],
+            vehiculo__isnull=False,
+        )
+        .exclude(pedido=orden)
+        .values_list("vehiculo_id", flat=True)
+    )
+
+    vehiculos = (
+        Vehiculo.objects.filter(
+            Q(estado="disponible") | Q(entregas__pedido=orden, entregas__estado__in=["pendiente", "en_ruta"])
+        )
+        .exclude(pk__in=vehiculos_ocupados_ids)
+        .distinct()
+        .order_by("placa")
+    )
+
+    return conductores, vehiculos
 
 
 @login_required
 def ver_pedido_admin(request, id):
     orden = get_object_or_404(Pedido, codigo_pedido=id)
+    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago(pedido=orden)
+    orden.refresh_from_db()
     usuario_actual = request.user
     is_super = getattr(usuario_actual, "is_superuser", False) or getattr(
         usuario_actual, "es_superadmin", False
@@ -344,7 +473,7 @@ def ver_pedido_admin(request, id):
         nuevo_estado = request.POST.get("estado")
 
         if usuario_actual.rol == "conductor" and not es_admin:
-            if accion in ("confirmar", "cancelar") and not conductor_asignado:
+            if accion in ("iniciar_ruta", "confirmar", "cancelar") and not conductor_asignado:
                 ip = obtener_ip(request)
                 registrar_warning(ip)
                 registrar_evento(
@@ -365,84 +494,192 @@ def ver_pedido_admin(request, id):
                         "codigo_pedido": orden.codigo_pedido,
                     },
                 )
+            if accion == "iniciar_ruta":
+                try:
+                    confirmar_preparacion_e_iniciar_ruta(orden, request.user)
+                    registrar_actividad(
+                        request,
+                        "iniciar_entrega",
+                        "pedidos",
+                        orden.codigo_pedido,
+                        f"Conductor {request.user.username} confirmó preparación e inició ruta del pedido #{orden.codigo_pedido}",
+                    )
+                    messages.success(
+                        request,
+                        f"Preparación confirmada. El pedido #{orden.codigo_pedido} está ahora «En Ruta».",
+                    )
+                except ValidationError as exc:
+                    _mensajes_error(request, exc)
+                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
             if accion == "confirmar":
-                if orden.estado != Pedido.ENTREGADO:
-                    with transaction.atomic():
-                        orden = Pedido.objects.select_for_update().get(pk=orden.pk)
-                        entrega = orden.entregas.filter(conductor=perfil_conductor).first()
-                        if entrega and not orden.puede_transicionar(Pedido.ENTREGADO):
-                            messages.error(
-                                request,
-                                "Solo se puede confirmar la entrega de un pedido asignado o en ruta.",
-                            )
-                            return redirect("usuarios:panel")
-                        if entrega:
-                            ahora = timezone.now()
-                            entrega.estado = "entregado"
-                            entrega.fecha_entrega = entrega.fecha_entrega or ahora
-                            entrega.save(update_fields=["estado", "fecha_entrega"])
-
-                            orden.transicionar(Pedido.ENTREGADO)
-                            orden.fecha_entrega_real = orden.fecha_entrega_real or ahora
-                            orden.save(update_fields=["estado", "fecha_entrega_real"])
-
-                            observacion = request.POST.get("observacion", "").strip()[:2000]
-                            if observacion:
-                                Novedad.objects.create(
-                                    entrega=entrega,
-                                    tipo="observacion",
-                                    descripcion=observacion,
-                                    reportado_por=request.user,
-                                )
-
-                            if entrega.vehiculo:
-                                entrega.vehiculo.estado = "disponible"
-                                entrega.vehiculo.save()
-
-                            registrar_actividad(
-                                request,
-                                "confirmar_entrega",
-                                "pedidos",
-                                orden.codigo_pedido,
-                                "Conductor confirmó entrega exitosa"
-                                + (f". Observación: {observacion}" if observacion else ""),
-                            )
-                            messages.success(
-                                request,
-                                f"¡Entrega del pedido #{orden.codigo_pedido} confirmada con éxito!",
-                            )
-                        else:
-                            messages.error(
-                                request, "No tienes una entrega asignada para este pedido."
-                            )
+                observacion = request.POST.get("observacion", "").strip()[:2000]
+                try:
+                    marcar_pedido_entregado(orden, request.user, observacion=observacion)
+                    registrar_actividad(
+                        request,
+                        "confirmar_entrega",
+                        "pedidos",
+                        orden.codigo_pedido,
+                        "Conductor confirmó entrega exitosa"
+                        + (f". Observación: {observacion}" if observacion else ""),
+                    )
+                    messages.success(
+                        request,
+                        f"¡Entrega del pedido #{orden.codigo_pedido} confirmada con éxito!",
+                    )
+                except ValidationError as exc:
+                    _mensajes_error(request, exc)
                 return redirect("usuarios:panel")
 
             elif accion == "cancelar":
-                if orden.estado not in (Pedido.ENTREGADO, Pedido.CANCELADO):
-                    db_alias = "remota" if debe_usar_bd_remota() else "default"
-                    with transaction.atomic():
-                        with transaction.atomic(using=db_alias):
-                            liberar_vehiculo_pedido(orden)
-                            revertir_stock_pedido(
-                                orden, request.user, "Cancelación (Conductor)", using=db_alias
-                            )
-
-                        orden.transicionar(Pedido.CANCELADO)
-                        orden.save()
-
-                        registrar_actividad(
-                            request,
-                            "cancelar_entrega",
-                            "pedidos",
-                            orden.codigo_pedido,
-                            "Conductor canceló la entrega",
-                        )
-                        messages.warning(
-                            request, f"Entrega del pedido #{orden.codigo_pedido} cancelada."
-                        )
+                motivo = request.POST.get("motivo", "").strip()
+                try:
+                    cancelar_envio_pedido(orden, request.user, motivo=motivo)
+                    registrar_actividad(
+                        request,
+                        "cancelar_entrega",
+                        "pedidos",
+                        orden.codigo_pedido,
+                        f"Conductor canceló la entrega: {motivo}",
+                    )
+                    messages.warning(
+                        request, f"Entrega del pedido #{orden.codigo_pedido} cancelada."
+                    )
+                except ValidationError as exc:
+                    _mensajes_error(request, exc)
+                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
                 return redirect("usuarios:panel")
 
+        elif usuario_actual.rol == "cliente" and cliente_dueno and not es_admin:
+            if accion == "cancelar":
+                motivo = request.POST.get("motivo", "").strip()
+                if orden.estado != Pedido.PENDIENTE:
+                    messages.error(request, "Solo se pueden cancelar pedidos en estado pendiente.")
+                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+                db_alias = "remota" if debe_usar_bd_remota() else "default"
+                try:
+                    cancelar_envio_pedido(orden, request.user, motivo=motivo, using=db_alias)
+                    registrar_actividad(
+                        request,
+                        "cancelar_pedido",
+                        "pedidos",
+                        orden.codigo_pedido,
+                        f"Cliente canceló el pedido #{orden.codigo_pedido}. Motivo: {motivo}",
+                    )
+                    messages.warning(
+                        request,
+                        f"El pedido #{orden.codigo_pedido} ha sido cancelado y el stock devuelto.",
+                    )
+                except ValidationError as exc:
+                    _mensajes_error(request, exc)
+                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
         elif es_admin:
+            if accion == "asignar_transporte":
+                if not orden.puede_despacharse:
+                    messages.error(
+                        request,
+                        "No se puede asignar conductor ni vehículo porque el pago del pedido aún no ha sido aprobado.",
+                    )
+                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
+                conductor_id = request.POST.get("conductor")
+                vehiculo_id = request.POST.get("vehiculo")
+                if not conductor_id:
+                    messages.error(request, "Por favor selecciona un conductor disponible.")
+                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+                if not vehiculo_id:
+                    usuario_cond_tmp = Usuario.objects.filter(pk=conductor_id, rol="conductor").first()
+                    perfil_tmp = getattr(usuario_cond_tmp, "perfil_conductor", None) if usuario_cond_tmp else None
+                    veh_actual = getattr(perfil_tmp, "vehiculo_actual", None) if perfil_tmp else None
+                    if veh_actual:
+                        vehiculo_id = veh_actual.pk
+                if not vehiculo_id:
+                    messages.error(request, "Por favor selecciona un vehículo disponible.")
+                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
+                try:
+                    entrega_asig = asignar_conductor_y_vehiculo(
+                        orden,
+                        conductor_id,
+                        vehiculo_id,
+                        usuario_admin=request.user,
+                    )
+                    usuario_conductor = entrega_asig.conductor.usuario
+                    vehiculo_bloqueado = entrega_asig.vehiculo
+                    registrar_actividad(
+                        request,
+                        "editar",
+                        "entrega",
+                        entrega_asig.id_entrega,
+                        f"Envío de pedido #{orden.codigo_pedido} asignado a {usuario_conductor.nombre_mostrar} con vehículo {vehiculo_bloqueado.placa}",
+                    )
+                    messages.success(
+                        request,
+                        f"Conductor {usuario_conductor.nombre_mostrar} y vehículo {vehiculo_bloqueado.placa} asignados correctamente al pedido #{orden.codigo_pedido}. "
+                        f"El pedido autorizado para despacho ya fue enviado al panel del conductor.",
+                    )
+                except ValidationError as exc:
+                    _mensajes_error(request, exc)
+                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
+            if accion == "iniciar_ruta":
+                try:
+                    confirmar_preparacion_e_iniciar_ruta(orden, request.user)
+                    registrar_actividad(
+                        request,
+                        "iniciar_entrega",
+                        "pedidos",
+                        orden.codigo_pedido,
+                        f"Administrador {request.user.username} confirmó preparación e inició ruta del pedido #{orden.codigo_pedido}",
+                    )
+                    messages.success(
+                        request,
+                        f"Preparación confirmada e inicio de ruta registrado para el pedido #{orden.codigo_pedido}.",
+                    )
+                except ValidationError as exc:
+                    _mensajes_error(request, exc)
+                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
+            if accion == "confirmar":
+                observacion = request.POST.get("observacion", "").strip()[:2000]
+                try:
+                    marcar_pedido_entregado(orden, request.user, observacion=observacion)
+                    registrar_actividad(
+                        request,
+                        "confirmar_entrega",
+                        "pedidos",
+                        orden.codigo_pedido,
+                        f"Administrador {request.user.username} marcó como entregado el pedido #{orden.codigo_pedido}",
+                    )
+                    messages.success(
+                        request,
+                        f"El pedido #{orden.codigo_pedido} fue marcado como «Entregado».",
+                    )
+                except ValidationError as exc:
+                    _mensajes_error(request, exc)
+                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
+            if accion == "cancelar":
+                motivo = request.POST.get("motivo", "").strip()
+                try:
+                    cancelar_envio_pedido(orden, request.user, motivo=motivo)
+                    registrar_actividad(
+                        request,
+                        "cancelar_entrega",
+                        "pedidos",
+                        orden.codigo_pedido,
+                        f"Administrador canceló el envío del pedido #{orden.codigo_pedido}. Motivo: {motivo}",
+                    )
+                    messages.warning(
+                        request,
+                        f"El envío del pedido #{orden.codigo_pedido} fue cancelado.",
+                    )
+                except ValidationError as exc:
+                    _mensajes_error(request, exc)
+                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
             form = CambioEstadoPedidoForm(request.POST)
             if not form.is_valid():
                 _mensajes_error(request, form.errors)
@@ -450,52 +687,48 @@ def ver_pedido_admin(request, id):
             nuevo_estado = form.cleaned_data["estado"]
             db_alias = "remota" if debe_usar_bd_remota() else "default"
             try:
-                with transaction.atomic():
-                    # Bloqueo: evita que dos admins cambien el estado a la vez.
-                    orden = Pedido.objects.select_for_update().get(pk=orden.pk)
-                    if nuevo_estado == orden.estado:
-                        messages.info(request, "El pedido ya se encuentra en ese estado.")
-                        return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-                    if (
-                        nuevo_estado in Pedido.ESTADOS_REQUIEREN_PAGO
-                        and not orden.puede_despacharse
-                    ):
-                        raise ValidationError(
-                            {"estado": "No se autoriza el despacho sin un pago aprobado."}
-                        )
-                    # Lanza ValidationError si la transición no está permitida.
-                    orden.transicionar(nuevo_estado)
+                if nuevo_estado == orden.estado:
+                    messages.info(request, "El pedido ya se encuentra en ese estado.")
+                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
-                    if nuevo_estado == Pedido.ENTREGADO:
-                        entrega = orden.entregas.first()
-                        if not entrega:
-                            raise ValidationError(
-                                {"estado": "Para marcar como entregado primero asigna una entrega."}
-                            )
-                        entrega.estado = "entregado"
-                        if not entrega.fecha_entrega:
-                            entrega.fecha_entrega = timezone.now()
-                        entrega.save()
-                        orden.fecha_entrega_real = timezone.now()
-                    elif nuevo_estado == Pedido.CANCELADO:
-                        with transaction.atomic(using=db_alias):
-                            liberar_vehiculo_pedido(orden)
-                            revertir_stock_pedido(
-                                orden, request.user, "Cancelación (Admin)", using=db_alias
-                            )
-                    elif nuevo_estado == Pedido.EN_RUTA and not orden.fecha_toma_entrega:
-                        orden.fecha_toma_entrega = timezone.now()
-
-                    orden.full_clean(exclude=["fecha_entrega_programada"])
-                    orden.save()
-
-                    registrar_actividad(
-                        request,
-                        "editar",
-                        "pedidos",
-                        orden.codigo_pedido,
-                        f"Estado de pedido cambiado por admin a: {nuevo_estado}",
+                if (
+                    nuevo_estado in Pedido.ESTADOS_REQUIEREN_PAGO
+                    and not orden.puede_despacharse
+                ):
+                    raise ValidationError(
+                        {"estado": "No se autoriza el despacho sin un pago aprobado."}
                     )
+
+                if nuevo_estado == Pedido.AUTORIZADO_DESPACHO:
+                    autorizar_despacho_por_pago(orden, usuario_admin=request.user)
+                elif nuevo_estado == Pedido.EN_RUTA:
+                    confirmar_preparacion_e_iniciar_ruta(orden, request.user)
+                elif nuevo_estado == Pedido.ENTREGADO:
+                    marcar_pedido_entregado(
+                        orden,
+                        request.user,
+                        observacion=request.POST.get("observacion", ""),
+                    )
+                elif nuevo_estado == Pedido.CANCELADO:
+                    motivo_form = (
+                        request.POST.get("motivo", "").strip()
+                        or "Cancelación administrativa desde control de estado"
+                    )
+                    cancelar_envio_pedido(orden, request.user, motivo=motivo_form, using=db_alias)
+                else:
+                    with transaction.atomic():
+                        orden = Pedido.objects.select_for_update().get(pk=orden.pk)
+                        orden.transicionar(nuevo_estado)
+                        orden.full_clean(exclude=["fecha_entrega_programada"])
+                        orden.save()
+
+                registrar_actividad(
+                    request,
+                    "editar",
+                    "pedidos",
+                    orden.codigo_pedido,
+                    f"Estado de pedido cambiado por admin a: {nuevo_estado}",
+                )
             except ValidationError as exc:
                 _mensajes_error(request, exc)
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
@@ -505,7 +738,14 @@ def ver_pedido_admin(request, id):
             )
             return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
-    entrega = orden.entregas.select_related("conductor__usuario", "vehiculo").first()
+    entrega = (
+        orden.entregas.select_related(
+            "conductor__usuario",
+            "vehiculo",
+            "confirmado_salida_por",
+            "entregado_por",
+        ).first()
+    )
     conductor_usuario = (
         (entrega.conductor.usuario if entrega and entrega.conductor else None)
         or orden.conductor_usuario
@@ -513,16 +753,35 @@ def ver_pedido_admin(request, id):
     vehiculo = entrega.vehiculo if entrega else None
     pago = orden.pago_actual
 
+    conductores_disponibles = []
+    vehiculos_disponibles = []
+    puede_asignar_transporte = bool(
+        es_admin
+        and orden.puede_despacharse
+        and orden.estado not in (Pedido.EN_RUTA, Pedido.ENTREGADO, Pedido.CANCELADO)
+    )
+    if es_admin and orden.estado not in (Pedido.EN_RUTA, Pedido.ENTREGADO, Pedido.CANCELADO):
+        conductores_disponibles, vehiculos_disponibles = _obtener_recursos_transporte_para_pedido(orden)
+
     context = {
         "orden": orden,
         "entrega": entrega,
         "conductor_usuario": conductor_usuario,
         "vehiculo": vehiculo,
         "pago": pago,
+        "conductores_disponibles": conductores_disponibles,
+        "vehiculos_disponibles": vehiculos_disponibles,
+        "puede_asignar_transporte": puede_asignar_transporte,
+        "puede_iniciar_ruta": (
+            (es_admin or (usuario_actual.rol == "conductor" and conductor_asignado))
+            and orden.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.AUTORIZADO_DESPACHO)
+            and orden.puede_despacharse
+            and entrega is not None
+            and bool(entrega.conductor_id and entrega.vehiculo_id)
+        ),
         "puede_confirmar_entrega": (
-            usuario_actual.rol == "conductor"
-            and conductor_asignado
-            and orden.estado not in (Pedido.ENTREGADO, Pedido.CANCELADO)
+            (es_admin or (usuario_actual.rol == "conductor" and conductor_asignado))
+            and orden.estado == Pedido.EN_RUTA
         ),
     }
     return render(request, "pedidos/detalle.html", context)
@@ -542,31 +801,7 @@ def crear_entrega(request, orden_id):
         )
         return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
-    conductores = (
-        Usuario.objects.filter(
-            rol="conductor",
-            estado="activo",
-            is_active=True,
-            perfil_conductor__estado="activo",
-        )
-        .select_related("perfil_conductor")
-        .prefetch_related(
-            Prefetch(
-                "perfil_conductor__asignaciones_vehiculo",
-                queryset=ConductorVehiculo.objects.filter(fecha_fin__isnull=True).select_related("vehiculo"),
-                to_attr="asignaciones_activas",
-            )
-        )
-        .order_by("nombres", "apellidos")
-    )
-
-    vehiculos = (
-        Vehiculo.objects.filter(
-            Q(estado="disponible") | Q(entregas__pedido=orden, entregas__estado__in=["pendiente", "en_ruta"])
-        )
-        .distinct()
-        .order_by("placa")
-    )
+    conductores, vehiculos = _obtener_recursos_transporte_para_pedido(orden)
 
     total_peso_estimado = sum((d.cantidad for d in orden.detalles.all()), 0)
 
@@ -588,15 +823,22 @@ def crear_entrega(request, orden_id):
                 status=400,
             )
 
-        usuario_conductor = get_object_or_404(
-            Usuario, pk=conductor_id, rol="conductor", estado="activo", is_active=True
-        )
+        if not vehiculo_id:
+            usuario_cond_tmp = Usuario.objects.filter(pk=conductor_id, rol="conductor").first()
+            perfil_tmp = getattr(usuario_cond_tmp, "perfil_conductor", None) if usuario_cond_tmp else None
+            veh_actual = perfil_tmp.vehiculo_actual if perfil_tmp else None
+            if veh_actual:
+                vehiculo_id = veh_actual.pk
+
         try:
-            conductor_perfil = usuario_conductor.perfil_conductor
-        except Conductor.DoesNotExist:
-            messages.error(
-                request, f"El usuario {usuario_conductor.nombre_mostrar} no tiene perfil de conductor activo."
+            entrega = asignar_conductor_y_vehiculo(
+                orden,
+                conductor_id,
+                vehiculo_id,
+                usuario_admin=request.user,
             )
+        except ValidationError as exc:
+            _mensajes_error(request, exc)
             return render(
                 request,
                 "pedidos/asignar_entrega.html",
@@ -609,123 +851,22 @@ def crear_entrega(request, orden_id):
                 status=400,
             )
 
-        if vehiculo_id:
-            vehiculo = get_object_or_404(Vehiculo, pk=vehiculo_id)
-        else:
-            vehiculo = conductor_perfil.vehiculo_actual
+        usuario_conductor = entrega.conductor.usuario
+        vehiculo_bloqueado = entrega.vehiculo
+        registrar_actividad(
+            request,
+            "editar",
+            "entrega",
+            entrega.id_entrega,
+            f"Envío de pedido #{orden.codigo_pedido} asignado a {usuario_conductor.nombre_mostrar} con vehículo {vehiculo_bloqueado.placa}",
+        )
 
-        if not vehiculo:
-            messages.error(
-                request,
-                f"El conductor {usuario_conductor.nombre_mostrar} no tiene un vehículo asignado. "
-                "Por favor selecciona un vehículo de la flota disponible.",
-            )
-            return render(
-                request,
-                "pedidos/asignar_entrega.html",
-                {
-                    "orden": orden,
-                    "conductores": conductores,
-                    "vehiculos": vehiculos,
-                    "total_peso": total_peso_estimado,
-                },
-                status=400,
-            )
-
-        with transaction.atomic():
-            orden_bloqueada = Pedido.objects.select_for_update().get(pk=orden.pk)
-            vehiculo_bloqueado = Vehiculo.objects.select_for_update().get(pk=vehiculo.pk)
-
-            # Prevenir colisión concurrente: comprobar si otro proceso ocupó el vehículo
-            otra_entrega = (
-                Entrega.objects.filter(vehiculo=vehiculo_bloqueado, estado__in=["pendiente", "en_ruta"])
-                .exclude(pedido=orden_bloqueada)
-                .first()
-            )
-            if otra_entrega:
-                messages.error(
-                    request,
-                    f"El vehículo {vehiculo_bloqueado.placa} ya fue asignado a otra entrega activa "
-                    f"(#CT-{otra_entrega.pedido_id}). Selecciona otro vehículo disponible.",
-                )
-                return render(
-                    request,
-                    "pedidos/asignar_entrega.html",
-                    {
-                        "orden": orden,
-                        "conductores": conductores,
-                        "vehiculos": vehiculos,
-                        "total_peso": total_peso_estimado,
-                    },
-                    status=400,
-                )
-
-            entrega, created = Entrega.objects.get_or_create(
-                pedido=orden_bloqueada,
-                defaults={
-                    "conductor": conductor_perfil,
-                    "conductor_usuario": usuario_conductor,
-                    "vehiculo": vehiculo_bloqueado,
-                    "estado": "pendiente",
-                    "direccion_entrega": orden_bloqueada.direccion_destino,
-                },
-            )
-
-            if not created:
-                if entrega.estado == "entregado":
-                    messages.warning(
-                        request,
-                        f"El pedido #{orden.codigo_pedido} ya fue completado y entregado. No se puede reasignar.",
-                    )
-                    return redirect("pedidos:lista_pedidos_admin")
-
-                entrega.conductor = conductor_perfil
-                entrega.conductor_usuario = usuario_conductor
-                entrega.vehiculo = vehiculo_bloqueado
-                entrega.estado = "pendiente"
-                entrega.direccion_entrega = orden_bloqueada.direccion_destino
-                entrega.save()
-
-            if orden_bloqueada.puede_transicionar(Pedido.VEHICULO_ASIGNADO):
-                orden_bloqueada.transicionar(Pedido.VEHICULO_ASIGNADO)
-            elif (
-                orden_bloqueada.estado == Pedido.PENDIENTE
-                and orden_bloqueada.puede_transicionar(Pedido.AUTORIZADO_DESPACHO)
-            ):
-                orden_bloqueada.transicionar(Pedido.AUTORIZADO_DESPACHO)
-                if orden_bloqueada.puede_transicionar(Pedido.VEHICULO_ASIGNADO):
-                    orden_bloqueada.transicionar(Pedido.VEHICULO_ASIGNADO)
-
-            orden_bloqueada.conductor = conductor_perfil
-            orden_bloqueada.save()
-
-            # Vincular conductor con vehículo en ConductorVehiculo si no es el actual
-            if (
-                not conductor_perfil.vehiculo_actual
-                or conductor_perfil.vehiculo_actual.pk != vehiculo_bloqueado.pk
-            ):
-                ConductorVehiculo.objects.filter(
-                    conductor=conductor_perfil, fecha_fin__isnull=True
-                ).update(fecha_fin=timezone.now())
-                ConductorVehiculo.objects.create(
-                    conductor=conductor_perfil, vehiculo=vehiculo_bloqueado
-                )
-
-            accion_desc = "reasignado" if not created else "asignado"
-            registrar_actividad(
-                request,
-                "editar" if not created else "crear",
-                "entrega",
-                entrega.id_entrega,
-                f"Envío de pedido #{orden.codigo_pedido} {accion_desc} a {usuario_conductor.nombre_mostrar} con vehículo {vehiculo_bloqueado.placa}",
-            )
-
-            messages.success(
-                request,
-                f"Envío del pedido #{orden.codigo_pedido} {accion_desc} correctamente a {usuario_conductor.nombre_mostrar} "
-                f"con vehículo {vehiculo_bloqueado.placa}. Queda listo para que el conductor inicie el recorrido.",
-            )
-            return redirect("pedidos:lista_pedidos_admin")
+        messages.success(
+            request,
+            f"Envío del pedido #{orden.codigo_pedido} asignado correctamente a {usuario_conductor.nombre_mostrar} "
+            f"con vehículo {vehiculo_bloqueado.placa}. Queda en estado «Vehículo Asignado» listo para preparación e inicio de ruta.",
+        )
+        return redirect("pedidos:lista_entregas_admin")
 
     context = {
         "orden": orden,
@@ -954,6 +1095,8 @@ def cancelar_pedido(request, pk):
 @login_required
 def estado_pedido_api(request, id):
     orden = get_object_or_404(Pedido, codigo_pedido=id)
+    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago(pedido=orden)
+    orden.refresh_from_db()
     usuario_actual = request.user
     is_super = getattr(usuario_actual, "is_superuser", False) or getattr(
         usuario_actual, "es_superadmin", False
@@ -992,14 +1135,17 @@ def estado_pedido_api(request, id):
     data = {
         "codigo_pedido": orden.codigo_pedido,
         "estado": orden.estado,
-        "estado_display": orden.get_estado_display(),
+        "estado_display": orden.estado_gestion_display,
+        "estado_logistico_display": orden.estado_logistico_display,
+        "requiere_correccion_pago": orden.requiere_correccion_pago,
         "fecha_solicitud": (
             orden.fecha_solicitud.strftime("%d/%m/%Y %H:%M") if orden.fecha_solicitud else ""
         ),
         "pago": {
             "existe": bool(pago),
             "estado": pago.estado if pago else None,
-            "estado_display": pago.get_estado_display() if pago else "Sin registrar",
+            "estado_display": pago.estado_gestion_display if pago else "Sin registrar",
+            "requiere_correccion": pago.requiere_correccion if pago else False,
             "metodo": pago.metodo if pago else "",
             "metodo_display": pago.get_metodo_display() if pago else "",
             "fecha_revision": (

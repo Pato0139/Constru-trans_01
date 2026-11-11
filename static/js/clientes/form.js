@@ -163,17 +163,25 @@ function parseToIso(value) {
 function openFechaEntregaPicker() {
     const visible = document.getElementById('fecha_entrega_text');
     const picker = document.getElementById('fecha_entrega_picker');
-    if (!visible || !picker) return;
+    if (!picker) return;
 
-    const parsedIso = parseToIso(visible.value.trim());
-    if (parsedIso) picker.value = parsedIso;
-
-    if (picker.showPicker) {
-        picker.showPicker();
-    } else {
-        picker.focus();
-        try { picker.click(); } catch (error) {}
+    if (visible && visible.value.trim()) {
+        const parsedIso = parseToIso(visible.value.trim());
+        if (parsedIso) picker.value = parsedIso;
     }
+
+    try {
+        if (typeof picker.showPicker === 'function') {
+            picker.showPicker();
+            return;
+        }
+    } catch (e) {
+        console.warn('showPicker no disponible:', e);
+    }
+
+    try {
+        picker.click();
+    } catch (e) {}
 }
 
 /**
@@ -187,6 +195,16 @@ function openFechaEntregaPicker() {
  */
 function formatFechaParaInput(value) {
     if (!value) return '';
+
+    const parts = value.split('T');
+    if (parts.length === 2) {
+        const [datePart, timePart] = parts;
+        const [year, month, day] = datePart.split('-');
+        if (year && month && day) {
+            const time = timePart.slice(0, 5);
+            return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year} ${time}`;
+        }
+    }
 
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
@@ -211,17 +229,35 @@ window.AppPageLifecycle.onPageLoad(() => {
     document.getElementById('btn-agregar-material')
         ?.addEventListener('click', agregarMaterial);
 
-    document.getElementById('btn-fecha-entrega')
-        ?.addEventListener('click', openFechaEntregaPicker);
+    const picker = document.getElementById('fecha_entrega_picker');
+    const visibleField = document.getElementById('fecha_entrega_text');
+    const btnPicker = document.getElementById('btn-fecha-entrega');
 
-    document.getElementById('fecha_entrega_text')
-        ?.addEventListener('click', openFechaEntregaPicker);
+    btnPicker?.addEventListener('click', openFechaEntregaPicker);
 
-    document.getElementById('fecha_entrega_picker')
-        ?.addEventListener('input', function () {
-            const visibleField = document.getElementById('fecha_entrega_text');
-            if (visibleField) visibleField.value = formatFechaParaInput(this.value);
-        });
+    visibleField?.addEventListener('click', function () {
+        if (!this.value.trim()) {
+            openFechaEntregaPicker();
+        }
+    });
+
+    function syncPickerToText() {
+        if (visibleField && picker && picker.value) {
+            visibleField.value = formatFechaParaInput(picker.value);
+        }
+    }
+
+    picker?.addEventListener('input', syncPickerToText);
+    picker?.addEventListener('change', syncPickerToText);
+
+    visibleField?.addEventListener('input', function () {
+        if (picker && this.value.trim()) {
+            const parsedIso = parseToIso(this.value.trim());
+            if (parsedIso) {
+                picker.value = parsedIso;
+            }
+        }
+    });
 
     document.addEventListener('click', (event) => {
         const btnEliminar = event.target.closest('.btn-eliminar-material');

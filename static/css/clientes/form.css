@@ -108,20 +108,23 @@
 
 .pedido-picker-wrapper {
     position: relative;
+    display: flex;
+    align-items: stretch;
 }
 
 .pedido-picker-hidden {
     position: absolute;
-    left: -9999px;
-    top: -9999px;
-    width: 1px;
-    height: 1px;
+    left: 0;
+    top: 0;
+    width: 48px;
+    height: 100%;
     opacity: 0;
     border: 0;
     padding: 0;
     margin: 0;
+    cursor: pointer;
+    z-index: 5;
     pointer-events: auto;
-    z-index: 1000;
 }
 
 .pedido-submit-btn {
@@ -170,6 +173,22 @@
     background: #d68910;
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(243, 156, 18, 0.3);
+}
+
+.pedido-cancel-btn,
+.btn-secondary-cta {
+    color: #f8fafc !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    font-weight: 700 !important;
+    transition: all 0.25s ease;
+}
+
+.pedido-cancel-btn:hover,
+.btn-secondary-cta:hover {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+    border-color: rgba(255, 255, 255, 0.65) !important;
 }
 
 .material-item {

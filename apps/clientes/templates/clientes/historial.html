@@ -78,6 +78,9 @@
                         <span class="badge-tipo badge-tipo-cancelado" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">
                             <i class="bi bi-x-circle-fill me-1"></i> Cancelado
                         </span>
+                        {% if pedido.motivo_cancelacion_display %}
+                        <div class="x-small text-danger mt-1">{{ pedido.motivo_cancelacion_display|truncatechars:48 }}</div>
+                        {% endif %}
                         {% else %}
                         <span class="badge-tipo">{{ pedido.get_estado_display }}</span>
                         {% endif %}

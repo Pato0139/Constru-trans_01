@@ -7,16 +7,26 @@
     <td class="text-muted small">{{ pedido.fecha_solicitud|date:"d M, Y H:i" }}</td>
     <td class="price-tag">{{ pedido.total|currency }}</td>
     <td>
-        {% if pedido.estado == "pendiente" %}
+        {% if pedido.requiere_correccion_pago %}
+        <span class="badge-tipo badge-tipo-cancelado" style="background: rgba(239, 68, 68, 0.16); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35);">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>Pendiente de corrección de pago
+        </span>
+        {% elif pedido.estado == "pendiente" %}
         <span class="badge-tipo badge-tipo-pendiente">Pendiente</span>
         {% elif pedido.estado == "autorizado_despacho" %}
         <span class="badge-tipo badge-tipo-warning">Autorizado Despacho</span>
         {% elif pedido.estado == "vehiculo_asignado" %}
         <span class="badge-tipo badge-tipo-info">Vehículo Asignado</span>
         {% elif pedido.estado == "en_ruta" %}
-        <span class="badge-tipo badge-tipo-en-ruta">En ruta</span>
+        <span class="badge-tipo badge-tipo-en-ruta">En Ruta</span>
         {% else %}
         <span class="badge-tipo">{{ pedido.get_estado_display }}</span>
+        {% endif %}
+        {% if pedido.fecha_asignacion_logistica and pedido.estado == "vehiculo_asignado" %}
+        <div class="text-muted x-small mt-1">Asignado: {{ pedido.fecha_asignacion_logistica|date:"d/m/Y H:i" }}</div>
+        {% endif %}
+        {% if pedido.fecha_salida_ruta and pedido.estado == "en_ruta" %}
+        <div class="text-muted x-small mt-1">En ruta desde: {{ pedido.fecha_salida_ruta|date:"d/m/Y H:i" }}</div>
         {% endif %}
     </td>
     <td class="text-center">
@@ -28,7 +38,7 @@
             {% if pedido.estado == 'pendiente' %}
                 {% if not pedido.pago_actual or pedido.pago_actual.estado == 'rechazado' %}
                 <a href="{% url 'pagos:registrar_pago_pedido' pedido.codigo_pedido %}" class="btn-action text-success"
-                    title="Registrar pago">
+                    title="{% if pedido.pago_actual and pedido.pago_actual.estado == 'rechazado' %}Corregir y reenviar comprobante{% else %}Registrar pago{% endif %}">
                     <i class="bi bi-wallet2"></i>
                 </a>
                 {% elif pedido.pago_actual %}
@@ -41,15 +51,6 @@
                     title="Modificar pedido">
                     <i class="bi bi-pencil-square"></i>
                 </a>
-                <form action="{% url 'clientes:cancelar_pedido' pedido.codigo_pedido %}" method="post" class="d-inline m-0">
-                    {% csrf_token %}
-                    <button type="button" class="btn-action btn-action--danger confirm-delete-btn"
-                        data-title="¿Cancelar Pedido?"
-                        data-text="¿Estás seguro de que deseas cancelar el pedido #CT-{{ pedido.codigo_pedido }}? Esta acción no se puede deshacer."
-                        title="Cancelar pedido">
-                        <i class="bi bi-x-circle"></i>
-                    </button>
-                </form>
             {% endif %}
         </div>
     </td>

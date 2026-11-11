@@ -1,39 +1,99 @@
 {% for p in pedidos %}
-<tr class="u-inline-e91738c112">
-    <td class="p-4 fw-bold">#{{ p.codigo_pedido }}</td>
-    <td class="p-4">
-        <div class="fw-medium">{{ p.usuario.nombres }} {{ p.usuario.apellidos }}</div>
-        <div class="text-muted small">{{ p.usuario.user.email }}</div>
-    </td>
-    <td class="p-4 text-muted small">{{ p.direccion_destino|truncatechars:40 }}</td>
-    <td class="p-4">
-        {% if p.estado == 'pendiente' %}
-        <span class="badge bg-warning-subtle text-warning px-3">Pendiente</span>
-        {% elif p.estado == 'en_ruta' %}
-        <span class="badge bg-primary-subtle text-primary px-3">En Ruta</span>
-        {% elif p.estado == 'entregado' %}
-        <span class="badge bg-success-subtle text-success px-3">Entregado</span>
-        {% else %}
-        <span class="badge bg-danger-subtle text-danger px-3">{{ p.estado|title }}</span>
+<tr class="u-inline-e91738c112 orders-list-row">
+    <td class="p-3 fw-bold text-accent" data-label="Pedido">#CT-{{ p.codigo_pedido }}</td>
+    <td class="p-3" data-label="Cliente">
+        <div class="fw-medium">{{ p.cliente_usuario.nombres }} {{ p.cliente_usuario.apellidos }}</div>
+        <div class="text-muted small">{{ p.cliente_usuario.email }}</div>
+        {% if p.cliente_usuario.telefono %}
+        <div class="text-muted x-small"><i class="bi bi-telephone me-1"></i>{{ p.cliente_usuario.telefono }}</div>
         {% endif %}
     </td>
-    <td class="p-4 text-muted small">{{ p.fecha_solicitud|date:"d/m/Y H:i" }}</td>
-    <td class="p-4">
-        <div class="d-flex gap-2">
+    <td class="p-3 text-muted small" data-label="Fecha">{{ p.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+    <td class="p-3 text-muted small" data-label="Dirección de entrega">{{ p.direccion_destino|truncatechars:45 }}</td>
+    <td class="p-3" data-label="Estado logístico">
+        {% if p.requiere_correccion_pago %}
+        <span class="badge bg-danger-subtle text-danger px-3">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i>Pendiente de corrección de pago
+        </span>
+        {% elif p.pago_corregido_pendiente_revision %}
+        <span class="badge bg-info-subtle text-info px-3">
+            <i class="bi bi-bell-fill me-1"></i>Pago corregido · Por revisar
+        </span>
+        {% elif p.estado == 'pendiente' %}
+        <span class="badge bg-warning-subtle text-warning px-3">Pendiente</span>
+        {% elif p.estado == 'autorizado_despacho' %}
+        <span class="badge bg-info-subtle text-info px-3">Autorizado Despacho</span>
+        {% elif p.estado == 'vehiculo_asignado' %}
+        <span class="badge bg-primary-subtle text-primary px-3">Vehículo Asignado</span>
+        {% elif p.estado == 'en_ruta' %}
+        <span class="badge bg-primary text-white px-3"><i class="bi bi-truck me-1"></i>En Ruta</span>
+        {% elif p.estado == 'entregado' %}
+        <span class="badge bg-success-subtle text-success px-3"><i class="bi bi-check-circle me-1"></i>Entregado</span>
+        {% elif p.estado == 'cancelado' %}
+        <span class="badge bg-danger-subtle text-danger px-3">Cancelado</span>
+        {% if p.motivo_cancelacion_display %}
+        <div class="text-danger x-small mt-1" title="{{ p.motivo_cancelacion_display }}">
+            <i class="bi bi-info-circle me-1"></i>{{ p.motivo_cancelacion_display|truncatechars:42 }}
+        </div>
+        {% endif %}
+        {% else %}
+        <span class="badge bg-secondary-subtle text-light px-3">{{ p.get_estado_display }}</span>
+        {% endif %}
+        {% if p.fecha_salida_ruta %}
+        <div class="text-muted x-small mt-1" title="Inicio de ruta">
+            <i class="bi bi-play-circle text-info me-1"></i>Ruta: {{ p.fecha_salida_ruta|date:"d/m/Y H:i" }}
+        </div>
+        {% endif %}
+        {% if p.fecha_entrega_completada %}
+        <div class="text-muted x-small" title="Entrega completada">
+            <i class="bi bi-check2-all text-success me-1"></i>Entrega: {{ p.fecha_entrega_completada|date:"d/m/Y H:i" }}
+        </div>
+        {% endif %}
+    </td>
+    <td class="p-3 small" data-label="Conductor asignado">
+        {% if p.conductor_usuario %}
+        <div class="fw-semibold text-white">
+            <i class="bi bi-person-badge text-accent me-1"></i>{{ p.conductor_usuario.nombres }} {{ p.conductor_usuario.apellidos }}
+        </div>
+        {% if p.conductor_usuario.telefono %}
+        <div class="text-muted x-small">{{ p.conductor_usuario.telefono }}</div>
+        {% endif %}
+        {% else %}
+        <span class="text-muted fst-italic">Sin asignar</span>
+        {% endif %}
+    </td>
+    <td class="p-3 small" data-label="Vehículo asignado">
+        {% with veh=p.vehiculo_asignado_actual %}
+        {% if veh %}
+        <div class="fw-semibold text-white">
+            <i class="bi bi-truck-front text-info me-1"></i>{{ veh.placa }}
+        </div>
+        <div class="text-muted x-small">{{ veh.marca }} {{ veh.modelo }}</div>
+        {% else %}
+        <span class="text-muted fst-italic">Sin asignar</span>
+        {% endif %}
+        {% endwith %}
+    </td>
+    <td class="p-3 text-center" data-label="Acciones">
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
             <a href="{% url 'pedidos:ver_pedido_admin' p.codigo_pedido %}"
-                class="btn btn-sm btn-outline-info rounded-pill px-3" title="Ver Detalles">
+                class="btn btn-sm btn-outline-info rounded-pill px-3" title="Consultar detalles del pedido y envío">
                 <i class="bi bi-eye"></i>
             </a>
-            {% if p.estado == 'pendiente' %}
+            {% if p.estado == 'autorizado_despacho' or p.estado == 'vehiculo_asignado' %}
             <a href="{% url 'pedidos:crear_entrega' p.codigo_pedido %}"
-                class="btn btn-sm btn-outline-warning rounded-pill px-3" title="Asignar Entrega">
+                class="btn btn-sm btn-outline-warning rounded-pill px-3" title="Asignar conductor y vehículo">
                 <i class="bi bi-truck"></i>
             </a>
-            <form action="{% url 'clientes:cancelar_pedido' p.codigo_pedido %}" method="post"
-                onsubmit="return confirm('¿Estás seguro de cancelar este pedido?')">
+            {% endif %}
+            {% if p.estado == 'vehiculo_asignado' %}
+            <form action="{% url 'pedidos:ver_pedido_admin' p.codigo_pedido %}" method="post" class="d-inline"
+                onsubmit="return confirm('¿Confirmar preparación de materiales e iniciar ruta del pedido #CT-{{ p.codigo_pedido }}?')">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" title="Cancelar">
-                    <i class="bi bi-x-circle"></i>
+                <input type="hidden" name="accion" value="iniciar_ruta">
+                <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3"
+                    title="Confirmar preparación e iniciar ruta">
+                    <i class="bi bi-play-fill"></i>
                 </button>
             </form>
             {% endif %}
@@ -41,10 +101,10 @@
     </td>
 </tr>
 {% empty %}
-<tr>
-    <td colspan="6" class="text-center py-5 text-muted">
+<tr class="orders-list-empty">
+    <td colspan="8" class="text-center py-5 text-muted">
         <i class="bi bi-box-seam mb-3 d-block u-inline-208090be59"></i>
-        No hay pedidos registrados en el sistema
+        No hay pedidos o envíos registrados para los filtros seleccionados
     </td>
 </tr>
 {% endfor %}

@@ -30,10 +30,13 @@
 
 .chat-widget-box {
   position: absolute;
-  bottom: 80px;
+  bottom: 76px;
   right: 0;
-  width: 400px;
-  max-width: calc(100vw - 40px);
+  width: 390px;
+  max-width: calc(100vw - 32px);
+  height: 560px;
+  max-height: calc(100vh - 105px);
+  max-height: calc(100dvh - 105px);
   background: #1f2937;
   border-radius: 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -41,6 +44,7 @@
   display: none;
   flex-direction: column;
   animation: slideUp 0.3s ease;
+  z-index: 10000;
 }
 
 .chat-widget-box.active {
@@ -60,10 +64,11 @@
 
 .chat-widget-header {
   background: linear-gradient(135deg, #6366f1 0%, #fbbf24 100%);
-  padding: 16px 20px;
+  padding: 14px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .chat-widget-header-content {
@@ -122,10 +127,10 @@
 }
 
 .chat-widget-messages {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 16px;
   overflow-y: auto;
-  max-height: 400px;
   background: #0b0d12;
 }
 
@@ -206,11 +211,12 @@
 }
 
 .chat-widget-input-container {
-  padding: 16px;
+  padding: 14px 16px;
   background: #1f2937;
   border-top: 1px solid #374151;
   display: flex;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .chat-widget-input {
@@ -373,20 +379,95 @@ html[data-theme="light"] .feedback-btn:hover {
    background: #cbd5e1;
  }
 
-/* Keep the floating assistant inside narrow screens.  It is linked from the
-   component itself, after global styles, so its mobile rule lives here. */
+/* Adaptación para pantallas estrechas / móviles */
 @media (max-width: 575.98px) {
   .chat-widget-container {
-    right: 0.75rem;
-    bottom: 0.75rem;
-    left: auto;
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .chat-widget-toggle {
+    width: 54px;
+    height: 54px;
+    font-size: 24px;
   }
 
   .chat-widget-box {
-    width: calc(100vw - 1.5rem);
-    max-width: calc(100vw - 1.5rem);
-    height: min(70vh, 560px);
-    max-height: calc(100dvh - 6rem);
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    right: 0;
+    bottom: 66px;
+    height: calc(100vh - 84px);
+    height: calc(100dvh - 84px);
+    max-height: calc(100vh - 84px);
+    max-height: calc(100dvh - 84px);
+    border-radius: 18px;
+  }
+}
+
+/* Adaptación para zoom alto o pantallas con poca altura vertical */
+@media (max-height: 640px) {
+  .chat-widget-container {
+    bottom: 10px;
+    right: 12px;
+  }
+
+  .chat-widget-toggle {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .chat-widget-box {
+    bottom: 58px;
+    height: calc(100vh - 72px);
+    height: calc(100dvh - 72px);
+    max-height: calc(100vh - 72px);
+    max-height: calc(100dvh - 72px);
+    border-radius: 16px;
+  }
+
+  .chat-widget-header {
+    padding: 10px 14px;
+  }
+
+  .chat-widget-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .chat-widget-title {
+    font-size: 15px;
+  }
+
+  .chat-widget-subtitle {
+    font-size: 11px;
+  }
+
+  .chat-widget-close {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+  }
+
+  .chat-widget-messages {
+    padding: 12px;
+  }
+
+  .chat-widget-input-container {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .chat-widget-input {
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+
+  .chat-widget-send {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
   }
 }
 

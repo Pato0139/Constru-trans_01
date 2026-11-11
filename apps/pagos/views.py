@@ -4,6 +4,8 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
 from django.db import router, transaction
 from django.db.models import Q
 from django.http import FileResponse, Http404, HttpResponse
@@ -11,6 +13,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.logistica.models import Entrega
+from apps.logistica.services import (
+    autorizar_despacho_por_pago,
+    cancelar_envio_pedido,
+    notificar_evento_logistico,
+    validar_integridad_pedido_y_pago_para_despacho,
+    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago,
+)
 from apps.pagos.forms import PagoFacturaRegistroForm, PagoFacturaRevisionForm
 from apps.pagos.models import Factura, Pago, PagoFactura
 from apps.pagos.pdf import render_factura_pdf
@@ -62,6 +72,7 @@ def _monto_pedido(pedido):
 
 @role_required(["admin", "cliente"])
 def lista_pagos(request):
+    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
     usuario = _usuario_actual(request)
     query = request.GET.get("q", "").strip()
     estado = request.GET.get("estado", "").strip()
@@ -83,7 +94,9 @@ def lista_pagos(request):
             | Q(pedido__usuario__nombres__icontains=query)
             | Q(pedido__usuario__apellidos__icontains=query)
         )
-    if estado:
+    if estado == Pago.REQUIERE_CORRECCION:
+        pagos = pagos.filter(estado=Pago.RECHAZADO).exclude(pedido__estado=Pedido.CANCELADO)
+    elif estado:
         pagos = pagos.filter(estado=estado)
     if metodo:
         pagos = pagos.filter(metodo=metodo)
@@ -103,7 +116,7 @@ def lista_pagos(request):
             "estado_actual": estado,
             "metodo_actual": metodo,
             "query_actual": query,
-            "estados": Pago.ESTADOS,
+            "estados": Pago.ESTADOS_GESTION,
             "metodos": Pago.METODOS,
         },
     )
@@ -121,8 +134,14 @@ def registrar_pago_pedido(request, pedido_id):
             return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
         return redirect("clientes:mis_pedidos")
 
+    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago(pedido=pedido)
+    pedido.refresh_from_db()
     if pedido.estado == Pedido.CANCELADO:
-        messages.error(request, "Este pedido está cancelado.")
+        messages.error(
+            request,
+            "Este pedido está cancelado (venció el plazo de 12 horas o superó el máximo de intentos de pago). "
+            "Debes realizar un nuevo pedido.",
+        )
         return redirect("clientes:mis_pedidos")
 
     monto_pedido = _monto_pedido(pedido)
@@ -139,6 +158,12 @@ def registrar_pago_pedido(request, pedido_id):
     if pago and pago.estado == Pago.APROBADO:
         messages.info(request, "Este pedido ya tiene un pago aprobado.")
         return redirect("pagos:detalle_pago", pk=pago.pk)
+
+    estado_previo = pago.estado if pago else None
+    metodo_previo = pago.metodo if pago else ""
+    comprobante_previo = pago.comprobante.name if (pago and pago.comprobante) else ""
+    observaciones_previas = pago.observaciones if pago else ""
+    revisor_previo = pago.revisado_por if pago else None
 
     if request.method == "POST":
         form = PagoRegistroForm(request.POST, request.FILES, instance=pago)
@@ -158,6 +183,24 @@ def registrar_pago_pedido(request, pedido_id):
                         messages.info(request, "Este pedido ya tiene un pago aprobado.")
                         return redirect("pagos:detalle_pago", pk=pago_existente.pk)
 
+                    era_rechazado = bool(
+                        pago_existente
+                        and (
+                            pago_existente.estado == Pago.RECHAZADO
+                            or estado_previo == Pago.RECHAZADO
+                            or pago_existente.total_rechazos > 0
+                        )
+                    )
+                    if era_rechazado and pago_existente.detalles.using(using).count() == 0:
+                        pago_existente.registrar_intento_historial(
+                            estado_intento=Pago.RECHAZADO,
+                            metodo=metodo_previo or pago_existente.metodo,
+                            comprobante_nombre=comprobante_previo,
+                            revisor=revisor_previo or pago_existente.revisado_por,
+                            observaciones=observaciones_previas or pago_existente.observaciones,
+                            using=using,
+                        )
+
                     if pago_existente:
                         instancia_pago = pago_existente
                         instancia_pago.metodo = form.cleaned_data["metodo"]
@@ -170,19 +213,52 @@ def registrar_pago_pedido(request, pedido_id):
                     instancia_pago.transicionar(Pago.PENDIENTE)
                     instancia_pago.monto = monto_pedido
                     if es_admin:
+                        revisor_adm = getattr(request.user, "usuario", request.user)
                         instancia_pago.marcar_revision(
                             estado=Pago.APROBADO,
-                            revisor=getattr(request.user, "usuario", request.user),
+                            revisor=revisor_adm,
                             observaciones="Aprobado por administrador al registrar el pago.",
                         )
-                        if pedido_bloqueado.estado == Pedido.PENDIENTE:
-                            pedido_bloqueado.transicionar(Pedido.AUTORIZADO_DESPACHO)
+                        instancia_pago.save(using=using)
+                        instancia_pago.registrar_intento_historial(
+                            estado_intento=Pago.APROBADO,
+                            revisor=revisor_adm,
+                            observaciones="Aprobado por administrador al registrar el pago.",
+                            using=using,
+                        )
+                        exigir_det = pedido_bloqueado.detalles.using(using).exists()
+                        autorizar_despacho_por_pago(
+                            pedido_bloqueado,
+                            usuario_admin=revisor_adm,
+                            exigir_detalles=exigir_det,
+                            using=using,
+                        )
                     else:
                         instancia_pago.revisado_por = None
                         instancia_pago.fecha_revision = None
                         instancia_pago.observaciones = ""
-                    instancia_pago.save(using=using)
-                    pedido_bloqueado.save(using=using, update_fields=["estado"])
+                        instancia_pago.save(using=using)
+                        instancia_pago.registrar_intento_historial(
+                            estado_intento=Pago.PENDIENTE,
+                            metodo=instancia_pago.metodo,
+                            comprobante_nombre=(
+                                instancia_pago.comprobante.name
+                                if instancia_pago.comprobante
+                                else ""
+                            ),
+                            observaciones="Comprobante reenviado por cliente"
+                            if era_rechazado
+                            else "Pago registrado por cliente",
+                            using=using,
+                        )
+                        pedido_bloqueado.save(using=using, update_fields=["estado"])
+                        if era_rechazado:
+                            notificar_evento_logistico(
+                                "comprobante_reenviado",
+                                pedido_bloqueado,
+                                actor=usuario,
+                                using=using,
+                            )
 
                 try:
                     registrar_actividad(
@@ -239,7 +315,10 @@ def _puede_ver_pago(usuario, pago):
 
 
 def _puede_ver_pago_por_id(request, pago_id):
-    pago = get_object_or_404(Pago, pk=pago_id)
+    pago = get_object_or_404(
+        Pago.objects.select_related("pedido", "pedido__usuario", "pedido__cliente", "revisado_por"),
+        pk=pago_id,
+    )
     usuario = _usuario_actual(request)
     if not _puede_ver_pago(usuario, pago):
         ip = obtener_ip(request)
@@ -259,7 +338,17 @@ def detalle_pago(request, pk):
     pago = _puede_ver_pago_por_id(request, pk)
     if pago is None:
         return _respuesta_no_autorizada(request)
-    return render(request, "pagos/detalle.html", {"pago": pago, "pedido": pago.pedido})
+    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago(pedido=pago.pedido)
+    pago.pedido.refresh_from_db()
+    return render(
+        request,
+        "pagos/detalle.html",
+        {
+            "pago": pago,
+            "pedido": pago.pedido,
+            "historial_intentos": pago.historial_intentos,
+        },
+    )
 
 
 @role_required(["admin", "cliente"])
@@ -267,12 +356,29 @@ def ver_comprobante_pago(request, pk):
     pago = _puede_ver_pago_por_id(request, pk)
     if pago is None:
         return _respuesta_no_autorizada(request)
-    if not pago.comprobante:
-        raise Http404("Comprobante no encontrado.")
+
+    intento_id = request.GET.get("intento", "").strip()
+    ruta_archivo = None
+    if intento_id and intento_id.isdigit():
+        for item in pago.historial_intentos:
+            if item["id"] == int(intento_id) and item.get("comprobante"):
+                ruta_archivo = item["comprobante"]
+                break
+
+    if not ruta_archivo:
+        if not pago.comprobante:
+            raise Http404("Comprobante no encontrado.")
+        ruta_archivo = pago.comprobante.name
+
     try:
-        content_type, _ = mimetypes.guess_type(pago.comprobante.name)
+        content_type, _ = mimetypes.guess_type(ruta_archivo)
+        descargar = request.GET.get("download") == "1"
+        archivo = default_storage.open(ruta_archivo, "rb")
+        nombre_descarga = ruta_archivo.split("/")[-1]
         return FileResponse(
-            pago.comprobante.open("rb"),
+            archivo,
+            as_attachment=descargar,
+            filename=nombre_descarga if descargar else None,
             content_type=content_type or "application/octet-stream",
         )
     except Exception as exc:
@@ -297,51 +403,108 @@ def revisar_pago_pedido(request, pk):
             for errores in form.errors.values():
                 for e in errores:
                     messages.error(request, e)
-            return render(
-                request,
-                "pagos/revisar.html",
-                {"form": form, "pago": pago, "pedido": pedido},
-            )
+            return redirect("pagos:detalle_pago", pk=pago.pk)
         accion = form.cleaned_data["accion"]
         observaciones = form.cleaned_data.get("observaciones", "")
+        tipo_rechazo = form.cleaned_data.get("tipo_rechazo", "")
         revisor = _revisor_en_base_del_pago(request.user, pago)
         using = pago._state.db or router.db_for_write(Pago, instance=pago)
-        with transaction.atomic(using=using):
-            # Bloqueo para evitar doble revisión concurrente.
-            pago = select_for_update_if_supported(Pago.objects.using(using), using).get(pk=pago.pk)
-            pedido = select_for_update_if_supported(Pedido.objects.using(using), using).get(pk=pago.pedido_id)
-            if pago.estado != Pago.PENDIENTE:
-                messages.error(request, "Este pago ya fue revisado y no puede volver a cambiarse.")
-                return redirect("pagos:detalle_pago", pk=pago.pk)
-            if accion == "aprobar":
-                pago.marcar_revision(
-                    estado=Pago.APROBADO,
-                    revisor=revisor,
-                    observaciones=observaciones,
-                )
-                pago.save(using=using)
-                if pedido.estado == Pedido.PENDIENTE:
-                    pedido.transicionar(Pedido.AUTORIZADO_DESPACHO)
-                    pedido.save(using=using, update_fields=["estado"])
-            else:
-                if pedido.estado in (Pedido.EN_RUTA, Pedido.ENTREGADO):
-                    messages.error(
-                        request,
-                        "No se puede rechazar el pago de un pedido que ya está en ruta o entregado.",
-                    )
+        try:
+            with transaction.atomic(using=using):
+                # Bloqueo para evitar doble revisión concurrente.
+                pago = select_for_update_if_supported(Pago.objects.using(using), using).get(pk=pago.pk)
+                pedido = select_for_update_if_supported(Pedido.objects.using(using), using).get(pk=pago.pedido_id)
+                if pago.estado != Pago.PENDIENTE:
+                    messages.error(request, "Este pago ya fue revisado y no puede volver a cambiarse.")
                     return redirect("pagos:detalle_pago", pk=pago.pk)
-                pago.marcar_revision(
-                    estado=Pago.RECHAZADO,
-                    revisor=revisor,
-                    observaciones=observaciones,
-                )
-                pago.save(using=using)
-                if pedido.estado in (
-                    Pedido.AUTORIZADO_DESPACHO,
-                    Pedido.VEHICULO_ASIGNADO,
-                ):
-                    pedido.transicionar(Pedido.PENDIENTE)
-                    pedido.save(using=using, update_fields=["estado"])
+                if accion == "aprobar":
+                    validar_integridad_pedido_y_pago_para_despacho(
+                        pedido,
+                        pago=pago,
+                        exigir_detalles=True,
+                        using=using,
+                    )
+                    pago.marcar_revision(
+                        estado=Pago.APROBADO,
+                        revisor=revisor,
+                        observaciones=observaciones,
+                    )
+                    pago.save(using=using)
+                    pago.registrar_intento_historial(
+                        estado_intento=Pago.APROBADO,
+                        revisor=revisor,
+                        observaciones=observaciones or "Pago aprobado",
+                        using=using,
+                    )
+                    autorizar_despacho_por_pago(
+                        pedido,
+                        usuario_admin=revisor,
+                        exigir_detalles=True,
+                        using=using,
+                    )
+                else:
+                    if pedido.estado in (Pedido.EN_RUTA, Pedido.ENTREGADO):
+                        messages.error(
+                            request,
+                            "No se puede rechazar el pago de un pedido que ya está en ruta o entregado.",
+                        )
+                        return redirect("pagos:detalle_pago", pk=pago.pk)
+                    etiqueta_tipo = Pago.TIPOS_RECHAZO.get(tipo_rechazo, "")
+                    observaciones_finales = observaciones.strip()
+                    if etiqueta_tipo and not observaciones_finales.lower().startswith(f"[{etiqueta_tipo.lower()}]"):
+                        observaciones_finales = f"[{etiqueta_tipo}] {observaciones_finales}"
+
+                    pago.marcar_revision(
+                        estado=Pago.RECHAZADO,
+                        revisor=revisor,
+                        observaciones=observaciones_finales,
+                    )
+                    pago.save(using=using)
+                    pago.registrar_intento_historial(
+                        estado_intento=Pago.RECHAZADO,
+                        revisor=revisor,
+                        observaciones=observaciones_finales,
+                        using=using,
+                    )
+                    Entrega.objects.using(using).filter(
+                        pedido=pedido,
+                        estado="pendiente",
+                        conductor__isnull=True,
+                    ).delete()
+
+                    pedido_cancelado_por_segundo_rechazo = (
+                        pago.total_rechazos >= Pago.MAX_RECHAZOS_PERMITIDOS
+                    )
+                    if pedido_cancelado_por_segundo_rechazo:
+                        motivo_auto_segundo = (
+                            f"Cancelación automática por segundo rechazo de pago/comprobante "
+                            f"({observaciones_finales}). El cliente debe realizar un nuevo pedido."
+                        )
+                        cancelar_envio_pedido(
+                            pedido,
+                            revisor,
+                            motivo=motivo_auto_segundo,
+                            revertir_stock=True,
+                            using=using,
+                        )
+                    else:
+                        if pedido.estado in (
+                            Pedido.AUTORIZADO_DESPACHO,
+                            Pedido.VEHICULO_ASIGNADO,
+                        ):
+                            pedido.transicionar(Pedido.PENDIENTE)
+                            pedido.save(using=using, update_fields=["estado"])
+                        notificar_evento_logistico(
+                            "pago_rechazado",
+                            pedido,
+                            actor=revisor,
+                            extra_info=observaciones_finales,
+                            using=using,
+                        )
+        except ValidationError as exc:
+            for msg in exc.messages:
+                messages.error(request, msg)
+            return redirect("pagos:detalle_pago", pk=pago.pk)
 
         if accion == "aprobar":
             registrar_actividad(
@@ -361,21 +524,21 @@ def revisar_pago_pedido(request, pk):
                 "editar",
                 "pagos",
                 pago.pk,
-                f"Pago del pedido #{pedido.codigo_pedido} rechazado",
+                f"Pago del pedido #{pedido.codigo_pedido} rechazado: {pago.observaciones}",
             )
-            messages.warning(
-                request,
-                f"Pago rechazado. El pedido #{pedido.codigo_pedido} vuelve a estado pendiente.",
-            )
+            if pedido.estado == Pedido.CANCELADO:
+                messages.error(
+                    request,
+                    f"Pago rechazado por segunda vez. El pedido #{pedido.codigo_pedido} se canceló automáticamente y pasó al historial.",
+                )
+            else:
+                messages.warning(
+                    request,
+                    f"Pago rechazado. Se notificó al cliente que tiene 12 horas para corregir su pago o comprobante del pedido #{pedido.codigo_pedido}.",
+                )
         return redirect("pagos:detalle_pago", pk=pago.pk)
-    else:
-        form = PagoRevisionForm(initial={"observaciones": pago.observaciones})
 
-    return render(
-        request,
-        "pagos/revisar.html",
-        {"form": form, "pago": pago, "pedido": pedido},
-    )
+    return redirect("pagos:detalle_pago", pk=pago.pk)
 
 
 # ======================
