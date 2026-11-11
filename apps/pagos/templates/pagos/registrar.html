@@ -56,15 +56,8 @@
                             {% for choice in form.metodo %}
                             {% if choice.data.value %}
                             <div class="col-sm-6">
-                                <div class="payment-option position-relative p-3 rounded-3 border d-flex align-items-center justify-content-between w-100 {% if choice.data.selected or forloop.first and not form.metodo.value %}is-selected{% endif %}" 
-                                     data-metodo="{{ choice.data.value }}" 
-                                     role="button" 
-                                     tabindex="0"
-                                     aria-pressed="{% if choice.data.selected or forloop.first and not form.metodo.value %}true{% else %}false{% endif %}">
-                                    
-                                    <!-- Input oculto: no hay círculo visible, el clic lo maneja la tarjeta -->
-                                    <input class="d-none" type="radio" name="{{ form.metodo.html_name }}" id="metodo_{{ choice.data.value }}" value="{{ choice.data.value }}" {% if choice.data.selected or forloop.first and not form.metodo.value %}checked{% endif %} required>
-                                    
+                                <label for="metodo_{{ choice.data.value }}" class="payment-option position-relative p-3 rounded-3 border d-flex align-items-center justify-content-between w-100 {% if choice.data.selected or forloop.first and not form.metodo.value %}is-selected{% endif %}" data-metodo="{{ choice.data.value }}" aria-pressed="{% if choice.data.selected or forloop.first and not form.metodo.value %}true{% else %}false{% endif %}">
+                                    <input type="radio" name="{{ form.metodo.html_name }}" id="metodo_{{ choice.data.value }}" value="{{ choice.data.value }}" {% if choice.data.selected or forloop.first and not form.metodo.value %}checked{% endif %} required>
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="payment-icon-wrapper rounded-3 d-flex align-items-center justify-content-center">
                                             {% if choice.data.value == 'nequi' %}
@@ -89,11 +82,10 @@
                                         </div>
                                     </div>
 
-                                    <!-- Indicador de seleccionado (Checkmark sin círculo invasivo) -->
                                     <div class="payment-check-mark">
                                         <i class="bi bi-check2 fs-4 fw-bold"></i>
                                     </div>
-                                </div>
+                                </label>
                             </div>
                             {% endif %}
                             {% endfor %}
@@ -218,7 +210,6 @@
     /* Tarjetas de método de pago interactivas (sin círculos de radio) */
     .payment-option {
         cursor: pointer;
-        pointer-events: auto;
         position: relative;
         z-index: 1;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -465,44 +456,44 @@
             }
         }
 
-        // Selección al hacer clic en la tarjeta (solo picarle y ya)
         paymentOptions.forEach(function(card) {
-            function selectCard() {
+            card.addEventListener('click', function(e) {
+                if (e.target && e.target.closest('input[type="radio"]')) {
+                    return;
+                }
                 var radio = card.querySelector('input[type="radio"]');
-                if (radio) {
-                    var checkedBefore = radio.checked;
+                if (!radio) return;
+                metodoRadios.forEach(function(item) {
+                    item.checked = false;
+                });
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+
+            card.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    var radio = card.querySelector('input[type="radio"]');
+                    if (!radio) return;
                     metodoRadios.forEach(function(item) {
                         item.checked = false;
                     });
                     radio.checked = true;
                     radio.dispatchEvent(new Event('change', { bubbles: true }));
-                    actualizarComprobantePorMetodo();
-                    if (checkedBefore && radio.checked) {
-                        card.classList.add('is-selected');
-                    }
                 }
-            }
-
-            card.onclick = function(e) {
-                selectCard();
-            };
-
-            card.onkeydown = function(e) {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    selectCard();
-                }
-            };
+            });
         });
 
         metodoRadios.forEach(function(radio) {
-            radio.onchange = function() {
+            radio.addEventListener('change', function() {
                 paymentOptions.forEach(function(option) {
                     var optRadio = option.querySelector('input[type="radio"]');
-                    option.classList.toggle('is-selected', optRadio && optRadio.checked);
+                    var isSelected = !!(optRadio && optRadio.checked);
+                    option.classList.toggle('is-selected', isSelected);
+                    option.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
                 });
                 actualizarComprobantePorMetodo();
-            };
+            });
         });
 
         // Botón copiar cuenta
