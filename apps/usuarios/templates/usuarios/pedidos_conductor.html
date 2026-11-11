@@ -145,7 +145,11 @@
 
                             {% if entrega.estado == 'pendiente' %}
                             <!-- Confirmar preparación e iniciar ruta -->
-                            <form action="{% url 'usuarios:iniciar_entrega' entrega.id_entrega %}" method="POST" class="d-inline" onsubmit="return confirm('¿Confirmas que has recogido y cargado todos los materiales del pedido #CT-{{ entrega.pedido.codigo_pedido }} en el vehículo para iniciar la ruta?');">
+                            <form action="{% url 'usuarios:iniciar_entrega' entrega.id_entrega %}" method="POST" class="d-inline"
+                                data-confirmar-constru-trans
+                                data-confirm-title="Iniciar ruta"
+                                data-confirm-label="Sí, iniciar ruta"
+                                data-confirm-message="Confirma que recogiste y cargaste todos los materiales del pedido #CT-{{ entrega.pedido.codigo_pedido }} en el vehículo asignado. Al continuar, el pedido pasará a En ruta.">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-success fw-bold" title="Confirmar preparación e iniciar ruta">
                                     <i class="bi bi-play-fill me-1"></i>Confirmar preparación e iniciar ruta
@@ -245,4 +249,5 @@
         });
     });
 </script>
+{% include "partials/confirmar_accion_modal.html" %}
 {% endblock %}

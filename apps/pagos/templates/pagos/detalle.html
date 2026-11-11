@@ -78,8 +78,13 @@
                 {% endif %}
             {% elif pago.estado == "aprobado" %}
             <div class="alert alert-success border-0 rounded-4 p-3 mb-4" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3) !important;">
+                {% if "[APROBACIÓN PROVISIONAL:" in pago.observaciones %}
+                <h6 class="fw-800 text-warning mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Aprobación provisional</h6>
+                <p class="text-white small mb-0">El pago se aprobó provisionalmente porque el sistema registra un comprobante, pero el archivo no está disponible. El pedido quedó autorizado para despacho.</p>
+                {% else %}
                 <h6 class="fw-800 text-success mb-1"><i class="bi bi-check-circle-fill me-2"></i>Pago Verificado</h6>
                 <p class="text-white small mb-0">El pago fue revisado y aprobado exitosamente. El pedido se encuentra autorizado para despacho logístico.</p>
+                {% endif %}
             </div>
             {% endif %}
 
@@ -137,8 +142,13 @@
                             {% endif %}
                             <dt class="col-sm-5 text-muted">Comprobante:</dt>
                             <dd class="col-sm-7">
-                                {% if pago.comprobante_existe_en_disco %}
+                                {% if pago.comprobante_existe_en_disco or comprobante_historial %}
                                     <span class="text-success fw-600"><i class="bi bi-check2-circle me-1"></i>Archivo adjunto disponible</span>
+                                    {% if comprobante_historial and not pago.comprobante_existe_en_disco %}
+                                    <span class="text-muted">(conservado en el historial del intento)</span>
+                                    {% endif %}
+                                {% elif comprobante_registrado_historial %}
+                                    <span class="text-warning fw-600"><i class="bi bi-exclamation-triangle me-1"></i>El historial registra un comprobante, pero el archivo no está disponible</span>
                                 {% elif pago.metodo == "contraentrega" %}
                                     <span class="text-info"><i class="bi bi-cash-stack me-1"></i>Modalidad contraentrega (no requiere comprobante previo)</span>
                                 {% else %}
@@ -156,26 +166,31 @@
                     <h6 class="fw-800 text-accent text-uppercase small mb-0">
                         <i class="bi bi-file-earmark-image me-2"></i>Comprobante de Pago
                     </h6>
-                    {% if pago.comprobante_existe_en_disco %}
+                    {% if pago.comprobante_existe_en_disco or comprobante_historial %}
                     <div class="d-flex gap-2 flex-wrap">
-                        <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                        <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}{% if comprobante_historial and not pago.comprobante_existe_en_disco %}?intento={{ comprobante_historial.id }}{% endif %}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info rounded-pill px-3">
                             <i class="bi bi-arrows-fullscreen me-1"></i>Abrir en tamaño completo
                         </a>
-                        <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}?download=1" download class="btn btn-sm btn-outline-light rounded-pill px-3">
+                        <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}{% if comprobante_historial and not pago.comprobante_existe_en_disco %}?intento={{ comprobante_historial.id }}&amp;{% else %}?{% endif %}download=1" download class="btn btn-sm btn-outline-light rounded-pill px-3">
                             <i class="bi bi-download me-1"></i>Descargar comprobante
                         </a>
                     </div>
                     {% endif %}
                 </div>
 
-                {% if pago.comprobante_existe_en_disco %}
+                {% if pago.comprobante_existe_en_disco or comprobante_historial %}
                 <div class="text-center p-3 rounded-3" style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08);">
-                    <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}" target="_blank" rel="noopener" title="Clic para abrir en tamaño completo">
-                        <img src="{% url 'pagos:ver_comprobante_pago' pago.pk %}"
+                    <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}{% if comprobante_historial and not pago.comprobante_existe_en_disco %}?intento={{ comprobante_historial.id }}{% endif %}" target="_blank" rel="noopener" title="Clic para abrir en tamaño completo">
+                        <img src="{% url 'pagos:ver_comprobante_pago' pago.pk %}{% if comprobante_historial and not pago.comprobante_existe_en_disco %}?intento={{ comprobante_historial.id }}{% endif %}"
                              alt="Vista previa del comprobante de pago #PAG-{{ pago.pk }}"
                              class="img-fluid rounded-3 shadow"
                              style="max-height: 420px; object-fit: contain;">
                     </a>
+                </div>
+                {% elif comprobante_registrado_historial %}
+                <div class="p-3 rounded-3 text-white small d-flex align-items-center gap-2" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.28);">
+                    <i class="bi bi-exclamation-triangle text-warning fs-5"></i>
+                    <span>El intento de pago sí registra un archivo, pero no se encontró en el almacenamiento. El botón del historial no podrá abrirlo hasta que el archivo esté disponible nuevamente.</span>
                 </div>
                 {% elif pago.metodo == "contraentrega" %}
                 <div class="p-3 rounded-3 text-white small d-flex align-items-center gap-2" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25);">
@@ -190,7 +205,7 @@
                 {% endif %}
             </div>
 
-            {% if pago.estado != "rechazado" and pago.estado != "aprobado" %}
+            {% if mostrar_historial_pago %}
             <!-- HISTORIAL DE INTENTOS DE PAGO (TRAZABILIDAD) -->
             {% if historial_intentos %}
             <div class="p-3 rounded-4 mb-4" style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.08);">
@@ -228,7 +243,7 @@
                                 <td>{{ intento.revisado_por|default:"—" }}</td>
                                 <td class="text-white-50">{{ intento.observaciones|default:"—" }}</td>
                                 <td class="text-end">
-                                    {% if intento.comprobante %}
+                                    {% if intento.comprobante_disponible %}
                                     <a href="{% url 'pagos:ver_comprobante_pago' pago.pk %}?intento={{ intento.id }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info rounded-pill py-0 px-2">
                                         <i class="bi bi-eye me-1"></i>Ver
                                     </a>
@@ -236,7 +251,7 @@
                                         <i class="bi bi-download"></i>
                                     </a>
                                     {% else %}
-                                    <span class="text-muted">Sin archivo</span>
+                                    <span class="text-muted">{% if intento.comprobante %}Archivo no disponible{% else %}Sin archivo{% endif %}</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -246,14 +261,21 @@
                 </div>
             </div>
             {% endif %}
+            {% endif %}
 
             <!-- BARRA DE ACCIONES INFERIOR (SIN BOTÓN VOLVER A PAGOS, SOLO VER PEDIDO Y ACCIONES) -->
             <div class="d-flex justify-content-end align-items-center pt-3 border-top border-secondary flex-wrap gap-2">
-                {% if user.rol == "admin" or user.usuario.rol == "admin" or user.is_superuser or user.is_staff %}
+                {% if puede_revisar_pago %}
                     {% if pago.estado == "pendiente" and pedido.estado != "cancelado" %}
+                    {% if aprobacion_provisional_disponible %}
+                    <button type="button" class="btn btn-warning rounded-pill px-4 small fw-800" data-bs-toggle="modal" data-bs-target="#modalAprobarPagoProvisional">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>Aprobar pedido provisionalmente
+                    </button>
+                    {% else %}
                     <button type="button" class="btn btn-success rounded-pill px-4 small fw-800" data-bs-toggle="modal" data-bs-target="#modalAprobarPago">
                         <i class="bi bi-check-circle-fill me-1"></i> Aprobar Pago
                     </button>
+                    {% endif %}
                     <button type="button" class="btn btn-outline-danger rounded-pill px-4 small fw-800" data-bs-toggle="modal" data-bs-target="#modalRechazarPago">
                         <i class="bi bi-x-circle-fill me-1"></i> Rechazar Pago
                     </button>
@@ -269,18 +291,11 @@
                     <i class="bi bi-eye me-1"></i> Ver Pedido
                 </a>
             </div>
-            {% else %}
-            <div class="d-flex justify-content-end align-items-center pt-3 border-top border-secondary">
-                <a href="{% url 'pedidos:ver_pedido_admin' pedido.codigo_pedido %}" class="btn btn-outline-warning rounded-pill px-4 small fw-700">
-                    <i class="bi bi-eye me-1"></i> Ver Pedido
-                </a>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>
 
-{% if user.rol == "admin" or user.usuario.rol == "admin" or user.is_superuser or user.is_staff %}
+{% if puede_revisar_pago %}
 {% if pago.estado == "pendiente" and pedido.estado != "cancelado" %}
 <!-- Modal de Confirmación para Aprobar Pago -->
 <div class="modal fade" id="modalAprobarPago" tabindex="-1" aria-labelledby="modalAprobarPagoLabel" aria-hidden="true">
@@ -314,6 +329,38 @@
         </div>
     </div>
 </div>
+
+{% if aprobacion_provisional_disponible %}
+<div class="modal fade" id="modalAprobarPagoProvisional" tabindex="-1" aria-labelledby="modalAprobarPagoProvisionalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border border-warning rounded-4 shadow-lg">
+            <form method="post" action="{% url 'pagos:revisar_pago_pedido' pago.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="aprobar">
+                <input type="hidden" name="aprobacion_provisional" value="1">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title fw-800 text-warning" id="modalAprobarPagoProvisionalLabel">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Aprobación provisional
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-white mb-2">El sistema registra que se envió un comprobante para el pedido <strong>#CT-{{ pedido.codigo_pedido }}</strong>, pero el archivo no está disponible para revisarlo.</p>
+                    <p class="small text-warning mb-3">Al continuar, el pago quedará aprobado y el pedido autorizado para despacho sin verificar visualmente el comprobante. Confirma solo si ya validaste el pago por otro medio.</p>
+                    <label for="observaciones-aprobar-provisional" class="form-label small text-white fw-600">Observación (opcional):</label>
+                    <textarea name="observaciones" id="observaciones-aprobar-provisional" rows="2" maxlength="1000" class="form-control bg-surface text-white border-secondary small" placeholder="Indica cómo verificaste el pago, si aplica."></textarea>
+                </div>
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4 fw-800">
+                        <i class="bi bi-check2-circle me-1"></i>Confirmar aprobación provisional
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Modal para Rechazar Pago con Motivo Obligatorio -->
 <div class="modal fade" id="modalRechazarPago" tabindex="-1" aria-labelledby="modalRechazarPagoLabel" aria-hidden="true">

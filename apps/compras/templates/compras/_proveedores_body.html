@@ -46,11 +46,11 @@
                title="Ver perfil y catálogo">
                 <i class="bi bi-eye"></i>
             </a>
-            <!-- Editar Proveedor -->
-            <a href="{% url 'compras:editar_proveedor' p.codigo_proveedor %}"
+            <!-- Gestionar el catálogo ofrecido -->
+            <a href="{% url 'compras:catalogo_proveedor' p.codigo_proveedor %}"
                class="btn btn-sm btn-outline-warning rounded-pill px-3"
-               title="Editar proveedor">
-                <i class="bi bi-pencil"></i>
+               title="Registrar entrada y actualizar catálogo">
+                <i class="bi bi-box-arrow-in-down"></i>
             </a>
             <!-- Toggle Estado Habilitar/Inhabilitar -->
             <form method="post" action="{% url 'compras:cambiar_estado_proveedor' p.codigo_proveedor %}" class="d-inline">
@@ -62,12 +62,6 @@
                     <i class="bi {% if p.activo %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
                 </button>
             </form>
-            <!-- Crear orden de compra -->
-            <a href="{% url 'compras:crear_compra' %}?proveedor={{ p.codigo_proveedor }}"
-               class="btn btn-sm btn-outline-light border-white-10 rounded-pill px-3"
-               title="Nueva orden de compra">
-                <i class="bi bi-bag-plus"></i>
-            </a>
         </div>
     </td>
 </tr>

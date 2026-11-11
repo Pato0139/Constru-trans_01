@@ -366,6 +366,96 @@
         flex-shrink: 0;
     }
 }
+
+/* Adaptar el detalle del pedido al tema claro sin alterar el tema oscuro. */
+[data-theme="light"] .order-detail-card {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: #dbe3ee;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.10);
+    color: #1e293b;
+}
+[data-theme="light"] .order-detail-card .text-white,
+[data-theme="light"] .order-detail-card .stepper-node-title {
+    color: #1e293b !important;
+}
+[data-theme="light"] .order-detail-card .text-white-50 {
+    color: #64748b !important;
+}
+[data-theme="light"] .order-detail-card .text-muted {
+    color: #64748b !important;
+}
+[data-theme="light"] .order-detail-card .order-section-card,
+[data-theme="light"] .order-detail-card .transport-card {
+    background: #f8fafc;
+    border-color: #dbe3ee;
+}
+[data-theme="light"] .order-detail-card .order-section-card:hover,
+[data-theme="light"] .order-detail-card .transport-card:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+[data-theme="light"] .order-detail-card .tracking-hero-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #eaf1f8 100%);
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.09);
+}
+[data-theme="light"] .order-detail-card .stepper-track-bg {
+    background: #cbd5e1;
+}
+[data-theme="light"] .order-detail-card .stepper-node:not(.completed):not(.active):not(.danger) .stepper-node-circle {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #475569;
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12);
+}
+[data-theme="light"] .order-detail-card .stepper-node-badge {
+    background: #e2e8f0;
+    color: #475569;
+}
+[data-theme="light"] .order-detail-card .stepper-node.completed .stepper-node-badge {
+    background: #d1fae5;
+    color: #047857;
+}
+[data-theme="light"] .order-detail-card .stepper-node.active .stepper-node-badge {
+    background: #fef3c7;
+    color: #92400e;
+}
+[data-theme="light"] .order-detail-card .stepper-node.danger .stepper-node-badge {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+[data-theme="light"] .order-detail-card .plate-badge {
+    background: #fff7ed;
+    color: #7c2d12;
+}
+[data-theme="light"] .order-detail-card .materials-table {
+    color: #334155 !important;
+    --bs-table-color: #334155;
+    --bs-table-bg: transparent;
+    --bs-table-border-color: #e2e8f0;
+}
+[data-theme="light"] .order-detail-card .materials-table thead th {
+    background: #eaf0f8 !important;
+    color: #475569;
+    border-color: #dbe3ee;
+}
+[data-theme="light"] .order-detail-card .form-select,
+[data-theme="light"] .order-detail-card .form-control {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border-color: #cbd5e1 !important;
+}
+[data-theme="light"] .order-detail-card .form-control::placeholder {
+    color: #64748b;
+}
+[data-theme="light"] .order-detail-card .total-amount-display {
+    color: #a16207;
+    text-shadow: none;
+}
+[data-theme="light"] .order-detail-card .total-highlight-card {
+    background: linear-gradient(135deg, #fff7ed 0%, #fffbeb 100%);
+    border-color: #fcd34d;
+}
 </style>
 
 <div class="row justify-content-center">
@@ -583,6 +673,10 @@
                                 <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 small">
                                     <i class="bi bi-check-circle-fill me-1"></i>Habilitado para asignar
                                 </span>
+                                {% elif transporte_asignado %}
+                                <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25 small">
+                                    <i class="bi bi-lock-fill me-1"></i>Asignación confirmada
+                                </span>
                                 {% elif orden.estado not in "en_ruta,entregado,cancelado" %}
                                 <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 small">
                                     <i class="bi bi-lock-fill me-1"></i>Requiere pago aprobado
@@ -673,7 +767,7 @@
                                             <p class="text-muted small mb-0 fst-italic"><i class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
                                         {% endif %}
                                     </div>
-                                    {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" %}
+                                    {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" and not transporte_asignado %}
                                     <select class="form-select form-select-sm bg-surface text-white-50 border-secondary mt-2" disabled aria-disabled="true"
                                         style="pointer-events: none; opacity: 0.55; cursor: not-allowed;">
                                         <option selected>Disponible al aprobar pago</option>
@@ -695,7 +789,7 @@
                                             <p class="text-muted small mb-0 fst-italic"><i class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
                                         {% endif %}
                                     </div>
-                                    {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" %}
+                                    {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" and not transporte_asignado %}
                                     <select class="form-select form-select-sm bg-surface text-white-50 border-secondary mt-2" disabled aria-disabled="true"
                                         style="pointer-events: none; opacity: 0.55; cursor: not-allowed;">
                                         <option selected>Disponible al aprobar pago</option>
@@ -704,7 +798,12 @@
                                 </div>
                             </div>
                         </div>
-                        {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" %}
+                        {% if user_rol == "admin" and transporte_asignado %}
+                        <div class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 text-white p-2 rounded-3 small mt-3 mb-0">
+                            <i class="bi bi-lock-fill text-info me-1"></i>
+                            El conductor y el vehículo ya están asignados. La selección queda bloqueada para evitar cambios accidentales.
+                        </div>
+                        {% elif user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" %}
                         <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 text-white p-2 rounded-3 small mt-3 mb-0">
                             <i class="bi bi-info-circle-fill text-warning me-1"></i>
                             Primero debes <strong>aprobar el pago</strong> del pedido para habilitar la asignación de conductor y vehículo.
@@ -927,7 +1026,10 @@
                             Verifica que todos los materiales y cantidades de la tabla superior estén recogidos y cargados en el vehículo asignado antes de iniciar la ruta.
                         </p>
                         <form method="POST" class="d-grid gap-2"
-                            onsubmit="return confirm('¿Confirmas que has recogido y cargado todos los materiales del pedido #CT-{{ orden.codigo_pedido }} en el vehículo para iniciar la ruta?');">
+                            data-confirmar-constru-trans
+                            data-confirm-title="Iniciar ruta"
+                            data-confirm-label="Sí, iniciar ruta"
+                            data-confirm-message="Confirma que recogiste y cargaste todos los materiales del pedido #CT-{{ orden.codigo_pedido }} en el vehículo asignado. Al continuar, el pedido pasará a En ruta.">
                             {% csrf_token %}
                             <button type="submit" name="accion" value="iniciar_ruta" class="btn btn-primary rounded-pill py-2 fw-800">
                                 <i class="bi bi-truck me-1"></i> Confirmar preparación e iniciar ruta
@@ -943,7 +1045,10 @@
                             <i class="bi bi-check2-circle me-2"></i>Finalización de Entrega
                         </h6>
                         <form method="POST" class="d-grid gap-2"
-                            onsubmit="return confirm('¿Confirmas que el pedido #CT-{{ orden.codigo_pedido }} ha sido entregado en su destino?');">
+                            data-confirmar-constru-trans
+                            data-confirm-title="Confirmar entrega"
+                            data-confirm-label="Sí, confirmar entrega"
+                            data-confirm-message="Confirma que los materiales del pedido #CT-{{ orden.codigo_pedido }} fueron entregados en su destino.">
                             {% csrf_token %}
                             <div class="mb-2">
                                 <label for="observacion-entrega" class="form-label text-white small">Observación de entrega (opcional):</label>
@@ -1098,6 +1203,7 @@
 {% endif %}
 
 {% endwith %}
+{% include "partials/confirmar_accion_modal.html" %}
 {% endblock %}
 
 {% block extra_js %}

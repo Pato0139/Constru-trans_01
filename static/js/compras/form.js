@@ -15,8 +15,9 @@ window.AppPageLifecycle.onPageLoad(() => {
   const addButton = document.getElementById('add-form-row');
   const loader = document.getElementById('catalog-loader');
   const hint = document.getElementById('catalog-hint');
+  const catalogMode = form?.dataset.catalogMode === 'true';
 
-  if (!form || !providerSelect || !catalogUrlInput || !tableBody || !totalForms || !addButton) return;
+  if (!form || !providerSelect || !catalogUrlInput || !tableBody || !totalForms || (!catalogMode && !addButton)) return;
 
   /**
    * Catálogo de materiales del proveedor seleccionado
@@ -117,13 +118,13 @@ window.AppPageLifecycle.onPageLoad(() => {
     tableBody.querySelectorAll('.formset-row:not(.d-none)').forEach((row) => {
       const fields = rowFields(row);
       const quantity = Number(fields.quantity.value || 0);
-      const price = Number(fields.price.value || 0);
+      const price = Number(catalogMode ? (row.querySelector('.precio-input')?.dataset.price || 0) : (fields.price?.value || 0));
       const lineSubtotal = quantity * price;
 
-      fields.subtotal.textContent = formatCurrency(lineSubtotal);
+      (fields.subtotal || row.querySelector('.subtotal-cell')).textContent = formatCurrency(lineSubtotal);
       subtotal += lineSubtotal;
 
-      if (fields.material.value && quantity > 0) count += 1;
+      if ((catalogMode ? row.querySelector('input[name$="-material"]')?.value : fields.material.value) && quantity > 0) count += 1;
     });
 
     const taxes = subtotal * taxRate;
@@ -131,6 +132,42 @@ window.AppPageLifecycle.onPageLoad(() => {
     document.getElementById('tax-order').textContent = formatCurrency(taxes);
     document.getElementById('total-order').textContent = formatCurrency(subtotal + taxes);
     document.getElementById('material-count').textContent = count;
+  }
+
+  function renderCatalogOffers() {
+    tableBody.querySelectorAll('.formset-row').forEach((row) => row.remove());
+    totalForms.value = catalog.length;
+    catalog.forEach((item, index) => {
+      const row = document.createElement('tr');
+      row.className = 'formset-row';
+      const addCell = (className, value) => {
+        const td = document.createElement('td');
+        if (className) td.className = className;
+        if (value instanceof Node) td.append(value);
+        else td.textContent = value;
+        row.append(td);
+        return td;
+      };
+      addCell('counter', String(index + 1));
+      const materialCell = addCell('', item.nombre);
+      const material = document.createElement('input');
+      material.type = 'hidden'; material.name = `detalles-${index}-material`; material.value = item.id;
+      materialCell.append(material);
+      addCell('unit-cell', item.unidad || '—');
+      addCell('updated-cell', item.fecha_actualizacion || '—');
+      const quantity = document.createElement('input');
+      quantity.type = 'number'; quantity.name = `detalles-${index}-cantidad`;
+      quantity.min = '1'; quantity.max = '100000'; quantity.step = '1';
+      quantity.className = 'form-control cantidad-input'; quantity.placeholder = '0';
+      quantity.addEventListener('input', updateCalculations);
+      addCell('', quantity);
+      const price = document.createElement('span'); price.className = 'precio-input';
+      price.dataset.price = item.precio; price.textContent = formatCurrency(item.precio);
+      addCell('', price);
+      addCell('subtotal-cell', formatCurrency(0));
+      tableBody.append(row);
+    });
+    updateCalculations();
   }
 
   /**
@@ -156,6 +193,11 @@ window.AppPageLifecycle.onPageLoad(() => {
   async function loadCatalog() {
     const providerId = providerSelect.value;
     catalog = [];
+
+    if (catalogMode) {
+      tableBody.querySelectorAll('.formset-row').forEach((row) => row.remove());
+      totalForms.value = '0';
+    }
 
     tableBody.querySelectorAll('.formset-row').forEach((row) => {
       const fields = rowFields(row);
@@ -185,9 +227,11 @@ window.AppPageLifecycle.onPageLoad(() => {
           : 'Este proveedor no tiene materiales activos registrados.';
       }
 
-      tableBody.querySelectorAll('.formset-row:not(.d-none)').forEach(prepareRow);
+      if (catalogMode) renderCatalogOffers();
+      else tableBody.querySelectorAll('.formset-row:not(.d-none)').forEach(prepareRow);
     } catch (error) {
       if (hint) hint.textContent = 'No se pudo cargar el catálogo del proveedor.';
+      if (catalogMode) renderCatalogOffers();
     } finally {
       setLoading(false);
       updateCalculations();
@@ -225,7 +269,7 @@ window.AppPageLifecycle.onPageLoad(() => {
   }
 
   providerSelect.addEventListener('change', loadCatalog);
-  addButton.addEventListener('click', addRow);
+  if (addButton) addButton.addEventListener('click', addRow);
 
   tableBody.addEventListener('click', (event) => {
     const button = event.target.closest('.remove-form-row');

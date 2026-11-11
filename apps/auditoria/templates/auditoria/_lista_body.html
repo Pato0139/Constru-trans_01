@@ -1,0 +1,27 @@
+{% for reg in registros %}
+<tr>
+    <td>{{ reg.id }}</td>
+    <td>
+        {% if reg.usuario %}
+        <span class="badge bg-info text-dark">{{ reg.usuario.get_full_name|default:reg.usuario.username }}</span>
+        <div class="small text-muted">{{ reg.usuario.username }}</div>
+        {% else %}
+        <span class="badge bg-secondary">Sistema / Anónimo</span>
+        {% endif %}
+    </td>
+    <td>{{ reg.get_accion_display|default:reg.accion }}</td>
+    <td>{{ reg.modulo|default:reg.tabla|default:"—"|capfirst }}</td>
+    <td>{{ reg.elemento_id|default:reg.registro_id|default:"—" }}</td>
+    <td>{{ reg.envio_relacionado|default:"—" }}</td>
+    <td>{{ reg.descripcion|default:"—" }}</td>
+    <td>{{ reg.fecha_hora|default:reg.fecha|date:"d/m/Y H:i" }}</td>
+    <td>{{ reg.ip_address|default:reg.ip|default:"—" }}</td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="9" class="text-center py-5 text-muted">
+        <i class="bi bi-journal-x fs-3 d-block mb-2"></i>
+        No hay acciones registradas con los filtros seleccionados.
+    </td>
+</tr>
+{% endfor %}

@@ -766,6 +766,9 @@ def ver_pedido_admin(request, id):
         or orden.conductor_usuario
     )
     vehiculo = entrega.vehiculo if entrega else None
+    transporte_asignado = bool(
+        entrega and entrega.conductor_id and entrega.vehiculo_id
+    )
     pago = orden.pago_actual
 
     conductores_disponibles = []
@@ -773,6 +776,7 @@ def ver_pedido_admin(request, id):
     puede_asignar_transporte = bool(
         es_admin
         and orden.puede_despacharse
+        and not transporte_asignado
         and orden.estado not in (Pedido.EN_RUTA, Pedido.ENTREGADO, Pedido.CANCELADO)
     )
     if es_admin and orden.estado not in (Pedido.EN_RUTA, Pedido.ENTREGADO, Pedido.CANCELADO):
@@ -783,6 +787,7 @@ def ver_pedido_admin(request, id):
         "entrega": entrega,
         "conductor_usuario": conductor_usuario,
         "vehiculo": vehiculo,
+        "transporte_asignado": transporte_asignado,
         "pago": pago,
         "conductores_disponibles": conductores_disponibles,
         "vehiculos_disponibles": vehiculos_disponibles,

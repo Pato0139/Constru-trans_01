@@ -109,6 +109,36 @@
   flex-wrap: wrap;
 }
 
+/* La tabla de guías sigue la paleta activa y evita el encabezado fijo oscuro. */
+.ayuda-guides-table {
+  --bs-table-color: var(--color-text);
+  --bs-table-bg: transparent;
+  --bs-table-border-color: var(--color-border);
+  --bs-table-hover-color: var(--color-text);
+  --bs-table-hover-bg: var(--item-bg-hover);
+  color: var(--color-text);
+}
+
+.ayuda-guides-table thead th {
+  background: var(--item-bg) !important;
+  color: var(--color-muted) !important;
+  border-color: var(--color-border) !important;
+}
+
+.ayuda-guides-table tbody td {
+  color: var(--color-text);
+  border-color: var(--color-border) !important;
+}
+
+.ayuda-guides-table .text-white,
+.ayuda-guides-table .btn.text-white {
+  color: var(--color-text) !important;
+}
+
+.ayuda-guides-table .text-muted {
+  color: var(--color-muted) !important;
+}
+
 .guia-difficulty {
   display: inline-block;
   padding: 0.25rem 0.75rem;

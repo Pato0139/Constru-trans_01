@@ -416,9 +416,102 @@
 }
 
 .supplier-editor-actions {
+    display: flex;
+    align-items: center;
     justify-content: flex-end;
+    gap: 0.75rem;
     padding: 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* La entrada usa tarjetas en tablet/móvil para evitar comprimir nueve columnas. */
+@media (max-width: 1200px) {
+    .supplier-hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .supplier-profile-actions {
+        flex-wrap: wrap;
+    }
+
+    #supplier-catalog-formset,
+    #supplier-catalog-formset tbody {
+        display: block;
+        width: 100%;
+    }
+
+    #supplier-catalog-formset thead {
+        display: none;
+    }
+
+    #supplier-catalog-formset tbody {
+        display: grid;
+        gap: 0.9rem;
+        padding: 0.75rem;
+    }
+
+    #supplier-catalog-formset .supplier-formset-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.7rem 0.9rem;
+        padding: 1rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--card-bg-alt, var(--item-bg));
+    }
+
+    #supplier-catalog-formset .supplier-formset-row > td {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.35rem;
+        min-width: 0;
+        padding: 0.15rem 0;
+        border: 0;
+    }
+
+    #supplier-catalog-formset .supplier-formset-row > td::before {
+        content: attr(data-label);
+        color: var(--color-muted);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    #supplier-catalog-formset .supplier-formset-row > .supplier-row-count {
+        display: none;
+    }
+
+    #supplier-catalog-formset .supplier-formset-row > td[data-label="Producto"],
+    #supplier-catalog-formset .supplier-formset-row > td[data-label="Observaciones"] {
+        grid-column: 1 / -1;
+    }
+
+    #supplier-catalog-formset .supplier-stock-current {
+        justify-content: center;
+        padding: 0.65rem 0.75rem !important;
+        border: 1px solid var(--color-border) !important;
+        border-radius: var(--radius-sm);
+        background: var(--item-bg);
+        font-weight: 800;
+    }
+
+    #supplier-catalog-formset .supplier-availability-cell {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between;
+    }
+
+    #supplier-catalog-formset .supplier-remove-cell {
+        align-items: flex-end !important;
+        justify-content: flex-end;
+    }
+
+    .supplier-editor-actions {
+        flex-wrap: wrap;
+    }
 }
 
 /* El ancho útil es menor que el viewport cuando el menú lateral está visible. */
@@ -477,4 +570,10 @@
     .supplier-actions .btn,
     .supplier-actions .supplier-action-form .btn { width: 100%; justify-content: center; }
     .supplier-detail-list div { grid-template-columns: 1fr; gap: 0.2rem; }
+    .supplier-panel > form { padding: 0.75rem !important; }
+    .supplier-panel > form > .alert { font-size: 0.82rem; }
+    #supplier-catalog-formset tbody { padding: 0.25rem; }
+    #supplier-catalog-formset .supplier-formset-row { padding: 0.8rem; gap: 0.65rem; }
+    .supplier-editor-actions { padding: 0.8rem 0 0; }
+    .supplier-editor-actions .btn { width: 100%; justify-content: center; }
 }

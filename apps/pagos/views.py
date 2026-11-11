@@ -70,6 +70,27 @@ def _monto_pedido(pedido):
     return pedido.total or pedido.precio or Decimal("0")
 
 
+def _estado_archivos_comprobante(pago):
+    """Indica si hay una ruta de comprobante registrada y si algún archivo está disponible."""
+    almacenamiento = pago._meta.get_field("comprobante").storage
+    rutas = []
+    if pago.comprobante and pago.comprobante.name:
+        rutas.append(pago.comprobante.name)
+    for intento in pago.historial_intentos:
+        ruta = (intento.get("comprobante") or "").strip()
+        if ruta:
+            rutas.append(ruta)
+    disponibles = False
+    for ruta in set(rutas):
+        try:
+            if almacenamiento.exists(ruta):
+                disponibles = True
+                break
+        except Exception:
+            logger.warning("No se pudo verificar la ruta de un comprobante del pago %s", pago.pk, exc_info=True)
+    return bool(rutas), disponibles
+
+
 @role_required(["admin", "cliente"])
 def lista_pagos(request):
     verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
@@ -238,6 +259,29 @@ def registrar_pago_pedido(request, pedido_id):
                         instancia_pago.fecha_revision = None
                         instancia_pago.observaciones = ""
                         instancia_pago.save(using=using)
+
+                        if instancia_pago.requiere_comprobante():
+                            if not instancia_pago.comprobante or not instancia_pago.comprobante.name:
+                                raise ValidationError(
+                                    "No se recibió el archivo del comprobante. Selecciónalo nuevamente antes de enviar el pago."
+                                )
+                            try:
+                                archivo_guardado = instancia_pago.comprobante.storage.exists(
+                                    instancia_pago.comprobante.name
+                                )
+                            except Exception as exc:
+                                logger.exception(
+                                    "No se pudo verificar el comprobante recién guardado del pago %s",
+                                    instancia_pago.pk,
+                                )
+                                raise ValidationError(
+                                    "No se pudo verificar el almacenamiento del comprobante. Intenta cargarlo nuevamente."
+                                ) from exc
+                            if not archivo_guardado:
+                                raise ValidationError(
+                                    "El comprobante no quedó guardado. Selecciona el archivo nuevamente y vuelve a enviarlo."
+                                )
+
                         instancia_pago.registrar_intento_historial(
                             estado_intento=Pago.PENDIENTE,
                             metodo=instancia_pago.metodo,
@@ -284,6 +328,9 @@ def registrar_pago_pedido(request, pedido_id):
                 else:
                     messages.success(request, "Pago registrado. Queda pendiente de revisión.")
                 return redirect("pagos:detalle_pago", pk=instancia_pago.pk)
+            except ValidationError as exc:
+                for error in exc.messages:
+                    messages.error(request, error)
             except Exception as exc:
                 logger.exception(
                     "Error al registrar pago del pedido #%s: %s", pedido.codigo_pedido, exc
@@ -340,13 +387,63 @@ def detalle_pago(request, pk):
         return _respuesta_no_autorizada(request)
     verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago(pedido=pago.pedido)
     pago.pedido.refresh_from_db()
+    historial_intentos = pago.historial_intentos
+    comprobante_registrado_historial = False
+    comprobante_historial = None
+    almacenamiento_comprobante = pago._meta.get_field("comprobante").storage
+    ultimo_intento_con_comprobante = False
+    for intento in reversed(historial_intentos):
+        ruta = (intento.get("comprobante") or "").strip()
+        intento["comprobante_disponible"] = False
+        if not ruta:
+            continue
+        try:
+            intento["comprobante_disponible"] = almacenamiento_comprobante.exists(ruta)
+        except Exception:
+            logger.warning(
+                "No se pudo verificar el comprobante del intento %s del pago %s",
+                intento.get("id"),
+                pago.pk,
+                exc_info=True,
+            )
+        if not ultimo_intento_con_comprobante:
+            ultimo_intento_con_comprobante = True
+            comprobante_registrado_historial = True
+            if intento["comprobante_disponible"]:
+                comprobante_historial = intento
+    mostrar_historial_pago = (
+        pago.estado == Pago.PENDIENTE
+        and (
+            pago.metodo == Pago.METODO_CONTRAENTREGA
+            or pago.comprobante_existe_en_disco
+            or comprobante_historial is not None
+        )
+    )
+    comprobante_registrado, comprobante_disponible = _estado_archivos_comprobante(pago)
+    aprobacion_provisional_disponible = (
+        pago.estado == Pago.PENDIENTE
+        and pago.requiere_comprobante()
+        and comprobante_registrado
+        and not comprobante_disponible
+    )
+    usuario_actual = _usuario_actual(request)
+    puede_revisar_pago = (
+        getattr(usuario_actual, "rol", "") == "admin"
+        or bool(getattr(request.user, "is_staff", False))
+        or bool(getattr(request.user, "is_superuser", False))
+    )
     return render(
         request,
         "pagos/detalle.html",
         {
             "pago": pago,
             "pedido": pago.pedido,
-            "historial_intentos": pago.historial_intentos,
+            "historial_intentos": historial_intentos,
+            "comprobante_historial": comprobante_historial,
+            "comprobante_registrado_historial": comprobante_registrado_historial,
+            "mostrar_historial_pago": mostrar_historial_pago,
+            "aprobacion_provisional_disponible": aprobacion_provisional_disponible,
+            "puede_revisar_pago": puede_revisar_pago,
         },
     )
 
@@ -395,7 +492,9 @@ def revisar_pago_pedido(request, pk):
     pedido = pago.pedido
 
     if request.method == "POST":
-        form = PagoRevisionForm(request.POST)
+        datos_revision = request.POST.copy()
+        aprobacion_provisional = datos_revision.pop("aprobacion_provisional", [""])[0] == "1"
+        form = PagoRevisionForm(datos_revision)
         if pago.estado != Pago.PENDIENTE:
             messages.error(request, "Este pago ya fue revisado y no puede volver a cambiarse.")
             return redirect("pagos:detalle_pago", pk=pago.pk)
@@ -418,22 +517,44 @@ def revisar_pago_pedido(request, pk):
                     messages.error(request, "Este pago ya fue revisado y no puede volver a cambiarse.")
                     return redirect("pagos:detalle_pago", pk=pago.pk)
                 if accion == "aprobar":
+                    comprobante_registrado, comprobante_disponible = _estado_archivos_comprobante(pago)
+                    provisional_aplicable = (
+                        pago.requiere_comprobante()
+                        and comprobante_registrado
+                        and not comprobante_disponible
+                    )
+                    if aprobacion_provisional and not provisional_aplicable:
+                        messages.error(
+                            request,
+                            "La aprobación provisional solo aplica si hay un comprobante registrado cuyo archivo no está disponible.",
+                        )
+                        return redirect("pagos:detalle_pago", pk=pago.pk)
+                    if provisional_aplicable and not aprobacion_provisional:
+                        messages.error(
+                            request,
+                            "El archivo del comprobante no está disponible. Usa la opción de aprobación provisional para continuar.",
+                        )
+                        return redirect("pagos:detalle_pago", pk=pago.pk)
                     validar_integridad_pedido_y_pago_para_despacho(
                         pedido,
                         pago=pago,
                         exigir_detalles=True,
                         using=using,
                     )
+                    observaciones_revision = observaciones.strip()
+                    if aprobacion_provisional:
+                        marca_provisional = "[APROBACIÓN PROVISIONAL: COMPROBANTE NO DISPONIBLE]"
+                        observaciones_revision = f"{marca_provisional} {observaciones_revision}".strip()[:1000]
                     pago.marcar_revision(
                         estado=Pago.APROBADO,
                         revisor=revisor,
-                        observaciones=observaciones,
+                        observaciones=observaciones_revision,
                     )
                     pago.save(using=using)
                     pago.registrar_intento_historial(
                         estado_intento=Pago.APROBADO,
                         revisor=revisor,
-                        observaciones=observaciones or "Pago aprobado",
+                        observaciones=observaciones_revision or "Pago aprobado",
                         using=using,
                     )
                     autorizar_despacho_por_pago(
@@ -507,17 +628,28 @@ def revisar_pago_pedido(request, pk):
             return redirect("pagos:detalle_pago", pk=pago.pk)
 
         if accion == "aprobar":
+            detalle_aprobacion = (
+                "Pago aprobado provisionalmente: comprobante registrado pero archivo no disponible"
+                if aprobacion_provisional
+                else "Pago del pedido aprobado"
+            )
             registrar_actividad(
                 request,
                 "editar",
                 "pagos",
                 pago.pk,
-                f"Pago del pedido #{pedido.codigo_pedido} aprobado",
+                f"{detalle_aprobacion} — pedido #{pedido.codigo_pedido}",
             )
-            messages.success(
-                request,
-                f"Pago aprobado. El pedido #{pedido.codigo_pedido} queda autorizado para despacho.",
-            )
+            if aprobacion_provisional:
+                messages.warning(
+                    request,
+                    f"Aprobación provisional registrada. El pedido #{pedido.codigo_pedido} queda autorizado para despacho; el comprobante no pudo verificarse porque su archivo no está disponible.",
+                )
+            else:
+                messages.success(
+                    request,
+                    f"Pago aprobado. El pedido #{pedido.codigo_pedido} queda autorizado para despacho.",
+                )
         else:
             registrar_actividad(
                 request,

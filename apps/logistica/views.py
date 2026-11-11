@@ -378,7 +378,7 @@ def desactivar_vehiculo(request, id):
     return redirect("logistica:lista_vehiculos")
 
 
-@login_required
+@role_required(["conductor", "admin"])
 @require_http_methods(["GET", "POST"])
 def crear_novedad(request, entrega_id):
     entrega = get_object_or_404(
@@ -388,10 +388,11 @@ def crear_novedad(request, entrega_id):
 
     es_conductor = request.user.rol == "conductor"
     if es_conductor:
-        if (
-            entrega.conductor.usuario_id != request.user.pk
-            and entrega.conductor_usuario_id != request.user.pk
-        ):
+        conductor_asignado = bool(
+            (entrega.conductor_id and entrega.conductor.usuario_id == request.user.pk)
+            or entrega.conductor_usuario_id == request.user.pk
+        )
+        if not conductor_asignado:
             return _respuesta_no_autorizada(request)
 
     if request.method == "POST":
@@ -450,9 +451,8 @@ def crear_novedad(request, entrega_id):
 def mis_novedades(request):
     usuario = request.user
     if usuario.rol == "conductor":
-        conductor, _ = Conductor.ensure_for_user(usuario)
         novedades = (
-            Novedad.objects.filter(entrega__conductor=conductor)
+            Novedad.objects.filter(reportado_por=usuario)
             .select_related("entrega", "entrega__pedido", "reportado_por")
             .prefetch_related("seguimientos__respuesta")
             .order_by("-fecha_generada")
@@ -525,12 +525,14 @@ def lista_novedades_admin(request):
 @require_http_methods(["GET", "POST"])
 def agregar_seguimiento(request, novedad_id):
     novedad = get_object_or_404(Novedad, pk=novedad_id)
-    if request.method == "POST":
-        if (
-            request.user.rol == "conductor"
-            and novedad.entrega.conductor.usuario_id != request.user.pk
-        ):
+    if request.user.rol == "conductor":
+        conductor_asignado = bool(
+            (novedad.entrega.conductor_id and novedad.entrega.conductor.usuario_id == request.user.pk)
+            or novedad.entrega.conductor_usuario_id == request.user.pk
+        )
+        if not conductor_asignado:
             return _respuesta_no_autorizada(request)
+    if request.method == "POST":
         seguimiento = Seguimiento(
             novedad=novedad,
             atendido_por=request.user,

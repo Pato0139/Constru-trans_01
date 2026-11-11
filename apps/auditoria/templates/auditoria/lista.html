@@ -6,8 +6,8 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <h2 class="text-white"><i class="bi bi-clock-history text-accent me-2"></i>Historial de Actividades</h2>
-            <p class="text-muted">Registro automático de acciones realizadas en el sistema Constru-Trans.</p>
+            <h2 class="text-white"><i class="bi bi-clock-history text-accent me-2"></i>Auditoría de acciones</h2>
+            <p class="text-muted">Consulta de la bitácora del sistema: responsable, acción, envío relacionado y fecha.</p>
         </div>
     </div>
 
@@ -70,6 +70,7 @@
                             <th>Acción</th>
                             <th>Módulo</th>
                             <th>Elemento ID</th>
+                            <th>Envío relacionado</th>
                             <th>Descripción</th>
                             <th>Fecha y Hora</th>
                             <th>IP</th>
@@ -102,13 +103,14 @@
                     d.fecha_fin = $('input[name="fecha_fin"]').val();
                 }
             },
-            "order": [[6, "desc"]], // Ordenar por fecha_hora descendente por defecto
+            "order": [[7, "desc"]], // Ordenar por fecha y hora descendente
             "columns": [
                 { "orderable": true }, // ID
                 { "orderable": true }, // Usuario
                 { "orderable": true }, // Acción
                 { "orderable": true }, // Módulo
                 { "orderable": true }, // Elemento ID
+                { "orderable": true }, // Envío relacionado
                 { "orderable": true }, // Descripción
                 { "orderable": true }, // Fecha y Hora
                 { "orderable": true }  // IP
@@ -117,7 +119,7 @@
             "lengthMenu": [10, 25, 50, 100],
             "language": {
                 "processing": '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>',
-                "search": "Buscar en descripción:",
+                "search": "Buscar en la auditoría:",
                 "lengthMenu": "Mostrar _MENU_ registros",
                 "zeroRecords": "No se encontraron registros de actividad.",
                 "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_",

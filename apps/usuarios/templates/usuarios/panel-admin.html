@@ -129,6 +129,8 @@
                         <td class="py-3 px-4">
                             {% if orden.estado == 'pendiente' %}
                                 <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Pendiente</span>
+                            {% elif orden.estado == 'autorizado_despacho' or orden.estado == 'vehiculo_asignado' %}
+                                <span class="badge bg-info-subtle text-info rounded-pill px-3">Autorizado para despacho</span>
                             {% elif orden.estado == 'en_ruta' %}
                                 <span class="badge bg-info-subtle text-info rounded-pill px-3">En ruta</span>
                             {% elif orden.estado == 'entregado' %}

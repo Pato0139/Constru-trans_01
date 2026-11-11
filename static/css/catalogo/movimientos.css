@@ -56,3 +56,88 @@
 .inventory-entry-modal textarea {
     pointer-events: auto;
 }
+
+/* En el espacio útil reducido por el menú, presentar cada registro como tarjeta. */
+@media (max-width: 1200px) {
+    .inventory-materials-container .table-responsive {
+        overflow: visible;
+    }
+
+    .inventory-materials-container table thead {
+        display: none;
+    }
+
+    .inventory-materials-container #movimientos-tbody {
+        display: grid;
+        gap: 0.85rem;
+        padding: 0.85rem;
+    }
+
+    .inventory-materials-container #movimientos-tbody > .inventory-movement-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.7rem 1rem;
+        padding: 1rem;
+        border: 1px solid var(--color-border) !important;
+        border-radius: var(--radius-md);
+        background: var(--card-bg-alt, var(--card-bg));
+    }
+
+    .inventory-materials-container #movimientos-tbody > .inventory-movement-row > td {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+        min-width: 0;
+        padding: 0.15rem 0.25rem !important;
+        border: 0 !important;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .inventory-materials-container #movimientos-tbody > .inventory-movement-row > td::before {
+        content: attr(data-label);
+        color: var(--color-muted);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .inventory-materials-container #movimientos-tbody > .inventory-movement-row > td[data-label="Fecha"],
+    .inventory-materials-container #movimientos-tbody > .inventory-movement-row > td[data-label="Material"],
+    .inventory-materials-container #movimientos-tbody > .inventory-movement-row > td[data-label="Motivo"],
+    .inventory-materials-container #movimientos-tbody > .inventory-movement-row > td[data-label="Usuario"] {
+        grid-column: 1 / -1;
+    }
+
+    .inventory-materials-container #movimientos-tbody .inventory-movement-material > div {
+        min-width: 0;
+    }
+
+    .inventory-materials-container #movimientos-tbody .inventory-movement-material > span,
+    .inventory-materials-container #movimientos-tbody .inventory-movement-reason {
+        line-height: 1.45;
+    }
+
+    .inventory-materials-container #movimientos-tbody > .inventory-movement-empty {
+        display: block;
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .inventory-materials-container #movimientos-tbody {
+        gap: 0.65rem;
+        padding: 0.65rem;
+    }
+
+    .inventory-materials-container #movimientos-tbody > .inventory-movement-row {
+        gap: 0.6rem 0.75rem;
+        padding: 0.8rem;
+    }
+
+    .inventory-materials-container #movimientos-tbody > .inventory-movement-row > td {
+        padding: 0.1rem !important;
+    }
+}

@@ -49,7 +49,7 @@ from config.utils import conexion_remota_disponible, registrar_actividad
 from config.validators import telefono_validator
 
 from .forms import CustomPasswordResetForm, FotoPerfilForm, LoginForm, RegistroForm
-from .models import Conductor, Usuario
+from .models import Conductor, Notificacion, Usuario
 from .utils import limpiar_documento, limpiar_telefono, normalizar_telefono
 
 logger = logging.getLogger(__name__)
@@ -525,26 +525,21 @@ def panel(request):
     usuario = request.user
 
     if usuario.rol == "admin":
-        from django.core.cache import cache
-
-        from config.utils import get_cache_key
-
-        cache_key = get_cache_key("panel_admin_v3", usuario.id)
-        context = cache.get(cache_key)
-
-        if not context:
-            context = {
-                "pedidos_pendientes": Pedido.objects.filter(estado="pendiente").count(),
-                "conductores": Usuario.objects.filter(rol="conductor").count(),
-                "entregas_hoy": Pedido.objects.filter(
-                    estado="entregado", fecha_solicitud__date=now().date()
-                ).count(),
-                "clientes": Usuario.objects.filter(rol="cliente").count(),
-                "pedidos_recientes": Pedido.objects.select_related(
-                    "usuario", "cliente__usuario"
-                ).filter(estado=Pedido.PENDIENTE).order_by("-fecha_solicitud")[:5],
-            }
-            cache.set(cache_key, context, 300)
+        # Estos valores dependen del flujo de pagos y logística; se leen en vivo
+        # para que aprobar o asignar transporte se refleje al volver al panel.
+        context = {
+            "pedidos_pendientes": Pedido.objects.filter(estado=Pedido.PENDIENTE).count(),
+            "conductores": Usuario.objects.filter(rol="conductor").count(),
+            "entregas_hoy": Pedido.objects.filter(
+                estado=Pedido.ENTREGADO, fecha_solicitud__date=now().date()
+            ).count(),
+            "clientes": Usuario.objects.filter(rol="cliente").count(),
+            "pedidos_recientes": Pedido.objects.select_related(
+                "usuario", "cliente__usuario"
+            )
+            .exclude(estado__in=[Pedido.CANCELADO, Pedido.ENTREGADO])
+            .order_by("-fecha_solicitud", "-codigo_pedido")[:5],
+        }
 
         return render(request, "usuarios/panel-admin.html", context)
     elif usuario.rol == "cliente":
@@ -2106,7 +2101,22 @@ def cerrar_sesion(request):
 # NOTIFICACIONES
 # =====================================================================
 @login_required
+@require_http_methods(["GET", "POST"])
 def lista_notificaciones(request):
+    if request.method == "POST":
+        usuario = getattr(request.user, "usuario", request.user)
+        Notificacion.objects.filter(usuario=usuario, leida=False).update(leida=True)
+        cache.delete(f"notif_user_{usuario.pk}")
+
+        referer = request.META.get("HTTP_REFERER", "")
+        if referer and url_has_allowed_host_and_scheme(
+            url=referer,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            return redirect(referer)
+        return redirect("usuarios:panel")
+
     notificaciones = request.user.notificaciones.all().order_by("-fecha")
     context = {"notificaciones": notificaciones}
     return render(request, "usuarios/notificaciones.html", context)
