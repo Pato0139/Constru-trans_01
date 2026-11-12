@@ -1,11 +1,11 @@
-from dataclasses import dataclass
-from datetime import datetime
 import logging
 import unicodedata
+from dataclasses import dataclass
+from datetime import datetime
 
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import F, Q, Sum
+from django.db.models import Q, Sum
 from django.urls import reverse
 from django.utils import timezone
 

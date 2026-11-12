@@ -5,7 +5,6 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.management import BaseCommand, call_command
-from django.db import connections
 from django.utils import timezone
 
 
@@ -39,11 +38,11 @@ class Command(BaseCommand):
         for alias in aliases:
             db_config = settings.DATABASES[alias]
             engine = db_config.get("ENGINE", "")
-            
+
             # --- BACKUP SQL (pg_dump) ---
             if fmt in ["sql", "both"] and "postgresql" in engine:
                 sql_path = destino / f"{alias}_{timestamp}.sql"
-                
+
                 # Intentar obtener DATABASE_URL del entorno o construirla
                 db_url = os.environ.get("DATABASE_URL")
                 if not db_url and alias == "default":

@@ -8,12 +8,11 @@ from django.db import DatabaseError, transaction
 from django.db.models import F, Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
-from apps.logistica.models import ConductorVehiculo, Entrega, Novedad, Vehiculo
+from apps.logistica.models import ConductorVehiculo, Entrega, Vehiculo
 from apps.logistica.services import (
     asignar_conductor_y_vehiculo,
     autorizar_despacho_por_pago,
@@ -309,7 +308,6 @@ def _obtener_recursos_transporte_para_pedido(orden):
     Asegura que los usuarios con rol conductor activos tengan perfil Conductor
     y excluye recursos ocupados en otros envíos activos.
     """
-    from apps.usuarios.models import Conductor
 
     for u in Usuario.objects.filter(
         rol="conductor",

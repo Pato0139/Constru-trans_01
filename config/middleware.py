@@ -1,7 +1,5 @@
 import logging
 
-from django.conf import settings
-from django.db import connections
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import Resolver404, resolve
@@ -394,17 +392,6 @@ class DatabasePreferenceMiddleware:
         preferencia_solicitada = pref
         if pref == PREF_AUTO and conexion_remota_disponible():
             pref = PREF_REMOTA
-
-        if pref == PREF_LOCAL and "local" in settings.DATABASES:
-            from apps.pedidos.models import Pedido
-
-            tablas_locales = connections["local"].introspection.table_names()
-            if Pedido._meta.db_table not in tablas_locales and conexion_remota_disponible():
-                logger.warning(
-                    "La base local no contiene la tabla %s; se usará la base remota.",
-                    Pedido._meta.db_table,
-                )
-                pref = PREF_REMOTA
 
         set_db_preference(pref)
         try:

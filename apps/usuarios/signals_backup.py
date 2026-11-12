@@ -1,9 +1,9 @@
-import threading
-from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
-from django.core.management import call_command
-from django.conf import settings
 import logging
+import threading
+
+from django.core.management import call_command
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +24,9 @@ def run_backup():
 @receiver(post_save)
 @receiver(post_delete)
 def trigger_backup_on_change(sender, **kwargs):
+    if kwargs.get("raw"):
+        return
+
     # Excluir modelos de logs o sesiones para evitar bucles infinitos si el backup registra algo
     excluded_models = [
         'Session', 'LogEntry', 'SecurityEvent', 'ActivityLog', 'AuditLog', 'Notification'

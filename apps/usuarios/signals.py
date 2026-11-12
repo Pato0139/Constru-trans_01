@@ -14,10 +14,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 
-from config.superadmin_lock import (
-    SUPERADMIN_EMAIL,
-    es_superadmin_por_identificador,
-)
+from config.superadmin_lock import es_superadmin_por_identificador
 
 from .models import Usuario
 
@@ -35,10 +32,7 @@ def es_admin_global_protegido(usuario: Usuario) -> bool:
 def impedir_escala_superadmin_ajena(sender, instance, **kwargs):
     """Nadie excepto Edward puede tener is_superuser=True."""
     if instance.is_superuser and not es_admin_global_protegido(instance):
-        raise PermissionDenied(
-            f"⛔ Solo el Administrador Global ({SUPERADMIN_EMAIL}) "
-            "puede tener permisos de superusuario."
-        )
+        raise PermissionDenied("No se puede crear un superusuario.")
 
 
 @receiver(pre_save, sender=Usuario)

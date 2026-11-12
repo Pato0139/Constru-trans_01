@@ -19,7 +19,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"ia/services/math_service.py" = ["N802"]
+"**/ia/services/math_service.py" = ["N802"]
 "**/migrations/*" = ["E501", "F401", "I001", "N999"]
 "**/__init__.py" = ["F401", "F403"]
 "config/settings/*" = ["F405"]

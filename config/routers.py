@@ -40,13 +40,6 @@ class EnrutadorInventario:
         return True
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        if db == "default":
-            return True
-        if db == "local":
-            return app_label == "compras" and hints.get("schema_compat") in {
-                "compra_tax_fields",
-                "detalle_compra_subtotal",
-            }
-        if db == "remota":
+        if db in {"default", "local", "remota"}:
             return True
         return False

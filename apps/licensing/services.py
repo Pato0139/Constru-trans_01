@@ -41,9 +41,7 @@ def _verificar_superadmin(actor, accion: str):
             exitosa=False,
             detalle=f"Intento no autorizado de {accion} por {getattr(actor, 'username', '?')}",
         )
-        raise PermissionDenied(
-            f"⛔ Solo el Administrador Global (edwardf5432@gmail.com) puede realizar: {accion}."
-        )
+        raise PermissionDenied(f"⛔ No se puede realizar: {accion}.")
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]

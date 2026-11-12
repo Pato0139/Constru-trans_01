@@ -67,6 +67,17 @@ bash setup/setup_project.sh --no-fetch-credentials  # no usar el repositorio com
 
 Abre <http://127.0.0.1:8000/> en el navegador.
 
+### Trabajo sin conexión
+
+Al iniciar `runserver`, Constru-trans prepara el esquema SQLite local y, si Neon está disponible y
+la base local todavía no contiene datos, descarga una copia preventiva de Neon. Una instalación
+nueva necesita conexión en ese primer inicio para obtener esa copia. Después, la aplicación consulta
+Neon mientras hay conexión y cambia automáticamente a SQLite cuando la pierde. La detección se
+repite cada pocos segundos. La copia inicial no reemplaza una base local que ya tenga datos; tampoco
+se sincronizan automáticamente con Neon los cambios hechos sin conexión. Para tolerar datos legacy
+inconsistentes en Neon, la copia omite los módulos de pagos e IA y descarta registros con referencias
+inválidas; esos datos no estarán disponibles sin conexión.
+
 ## Variables de entorno
 
 Todas las variables disponibles están documentadas en `.env.example`. Las más importantes:
@@ -75,7 +86,7 @@ Todas las variables disponibles están documentadas en `.env.example`. Las más 
 | --- | --- |
 | `SECRET_KEY` | Clave de firma de Django. Debe ser fija. |
 | `DEBUG` | `True` en desarrollo. |
-| `DATABASE_URL` | Vacía = SQLite local. Con URL de PostgreSQL/Neon, esa pasa a ser la base `default`. |
+| `DATABASE_URL` | URL opcional de PostgreSQL/Neon. SQLite local sigue disponible como base predeterminada y Neon se usa para datos de negocio mientras haya conexión. |
 | `OPENWEATHER_API_KEY` | Habilita el pronóstico en el panel del conductor. |
 | `EMAIL_*` / `RESEND_*` | Envío del correo de recuperación de contraseña. |
 
