@@ -145,7 +145,6 @@ THIRD_PARTY_APPS = []
 
 LOCAL_APPS = [
     "config.apps.CoreConfig",
-    "apps.usuarios",
     "apps.clientes",
     "apps.catalogo",
     "apps.compras",
@@ -160,7 +159,9 @@ LOCAL_APPS = [
     "apps.ayuda",
 ]
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+# `apps.usuarios` va primero para que su comando `createsuperuser` (bloqueado)
+# tenga prioridad sobre el comando nativo de `django.contrib.auth`.
+INSTALLED_APPS = ["apps.usuarios"] + DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # ============================================================
 # MIDDLEWARE
