@@ -16,11 +16,12 @@ django.setup()
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils.timezone import now
+
+from apps.auditoria.models import Bitacora, Historial
+from apps.logistica.models import ConductorVehiculo, Entrega, Envio, Novedad, Vehiculo
+from apps.pagos.models import Pago
+from apps.pedidos.models import Pedido
 from apps.usuarios.models import Conductor
-from apps.logistica.models import Vehiculo, Entrega, Novedad, Envio, ConductorVehiculo
-from apps.pedidos.models import Pedido, DetallePedido
-from apps.pagos.models import Pago, DetallePago
-from apps.auditoria.models import Historial, Bitacora
 
 Usuario = get_user_model()
 
@@ -35,7 +36,7 @@ print("[OK] 1. MER Aliases correctos (Envio -> Entrega, Bitacora -> Historial)."
 with transaction.atomic():
     email_test = f"test_conductor_{now().timestamp()}@constru-trans.com"
     doc_test = f"DOC{int(now().timestamp())}"
-    
+
     user_conductor = Usuario(
         email=email_test,
         username=email_test,
@@ -48,10 +49,10 @@ with transaction.atomic():
     )
     user_conductor.set_password("SecurePass123*")
     user_conductor.save()
-    
+
     assert user_conductor.check_password("SecurePass123*"), "La contraseña debe validarse correctamente con hash"
     assert not user_conductor.password.startswith("SecurePass"), "La contraseña NUNCA debe estar en texto plano"
-    
+
     conductor_perfil, _ = Conductor.ensure_for_user(user_conductor)
     conductor_perfil.numero_licencia = f"LIC{int(now().timestamp())}"
     conductor_perfil.categoria_licencia = "C2"
@@ -86,7 +87,7 @@ with transaction.atomic():
             rol="cliente",
             estado="activo"
         )
-    
+
     pedido = Pedido.objects.create(
         usuario=user_cliente,
         estado=Pedido.PENDIENTE,
@@ -94,10 +95,10 @@ with transaction.atomic():
         subtotal=100000,
         total=119000
     )
-    
+
     # Sin pago aprobado NO puede despacharse
     assert not pedido.puede_despacharse, "Pedido creado sin pago aprobado NO debe poder despacharse"
-    
+
     # Crear pago aprobado
     pago = Pago.objects.create(
         pedido=pedido,
@@ -112,7 +113,7 @@ with transaction.atomic():
     pedido.transicionar(Pedido.AUTORIZADO_DESPACHO)
     pedido.transicionar(Pedido.VEHICULO_ASIGNADO)
     pedido.save()
-    
+
     entrega = Entrega.objects.create(
         pedido=pedido,
         conductor=conductor_perfil,
@@ -130,13 +131,13 @@ with transaction.atomic():
     entrega.transicionar("en_ruta")
     entrega.fecha_salida = now()
     entrega.save()
-    
+
     pedido.transicionar(Pedido.EN_RUTA)
     pedido.save()
-    
+
     vehiculo.estado = "en_ruta"
     vehiculo.save()
-    
+
     Historial.objects.create(
         usuario=user_conductor,
         accion="crear",
@@ -145,7 +146,7 @@ with transaction.atomic():
         registro_id=entrega.id_entrega,
         descripcion=f"Conductor inició recorrido de entrega #{entrega.id_entrega}"
     )
-    
+
     assert entrega.estado == "en_ruta"
     assert pedido.estado == Pedido.EN_RUTA
     assert vehiculo.estado == "en_ruta"
@@ -166,14 +167,14 @@ with transaction.atomic():
     entrega.transicionar("entregado")
     entrega.fecha_entrega = now()
     entrega.save()
-    
+
     pedido.transicionar(Pedido.ENTREGADO)
     pedido.fecha_entrega_real = now()
     pedido.save()
-    
+
     vehiculo.estado = "disponible"
     vehiculo.save()
-    
+
     Historial.objects.create(
         usuario=user_conductor,
         accion="editar",
@@ -182,7 +183,7 @@ with transaction.atomic():
         registro_id=entrega.id_entrega,
         descripcion=f"Conductor finalizó entrega #{entrega.id_entrega}"
     )
-    
+
     assert entrega.estado == "entregado"
     assert pedido.estado == Pedido.ENTREGADO
     assert vehiculo.estado == "disponible"

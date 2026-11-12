@@ -12,7 +12,6 @@ from apps.pagos.models import DetallePago, Pago
 from apps.pedidos.models import DetallePedido, Pedido
 from apps.usuarios.models import Conductor, Notificacion, Usuario
 
-
 PNG_BYTES = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde"
 
 

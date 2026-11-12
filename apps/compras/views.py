@@ -6,8 +6,7 @@ from django.contrib import messages
 logger = logging.getLogger(__name__)
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
-from django.db import transaction
-from django.db import router
+from django.db import router, transaction
 from django.db.models import Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,9 +14,9 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from apps.usuarios.views import admin_required
 from apps.catalogo.models import MaterialConstruccion
 from apps.catalogo.services import KardexService
+from apps.usuarios.views import admin_required
 from config.db_utils import select_for_update_if_supported
 from config.utils import registrar_actividad
 

@@ -1,5 +1,5 @@
-from io import BytesIO
 import logging
+from io import BytesIO
 
 import qrcode
 from django.core.files.base import ContentFile

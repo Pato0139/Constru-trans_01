@@ -1,6 +1,6 @@
+import logging
 from datetime import timedelta
 from decimal import Decimal
-import logging
 
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
