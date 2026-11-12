@@ -24,6 +24,9 @@ def run_backup():
 @receiver(post_save)
 @receiver(post_delete)
 def trigger_backup_on_change(sender, **kwargs):
+    if kwargs.get("raw"):
+        return
+
     # Excluir modelos de logs o sesiones para evitar bucles infinitos si el backup registra algo
     excluded_models = [
         'Session', 'LogEntry', 'SecurityEvent', 'ActivityLog', 'AuditLog', 'Notification'

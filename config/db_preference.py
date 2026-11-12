@@ -50,6 +50,6 @@ def debe_usar_bd_remota() -> bool:
 
 
 def invalidate_connection_cache() -> None:
-    from config.utils import conexion_remota_disponible_cached
+    from django.core.cache import cache
 
-    conexion_remota_disponible_cached.cache_clear()
+    cache.delete("core:conexion_remota_disponible")

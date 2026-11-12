@@ -231,7 +231,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 # ============================================================
-# BASE DE DATOS — PostgreSQL (Neon) configurada como default
+# BASE DE DATOS — SQLite local como default y Neon como conexión opcional
 # ============================================================
 
 LOCAL_DATABASE = {
@@ -258,9 +258,10 @@ if database_url:
     remote_database["OPTIONS"].pop("options", None)
     remote_database["DISABLE_SERVER_SIDE_CURSORS"] = True
 
-# Si existe la URL de base de datos remota, se asigna como 'default'
+# La base local debe seguir disponible para autenticación, sesiones y trabajo sin
+# internet. Las consultas de negocio se enrutan a Neon cuando hay conexión.
 DATABASES = {
-    "default": remote_database if remote_database else LOCAL_DATABASE,
+    "default": LOCAL_DATABASE,
     "local": LOCAL_DATABASE,
 }
 

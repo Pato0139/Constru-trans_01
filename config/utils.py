@@ -1,7 +1,6 @@
 import logging
 import os
 import socket
-from functools import lru_cache
 
 from django.core.cache import cache
 from django.db import connections, router, transaction
@@ -9,8 +8,8 @@ from django.db.utils import ConnectionDoesNotExist, OperationalError
 
 logger = logging.getLogger(__name__)
 
-_REMOTA_NEGATIVA_TTL = 15
-_REMOTA_POSITIVA_TTL = 300
+_REMOTA_NEGATIVA_TTL = 5
+_REMOTA_POSITIVA_TTL = 10
 
 
 def _socket_check_rapido(host, port, timeout=2.0):
@@ -39,7 +38,6 @@ def _host_port_from_database_url():
         return None, None
 
 
-@lru_cache(maxsize=1)
 def conexion_remota_disponible_cached():
     if "remota" not in connections.databases:
         return False
