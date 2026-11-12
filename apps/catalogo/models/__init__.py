@@ -4,16 +4,41 @@ from django.db import models
 from django.utils import timezone
 
 from apps.usuarios.models import Usuario
+from config.validators import texto_multilinea, texto_sin_simbolos
 
 numeric_and_space_validator = []
 
 # Estados posibles de un registro habilitable (productos y categorías)
 ESTADOS_PRODUCTO = [("activo", "Activo"), ("inactivo", "Inactivo")]
 
+# Marcas de materiales de construcción sugeridas en el formulario. El listado
+# final combina estas con las marcas ya registradas en el catálogo.
+MARCAS_MATERIAL = [
+    "Acerías Paz del Río",
+    "Argos",
+    "Cemex",
+    "Cemento Andino",
+    "Corona",
+    "Diamante",
+    "Eternit",
+    "Gerdau",
+    "Gerfor",
+    "Holcim",
+    "Monalisa",
+    "Pavco",
+    "Pintuco",
+    "Sika",
+    "Superboard",
+    "Tequendama",
+    "Toxement",
+    "Tumacro",
+    "Wavin",
+]
+
 
 class Catalogo(models.Model):
-    codigo_catalogo = models.CharField(max_length=20, primary_key=True)
-    nombre_empresa = models.CharField(max_length=150)
+    codigo_catalogo = models.CharField(max_length=20, primary_key=True, validators=[texto_sin_simbolos])
+    nombre_empresa = models.CharField(max_length=150, validators=[texto_sin_simbolos])
     activo = models.BooleanField(default=True)
     estado = models.CharField(max_length=10, choices=ESTADOS_PRODUCTO, default="activo")
 
@@ -26,10 +51,10 @@ class Catalogo(models.Model):
 
 class UnidadMedida(models.Model):
     id_unidad = models.AutoField(primary_key=True)
-    codigo = models.CharField(max_length=10, unique=True, db_index=True)
-    nombre = models.CharField(max_length=50, unique=True)
-    abreviatura = models.CharField(max_length=10)
-    descripcion = models.TextField(blank=True)
+    codigo = models.CharField(max_length=10, unique=True, db_index=True, validators=[texto_sin_simbolos])
+    nombre = models.CharField(max_length=50, unique=True, validators=[texto_sin_simbolos])
+    abreviatura = models.CharField(max_length=10, validators=[texto_sin_simbolos])
+    descripcion = models.TextField(blank=True, validators=[texto_multilinea])
 
     activa = models.BooleanField(default=True)
     orden = models.PositiveIntegerField(default=0, help_text="Para ordenar en select")
@@ -50,7 +75,7 @@ class UnidadMedida(models.Model):
 
 
 class Marca(models.Model):
-    nombre = models.CharField(max_length=100, unique=True)
+    nombre = models.CharField(max_length=100, unique=True, validators=[texto_sin_simbolos])
     activo = models.BooleanField(default=True)
     estado = models.CharField(
         max_length=20,
@@ -80,14 +105,14 @@ class MaterialConstruccion(models.Model):
         blank=True,
         related_name="materiales",
     )
-    nombre = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=100, validators=[texto_sin_simbolos])
     unidad_medida = models.ForeignKey(
         UnidadMedida,
         on_delete=models.PROTECT,
         related_name="materiales",
         help_text="Seleccione una unidad de medida estándar",
     )
-    descripcion = models.TextField()
+    descripcion = models.TextField(validators=[texto_multilinea])
     precio_referencia = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -161,7 +186,7 @@ class HistorialPrecioMaterial(models.Model):
         Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name="cambios_precios"
     )
     observaciones = models.TextField(
-        blank=True, help_text="Detalles o razones del cambio de precio"
+        blank=True, help_text="Detalles o razones del cambio de precio", validators=[texto_multilinea]
     )
     mes = models.IntegerField(editable=False)
     año = models.IntegerField(editable=False)
@@ -191,7 +216,7 @@ class Stock(models.Model):
         default=0, validators=[MinValueValidator(0), MaxValueValidator(100000)]
     )
     stock_minimo = models.IntegerField(default=10, validators=[MinValueValidator(0)])
-    ubicacion = models.CharField(max_length=120, blank=True, default="")
+    ubicacion = models.CharField(max_length=120, blank=True, default="", validators=[texto_sin_simbolos])
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     class Meta:

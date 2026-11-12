@@ -43,6 +43,7 @@
                         <label class="form-label small fw-bold text-muted">Nombres <span class="text-danger">*</span></label>
                         <input type="text" name="nombres" class="form-control"
                                placeholder="Ej: Carlos"
+                               pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]*" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')"
                                value="{% if conductor_user %}{{ conductor_user.nombres }}{% else %}{{ form_data.nombres|default:'' }}{% endif %}" required>
                     </div>
 
@@ -50,6 +51,7 @@
                         <label class="form-label small fw-bold text-muted">Apellidos <span class="text-danger">*</span></label>
                         <input type="text" name="apellidos" class="form-control"
                                placeholder="Ej: Gómez Pérez"
+                               pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]*" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')"
                                value="{% if conductor_user %}{{ conductor_user.apellidos }}{% else %}{{ form_data.apellidos|default:'' }}{% endif %}" required>
                     </div>
 
@@ -67,14 +69,14 @@
                         <label class="form-label small fw-bold text-muted">Número de Documento <span class="text-danger">*</span></label>
                         <input type="text" name="documento" class="form-control"
                                placeholder="Ej: 1020304050"
-                               value="{% if conductor_user %}{{ conductor_user.documento }}{% else %}{{ form_data.documento|default:'' }}{% endif %}" required>
+                               value="{% if conductor_user %}{{ conductor_user.documento }}{% else %}{{ form_data.documento|default:'' }}{% endif %}" required {% if action == 'editar' %}readonly{% endif %} pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label small fw-bold text-muted">Teléfono Personal <span class="text-danger">*</span></label>
                         <input type="text" name="telefono" class="form-control"
                                placeholder="Ej: 3001234567"
-                               value="{% if conductor_user %}{{ conductor_user.telefono }}{% else %}{{ form_data.telefono|default:'' }}{% endif %}" required>
+                               value="{% if conductor_user %}{{ conductor_user.telefono }}{% else %}{{ form_data.telefono|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                     </div>
 
                     <div class="col-12 mt-4">
@@ -133,7 +135,7 @@
                         <label class="form-label small fw-bold text-muted">Teléfono de Flota / Empresarial</label>
                         <input type="text" name="telefono_empresarial" class="form-control"
                                placeholder="Ej: 3109876543 (Opcional)"
-                               value="{% if perfil %}{{ perfil.telefono_empresarial }}{% else %}{{ form_data.telefono_empresarial|default:'' }}{% endif %}">
+                               value="{% if perfil %}{{ perfil.telefono_empresarial }}{% else %}{{ form_data.telefono_empresarial|default:'' }}{% endif %}" pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                     </div>
 
                     <div class="col-md-6">
@@ -160,4 +162,29 @@
     .text-accent { color: var(--color-accent, #ffd600) !important; }
     .text-main { color: var(--color-text) !important; }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tipoDoc = document.querySelector('select[name="tipo_doc"]');
+    const docInput = document.querySelector('input[name="documento"]');
+    if (!tipoDoc || !docInput) return;
+    const esEdicion = docInput.hasAttribute('readonly');
+    function aplicarRestriccion() {
+        if (esEdicion) return;
+        if (tipoDoc.value === 'PA') {
+            docInput.setAttribute('pattern', '[A-Za-z0-9\\s]*');
+            docInput.setAttribute('title', 'Solo se admiten letras y números');
+            docInput.oninput = function () { this.value = this.value.replace(/[^0-9A-Za-z\s]/g, ''); };
+        } else {
+            docInput.setAttribute('pattern', '[0-9\\s]*');
+            docInput.setAttribute('title', 'Solo se admiten números y espacios');
+            docInput.oninput = function () { this.value = this.value.replace(/[^0-9\s]/g, ''); };
+        }
+    }
+    aplicarRestriccion();
+    tipoDoc.addEventListener('change', aplicarRestriccion);
+});
+</script>
 {% endblock %}

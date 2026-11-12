@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.catalogo.models import MaterialConstruccion
+from config.validators import texto_multilinea, texto_sin_simbolos
 
 
 class SesionConteo(models.Model):
@@ -13,14 +14,14 @@ class SesionConteo(models.Model):
         ("cancelado", "Cancelado"),
     ]
 
-    codigo = models.CharField(max_length=50, unique=True, db_index=True)
+    codigo = models.CharField(max_length=50, unique=True, db_index=True, validators=[texto_sin_simbolos])
     fecha_inicio = models.DateTimeField(auto_now_add=True)
     fecha_fin = models.DateTimeField(null=True, blank=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
     usuario_responsable = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="conteos"
     )
-    observaciones = models.TextField(blank=True)
+    observaciones = models.TextField(blank=True, validators=[texto_multilinea])
 
     class Meta:
         db_table = "sesion_conteo"
@@ -54,7 +55,7 @@ class ConteoItem(models.Model):
     cantidad_sistema = models.PositiveIntegerField()
     cantidad_fisica = models.PositiveIntegerField()
     diferencia = models.IntegerField(editable=False)
-    observaciones = models.TextField(blank=True)
+    observaciones = models.TextField(blank=True, validators=[texto_multilinea])
     fecha_conteo = models.DateTimeField(auto_now=True)
 
     class Meta:

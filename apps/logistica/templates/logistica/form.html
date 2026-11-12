@@ -57,8 +57,15 @@
                         Vehículo</label>
                     <div class="input-group">
                         <span class="input-group-text border-0 u-inline-9a26a8af25"><i class="bi bi-award"></i></span>
-                        <input type="text" name="marca" class="form-control" placeholder="Ej: Toyota"
-                            value="{{ vehiculo.marca|default:'' }}">
+                        <select name="marca" class="form-select" required>
+                            <option value="">Seleccione marca...</option>
+                            {% for marca in marcas %}
+                            <option value="{{ marca }}" {% if vehiculo.marca == marca %}selected{% endif %}>{{ marca }}</option>
+                            {% endfor %}
+                            {% if vehiculo.marca and vehiculo.marca not in marcas %}
+                            <option value="{{ vehiculo.marca }}" selected>{{ vehiculo.marca }}</option>
+                            {% endif %}
+                        </select>
                     </div>
                 </div>
 
@@ -68,6 +75,7 @@
                     <div class="input-group">
                         <span class="input-group-text border-0 u-inline-9a26a8af25"><i class="bi bi-tag"></i></span>
                         <input type="text" name="modelo" class="form-control" placeholder="Ej: Hilux"
+                            pattern="[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]*" title="Sin símbolos (solo letras, números y - # / . , )" oninput="this.value = this.value.replace(/[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]/g, '')"
                             value="{{ vehiculo.modelo|default:'' }}">
                     </div>
                 </div>

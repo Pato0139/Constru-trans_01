@@ -11,9 +11,11 @@ from config.validators import (
     monto_positivo,
     nit_validator,
     no_negativo,
-    no_solo_espacios,
     porcentaje_validators,
+    solo_letras,
     telefono_validator,
+    texto_multilinea,
+    texto_sin_simbolos,
 )
 
 
@@ -22,15 +24,15 @@ from config.validators import (
 # =====================================================================
 class Proveedor(models.Model):
     codigo_proveedor = models.AutoField(primary_key=True)
-    nombre_empresa = models.CharField(max_length=150, validators=[no_solo_espacios])
+    nombre_empresa = models.CharField(max_length=150, validators=[texto_sin_simbolos])
     nit = models.CharField(max_length=20, unique=True, validators=[nit_validator])
-    contacto_nombre = models.CharField(max_length=150, blank=True, validators=[no_solo_espacios])
+    contacto_nombre = models.CharField(max_length=150, blank=True, validators=[solo_letras])
     telefono = models.CharField(max_length=20, validators=[telefono_validator])
     correo = models.EmailField(blank=True)
-    direccion = models.CharField(max_length=255, blank=True, validators=[no_solo_espacios])
-    ciudad = models.CharField(max_length=100, blank=True, validators=[no_solo_espacios])
-    categoria = models.CharField(max_length=100, blank=True, default="General", validators=[no_solo_espacios])
-    descripcion = models.TextField(blank=True)
+    direccion = models.CharField(max_length=255, blank=True, validators=[texto_sin_simbolos])
+    ciudad = models.CharField(max_length=100, blank=True, validators=[solo_letras])
+    categoria = models.CharField(max_length=100, blank=True, default="General", validators=[texto_sin_simbolos])
+    descripcion = models.TextField(blank=True, validators=[texto_multilinea])
     activo = models.BooleanField(default=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     sincronizado = models.BooleanField(default=False)
@@ -99,7 +101,7 @@ class Compra(TransicionMixin, models.Model):
     )
 
     # Fuera del MER pero útil — NO se toca
-    observaciones = models.TextField(blank=True, null=True)
+    observaciones = models.TextField(blank=True, null=True, validators=[texto_multilinea])
     sincronizado = models.BooleanField(default=False)
 
     class Meta:
@@ -173,8 +175,8 @@ class ProveedorMaterial(models.Model):
         max_digits=12, decimal_places=2, validators=[monto_positivo]
     )
     fecha_actualizacion = models.DateTimeField(auto_now=True)
-    referencia_proveedor = models.CharField(max_length=100, blank=True)
-    observaciones = models.CharField(max_length=255, blank=True)
+    referencia_proveedor = models.CharField(max_length=100, blank=True, validators=[texto_sin_simbolos])
+    observaciones = models.CharField(max_length=255, blank=True, validators=[texto_sin_simbolos])
     activo = models.BooleanField(default=True)
 
     class Meta:

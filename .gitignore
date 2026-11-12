@@ -20,6 +20,9 @@ db_backup.json
 backups/*.sql
 backups/*.dump
 backups/*.json
+backups/*.zip
+backups/*.sqlite3
+backups/.ultimo_backup
 
 # --- Python ---
 __pycache__/

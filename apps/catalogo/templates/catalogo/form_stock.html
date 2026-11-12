@@ -18,11 +18,11 @@
                 {% csrf_token %}
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-muted text-uppercase">Cantidad en Stock</label>
-                    <input type="text" name="cantidad" class="form-control numeric-only" value="{{ stock.cantidad }}" required>
+                    <input type="number" name="cantidad" class="form-control" value="{{ stock.cantidad }}" min="1" step="1" inputmode="numeric" placeholder="Ej: 10" required>
                 </div>
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-muted text-uppercase">Ubicación en Bodega</label>
-                    <input type="text" name="ubicacion" class="form-control" value="{{ stock.ubicacion }}" required>
+                    <input type="text" name="ubicacion" class="form-control" pattern="[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]*" title="Sin símbolos (solo letras, números y - # / . , )" oninput="this.value = this.value.replace(/[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]/g, '')" value="{{ stock.ubicacion }}" required>
                 </div>
 
                 <div class="d-grid gap-3 mt-4">

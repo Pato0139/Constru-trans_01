@@ -1,4 +1,3 @@
-import math
 import xml.etree.ElementTree as ET
 
 import openpyxl
@@ -34,33 +33,6 @@ def reportes_admin(request):
         {"label": "Entregadas", "value": entregadas, "color": "#10b981"},
         {"label": "Otros", "value": otros, "color": "#94a3b8"},
     ]
-    chart_slices = []
-    if total:
-        center = 140
-        radius = 112
-        active_slices = [slice_data for slice_data in distribucion_ordenes if slice_data["value"]]
-        start_angle = -math.pi / 2
-        for slice_data in active_slices:
-            angle = slice_data["value"] * math.tau / total
-            end_angle = start_angle + angle
-            if len(active_slices) == 1:
-                path = (
-                    f"M {center} {center - radius} "
-                    f"A {radius} {radius} 0 1 1 {center} {center + radius} "
-                    f"A {radius} {radius} 0 1 1 {center} {center - radius} Z"
-                )
-            else:
-                x1 = center + radius * math.cos(start_angle)
-                y1 = center + radius * math.sin(start_angle)
-                x2 = center + radius * math.cos(end_angle)
-                y2 = center + radius * math.sin(end_angle)
-                large_arc = int(angle > math.pi)
-                path = (
-                    f"M {center} {center} L {x1:.4f} {y1:.4f} "
-                    f"A {radius} {radius} 0 {large_arc} 1 {x2:.4f} {y2:.4f} Z"
-                )
-            chart_slices.append({**slice_data, "path": path})
-            start_angle = end_angle
 
     # Calcular porcentajes
     pct_pendientes = (pendientes * 100 / total) if total > 0 else 0
@@ -80,7 +52,6 @@ def reportes_admin(request):
         "entregadas": entregadas,
         "otros": otros,
         "distribucion_ordenes": distribucion_ordenes,
-        "chart_slices": chart_slices,
         "pct_pendientes": pct_pendientes,
         "pct_en_ruta": pct_en_ruta,
         "pct_entregadas": pct_entregadas,

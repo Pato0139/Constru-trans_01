@@ -47,11 +47,11 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Nombres</label>
-                                <input type="text" name="nombres" value="{{ usuario.nombres }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" required>
+                                <input type="text" name="nombres" value="{{ usuario.nombres }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]*" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Apellidos</label>
-                                <input type="text" name="apellidos" value="{{ usuario.apellidos }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" required>
+                                <input type="text" name="apellidos" value="{{ usuario.apellidos }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]*" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')" required>
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Correo Electrónico</label>
@@ -71,7 +71,7 @@
                             <div class="col-md-7">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Teléfono</label>
                                 <input type="text" name="telefono" value="{{ usuario.telefono|cut:'+57'|default:usuario.telefono }}" class="form-control rounded-3 py-2 u-inline-b4973e868e"
-                                pattern="[0-9\s]*" title="Solo se admiten números y espacios" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
+                                pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Tipo Documento</label>
@@ -83,8 +83,9 @@
                             </div>
                             <div class="col-md-7">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Número de Identificación</label>
-                                <input type="text" name="documento" value="{{ usuario.documento }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" required
-                                pattern="[0-9\s]*" title="Solo se admiten números y espacios" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
+                                <input type="text" name="documento" value="{{ usuario.documento }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" readonly
+                                pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
+                                <small class="text-muted">El documento no puede modificarse.</small>
                             </div>
                         </div>
 

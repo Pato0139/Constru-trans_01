@@ -125,27 +125,11 @@
                     <h6 class="text-white fw-bold mb-0">Distribución de Órdenes</h6>
                     <span class="orders-chart-total-badge">{{ total_ordenes }} órdenes</span>
                 </div>
-                <div class="d-flex align-items-center justify-content-center u-inline-8453429173 orders-chart-wrap">
-                    <svg class="orders-pie-chart" viewBox="0 0 280 280" width="340" height="340" role="group" aria-label="Distribución de órdenes">
-                        <title>Distribución de órdenes</title>
-                        {% for slice in chart_slices %}
-                        <path
-                            d="{{ slice.path }}"
-                            fill="{{ slice.color }}"
-                            class="orders-pie-slice"
-                            tabindex="0"
-                            role="graphics-symbol"
-                            aria-label="{{ slice.label }}: {{ slice.value }} órdenes"
-                            data-label="{{ slice.label }}"
-                            data-value="{{ slice.value }}">
-                            <title>{{ slice.label }}: {{ slice.value }} órdenes</title>
-                        </path>
-                        {% empty %}
-                        <circle cx="140" cy="140" r="112" fill="#cbd5e1"></circle>
-                        {% endfor %}
-                    </svg>
-                    <div class="orders-chart-tooltip" role="status" aria-live="polite"></div>
+                <div class="orders-3d-chart-wrap">
+                    <div class="orders-3d-chart" id="orders-3d-chart" role="img" aria-label="Distribución de órdenes en 3D"></div>
+                    <div class="orders-3d-tooltip" id="orders-3d-tooltip" aria-hidden="true"></div>
                 </div>
+                {{ distribucion_ordenes|json_script:"orders-distribution-data" }}
                 <div class="d-flex justify-content-center gap-4 mt-4">
                     <div class="d-flex align-items-center gap-2 small">
                         <span class="u-inline-b17d7bd996"></span>
@@ -332,104 +316,71 @@
         z-index: 5;
     }
 
-    .orders-chart-wrap {
+    .orders-3d-chart-wrap {
         position: relative;
         z-index: 10;
-        height: 340px !important;
-        min-height: 340px;
+        width: 100%;
     }
 
-    .orders-pie-chart {
-        display: block;
-        width: 340px;
-        height: auto;
-        max-width: 100%;
-        aspect-ratio: 1;
-        flex: 0 0 auto;
-        overflow: visible;
+    .orders-3d-chart {
+        width: 100%;
+        height: 360px;
+        cursor: grab;
     }
 
-    .orders-pie-slice {
-        cursor: pointer;
-        stroke: var(--card-bg);
-        stroke-width: 3;
-        stroke-linejoin: round;
-        transform-box: view-box;
-        transform-origin: 140px 140px;
-        transition: transform 180ms ease;
+    .orders-3d-chart:active {
+        cursor: grabbing;
     }
 
-    .orders-pie-slice.is-active {
-        transform: scale(1.08);
-    }
-
-    .orders-pie-slice.is-muted {
-        transform: scale(0.94);
-    }
-
-    .orders-pie-slice:focus-visible {
-        outline: none;
-        stroke: var(--color-text);
-        stroke-width: 5;
-    }
-
-    .orders-chart-tooltip {
+    .orders-3d-tooltip {
         position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.3rem;
-        min-width: 140px;
-        padding: 0.65rem 0.8rem;
-        border: 1px solid var(--color-border, rgba(100, 116, 139, 0.25));
-        border-top: 3px solid var(--tooltip-accent, var(--color-primary, #3b82f6));
+        top: 0;
+        left: 0;
+        z-index: 20;
+        min-width: 132px;
+        padding: 0.7rem 0.85rem;
+        border: 1px solid rgba(148, 163, 184, 0.3);
         border-radius: 0.75rem;
-        background: var(--card-bg, #fff);
-        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.22);
-        color: var(--color-text);
+        background: rgba(15, 23, 42, 0.94);
+        box-shadow: 0 12px 30px rgba(2, 6, 23, 0.45);
+        color: #f8fafc;
         opacity: 0;
         pointer-events: none;
-        visibility: hidden;
-        z-index: 20;
-        transform: translateY(4px) scale(0.96);
-        transform-origin: top right;
-        transition: opacity 140ms ease, transform 140ms ease, visibility 140ms;
+        transform: translateY(4px);
+        transition: opacity 140ms ease, transform 140ms ease;
     }
 
-    .orders-chart-tooltip.is-visible {
+    .orders-3d-tooltip.is-visible {
         opacity: 1;
-        visibility: visible;
-        transform: translateY(0) scale(1);
+        transform: translateY(0);
     }
 
-    .orders-chart-tooltip-count {
-        font-size: 1.35rem;
-        font-weight: 800;
-        line-height: 1;
-    }
-
-    .orders-chart-tooltip-details {
+    .orders-3d-tooltip__head {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem;
-    }
-
-    .orders-chart-tooltip-label {
-        color: var(--color-text);
+        gap: 0.45rem;
         font-size: 0.8rem;
         font-weight: 700;
     }
 
-    .orders-chart-tooltip-percent {
-        padding: 0.15rem 0.4rem;
-        border-radius: 999px;
-        background: var(--item-bg, rgba(100, 116, 139, 0.12));
-        color: var(--tooltip-accent, #3b82f6);
-        font-size: 0.7rem;
+    .orders-3d-tooltip__dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        flex: 0 0 auto;
+    }
+
+    .orders-3d-tooltip__value {
+        margin-top: 0.25rem;
+        font-size: 1.3rem;
         font-weight: 800;
-        white-space: nowrap;
+        line-height: 1.1;
+    }
+
+    .orders-3d-tooltip__meta {
+        margin-top: 0.15rem;
+        color: #cbd5e1;
+        font-size: 0.72rem;
     }
 
     .orders-chart-total-badge {
@@ -449,85 +400,219 @@
         background: #94a3b8;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-        .orders-pie-slice {
-            transition: none;
-        }
-    }
-
     @media (max-width: 575.98px) {
-        .orders-chart-wrap {
-            height: 300px !important;
-            min-height: 300px;
-        }
-
-        .orders-pie-chart {
-            width: 300px;
+        .orders-3d-chart {
+            height: 300px;
         }
     }
 </style>
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
 <script>
     (() => {
-        const chart = document.querySelector('.orders-pie-chart');
-        if (!chart) return;
-        const tooltip = chart.parentElement.querySelector('.orders-chart-tooltip');
-        if (!tooltip) return;
+        const container = document.getElementById('orders-3d-chart');
+        const dataNode = document.getElementById('orders-distribution-data');
+        const tooltip = document.getElementById('orders-3d-tooltip');
 
-        const slices = Array.from(chart.querySelectorAll('.orders-pie-slice'));
-        const total = slices.reduce((sum, slice) => sum + Number(slice.dataset.value), 0);
-
-        const wrapper = chart.parentElement;
-        let activeSlice = null;
-
-        function showTooltip(value, label, target) {
-            const count = document.createElement('strong');
-            const details = document.createElement('div');
-            const description = document.createElement('span');
-            const percentage = document.createElement('span');
-            const numericValue = Number(value);
-
-            count.className = 'orders-chart-tooltip-count';
-            count.textContent = value;
-            details.className = 'orders-chart-tooltip-details';
-            description.className = 'orders-chart-tooltip-label';
-            description.textContent = label;
-            percentage.className = 'orders-chart-tooltip-percent';
-            percentage.textContent = `${total ? Math.round(numericValue * 100 / total) : 0}%`;
-            details.append(description, percentage);
-            tooltip.replaceChildren(count, details);
-            tooltip.style.setProperty('--tooltip-accent', target.getAttribute('fill'));
-            tooltip.classList.add('is-visible');
+        if (!container || !dataNode || !tooltip || typeof echarts === 'undefined') {
+            return;
         }
 
-        function resetChart() {
-            activeSlice = null;
-            slices.forEach((slice) => slice.classList.remove('is-active', 'is-muted'));
+        let distribucion = [];
+        try {
+            distribucion = JSON.parse(dataNode.textContent) || [];
+        } catch (error) {
+            console.error('No se pudo leer la distribución de órdenes.', error);
+            return;
+        }
+
+        const data = distribucion
+            .map((item) => ({
+                name: item.label,
+                value: Number(item.value) || 0,
+                color: item.color
+            }))
+            .filter((item) => item.value > 0);
+
+        if (!data.length) {
+            return;
+        }
+
+        const total = data.reduce((sum, item) => sum + item.value, 0);
+        // Proporción del hueco central: a mayor valor, el anillo es más fino.
+        const innerRatio = 0.55;
+        const k = (1 - innerRatio) / (1 + innerRatio);
+        const sliceHeight = 10;
+
+        if (window.__ordersChartInstance) {
+            window.__ordersChartInstance.dispose();
+        }
+        if (window.__ordersChartResize) {
+            window.removeEventListener('resize', window.__ordersChartResize);
+        }
+
+        const chart = echarts.init(container);
+        window.__ordersChartInstance = chart;
+
+        // Superficie paramétrica de cada sector del anillo (top, base, paredes y tapas).
+        function getParametricEquation(startRatio, endRatio, isSelected, isHovered, factor, height) {
+            const startRadian = startRatio * Math.PI * 2;
+            const endRadian = endRatio * Math.PI * 2;
+            const midRadian = ((startRatio + endRatio) / 2) * Math.PI * 2;
+
+            if (startRatio === 0 && endRatio === 1) {
+                isSelected = false;
+            }
+
+            const offsetX = isSelected ? Math.cos(midRadian) * 0.1 : 0;
+            const offsetY = isSelected ? Math.sin(midRadian) * 0.1 : 0;
+            const hoverRate = isHovered ? 1.05 : 1;
+
+            return {
+                u: { min: -Math.PI, max: Math.PI * 3, step: Math.PI / 32 },
+                v: { min: 0, max: Math.PI * 2, step: Math.PI / 20 },
+                x(u, v) {
+                    if (u < startRadian) return offsetX + Math.cos(startRadian) * (1 + Math.cos(v) * factor) * hoverRate;
+                    if (u > endRadian) return offsetX + Math.cos(endRadian) * (1 + Math.cos(v) * factor) * hoverRate;
+                    return offsetX + Math.cos(u) * (1 + Math.cos(v) * factor) * hoverRate;
+                },
+                y(u, v) {
+                    if (u < startRadian) return offsetY + Math.sin(startRadian) * (1 + Math.cos(v) * factor) * hoverRate;
+                    if (u > endRadian) return offsetY + Math.sin(endRadian) * (1 + Math.cos(v) * factor) * hoverRate;
+                    return offsetY + Math.sin(u) * (1 + Math.cos(v) * factor) * hoverRate;
+                },
+                z(u, v) {
+                    if (u < -Math.PI * 0.5) return Math.sin(u);
+                    if (u > Math.PI * 2.5) return Math.sin(u) * height * 0.1;
+                    return Math.sin(v) > 0 ? height * 0.1 : -1;
+                }
+            };
+        }
+
+        function buildSeries() {
+            const series = [];
+            let startValue = 0;
+
+            data.forEach((item) => {
+                const endValue = startValue + item.value;
+                series.push({
+                    name: item.name,
+                    type: 'surface',
+                    parametric: true,
+                    wireframe: { show: false },
+                    shading: 'lambert',
+                    pieData: {
+                        name: item.name,
+                        value: item.value,
+                        color: item.color,
+                        startRatio: startValue / total,
+                        endRatio: endValue / total
+                    },
+                    itemStyle: { color: item.color, opacity: 0.95 }
+                });
+                startValue = endValue;
+            });
+
+            series.forEach((item) => {
+                item.parametricEquation = getParametricEquation(
+                    item.pieData.startRatio,
+                    item.pieData.endRatio,
+                    false,
+                    false,
+                    k,
+                    sliceHeight
+                );
+            });
+
+            return series;
+        }
+
+        chart.setOption({
+            tooltip: { show: false },
+            xAxis3D: { min: -1, max: 1 },
+            yAxis3D: { min: -1, max: 1 },
+            zAxis3D: { min: -1, max: 1 },
+            grid3D: {
+                show: false,
+                boxHeight: 5,
+                center: ['50%', '50%'],
+                viewControl: {
+                    alpha: 35,
+                    beta: 20,
+                    distance: 150,
+                    rotateSensitivity: 1,
+                    zoomSensitivity: 0,
+                    panSensitivity: 0,
+                    autoRotate: true,
+                    autoRotateSpeed: 9,
+                    autoRotateAfterStill: 5
+                },
+                light: {
+                    main: { intensity: 1.2, shadow: true, alpha: 40, beta: 30 },
+                    ambient: { intensity: 0.45 }
+                }
+            },
+            series: buildSeries()
+        });
+
+        // Tooltip propio: el de ECharts GL no es fiable sobre superficies paramétricas.
+        function renderTooltip(item) {
+            const percent = total ? ((item.value * 100) / total).toFixed(1) : '0.0';
+            tooltip.innerHTML = [
+                '<div class="orders-3d-tooltip__head">',
+                `<span class="orders-3d-tooltip__dot" style="background:${item.color};"></span>`,
+                `<span>${item.name}</span>`,
+                '</div>',
+                `<div class="orders-3d-tooltip__value">${item.value.toLocaleString('es-CO')}</div>`,
+                `<div class="orders-3d-tooltip__meta">${percent}% del total de órdenes</div>`
+            ].join('');
+        }
+
+        function positionTooltip(event) {
+            const wrap = tooltip.parentElement;
+            if (!wrap) return;
+
+            const padding = 12;
+            const offsetX = event && typeof event.offsetX === 'number' ? event.offsetX : wrap.clientWidth / 2;
+            const offsetY = event && typeof event.offsetY === 'number' ? event.offsetY : wrap.clientHeight / 2;
+            let left = offsetX + 18;
+            let top = offsetY + 18;
+
+            if (left + tooltip.offsetWidth + padding > wrap.clientWidth) {
+                left = offsetX - tooltip.offsetWidth - 18;
+            }
+            if (top + tooltip.offsetHeight + padding > wrap.clientHeight) {
+                top = offsetY - tooltip.offsetHeight - 18;
+            }
+
+            tooltip.style.left = `${Math.max(padding, left)}px`;
+            tooltip.style.top = `${Math.max(padding, top)}px`;
+        }
+
+        function hideTooltip() {
             tooltip.classList.remove('is-visible');
         }
 
-        function activateSlice(selected) {
-            if (activeSlice === selected) return;
-            activeSlice = selected;
-            slices.forEach((slice) => {
-                slice.classList.toggle('is-active', slice === selected);
-                slice.classList.toggle('is-muted', slice !== selected);
-            });
-            showTooltip(selected.dataset.value, selected.dataset.label, selected);
-        }
-
-        wrapper.addEventListener('pointerleave', resetChart);
-        wrapper.addEventListener('pointerover', (event) => {
-            const target = event.target instanceof Element
-                ? event.target.closest('.orders-pie-slice')
-                : null;
-            if (target && chart.contains(target)) activateSlice(target);
+        chart.on('mouseover', (params) => {
+            const item = data.find((entry) => entry.name === params.seriesName);
+            if (!item) return;
+            renderTooltip(item);
+            positionTooltip(params.event);
+            tooltip.classList.add('is-visible');
+        });
+        chart.on('mouseout', hideTooltip);
+        chart.on('globalout', hideTooltip);
+        chart.getZr().on('mousemove', (event) => {
+            if (tooltip.classList.contains('is-visible')) positionTooltip(event);
         });
 
-        slices.forEach((slice) => {
-            slice.addEventListener('focus', () => activateSlice(slice));
-            slice.addEventListener('blur', resetChart);
-        });
+        const resizeHandler = () => chart.resize();
+        window.__ordersChartResize = resizeHandler;
+        window.addEventListener('resize', resizeHandler);
     })();
 </script>
 {% endblock %}

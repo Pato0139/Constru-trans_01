@@ -10,7 +10,14 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from config.state_machine import TransicionMixin
-from config.validators import ArchivoValidator, monto_positivo, no_negativo, no_solo_espacios
+from config.validators import (
+    ArchivoValidator,
+    monto_positivo,
+    no_negativo,
+    no_solo_espacios,
+    texto_multilinea,
+    texto_sin_simbolos,
+)
 
 OBSERVACIONES_MAX = 1000
 
@@ -105,7 +112,9 @@ class Pago(TransicionMixin, models.Model):
         db_column="revisado_por_id",
     )
     observaciones = models.TextField(
-        blank=True, db_column="motivo_rechazo", validators=[MaxLengthValidator(OBSERVACIONES_MAX)]
+        blank=True,
+        db_column="motivo_rechazo",
+        validators=[texto_multilinea, MaxLengthValidator(OBSERVACIONES_MAX)],
     )
 
     class Meta:
@@ -468,7 +477,7 @@ class PagoFactura(TransicionMixin, models.Model):
         max_digits=12, decimal_places=2, validators=[monto_positivo]
     )
     metodo = models.CharField(max_length=20, choices=Metodo.choices)
-    referencia = models.CharField(max_length=100, blank=True)
+    referencia = models.CharField(max_length=100, blank=True, validators=[texto_sin_simbolos])
 
     TRANSICIONES = {
         Estado.PENDIENTE: {Estado.APROBADO, Estado.RECHAZADO},
@@ -500,7 +509,9 @@ class PagoFactura(TransicionMixin, models.Model):
         blank=True,
         related_name="+",
     )
-    observaciones = models.TextField(blank=True, validators=[MaxLengthValidator(OBSERVACIONES_MAX)])
+    observaciones = models.TextField(
+        blank=True, validators=[texto_multilinea, MaxLengthValidator(OBSERVACIONES_MAX)]
+    )
 
     class Meta:
         db_table = "pago_factura"

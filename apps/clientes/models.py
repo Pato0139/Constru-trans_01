@@ -4,7 +4,13 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from apps.usuarios.models import Usuario
-from config.validators import nit_validator, no_negativo, no_solo_espacios
+from config.validators import (
+    nit_validator,
+    no_negativo,
+    solo_letras,
+    texto_multilinea,
+    texto_sin_simbolos,
+)
 
 
 # =====================================================================
@@ -25,8 +31,8 @@ class Cliente(models.Model):
     )
 
     # Campos del MER (ClienteVIP)
-    nombre_empresa = models.CharField(max_length=200, default="", blank=True, validators=[no_solo_espacios])
-    direccion_principal = models.CharField(max_length=200, default="Por definir", validators=[no_solo_espacios])
+    nombre_empresa = models.CharField(max_length=200, default="", blank=True, validators=[texto_sin_simbolos])
+    direccion_principal = models.CharField(max_length=200, default="Por definir", validators=[texto_sin_simbolos])
     es_vip = models.BooleanField(default=False)
     fecha_vip = models.DateField(null=True, blank=True)
     gasto_acumulado = models.DecimalField(
@@ -38,11 +44,11 @@ class Cliente(models.Model):
     )
 
     # Campos legacy / adicionales
-    direccion = models.CharField(max_length=200, default="Por definir", validators=[no_solo_espacios])
+    direccion = models.CharField(max_length=200, default="Por definir", validators=[texto_sin_simbolos])
     tipo_cliente = models.CharField(max_length=20, choices=TIPOS_CLIENTE, default="persona")
     nit = models.CharField(max_length=20, default="", blank=True)
-    contacto_alternativo = models.CharField(max_length=100, default="", blank=True, validators=[no_solo_espacios])
-    observaciones = models.TextField(default="", blank=True)
+    contacto_alternativo = models.CharField(max_length=100, default="", blank=True, validators=[solo_letras])
+    observaciones = models.TextField(default="", blank=True, validators=[texto_multilinea])
 
     # NO cambien nada aca
     fecha_registro = models.DateTimeField(auto_now_add=True)

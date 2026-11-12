@@ -14,8 +14,9 @@ from config.state_machine import TransicionMixin
 from config.validators import (
     cantidad_validators,
     no_negativo,
-    no_solo_espacios,
     porcentaje_validators,
+    texto_multilinea,
+    texto_sin_simbolos,
 )
 
 logger = logging.getLogger(__name__)
@@ -81,11 +82,13 @@ class Pedido(TransicionMixin, models.Model):
         max_digits=5, decimal_places=2, default=0, validators=porcentaje_validators
     )
     descuento = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
-    observacion_admin = models.TextField(blank=True, default="", validators=[MaxLengthValidator(2000)])
+    observacion_admin = models.TextField(
+        blank=True, default="", validators=[texto_multilinea, MaxLengthValidator(2000)]
+    )
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
 
-    direccion_origen = models.CharField(max_length=200, default="Bodega Central", validators=[no_solo_espacios])
-    direccion_destino = models.CharField(max_length=200, default="", validators=[no_solo_espacios])
+    direccion_origen = models.CharField(max_length=200, default="Bodega Central", validators=[texto_sin_simbolos])
+    direccion_destino = models.CharField(max_length=200, default="", validators=[texto_sin_simbolos])
     fecha_entrega_programada = models.DateTimeField(
         null=True, blank=True, validators=[validar_fecha_no_pasada]
     )
