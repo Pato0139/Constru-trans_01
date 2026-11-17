@@ -127,11 +127,19 @@ class MaterialForm(StrictModelForm):
                 self.fields["stock"].initial = 0
 
     def _marca_choices(self):
-        """Lista de marcas permitidas: sugeridas + las ya registradas en el catálogo."""
-        nombres = set(MARCAS_MATERIAL)
-        nombres.update(Marca.objects.values_list("nombre", flat=True))
+        inactivas = {
+            nombre.casefold()
+            for nombre in Marca.objects.filter(activo=False).values_list("nombre", flat=True)
+        }
+        nombres = {nombre for nombre in MARCAS_MATERIAL if nombre.casefold() not in inactivas}
         if self.instance and self.instance.pk and self.instance.marca_id:
-            nombres.add(self.instance.marca.nombre)
+            marca_actual = self.instance.marca.nombre
+            nombre_conocido = next(
+                (nombre for nombre in MARCAS_MATERIAL if nombre.casefold() == marca_actual.casefold()),
+                None,
+            )
+            if nombre_conocido:
+                nombres.add(nombre_conocido)
         opciones = [(nombre, nombre) for nombre in sorted(nombres, key=str.lower)]
         return [("", "-- Seleccione una marca --")] + opciones
 
@@ -195,22 +203,33 @@ class MaterialForm(StrictModelForm):
 
 
 class MarcaForm(StrictModelForm):
+    nombre = forms.ChoiceField(
+        required=True,
+        label="Nombre de la Marca",
+        choices=[],
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
     class Meta:
         model = Marca
         fields = ["nombre"]
         labels = {"nombre": "Nombre de la Marca"}
-        widgets = {
-            "nombre": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "Ej: Argos",
-                    "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
-                }
-            ),
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        marcas_registradas = {
+            nombre.casefold()
+            for nombre in Marca.objects.exclude(pk=self.instance.pk).values_list("nombre", flat=True)
         }
+        opciones = [
+            (nombre, nombre)
+            for nombre in sorted(MARCAS_MATERIAL, key=str.lower)
+            if nombre.casefold() not in marcas_registradas
+        ]
+        self.fields["nombre"].choices = [("", "-- Seleccione una marca conocida --")] + opciones
 
     def clean_nombre(self):
-        nombre = self.cleaned_data.get("nombre", "").strip()
+        nombre = self.cleaned_data.get("nombre", "")
         if not nombre:
             raise forms.ValidationError("El nombre de la marca es obligatorio.")
         if Marca.objects.filter(nombre__iexact=nombre).exclude(pk=self.instance.pk).exists():

@@ -1,11 +1,12 @@
 from io import BytesIO
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import Mock
 
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import RequestFactory, SimpleTestCase
+from django.test import Client, RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
@@ -78,3 +79,41 @@ class FotoPerfilUploadPathTests(SimpleTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("usuarios:editar_perfil"))
         request.user.save.assert_called_once_with(update_fields=["foto_perfil"])
+
+
+class FotoPerfilPersistenceTests(TestCase):
+    def test_profile_photo_is_stored_and_available_after_upload(self):
+        usuario = Usuario.objects.create_user(
+            username="foto@test.com",
+            email="foto@test.com",
+            password="password123",
+            rol="cliente",
+            nombres="Foto",
+            apellidos="Prueba",
+            documento="12345678",
+            tipo_documento="CC",
+        )
+        image = Image.new("RGB", (2, 2), color="orange")
+        image_file = BytesIO()
+        image.save(image_file, format="PNG")
+
+        with TemporaryDirectory() as media_root:
+            with override_settings(MEDIA_ROOT=media_root):
+                client = Client()
+                client.force_login(usuario)
+                response = client.post(
+                    reverse("usuarios:editar_perfil"),
+                    {
+                        "action": "upload_photo",
+                        "foto_perfil": SimpleUploadedFile(
+                            "avatar.png",
+                            image_file.getvalue(),
+                            content_type="image/png",
+                        ),
+                    },
+                )
+
+                self.assertEqual(response.status_code, 302)
+                usuario.refresh_from_db()
+                self.assertTrue(usuario.foto_perfil.name)
+                self.assertTrue(usuario.foto_perfil.storage.exists(usuario.foto_perfil.name))

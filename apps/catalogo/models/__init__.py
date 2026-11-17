@@ -11,8 +11,7 @@ numeric_and_space_validator = []
 # Estados posibles de un registro habilitable (productos y categorías)
 ESTADOS_PRODUCTO = [("activo", "Activo"), ("inactivo", "Inactivo")]
 
-# Marcas de materiales de construcción sugeridas en el formulario. El listado
-# final combina estas con las marcas ya registradas en el catálogo.
+# Marcas conocidas permitidas para registro y selección de materiales.
 MARCAS_MATERIAL = [
     "Acerías Paz del Río",
     "Argos",
