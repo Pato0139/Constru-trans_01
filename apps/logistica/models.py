@@ -7,9 +7,40 @@ from django.db import models
 from django.utils import timezone
 
 from config.state_machine import TransicionMixin
-from config.validators import no_solo_espacios, placa_validator
+from config.validators import placa_validator, texto_multilinea, texto_sin_simbolos
 
 logger = logging.getLogger(__name__)
+
+# Marcas de vehículos permitidas al registrar/editar la flota. Evita que se
+# escriban marcas arbitrarias o sin sentido en el campo "Marca del Vehículo".
+MARCAS_VEHICULO = [
+    "Agrale",
+    "Chevrolet",
+    "Dongfeng",
+    "FAW",
+    "Foton",
+    "Ford",
+    "Freightliner",
+    "Hino",
+    "Howo",
+    "Hyundai",
+    "International",
+    "Isuzu",
+    "Iveco",
+    "JAC",
+    "Kenworth",
+    "Kia",
+    "Mazda",
+    "Mercedes-Benz",
+    "Mitsubishi",
+    "Nissan",
+    "Renault",
+    "Scania",
+    "Shacman",
+    "Toyota",
+    "Volkswagen",
+    "Volvo",
+]
 
 
 class Vehiculo(TransicionMixin, models.Model):
@@ -23,9 +54,9 @@ class Vehiculo(TransicionMixin, models.Model):
         db_column="codigo_catalogo",
     )
     placa = models.CharField(max_length=10, unique=True, validators=[placa_validator])
-    marca = models.CharField(max_length=50, validators=[no_solo_espacios])
-    modelo = models.CharField(max_length=50, validators=[no_solo_espacios])
-    tipo_vehiculo = models.CharField(max_length=50, validators=[no_solo_espacios])
+    marca = models.CharField(max_length=50, validators=[texto_sin_simbolos])
+    modelo = models.CharField(max_length=50, validators=[texto_sin_simbolos])
+    tipo_vehiculo = models.CharField(max_length=50, validators=[texto_sin_simbolos])
     capacidad_carga = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)]
     )
@@ -173,9 +204,9 @@ class Entrega(TransicionMixin, models.Model):
         blank=True,
         related_name="entregas_finalizadas",
     )
-    motivo_cancelacion = models.TextField(blank=True, default="")
+    motivo_cancelacion = models.TextField(blank=True, default="", validators=[texto_multilinea])
     estado = models.CharField(max_length=20, choices=ESTADOS, default="pendiente")
-    direccion_entrega = models.CharField(max_length=200)
+    direccion_entrega = models.CharField(max_length=200, validators=[texto_sin_simbolos])
 
     conductor_usuario = models.ForeignKey(
         "usuarios.Usuario",
@@ -271,7 +302,7 @@ class Novedad(models.Model):
     )
 
     tipo = models.CharField(max_length=30, choices=TIPOS)
-    descripcion = models.TextField()
+    descripcion = models.TextField(validators=[texto_multilinea])
     estado = models.CharField(max_length=15, choices=ESTADOS, default="abierta")
     fecha_generada = models.DateTimeField(auto_now_add=True)
     fecha_cierre = models.DateTimeField(null=True, blank=True)
@@ -313,7 +344,7 @@ class Seguimiento(models.Model):
         related_name="seguimientos_atendidos",
     )
     fecha_seguimiento = models.DateTimeField(auto_now_add=True)
-    comentario = models.TextField()
+    comentario = models.TextField(validators=[texto_multilinea])
     estado = models.CharField(max_length=15, choices=ESTADOS, default="pendiente")
 
     class Meta:
@@ -339,7 +370,7 @@ class RespuestaSeguimiento(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="respuestas_redactadas"
     )
     fecha_respuesta = models.DateTimeField(auto_now_add=True)
-    texto = models.TextField()
+    texto = models.TextField(validators=[texto_multilinea])
     estado = models.CharField(max_length=15, choices=ESTADOS, default="aceptada")
 
     class Meta:

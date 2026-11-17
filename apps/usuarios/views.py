@@ -51,7 +51,12 @@ from config.validators import telefono_validator
 
 from .forms import CustomPasswordResetForm, FotoPerfilForm, LoginForm, RegistroForm
 from .models import Conductor, Notificacion, Usuario
-from .utils import limpiar_documento, limpiar_telefono, normalizar_telefono
+from .utils import (
+    contiene_solo_numeros,
+    limpiar_documento,
+    limpiar_telefono,
+    normalizar_telefono,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -553,35 +558,39 @@ def panel(request):
 
 @role_required(["admin"])
 def descargar_backup_db(request):
-    """Genera un backup actualizado y lo descarga."""
+    """Genera un backup desmembrado por aplicación y lo entrega comprimido en ZIP."""
+    import io
+    import zipfile
     from pathlib import Path
 
-    from django.core.management import call_command
-    from django.http import FileResponse, Http404
+    from django.http import HttpResponse
 
-    destino = Path(settings.BASE_DIR) / "backups"
-    destino.mkdir(exist_ok=True)
+    from apps.usuarios.management.commands.backup_db import generar_backup
 
     # Generar backup fresco antes de descargar
     try:
-        call_command("backup_db", destino="backups", format="sql")
+        archivos = generar_backup(destino="backups", fmt="both")
     except Exception as e:
         messages.error(request, f"Error al generar backup: {e}")
         return redirect("usuarios:panel")
 
-    # Buscar el archivo SQL más reciente en la carpeta backups
-    files = list(destino.glob("*.sql"))
-    if not files:
-        # Reintentar con JSON si no hay SQL
-        files = list(destino.glob("*.json"))
+    if not archivos:
+        messages.error(request, "No se generó ningún archivo de backup.")
+        return redirect("usuarios:panel")
 
-    if not files:
-        raise Http404("No se encontró ningún archivo de backup.")
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for ruta in archivos:
+            ruta = Path(ruta)
+            if ruta.exists():
+                zf.write(ruta, arcname=ruta.name)
+    buffer.seek(0)
 
-    latest_file = max(files, key=lambda x: x.stat().st_mtime)
-
-    response = FileResponse(open(latest_file, "rb"), as_attachment=True)
-    response["Content-Disposition"] = f'attachment; filename="{latest_file.name}"'
+    marca = timezone.localtime().strftime("%Y%m%d_%H%M%S")
+    response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = (
+        f'attachment; filename="backup_constru_trans_{marca}.zip"'
+    )
     return response
 
 # =====================================================================
@@ -1034,7 +1043,8 @@ def editar_perfil(request):
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
         pais_codigo = request.POST.get("pais_codigo") or "+57"
-        telefono = normalizar_telefono(pais_codigo, request.POST.get("telefono"))
+        telefono_raw = request.POST.get("telefono") or ""
+        telefono = normalizar_telefono(pais_codigo, telefono_raw)
         email = (request.POST.get("email") or "").strip().casefold()
         nombres = (nombres or "").strip()
         apellidos = (apellidos or "").strip()
@@ -1051,6 +1061,25 @@ def editar_perfil(request):
                 request,
                 "usuarios/editar_perfil.html",
                 {"usuario": usuario, "foto_form": FotoPerfilForm()},
+                status=400,
+            )
+
+        if not contiene_solo_numeros(telefono_raw):
+            messages.error(request, "El teléfono solo puede contener números.")
+            return render(
+                request,
+                "usuarios/editar_perfil.html",
+                {"usuario": usuario, "foto_form": FotoPerfilForm(), "form_data": request.POST},
+                status=400,
+            )
+
+        documento_raw = request.POST.get("documento")
+        if documento_raw and limpiar_documento(documento_raw) != usuario.documento:
+            messages.error(request, "El número de documento no se puede modificar.")
+            return render(
+                request,
+                "usuarios/editar_perfil.html",
+                {"usuario": usuario, "foto_form": FotoPerfilForm(), "form_data": request.POST},
                 status=400,
             )
         if email:
@@ -1147,7 +1176,8 @@ def crear_usuario(request):
         apellidos = (request.POST.get("apellidos") or "").strip()
         email = (request.POST.get("email") or "").strip().casefold()
         password = request.POST.get("password") or ""
-        telefono = limpiar_telefono(request.POST.get("telefono"))
+        telefono_raw = request.POST.get("telefono") or ""
+        telefono = limpiar_telefono(telefono_raw)
         rol = request.POST.get("rol")
         tipo_doc = request.POST.get("tipo_doc")
         documento = limpiar_documento(request.POST.get("documento"))
@@ -1178,8 +1208,9 @@ def crear_usuario(request):
                 len(nombres) > 200
                 or len(apellidos) > 200
                 or len(email) > 150
-                or not 7 <= len(telefono) <= 15
-                or not 7 <= len(documento) <= 15
+                or not contiene_solo_numeros(telefono_raw)
+                or not 7 <= len(telefono) <= 10
+                or not 7 <= len(documento) <= 10
                 or (tipo_doc == "PA" and not documento.isalnum())
                 or (tipo_doc != "PA" and not documento.isdigit())
                 or rol not in dict(Usuario.ROLES)
@@ -1364,11 +1395,20 @@ def editar_usuario(request, id):
     if request.method == "POST":
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
-        telefono = limpiar_telefono(request.POST.get("telefono"))
+        telefono_raw = request.POST.get("telefono") or ""
+        telefono = limpiar_telefono(telefono_raw)
         rol = request.POST.get("rol")
 
-        if not all([nombres, apellidos, telefono]):
-            messages.error(request, "Los campos nombres, apellidos y teléfono son obligatorios.")
+        if (
+            not all([nombres, apellidos, telefono])
+            or not contiene_solo_numeros(telefono_raw)
+            or not 7 <= len(telefono) <= 10
+        ):
+            messages.error(
+                request,
+                "Los campos nombres, apellidos y teléfono son obligatorios "
+                "(teléfono de 7 a 10 dígitos, solo números).",
+            )
             context = {"usuario": usuario, "form_data": request.POST, "action": "editar"}
             return render(request, "usuarios/form.html", context)
 
@@ -1545,20 +1585,39 @@ def crear_conductor(request):
         apellidos = (request.POST.get("apellidos") or "").strip()
         email = (request.POST.get("email") or "").strip().casefold()
         password = request.POST.get("password") or ""
-        telefono = limpiar_telefono(request.POST.get("telefono"))
+        telefono_raw = request.POST.get("telefono") or ""
+        telefono = limpiar_telefono(telefono_raw)
         tipo_doc = request.POST.get("tipo_doc") or "CC"
         documento = limpiar_documento(request.POST.get("documento"))
         numero_licencia = (request.POST.get("numero_licencia") or "").strip()
         categoria_licencia = (request.POST.get("categoria_licencia") or "B1").strip()
         fecha_vencimiento_licencia = request.POST.get("fecha_vencimiento_licencia")
-        telefono_empresarial = limpiar_telefono(request.POST.get("telefono_empresarial"))
+        telefono_empresarial_raw = request.POST.get("telefono_empresarial") or ""
+        telefono_empresarial = limpiar_telefono(telefono_empresarial_raw)
         estado = request.POST.get("estado") or "activo"
 
         form_data = request.POST.copy()
         form_data.pop("password", None)
 
-        if not all([nombres, apellidos, email, password, telefono, tipo_doc, documento, numero_licencia]):
+        if not all([nombres, apellidos, email, password, telefono, tipo_doc, documento, numero_licencia]) or not (
+            7 <= len(telefono) <= 10
+        ) or not (7 <= len(documento) <= 10):
             messages.error(request, "Por favor completa todos los campos requeridos.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"form_data": form_data, "action": "crear"},
+                status=400,
+            )
+
+        if (
+            not contiene_solo_numeros(telefono_raw)
+            or not contiene_solo_numeros(telefono_empresarial_raw)
+            or (tipo_doc != "PA" and not documento.isdigit())
+        ):
+            messages.error(
+                request, "Los campos numéricos (teléfono y documento) solo admiten números."
+            )
             return render(
                 request,
                 "usuarios/conductor_form.html",
@@ -1701,17 +1760,45 @@ def editar_conductor(request, id):
         nombres = (request.POST.get("nombres") or "").strip()
         apellidos = (request.POST.get("apellidos") or "").strip()
         email = (request.POST.get("email") or "").strip().casefold()
-        telefono = limpiar_telefono(request.POST.get("telefono"))
+        telefono_raw = request.POST.get("telefono") or ""
+        telefono = limpiar_telefono(telefono_raw)
         tipo_doc = request.POST.get("tipo_doc") or "CC"
         documento = limpiar_documento(request.POST.get("documento"))
         numero_licencia = (request.POST.get("numero_licencia") or "").strip()
         categoria_licencia = (request.POST.get("categoria_licencia") or perfil.categoria_licencia).strip()
         fecha_vencimiento_licencia = request.POST.get("fecha_vencimiento_licencia")
-        telefono_empresarial = limpiar_telefono(request.POST.get("telefono_empresarial"))
+        telefono_empresarial_raw = request.POST.get("telefono_empresarial") or ""
+        telefono_empresarial = limpiar_telefono(telefono_empresarial_raw)
         estado = request.POST.get("estado") or perfil.estado
 
-        if not all([nombres, apellidos, email, telefono, tipo_doc, documento, numero_licencia]):
+        if not all([nombres, apellidos, email, telefono, tipo_doc, documento, numero_licencia]) or not (
+            7 <= len(telefono) <= 10
+        ) or not (7 <= len(documento) <= 10):
             messages.error(request, "Por favor completa todos los campos requeridos.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"conductor_user": conductor_user, "perfil": perfil, "action": "editar"},
+                status=400,
+            )
+
+        if documento != conductor_user.documento:
+            messages.error(request, "El número de documento no se puede modificar.")
+            return render(
+                request,
+                "usuarios/conductor_form.html",
+                {"conductor_user": conductor_user, "perfil": perfil, "action": "editar"},
+                status=400,
+            )
+
+        if (
+            not contiene_solo_numeros(telefono_raw)
+            or not contiene_solo_numeros(telefono_empresarial_raw)
+            or (tipo_doc != "PA" and not documento.isdigit())
+        ):
+            messages.error(
+                request, "Los campos numéricos (teléfono y documento) solo admiten números."
+            )
             return render(
                 request,
                 "usuarios/conductor_form.html",
@@ -1792,7 +1879,6 @@ def editar_conductor(request, id):
                 conductor_user.username = email
                 conductor_user.telefono = telefono
                 conductor_user.tipo_documento = tipo_doc
-                conductor_user.documento = documento
                 conductor_user.estado = estado
                 conductor_user.is_active = (estado == "activo")
                 conductor_user.save()

@@ -36,6 +36,17 @@ def normalizar_telefono(pais_codigo, telefono):
     return numero_digits
 
 
+def contiene_solo_numeros(valor):
+    """Indica si un valor numérico no contiene letras ni símbolos extraños.
+
+    Admite dígitos y los separadores habituales de teléfono (espacios, +, -, paréntesis).
+    Devuelve True también para valores vacíos o None.
+    """
+    if valor is None:
+        return True
+    return re.fullmatch(r"[0-9\s+()-]*", str(valor).strip()) is not None
+
+
 def limpiar_documento(documento):
     """Normaliza un documento de identidad.
 

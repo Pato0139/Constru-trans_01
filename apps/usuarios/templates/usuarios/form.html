@@ -61,18 +61,18 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Nombres</label>
-                        <input type="text" name="nombres" class="form-control py-2 usuario-input" placeholder="Ej: Juan" value="{% if form_data %}{{ form_data.nombres|default:usuario.nombres|default:'' }}{% else %}{{ usuario.nombres|default:'' }}{% endif %}" required>
+                        <input type="text" name="nombres" class="form-control py-2 usuario-input" placeholder="Ej: Juan" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]*" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')" value="{% if form_data %}{{ form_data.nombres|default:usuario.nombres|default:'' }}{% else %}{{ usuario.nombres|default:'' }}{% endif %}" required>
                         
                         <div class="mt-4">
                             <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Apellidos</label>
-                            <input type="text" name="apellidos" class="form-control py-2 usuario-input" placeholder="Ej: Pérez" value="{% if form_data %}{{ form_data.apellidos|default:usuario.apellidos|default:'' }}{% else %}{{ usuario.apellidos|default:'' }}{% endif %}" required>
+                            <input type="text" name="apellidos" class="form-control py-2 usuario-input" placeholder="Ej: Pérez" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]*" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')" value="{% if form_data %}{{ form_data.apellidos|default:usuario.apellidos|default:'' }}{% else %}{{ usuario.apellidos|default:'' }}{% endif %}" required>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Teléfono de Contacto</label>
                         <div class="input-group">
                             <span class="input-group-text border-0 usuario-input-group-text"><i class="bi bi-telephone"></i></span>
-                            <input type="text" name="telefono" class="form-control py-2 usuario-input numeric-only" placeholder="3001234567" value="{% if form_data %}{{ form_data.telefono|default:usuario.telefono|default:'' }}{% else %}{{ usuario.telefono|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios">
+                            <input type="text" name="telefono" class="form-control py-2 usuario-input numeric-only" placeholder="3001234567" value="{% if form_data %}{{ form_data.telefono|default:usuario.telefono|default:'' }}{% else %}{{ usuario.telefono|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                         </div>
 
                         <div class="mt-4">
@@ -126,7 +126,7 @@
                             <input type="text" class="form-control py-2 usuario-input" value="{{ usuario.documento }}" readonly>
                             <small class="text-muted">El documento no puede modificarse.</small>
                         {% else %}
-                            <input type="text" name="documento" class="form-control py-2 usuario-input" placeholder="12345678" value="{% if form_data %}{{ form_data.documento|default:'' }}{% else %}{{ usuario.documento|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios">
+                            <input type="text" name="documento" class="form-control py-2 usuario-input" placeholder="12345678" value="{% if form_data %}{{ form_data.documento|default:'' }}{% else %}{{ usuario.documento|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                         {% endif %}
                     </div>
                 </div>

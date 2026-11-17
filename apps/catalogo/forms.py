@@ -1,31 +1,20 @@
-import re
-import unicodedata
-
 from django import forms
 
 from config.forms_base import StrictModelForm
+from config.validators import texto_sin_simbolos
 
-from .models import ESTADOS_PRODUCTO, Catalogo, Marca, MaterialConstruccion, Stock, UnidadMedida
+from .models import (
+    ESTADOS_PRODUCTO,
+    MARCAS_MATERIAL,
+    Catalogo,
+    Marca,
+    MaterialConstruccion,
+    Stock,
+    UnidadMedida,
+)
 
 
 class MaterialForm(StrictModelForm):
-    _MARCA_PALABRAS_PROHIBIDAS = {
-        "cabron",
-        "cojones",
-        "cono",
-        "estupido",
-        "gonorrea",
-        "hijueputa",
-        "imbecil",
-        "joder",
-        "marica",
-        "mierda",
-        "pendejo",
-        "puta",
-        "puto",
-        "verga",
-    }
-
     tipo = forms.ModelChoiceField(
         queryset=Catalogo.objects.all().order_by("nombre_empresa"),
         required=False,
@@ -37,13 +26,13 @@ class MaterialForm(StrictModelForm):
             }
         ),
     )
-    marca_nombre = forms.CharField(
+    marca_nombre = forms.ChoiceField(
         required=False,
         label="Marca",
-        widget=forms.TextInput(
+        choices=[],  # se completan en __init__ con las marcas permitidas
+        widget=forms.Select(
             attrs={
-                "class": "form-control",
-                "placeholder": "Ej: Argos",
+                "class": "form-select",
             }
         ),
     )
@@ -71,10 +60,14 @@ class MaterialForm(StrictModelForm):
     ubicacion = forms.CharField(
         required=False,
         label="Ubicación en bodega",
+        validators=[texto_sin_simbolos],
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
                 "placeholder": "Ej: Almacén 1",
+                "pattern": r"[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]*",
+                "title": "Sin símbolos (solo letras, números y - # / . , )",
+                "oninput": r"this.value = this.value.replace(/[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]/g, '')",
             }
         ),
     )
@@ -118,6 +111,8 @@ class MaterialForm(StrictModelForm):
         )
         self.fields["unidad_medida"].empty_label = "-- Seleccione una unidad --"
 
+        self.fields["marca_nombre"].choices = self._marca_choices()
+
         if self.instance and self.instance.pk and self.instance.catalogo:
             self.fields["tipo"].initial = self.instance.catalogo
         if self.instance and self.instance.pk and self.instance.marca:
@@ -131,24 +126,14 @@ class MaterialForm(StrictModelForm):
             except Stock.DoesNotExist:
                 self.fields["stock"].initial = 0
 
-    def clean_marca_nombre(self):
-        marca_nombre = self.cleaned_data.get("marca_nombre", "").strip()
-        if not marca_nombre:
-            return "N/A"
-
-        normalizado = unicodedata.normalize("NFKD", marca_nombre)
-        normalizado = "".join(
-            caracter for caracter in normalizado if not unicodedata.combining(caracter)
-        ).lower()
-        palabras = set(re.findall(r"[a-z0-9]+", normalizado))
-        frases_prohibidas = {"hijo de puta", "la concha de tu madre"}
-
-        if palabras & self._MARCA_PALABRAS_PROHIBIDAS or any(
-            frase in normalizado for frase in frases_prohibidas
-        ):
-            raise forms.ValidationError("El nombre de la marca contiene lenguaje no permitido.")
-
-        return marca_nombre
+    def _marca_choices(self):
+        """Lista de marcas permitidas: sugeridas + las ya registradas en el catálogo."""
+        nombres = set(MARCAS_MATERIAL)
+        nombres.update(Marca.objects.values_list("nombre", flat=True))
+        if self.instance and self.instance.pk and self.instance.marca_id:
+            nombres.add(self.instance.marca.nombre)
+        opciones = [(nombre, nombre) for nombre in sorted(nombres, key=str.lower)]
+        return [("", "-- Seleccione una marca --")] + opciones
 
     def clean_nombre(self):
         nombre = self.cleaned_data.get("nombre", "").strip()
@@ -173,9 +158,12 @@ class MaterialForm(StrictModelForm):
         tipo = self.cleaned_data.get("tipo")
         material.catalogo = tipo
 
-        marca_nombre = self.cleaned_data["marca_nombre"]
-        marca = Marca.objects.filter(nombre__iexact=marca_nombre).first()
-        material.marca = marca or Marca.objects.create(nombre=marca_nombre)
+        marca_nombre = self.cleaned_data.get("marca_nombre") or ""
+        if marca_nombre:
+            marca = Marca.objects.filter(nombre__iexact=marca_nombre).first()
+            material.marca = marca or Marca.objects.create(nombre=marca_nombre)
+        else:
+            material.marca = None
 
         # Estado (columna del MER): si no se envía, queda 'activo'
         material.estado = self.cleaned_data.get("estado") or "activo"

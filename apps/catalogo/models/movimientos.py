@@ -1,8 +1,10 @@
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.timezone import now
 
 from apps.catalogo.models import MaterialConstruccion
+from config.validators import texto_multilinea
 
 
 class MovimientoInventario(models.Model):
@@ -19,7 +21,9 @@ class MovimientoInventario(models.Model):
     )
     material_codigo_original = models.IntegerField(null=True, blank=True, editable=False)
     tipo_movimiento = models.CharField(max_length=10, choices=TIPOS)
-    cantidad = models.PositiveIntegerField()
+    cantidad = models.PositiveIntegerField(
+        validators=[MinValueValidator(1, message="La cantidad mínima es 1.")]
+    )
     fecha_movimiento = models.DateTimeField(default=now)
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="movimientos"
@@ -39,7 +43,7 @@ class MovimientoInventario(models.Model):
         blank=True,
         related_name="movimientos",
     )
-    observacion = models.TextField(blank=True)
+    observacion = models.TextField(blank=True, validators=[texto_multilinea])
     sincronizado = models.BooleanField(default=False)
     fecha = models.DateTimeField(default=now, blank=True, null=True)
 

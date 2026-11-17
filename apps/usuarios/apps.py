@@ -85,7 +85,11 @@ class UsuariosConfig(AppConfig):
 
             # Importar señales
             import apps.usuarios.signals  # noqa: F401
-            import apps.usuarios.signals_backup  # noqa: F401
+
+            # Iniciar el respaldo automático (una vez al día)
+            from apps.usuarios import backup_scheduler
+
+            backup_scheduler.iniciar_scheduler()
 
         except Exception:
             # No queremos que un fallo aquí impida levantar la app

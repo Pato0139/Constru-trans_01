@@ -15,7 +15,15 @@ from config.permissions import requiere_funcion
 from config.security import _respuesta_no_autorizada, role_required
 from config.utils import registrar_actividad
 
-from .models import ConductorVehiculo, Entrega, Novedad, RespuestaSeguimiento, Seguimiento, Vehiculo
+from .models import (
+    MARCAS_VEHICULO,
+    ConductorVehiculo,
+    Entrega,
+    Novedad,
+    RespuestaSeguimiento,
+    Seguimiento,
+    Vehiculo,
+)
 
 
 @lru_cache(maxsize=4)
@@ -157,6 +165,18 @@ def crear_vehiculo(request):
         capacidad = request.POST.get("capacidad")
         conductor_id = request.POST.get("conductor")
 
+        if marca not in MARCAS_VEHICULO:
+            messages.error(request, "Selecciona una marca de vehículo válida de la lista.")
+            return render(
+                request,
+                "logistica/form.html",
+                {
+                    "action": "crear",
+                    "conductores": conductores_disponibles,
+                    "marcas": MARCAS_VEHICULO,
+                },
+            )
+
         try:
             vehiculo = Vehiculo(
                 placa=placa,
@@ -193,7 +213,7 @@ def crear_vehiculo(request):
         except Exception as e:
             messages.error(request, f"Error: {str(e)}")
 
-    context = {"action": "crear", "conductores": conductores_disponibles}
+    context = {"action": "crear", "conductores": conductores_disponibles, "marcas": MARCAS_VEHICULO}
 
     return render(request, "logistica/form.html", context)
 
@@ -242,7 +262,12 @@ def editar_vehiculo(request, id):
                     return render(
                         request,
                         "logistica/form.html",
-                        {"vehiculo": vehiculo, "action": "editar", "conductores": conductores},
+                        {
+                            "vehiculo": vehiculo,
+                            "action": "editar",
+                            "conductores": conductores,
+                            "marcas": MARCAS_VEHICULO,
+                        },
                         status=400,
                     )
 
@@ -255,9 +280,25 @@ def editar_vehiculo(request, id):
                     "No se puede desactivar el vehículo porque tiene entregas pendientes o en curso.",
                 )
             else:
+                marca_sel = request.POST.get("marca", "").strip()
+                if marca_sel not in MARCAS_VEHICULO:
+                    messages.error(
+                        request, "Selecciona una marca de vehículo válida de la lista."
+                    )
+                    return render(
+                        request,
+                        "logistica/form.html",
+                        {
+                            "vehiculo": vehiculo,
+                            "action": "editar",
+                            "conductores": conductores,
+                            "marcas": MARCAS_VEHICULO,
+                        },
+                        status=400,
+                    )
                 vehiculo.placa = request.POST.get("placa")
                 vehiculo.tipo_vehiculo = request.POST.get("tipo")
-                vehiculo.marca = request.POST.get("marca", "").strip()
+                vehiculo.marca = marca_sel
                 vehiculo.modelo = request.POST.get("modelo", "").strip()
                 capacidad = request.POST.get("capacidad", "").replace(",", ".")
                 vehiculo.capacidad_carga = capacidad
@@ -269,7 +310,12 @@ def editar_vehiculo(request, id):
                     return render(
                         request,
                         "logistica/form.html",
-                        {"vehiculo": vehiculo, "action": "editar", "conductores": conductores},
+                        {
+                            "vehiculo": vehiculo,
+                            "action": "editar",
+                            "conductores": conductores,
+                            "marcas": MARCAS_VEHICULO,
+                        },
                         status=400,
                     )
                 vehiculo.save()
@@ -293,7 +339,7 @@ def editar_vehiculo(request, id):
                 except Exception as e:
                     messages.error(request, f"Error: {str(e)}")
 
-    context = {"vehiculo": vehiculo, "action": "editar", "conductores": conductores}
+    context = {"vehiculo": vehiculo, "action": "editar", "conductores": conductores, "marcas": MARCAS_VEHICULO}
 
     return render(request, "logistica/form.html", context)
 

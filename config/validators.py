@@ -4,6 +4,7 @@ Los modelos y formularios deben importar desde aquí en lugar de declarar
 RegexValidator locales. Así las reglas son idénticas en todo el sistema.
 """
 
+import re
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
@@ -62,6 +63,77 @@ class NoSoloEspaciosValidator:
 
 
 no_solo_espacios = NoSoloEspaciosValidator()
+
+
+# Símbolos "básicos" que sí se aceptan en textos con cifras (direcciones,
+# unidades de medida, materiales, marcadores internos [-] (:) del sistema).
+# Todo lo demás (comillas, $, %, &, @, *, etc.) se bloquea.
+SIMBOLOS_BASICOS = "-#/.,°º()[]:²³"
+
+_LETRAS = r"[^\W\d_]"  # cualquier letra (incluye tildes y ñ), sin dígitos ni "_"
+
+
+@deconstructible
+class _TextoPlanoValidator:
+    """Rechaza símbolos en campos de texto.
+
+    - ``permitir_numeros=True`` (por defecto): admite letras (incluidas tildes/ñ),
+      dígitos y espacios.
+    - ``permitir_numeros=False``: solo letras y espacios (ej. nombres, ciudades).
+    - ``permitir_saltos=True``: permite saltos de línea (campos ``TextArea`` largos).
+    - ``simbolos``: cadena con los símbolos adicionales permitidos (ej. ``-#/.``).
+    """
+
+    def __init__(self, permitir_numeros=True, permitir_saltos=False, simbolos=""):
+        self.permitir_numeros = permitir_numeros
+        self.permitir_saltos = permitir_saltos
+        self.simbolos = simbolos
+        partes = [_LETRAS]
+        if permitir_numeros:
+            partes.append(r"\d")
+        partes.append(r"\s" if permitir_saltos else " ")
+        partes.extend(re.escape(c) for c in simbolos)
+        self._patron = re.compile(rf"^(?:{'|'.join(partes)})*$")
+
+    @property
+    def code(self):
+        return "simbolos_no_permitidos"
+
+    @property
+    def message(self):
+        if self.permitir_numeros:
+            return "Este campo solo admite letras, números, espacios y símbolos básicos (sin otros símbolos)."
+        return "Este campo solo admite letras y espacios (sin números ni símbolos)."
+
+    def __call__(self, value):
+        if value in (None, ""):
+            return
+        texto = str(value)
+        if not texto.strip() or not self._patron.match(texto):
+            raise ValidationError(self.message, code=self.code)
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, _TextoPlanoValidator)
+            and self.permitir_numeros == other.permitir_numeros
+            and self.permitir_saltos == other.permitir_saltos
+            and self.simbolos == other.simbolos
+        )
+
+
+# Solo letras y espacios: nombres propios, apellidos, ciudades, roles, títulos.
+solo_letras = _TextoPlanoValidator(permitir_numeros=False)
+
+# Letras, números, espacios y símbolos básicos (direcciones, marcas tipo
+# "Mercedes-Benz", modelos, empresas, descripciones).
+texto_sin_simbolos = _TextoPlanoValidator(
+    permitir_numeros=True, simbolos=SIMBOLOS_BASICOS
+)
+
+# Igual al anterior pero admitiendo saltos de línea (campos TextArea).
+texto_multilinea = _TextoPlanoValidator(
+    permitir_numeros=True, permitir_saltos=True, simbolos=SIMBOLOS_BASICOS
+)
 
 # ---------------------------------------------------------------------------
 # Rangos numéricos

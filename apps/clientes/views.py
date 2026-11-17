@@ -18,6 +18,7 @@ from apps.catalogo.models import Catalogo, Stock, UnidadMedida
 from apps.catalogo.models import MaterialConstruccion as Material
 from apps.pedidos.models import DetallePedido, Pedido
 from apps.usuarios.models import Usuario
+from apps.usuarios.utils import contiene_solo_numeros
 from config.db_preference import debe_usar_bd_remota
 from config.db_utils import select_for_update_if_supported
 from config.despacho import (
@@ -1026,6 +1027,20 @@ def editar_cliente(request, id):
             or (estado and estado not in dict(Usuario.ESTADO_USUARIO))
         ):
             messages.error(request, "El tipo de cliente o estado seleccionado no es válido.")
+            return render(
+                request,
+                "clientes/admin_editar.html",
+                {
+                    "usuario_cliente": usuario,
+                    "cliente": cliente,
+                    "tipos_cliente": Cliente.TIPOS_CLIENTE,
+                },
+                status=400,
+            )
+
+        telefono = request.POST.get("telefono") or ""
+        if telefono and not contiene_solo_numeros(telefono):
+            messages.error(request, "El teléfono solo puede contener números.")
             return render(
                 request,
                 "clientes/admin_editar.html",

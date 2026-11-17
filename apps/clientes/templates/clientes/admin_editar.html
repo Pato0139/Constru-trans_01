@@ -24,7 +24,7 @@
                     <!-- Información Básica de Usuario -->
                     <div class="col-md-6">
                         <label for="telefono" class="form-label text-muted small text-uppercase fw-bold">Teléfono de Contacto</label>
-                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="telefono" name="telefono" value="{{ usuario_cliente.telefono }}">
+                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="telefono" name="telefono" value="{{ usuario_cliente.telefono }}" pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                     </div>
                     
                     <div class="col-md-6">
@@ -56,22 +56,22 @@
 
                     <div class="col-md-12">
                         <label for="nombre_empresa" class="form-label text-muted small text-uppercase fw-bold">Nombre de la Empresa (Opcional)</label>
-                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="nombre_empresa" name="nombre_empresa" value="{{ cliente.nombre_empresa }}">
+                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="nombre_empresa" name="nombre_empresa" pattern="[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]*" title="Sin símbolos (solo letras, números y - # / . , )" oninput="this.value = this.value.replace(/[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]/g, '')" value="{{ cliente.nombre_empresa }}">
                     </div>
 
                     <div class="col-md-12">
                         <label for="direccion_principal" class="form-label text-muted small text-uppercase fw-bold">Dirección Principal</label>
-                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="direccion_principal" name="direccion_principal" value="{{ cliente.direccion_principal }}" required>
+                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="direccion_principal" name="direccion_principal" pattern="[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]*" title="Sin símbolos (solo letras, números y - # / . , )" oninput="this.value = this.value.replace(/[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]/g, '')" value="{{ cliente.direccion_principal }}" required>
                     </div>
 
                     <div class="col-md-12">
                         <label for="direccion" class="form-label text-muted small text-uppercase fw-bold">Dirección de Despacho Alterna</label>
-                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="direccion" name="direccion" value="{{ cliente.direccion }}">
+                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="direccion" name="direccion" pattern="[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]*" title="Sin símbolos (solo letras, números y - # / . , )" oninput="this.value = this.value.replace(/[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]/g, '')" value="{{ cliente.direccion }}">
                     </div>
 
                     <div class="col-md-12">
                         <label for="contacto_alternativo" class="form-label text-muted small text-uppercase fw-bold">Contacto Alternativo (Opcional)</label>
-                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="contacto_alternativo" name="contacto_alternativo" value="{{ cliente.contacto_alternativo }}" placeholder="Nombre y teléfono de alguien más">
+                        <input type="text" class="form-control bg-dark border-white-10 text-white" id="contacto_alternativo" name="contacto_alternativo" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]*" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')" value="{{ cliente.contacto_alternativo }}" placeholder="Nombre y teléfono de alguien más">
                     </div>
 
                     <div class="col-md-12">

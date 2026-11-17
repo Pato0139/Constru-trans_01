@@ -220,8 +220,8 @@ def editar_stock(request, id):
         except (ValueError, TypeError):
             messages.error(request, "La cantidad debe ser un número válido.")
             return redirect("catalogo:stock_lista")
-        if not 0 <= cantidad <= 100000 or len(ubicacion) > 120:
-            messages.error(request, "La cantidad o ubicación no es válida.")
+        if not 1 <= cantidad <= 100000 or len(ubicacion) > 120:
+            messages.error(request, "La cantidad debe ser mayor que 0 y la ubicación no es válida.")
             return redirect("catalogo:stock_lista")
         stock.cantidad_actual = cantidad
         stock.ubicacion = ubicacion

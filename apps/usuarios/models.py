@@ -12,8 +12,10 @@ from django.utils.timezone import now
 from config.validators import (
     documento_validator,
     imagen_validator,
-    no_solo_espacios,
+    solo_letras,
     telefono_validator,
+    texto_multilinea,
+    texto_sin_simbolos,
 )
 
 logger = logging.getLogger(__name__)
@@ -66,8 +68,8 @@ class Usuario(AbstractUser):
         ("empleado", "Empleado"),
     ]
 
-    nombres = models.CharField(max_length=200, validators=[no_solo_espacios])
-    apellidos = models.CharField(max_length=200, validators=[no_solo_espacios])
+    nombres = models.CharField(max_length=200, validators=[solo_letras])
+    apellidos = models.CharField(max_length=200, validators=[solo_letras])
     telefono = models.CharField(max_length=20, blank=True, validators=[telefono_validator])
     documento = models.CharField(max_length=20, validators=[documento_validator])
 
@@ -330,8 +332,8 @@ class Usuario(AbstractUser):
 # =====================================================================
 class Rol(models.Model):
     id_rol = models.AutoField(primary_key=True)
-    nombre_rol = models.CharField(max_length=50, unique=True)
-    descripcion = models.TextField(blank=True, null=True)
+    nombre_rol = models.CharField(max_length=50, unique=True, validators=[solo_letras])
+    descripcion = models.TextField(blank=True, null=True, validators=[texto_multilinea])
     activo = models.BooleanField(default=True)
 
     class Meta:
@@ -362,10 +364,10 @@ class UsuarioRol(models.Model):
 
 
 class EPS(models.Model):
-    codigo_eps = models.CharField(max_length=20, primary_key=True, validators=[no_solo_espacios])
-    numero_seguro = models.CharField(max_length=50, validators=[no_solo_espacios])
-    ciudad = models.CharField(max_length=100, validators=[no_solo_espacios])
-    direccion = models.CharField(max_length=200, validators=[no_solo_espacios])
+    codigo_eps = models.CharField(max_length=20, primary_key=True, validators=[texto_sin_simbolos])
+    numero_seguro = models.CharField(max_length=50, validators=[texto_sin_simbolos])
+    ciudad = models.CharField(max_length=100, validators=[solo_letras])
+    direccion = models.CharField(max_length=200, validators=[texto_sin_simbolos])
     telefono = models.CharField(max_length=20, validators=[telefono_validator])
     correo = models.EmailField()
 
@@ -381,8 +383,8 @@ class Conductor(models.Model):
     usuario = models.OneToOneField(
         Usuario, on_delete=models.CASCADE, primary_key=True, related_name="perfil_conductor"
     )
-    numero_licencia = models.CharField(max_length=50, unique=True, validators=[no_solo_espacios])
-    categoria_licencia = models.CharField(max_length=10, validators=[no_solo_espacios])
+    numero_licencia = models.CharField(max_length=50, unique=True, validators=[texto_sin_simbolos])
+    categoria_licencia = models.CharField(max_length=10, validators=[texto_sin_simbolos])
     fecha_vencimiento_licencia = models.DateField(validators=[validar_fecha_no_pasada])
     telefono_empresarial = models.CharField(max_length=20, blank=True, validators=[telefono_validator])
 

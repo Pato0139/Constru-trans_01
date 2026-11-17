@@ -6,6 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.catalogo.models import MaterialConstruccion
+from config.validators import texto_sin_simbolos
 
 
 def validar_fecha_no_pasada(value):
@@ -17,7 +18,7 @@ def validar_fecha_no_pasada(value):
 
 
 class LoteMaterial(models.Model):
-    codigo_lote = models.CharField(max_length=50, unique=True, db_index=True)
+    codigo_lote = models.CharField(max_length=50, unique=True, db_index=True, validators=[texto_sin_simbolos])
     material = models.ForeignKey(
         MaterialConstruccion, on_delete=models.CASCADE, related_name="lotes"
     )

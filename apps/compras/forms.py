@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.forms import inlineformset_factory
 
 from config.forms import StrictModelForm
+from config.validators import texto_sin_simbolos
 
 from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 
@@ -67,7 +68,12 @@ class _ProveedorBaseForm(StrictModelForm):
 
 
 class ProveedorForm(_ProveedorBaseForm):
-    categoria = forms.CharField(required=False, widget=forms.HiddenInput(), initial="General")
+    categoria = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+        initial="General",
+        validators=[texto_sin_simbolos],
+    )
 
     class Meta:
         model = Proveedor
@@ -85,7 +91,13 @@ class ProveedorForm(_ProveedorBaseForm):
         ]
         widgets = {
             "nombre_empresa": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Nombre Legal"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Nombre Legal",
+                    "pattern": r"[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]*",
+                    "title": "Sin símbolos (solo letras, números y - # / . , )",
+                    "oninput": r"this.value = this.value.replace(/[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]/g, '')",
+                }
             ),
             "nit": forms.TextInput(
                 attrs={
@@ -94,7 +106,13 @@ class ProveedorForm(_ProveedorBaseForm):
                 }
             ),
             "contacto_nombre": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Nombre de contacto"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Nombre de contacto",
+                    "pattern": r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]*",
+                    "title": "Solo letras y espacios",
+                    "oninput": r"this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')",
+                }
             ),
             "telefono": forms.TextInput(
                 attrs={
@@ -106,10 +124,22 @@ class ProveedorForm(_ProveedorBaseForm):
                 attrs={"class": "form-control", "placeholder": "empresa@correo.com"}
             ),
             "direccion": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Calle, número, piso..."}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Calle, número, piso...",
+                    "pattern": r"[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]*",
+                    "title": "Sin símbolos (solo letras, números y - # / . , )",
+                    "oninput": r"this.value = this.value.replace(/[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ\s\-#\/.,°]/g, '')",
+                }
             ),
             "ciudad": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ciudad"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ciudad",
+                    "pattern": r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]*",
+                    "title": "Solo letras y espacios",
+                    "oninput": r"this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')",
+                }
             ),
             "categoria": forms.TextInput(
                 attrs={
@@ -169,7 +199,7 @@ class ProveedorMaterialForm(forms.ModelForm):
                 "min": "1",
                 "max": "100000",
                 "step": "1",
-                "placeholder": "0",
+                "placeholder": "1",
             }
         ),
     )
