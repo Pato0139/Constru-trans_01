@@ -975,6 +975,7 @@ def perfil_admin(request):
 @login_required
 def editar_perfil(request):
     usuario = request.user
+    puede_editar_documento = es_superadmin_global(usuario)
 
     if request.method == "POST":
         if request.POST.get("action") == "upload_photo":
@@ -1073,14 +1074,80 @@ def editar_perfil(request):
                 status=400,
             )
 
+        documento = usuario.documento
+        tipo_documento = usuario.tipo_documento
         documento_raw = request.POST.get("documento")
-        if documento_raw and limpiar_documento(documento_raw) != usuario.documento:
-            messages.error(request, "El número de documento no se puede modificar.")
+        tipo_documento_raw = request.POST.get("tipo_documento")
+        if puede_editar_documento:
+            documento = limpiar_documento(documento_raw)
+            tipo_documento = tipo_documento_raw or ""
+            if not documento:
+                messages.error(request, "El documento es obligatorio.")
+                return render(
+                    request,
+                    "usuarios/editar_perfil.html",
+                    {
+                        "usuario": usuario,
+                        "foto_form": FotoPerfilForm(),
+                        "form_data": request.POST,
+                    },
+                    status=400,
+                )
+            try:
+                for validator in Usuario._meta.get_field("documento").validators:
+                    validator(documento)
+            except ValidationError:
+                messages.error(request, "El documento debe tener entre 4 y 20 caracteres alfanuméricos.")
+                return render(
+                    request,
+                    "usuarios/editar_perfil.html",
+                    {
+                        "usuario": usuario,
+                        "foto_form": FotoPerfilForm(),
+                        "form_data": request.POST,
+                    },
+                    status=400,
+                )
+            if tipo_documento not in dict(Usuario.TIPOS_DOCUMENTO):
+                messages.error(request, "Selecciona un tipo de documento válido.")
+                return render(
+                    request,
+                    "usuarios/editar_perfil.html",
+                    {
+                        "usuario": usuario,
+                        "foto_form": FotoPerfilForm(),
+                        "form_data": request.POST,
+                    },
+                    status=400,
+                )
+            if Usuario.objects.filter(
+                documento=documento, tipo_documento=tipo_documento
+            ).exclude(pk=usuario.pk).exists():
+                messages.error(request, "Ese documento ya está asociado a otra cuenta.")
+                return render(
+                    request,
+                    "usuarios/editar_perfil.html",
+                    {
+                        "usuario": usuario,
+                        "foto_form": FotoPerfilForm(),
+                        "form_data": request.POST,
+                    },
+                    status=400,
+                )
+        elif (
+            (documento_raw and limpiar_documento(documento_raw) != usuario.documento)
+            or (tipo_documento_raw and tipo_documento_raw != usuario.tipo_documento)
+        ):
+            messages.error(request, "Solo el Administrador Global puede cambiar el documento.")
             return render(
                 request,
                 "usuarios/editar_perfil.html",
-                {"usuario": usuario, "foto_form": FotoPerfilForm(), "form_data": request.POST},
-                status=400,
+                {
+                    "usuario": usuario,
+                    "foto_form": FotoPerfilForm(),
+                    "form_data": request.POST,
+                },
+                status=403,
             )
         if email:
             try:
@@ -1102,6 +1169,18 @@ def editar_perfil(request):
                     "usuarios/editar_perfil.html",
                     {"usuario": usuario, "foto_form": FotoPerfilForm()},
                     status=400,
+                )
+            if puede_editar_documento and email != (usuario.email or "").casefold():
+                messages.error(request, "El correo del Administrador Global está protegido.")
+                return render(
+                    request,
+                    "usuarios/editar_perfil.html",
+                    {
+                        "usuario": usuario,
+                        "foto_form": FotoPerfilForm(),
+                        "form_data": request.POST,
+                    },
+                    status=403,
                 )
         foto_anterior = usuario.foto_perfil
         nombre_foto_anterior = foto_anterior.name if foto_anterior else ""
@@ -1125,10 +1204,14 @@ def editar_perfil(request):
         usuario.apellidos = apellidos
         usuario.telefono = telefono
         usuario.sincronizado = False
+        if puede_editar_documento:
+            usuario.documento = documento
+            usuario.tipo_documento = tipo_documento
 
         if email:
             usuario.email = email
-            usuario.username = email
+            if not puede_editar_documento:
+                usuario.username = email
 
         try:
             usuario.save()

@@ -452,12 +452,12 @@
 
     applyAll();
 
-    /**
-     * Inicializa el módulo cuando el DOM esté listo
-     */
-    document.addEventListener('DOMContentLoaded', function () {
+    function initPreferencesPage() {
         applyLanguage(getPref('language'), { silent: true });
         initSettingsPage();
         syncSettingsButtons();
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', initPreferencesPage);
+    document.addEventListener('app:page-loaded', initPreferencesPage);
 })();

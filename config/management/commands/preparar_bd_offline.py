@@ -33,9 +33,9 @@ class Command(BaseCommand):
             logger.exception("No se pudieron preparar las tablas locales para modo offline.")
             raise
 
-        copia_parcial = marker.exists() and marker.read_text(encoding="utf-8").startswith(
-            "Copia parcial:"
-        )
+        copia_parcial = marker.exists() and marker.read_text(
+            encoding="utf-8", errors="replace"
+        ).startswith("Copia parcial:")
         if marker.exists() and not copia_parcial:
             self.stdout.write("La base local offline ya está preparada.")
             return
@@ -49,7 +49,10 @@ class Command(BaseCommand):
             return
 
         if self._hay_datos_locales():
-            marker.write_text("Base local preexistente; se conservó para proteger sus datos.\n")
+            marker.write_text(
+                "Base local preexistente; se conservó para proteger sus datos.\n",
+                encoding="utf-8",
+            )
             self.stdout.write(
                 self.style.WARNING(
                     "La base local ya contiene datos; no se reemplazó con la copia de Neon."
@@ -90,7 +93,9 @@ class Command(BaseCommand):
             self._sanitize_fixture(fixture_path)
             self._clear_local_auth_catalogs()
             call_command("loaddata", str(fixture_path), database="local", verbosity=0)
-            marker.write_text("Copia inicial de Neon descargada correctamente.\n")
+            marker.write_text(
+                "Copia inicial de Neon descargada correctamente.\n", encoding="utf-8"
+            )
             self.stdout.write(self.style.SUCCESS("Copia local preventiva descargada desde Neon."))
         except Exception:
             logger.exception("Falló la descarga de la copia preventiva de Neon.")
@@ -106,7 +111,8 @@ class Command(BaseCommand):
             else:
                 if usuarios_copiados:
                     marker.write_text(
-                        "Copia parcial: cuentas locales descargadas; datos operativos no copiados.\n"
+                        "Copia parcial: cuentas locales descargadas; datos operativos no copiados.\n",
+                        encoding="utf-8",
                     )
                     self.stdout.write(
                         self.style.WARNING(
