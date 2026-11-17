@@ -157,17 +157,31 @@ def _fila_json(registro, envio):
     elemento_id = registro.elemento_id or registro.registro_id or "—"
     descripcion = format_html("<small>{}</small>", registro.descripcion or "—")
     fecha = registro.fecha_hora or registro.fecha
-    fecha_txt = timezone.localtime(fecha).strftime("%d/%m/%Y %H:%M") if fecha else "—"
-    ip = format_html('<small class="text-muted">{}</small>', registro.ip_address or registro.ip or "—")
+    fecha_txt = (
+        format_html(
+            '<span class="text-nowrap small text-white-50">{}</span>',
+            timezone.localtime(fecha).strftime("%d/%m/%Y %H:%M"),
+        )
+        if fecha
+        else "—"
+    )
+    ip_val = (registro.ip_address or registro.ip or "").strip()
+    if ip_val:
+        ip = format_html(
+            '<span class="text-nowrap font-monospace text-muted small" style="white-space: nowrap !important; word-break: normal !important; display: inline-block;">{}</span>',
+            ip_val,
+        )
+    else:
+        ip = format_html('<span class="text-muted">—</span>')
     return [
         registro.pk,
         usuario,
-        accion,
+        descripcion,
         format_html("{}", modulo.capitalize()),
         elemento_id,
         envio,
-        descripcion,
         fecha_txt,
+        accion,
         ip,
     ]
 
@@ -206,15 +220,15 @@ def lista_historial(request):
         columnas = {
             "0": "id",
             "1": "usuario__username",
-            "2": "accion",
+            "2": "descripcion",
             "3": "modulo",
             "4": "elemento_id",
-            "5": "fecha_hora",
-            "6": "descripcion",
-            "7": "fecha_hora",
+            "5": "elemento_id",
+            "6": "fecha_hora",
+            "7": "accion",
             "8": "ip_address",
         }
-        order_column = request.GET.get("order[0][column]", "7")
+        order_column = request.GET.get("order[0][column]", "6")
         order_field = columnas.get(order_column, "fecha_hora")
         if request.GET.get("order[0][dir]") == "desc":
             order_field = f"-{order_field}"

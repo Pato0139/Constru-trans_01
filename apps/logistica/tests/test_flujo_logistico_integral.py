@@ -374,6 +374,8 @@ class FlujoLogisticoIntegralTests(TestCase):
         self.assertFalse(Entrega.objects.filter(pedido=self.pedido).exists())
 
     def test_no_permite_asignar_conductor_inactivo_o_inexistente(self):
+        self.pago.estado = Pago.APROBADO
+        self.pago.save()
         autorizar_despacho_por_pago(self.pedido, usuario_admin=self.admin)
         self.client.force_login(self.admin)
 
@@ -402,6 +404,8 @@ class FlujoLogisticoIntegralTests(TestCase):
         self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
 
     def test_no_permite_asignar_vehiculo_ocupado(self):
+        self.pago.estado = Pago.APROBADO
+        self.pago.save()
         autorizar_despacho_por_pago(self.pedido, usuario_admin=self.admin)
         self.client.force_login(self.admin)
 
@@ -417,6 +421,8 @@ class FlujoLogisticoIntegralTests(TestCase):
         self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
 
     def test_no_permite_iniciar_ruta_sin_asignacion(self):
+        self.pago.estado = Pago.APROBADO
+        self.pago.save()
         entrega = autorizar_despacho_por_pago(self.pedido, usuario_admin=self.admin)
 
         with self.assertRaises(ValidationError):
@@ -426,6 +432,8 @@ class FlujoLogisticoIntegralTests(TestCase):
         self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
 
     def test_no_permite_entregar_pedido_que_no_esta_en_ruta(self):
+        self.pago.estado = Pago.APROBADO
+        self.pago.save()
         autorizar_despacho_por_pago(self.pedido, usuario_admin=self.admin)
         entrega = asignar_conductor_y_vehiculo(
             self.pedido,
@@ -451,6 +459,8 @@ class FlujoLogisticoIntegralTests(TestCase):
         self.assertEqual(entrega.estado, "pendiente")
 
     def test_conductor_no_puede_ver_ni_modificar_pedido_de_otro_conductor(self):
+        self.pago.estado = Pago.APROBADO
+        self.pago.save()
         autorizar_despacho_por_pago(self.pedido, usuario_admin=self.admin)
         entrega = asignar_conductor_y_vehiculo(
             self.pedido,
@@ -506,6 +516,8 @@ class FlujoLogisticoIntegralTests(TestCase):
         self.assertEqual(resp_envios_admin.status_code, 403)
 
     def test_acciones_cambio_estado_rechazan_get(self):
+        self.pago.estado = Pago.APROBADO
+        self.pago.save()
         autorizar_despacho_por_pago(self.pedido, usuario_admin=self.admin)
         entrega = asignar_conductor_y_vehiculo(
             self.pedido,
