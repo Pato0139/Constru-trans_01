@@ -18,6 +18,33 @@ class CambioEstadoPedidoForm(StrictForm):
     )
     observacion = forms.CharField(required=False, max_length=2000, strip=True)
 
+    def __init__(self, *args, pedido=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pedido = pedido
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.pedido:
+            if self.pedido.estado in (Pedido.ENTREGADO, Pedido.CANCELADO):
+                raise forms.ValidationError(
+                    "El pedido se encuentra en un estado final y no puede ser modificado."
+                )
+            transporte_asignado = bool(
+                (self.pedido.envio_actual and self.pedido.envio_actual.conductor_id and self.pedido.envio_actual.vehiculo_id)
+                or (self.pedido.conductor_id and self.pedido.vehiculo_asignado_actual)
+                or self.pedido.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA)
+            )
+            if transporte_asignado or self.pedido.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA):
+                raise forms.ValidationError(
+                    "El pedido ya tiene conductor y vehículo asignados o está en ruta; su estado no se puede modificar desde el Control Maestro."
+                )
+            nuevo_estado = cleaned_data.get("estado")
+            if nuevo_estado == Pedido.VEHICULO_ASIGNADO:
+                raise forms.ValidationError(
+                    "No se puede asignar el estado «Vehículo Asignado» directamente sin asignar un conductor y vehículo válidos."
+                )
+        return cleaned_data
+
 
 class AgregarMaterialForm(StrictForm):
     material = forms.IntegerField(

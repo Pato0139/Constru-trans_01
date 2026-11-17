@@ -992,12 +992,7 @@
                                 <i class="bi bi-sliders me-2"></i>Gestión del Pedido
                             </h6>
                             <div class="d-flex flex-column gap-2">
-                                {% if user_rol == "admin" and orden.estado in "autorizado_despacho,vehiculo_asignado" %}
-                                    <a href="{% url 'pedidos:crear_entrega' orden.codigo_pedido %}" class="btn btn-gold rounded-pill py-2 fw-800 w-100 shadow-sm small">
-                                        <i class="bi bi-person-plus-fill me-1"></i>
-                                        {% if orden.estado == "vehiculo_asignado" %}Reasignar Conductor / Vehículo{% else %}Asignar Conductor y Vehículo{% endif %}
-                                    </a>
-                                {% elif user_rol == "admin" and orden.estado == "pendiente" and orden.puede_despacharse %}
+                                {% if user_rol == "admin" and puede_asignar_transporte %}
                                     <a href="{% url 'pedidos:crear_entrega' orden.codigo_pedido %}" class="btn btn-gold rounded-pill py-2 fw-800 shadow-sm small">
                                         <i class="bi bi-person-plus-fill me-1"></i> Asignar Conductor y Vehículo
                                     </a>
@@ -1067,7 +1062,7 @@
                         <h6 class="fw-800 text-accent text-uppercase small mb-3">
                             <i class="bi bi-shield-lock-fill me-2"></i>Control Maestro de Estado (Admin)
                         </h6>
-                        {% if orden.estado == "cancelado" or orden.estado == "entregado" %}
+                        {% if orden.estado == "cancelado" or orden.estado == "entregado" or transporte_asignado or orden.estado == "vehiculo_asignado" or orden.estado == "en_ruta" %}
                         <div>
                             <div class="mb-3">
                                 <select id="order-master-state" name="estado" disabled aria-disabled="true"
@@ -1079,8 +1074,18 @@
                             <button type="button" disabled aria-disabled="true"
                                 class="btn btn-secondary w-100 rounded-pill py-2 fw-800 shadow-sm small"
                                 style="pointer-events: none; opacity: 0.55; cursor: not-allowed;">
-                                <i class="bi bi-lock-fill me-1"></i> Pedido {{ orden.get_estado_display }} (Estado Final Bloqueado)
+                                {% if orden.estado == "cancelado" or orden.estado == "entregado" %}
+                                    <i class="bi bi-lock-fill me-1"></i> Pedido {{ orden.get_estado_display }} (Estado Final Bloqueado)
+                                {% else %}
+                                    <i class="bi bi-lock-fill me-1"></i> Pedido {{ orden.get_estado_display }} (Asignación Confirmada &bull; Bloqueado)
+                                {% endif %}
                             </button>
+                            {% if transporte_asignado or orden.estado == "vehiculo_asignado" or orden.estado == "en_ruta" %}
+                            <div class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 text-white p-2 rounded-3 small mt-3 mb-0">
+                                <i class="bi bi-shield-lock text-info me-1"></i>
+                                El pedido ya cuenta con conductor y vehículo asignados. El estado no puede ser modificado manualmente desde el Control Maestro.
+                            </div>
+                            {% endif %}
                         </div>
                         {% else %}
                         <form method="POST">
@@ -1089,9 +1094,6 @@
                                 <select id="order-master-state" name="estado" class="form-select bg-surface text-white rounded-pill px-3 small border-secondary">
                                     <option value="pendiente" {% if orden.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
                                     <option value="autorizado_despacho" {% if orden.estado == 'autorizado_despacho' %}selected{% endif %}>Autorizado Despacho</option>
-                                    <option value="vehiculo_asignado" {% if orden.estado == 'vehiculo_asignado' %}selected{% endif %}>Vehículo Asignado</option>
-                                    <option value="en_ruta" {% if orden.estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
-                                    <option value="entregado" {% if orden.estado == 'entregado' %}selected{% endif %}>Entregado</option>
                                     <option value="cancelado" {% if orden.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
                                 </select>
                             </div>
@@ -1274,19 +1276,22 @@ window.AppPageLifecycle.onPageLoad(function () {
             orderText.textContent = data.estado_display;
         }
 
-        // Si el pedido llegó a estado final (cancelado o entregado), bloquear el Control Maestro de Estado
-        if (data.estado === 'cancelado' || data.estado === 'entregado') {
+        // Si el pedido llegó a estado bloqueado (cancelado, entregado, vehiculo_asignado, en_ruta o con transporte asignado), bloquear el Control Maestro de Estado
+        if (data.estado === 'cancelado' || data.estado === 'entregado' || data.estado === 'vehiculo_asignado' || data.estado === 'en_ruta' || data.transporte_asignado) {
             const masterSelect = document.getElementById('order-master-state');
             const masterBtn = document.getElementById('btn-master-state-submit');
             if (masterSelect) {
                 masterSelect.disabled = true;
                 masterSelect.style.pointerEvents = 'none';
                 masterSelect.style.opacity = '0.6';
+                masterSelect.style.cursor = 'not-allowed';
             }
             if (masterBtn) {
                 masterBtn.disabled = true;
                 masterBtn.style.pointerEvents = 'none';
                 masterBtn.style.opacity = '0.55';
+                masterBtn.style.cursor = 'not-allowed';
+                masterBtn.innerHTML = '<i class="bi bi-lock-fill me-1"></i> Estado Bloqueado';
             }
         }
 

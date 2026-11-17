@@ -2,10 +2,12 @@
 <nav class="navbar navbar-expand-lg navbar-premium fixed-top w-100 landing-navbar-fixed">
     <div class="container">
         <!-- Logo -->
-        <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'inicio:inicio' %}">
-            <img src="{% static 'img/Logo1.jpeg' %}" alt="Logo" height="44" class="rounded-3 shadow-lg" loading="lazy">
-            <span class="fw-bold text-white d-none d-sm-inline u-inline-44c4e49065 landing-navbar-brand-text">
-                CONSTRU<span class="u-inline-e2246649aa">TRANS</span>
+        <a class="navbar-brand d-flex align-items-center landing-navbar-brand" href="{% url 'inicio:inicio' %}">
+            <div class="landing-logo-badge">
+                <img src="{% static 'img/Logo1.jpeg' %}?v=2" alt="Logo ConstruTrans" class="landing-logo-img" loading="lazy">
+            </div>
+            <span class="landing-navbar-brand-text">
+                <span class="brand-constru">CONSTRU</span><span class="brand-trans">TRANS</span>
             </span>
         </a>
 
@@ -31,7 +33,7 @@
                     <a href="#nosotros" class="nav-link nav-link-premium px-2 py-2">Nosotros</a>
                 </li>
                 <li class="nav-item">
-                    <a href="#modulos" class="nav-link nav-link-premium px-2 py-2">Servicios</a>
+                    <a href="#servicios" class="nav-link nav-link-premium px-2 py-2">Servicios</a>
                 </li>
                 <li class="nav-item">
                     <a href="#contacto" class="nav-link nav-link-premium px-2 py-2">Contacto</a>

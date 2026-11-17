@@ -481,6 +481,25 @@ def ver_pedido_admin(request, id):
                 },
             )
 
+    entrega = (
+        orden.entregas.select_related(
+            "conductor__usuario",
+            "vehiculo",
+            "confirmado_salida_por",
+            "entregado_por",
+        ).first()
+    )
+    conductor_usuario = (
+        (entrega.conductor.usuario if entrega and entrega.conductor else None)
+        or orden.conductor_usuario
+    )
+    vehiculo = (entrega.vehiculo if entrega else None) or orden.vehiculo_asignado_actual
+    transporte_asignado = bool(
+        (entrega and entrega.conductor_id and entrega.vehiculo_id)
+        or (orden.conductor_id and orden.vehiculo_asignado_actual)
+        or orden.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA)
+    )
+
     if request.method == "POST":
         accion = request.POST.get("accion")
         nuevo_estado = request.POST.get("estado")
@@ -590,6 +609,13 @@ def ver_pedido_admin(request, id):
 
         elif es_admin:
             if accion == "asignar_transporte":
+                if transporte_asignado:
+                    messages.error(
+                        request,
+                        "Este pedido ya tiene conductor y vehículo asignados; la asignación no se puede modificar.",
+                    )
+                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
                 if not orden.puede_despacharse:
                     messages.error(
                         request,
@@ -693,7 +719,21 @@ def ver_pedido_admin(request, id):
                     _mensajes_error(request, exc)
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
-            form = CambioEstadoPedidoForm(request.POST)
+            if orden.estado in (Pedido.ENTREGADO, Pedido.CANCELADO):
+                messages.error(
+                    request,
+                    f"El pedido #{orden.codigo_pedido} ya se encuentra en estado final ({orden.get_estado_display()}) y no puede ser modificado.",
+                )
+                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
+            if transporte_asignado or orden.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA):
+                messages.error(
+                    request,
+                    f"No se puede modificar el estado desde el Control Maestro: el pedido #{orden.codigo_pedido} ya tiene conductor y vehículo asignados o se encuentra en proceso de entrega.",
+                )
+                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
+
+            form = CambioEstadoPedidoForm(request.POST, pedido=orden)
             if not form.is_valid():
                 _mensajes_error(request, form.errors)
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
@@ -710,6 +750,11 @@ def ver_pedido_admin(request, id):
                 ):
                     raise ValidationError(
                         {"estado": "No se autoriza el despacho sin un pago aprobado."}
+                    )
+
+                if nuevo_estado == Pedido.VEHICULO_ASIGNADO:
+                    raise ValidationError(
+                        {"estado": "No se puede asignar el estado «Vehículo Asignado» directamente sin asignar un conductor y vehículo válidos."}
                     )
 
                 if nuevo_estado == Pedido.AUTORIZADO_DESPACHO:
@@ -811,6 +856,14 @@ def crear_entrega(request, orden_id):
         Pedido.objects.select_related("usuario", "cliente__usuario").prefetch_related("detalles__material"),
         codigo_pedido=orden_id,
     )
+
+    entrega_existente = orden.entregas.filter(conductor__isnull=False, vehiculo__isnull=False).first()
+    if entrega_existente or orden.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA, Pedido.ENTREGADO, Pedido.CANCELADO):
+        messages.warning(
+            request,
+            "Este pedido ya cuenta con conductor y vehículo asignados; la asignación no se puede modificar.",
+        )
+        return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
     if not orden.puede_despacharse:
         messages.error(
@@ -1155,6 +1208,11 @@ def estado_pedido_api(request, id):
         "estado": orden.estado,
         "estado_display": orden.estado_gestion_display,
         "estado_logistico_display": orden.estado_logistico_display,
+        "transporte_asignado": bool(
+            (entrega and entrega.conductor_id and entrega.vehiculo_id)
+            or (orden.conductor_id and orden.vehiculo_asignado_actual)
+            or orden.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA)
+        ),
         "requiere_correccion_pago": orden.requiere_correccion_pago,
         "fecha_solicitud": (
             orden.fecha_solicitud.strftime("%d/%m/%Y %H:%M") if orden.fecha_solicitud else ""
