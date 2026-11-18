@@ -39,7 +39,7 @@
                 </div>
             {% endif %}
 
-            <form method="POST" id="form-pedido" data-ajax="false">
+            <form method="POST" id="form-pedido" data-ajax="false" enctype="multipart/form-data">
                 {% csrf_token %}
 
                 <div class="mb-5 p-4 rounded-4 shadow-sm pedido-section">
@@ -153,6 +153,28 @@
                                                 </div>
                     </div>
                 </div>
+
+                {% if action == 'crear' %}
+                <div class="mb-5 p-4 rounded-4 shadow-sm pedido-section">
+                    <label class="form-label fw-800 text-accent text-uppercase small mb-2 pedido-section-label">3. Comprobante de pago</label>
+                    <p class="text-muted small">Adjunta el comprobante para que el administrador revise el pago. El pedido no se creará sin un archivo válido.</p>
+                    <div class="mb-3">
+                        <label class="form-label" for="id_metodo">Método de pago</label>
+                        {% for radio in pago_form.metodo %}
+                        <div class="form-check">
+                            {{ radio.tag }}
+                            <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                        </div>
+                        {% endfor %}
+                        {% for error in pago_form.metodo.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div>
+                        <label class="form-label" for="id_comprobante">Archivo del comprobante (JPG o PNG, máximo 5 MB)</label>
+                        {{ pago_form.comprobante }}
+                        {% for error in pago_form.comprobante.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="d-grid gap-3 mt-4">
                     <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase pedido-submit-btn" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">

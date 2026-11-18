@@ -156,7 +156,7 @@
                             <i class="bi bi-cash-stack text-warning fs-4 mt-0 flex-shrink-0"></i>
                             <div class="small lh-base">
                                 <strong class="d-block text-white mb-1">Modalidad seleccionada: Contraentrega</strong>
-                                <span class="contraentrega-text-visible">No requieres subir ningún comprobante ahora. Pagarás el total del pedido en efectivo o con el transportador en el momento de la entrega de tus materiales.</span>
+                                <span class="contraentrega-text-visible">También debes adjuntar un comprobante. El administrador revisará el archivo antes de aprobar el pago.</span>
                             </div>
                         </div>
 
@@ -415,13 +415,13 @@
 
             // Sección de comprobante
             if (comprobanteSection) {
-                comprobanteSection.classList.toggle('contraentrega-disabled', esContraentrega);
+                comprobanteSection.classList.remove('contraentrega-disabled');
             }
 
             if (comprobanteBadge) {
                 if (esContraentrega) {
-                    comprobanteBadge.textContent = 'No requerido';
-                    comprobanteBadge.className = 'badge bg-secondary-subtle text-warning border border-warning border-opacity-25 fw-semibold';
+                    comprobanteBadge.textContent = 'Obligatorio';
+                    comprobanteBadge.className = 'badge bg-danger-subtle text-danger border border-danger border-opacity-25 fw-semibold';
                 } else {
                     comprobanteBadge.textContent = 'Obligatorio';
                     comprobanteBadge.className = 'badge bg-danger-subtle text-danger border border-danger border-opacity-25 fw-semibold';
@@ -436,23 +436,15 @@
             }
 
             if (comprobanteInput) {
-                comprobanteInput.disabled = esContraentrega;
-                comprobanteInput.required = !esContraentrega;
+                comprobanteInput.disabled = false;
+                comprobanteInput.required = true;
                 comprobanteInput.classList.remove('is-invalid', 'is-valid');
 
-                if (esContraentrega) {
-                    comprobanteInput.value = '';
-                    if (fileChosenInfo) fileChosenInfo.classList.add('d-none');
-                }
             }
 
             // Botón de envío
             if (submitBtnText) {
-                if (esContraentrega) {
-                    submitBtnText.textContent = 'Confirmar pedido contraentrega';
-                } else {
-                    submitBtnText.textContent = 'Enviar comprobante de pago';
-                }
+                submitBtnText.textContent = 'Enviar comprobante de pago';
             }
         }
 

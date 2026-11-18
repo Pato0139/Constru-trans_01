@@ -517,8 +517,7 @@
                         </span>
                     </div>
                     <p class="text-muted small mb-0">
-                        <i class="bi bi-calendar-event me-1"></i>Registrado el {{ orden.fecha_solicitud|date:"d M, Y
-                        H:i" }} &bull; Destino: <span class="text-white fw-600">{{ orden.direccion_destino }}</span>
+                        <i class="bi bi-calendar-event me-1"></i>Registrado el {{ orden.fecha_solicitud|date:"d M, Y H:i" }} &bull; Destino: <span class="text-white fw-600">{{ orden.direccion_destino }}</span>
                     </p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
@@ -539,7 +538,7 @@
                         <span>Progreso del Pedido</span>
                     </h6>
                     <span id="live-sync-indicator" class="text-muted x-small d-flex align-items-center gap-1">
-                        <i class="bi bi-arrow-repeat text-success"></i> Sincronizado en tiempo real
+                        <i class="bi bi-arrow-repeat text-success"></i> Estado consultado cada 6 segundos
                     </span>
                 </div>
 
@@ -566,13 +565,11 @@
                         <div class="stepper-node-title">2. Pago</div>
                         <div class="stepper-node-badge">Cancelado</div>
                     </div>
-                    {% elif pago and pago.estado == "aprobado" or orden.estado in
-                    "autorizado_despacho,vehiculo_asignado,en_ruta,entregado" %}
+                    {% elif pago and pago.estado == "aprobado" or orden.estado in "autorizado_despacho,vehiculo_asignado,en_ruta,entregado" %}
                     <div class="stepper-node completed" id="step-node-2">
                         <div class="stepper-node-circle"><i class="bi bi-check-circle-fill"></i></div>
                         <div class="stepper-node-title">2. Pago Aprobado</div>
-                        <div class="stepper-node-badge">{% if pago.fecha_revision %}{{ pago.fecha_revision|date:"d/m/Y
-                            H:i" }}{% else %}Verificado{% endif %}</div>
+                        <div class="stepper-node-badge">{% if pago.fecha_revision %}{{ pago.fecha_revision|date:"d/m/Y H:i" }}{% else %}Verificado{% endif %}</div>
                     </div>
                     {% elif pago and pago.estado == "rechazado" %}
                     <div class="stepper-node danger" id="step-node-2">
@@ -599,8 +596,7 @@
                     <div class="stepper-node completed" id="step-node-3">
                         <div class="stepper-node-circle"><i class="bi bi-check-circle-fill"></i></div>
                         <div class="stepper-node-title">3. En Ruta</div>
-                        <div class="stepper-node-badge">{% if orden.fecha_toma_entrega %}{{
-                            orden.fecha_toma_entrega|date:"d/m/Y H:i" }}{% else %}Completado{% endif %}</div>
+                        <div class="stepper-node-badge">{% if orden.fecha_toma_entrega %}{{ orden.fecha_toma_entrega|date:"d/m/Y H:i" }}{% else %}Completado{% endif %}</div>
                     </div>
                     {% elif orden.estado == "en_ruta" %}
                     <div class="stepper-node active" id="step-node-3">
@@ -639,8 +635,7 @@
                     <div class="stepper-node completed" id="step-node-4">
                         <div class="stepper-node-circle"><i class="bi bi-house-check-fill"></i></div>
                         <div class="stepper-node-title">4. Entregado</div>
-                        <div class="stepper-node-badge">{% if orden.fecha_entrega_real %}{{
-                            orden.fecha_entrega_real|date:"d/m/Y H:i" }}{% else %}Completado{% endif %}</div>
+                        <div class="stepper-node-badge">{% if orden.fecha_entrega_real %}{{ orden.fecha_entrega_real|date:"d/m/Y H:i" }}{% else %}Completado{% endif %}</div>
                     </div>
                     {% elif orden.estado == "cancelado" %}
                     <div class="stepper-node danger" id="step-node-4">
@@ -676,14 +671,11 @@
                             </div>
                             <div>
                                 <h6 class="fw-700 text-white mb-0">
-                                    {{ orden.cliente.usuario.nombres|default:orden.usuario.nombres }} {{
-                                    orden.cliente.usuario.apellidos|default:orden.usuario.apellidos }}
+                                    {{ orden.cliente.usuario.nombres|default:orden.usuario.nombres }} {{ orden.cliente.usuario.apellidos|default:orden.usuario.apellidos }}
                                 </h6>
-                                <p class="text-muted small mb-0">{{
-                                    orden.cliente.usuario.email|default:orden.usuario.email }}</p>
+                                <p class="text-muted small mb-0">{{ orden.cliente.usuario.email|default:orden.usuario.email }}</p>
                                 {% if orden.usuario.telefono %}
-                                <p class="text-accent x-small mb-0"><i class="bi bi-telephone me-1"></i>{{
-                                    orden.usuario.telefono }}</p>
+                                <p class="text-accent x-small mb-0"><i class="bi bi-telephone me-1"></i>{{ orden.usuario.telefono }}</p>
                                 {% endif %}
                             </div>
                         </div>
@@ -698,8 +690,7 @@
                             <div class="route-point">
                                 <div class="route-point-dot origin"><i class="bi bi-building"></i></div>
                                 <p class="text-muted small mb-0">Punto de Origen</p>
-                                <p class="text-white fw-600 mb-0 small">{{ orden.direccion_origen|default:"Bodega
-                                    Central" }}</p>
+                                <p class="text-white fw-600 mb-0 small">{{ orden.direccion_origen|default:"Bodega Central" }}</p>
                             </div>
                             <div class="route-point">
                                 <div class="route-point-dot destination"><i class="bi bi-geo-alt-fill"></i></div>
@@ -758,13 +749,11 @@
                                                 class="bi bi-person-badge text-gold me-1"></i>Conductor Asignado</p>
                                         <div id="conductor-info-block" class="mb-2">
                                             {% if conductor_usuario %}
-                                            <p class="text-white fw-700 mb-1">{{ conductor_usuario.nombres }} {{
-                                                conductor_usuario.apellidos }}</p>
+                                            <p class="text-white fw-700 mb-1">{{ conductor_usuario.nombres }} {{ conductor_usuario.apellidos }}</p>
                                             {% if conductor_usuario.telefono %}
                                             <a href="tel:{{ conductor_usuario.telefono }}"
                                                 class="text-accent x-small text-decoration-none">
-                                                <i class="bi bi-telephone-fill me-1"></i>{{ conductor_usuario.telefono
-                                                }}
+                                                <i class="bi bi-telephone-fill me-1"></i>{{ conductor_usuario.telefono }}
                                             </a>
                                             {% endif %}
                                             {% else %}
@@ -780,11 +769,8 @@
                                             <option value="">-- Selecciona un conductor --</option>
                                             {% for c in conductores_disponibles %}
                                             <option value="{{ c.id }}"
-                                                data-vehiculo-id="{{ c.vehiculo_asignado.id_vehiculo|default:'' }}" {%
-                                                if conductor_usuario and conductor_usuario.id==c.id %}selected{% endif
-                                                %}>
-                                                {{ c.nombres }} {{ c.apellidos }} (Lic. {{
-                                                c.perfil_conductor.numero_licencia|default:"ACTIVO" }})
+                                                data-vehiculo-id="{{ c.vehiculo_asignado.id_vehiculo|default:'' }}" {% if conductor_usuario and conductor_usuario.id == c.id %}selected{% endif %}>
+                                                {{ c.nombres }} {{ c.apellidos }} (Lic. {{ c.perfil_conductor.numero_licencia|default:"ACTIVO" }})
                                             </option>
                                             {% endfor %}
                                         </select>
@@ -798,8 +784,7 @@
                                             {% if vehiculo %}
                                             <div class="d-flex align-items-center gap-2 mb-1">
                                                 <span class="plate-badge">{{ vehiculo.placa }}</span>
-                                                <span class="text-white fw-600 small">{{ vehiculo.marca }} {{
-                                                    vehiculo.modelo }}</span>
+                                                <span class="text-white fw-600 small">{{ vehiculo.marca }} {{ vehiculo.modelo }}</span>
                                             </div>
                                             <p class="text-muted x-small mb-0">{{ vehiculo.tipo_vehiculo }} &bull;
                                                 Capacidad: {{ vehiculo.capacidad_carga }} t</p>
@@ -815,8 +800,7 @@
                                             required>
                                             <option value="">-- Selecciona un vehículo --</option>
                                             {% for v in vehiculos_disponibles %}
-                                            <option value="{{ v.id_vehiculo }}" {% if vehiculo and
-                                                vehiculo.id_vehiculo==v.id_vehiculo %}selected{% endif %}>
+                                            <option value="{{ v.id_vehiculo }}" {% if vehiculo and vehiculo.id_vehiculo == v.id_vehiculo %}selected{% endif %}>
                                                 {{ v.placa }} - {{ v.tipo_vehiculo }} ({{ v.capacidad_carga }} t)
                                             </option>
                                             {% endfor %}
@@ -828,8 +812,7 @@
                                 id="btn-asignar-transporte-detalle"
                                 class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm small mt-3">
                                 <i class="bi bi-truck-front-fill me-1"></i>
-                                {% if conductor_usuario and vehiculo %}Actualizar Conductor y Vehículo Asignados{% else
-                                %}Asignar Conductor y Vehículo al Pedido{% endif %}
+                                {% if conductor_usuario and vehiculo %}Actualizar Conductor y Vehículo Asignados{% else %}Asignar Conductor y Vehículo al Pedido{% endif %}
                             </button>
                         </form>
                         {% else %}
@@ -840,8 +823,7 @@
                                             class="bi bi-person-badge text-gold me-1"></i>Conductor Asignado</p>
                                     <div id="conductor-info-block">
                                         {% if conductor_usuario %}
-                                        <p class="text-white fw-700 mb-1">{{ conductor_usuario.nombres }} {{
-                                            conductor_usuario.apellidos }}</p>
+                                        <p class="text-white fw-700 mb-1">{{ conductor_usuario.nombres }} {{ conductor_usuario.apellidos }}</p>
                                         {% if conductor_usuario.telefono %}
                                         <a href="tel:{{ conductor_usuario.telefono }}"
                                             class="text-accent x-small text-decoration-none">
@@ -853,8 +835,7 @@
                                                 class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
                                         {% endif %}
                                     </div>
-                                    {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" and
-                                    not transporte_asignado %}
+                                    {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" and not transporte_asignado %}
                                     <select
                                         class="form-select form-select-sm bg-surface text-white-50 border-secondary mt-2"
                                         disabled aria-disabled="true"
@@ -872,8 +853,7 @@
                                         {% if vehiculo %}
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <span class="plate-badge">{{ vehiculo.placa }}</span>
-                                            <span class="text-white fw-600 small">{{ vehiculo.marca }} {{
-                                                vehiculo.modelo }}</span>
+                                            <span class="text-white fw-600 small">{{ vehiculo.marca }} {{ vehiculo.modelo }}</span>
                                         </div>
                                         <p class="text-muted x-small mb-0">{{ vehiculo.tipo_vehiculo }} &bull;
                                             Capacidad: {{ vehiculo.capacidad_carga }} t</p>
@@ -882,8 +862,7 @@
                                                 class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
                                         {% endif %}
                                     </div>
-                                    {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" and
-                                    not transporte_asignado %}
+                                    {% if user_rol == "admin" and orden.estado not in "en_ruta,entregado,cancelado" and not transporte_asignado %}
                                     <select
                                         class="form-select form-select-sm bg-surface text-white-50 border-secondary mt-2"
                                         disabled aria-disabled="true"
@@ -933,8 +912,7 @@
                                         {% if orden.fecha_salida_ruta %}
                                         {{ orden.fecha_salida_ruta|date:"d/m/Y H:i" }}
                                         {% if entrega and entrega.confirmado_salida_por %}
-                                        <small class="text-muted d-block x-small">Por: {{
-                                            entrega.confirmado_salida_por.nombre_mostrar }}</small>
+                                        <small class="text-muted d-block x-small">Por: {{ entrega.confirmado_salida_por.nombre_mostrar }}</small>
                                         {% endif %}
                                         {% else %}
                                         Pendiente
@@ -947,8 +925,7 @@
                                         {% if orden.fecha_entrega_completada %}
                                         {{ orden.fecha_entrega_completada|date:"d/m/Y H:i" }}
                                         {% if entrega and entrega.entregado_por %}
-                                        <small class="text-muted d-block x-small">Por: {{
-                                            entrega.entregado_por.nombre_mostrar }}</small>
+                                        <small class="text-muted d-block x-small">Por: {{ entrega.entregado_por.nombre_mostrar }}</small>
                                         {% endif %}
                                         {% else %}
                                         Pendiente
@@ -991,12 +968,9 @@
                                     {% for item in orden.detalles.all %}
                                     <tr>
                                         <td>
-                                            <div class="fw-700 text-white">{{ item.material.nombre|default:"Material no
-                                                disponible" }}</div>
+                                            <div class="fw-700 text-white">{{ item.material.nombre|default:"Material no disponible" }}</div>
                                             {% if item.material.unidad_medida %}
-                                            <span class="badge bg-secondary bg-opacity-25 text-muted x-small">{{
-                                                item.material.unidad_medida.nombre }} ({{
-                                                item.material.unidad_medida.abreviatura }})</span>
+                                            <span class="badge bg-secondary bg-opacity-25 text-muted x-small">{{ item.material.unidad_medida.nombre }} ({{ item.material.unidad_medida.abreviatura }})</span>
                                             {% endif %}
                                         </td>
                                         <td class="text-center fw-600">{{ item.cantidad }}</td>
@@ -1075,8 +1049,7 @@
                             <p class="mb-1 mt-1 small">{{ pago.observaciones }}</p>
                             {% if orden.estado != 'cancelado' and pago.fecha_limite_correccion %}
                             <small class="text-warning d-block fw-600">
-                                <i class="bi bi-clock me-1"></i>Plazo de 12h para corregir vence el: {{
-                                pago.fecha_limite_correccion|date:"d/m/Y H:i" }}
+                                <i class="bi bi-clock me-1"></i>Plazo de 12h para corregir vence el: {{ pago.fecha_limite_correccion|date:"d/m/Y H:i" }}
                             </small>
                             {% endif %}
                         </div>
@@ -1187,8 +1160,7 @@
                         <h6 class="fw-800 text-accent text-uppercase small mb-3">
                             <i class="bi bi-shield-lock-fill me-2"></i>Control Maestro de Estado (Admin)
                         </h6>
-                        {% if orden.estado == "cancelado" or orden.estado == "entregado" or transporte_asignado or
-                        orden.estado == "vehiculo_asignado" or orden.estado == "en_ruta" %}
+                        {% if orden.estado == "cancelado" or orden.estado == "entregado" or transporte_asignado or orden.estado == "vehiculo_asignado" or orden.estado == "en_ruta" %}
                         <div>
                             <div class="mb-3">
                                 <select id="order-master-state" name="estado" disabled aria-disabled="true"
@@ -1208,8 +1180,7 @@
                                 Confirmada &bull; Bloqueado)
                                 {% endif %}
                             </button>
-                            {% if transporte_asignado or orden.estado == "vehiculo_asignado" or orden.estado ==
-                            "en_ruta" %}
+                            {% if transporte_asignado or orden.estado == "vehiculo_asignado" or orden.estado == "en_ruta" %}
                             <div
                                 class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 text-white p-2 rounded-3 small mt-3 mb-0">
                                 <i class="bi bi-shield-lock text-info me-1"></i>
@@ -1224,11 +1195,10 @@
                             <div class="mb-3">
                                 <select id="order-master-state" name="estado"
                                     class="form-select bg-surface text-white rounded-pill px-3 small border-secondary">
-                                    <option value="pendiente" {% if orden.estado=='pendiente' %}selected{% endif %}>
+                                    <option value="pendiente" {% if orden.estado == 'pendiente' %}selected{% endif %}>
                                         Pendiente</option>
-                                    <option value="autorizado_despacho" {% if orden.estado=='autorizado_despacho'
-                                        %}selected{% endif %}>Autorizado Despacho</option>
-                                    <option value="cancelado" {% if orden.estado=='cancelado' %}selected{% endif %}>
+                                    <option value="autorizado_despacho" {% if orden.estado == 'autorizado_despacho' %}selected{% endif %}>Autorizado Despacho</option>
+                                    <option value="cancelado" {% if orden.estado == 'cancelado' %}selected{% endif %}>
                                         Cancelado</option>
                                 </select>
                             </div>
@@ -1401,6 +1371,7 @@
         // 2. POLLING EN TIEMPO REAL DEL PROGRESO
         const orderId = "{{ orden.codigo_pedido }}";
         const statusApiUrl = "{% url 'pedidos:estado_pedido_api' orden.codigo_pedido %}";
+        const orderListUrl = "{% if user_rol == 'cliente' %}{% url 'clientes:mis_pedidos' %}{% elif user_rol == 'conductor' %}{% url 'usuarios:panel' %}{% else %}{% url 'pedidos:lista_pedidos_admin' %}{% endif %}";
         let currentOrderState = "{{ orden.estado }}";
         let currentPaymentState = "{{ pago.estado|default:'' }}";
         let pollInterval = null;
@@ -1522,10 +1493,15 @@
                 }
             })
                 .then(response => {
+                    if (response.status === 404) {
+                        window.location.assign(orderListUrl);
+                        return null;
+                    }
                     if (!response.ok) throw new Error('Error al consultar estado');
                     return response.json();
                 })
                 .then(data => {
+                    if (!data) return;
                     // Verificar si hubo un cambio de estado
                     if (data.estado !== currentOrderState || (data.pago && data.pago.estado !== currentPaymentState)) {
                         const prev = currentOrderState;

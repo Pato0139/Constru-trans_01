@@ -16,6 +16,8 @@ from django.views.decorators.http import require_POST
 
 from apps.catalogo.models import Catalogo, Stock, UnidadMedida
 from apps.catalogo.models import MaterialConstruccion as Material
+from apps.pagos.models import Pago
+from apps.pedidos.forms_pagos import PagoRegistroForm
 from apps.pedidos.models import DetallePedido, Pedido
 from apps.usuarios.models import Usuario
 from apps.usuarios.utils import contiene_solo_numeros
@@ -466,8 +468,18 @@ def crear_pedido(request):
 
     _cliente_local = _obtener_cliente_local(usuario_local)
     materiales = Material.objects.all()
+    pago_form = PagoRegistroForm(exigir_comprobante=True)
 
     if request.method == "POST":
+        pago_form = PagoRegistroForm(request.POST, request.FILES, exigir_comprobante=True)
+        if not pago_form.is_valid():
+            messages.error(request, "Adjunta un comprobante de pago válido para crear el pedido.")
+            return render(
+                request,
+                "clientes/form.html",
+                _contexto_formulario_pedido(materiales=materiales, action="crear", pago_form=pago_form),
+            )
+
         materiales_ids = request.POST.getlist("material_id[]")
         cantidades = request.POST.getlist("cantidad[]")
         ciudad = request.POST.get("ciudad", "").strip()
@@ -496,6 +508,7 @@ def crear_pedido(request):
                     fecha_entrega=fecha_entrega_raw,
                     ciudad=ciudad,
                     direccion_detalle=direccion_detalle,
+                    pago_form=pago_form,
                 ),
             )
 
@@ -512,6 +525,7 @@ def crear_pedido(request):
                     fecha_entrega=fecha_entrega_raw,
                     ciudad=ciudad,
                     direccion_detalle=direccion_detalle,
+                    pago_form=pago_form,
                 ),
             )
 
@@ -528,6 +542,7 @@ def crear_pedido(request):
                     fecha_entrega=fecha_entrega_raw,
                     ciudad=ciudad,
                     direccion_detalle=direccion_detalle,
+                    pago_form=pago_form,
                 ),
             )
 
@@ -543,6 +558,7 @@ def crear_pedido(request):
                     fecha_entrega=fecha_entrega_raw,
                     ciudad=ciudad,
                     direccion_detalle=direccion_detalle,
+                    pago_form=pago_form,
                 ),
             )
 
@@ -602,8 +618,19 @@ def crear_pedido(request):
                     stock_obj.cantidad_actual = F("cantidad_actual") - cantidad
                     stock_obj.save(using=db_alias)
 
-            messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado correctamente. Registra el pago para habilitar el despacho.")
-            return redirect("pagos:registrar_pago_pedido", pedido_id=nuevo_pedido.codigo_pedido)
+                nuevo_pedido.calcular_total(using=db_alias)
+                pago = pago_form.save(commit=False)
+                pago.pedido = nuevo_pedido
+                pago.monto = nuevo_pedido.total
+                pago.estado = Pago.PENDIENTE
+                pago.save(using=db_alias)
+                if not pago.comprobante or not pago.comprobante.name or not pago.comprobante.storage.exists(pago.comprobante.name):
+                    if pago.comprobante and pago.comprobante.name:
+                        pago.comprobante.delete(save=False)
+                    raise ValueError("No se pudo guardar el comprobante. Vuelve a adjuntar el archivo.")
+
+            messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado con comprobante. Queda pendiente de revisión del administrador.")
+            return redirect("clientes:mis_pedidos")
 
         except ValueError as e:
             messages.error(request, str(e))
@@ -613,6 +640,7 @@ def crear_pedido(request):
                 _contexto_formulario_pedido(
                     materiales=materiales,
                     action="crear",
+                    pago_form=pago_form,
                 ),
             )
         except Exception:
@@ -627,6 +655,7 @@ def crear_pedido(request):
                 _contexto_formulario_pedido(
                     materiales=materiales,
                     action="crear",
+                    pago_form=pago_form,
                 ),
             )
 
@@ -636,6 +665,7 @@ def crear_pedido(request):
         _contexto_formulario_pedido(
             materiales=materiales,
             action="crear",
+            pago_form=pago_form,
         ),
     )
 
