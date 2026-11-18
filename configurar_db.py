@@ -60,7 +60,7 @@ def main():
     try:
         import django
 
-        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
         django.setup()
 
         from django.db import connections
