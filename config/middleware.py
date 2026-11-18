@@ -195,7 +195,7 @@ _URLNAMES_BY_ROLE_EXTRA = {
     },
     "pagos": {
         "lista_pagos": {"admin", "cliente"},
-        "registrar_pago_pedido": {"admin", "cliente"},
+        "registrar_pago_pedido": {"cliente"},
         "revisar_pago_pedido": {"admin"},
         "gestion_pagos": {"admin"},
         "historial_pagos": {"admin"},
