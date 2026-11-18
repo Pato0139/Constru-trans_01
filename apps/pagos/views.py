@@ -411,14 +411,6 @@ def detalle_pago(request, pk):
             comprobante_registrado_historial = True
             if intento["comprobante_disponible"]:
                 comprobante_historial = intento
-    mostrar_historial_pago = (
-        pago.estado == Pago.PENDIENTE
-        and (
-            pago.metodo == Pago.METODO_CONTRAENTREGA
-            or pago.comprobante_existe_en_disco
-            or comprobante_historial is not None
-        )
-    )
     comprobante_registrado, comprobante_disponible = _estado_archivos_comprobante(pago)
     aprobacion_provisional_disponible = (
         pago.estado == Pago.PENDIENTE
@@ -431,6 +423,15 @@ def detalle_pago(request, pk):
         getattr(usuario_actual, "rol", "") == "admin"
         or bool(getattr(request.user, "is_staff", False))
         or bool(getattr(request.user, "is_superuser", False))
+    )
+    mostrar_historial_pago = (
+        puede_revisar_pago
+        and pago.estado == Pago.PENDIENTE
+        and (
+            pago.metodo == Pago.METODO_CONTRAENTREGA
+            or pago.comprobante_existe_en_disco
+            or comprobante_historial is not None
+        )
     )
     return render(
         request,

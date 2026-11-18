@@ -257,11 +257,11 @@ class Entrega(TransicionMixin, models.Model):
     def estado_logistico_display(self):
         if self.estado == "pendiente":
             if self.conductor_id and self.vehiculo_id:
-                return "Vehículo Asignado"
+                return "Autorizado para despacho"
             if getattr(self.pedido, "estado", "") == "vehiculo_asignado":
-                return "Vehículo Asignado"
+                return "Autorizado para despacho"
             if getattr(self.pedido, "estado", "") == "autorizado_despacho":
-                return "Autorizado Despacho"
+                return "Autorizado para despacho"
             return "Pendiente"
         return self.get_estado_display()
 

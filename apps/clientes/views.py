@@ -16,8 +16,6 @@ from django.views.decorators.http import require_POST
 
 from apps.catalogo.models import Catalogo, Stock, UnidadMedida
 from apps.catalogo.models import MaterialConstruccion as Material
-from apps.pagos.models import Pago
-from apps.pedidos.forms_pagos import PagoRegistroForm
 from apps.pedidos.models import DetallePedido, Pedido
 from apps.usuarios.models import Usuario
 from apps.usuarios.utils import contiene_solo_numeros
@@ -323,6 +321,8 @@ def mis_pedidos(request):
     if estado:
         if estado == "pendiente_correccion_pago":
             pedidos = pedidos.filter(estado="pendiente", pago__estado="rechazado")
+        elif estado == "autorizado_despacho":
+            pedidos = pedidos.filter(estado__in=["autorizado_despacho", "vehiculo_asignado"])
         else:
             pedidos = pedidos.filter(estado=estado)
     if q:
@@ -352,8 +352,7 @@ def mis_pedidos(request):
             "options": [
                 {"value": "pendiente", "label": "Pendiente"},
                 {"value": "pendiente_correccion_pago", "label": "Pendiente de corrección de pago"},
-                {"value": "autorizado_despacho", "label": "Autorizado Despacho"},
-                {"value": "vehiculo_asignado", "label": "Vehículo Asignado"},
+                {"value": "autorizado_despacho", "label": "Autorizado para despacho"},
                 {"value": "en_ruta", "label": "En Ruta"},
             ],
         },
@@ -468,18 +467,8 @@ def crear_pedido(request):
 
     _cliente_local = _obtener_cliente_local(usuario_local)
     materiales = Material.objects.all()
-    pago_form = PagoRegistroForm(exigir_comprobante=True)
 
     if request.method == "POST":
-        pago_form = PagoRegistroForm(request.POST, request.FILES, exigir_comprobante=True)
-        if not pago_form.is_valid():
-            messages.error(request, "Adjunta un comprobante de pago válido para crear el pedido.")
-            return render(
-                request,
-                "clientes/form.html",
-                _contexto_formulario_pedido(materiales=materiales, action="crear", pago_form=pago_form),
-            )
-
         materiales_ids = request.POST.getlist("material_id[]")
         cantidades = request.POST.getlist("cantidad[]")
         ciudad = request.POST.get("ciudad", "").strip()
@@ -508,7 +497,6 @@ def crear_pedido(request):
                     fecha_entrega=fecha_entrega_raw,
                     ciudad=ciudad,
                     direccion_detalle=direccion_detalle,
-                    pago_form=pago_form,
                 ),
             )
 
@@ -525,7 +513,6 @@ def crear_pedido(request):
                     fecha_entrega=fecha_entrega_raw,
                     ciudad=ciudad,
                     direccion_detalle=direccion_detalle,
-                    pago_form=pago_form,
                 ),
             )
 
@@ -542,7 +529,6 @@ def crear_pedido(request):
                     fecha_entrega=fecha_entrega_raw,
                     ciudad=ciudad,
                     direccion_detalle=direccion_detalle,
-                    pago_form=pago_form,
                 ),
             )
 
@@ -558,7 +544,6 @@ def crear_pedido(request):
                     fecha_entrega=fecha_entrega_raw,
                     ciudad=ciudad,
                     direccion_detalle=direccion_detalle,
-                    pago_form=pago_form,
                 ),
             )
 
@@ -619,18 +604,11 @@ def crear_pedido(request):
                     stock_obj.save(using=db_alias)
 
                 nuevo_pedido.calcular_total(using=db_alias)
-                pago = pago_form.save(commit=False)
-                pago.pedido = nuevo_pedido
-                pago.monto = nuevo_pedido.total
-                pago.estado = Pago.PENDIENTE
-                pago.save(using=db_alias)
-                if not pago.comprobante or not pago.comprobante.name or not pago.comprobante.storage.exists(pago.comprobante.name):
-                    if pago.comprobante and pago.comprobante.name:
-                        pago.comprobante.delete(save=False)
-                    raise ValueError("No se pudo guardar el comprobante. Vuelve a adjuntar el archivo.")
-
-            messages.success(request, f"Pedido #{nuevo_pedido.codigo_pedido} creado con comprobante. Queda pendiente de revisión del administrador.")
-            return redirect("clientes:mis_pedidos")
+            messages.success(
+                request,
+                f"Pedido #{nuevo_pedido.codigo_pedido} creado. Registra ahora el método de pago y su comprobante.",
+            )
+            return redirect("pagos:registrar_pago_pedido", pedido_id=nuevo_pedido.codigo_pedido)
 
         except ValueError as e:
             messages.error(request, str(e))
@@ -640,7 +618,6 @@ def crear_pedido(request):
                 _contexto_formulario_pedido(
                     materiales=materiales,
                     action="crear",
-                    pago_form=pago_form,
                 ),
             )
         except Exception:
@@ -655,7 +632,6 @@ def crear_pedido(request):
                 _contexto_formulario_pedido(
                     materiales=materiales,
                     action="crear",
-                    pago_form=pago_form,
                 ),
             )
 
@@ -665,26 +641,26 @@ def crear_pedido(request):
         _contexto_formulario_pedido(
             materiales=materiales,
             action="crear",
-            pago_form=pago_form,
         ),
     )
 
 
-@role_required(["cliente", "admin"])
+@role_required(["cliente"])
 def editar_pedido(request, id):
     usuario_remoto = request.user.usuario
+    if usuario_remoto.rol != "cliente" or es_superadmin_global(request.user):
+        return _respuesta_no_autorizada(
+            request,
+            detalles={"rol_requerido": ["cliente"], "operacion": "editar_pedido"},
+        )
+
     db_alias = _obtener_alias_db()
     pedido = get_object_or_404(Pedido.objects.using(db_alias), codigo_pedido=id)
-
-    is_super = getattr(request.user, "is_superuser", False) or getattr(
-        request.user, "es_superadmin", False
-    )
-    es_admin = is_super or usuario_remoto.rol == "admin"
     usuario = _obtener_usuario_local(usuario_remoto)
     es_dueno = _es_dueno_pedido(pedido, usuario_remoto, usuario)
 
     # Validación de propiedad ANTES de cualquier render
-    if not (es_admin or es_dueno):
+    if not es_dueno:
         ip = obtener_ip(request)
         registrar_warning(ip)
         registrar_evento(
@@ -701,11 +677,18 @@ def editar_pedido(request, id):
         return _respuesta_no_autorizada(
             request,
             detalles={
-                "rol_requerido": ["admin"],
-                "permiso_alternativo": "propietario del pedido",
+                "rol_requerido": ["cliente"],
+                "permiso_alternativo": "cliente propietario del pedido",
                 "codigo_pedido": pedido.codigo_pedido,
             },
         )
+
+    if pedido.estado != Pedido.PENDIENTE:
+        messages.error(
+            request,
+            "El pedido ya no se puede modificar (estado actual: {}).".format(pedido.estado),
+        )
+        return redirect("clientes:mis_pedidos")
 
     detalle_total = sum(d.subtotal for d in pedido.detalles.using(db_alias).all())
     if pedido.total != detalle_total or pedido.precio != detalle_total:
@@ -714,15 +697,6 @@ def editar_pedido(request, id):
         pedido.save(using=db_alias)
 
     materiales = Material.objects.all()
-
-    if pedido.estado != "pendiente":
-        messages.error(
-            request,
-            "El pedido ya no se puede modificar (estado actual: {}).".format(pedido.estado),
-        )
-        if es_admin:
-            return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
-        return redirect("clientes:mis_pedidos")
 
     if request.method == "POST":
         materiales_ids = request.POST.getlist("material_id[]")
@@ -809,6 +783,13 @@ def editar_pedido(request, id):
 
         try:
             with transaction.atomic(using=db_alias):
+                pedido = select_for_update_if_supported(
+                    Pedido.objects.using(db_alias), db_alias
+                ).get(pk=pedido.pk)
+                if pedido.estado != Pedido.PENDIENTE:
+                    messages.error(request, "El pedido ya no se puede modificar porque dejó de estar pendiente.")
+                    return redirect("clientes:mis_pedidos")
+
                 for detalle in pedido.detalles.using(db_alias).all():
                     try:
                         stock_obj = select_for_update_if_supported(
@@ -857,8 +838,6 @@ def editar_pedido(request, id):
                 pedido.calcular_total(using=db_alias)
 
             messages.success(request, f"Pedido #{pedido.codigo_pedido} actualizado correctamente.")
-            if es_admin:
-                return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
             return redirect("clientes:mis_pedidos")
 
         except Exception:

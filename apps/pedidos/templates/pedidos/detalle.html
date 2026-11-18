@@ -499,7 +499,94 @@
         background: linear-gradient(135deg, #fff7ed 0%, #fffbeb 100%);
         border-color: #fcd34d;
     }
+
+    .print-order-only {
+        display: none;
+    }
+
+    @media print {
+        @page {
+            margin: 12mm;
+        }
+
+        body * {
+            visibility: hidden !important;
+        }
+
+        #print-order-only,
+        #print-order-only * {
+            visibility: visible !important;
+        }
+
+        #print-order-only {
+            display: block !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            color: #111827 !important;
+            background: #fff !important;
+            font: 10pt Arial, sans-serif;
+        }
+
+        #print-order-only h1,
+        #print-order-only h2,
+        #print-order-only h3,
+        #print-order-only p {
+            margin: 0 0 8px;
+        }
+
+        #print-order-only table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+
+        #print-order-only th,
+        #print-order-only td {
+            border: 1px solid #9ca3af;
+            padding: 6px;
+            text-align: left;
+        }
+
+        #print-order-only .print-total {
+            text-align: right;
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+    }
 </style>
+
+<section id="print-order-only" class="print-order-only" aria-hidden="true">
+    <h1>Orden de Pedido #CT-{{ orden.codigo_pedido }}</h1>
+    <p>Fecha: {{ orden.fecha_solicitud|date:"d/m/Y H:i" }} · Estado: {{ orden.estado_gestion_display }}</p>
+    <h2>Datos del cliente</h2>
+    <p>{{ orden.cliente.usuario.nombres|default:orden.usuario.nombres }} {{ orden.cliente.usuario.apellidos|default:orden.usuario.apellidos }}</p>
+    <p>{{ orden.cliente.usuario.email|default:orden.usuario.email }}{% if orden.usuario.telefono %} · {{ orden.usuario.telefono }}{% endif %}</p>
+    <h2>Entrega</h2>
+    <p>Origen: {{ orden.direccion_origen|default:"Bodega Central" }}</p>
+    <p>Destino: {{ orden.direccion_destino }}</p>
+    <p>Fecha programada: {{ orden.fecha_entrega_programada|date:"d/m/Y H:i"|default:"Por programar" }}</p>
+    <h2>Materiales solicitados</h2>
+    <table>
+        <thead><tr><th>Material</th><th>Cantidad</th><th>Precio unitario</th><th>Subtotal</th></tr></thead>
+        <tbody>
+            {% for item in orden.detalles.all %}
+            <tr>
+                <td>{{ item.material.nombre|default:"Material no disponible" }}</td>
+                <td>{{ item.cantidad }}{% if item.material.unidad_medida %} {{ item.material.unidad_medida.abreviatura }}{% endif %}</td>
+                <td>{{ item.precio_unitario|currency }}</td>
+                <td>{{ item.subtotal|currency }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No hay materiales registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p class="print-total">Total: {{ orden.total|currency }}</p>
+    {% if pago %}<p>Pago: {{ pago.get_estado_display }} · {{ pago.get_metodo_display|default:pago.metodo }} · {{ pago.monto|currency }}</p>{% endif %}
+</section>
 
 <div class="row justify-content-center">
     <div class="col-lg-12">
@@ -607,13 +694,13 @@
                     {% elif orden.estado == "vehiculo_asignado" %}
                     <div class="stepper-node active" id="step-node-3">
                         <div class="stepper-node-circle"><i class="bi bi-pin-map-fill"></i></div>
-                        <div class="stepper-node-title">3. Vehículo Asignado</div>
-                        <div class="stepper-node-badge">Listo para ruta</div>
+                        <div class="stepper-node-title">3. Autorizado para despacho</div>
+                        <div class="stepper-node-badge">Listo para iniciar ruta</div>
                     </div>
                     {% elif orden.estado == "autorizado_despacho" %}
                     <div class="stepper-node active" id="step-node-3">
                         <div class="stepper-node-circle"><i class="bi bi-box-seam"></i></div>
-                        <div class="stepper-node-title">3. Autorizado Despacho</div>
+                        <div class="stepper-node-title">3. Autorizado para despacho</div>
                         <div class="stepper-node-badge">Asignando transporte</div>
                     </div>
                     {% elif orden.estado == "cancelado" %}
@@ -1079,29 +1166,31 @@
 
                     <!-- GESTIÓN DEL PEDIDO Y ACCIONES (UNIFICADA SIN REDUNDANCIAS) -->
                     {% if orden.estado != "entregado" and orden.estado != "cancelado" %}
-                    {% if user_rol == "admin" or user_rol == "cliente" and orden.estado == "pendiente" %}
+                    {% if user_rol == "admin" or user_rol == "cliente" %}
                     <div class="order-section-card">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3">
                             <i class="bi bi-sliders me-2"></i>Gestión del Pedido
                         </h6>
                         <div class="d-flex flex-column gap-2">
-                            {% if user_rol == "admin" and puede_asignar_transporte %}
-                            <a href="{% url 'pedidos:crear_entrega' orden.codigo_pedido %}"
-                                class="btn btn-gold rounded-pill py-2 fw-800 shadow-sm small">
-                                <i class="bi bi-person-plus-fill me-1"></i> Asignar Conductor y Vehículo
-                            </a>
-                            {% endif %}
-                            {% if orden.estado == "pendiente" %}
+                            {% if user_rol == "cliente" and orden.estado == "pendiente" %}
                             <a href="{% url 'clientes:editar_pedido' orden.codigo_pedido %}"
                                 class="btn btn-outline-warning rounded-pill py-2 fw-700 small">
                                 <i class="bi bi-pencil-square me-1"></i> Modificar Pedido
                             </a>
                             {% endif %}
+                            {% if orden.estado == "pendiente" %}
                             <button type="button" class="btn btn-outline-danger rounded-pill py-2 fw-700 w-100 small"
                                 data-bs-toggle="modal" data-bs-target="#modalCancelarPedido"
                                 id="btn-abrir-modal-cancelar">
                                 <i class="bi bi-x-circle me-1"></i> Cancelar Pedido
                             </button>
+                            {% else %}
+                            <button type="button" class="btn btn-danger rounded-pill py-2 fw-700 w-100 small"
+                                disabled aria-disabled="true"
+                                title="No se puede cancelar un pedido autorizado para despacho.">
+                                <i class="bi bi-x-circle me-1"></i> Cancelar Pedido
+                            </button>
+                            {% endif %}
                         </div>
                     </div>
                     {% endif %}
@@ -1151,63 +1240,6 @@
                                 <i class="bi bi-check-circle-fill me-1"></i> Marcar como entregado
                             </button>
                         </form>
-                    </div>
-                    {% endif %}
-
-                    <!-- CONTROL MAESTRO ADMIN -->
-                    {% if user_rol == "admin" %}
-                    <div class="order-section-card">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
-                            <i class="bi bi-shield-lock-fill me-2"></i>Control Maestro de Estado (Admin)
-                        </h6>
-                        {% if orden.estado == "cancelado" or orden.estado == "entregado" or transporte_asignado or orden.estado == "vehiculo_asignado" or orden.estado == "en_ruta" %}
-                        <div>
-                            <div class="mb-3">
-                                <select id="order-master-state" name="estado" disabled aria-disabled="true"
-                                    class="form-select bg-surface text-white-50 rounded-pill px-3 small border-secondary"
-                                    style="pointer-events: none; opacity: 0.6; cursor: not-allowed;">
-                                    <option value="{{ orden.estado }}" selected>{{ orden.get_estado_display }}</option>
-                                </select>
-                            </div>
-                            <button type="button" disabled aria-disabled="true"
-                                class="btn btn-secondary w-100 rounded-pill py-2 fw-800 shadow-sm small"
-                                style="pointer-events: none; opacity: 0.55; cursor: not-allowed;">
-                                {% if orden.estado == "cancelado" or orden.estado == "entregado" %}
-                                <i class="bi bi-lock-fill me-1"></i> Pedido {{ orden.get_estado_display }} (Estado Final
-                                Bloqueado)
-                                {% else %}
-                                <i class="bi bi-lock-fill me-1"></i> Pedido {{ orden.get_estado_display }} (Asignación
-                                Confirmada &bull; Bloqueado)
-                                {% endif %}
-                            </button>
-                            {% if transporte_asignado or orden.estado == "vehiculo_asignado" or orden.estado == "en_ruta" %}
-                            <div
-                                class="alert alert-info bg-info bg-opacity-10 border-info border-opacity-25 text-white p-2 rounded-3 small mt-3 mb-0">
-                                <i class="bi bi-shield-lock text-info me-1"></i>
-                                El pedido ya cuenta con conductor y vehículo asignados. El estado no puede ser
-                                modificado manualmente desde el Control Maestro.
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% else %}
-                        <form method="POST">
-                            {% csrf_token %}
-                            <div class="mb-3">
-                                <select id="order-master-state" name="estado"
-                                    class="form-select bg-surface text-white rounded-pill px-3 small border-secondary">
-                                    <option value="pendiente" {% if orden.estado == 'pendiente' %}selected{% endif %}>
-                                        Pendiente</option>
-                                    <option value="autorizado_despacho" {% if orden.estado == 'autorizado_despacho' %}selected{% endif %}>Autorizado Despacho</option>
-                                    <option value="cancelado" {% if orden.estado == 'cancelado' %}selected{% endif %}>
-                                        Cancelado</option>
-                                </select>
-                            </div>
-                            <button type="submit" id="btn-master-state-submit"
-                                class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm small">
-                                <i class="bi bi-save me-1"></i> Aplicar Cambio de Estado
-                            </button>
-                        </form>
-                        {% endif %}
                     </div>
                     {% endif %}
 
@@ -1265,7 +1297,7 @@
 </div>
 
 <!-- MODAL ÚNICO DE CANCELACIÓN DE PEDIDO (SIN REDUNDANCIAS) -->
-{% if orden.estado != "entregado" and orden.estado != "cancelado" %}
+{% if orden.estado == "pendiente" %}
 <div class="modal fade" id="modalCancelarPedido" tabindex="-1" aria-labelledby="modalCancelarPedidoLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -1391,25 +1423,6 @@
             if (orderBadge && orderText) {
                 orderBadge.className = `badge-order-status ${data.requiere_correccion_pago ? 'cancelado' : data.estado}`;
                 orderText.textContent = data.estado_display;
-            }
-
-            // Si el pedido llegó a estado bloqueado (cancelado, entregado, vehiculo_asignado, en_ruta o con transporte asignado), bloquear el Control Maestro de Estado
-            if (data.estado === 'cancelado' || data.estado === 'entregado' || data.estado === 'vehiculo_asignado' || data.estado === 'en_ruta' || data.transporte_asignado) {
-                const masterSelect = document.getElementById('order-master-state');
-                const masterBtn = document.getElementById('btn-master-state-submit');
-                if (masterSelect) {
-                    masterSelect.disabled = true;
-                    masterSelect.style.pointerEvents = 'none';
-                    masterSelect.style.opacity = '0.6';
-                    masterSelect.style.cursor = 'not-allowed';
-                }
-                if (masterBtn) {
-                    masterBtn.disabled = true;
-                    masterBtn.style.pointerEvents = 'none';
-                    masterBtn.style.opacity = '0.55';
-                    masterBtn.style.cursor = 'not-allowed';
-                    masterBtn.innerHTML = '<i class="bi bi-lock-fill me-1"></i> Estado Bloqueado';
-                }
             }
 
             // Calcular porcentaje y clases de etapas

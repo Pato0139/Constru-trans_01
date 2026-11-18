@@ -944,7 +944,7 @@ def marcar_pedido_entregado(entrega_o_pedido, usuario, observacion="", using=Non
 
 def cancelar_envio_pedido(pedido, usuario, motivo="", revertir_stock=True, using=None):
     """
-    Transición: Cualquier estado excepto Entregado -> Cancelado.
+    Transición: Pendiente -> Cancelado. Los pedidos autorizados para despacho no se cancelan.
     Registra el motivo de cancelación, revierte stock si corresponde y libera vehículo y conductor.
     """
     db_alias = _resolver_db_alias(pedido, using)
@@ -961,6 +961,10 @@ def cancelar_envio_pedido(pedido, usuario, motivo="", revertir_stock=True, using
             raise ValidationError("No se puede cancelar un pedido que ya fue entregado.")
         if orden.estado == Pedido.CANCELADO:
             raise ValidationError("El pedido ya se encuentra cancelado.")
+        if orden.estado != Pedido.PENDIENTE:
+            raise ValidationError(
+                "No se puede cancelar un pedido autorizado para despacho o que ya inició su entrega."
+            )
 
         actor_db = _resolver_usuario_en_db(usuario, db_alias=db_alias)
         ahora = timezone.now()

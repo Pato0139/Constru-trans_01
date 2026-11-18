@@ -64,6 +64,14 @@ class NoSoloEspaciosValidator:
 
 no_solo_espacios = NoSoloEspaciosValidator()
 
+nombre_categoria_validator = RegexValidator(
+    regex=r"(.)\1{4,}",
+    message="El nombre no puede repetir el mismo carácter cinco veces seguidas.",
+    code="caracteres_repetidos",
+    inverse_match=True,
+    flags=re.IGNORECASE,
+)
+
 
 # Símbolos "básicos" que sí se aceptan en textos con cifras (direcciones,
 # unidades de medida, materiales, marcadores internos [-] (:) del sistema).

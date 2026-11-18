@@ -307,6 +307,9 @@ class CatalogoForm(StrictModelForm):
                 attrs={
                     "class": "form-control",
                     "placeholder": "Ej: Cementos y Hormigón",
+                    "minlength": 3,
+                    "maxlength": 60,
+                    "title": "Escribe entre 3 y 60 caracteres; no repitas el mismo carácter cinco veces seguidas.",
                     "style": "background: var(--color-surface) !important; color: var(--color-text) !important; border: 1px solid var(--color-border) !important;",
                 }
             ),
@@ -320,3 +323,6 @@ class CatalogoForm(StrictModelForm):
             if not self.instance.pk and Catalogo.objects.filter(codigo_catalogo=codigo).exists():
                 raise forms.ValidationError("Ya existe un tipo de material con este código.")
         return codigo
+
+    def clean_nombre_empresa(self):
+        return self.cleaned_data["nombre_empresa"].strip()

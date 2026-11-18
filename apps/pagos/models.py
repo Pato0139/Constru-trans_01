@@ -228,8 +228,8 @@ class Pago(TransicionMixin, models.Model):
 
     def clean(self):
         errores = {}
-        if not self.comprobante:
-            errores["comprobante"] = "Adjunta el comprobante de pago para registrar este pago."
+        if self.requiere_comprobante() and not self.comprobante:
+            errores["comprobante"] = "Este método de pago requiere comprobante."
         if self.estado == self.RECHAZADO and not (self.observaciones or "").strip():
             errores["observaciones"] = "Indica el motivo del rechazo."
         if errores:

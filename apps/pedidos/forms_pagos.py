@@ -10,12 +10,6 @@ class PagoComprobanteInput(forms.ClearableFileInput):
 
 
 class PagoRegistroForm(forms.ModelForm):
-    def __init__(self, *args, exigir_comprobante=False, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.exigir_comprobante = exigir_comprobante
-        if exigir_comprobante:
-            self.fields["comprobante"].required = True
-
     class Meta:
         model = Pago
         fields = ["metodo", "comprobante"]
@@ -37,8 +31,8 @@ class PagoRegistroForm(forms.ModelForm):
         cleaned = super().clean()
         metodo = cleaned.get("metodo")
         comprobante = cleaned.get("comprobante")
-        if not comprobante:
-            self.add_error("comprobante", "Adjunta el comprobante de pago para continuar.")
+        if metodo in Pago.METODOS_CON_COMPROBANTE and not comprobante:
+            self.add_error("comprobante", "Este método de pago requiere comprobante.")
         return cleaned
 
 

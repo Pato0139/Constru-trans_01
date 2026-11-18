@@ -56,16 +56,14 @@
                             <option value="cancelado" {% if estado_query == 'cancelado' %}selected{% endif %}>Cancelado</option>
                             {% elif solo_autorizados_despacho %}
                             <option value="">Estado logístico (Todos)</option>
-                            <option value="autorizado_despacho" {% if estado_query == 'autorizado_despacho' %}selected{% endif %}>Autorizado para despacho</option>
-                            <option value="vehiculo_asignado" {% if estado_query == 'vehiculo_asignado' %}selected{% endif %}>Asignado / Preparando pedido</option>
+                            <option value="autorizado_despacho" {% if estado_query == 'autorizado_despacho' or estado_query == 'vehiculo_asignado' %}selected{% endif %}>Autorizado para despacho</option>
                             <option value="en_ruta" {% if estado_query == 'en_ruta' %}selected{% endif %}>En Ruta</option>
                             <option value="entregado" {% if estado_query == 'entregado' %}selected{% endif %}>Entregado</option>
                             {% else %}
                             <option value="">Estado del pedido (Todos)</option>
                             <option value="pendiente" {% if estado_query == 'pendiente' %}selected{% endif %}>Pendiente</option>
                             <option value="pendiente_correccion_pago" {% if estado_query == 'pendiente_correccion_pago' %}selected{% endif %}>Pendiente de corrección de pago</option>
-                            <option value="autorizado_despacho" {% if estado_query == 'autorizado_despacho' %}selected{% endif %}>Autorizado para despacho</option>
-                            <option value="vehiculo_asignado" {% if estado_query == 'vehiculo_asignado' %}selected{% endif %}>Vehículo Asignado</option>
+                            <option value="autorizado_despacho" {% if estado_query == 'autorizado_despacho' or estado_query == 'vehiculo_asignado' %}selected{% endif %}>Autorizado para despacho</option>
                             {% endif %}
                         </select>
                     </div>
@@ -132,8 +130,8 @@
                     var labelMap = {
                         'pendiente': 'Pendiente',
                         'pendiente_correccion_pago': 'Pendiente de corrección de pago',
-                        'autorizado_despacho': 'Autorizado Despacho',
-                        'vehiculo_asignado': 'Vehículo Asignado',
+                        'autorizado_despacho': 'Autorizado para despacho',
+                        'vehiculo_asignado': 'Autorizado para despacho',
                         'en_ruta': 'En Ruta',
                         'entregado': 'Entregado',
                         'cancelado': 'Cancelado'
