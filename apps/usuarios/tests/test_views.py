@@ -173,7 +173,7 @@ class UsuarioViewsTests(TestCase):
         self.assertIsNone(response.context["proxima_entrega"])
         self.assertEqual(response.context["pedidos"].count(), 0)
         self.assertContains(response, "Clima para tu próxima ruta")
-        self.assertContains(response, "Mis Entregas Asignadas")
+        self.assertContains(response, "Mis Envíos Asignados")
         self.assertNotContains(response, "Entregas Pendientes")
         self.assertNotContains(response, "Acciones Rápidas")
 
