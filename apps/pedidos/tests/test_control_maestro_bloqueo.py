@@ -1,11 +1,12 @@
 from decimal import Decimal
+
 from django.contrib.messages import get_messages
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from apps.catalogo.models import MaterialConstruccion, UnidadMedida
 from apps.clientes.models import Cliente
-from apps.logistica.models import Entrega, Vehiculo
+from apps.logistica.models import Vehiculo
 from apps.logistica.services import (
     asignar_conductor_y_vehiculo,
     autorizar_despacho_por_pago,
@@ -222,7 +223,7 @@ class ControlMaestroBloqueoTests(TestCase):
         )
         self.assertContains(resp_get, 'id="order-master-state" name="estado" disabled')
 
-        resp_post = self.client.post(
+        self.client.post(
             reverse("pedidos:ver_pedido_admin", args=[self.pedido.codigo_pedido]),
             {"estado": "pendiente"},
             follow=True,
