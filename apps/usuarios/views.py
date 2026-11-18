@@ -665,6 +665,7 @@ def panel_conductor(request):
     context = {
         "conductor": conductor,
         "entregas": entregas_activas,
+        "pedidos": entregas_activas,
         "proxima_entrega": proxima_entrega,
         "clima_ruta": clima_ruta,
         "envios_pendientes_count": envios_pendientes,
