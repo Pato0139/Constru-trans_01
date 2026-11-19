@@ -117,10 +117,6 @@
                                 title="Ver Detalles">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="{% url 'clientes:editar_pedido' orden.id %}" class="btn-action text-warning"
-                                title="Modificar">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
                             {% if not orden.conductor %}
                             <a href="{% url 'pedidos:crear_entrega' orden.id %}" class="btn-action text-success"
                                 title="Asignar Entrega">

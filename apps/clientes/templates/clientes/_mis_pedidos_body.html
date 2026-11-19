@@ -14,9 +14,9 @@
         {% elif pedido.estado == "pendiente" %}
         <span class="badge-tipo badge-tipo-pendiente">Pendiente</span>
         {% elif pedido.estado == "autorizado_despacho" %}
-        <span class="badge-tipo badge-tipo-warning">Autorizado Despacho</span>
+        <span class="badge-tipo badge-tipo-warning">Autorizado para despacho</span>
         {% elif pedido.estado == "vehiculo_asignado" %}
-        <span class="badge-tipo badge-tipo-info">Vehículo Asignado</span>
+        <span class="badge-tipo badge-tipo-warning">Autorizado para despacho</span>
         {% elif pedido.estado == "en_ruta" %}
         <span class="badge-tipo badge-tipo-en-ruta">En Ruta</span>
         {% else %}

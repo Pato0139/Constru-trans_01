@@ -15,18 +15,19 @@
 </div>
 
 {% if messages %}
-    {% for message in messages %}
-        <div class="alert-custom animate__animated animate__shakeX">
-            <i class="bi bi-exclamation-circle-fill me-2"></i> {{ message }}
-        </div>
-    {% endfor %}
+{% for message in messages %}
+<div class="alert-custom {% if 'Cambiado a modo Local' in message|stringformat:'s' %}alert-custom--local{% elif 'success' in message.tags or 'info' in message.tags %}alert-custom--positive{% endif %} animate__animated animate__shakeX">
+    <i class="bi {% if 'Cambiado a modo Local' in message|stringformat:'s' %}bi-hdd-fill{% elif 'success' in message.tags or 'info' in message.tags %}bi-check-circle-fill{% else %}bi-exclamation-circle-fill{% endif %} me-2"></i> {{ message }}
+</div>
+{% endfor %}
 {% endif %}
 
 {% if modo_local %}
-    <div class="alert-modo-local animate__animated animate__fadeIn">
-        <i class="bi bi-cloud-slash-fill me-2 icon-warning"></i>
-        <strong>Modo Local:</strong> No se pudo conectar a la nube. Los cambios solo se guardarán en este equipo hasta que sincronice.
-    </div>
+<div class="alert-modo-local animate__animated animate__fadeIn">
+    <i class="bi bi-cloud-slash-fill me-2 icon-warning"></i>
+    <strong>Modo Local:</strong> No se pudo conectar a la nube. Los cambios solo se guardarán en este equipo hasta que
+    sincronice.
+</div>
 {% endif %}
 
 <form method="POST" class="animate-up delay-1">
@@ -42,7 +43,7 @@
         <div class="position-relative">
             {{ form.password }}
             <button type="button" onclick="togglePassword()"
-                    class="btn btn-password-toggle position-absolute top-50 end-0 translate-middle-y border-0 pe-4">
+                class="btn btn-password-toggle position-absolute top-50 end-0 translate-middle-y border-0 pe-4">
                 <i class="bi bi-eye-slash icon-password-toggle" id="toggleIcon"></i>
             </button>
         </div>
@@ -50,9 +51,8 @@
 
     <div class="login-options-row d-flex justify-content-between align-items-center mb-4">
         <div class="form-check">
-            <input class="form-check-input auth-terms-checkbox" type="checkbox"
-                   name="{{ form.remember_me.name }}" id="{{ form.remember_me.id_for_label }}"
-                   {% if form.remember_me.value %}checked{% endif %}>
+            <input class="form-check-input auth-terms-checkbox" type="checkbox" name="{{ form.remember_me.name }}"
+                id="{{ form.remember_me.id_for_label }}" {% if form.remember_me.value %}checked{% endif %}>
             <label class="form-check-label small text-white fw-bold ms-2" for="{{ form.remember_me.id_for_label }}">
                 Recordarme en este dispositivo
             </label>
@@ -64,7 +64,8 @@
 
     <div class="mb-4 d-flex justify-content-center flex-column align-items-center">
         <!-- Mock reCAPTCHA UI -->
-        <div class="recaptcha-mock" role="checkbox" aria-checked="false" tabindex="0" onclick="toggleCaptcha()" onkeydown="handleCaptchaKeydown(event)">
+        <div class="recaptcha-mock" role="checkbox" aria-checked="false" tabindex="0" onclick="toggleCaptcha()"
+            onkeydown="handleCaptchaKeydown(event)">
             <div class="recaptcha-left">
                 <div class="recaptcha-checkbox" id="captcha-box">
                     <i class="bi bi-check d-none" id="captcha-icon"></i>
@@ -72,15 +73,15 @@
                 <span class="recaptcha-text">No soy un robot</span>
             </div>
             <div class="recaptcha-right">
-                <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA logo">
-                <div class="recaptcha-privacy">reCAPTCHA<br>Privacidad - Condiciones</div>
+                <div class="recaptcha-local-mark" aria-hidden="true">↻</div>
+                <div class="recaptcha-privacy">Verificación<br>local</div>
             </div>
         </div>
         <input type="checkbox" name="captcha" id="id_captcha" class="d-none">
         {% if form.captcha.errors %}
-            <div class="text-danger small mt-2 text-center w-100 fw-bold animate__animated animate__headShake">
-                <i class="bi bi-exclamation-triangle-fill"></i> {{ form.captcha.errors|striptags }}
-            </div>
+        <div class="text-danger small mt-2 text-center w-100 fw-bold animate__animated animate__headShake">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ form.captcha.errors|striptags }}
+        </div>
         {% endif %}
     </div>
 
@@ -114,19 +115,28 @@
                 </button>
             </div>
             <p class="auth-modal-subtitle">
-                Última actualización: julio de 2026. Al usar Constru-Trans, usted acepta los siguientes términos en su totalidad.
+                Última actualización: julio de 2026. Al usar Constru-Trans, usted acepta los siguientes términos en su
+                totalidad.
             </p>
             <div class="d-flex flex-column gap-3">
                 <div class="auth-modal-section">
-                    <h6 class="auth-modal-section-title"><i class="bi bi-1-circle me-2"></i>Aceptación de los Términos</h6>
-                    <p class="auth-modal-section-text">Al registrarse y utilizar la plataforma Constru-Trans, usted acepta quedar vinculado por estos Términos y Condiciones, así como por nuestra Política de Privacidad. Si no está de acuerdo con alguno de estos términos, no debe utilizar la plataforma.</p>
+                    <h6 class="auth-modal-section-title"><i class="bi bi-1-circle me-2"></i>Aceptación de los Términos
+                    </h6>
+                    <p class="auth-modal-section-text">Al registrarse y utilizar la plataforma Constru-Trans, usted
+                        acepta quedar vinculado por estos Términos y Condiciones, así como por nuestra Política de
+                        Privacidad. Si no está de acuerdo con alguno de estos términos, no debe utilizar la plataforma.
+                    </p>
                 </div>
                 <div class="auth-modal-section">
-                    <h6 class="auth-modal-section-title"><i class="bi bi-2-circle me-2"></i>Descripción del Servicio</h6>
-                    <p class="auth-modal-section-text">Constru-Trans es una plataforma de gestión logística que facilita la conexión entre clientes que requieren transporte de materiales de construcción y conductores/proveedores registrados.</p>
+                    <h6 class="auth-modal-section-title"><i class="bi bi-2-circle me-2"></i>Descripción del Servicio
+                    </h6>
+                    <p class="auth-modal-section-text">Constru-Trans es una plataforma de gestión logística que facilita
+                        la conexión entre clientes que requieren transporte de materiales de construcción y
+                        conductores/proveedores registrados.</p>
                 </div>
                 <div class="auth-modal-section">
-                    <h6 class="auth-modal-section-title"><i class="bi bi-3-circle me-2"></i>Registro y Cuenta de Usuario</h6>
+                    <h6 class="auth-modal-section-title"><i class="bi bi-3-circle me-2"></i>Registro y Cuenta de Usuario
+                    </h6>
                     <ul class="auth-modal-section-list">
                         <li>Debe proporcionar información verídica, completa y actualizada durante el registro.</li>
                         <li>Es responsable de mantener la confidencialidad de su contraseña.</li>
@@ -147,19 +157,26 @@
                 </div>
                 <div class="auth-modal-section">
                     <h6 class="auth-modal-section-title"><i class="bi bi-5-circle me-2"></i>Pagos y Facturación</h6>
-                    <p class="auth-modal-section-text">Los precios son los establecidos en cada cotización confirmada. Constru-Trans actúa como intermediario y no se hace responsable por disputas entre clientes y proveedores.</p>
+                    <p class="auth-modal-section-text">Los precios son los establecidos en cada cotización confirmada.
+                        Constru-Trans actúa como intermediario y no se hace responsable por disputas entre clientes y
+                        proveedores.</p>
                 </div>
                 <div class="auth-modal-section">
-                    <h6 class="auth-modal-section-title"><i class="bi bi-6-circle me-2"></i>Limitación de Responsabilidad</h6>
-                    <p class="auth-modal-section-text">Constru-Trans no será responsable por daños directos, indirectos o consecuentes derivados del uso de la plataforma. El servicio se provee "tal como está".</p>
+                    <h6 class="auth-modal-section-title"><i class="bi bi-6-circle me-2"></i>Limitación de
+                        Responsabilidad</h6>
+                    <p class="auth-modal-section-text">Constru-Trans no será responsable por daños directos, indirectos
+                        o consecuentes derivados del uso de la plataforma. El servicio se provee "tal como está".</p>
                 </div>
                 <div class="auth-modal-section">
-                    <h6 class="auth-modal-section-title"><i class="bi bi-7-circle me-2"></i>Suspensión y Terminación</h6>
-                    <p class="auth-modal-section-text">Nos reservamos el derecho de suspender o terminar su cuenta sin previo aviso si detectamos violaciones a estos términos o actividad fraudulenta.</p>
+                    <h6 class="auth-modal-section-title"><i class="bi bi-7-circle me-2"></i>Suspensión y Terminación
+                    </h6>
+                    <p class="auth-modal-section-text">Nos reservamos el derecho de suspender o terminar su cuenta sin
+                        previo aviso si detectamos violaciones a estos términos o actividad fraudulenta.</p>
                 </div>
                 <div class="auth-modal-section">
                     <h6 class="auth-modal-section-title"><i class="bi bi-envelope me-2"></i>Contacto</h6>
-                    <p class="auth-modal-section-text">Para dudas: <a href="mailto:construtranscolombia@gmail.com" class="auth-terms-link">construtranscolombia@gmail.com</a></p>
+                    <p class="auth-modal-section-text">Para dudas: <a href="mailto:construtranscolombia@gmail.com"
+                            class="auth-terms-link">construtranscolombia@gmail.com</a></p>
                 </div>
             </div>
             <div class="auth-modal-footer">
@@ -184,7 +201,8 @@
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
-            <p class="auth-modal-subtitle">Esta Política describe cómo Constru-Trans recopila, usa y protege su información personal al utilizar nuestra plataforma.</p>
+            <p class="auth-modal-subtitle">Esta Política describe cómo Constru-Trans recopila, usa y protege su
+                información personal al utilizar nuestra plataforma.</p>
             <div class="d-flex flex-column gap-3">
                 <div class="auth-modal-section">
                     <h6 class="auth-modal-section-title"><i class="bi bi-database me-2"></i>Datos que recopilamos</h6>
@@ -196,15 +214,19 @@
                 </div>
                 <div class="auth-modal-section">
                     <h6 class="auth-modal-section-title"><i class="bi bi-gear me-2"></i>Cómo usamos sus datos</h6>
-                    <p class="auth-modal-section-text">Para proveer el servicio, procesar transacciones, mejorar la experiencia del usuario y cumplir obligaciones legales.</p>
+                    <p class="auth-modal-section-text">Para proveer el servicio, procesar transacciones, mejorar la
+                        experiencia del usuario y cumplir obligaciones legales.</p>
                 </div>
                 <div class="auth-modal-section">
                     <h6 class="auth-modal-section-title"><i class="bi bi-safe2 me-2"></i>Protección de datos</h6>
-                    <p class="auth-modal-section-text">Aplicamos medidas de seguridad técnicas y administrativas. Cumplimos con la Ley 1581 de 2012 (Colombia), RGPD (UE) y CCPA (California).</p>
+                    <p class="auth-modal-section-text">Aplicamos medidas de seguridad técnicas y administrativas.
+                        Cumplimos con la Ley 1581 de 2012 (Colombia), RGPD (UE) y CCPA (California).</p>
                 </div>
                 <div class="auth-modal-section">
                     <h6 class="auth-modal-section-title"><i class="bi bi-person-check me-2"></i>Sus derechos</h6>
-                    <p class="auth-modal-section-text">Puede acceder, corregir, eliminar o portar sus datos contactándonos en <a href="mailto:construtranscolombia@gmail.com" class="auth-terms-link">construtranscolombia@gmail.com</a>.</p>
+                    <p class="auth-modal-section-text">Puede acceder, corregir, eliminar o portar sus datos
+                        contactándonos en <a href="mailto:construtranscolombia@gmail.com"
+                            class="auth-terms-link">construtranscolombia@gmail.com</a>.</p>
                 </div>
             </div>
             <div class="auth-modal-footer">

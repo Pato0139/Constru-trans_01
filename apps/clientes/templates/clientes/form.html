@@ -39,7 +39,7 @@
                 </div>
             {% endif %}
 
-            <form method="POST" id="form-pedido" data-ajax="false">
+            <form method="POST" id="form-pedido" data-ajax="false" autocomplete="off">
                 {% csrf_token %}
 
                 <div class="mb-5 p-4 rounded-4 shadow-sm pedido-section">
@@ -146,8 +146,8 @@
                                                         <button id="btn-fecha-entrega" type="button" class="input-group-text border-0 pedido-input-icon" aria-label="Seleccionar fecha de entrega" data-tooltip="Seleccionar fecha de entrega" title="Seleccionar fecha de entrega">
                                                             <i class="bi bi-calendar-event"></i>
                                                         </button>
-                                                        <input id="fecha_entrega_text" type="text" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2 pedido-input-bg" inputmode="numeric" placeholder="DD/MM/YYYY HH:MM" value="{% if fecha_entrega %}{{ fecha_entrega }}{% elif orden and orden.fecha_entrega_programada %}{{ orden.fecha_entrega_programada|date:'d/m/Y H:i' }}{% endif %}">
-                                                        <input id="fecha_entrega_picker" type="datetime-local" name="fecha_entrega_picker" class="pedido-picker-hidden" aria-hidden="false" min="{% now "Y-m-d" %}T00:00" max="2099-12-31T23:59">
+                                                        <input id="fecha_entrega_text" type="text" name="fecha_entrega" class="form-control rounded-pill border-0 px-4 py-2 pedido-input-bg" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="DD/MM/YYYY HH:MM" value="{% if fecha_entrega %}{{ fecha_entrega }}{% elif orden and orden.fecha_entrega_programada %}{{ orden.fecha_entrega_programada|date:'d/m/Y H:i' }}{% endif %}">
+                                                        <input id="fecha_entrega_picker" type="datetime-local" name="fecha_entrega_picker" class="pedido-picker-hidden" autocomplete="off" aria-hidden="false" min="{% now "Y-m-d" %}T00:00" max="2099-12-31T23:59">
                                                     </div>
                                                     <div class="form-text text-white-50 small mt-2">Selecciona fecha y hora con el calendario.</div>
                                                 </div>

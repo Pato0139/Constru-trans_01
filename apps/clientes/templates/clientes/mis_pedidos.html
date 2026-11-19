@@ -37,8 +37,7 @@
                 <select name="estado" class="form-select form-select-sm bg-surface text-white">
                     <option value="">Estado (Todos)</option>
                     <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                    <option value="autorizado_despacho" {% if estado == 'autorizado_despacho' %}selected{% endif %}>Autorizado Despacho</option>
-                    <option value="vehiculo_asignado" {% if estado == 'vehiculo_asignado' %}selected{% endif %}>Vehículo Asignado</option>
+                    <option value="autorizado_despacho" {% if estado == 'autorizado_despacho' or estado == 'vehiculo_asignado' %}selected{% endif %}>Autorizado para despacho</option>
                     <option value="en_ruta" {% if estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
                 </select>
             </div>

@@ -1,10 +1,10 @@
 from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxLengthValidator, MaxValueValidator, MinLengthValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 
 from apps.usuarios.models import Usuario
-from config.validators import texto_multilinea, texto_sin_simbolos
+from config.validators import nombre_categoria_validator, texto_multilinea, texto_sin_simbolos
 
 numeric_and_space_validator = []
 
@@ -37,7 +37,15 @@ MARCAS_MATERIAL = [
 
 class Catalogo(models.Model):
     codigo_catalogo = models.CharField(max_length=20, primary_key=True, validators=[texto_sin_simbolos])
-    nombre_empresa = models.CharField(max_length=150, validators=[texto_sin_simbolos])
+    nombre_empresa = models.CharField(
+        max_length=150,
+        validators=[
+            MinLengthValidator(3),
+            MaxLengthValidator(60),
+            nombre_categoria_validator,
+            texto_sin_simbolos,
+        ],
+    )
     activo = models.BooleanField(default=True)
     estado = models.CharField(max_length=10, choices=ESTADOS_PRODUCTO, default="activo")
 

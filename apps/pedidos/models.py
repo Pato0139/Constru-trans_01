@@ -34,7 +34,7 @@ class Pedido(TransicionMixin, models.Model):
     ESTADOS = [
         ("pendiente", "Pendiente"),
         ("autorizado_despacho", "Autorizado para despacho"),
-        ("vehiculo_asignado", "Vehículo asignado"),
+        ("vehiculo_asignado", "Autorizado para despacho"),
         ("en_ruta", "En Ruta"),
         ("entregado", "Entregado"),
         ("cancelado", "Cancelado"),
@@ -310,15 +310,15 @@ class Pedido(TransicionMixin, models.Model):
         if self.estado == self.AUTORIZADO_DESPACHO:
             return "Autorizado para despacho"
         if self.estado == self.VEHICULO_ASIGNADO:
-            return "En preparación · Vehículo asignado"
+            return "Autorizado para despacho"
         return self.get_estado_display()
 
     @property
     def estado_logistico_display(self):
         if self.estado == self.AUTORIZADO_DESPACHO:
-            return "Pendiente de asignación"
+            return "Autorizado para despacho"
         if self.estado == self.VEHICULO_ASIGNADO:
-            return "Asignado · Preparando pedido"
+            return "Autorizado para despacho"
         if self.estado == self.EN_RUTA:
             return "En ruta"
         if self.estado == self.ENTREGADO:

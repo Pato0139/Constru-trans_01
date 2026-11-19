@@ -22,6 +22,10 @@ class PedidoAdmin(admin.ModelAdmin):
     readonly_fields = ("total", "fecha_solicitud")
     inlines = [DetallePedidoInline]
 
+    def has_add_permission(self, request):
+        # Los pedidos nuevos se crean desde el flujo que exige y registra el comprobante.
+        return False
+
 
 @admin.register(DetallePedido)
 class DetallePedidoAdmin(admin.ModelAdmin):

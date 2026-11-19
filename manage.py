@@ -6,7 +6,13 @@ import sys
 
 
 def main():
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
+    settings_module = os.environ.get("DJANGO_SETTINGS_MODULE")
+    # Compatibilidad con instalaciones que aún tienen la ruta histórica en
+    # una variable de entorno persistente de Windows.
+    if settings_module == "core.settings":
+        os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.dev"
+    else:
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
     if len(sys.argv) > 1 and sys.argv[1] == "runserver":
         import django
 

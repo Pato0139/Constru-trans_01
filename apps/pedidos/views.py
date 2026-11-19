@@ -15,7 +15,6 @@ from apps.catalogo.models.movimientos import MovimientoInventario
 from apps.logistica.models import ConductorVehiculo, Entrega, Vehiculo
 from apps.logistica.services import (
     asignar_conductor_y_vehiculo,
-    autorizar_despacho_por_pago,
     cancelar_envio_pedido,
     confirmar_preparacion_e_iniciar_ruta,
     marcar_pedido_entregado,
@@ -35,7 +34,7 @@ from config.security import (
 )
 from config.utils import registrar_actividad
 
-from .forms import AgregarMaterialForm, CambioEstadoPedidoForm, FiltroPedidosForm
+from .forms import AgregarMaterialForm, FiltroPedidosForm
 from .models import DetallePedido, DetalleSolicitudPedido, Pedido, SolicitudPedido
 from .utils import liberar_vehiculo_pedido, revertir_stock_pedido
 
@@ -228,6 +227,10 @@ def _render_lista_por_estado(
     if estado_query:
         if estado_query == "pendiente_correccion_pago":
             pedidos = pedidos.filter(estado=Pedido.PENDIENTE, pago__estado=Pago.RECHAZADO)
+        elif estado_query == Pedido.AUTORIZADO_DESPACHO:
+            pedidos = pedidos.filter(
+                estado__in=[Pedido.AUTORIZADO_DESPACHO, Pedido.VEHICULO_ASIGNADO]
+            )
         else:
             pedidos = pedidos.filter(estado=estado_query)
 
@@ -502,7 +505,6 @@ def ver_pedido_admin(request, id):
 
     if request.method == "POST":
         accion = request.POST.get("accion")
-        nuevo_estado = request.POST.get("estado")
 
         if usuario_actual.rol == "conductor" and not es_admin:
             if accion in ("iniciar_ruta", "confirmar", "cancelar") and not conductor_asignado:
@@ -719,80 +721,9 @@ def ver_pedido_admin(request, id):
                     _mensajes_error(request, exc)
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
-            if orden.estado in (Pedido.ENTREGADO, Pedido.CANCELADO):
-                messages.error(
-                    request,
-                    f"El pedido #{orden.codigo_pedido} ya se encuentra en estado final ({orden.get_estado_display()}) y no puede ser modificado.",
-                )
-                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-
-            if transporte_asignado or orden.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA):
-                messages.error(
-                    request,
-                    f"No se puede modificar el estado desde el Control Maestro: el pedido #{orden.codigo_pedido} ya tiene conductor y vehículo asignados o se encuentra en proceso de entrega.",
-                )
-                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-
-            form = CambioEstadoPedidoForm(request.POST, pedido=orden)
-            if not form.is_valid():
-                _mensajes_error(request, form.errors)
-                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-            nuevo_estado = form.cleaned_data["estado"]
-            db_alias = "remota" if debe_usar_bd_remota() else "default"
-            try:
-                if nuevo_estado == orden.estado:
-                    messages.info(request, "El pedido ya se encuentra en ese estado.")
-                    return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-
-                if (
-                    nuevo_estado in Pedido.ESTADOS_REQUIEREN_PAGO
-                    and not orden.puede_despacharse
-                ):
-                    raise ValidationError(
-                        {"estado": "No se autoriza el despacho sin un pago aprobado."}
-                    )
-
-                if nuevo_estado == Pedido.VEHICULO_ASIGNADO:
-                    raise ValidationError(
-                        {"estado": "No se puede asignar el estado «Vehículo Asignado» directamente sin asignar un conductor y vehículo válidos."}
-                    )
-
-                if nuevo_estado == Pedido.AUTORIZADO_DESPACHO:
-                    autorizar_despacho_por_pago(orden, usuario_admin=request.user)
-                elif nuevo_estado == Pedido.EN_RUTA:
-                    confirmar_preparacion_e_iniciar_ruta(orden, request.user)
-                elif nuevo_estado == Pedido.ENTREGADO:
-                    marcar_pedido_entregado(
-                        orden,
-                        request.user,
-                        observacion=request.POST.get("observacion", ""),
-                    )
-                elif nuevo_estado == Pedido.CANCELADO:
-                    motivo_form = (
-                        request.POST.get("motivo", "").strip()
-                        or "Cancelación administrativa desde control de estado"
-                    )
-                    cancelar_envio_pedido(orden, request.user, motivo=motivo_form, using=db_alias)
-                else:
-                    with transaction.atomic():
-                        orden = Pedido.objects.select_for_update().get(pk=orden.pk)
-                        orden.transicionar(nuevo_estado)
-                        orden.full_clean(exclude=["fecha_entrega_programada"])
-                        orden.save()
-
-                registrar_actividad(
-                    request,
-                    "editar",
-                    "pedidos",
-                    orden.codigo_pedido,
-                    f"Estado de pedido cambiado por admin a: {nuevo_estado}",
-                )
-            except ValidationError as exc:
-                _mensajes_error(request, exc)
-                return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-            messages.success(
+            messages.error(
                 request,
-                f"Estado del pedido #{orden.codigo_pedido} actualizado a {orden.get_estado_display()}.",
+                "No se permiten cambios manuales de estado. El pedido debe avanzar por su flujo de pago y despacho.",
             )
             return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
@@ -836,7 +767,8 @@ def ver_pedido_admin(request, id):
         "vehiculos_disponibles": vehiculos_disponibles,
         "puede_asignar_transporte": puede_asignar_transporte,
         "puede_iniciar_ruta": (
-            (es_admin or (usuario_actual.rol == "conductor" and conductor_asignado))
+            usuario_actual.rol == "conductor"
+            and conductor_asignado
             and orden.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.AUTORIZADO_DESPACHO)
             and orden.puede_despacharse
             and entrega is not None

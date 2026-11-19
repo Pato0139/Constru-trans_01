@@ -344,6 +344,18 @@ select.input-custom {
     font-weight: 500;
 }
 
+.alert-custom--positive {
+    background: rgba(22, 163, 74, 0.14);
+    border-color: #22c55e;
+    color: #a7f3c0;
+}
+
+.alert-custom--local {
+    background: rgba(243, 156, 18, 0.16);
+    border-color: #f39c12;
+    color: #ffd28a;
+}
+
 @media (max-width: 992px) {
     .auth-visual-section {
         display: none;
