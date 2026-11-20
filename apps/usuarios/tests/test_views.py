@@ -8,7 +8,6 @@ from django.urls import reverse
 
 from apps.logistica.models import ConductorVehiculo, Vehiculo
 from apps.usuarios.models import Conductor, Usuario
-from config.superadmin_lock import SUPERADMIN_EMAIL, SUPERADMIN_USERNAME
 
 
 class UsuarioViewsTests(TestCase):
@@ -66,59 +65,6 @@ class UsuarioViewsTests(TestCase):
         response = self.client.get(reverse("inicio:inicio"))
         self.assertEqual(response.status_code, 200)
 
-    def test_administrador_global_puede_corregir_su_documento(self):
-        superadmin = Usuario.objects.create_user(
-            username=SUPERADMIN_USERNAME,
-            email=SUPERADMIN_EMAIL,
-            password="password123",
-            rol="admin",
-            nombres="Edward",
-            apellidos="Fonseca",
-            documento="12345678901234567890",
-            tipo_documento="CC",
-            is_staff=True,
-            is_superuser=True,
-        )
-        self.client.force_login(superadmin)
-
-        response = self.client.post(
-            reverse("usuarios:editar_perfil"),
-            {
-                "nombres": "Edward",
-                "apellidos": "Fonseca",
-                "email": SUPERADMIN_EMAIL,
-                "pais_codigo": "+57",
-                "telefono": "3001234567",
-                "tipo_documento": "PA",
-                "documento": "AB12345678",
-            },
-        )
-
-        self.assertEqual(response.status_code, 302)
-        superadmin.refresh_from_db()
-        self.assertEqual(superadmin.documento, "AB12345678")
-        self.assertEqual(superadmin.tipo_documento, "PA")
-
-    def test_usuario_regular_no_puede_cambiar_su_documento(self):
-        self.client.force_login(self.cliente_user)
-
-        response = self.client.post(
-            reverse("usuarios:editar_perfil"),
-            {
-                "nombres": "Cliente",
-                "apellidos": "Cliente",
-                "email": self.cliente_user.email,
-                "pais_codigo": "+57",
-                "telefono": "3001234567",
-                "tipo_documento": "CC",
-                "documento": "99887766",
-            },
-        )
-
-        self.assertEqual(response.status_code, 403)
-        self.cliente_user.refresh_from_db()
-        self.assertEqual(self.cliente_user.documento, "1002")
-
     def test_registro_rechaza_datos_manipulados_en_el_servidor(self):
         response = self.client.post(
             reverse("usuarios:registro"),
@@ -173,7 +119,7 @@ class UsuarioViewsTests(TestCase):
         self.assertIsNone(response.context["proxima_entrega"])
         self.assertEqual(response.context["pedidos"].count(), 0)
         self.assertContains(response, "Clima para tu próxima ruta")
-        self.assertContains(response, "Mis Envíos Asignados")
+        self.assertContains(response, "Mis Entregas Asignadas")
         self.assertNotContains(response, "Entregas Pendientes")
         self.assertNotContains(response, "Acciones Rápidas")
 

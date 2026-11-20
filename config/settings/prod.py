@@ -3,7 +3,12 @@ import os
 from .base import *  # noqa: F401,F403
 
 DEBUG = False
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()]
+if not ALLOWED_HOSTS:
+    raise RuntimeError(
+        "ALLOWED_HOSTS no está definida en producción; configura hosts explícitos "
+        "(ej: ALLOWED_HOSTS=tu-dominio.com,www.tu-dominio.com)."
+    )
 
 SECRET_KEY = os.getenv("SECRET_KEY", None)
 if not SECRET_KEY:
