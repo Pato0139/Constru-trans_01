@@ -19,8 +19,8 @@
                         <!-- Imagen de Perfil -->
                         <div class="edit-profile-photo-section mb-4">
                             <div class="position-relative edit-profile-avatar-container">
-                            {% if usuario.avatar_url %}
-                                <img id="avatar-preview" src="{{ usuario.avatar_url }}" class="edit-profile-avatar-img" alt="Avatar">
+                            {% if usuario.foto_perfil %}
+                                <img id="avatar-preview" src="{{ usuario.foto_perfil.url }}" class="edit-profile-avatar-img" alt="Avatar">
                             {% else %}
                                 <div class="edit-profile-avatar-placeholder" id="avatar-preview">
                                     <span class="display-3 fw-bold">{{ usuario.iniciales }}</span>
@@ -35,11 +35,8 @@
                                     <div class="text-danger small mt-2" role="alert">{{ foto_form.foto_perfil.errors|join:" " }}</div>
                                     {% endif %}
                                     <div id="foto-perfil-status" class="text-muted small mt-2" role="status" aria-live="polite">
-                                        JPG, PNG o WEBP. Máximo 5 MB.
+                                        JPG, PNG o WEBP. Máximo 5 MB. Se guardará al elegir la imagen.
                                     </div>
-                                    <button type="submit" class="btn btn-accent btn-sm rounded-pill px-3 mt-2">
-                                        Guardar Foto
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -58,7 +55,7 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Correo Electrónico</label>
-                                <input type="email" name="email" value="{{ request.user.email }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" required {% if request.user.es_superadmin %}readonly{% endif %}>
+                                <input type="email" name="email" value="{{ request.user.email }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" required>
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">País</label>
@@ -76,19 +73,19 @@
                                 <input type="text" name="telefono" value="{{ usuario.telefono|cut:'+57'|default:usuario.telefono }}" class="form-control rounded-3 py-2 u-inline-b4973e868e"
                                 pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-5">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Tipo Documento</label>
-                                <select name="tipo_documento" class="form-select rounded-3 py-2 u-inline-b4973e868e" disabled aria-disabled="true" tabindex="-1" style="user-select: none; -webkit-user-select: none;">
+                                <select name="tipo_documento" class="form-select rounded-3 py-2 u-inline-b4973e868e">
                                     {% for code, name in usuario.TIPOS_DOCUMENTO %}
                                         <option value="{{ code }}" {% if usuario.tipo_documento == code %}selected{% endif %}>{{ name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-7">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">Número de Identificación</label>
-                                <input type="text" name="documento" value="{{ usuario.documento }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" disabled aria-disabled="true" tabindex="-1" style="user-select: none; -webkit-user-select: none;"
-                                pattern="[A-Za-z0-9]*" title="Solo se admiten letras y números" maxlength="20" oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '')">
-                                <small class="text-muted">El tipo y número de documento son únicos y no se pueden modificar.</small>
+                                <input type="text" name="documento" value="{{ usuario.documento }}" class="form-control rounded-3 py-2 u-inline-b4973e868e" readonly
+                                pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
+                                <small class="text-muted">El documento no puede modificarse.</small>
                             </div>
                         </div>
 
@@ -218,7 +215,8 @@
                     image.id = 'avatar-preview';
                     preview.replaceWith(image);
                 }
-                photoStatus.textContent = 'Vista previa lista. Pulsa Guardar Foto para aplicar el cambio.';
+                photoStatus.textContent = 'Guardando foto...';
+                photoForm.requestSubmit();
             };
             reader.onerror = function () {
                 photoStatus.textContent = 'No se pudo leer la imagen. Intenta seleccionarla de nuevo.';
