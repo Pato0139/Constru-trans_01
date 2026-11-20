@@ -665,7 +665,6 @@ def panel_conductor(request):
     context = {
         "conductor": conductor,
         "entregas": entregas_activas,
-        "pedidos": entregas_activas,
         "proxima_entrega": proxima_entrega,
         "clima_ruta": clima_ruta,
         "envios_pendientes_count": envios_pendientes,
@@ -976,7 +975,6 @@ def perfil_admin(request):
 @login_required
 def editar_perfil(request):
     usuario = request.user
-    es_administrador_global = es_superadmin_global(usuario)
 
     if request.method == "POST":
         if request.POST.get("action") == "upload_photo":
@@ -1076,24 +1074,13 @@ def editar_perfil(request):
             )
 
         documento_raw = request.POST.get("documento")
-        tipo_documento_raw = request.POST.get("tipo_documento")
-        if (
-            documento_raw is not None
-            and limpiar_documento(documento_raw) != usuario.documento
-        ) or (
-            tipo_documento_raw is not None
-            and tipo_documento_raw != usuario.tipo_documento
-        ):
-            messages.error(request, "El tipo y número de documento son datos únicos y no se pueden modificar.")
+        if documento_raw and limpiar_documento(documento_raw) != usuario.documento:
+            messages.error(request, "El número de documento no se puede modificar.")
             return render(
                 request,
                 "usuarios/editar_perfil.html",
-                {
-                    "usuario": usuario,
-                    "foto_form": FotoPerfilForm(),
-                    "form_data": request.POST,
-                },
-                status=403,
+                {"usuario": usuario, "foto_form": FotoPerfilForm(), "form_data": request.POST},
+                status=400,
             )
         if email:
             try:
@@ -1115,18 +1102,6 @@ def editar_perfil(request):
                     "usuarios/editar_perfil.html",
                     {"usuario": usuario, "foto_form": FotoPerfilForm()},
                     status=400,
-                )
-            if es_administrador_global and email != (usuario.email or "").casefold():
-                messages.error(request, "El correo del Administrador Global está protegido.")
-                return render(
-                    request,
-                    "usuarios/editar_perfil.html",
-                    {
-                        "usuario": usuario,
-                        "foto_form": FotoPerfilForm(),
-                        "form_data": request.POST,
-                    },
-                    status=403,
                 )
         foto_anterior = usuario.foto_perfil
         nombre_foto_anterior = foto_anterior.name if foto_anterior else ""
@@ -1150,10 +1125,10 @@ def editar_perfil(request):
         usuario.apellidos = apellidos
         usuario.telefono = telefono
         usuario.sincronizado = False
+
         if email:
             usuario.email = email
-            if not es_administrador_global:
-                usuario.username = email
+            usuario.username = email
 
         try:
             usuario.save()
