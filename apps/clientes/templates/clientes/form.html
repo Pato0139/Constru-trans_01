@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/clientes/form.css' %}?v=1.1">
+<link rel="stylesheet" href="{% static 'css/clientes/form.css' %}?v=1.4">
 {% endblock %}
 
 {% block content %}
@@ -45,13 +45,19 @@
                 <div class="mb-5 p-4 rounded-4 shadow-sm pedido-section">
                     <label class="form-label fw-800 text-accent text-uppercase small mb-3 pedido-section-label">1. Selección de Materiales</label>
                     <div class="row g-3">
-                        <div class="col-md-7">
-                            <select id="select-material" class="form-select rounded-pill border-0 px-4 py-2 pedido-input-bg">
-                                <option value="" data-precio="0">Seleccione un material...</option>
+                        <div class="col-md-7 material-picker">
+                            <div class="material-picker-control">
+                                <label class="visually-hidden" for="material-search">Buscar material</label>
+                                <input id="material-search" type="search" class="form-control material-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="material-options" placeholder="Buscar material por nombre..." autocomplete="off">
+                                <div id="material-options" class="material-options" role="listbox" aria-label="Materiales disponibles" hidden></div>
+                            </div>
+                            <select id="select-material" class="visually-hidden" aria-hidden="true" tabindex="-1">
+                                <option value="" data-precio="0" data-stock="">Seleccione un material...</option>
                                 {% for m in materiales %}
-                                    <option value="{{ m.id }}" data-precio="{{ m.precio_referencia|unlocalize }}">{{ m.nombre }} - {{ m.precio_referencia|currency }}</option>
+                                    <option value="{{ m.id }}" data-precio="{{ m.precio_referencia|unlocalize }}" data-stock="{{ m.stock_info.cantidad_actual|default:0 }}" data-stock-minimo="{{ m.stock_info.stock_minimo|default:0 }}" data-unit="{{ m.unidad_medida.abreviatura|default:m.unidad_medida.nombre }}">{{ m.nombre }}</option>
                                 {% endfor %}
                             </select>
+                            <div id="disponibilidad-stock" class="material-stock-summary mt-2" aria-live="polite" hidden></div>
                         </div>
                         <div class="col-md-3">
                             <div class="quantity-stepper pedido-quantity-stepper" data-min="1">
@@ -180,5 +186,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/clientes/form.js' %}?v=1.2"></script>
+<script src="{% static 'js/clientes/form.js' %}?v=1.4"></script>
 {% endblock %}

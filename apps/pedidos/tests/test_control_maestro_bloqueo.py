@@ -115,7 +115,7 @@ class ControlMaestroBloqueoTests(TestCase):
             usuario_admin=self.admin,
         )
         self.pedido.refresh_from_db()
-        self.assertEqual(self.pedido.estado, Pedido.VEHICULO_ASIGNADO)
+        self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
 
         self.client.force_login(self.admin)
         resp = self.client.get(
@@ -136,7 +136,7 @@ class ControlMaestroBloqueoTests(TestCase):
             usuario_admin=self.admin,
         )
         self.pedido.refresh_from_db()
-        self.assertEqual(self.pedido.estado, Pedido.VEHICULO_ASIGNADO)
+        self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
 
         self.client.force_login(self.admin)
         # Intenta forzar volver a 'pendiente' desde el form maestro
@@ -148,7 +148,7 @@ class ControlMaestroBloqueoTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.pedido.refresh_from_db()
         # El estado NO debe haber cambiado
-        self.assertEqual(self.pedido.estado, Pedido.VEHICULO_ASIGNADO)
+        self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
 
         # Verificar mensaje de error del backend
         mensajes = [m.message for m in get_messages(resp.wsgi_request)]

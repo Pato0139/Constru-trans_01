@@ -223,7 +223,7 @@ class FlujoLogisticoIntegralTests(TestCase):
 
         self.pedido.refresh_from_db()
         entrega.refresh_from_db()
-        self.assertEqual(self.pedido.estado, Pedido.VEHICULO_ASIGNADO)
+        self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
         self.assertEqual(Entrega.objects.filter(pedido=self.pedido).count(), 1)
         self.assertEqual(entrega.conductor, self.conductor_perfil)
         self.assertEqual(entrega.vehiculo, self.vehiculo_disponible)
@@ -253,7 +253,7 @@ class FlujoLogisticoIntegralTests(TestCase):
         self.assertContains(resp_panel_cond, "Constructora Del Norte")
         self.assertContains(resp_panel_cond, "3005551122")
         self.assertContains(resp_panel_cond, "ABC123")
-        self.assertContains(resp_panel_cond, "Vehículo Asignado")
+        self.assertContains(resp_panel_cond, "Autorizado para despacho")
         self.assertContains(resp_panel_cond, "Confirmar preparación e iniciar ruta")
 
         resp_det_cond = self.client.get(
@@ -455,7 +455,7 @@ class FlujoLogisticoIntegralTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.pedido.refresh_from_db()
         entrega.refresh_from_db()
-        self.assertEqual(self.pedido.estado, Pedido.VEHICULO_ASIGNADO)
+        self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
         self.assertEqual(entrega.estado, "pendiente")
 
     def test_conductor_no_puede_ver_ni_modificar_pedido_de_otro_conductor(self):

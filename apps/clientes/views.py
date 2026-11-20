@@ -16,6 +16,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalogo.models import Catalogo, Stock, UnidadMedida
 from apps.catalogo.models import MaterialConstruccion as Material
+from apps.pagos.models import Pago
 from apps.pedidos.models import DetallePedido, Pedido
 from apps.usuarios.models import Usuario
 from apps.usuarios.utils import contiene_solo_numeros
@@ -34,6 +35,7 @@ from config.security import (
     registrar_warning,
     role_required,
 )
+from config.superadmin_lock import es_superadmin_global
 
 from .models import Cliente
 
@@ -49,7 +51,7 @@ def pedidos_visibles_para_cliente(usuario_local, usuario_remoto):
             | Q(usuario__username__in=usernames)
             | Q(cliente__usuario__username__in=usernames)
         )
-        .select_related("cliente__usuario", "conductor")
+        .select_related("cliente__usuario", "conductor", "pago")
         .prefetch_related("detalles", "entregas")
         .distinct()
         .order_by("-fecha_solicitud")
@@ -181,6 +183,14 @@ def _es_dueno_pedido(pedido, usuario_remoto, usuario_local):
     return False
 
 
+def _pedido_bloqueado_para_edicion(pedido):
+    """Solo bloquea pedidos finales, en ruta o con conductor/vehículo asignados."""
+    return bool(
+        pedido.estado in (Pedido.CANCELADO, Pedido.EN_RUTA, Pedido.ENTREGADO)
+        or pedido.asignacion_transporte_iniciada
+    )
+
+
 def parse_fecha_entrega(value):
     if not value:
         return None
@@ -306,8 +316,12 @@ def mis_pedidos(request):
     pedidos = (
         pedidos_visibles_para_cliente(usuario, usuario_remoto)
         .exclude(estado__in=["entregado", "cancelado"])
-        .select_related("pago")
-        .prefetch_related("detalles__material")
+        .select_related("pago", "usuario", "cliente__usuario", "conductor__usuario")
+        .prefetch_related(
+            "detalles__material",
+            "entregas__conductor__usuario",
+            "entregas__vehiculo",
+        )
     )
 
     # Get filter parameters
@@ -466,7 +480,7 @@ def crear_pedido(request):
     usuario_local = _obtener_usuario_local(usuario_remoto)
 
     _cliente_local = _obtener_cliente_local(usuario_local)
-    materiales = Material.objects.all()
+    materiales = Material.objects.select_related("stock_info", "unidad_medida").all()
 
     if request.method == "POST":
         materiales_ids = request.POST.getlist("material_id[]")
@@ -683,10 +697,10 @@ def editar_pedido(request, id):
             },
         )
 
-    if pedido.estado != Pedido.PENDIENTE:
+    if _pedido_bloqueado_para_edicion(pedido):
         messages.error(
             request,
-            "El pedido ya no se puede modificar (estado actual: {}).".format(pedido.estado),
+            "No puedes modificar este pedido porque está cancelado, en ruta o ya tiene conductor y vehículo asignados.",
         )
         return redirect("clientes:mis_pedidos")
 
@@ -696,7 +710,7 @@ def editar_pedido(request, id):
         pedido.precio = detalle_total
         pedido.save(using=db_alias)
 
-    materiales = Material.objects.all()
+    materiales = Material.objects.select_related("stock_info", "unidad_medida").all()
 
     if request.method == "POST":
         materiales_ids = request.POST.getlist("material_id[]")
@@ -781,13 +795,17 @@ def editar_pedido(request, id):
                 ),
             )
 
+        pago_requiere_actualizacion = False
         try:
             with transaction.atomic(using=db_alias):
                 pedido = select_for_update_if_supported(
                     Pedido.objects.using(db_alias), db_alias
                 ).get(pk=pedido.pk)
-                if pedido.estado != Pedido.PENDIENTE:
-                    messages.error(request, "El pedido ya no se puede modificar porque dejó de estar pendiente.")
+                if _pedido_bloqueado_para_edicion(pedido):
+                    messages.error(
+                        request,
+                        "No puedes modificar este pedido porque está cancelado, en ruta o ya tiene conductor y vehículo asignados.",
+                    )
                     return redirect("clientes:mis_pedidos")
 
                 for detalle in pedido.detalles.using(db_alias).all():
@@ -836,6 +854,57 @@ def editar_pedido(request, id):
                 pedido.fecha_entrega_programada = fecha_entrega if fecha_entrega else None
                 pedido.save(using=db_alias)
                 pedido.calcular_total(using=db_alias)
+
+                pago = (
+                    Pago.objects.using(db_alias)
+                    .select_for_update()
+                    .filter(pedido=pedido)
+                    .first()
+                )
+                if pago and pago.monto != pedido.total:
+                    pago.registrar_intento_historial(
+                        estado_intento=pago.estado,
+                        metodo=pago.metodo,
+                        comprobante_nombre=pago.comprobante.name if pago.comprobante else "",
+                        revisor=pago.revisado_por,
+                        observaciones="El cliente modificó el pedido; se actualizó el importe.",
+                        using=db_alias,
+                    )
+                    pago.monto = pedido.total
+                    if pago.metodo != Pago.METODO_CONTRAENTREGA:
+                        # El comprobante anterior ya no representa el nuevo total.
+                        pago.comprobante = None
+                        pago.estado = Pago.PENDIENTE
+                        pago.revisado_por = None
+                        pago.fecha_revision = None
+                        pago.observaciones = "El pedido fue modificado. Registra nuevamente el pago con el importe actualizado."
+                        pago.save(
+                            using=db_alias,
+                            update_fields=[
+                                "monto",
+                                "comprobante",
+                                "estado",
+                                "revisado_por",
+                                "fecha_revision",
+                                "observaciones",
+                            ],
+                        )
+                        pago_requiere_actualizacion = True
+                        if pedido.estado in (
+                            Pedido.AUTORIZADO_DESPACHO,
+                            Pedido.VEHICULO_ASIGNADO,
+                        ):
+                            pedido.transicionar(Pedido.PENDIENTE)
+                            pedido.save(using=db_alias, update_fields=["estado"])
+                    else:
+                        pago.save(using=db_alias, update_fields=["monto"])
+
+            if pago_requiere_actualizacion:
+                messages.warning(
+                    request,
+                    "El total del pedido cambió. Registra nuevamente el comprobante con el importe actualizado.",
+                )
+                return redirect("pagos:registrar_pago_pedido", pedido_id=pedido.codigo_pedido)
 
             messages.success(request, f"Pedido #{pedido.codigo_pedido} actualizado correctamente.")
             return redirect("clientes:mis_pedidos")

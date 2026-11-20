@@ -665,14 +665,10 @@ def asignar_conductor_y_vehiculo(pedido, conductor_usuario_o_id, vehiculo_o_id, 
 
         orden.conductor = conductor_perfil
         orden.conductor_usuario_legacy = conductor_user
-        if orden.estado != Pedido.VEHICULO_ASIGNADO:
-            orden.transicionar(Pedido.VEHICULO_ASIGNADO)
-            orden.save(
-                using=db_alias,
-                update_fields=["estado", "conductor", "conductor_usuario_legacy"],
-            )
-        else:
-            orden.save(using=db_alias, update_fields=["conductor", "conductor_usuario_legacy"])
+        # La asignación de transporte es un requisito para iniciar la ruta,
+        # no un estado logístico. El pedido permanece autorizado hasta que el
+        # conductor confirme la preparación e inicie la ruta.
+        orden.save(using=db_alias, update_fields=["conductor", "conductor_usuario_legacy"])
 
         info = f"Conductor: {conductor_user.nombre_mostrar} | Vehículo: {vehiculo_bloqueado.placa}."
         notificar_evento_logistico(

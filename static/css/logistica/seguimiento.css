@@ -1,0 +1,61 @@
+.novedad-summary-card {
+    border-left: 4px solid #06b6d4;
+}
+
+.novedad-summary-title {
+    color: #67e8f9;
+}
+
+.seguimiento-response-card {
+    background: var(--color-surface, #1e293b);
+    border-color: var(--color-border, #475569) !important;
+    color: var(--color-text, #e2e8f0);
+}
+
+[data-theme="dark"] .novedad-summary-card {
+    background: #182438;
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .novedad-summary-card strong {
+    color: #f8fafc;
+}
+
+[data-theme="light"] .novedad-summary-card {
+    background: #ecfeff;
+    border-left-color: #0891b2;
+    color: #164e63;
+}
+
+[data-theme="light"] .novedad-summary-title {
+    color: #0e7490;
+}
+
+[data-theme="light"] .novedad-summary-card strong {
+    color: #0f172a;
+}
+
+[data-theme="light"] .seguimiento-response-card {
+    background: #f8fafc;
+    border-color: #cbd5e1 !important;
+    color: #1e293b;
+}
+
+[data-theme="accessibility"] .novedad-summary-card,
+[data-theme="accessibility"] .seguimiento-response-card {
+    background: #000000;
+    border-color: #ffff00 !important;
+    color: #ffffff;
+}
+
+[data-theme="accessibility"] .novedad-summary-card {
+    border-left-color: #ffff00;
+}
+
+[data-theme="accessibility"] .novedad-summary-title {
+    color: #ffff00;
+}
+
+[data-theme="accessibility"] .novedad-summary-card strong {
+    color: #ffffff;
+}

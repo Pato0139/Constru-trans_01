@@ -7,7 +7,7 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-10">
-        <div class="table-container p-4">
+        <div class="table-container p-4 payment-detail-page">
             <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary flex-wrap gap-2">
                 <div>
                     <h3 class="fw-800 text-white mb-1">Pago del Pedido #CT-{{ pedido.codigo_pedido }}</h3>
@@ -236,6 +236,32 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* En tema claro, elimina los paneles gris oscuro heredados de esta vista. */
+    [data-theme="light"] .payment-detail-page > .d-flex,
+    [data-theme="light"] .payment-detail-page .row > [class*="col-"] > .p-3,
+    [data-theme="light"] .payment-detail-page > .p-3 {
+        background: #fff !important;
+        border-color: #cbd5e1 !important;
+        color: #0f172a;
+    }
+    [data-theme="light"] .payment-detail-page .text-white,
+    [data-theme="light"] .payment-detail-page .text-white-50 {
+        color: #1e293b !important;
+    }
+    [data-theme="light"] .payment-detail-page .text-muted { color: #64748b !important; }
+    [data-theme="light"] .payment-detail-page .text-info { color: #1e40af !important; }
+    [data-theme="light"] .payment-detail-page .text-accent { color: #b45309 !important; }
+    [data-theme="light"] .payment-detail-page .text-warning { color: #854d0e !important; }
+    [data-theme="light"] .payment-detail-page .text-success { color: #166534 !important; }
+    [data-theme="light"] .payment-detail-page .text-danger { color: #b91c1c !important; }
+    [data-theme="light"] .payment-detail-page .text-center.p-3.rounded-3 {
+        background: #f1f5f9 !important;
+        border-color: #cbd5e1 !important;
+    }
+    [data-theme="light"] .payment-detail-page .alert p { color: #334155 !important; }
+</style>
 
 {% if puede_revisar_pago %}
 {% if pago.estado == "pendiente" and pedido.estado != "cancelado" %}

@@ -72,10 +72,16 @@ function agregarMaterial() {
     const materialId = select.value;
     const materialNombre = select.options[select.selectedIndex]?.text || '';
     const precio = parseFloat(select.options[select.selectedIndex]?.getAttribute('data-precio') || 0);
+    const stockDisponible = parseInt(select.options[select.selectedIndex]?.dataset.stock || 0, 10);
     const cantidad = parseInt(cantidadInput.value || 0, 10);
 
     if (!materialId || cantidad <= 0) {
         alert('Seleccione un material y una cantidad válida');
+        return;
+    }
+
+    if (cantidad > stockDisponible) {
+        alert(`Stock insuficiente. Solo hay ${stockDisponible} unidades disponibles de este material.`);
         return;
     }
 
@@ -107,6 +113,112 @@ function agregarMaterial() {
 
     select.value = '';
     cantidadInput.value = 1;
+    cantidadInput.removeAttribute('max');
+    const search = document.getElementById('material-search');
+    if (search) search.value = '';
+    cerrarSelectorMaterial();
+    actualizarStockDisponible();
+}
+
+function actualizarStockDisponible() {
+    const select = document.getElementById('select-material');
+    const cantidadInput = document.getElementById('input-cantidad');
+    const stockInfo = document.getElementById('disponibilidad-stock');
+    if (!select || !cantidadInput || !stockInfo) return;
+
+    const option = select.options[select.selectedIndex];
+    if (!select.value || !option) {
+        stockInfo.hidden = true;
+        cantidadInput.removeAttribute('max');
+        return;
+    }
+
+    const stock = parseInt(option.dataset.stock, 10) || 0;
+    const minimo = parseInt(option.dataset.stockMinimo, 10) || 0;
+    const unidad = option.dataset.unit || 'unidades';
+    const cantidad = parseInt(cantidadInput.value, 10) || 0;
+    const estado = obtenerEstadoStock(stock, minimo);
+    cantidadInput.max = stock;
+    stockInfo.hidden = false;
+    stockInfo.replaceChildren();
+    const cantidadLabel = document.createElement('span');
+    cantidadLabel.textContent = `Existencias: ${stock} ${unidad}`;
+    const estadoBadge = document.createElement('span');
+    estadoBadge.className = `material-stock-badge stock-state--${estado.clase}`;
+    estadoBadge.textContent = estado.texto;
+    stockInfo.append(cantidadLabel, estadoBadge);
+    if (cantidad > stock) {
+        const aviso = document.createElement('span');
+        aviso.className = 'text-danger';
+        aviso.textContent = `La cantidad supera las existencias por ${cantidad - stock} ${unidad}.`;
+        stockInfo.append(aviso);
+    }
+}
+
+function obtenerEstadoStock(stock, minimo) {
+    if (stock <= 0) return { clase: 'empty', texto: 'Sin existencias' };
+    if (minimo > 0 && stock <= Math.ceil(minimo / 2)) return { clase: 'critical', texto: 'Stock crítico' };
+    if (minimo > 0 && stock <= minimo) return { clase: 'low', texto: 'Stock bajo' };
+    return { clase: 'sufficient', texto: 'Stock suficiente' };
+}
+
+function cerrarSelectorMaterial() {
+    const opciones = document.getElementById('material-options');
+    const busqueda = document.getElementById('material-search');
+    if (opciones) opciones.hidden = true;
+    busqueda?.setAttribute('aria-expanded', 'false');
+}
+
+function renderizarOpcionesMateriales(filtro = '') {
+    const select = document.getElementById('select-material');
+    const lista = document.getElementById('material-options');
+    if (!select || !lista) return;
+    const termino = filtro.trim().toLocaleLowerCase();
+    lista.replaceChildren();
+
+    Array.from(select.options).slice(1).forEach((option) => {
+        if (!option.text.toLocaleLowerCase().includes(termino)) return;
+        const stock = parseInt(option.dataset.stock, 10) || 0;
+        const minimo = parseInt(option.dataset.stockMinimo, 10) || 0;
+        const estado = obtenerEstadoStock(stock, minimo);
+        const fila = document.createElement('button');
+        fila.type = 'button';
+        fila.className = 'material-option';
+        fila.setAttribute('role', 'option');
+        fila.setAttribute('aria-selected', String(select.value === option.value));
+
+        const detalle = document.createElement('span');
+        detalle.className = 'material-option__details';
+        const nombre = document.createElement('span');
+        nombre.className = 'material-option__name';
+        nombre.textContent = option.text;
+        nombre.title = option.text;
+        const precio = document.createElement('span');
+        precio.className = 'material-option__price';
+        precio.textContent = `Precio unitario: ${formatCurrency(option.dataset.precio)}`;
+        detalle.append(nombre, precio);
+
+        const insignia = document.createElement('span');
+        insignia.className = `material-stock-badge stock-state--${estado.clase}`;
+        insignia.textContent = `${estado.texto}: ${stock} ${option.dataset.unit || 'unid.'}`;
+        insignia.title = estado.texto;
+        fila.append(detalle, insignia);
+        fila.addEventListener('click', () => {
+            select.value = option.value;
+            const busqueda = document.getElementById('material-search');
+            if (busqueda) busqueda.value = option.text;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            cerrarSelectorMaterial();
+        });
+        lista.appendChild(fila);
+    });
+
+    if (!lista.children.length) {
+        const vacio = document.createElement('div');
+        vacio.className = 'material-options__empty';
+        vacio.textContent = 'No se encontraron materiales.';
+        lista.appendChild(vacio);
+    }
 }
 
 /**
@@ -228,6 +340,46 @@ window.AppPageLifecycle.onPageLoad(() => {
 
     document.getElementById('btn-agregar-material')
         ?.addEventListener('click', agregarMaterial);
+
+    document.getElementById('select-material')
+        ?.addEventListener('change', actualizarStockDisponible);
+    document.getElementById('input-cantidad')
+        ?.addEventListener('input', actualizarStockDisponible);
+
+    const busquedaMaterial = document.getElementById('material-search');
+    const opcionesMaterial = document.getElementById('material-options');
+    if (busquedaMaterial && opcionesMaterial) {
+        const abrirOpciones = () => {
+            const seleccionado = document.querySelector('#select-material option:checked');
+            if (seleccionado?.value && busquedaMaterial.value === seleccionado.text) {
+                busquedaMaterial.value = '';
+            }
+            renderizarOpcionesMateriales(busquedaMaterial.value);
+            opcionesMaterial.hidden = false;
+            busquedaMaterial.setAttribute('aria-expanded', 'true');
+        };
+        busquedaMaterial.addEventListener('focus', abrirOpciones);
+        busquedaMaterial.addEventListener('click', abrirOpciones);
+        busquedaMaterial.addEventListener('input', () => {
+            renderizarOpcionesMateriales(busquedaMaterial.value);
+            opcionesMaterial.hidden = false;
+            busquedaMaterial.setAttribute('aria-expanded', 'true');
+        });
+        busquedaMaterial.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') cerrarSelectorMaterial();
+            if (event.key === 'ArrowDown') opcionesMaterial.querySelector('button')?.focus();
+        });
+        opcionesMaterial.addEventListener('keydown', (event) => {
+            const filas = Array.from(opcionesMaterial.querySelectorAll('button'));
+            const indice = filas.indexOf(document.activeElement);
+            if (event.key === 'ArrowDown') { event.preventDefault(); filas[Math.min(indice + 1, filas.length - 1)]?.focus(); }
+            if (event.key === 'ArrowUp') { event.preventDefault(); (filas[Math.max(indice - 1, 0)] || busquedaMaterial).focus(); }
+            if (event.key === 'Escape') { cerrarSelectorMaterial(); busquedaMaterial.focus(); }
+        });
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.material-picker')) cerrarSelectorMaterial();
+        });
+    }
 
     const picker = document.getElementById('fecha_entrega_picker');
     const visibleField = document.getElementById('fecha_entrega_text');

@@ -1,9 +1,9 @@
 CIUDADES_DESPACHO = [
-    "Bogotá",
-    "Medellín",
-    "Cali",
-    "Barranquilla",
-    "Cartagena",
+    "Duitama",
+    "Sogamoso",
+    "Paipa",
+    "Nobsa",
+    "Tibasosa",
 ]
 
 
