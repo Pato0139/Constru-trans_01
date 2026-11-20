@@ -529,6 +529,23 @@
    HIGH-CONTRAST STATUS BADGES (.bg-*-subtle & .badge-tipo-*)
    Corrige el bajo contraste de Bootstrap donde texto claro caía sobre fondo pastel claro
    ========================================================================== */
+.badge.bg-warning-subtle:not(.rounded-circle),
+.badge.bg-info-subtle:not(.rounded-circle),
+.badge.bg-success-subtle:not(.rounded-circle),
+.badge.bg-danger-subtle:not(.rounded-circle),
+.badge.bg-primary-subtle:not(.rounded-circle),
+.badge.bg-secondary-subtle:not(.rounded-circle),
+.badge.bg-warning:not(.rounded-circle),
+.badge.bg-info:not(.rounded-circle),
+.badge.bg-success:not(.rounded-circle),
+.badge.bg-danger:not(.rounded-circle),
+.badge.bg-primary:not(.rounded-circle),
+.badge.bg-secondary:not(.rounded-circle),
+.badge-tipo,
+.badge-order-status {
+    border-radius: 999px !important;
+}
+
 .badge.bg-warning-subtle,
 .badge.bg-warning-subtle.text-warning,
 .badge-tipo-pendiente,

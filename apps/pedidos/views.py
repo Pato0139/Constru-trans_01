@@ -498,9 +498,16 @@ def ver_pedido_admin(request, id):
     )
     vehiculo = (entrega.vehiculo if entrega else None) or orden.vehiculo_asignado_actual
     transporte_asignado = bool(
-        (entrega and entrega.conductor_id and entrega.vehiculo_id)
-        or (orden.conductor_id and orden.vehiculo_asignado_actual)
-        or orden.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA)
+        (
+            entrega
+            and (entrega.conductor_id or entrega.conductor_usuario_id)
+            and entrega.vehiculo_id
+        )
+        or (
+            (orden.conductor_id or orden.conductor_usuario_legacy_id)
+            and orden.vehiculo_asignado_actual
+        )
+        or orden.estado == Pedido.EN_RUTA
     )
 
     if request.method == "POST":
@@ -684,22 +691,10 @@ def ver_pedido_admin(request, id):
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
             if accion == "confirmar":
-                observacion = request.POST.get("observacion", "").strip()[:2000]
-                try:
-                    marcar_pedido_entregado(orden, request.user, observacion=observacion)
-                    registrar_actividad(
-                        request,
-                        "confirmar_entrega",
-                        "pedidos",
-                        orden.codigo_pedido,
-                        f"Administrador {request.user.username} marcó como entregado el pedido #{orden.codigo_pedido}",
-                    )
-                    messages.success(
-                        request,
-                        f"El pedido #{orden.codigo_pedido} fue marcado como «Entregado».",
-                    )
-                except ValidationError as exc:
-                    _mensajes_error(request, exc)
+                messages.error(
+                    request,
+                    "Solo el conductor asignado puede confirmar que la entrega fue completada.",
+                )
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
             if accion == "cancelar":
@@ -741,7 +736,7 @@ def ver_pedido_admin(request, id):
     )
     vehiculo = entrega.vehiculo if entrega else None
     transporte_asignado = bool(
-        entrega and entrega.conductor_id and entrega.vehiculo_id
+        orden.transporte_asignado or orden.estado == Pedido.EN_RUTA
     )
     pago = orden.pago_actual
 
@@ -775,7 +770,8 @@ def ver_pedido_admin(request, id):
             and bool(entrega.conductor_id and entrega.vehiculo_id)
         ),
         "puede_confirmar_entrega": (
-            (es_admin or (usuario_actual.rol == "conductor" and conductor_asignado))
+            usuario_actual.rol == "conductor"
+            and conductor_asignado
             and orden.estado == Pedido.EN_RUTA
         ),
     }
@@ -957,6 +953,11 @@ def _crear_solicitud_pedido(usuario, items, descuento):
 @login_required
 @transaction.atomic
 def crear_pedido(request):
+    # Los clientes deben usar el flujo de pedidos del panel cliente, que los
+    # lleva al registro del método de pago y del comprobante.
+    if request.user.rol == "cliente":
+        return redirect("clientes:crear_pedido")
+
     materiales = MaterialConstruccion.objects.all()
 
     if request.method == "POST":
@@ -1002,29 +1003,6 @@ def crear_pedido(request):
                 raise ValueError("Solo un administrador puede aplicar un descuento.")
 
             pedido = _crear_solicitud_pedido(request.user, items, descuento)
-            pedido = SolicitudPedido.objects.create(
-                cliente=request.user, descuento=descuento, estado="pendiente"
-            )
-
-            for m_id, cant in zip(materiales_ids, cantidades, strict=False):
-                cant = int(cant)
-                material = get_object_or_404(MaterialConstruccion, pk=m_id)
-                stock_obj = select_for_update_if_supported(Stock.objects, "default").get(
-                    material=material
-                )
-
-                if stock_obj.cantidad_actual < cant:
-                    raise ValueError(
-                        f"Stock insuficiente para {material.nombre}. Disponible: {stock_obj.cantidad_actual}"
-                    )
-
-                stock_obj.cantidad_actual -= cant
-                stock_obj.save()
-
-                DetalleSolicitudPedido.objects.create(
-                    pedido=pedido, material=material, cantidad=cant
-                )
-
             messages.success(request, f"Solicitud #{pedido.id} creada exitosamente.")
             return redirect("pedidos:lista_solicitudes")
 
@@ -1138,12 +1116,12 @@ def estado_pedido_api(request, id):
     data = {
         "codigo_pedido": orden.codigo_pedido,
         "estado": orden.estado,
-        "estado_display": orden.estado_gestion_display,
+        "estado_display": (
+            orden.estado_admin_display if es_admin else orden.estado_gestion_display
+        ),
         "estado_logistico_display": orden.estado_logistico_display,
         "transporte_asignado": bool(
-            (entrega and entrega.conductor_id and entrega.vehiculo_id)
-            or (orden.conductor_id and orden.vehiculo_asignado_actual)
-            or orden.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA)
+            orden.transporte_asignado or orden.estado == Pedido.EN_RUTA
         ),
         "requiere_correccion_pago": orden.requiere_correccion_pago,
         "fecha_solicitud": (

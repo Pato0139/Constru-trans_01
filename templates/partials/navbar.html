@@ -32,7 +32,7 @@
             data-notif-endpoint="{% url 'usuarios:notificaciones_estado_json' %}">
             <button
                 class="btn btn-dark-premium rounded-circle position-relative d-flex align-items-center justify-content-center navbar-icon-btn"
-                id="navbarNotifBtn" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
+                id="navbarNotifBtn" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" aria-expanded="false"
                 aria-label="Ver notificaciones" title="Ver notificaciones">
                 <i class="bi bi-bell fs-5 opacity-75"></i>
                 <span id="navbarNotifBadge"
@@ -95,12 +95,12 @@
         <!-- Accesibilidad - Hidden on very small screens, shows icon only -->
         <div class="dropdown d-none d-md-block js-accessibility-dropdown">
             <button class="btn btn-dark-premium rounded-pill px-3 py-2 d-flex align-items-center gap-2" type="button"
-                data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad" title="Opciones de accesibilidad">
+                data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-label="Opciones de accesibilidad" title="Opciones de accesibilidad">
                 <i class="bi bi-universal-access"></i>
                 <span class="fw-bold" data-i18n="nav.accessibility">Accesibilidad</span>
             </button>
             <ul
-                class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-3 navbar-dropdown-small">
+                class="dropdown-menu dropdown-menu-end shadow-lg p-3 navbar-dropdown-small accessibility-menu">
                 <li class="mb-2">
                     <h6 class="dropdown-header text-primary fw-bold px-0 py-1" data-i18n="nav.themes">TEMAS VISUALES
                     </h6>
@@ -176,12 +176,12 @@
         <div class="dropdown d-md-none js-accessibility-dropdown">
             <button
                 class="btn btn-dark-premium rounded-circle d-flex align-items-center justify-content-center navbar-icon-btn"
-                type="button" data-bs-toggle="dropdown" aria-label="Opciones de accesibilidad"
+                type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-label="Opciones de accesibilidad"
                 title="Opciones de accesibilidad">
                 <i class="bi bi-universal-access fs-5 opacity-75"></i>
             </button>
             <ul
-                class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border-white-5 p-3 navbar-dropdown-xs">
+                class="dropdown-menu dropdown-menu-end shadow-lg p-3 navbar-dropdown-xs accessibility-menu">
                 <li class="mb-2">
                     <h6 class="dropdown-header text-primary fw-bold px-0 py-1" data-i18n="nav.themes">TEMAS VISUALES
                     </h6>
@@ -260,7 +260,7 @@
         <div class="dropdown navbar-user-dropdown">
             <a href="#"
                 class="d-flex align-items-center gap-2 text-decoration-none dropdown-toggle navbar-user-btn p-1 rounded-3"
-                type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menú de usuario">
+                type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false" title="Menú de usuario">
                 <div class="text-end d-none d-md-block">
                     <p class="small fw-bold mb-0 text-truncate navbar-username">{{ user.usuario.nombres|default:user.username }}</p>
                     <span class="text-muted navbar-role">{{ user.usuario.get_rol_display|upper|default:"ADMIN" }}</span>

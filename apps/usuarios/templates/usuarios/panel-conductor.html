@@ -6,58 +6,6 @@
 
 {% block content %}
 
-<!-- KPI Summary Cards (4 Cards) -->
-<div class="row g-3 mb-4">
-    <!-- 1. Envíos Pendientes -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
-            <div class="driver-kpi-icon-wrap kpi-amber">
-                <i class="bi bi-hourglass-split"></i>
-            </div>
-            <div>
-                <span class="driver-kpi-label">Pendientes</span>
-                <h3 class="driver-kpi-value mb-0">{{ envios_pendientes_count|default:"0" }}</h3>
-            </div>
-        </div>
-    </div>
-    <!-- 2. Entregas en Ruta -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
-            <div class="driver-kpi-icon-wrap kpi-blue">
-                <i class="bi bi-truck"></i>
-            </div>
-            <div>
-                <span class="driver-kpi-label">En Ruta</span>
-                <h3 class="driver-kpi-value mb-0">{{ entregas_en_ruta_count|default:"0" }}</h3>
-            </div>
-        </div>
-    </div>
-    <!-- 3. Entregas Completadas -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
-            <div class="driver-kpi-icon-wrap kpi-green">
-                <i class="bi bi-check2-circle"></i>
-            </div>
-            <div>
-                <span class="driver-kpi-label">Completadas</span>
-                <h3 class="driver-kpi-value mb-0">{{ entregas_completadas_count|default:"0" }}</h3>
-            </div>
-        </div>
-    </div>
-    <!-- 4. Novedades Registradas -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
-            <div class="driver-kpi-icon-wrap kpi-rose">
-                <i class="bi bi-exclamation-triangle"></i>
-            </div>
-            <div>
-                <span class="driver-kpi-label">Novedades</span>
-                <h3 class="driver-kpi-value mb-0">{{ novedades_registradas_count|default:"0" }}</h3>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="row g-4 mb-4">
     <div class="col-12">
         <section class="driver-weather-card shadow-lg" aria-labelledby="driver-weather-title">
@@ -226,6 +174,58 @@
                 {% endif %}
             </div>
         </section>
+    </div>
+</div>
+
+<!-- KPI Summary Cards (4 Cards) -->
+<div class="row g-3 mb-4">
+    <!-- 1. Envíos Pendientes -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
+            <div class="driver-kpi-icon-wrap kpi-amber">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div>
+                <span class="driver-kpi-label">Pendientes</span>
+                <h3 class="driver-kpi-value mb-0">{{ envios_pendientes_count|default:"0" }}</h3>
+            </div>
+        </div>
+    </div>
+    <!-- 2. Entregas en Ruta -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
+            <div class="driver-kpi-icon-wrap kpi-blue">
+                <i class="bi bi-truck"></i>
+            </div>
+            <div>
+                <span class="driver-kpi-label">En Ruta</span>
+                <h3 class="driver-kpi-value mb-0">{{ entregas_en_ruta_count|default:"0" }}</h3>
+            </div>
+        </div>
+    </div>
+    <!-- 3. Entregas Completadas -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
+            <div class="driver-kpi-icon-wrap kpi-green">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+            <div>
+                <span class="driver-kpi-label">Completadas</span>
+                <h3 class="driver-kpi-value mb-0">{{ entregas_completadas_count|default:"0" }}</h3>
+            </div>
+        </div>
+    </div>
+    <!-- 4. Novedades Registradas -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
+            <div class="driver-kpi-icon-wrap kpi-rose">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div>
+                <span class="driver-kpi-label">Novedades</span>
+                <h3 class="driver-kpi-value mb-0">{{ novedades_registradas_count|default:"0" }}</h3>
+            </div>
+        </div>
     </div>
 </div>
 

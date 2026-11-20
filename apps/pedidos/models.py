@@ -307,6 +307,12 @@ class Pedido(TransicionMixin, models.Model):
     def estado_gestion_display(self):
         if self.requiere_correccion_pago:
             return "Pendiente de corrección de pago"
+        if (
+            self.estado == self.PENDIENTE
+            and self.pago_actual
+            and self.pago_actual.estado == Pago.PENDIENTE
+        ):
+            return "Pendiente de revisión"
         if self.estado == self.AUTORIZADO_DESPACHO:
             return "Autorizado para despacho"
         if self.estado == self.VEHICULO_ASIGNADO:
@@ -324,6 +330,43 @@ class Pedido(TransicionMixin, models.Model):
         if self.estado == self.ENTREGADO:
             return "Entregado"
         return self.get_estado_display()
+
+    @property
+    def estado_admin_display(self):
+        if (
+            self.estado in (self.AUTORIZADO_DESPACHO, self.VEHICULO_ASIGNADO)
+            and not self.transporte_asignado
+        ):
+            return "Pendiente de asignación"
+        return self.estado_gestion_display
+
+    @property
+    def transporte_asignado(self):
+        """True solo cuando conductor y vehículo están asignados al envío."""
+        entrega = self.envio_actual
+        if (
+            entrega
+            and (entrega.conductor_id or entrega.conductor_usuario_id)
+            and entrega.vehiculo_id
+        ):
+            return True
+        return bool(
+            (self.conductor_id or self.conductor_usuario_legacy_id)
+            and entrega
+            and entrega.vehiculo_id
+        )
+
+    @property
+    def asignacion_transporte_iniciada(self):
+        """True si ya se registró cualquiera de los recursos de transporte."""
+        entrega = self.envio_actual
+        if entrega and (entrega.conductor_id or entrega.conductor_usuario_id or entrega.vehiculo_id):
+            return True
+        return bool(
+            self.conductor_id
+            or self.conductor_usuario_legacy_id
+            or (entrega and entrega.vehiculo_id)
+        )
 
     @property
     def motivo_cancelacion_display(self):

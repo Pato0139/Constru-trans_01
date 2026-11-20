@@ -541,7 +541,11 @@ def panel(request):
             ).count(),
             "clientes": Usuario.objects.filter(rol="cliente").count(),
             "pedidos_recientes": Pedido.objects.select_related(
-                "usuario", "cliente__usuario"
+                "usuario", "cliente__usuario", "pago"
+            )
+            .prefetch_related(
+                "entregas__conductor",
+                "entregas__vehiculo",
             )
             .exclude(estado__in=[Pedido.CANCELADO, Pedido.ENTREGADO])
             .order_by("-fecha_solicitud", "-codigo_pedido")[:5],
@@ -741,7 +745,7 @@ def iniciar_entrega(request, entrega_id):
     return redirect("usuarios:panel_conductor")
 
 
-@role_required(["conductor", "admin"])
+@role_required(["conductor"])
 @require_POST
 def finalizar_entrega(request, entrega_id):
     if not request.user.is_active or request.user.estado != "activo":
@@ -749,7 +753,7 @@ def finalizar_entrega(request, entrega_id):
         return redirect("usuarios:login")
 
     conductor, _ = Conductor.ensure_for_user(request.user)
-    if request.user.rol != "admin" and conductor.estado != "activo":
+    if conductor.estado != "activo":
         messages.error(request, "Tu perfil de conductor no está activo.")
         return redirect("usuarios:login")
 
@@ -771,12 +775,8 @@ def finalizar_entrega(request, entrega_id):
         messages.error(request, "El envío especificado no existe.")
         return redirect("usuarios:panel_conductor")
 
-    # Comprobación de propiedad estricta (admin exento)
-    if (
-        request.user.rol != "admin"
-        and entrega.conductor_id != conductor.pk
-        and entrega.conductor_usuario_id != request.user.pk
-    ):
+    # Solo el conductor asignado puede confirmar la entrega.
+    if entrega.conductor_id != conductor.pk and entrega.conductor_usuario_id != request.user.pk:
         ip = obtener_ip(request)
         registrar_warning(ip)
         registrar_evento(
@@ -2106,6 +2106,7 @@ def perfil_conductor(request):
     pedidos = Pedido.objects.filter(conductor=perfil_conductor).select_related(
         "usuario", "cliente__usuario"
     )
+    viajes_completados = pedidos.filter(estado=Pedido.ENTREGADO).count()
 
     from apps.logistica.models import Entrega
 
@@ -2126,6 +2127,7 @@ def perfil_conductor(request):
     context = {
         "conductor": usuario_conductor,
         "pedidos": pedidos,
+        "viajes_completados": viajes_completados,
         "vehiculo": vehiculo,
     }
     return render(request, "usuarios/perfil-conductor.html", context)

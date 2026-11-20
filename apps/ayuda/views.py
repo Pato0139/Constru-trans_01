@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .forms import SugerenciaForm
 from .models import (
     CategoriaAyuda,
-    ColorSistema,
     GuiaEdicion,
     ManualUsuario,
 )
@@ -14,18 +13,30 @@ from .models import (
 @login_required
 def index_ayuda(request):
     """Página principal del módulo de ayuda."""
-    categorias = CategoriaAyuda.objects.all()
-    guias_favoritas = GuiaEdicion.objects.filter(es_favorito=True, activo=True)[:5]
-    ultimas_guias = GuiaEdicion.objects.filter(activo=True).order_by("-fecha_actualizacion")[:5]
-    colores = ColorSistema.objects.filter(activo=True)
     manuales = ManualUsuario.objects.filter(activo=True)
 
+    manuales_por_rol = {
+        "admin": {
+            "titulo": "Manual del Administrador",
+            "archivo": "manuales/MANUAL ADMINISTRADOR.pdf",
+            "descripcion": "Guía de uso del panel de administración y sus herramientas.",
+        },
+        "cliente": {
+            "titulo": "Manual de Usuario",
+            "archivo": "manuales/MANUAL USUARIO.pdf",
+            "descripcion": "Guía para usar el panel de cliente, crear pedidos y consultar su estado.",
+        },
+        "conductor": {
+            "titulo": "Manual del Conductor",
+            "archivo": "manuales/MANUAL CONDUCTOR.pdf",
+            "descripcion": "Guía del panel del conductor, las entregas y sus novedades.",
+        },
+    }
+    manual_rol = manuales_por_rol.get(getattr(request.user, "rol", ""))
+
     context = {
-        "categorias": categorias,
-        "guias_favoritas": guias_favoritas,
-        "ultimas_guias": ultimas_guias,
-        "colores": colores,
         "manuales": manuales,
+        "manual_rol": manual_rol,
     }
     return render(request, "ayuda/index.html", context)
 
@@ -83,11 +94,3 @@ def crear_sugerencia(request):
     return render(request, "ayuda/crear_sugerencia.html", context)
 
 
-@login_required
-def lista_colores(request):
-    """Lista de colores del sistema."""
-    colores = ColorSistema.objects.filter(activo=True)
-    context = {
-        "colores": colores,
-    }
-    return render(request, "ayuda/lista_colores.html", context)

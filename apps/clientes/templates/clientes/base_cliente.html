@@ -1,7 +1,7 @@
 
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light" data-daltonism="none" data-font-size="normal">
 
 <head>
 
@@ -32,21 +32,23 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
 
 <!-- Custom CSS -->
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=3.5">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=6.0">
+<link rel="stylesheet" href="{% static 'css/base.css' %}?v=3.3">
+<link rel="stylesheet" href="{% static 'css/utilities.css' %}?v=3.0">
 <link rel="stylesheet" href="{% static 'css/loader.css' %}">
-<link rel="stylesheet" href="{% static 'css/clientes/base.css' %}?v=1.0">
-<link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=1.0">
-<link rel="stylesheet" href="{% static 'css/sticky-topbar.css' %}?v=1.1">
+<link rel="stylesheet" href="{% static 'css/clientes/base.css' %}?v=2.0">
+<link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=3.4">
+<link rel="stylesheet" href="{% static 'css/sticky-topbar.css' %}?v=3.0">
 
-<script src="{% static 'js/user-preferences.js' %}?v=3.1"></script>
+<script src="{% static 'js/user-preferences.js' %}?v=3.3"></script>
 
-<link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=3.0">
 {% block extra_css %}{% endblock %}
-<link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=1.0">
-<link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=1.4">
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=4.1">
+<link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=3.3">
 </head>
 
-<body class="bg-light" data-ajax-shell="cliente">
+<body data-ajax-shell="cliente">
 
     <!-- Loader -->
     <div id="loader-container">
@@ -56,6 +58,8 @@
         </div>
         <p>Cargando Panel Cliente...</p>
     </div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <div class="container-fluid p-0">
 <div class="d-flex">
@@ -96,7 +100,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/loader.js' %}"></script>
 <script src="{% static 'js/core/ajax-navigation.js' %}?v=1.1"></script>
-<script src="{% static 'js/clientes/base.js' %}?v=1.0"></script>
+<script src="{% static 'js/clientes/base.js' %}?v=1.1"></script>
 <script src="{% static 'js/quantity-stepper.js' %}?v=1.0"></script>
 <script src="{% static 'js/tooltips.js' %}?v=1.0"></script>
 <script src="{% static 'js/partials/navbar.js' %}?v=1.2"></script>

@@ -7,6 +7,37 @@ AOS.init({
     easing: 'ease-in-out'
 });
 
+/** Manejo de la barra lateral móvil del panel de cliente. */
+(function initClientSidebar() {
+    function closeSidebar() {
+        document.getElementById('sidebar')?.classList.remove('active');
+        document.getElementById('sidebarOverlay')?.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('click', (event) => {
+        const toggle = event.target.closest('#sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        if (toggle && sidebar && overlay) {
+            const isOpen = sidebar.classList.toggle('active');
+            overlay.classList.toggle('active', isOpen);
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+            return;
+        }
+
+        if (event.target.closest('#sidebarClose') || event.target.closest('#sidebarOverlay')) {
+            closeSidebar();
+            return;
+        }
+
+        if (event.target.closest('#sidebar a') && window.innerWidth < 992) {
+            closeSidebar();
+        }
+    });
+})();
+
 // Configurar manejo de errores de DataTables
 $.fn.dataTable.ext.errMode = 'throw';
 

@@ -54,20 +54,17 @@ class CrearPedidoFlujoTests(TestCase):
             nombre="Cemento Gris Especial",
             descripcion="Bolsa de cemento 50kg",
             precio_referencia=Decimal("26000.00"),
-            stock=100,
+            stock=20000,
             estado="activo",
             activo=True,
         )
         self.stock = Stock.objects.create(
             material=self.material,
-            cantidad_actual=100,
+            cantidad_actual=20000,
         )
 
-    def test_flujo_completo_pedido_y_pago(self):
-        """Flujo completo: cliente crea pedido -> registra pago -> admin y cliente ven el estado."""
+    def test_cliente_puede_editar_pedido_autorizado_sin_transporte_y_actualiza_pago(self):
         self.client.force_login(self.cliente_user)
-
-        # 1. Cliente crea el pedido
         response_crear = self.client.post(
             reverse("clientes:crear_pedido"),
             data={
@@ -78,13 +75,72 @@ class CrearPedidoFlujoTests(TestCase):
             },
         )
         self.assertEqual(response_crear.status_code, 302)
+        pedido = Pedido.objects.get(usuario=self.cliente_user)
+        pago = Pago.objects.create(
+            pedido=pedido,
+            metodo=Pago.METODO_DAVIPLATA,
+            monto=Decimal("52000.00"),
+            estado=Pago.APROBADO,
+            comprobante=f"comprobantes/pedido_{pedido.codigo_pedido}/anterior.png",
+        )
+        pedido.estado = Pedido.AUTORIZADO_DESPACHO
+        pedido.save(update_fields=["estado"])
+
+        url_editar = reverse("clientes:editar_pedido", args=[pedido.codigo_pedido])
+        response_form = self.client.get(url_editar)
+        self.assertEqual(response_form.status_code, 200)
+
+        response_guardar = self.client.post(
+            url_editar,
+            data={
+                "material_id[]": [str(self.material.cod_material)],
+                "cantidad[]": ["3"],
+                "ciudad": "Bogotá",
+                "direccion_detalle": "Carrera 7 # 72-41",
+            },
+        )
+        self.assertRedirects(
+            response_guardar,
+            reverse("pagos:registrar_pago_pedido", args=[pedido.codigo_pedido]),
+            fetch_redirect_response=False,
+        )
+
+        pedido.refresh_from_db()
+        pago.refresh_from_db()
+        self.stock.refresh_from_db()
+        self.assertEqual(pedido.estado, Pedido.PENDIENTE)
+        self.assertEqual(pedido.total, Decimal("78000.00"))
+        self.assertEqual(pago.estado, Pago.PENDIENTE)
+        self.assertEqual(pago.monto, Decimal("78000.00"))
+        self.assertFalse(pago.comprobante)
+        self.assertEqual(self.stock.cantidad_actual, 19997)
+
+    def test_flujo_completo_pedido_y_pago(self):
+        """Flujo completo: cliente crea pedido -> registra pago -> admin y cliente ven el estado."""
+        self.client.force_login(self.cliente_user)
+
+        # 1. Cliente crea el pedido
+        response_crear = self.client.post(
+            reverse("clientes:crear_pedido"),
+            data={
+                "material_id[]": [str(self.material.cod_material)],
+                "cantidad[]": ["5000"],
+                "ciudad": "Bogotá",
+                "direccion_detalle": "Carrera 7 # 72-41",
+            },
+        )
+        self.assertEqual(response_crear.status_code, 302)
 
         pedido = Pedido.objects.first()
         self.assertIsNotNone(pedido)
         self.assertEqual(pedido.usuario, self.cliente_user)
-        self.assertEqual(pedido.total, Decimal("52000.00"))
-        self.assertEqual(pedido.subtotal, Decimal("52000.00"))
+        self.assertEqual(pedido.total, Decimal("130000000.00"))
+        self.assertEqual(pedido.subtotal, Decimal("130000000.00"))
         self.assertEqual(pedido.estado, "pendiente")
+        self.stock.refresh_from_db()
+        self.material.refresh_from_db()
+        self.assertEqual(self.stock.cantidad_actual, 15000)
+        self.assertEqual(self.material.stock, 15000)
 
         # 2. Cliente registra el pago
         response_pago = self.client.post(
@@ -98,7 +154,7 @@ class CrearPedidoFlujoTests(TestCase):
         pago = Pago.objects.filter(pedido=pedido).first()
         self.assertIsNotNone(pago)
         self.assertEqual(pago.estado, "pendiente")
-        self.assertEqual(pago.monto, Decimal("52000.00"))
+        self.assertEqual(pago.monto, Decimal("130000000.00"))
 
         # 3. Cliente ve el pedido en su panel como "Pendiente"
         response_cliente = self.client.get(reverse("clientes:mis_pedidos"))

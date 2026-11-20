@@ -207,10 +207,13 @@
 }
 
 .color-card {
+  background: var(--card-bg, var(--color-surface)) !important;
+  color: var(--color-text) !important;
   border-radius: 8px;
   padding: 1rem;
   text-align: center;
   border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft, none);
 }
 
 .color-swatch {
@@ -228,8 +231,20 @@
 
 .color-hex {
   font-family: 'Courier New', monospace;
-  color: var(--color-text-muted);
+  color: var(--color-muted);
   font-size: 0.85rem;
+}
+
+[data-theme="accessibility"] .color-card {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff;
+  box-shadow: none;
+}
+
+[data-theme="accessibility"] .color-name,
+[data-theme="accessibility"] .color-hex {
+  color: #ffffff !important;
 }
 
 /* Formulario de sugerencias */
