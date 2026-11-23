@@ -1306,6 +1306,28 @@
                     <div class="order-section-card">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3">
                             <i class="bi bi-sliders me-2"></i>Gestión del Pedido
+                    {% if eventos_logisticos %}
+                    <div class="order-section-card">
+                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
+                            <i class="bi bi-clock-history me-2"></i>Historial logístico
+                        </h6>
+                        <div class="d-flex flex-column gap-3">
+                            {% for evento in eventos_logisticos %}
+                            <div class="border-start border-2 {% if evento.tipo == 'novedad' %}border-warning{% else %}border-info{% endif %} ps-3">
+                                <div class="d-flex justify-content-between gap-2 flex-wrap">
+                                    <strong class="text-white small">{{ evento.titulo }}</strong>
+                                    <time class="text-muted x-small">{{ evento.fecha|date:"d/m/Y H:i" }}</time>
+                                </div>
+                                <p class="text-white-50 small mb-1">{{ evento.descripcion }}</p>
+                                {% if evento.solucion %}<p class="text-muted small mb-0"><strong>Acción aplicada:</strong> {{ evento.solucion }}</p>{% endif %}
+                                {% if evento.evidencia %}<a class="small" href="{{ evento.evidencia.url }}" target="_blank" rel="noopener">Ver evidencia fotográfica</a>{% endif %}
+                                <span class="text-muted x-small">Por: {% if evento.usuario %}{{ evento.usuario.nombre_mostrar|default:evento.usuario.username }}{% else %}Usuario del sistema{% endif %}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
                         </h6>
                         <div class="d-flex flex-column gap-2">
                             {% if user_rol == "cliente" and orden.estado != "cancelado" and orden.estado != "en_ruta" and orden.estado != "entregado" and not orden.asignacion_transporte_iniciada %}
@@ -1313,6 +1335,21 @@
                                 class="btn btn-outline-warning rounded-pill py-2 fw-700 small">
                                 <i class="bi bi-pencil-square me-1"></i> Modificar Pedido
                             </a>
+                            {% endif %}
+                            {% if user_rol == "admin" %}
+                            <a href="{% url 'logistica:reagendar_entrega' orden.codigo_pedido %}" class="btn btn-outline-info rounded-pill py-2 fw-700 small">
+                                <i class="bi bi-calendar2-event me-1"></i> Reagendar entrega
+                            </a>
+                            {% if entrega %}
+                            <a href="{% url 'logistica:crear_novedad' entrega.id_entrega %}" class="btn btn-outline-warning rounded-pill py-2 fw-700 small">
+                                <i class="bi bi-exclamation-triangle me-1"></i> Registrar novedad
+                            </a>
+                            {% if entrega.conductor_id and entrega.vehiculo_id %}
+                            <a href="{% url 'logistica:reasignar_entrega' orden.codigo_pedido %}" class="btn btn-outline-primary rounded-pill py-2 fw-700 small">
+                                <i class="bi bi-arrow-repeat me-1"></i> Reasignar conductor y vehículo
+                            </a>
+                            {% endif %}
+                            {% endif %}
                             {% endif %}
                             {% if orden.estado == "pendiente" %}
                             <button type="button" class="btn btn-outline-danger rounded-pill py-2 fw-700 w-100 small"

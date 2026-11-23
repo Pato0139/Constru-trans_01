@@ -6,14 +6,18 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connections, models, router, transaction
 from django.db.models import Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.timezone import now
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.usuarios.models import Conductor, Usuario
+from apps.pedidos.models import Pedido
 from apps.usuarios.views import admin_required
 from config.permissions import requiere_funcion
 from config.security import _respuesta_no_autorizada, role_required
 from config.utils import registrar_actividad
+from .forms import NovedadForm, ReagendarEntregaForm, ReasignarRecursosForm
+from .services import notificar_evento_logistico, reagendar_entrega, reasignar_recursos_entrega
 
 from .models import (
     MARCAS_VEHICULO,
@@ -441,55 +445,113 @@ def crear_novedad(request, entrega_id):
         if not conductor_asignado:
             return _respuesta_no_autorizada(request)
 
-    if request.method == "POST":
-        tipo = request.POST.get("tipo")
-        descripcion = request.POST.get("descripcion", "").strip()
-
-        if not tipo or not descripcion:
-            messages.error(request, "El tipo y la descripción de la novedad son obligatorios.")
-            return render(
-                request,
-                "logistica/crear.html",
-                {"entrega": entrega, "pedido": entrega.pedido},
-                status=400,
-            )
-
-        novedad = Novedad(
-            entrega=entrega,
-            tipo=tipo,
-            descripcion=descripcion,
-            reportado_por=request.user,
-        )
-        try:
-            novedad.full_clean()
-        except ValidationError:
-            messages.error(request, "El tipo y la descripción de la novedad no son válidos.")
-            return render(
-                request,
-                "logistica/crear.html",
-                {"entrega": entrega, "pedido": entrega.pedido},
-                status=400,
-            )
+    form = NovedadForm(request.POST or None, request.FILES or None)
+    if request.method == "POST" and form.is_valid():
+        novedad = form.save(commit=False)
+        novedad.entrega = entrega
+        novedad.reportado_por = request.user
         novedad.save()
-
+        tipo = novedad.get_tipo_display()
         registrar_actividad(
             request,
             "crear",
             "novedad",
             novedad.pk,
-            f"Novedad «{novedad.get_tipo_display()}» reportada por {request.user.nombre_mostrar} en entrega #{entrega.id_entrega}",
+            f"Novedad «{tipo}» registrada en el envío #{entrega.id_entrega}. "
+            f"Descripción: {novedad.descripcion}. Acción aplicada: {novedad.solucion or 'Pendiente'}",
         )
-
+        if novedad.tipo in {"demora", "clima", "mecanico", "cliente", "acceso_vias", "mercancia", "ausencia_cliente", "otro"}:
+            notificar_evento_logistico("novedad_logistica", entrega.pedido, extra_info=tipo)
         messages.success(request, "Novedad registrada correctamente.")
         if es_conductor:
             return redirect("logistica:mis_novedades")
-        return redirect("logistica:lista_novedades_admin")
+        return redirect("pedidos:ver_pedido_admin", id=entrega.pedido.codigo_pedido)
 
     return render(
         request,
         "logistica/crear.html",
-        {"entrega": entrega, "pedido": entrega.pedido},
+        {"entrega": entrega, "pedido": entrega.pedido, "form": form},
+        status=400 if request.method == "POST" else 200,
     )
+
+
+@admin_required
+@require_http_methods(["GET", "POST"])
+def reasignar_entrega(request, pedido_id):
+    pedido = get_object_or_404(Pedido, codigo_pedido=pedido_id)
+    entrega = pedido.entregas.select_related("conductor__usuario", "vehiculo").first()
+    if entrega is None:
+        messages.error(request, "El pedido no tiene un envío creado para reasignar.")
+        return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
+
+    form = ReasignarRecursosForm(request.POST or None, entrega=entrega)
+    if request.method == "POST" and form.is_valid():
+        motivo = dict(form.fields["motivo"].choices).get(form.cleaned_data["motivo"])
+        detalle_motivo = form.cleaned_data["detalle_motivo"].strip()
+        try:
+            actualizado = reasignar_recursos_entrega(
+                entrega.pk,
+                conductor_id=form.cleaned_data["conductor"].pk if form.cleaned_data["conductor"] else None,
+                vehiculo_id=form.cleaned_data["vehiculo"].pk if form.cleaned_data["vehiculo"] else None,
+                motivo=motivo,
+                detalle_motivo=detalle_motivo,
+            )
+        except ValidationError as exc:
+            for error in exc.messages:
+                messages.error(request, error)
+        else:
+            cambio = actualizado._reasignacion
+            conductor_anterior = " ".join(cambio["conductor_anterior_nombre"] or []) or "Sin asignar"
+            descripcion = (
+                f"Reasignación logística. Conductor: {conductor_anterior} → {cambio['conductor_nuevo_nombre']}; "
+                f"vehículo: {cambio['vehiculo_anterior_placa'] or 'Sin asignar'} → {cambio['vehiculo_nuevo_placa']}. "
+                f"Motivo: {motivo}. {detalle_motivo}".strip()
+            )
+            registrar_actividad(request, "editar", "pedido", pedido.codigo_pedido, descripcion)
+            notificar_evento_logistico(
+                "reasignacion",
+                actualizado.pedido,
+                extra_info=(
+                    f"Nuevo conductor: {cambio['conductor_nuevo_nombre']}; "
+                    f"vehículo: {cambio['vehiculo_nuevo_placa']}."
+                ),
+            )
+            messages.success(request, "La asignación del envío se actualizó y quedó registrada en el historial.")
+            return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
+
+    return render(request, "logistica/reasignar.html", {"pedido": pedido, "entrega": entrega, "form": form})
+
+
+@admin_required
+@require_http_methods(["GET", "POST"])
+def reagendar_entrega_view(request, pedido_id):
+    pedido = get_object_or_404(Pedido, codigo_pedido=pedido_id)
+    form = ReagendarEntregaForm(request.POST or None)
+    if request.method == "GET" and pedido.fecha_entrega_programada:
+        form.fields["fecha_entrega_programada"].initial = pedido.fecha_entrega_programada
+    if request.method == "POST" and form.is_valid():
+        motivo = dict(form.fields["motivo"].choices).get(form.cleaned_data["motivo"])
+        detalle_motivo = form.cleaned_data["detalle_motivo"].strip()
+        try:
+            actualizado, anterior = reagendar_entrega(
+                pedido.pk, form.cleaned_data["fecha_entrega_programada"]
+            )
+        except ValidationError as exc:
+            for error in exc.messages:
+                messages.error(request, error)
+        else:
+            anterior_texto = timezone.localtime(anterior).strftime("%d/%m/%Y %H:%M") if anterior else "Sin programar"
+            nueva_texto = timezone.localtime(actualizado.fecha_entrega_programada).strftime("%d/%m/%Y %H:%M")
+            descripcion = (
+                f"Entrega reagendada: {anterior_texto} → {nueva_texto}. "
+                f"Motivo: {motivo}. {detalle_motivo}".strip()
+            )
+            registrar_actividad(request, "editar", "pedido", pedido.codigo_pedido, descripcion)
+            notificar_evento_logistico("fecha_reagendada", actualizado, extra_info=f"Motivo: {motivo}.")
+            messages.success(request, "La nueva fecha quedó guardada y se notificó al cliente.")
+            return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
+
+    return render(request, "logistica/reagendar.html", {"pedido": pedido, "form": form})
 
 
 @login_required
