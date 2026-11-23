@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Reasignar envío · Pedido #CT-{{ pedido.codigo_pedido }}{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center"><div class="col-lg-8">
+    <div class="card bg-surface text-main border-secondary shadow rounded-4">
+      <div class="card-header border-secondary py-3"><h4 class="mb-0 text-accent"><i class="bi bi-arrow-repeat me-2"></i>Reasignar conductor y vehículo</h4></div>
+      <div class="card-body p-4">
+        <p class="text-muted">Pedido <strong class="text-main">#CT-{{ pedido.codigo_pedido }}</strong> · el estado logístico se conservará.</p>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6"><div class="border border-secondary rounded-3 p-3"><small class="text-muted d-block">Asignación actual</small><strong>{{ entrega.conductor.usuario.nombre_mostrar|default:"Sin conductor" }}</strong><div class="small text-muted">{{ entrega.vehiculo.placa|default:"Sin vehículo" }}</div></div></div>
+          <div class="col-md-6"><div class="border border-info rounded-3 p-3"><small class="text-muted d-block">Estado actual</small><strong>{{ pedido.get_estado_display }}</strong><div class="small text-muted">{{ entrega.get_estado_display }}</div></div></div>
+        </div>
+        <form method="post" id="reasignar-form" novalidate>{% csrf_token %}
+          {% for field in form %}<div class="mb-3"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>{{ field }}{% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>{% endfor %}
+          {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+          <div class="alert alert-info small" id="propuesta-asignacion">La selección vacía conserva el recurso actual.</div>
+          <div class="d-flex justify-content-between gap-2"><a class="btn btn-outline-secondary rounded-pill" href="{% url 'pedidos:ver_pedido_admin' pedido.codigo_pedido %}">Cancelar</a><button class="btn btn-primary rounded-pill" type="submit">Confirmar reasignación</button></div>
+        </form>
+      </div>
+    </div>
+  </div></div>
+</div>
+<script>
+(() => {
+  const form = document.getElementById('reasignar-form');
+  const driver = document.getElementById('id_conductor');
+  const vehicle = document.getElementById('id_vehiculo');
+  const preview = document.getElementById('propuesta-asignacion');
+  const driverOld = "{{ entrega.conductor.usuario.nombre_mostrar|default:'Sin conductor'|escapejs }}";
+  const vehicleOld = "{{ entrega.vehiculo.placa|default:'Sin vehículo'|escapejs }}";
+  function updatePreview() {
+    const driverNew = driver.value ? driver.options[driver.selectedIndex].text : driverOld;
+    const vehicleNew = vehicle.value ? vehicle.options[vehicle.selectedIndex].text : vehicleOld;
+    preview.textContent = `Nueva asignación: ${driverNew} · ${vehicleNew}`;
+  }
+  driver.addEventListener('change', updatePreview); vehicle.addEventListener('change', updatePreview);
+  form.addEventListener('submit', event => {
+    updatePreview();
+    if (!window.confirm(`${preview.textContent}. ¿Confirmas la reasignación?`)) event.preventDefault();
+  });
+})();
+</script>
+{% endblock %}

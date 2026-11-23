@@ -111,6 +111,8 @@
                     </td>
                     <td>
                         <div class="text-main small" style="max-width: 260px;">{{ nov.descripcion }}</div>
+                        {% if nov.solucion %}<div class="text-info small mt-1"><strong>Acción:</strong> {{ nov.solucion|truncatechars:100 }}</div>{% endif %}
+                        {% if nov.evidencia %}<a href="{{ nov.evidencia.url }}" target="_blank" rel="noopener" class="small">Ver evidencia</a>{% endif %}
                         {% if nov.respuesta_admin %}
                         <div class="text-info small mt-1" style="font-size: 0.72rem;">
                             <strong>Resp:</strong> {{ nov.respuesta_admin|truncatechars:60 }}

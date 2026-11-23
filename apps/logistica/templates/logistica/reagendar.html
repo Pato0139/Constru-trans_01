@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Reagendar entrega · Pedido #CT-{{ pedido.codigo_pedido }}{% endblock %}
+{% block content %}
+<div class="container py-4"><div class="row justify-content-center"><div class="col-lg-7">
+  <div class="card bg-surface text-main border-secondary shadow rounded-4">
+    <div class="card-header border-secondary py-3"><h4 class="mb-0 text-accent"><i class="bi bi-calendar2-event me-2"></i>Reagendar entrega</h4></div>
+    <div class="card-body p-4">
+      <p class="text-muted">Pedido <strong class="text-main">#CT-{{ pedido.codigo_pedido }}</strong> · estado: {{ pedido.get_estado_display }}. Reagendar no cancela ni retrocede el pedido.</p>
+      <div class="border border-secondary rounded-3 p-3 mb-4"><small class="text-muted d-block">Fecha programada actual</small><strong>{% if pedido.fecha_entrega_programada %}{{ pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}{% else %}Sin programar{% endif %}</strong></div>
+      <form method="post" id="reagendar-form" novalidate>{% csrf_token %}
+        {% for field in form %}<div class="mb-3"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>{{ field }}{% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>{% endfor %}
+        {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+        <div class="alert alert-info small" id="preview-fecha">Selecciona la nueva fecha y hora para revisar el cambio.</div>
+        <div class="d-flex justify-content-between gap-2"><a class="btn btn-outline-secondary rounded-pill" href="{% url 'pedidos:ver_pedido_admin' pedido.codigo_pedido %}">Cancelar</a><button class="btn btn-primary rounded-pill" type="submit">Confirmar nueva fecha</button></div>
+      </form>
+    </div>
+  </div>
+</div></div></div>
+<script>
+(() => {
+ const form = document.getElementById('reagendar-form');
+ const input = document.getElementById('id_fecha_entrega_programada');
+ const preview = document.getElementById('preview-fecha');
+ function update() { preview.textContent = input.value ? `Fecha propuesta: ${new Date(input.value).toLocaleString()}` : 'Selecciona la nueva fecha y hora para revisar el cambio.'; }
+ input.addEventListener('input', update); update();
+ form.addEventListener('submit', event => { update(); if (!window.confirm(`${preview.textContent}. ¿Confirmas el reagendamiento?`)) event.preventDefault(); });
+})();
+</script>
+{% endblock %}

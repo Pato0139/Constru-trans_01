@@ -284,10 +284,17 @@ Envio = Entrega
 class Novedad(models.Model):
     TIPOS = [
         ("demora", "Demora en entrega"),
+        ("clima", "Condiciones climáticas"),
+        ("mecanico", "Problemas mecánicos"),
+        ("cliente", "Inconveniente con el cliente"),
+        ("acceso_vias", "Problemas de acceso o vías"),
+        ("mercancia", "Problemas con la mercancía"),
+        ("ausencia_cliente", "Ausencia del cliente"),
         ("producto_danado", "Producto dañado"),
         ("cantidad_incorrecta", "Cantidad incorrecta"),
         ("devolucion", "Devolución"),
         ("observacion", "Observación"),
+        ("otro", "Otro"),
     ]
     ESTADOS = [
         ("abierta", "Abierta"),
@@ -303,6 +310,8 @@ class Novedad(models.Model):
 
     tipo = models.CharField(max_length=30, choices=TIPOS)
     descripcion = models.TextField(validators=[texto_multilinea])
+    solucion = models.TextField(blank=True, default="", validators=[texto_multilinea])
+    evidencia = models.ImageField(upload_to="novedades/%Y/%m/", null=True, blank=True)
     estado = models.CharField(max_length=15, choices=ESTADOS, default="abierta")
     fecha_generada = models.DateTimeField(auto_now_add=True)
     fecha_cierre = models.DateTimeField(null=True, blank=True)
