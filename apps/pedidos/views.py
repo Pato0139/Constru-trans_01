@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
+from apps.auditoria.models import Historial
 from apps.logistica.models import ConductorVehiculo, Entrega, Vehiculo
 from apps.logistica.services import (
     asignar_conductor_y_vehiculo,
@@ -738,6 +739,35 @@ def ver_pedido_admin(request, id):
     transporte_asignado = bool(
         orden.transporte_asignado or orden.estado == Pedido.EN_RUTA
     )
+    novedades_entrega = list(
+        entrega.novedades.select_related("reportado_por").order_by("-fecha_generada")
+    ) if entrega else []
+    eventos_logisticos = [
+        {
+            "fecha": registro.fecha_hora or registro.fecha,
+            "titulo": "Cambio logístico",
+            "descripcion": registro.descripcion,
+            "usuario": registro.usuario,
+            "tipo": "cambio",
+        }
+        for registro in Historial.objects.filter(
+            Q(modulo__in=["pedido", "pedidos"], elemento_id=str(orden.codigo_pedido))
+            | Q(modulo__in=["entrega", "envio", "envíos"], elemento_id=str(entrega.pk if entrega else -1))
+        ).select_related("usuario")
+    ]
+    eventos_logisticos.extend(
+        {
+            "fecha": novedad.fecha_generada,
+            "titulo": f"Novedad: {novedad.get_tipo_display()}",
+            "descripcion": novedad.descripcion,
+            "usuario": novedad.reportado_por,
+            "tipo": "novedad",
+            "solucion": novedad.solucion,
+            "evidencia": novedad.evidencia,
+        }
+        for novedad in novedades_entrega
+    )
+    eventos_logisticos.sort(key=lambda evento: evento["fecha"], reverse=True)
     pago = orden.pago_actual
 
     conductores_disponibles = []

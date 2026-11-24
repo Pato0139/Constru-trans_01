@@ -172,6 +172,36 @@ def notificar_evento_logistico(evento, pedido, actor=None, extra_info="", using=
                 using=db_alias,
             )
 
+    elif evento in {"reasignacion", "fecha_reagendada", "novedad_logistica"}:
+        if evento == "reasignacion":
+            titulo = f"Actualización logística - Pedido #CT-{codigo} - {timezone.localtime().strftime('%Y%m%d%H%M%S%f')}"
+            mensaje = f"Se actualizó la asignación de tu pedido #CT-{codigo}. {extra_info}".strip()
+            tipo = "warning"
+        elif evento == "fecha_reagendada":
+            titulo = f"Nueva fecha de entrega - Pedido #CT-{codigo} - {timezone.localtime().strftime('%Y%m%d%H%M%S%f')}"
+            fecha = pedido.fecha_entrega_programada
+            fecha_texto = timezone.localtime(fecha).strftime("%d/%m/%Y %H:%M") if fecha else "por confirmar"
+            mensaje = f"La entrega del pedido #CT-{codigo} fue reagendada para el {fecha_texto}. {extra_info}".strip()
+            tipo = "warning"
+        else:
+            titulo = f"Novedad logística - Pedido #CT-{codigo} - {timezone.localtime().strftime('%Y%m%d%H%M%S%f')}"
+            mensaje = f"Se registró una novedad que puede afectar la entrega del pedido #CT-{codigo}: {extra_info}".strip()
+            tipo = "warning"
+        if cliente_usr:
+            crear_notificacion_unica(cliente_usr, titulo, mensaje, tipo=tipo, link=link_pedido, using=db_alias)
+
+        if evento == "reasignacion":
+            conductor_usr = _resolver_usuario_en_db(pedido.conductor_usuario, db_alias=db_alias)
+            if conductor_usr and conductor_usr.rol == "conductor":
+                crear_notificacion_unica(
+                    conductor_usr,
+                    f"Envío actualizado - Pedido #CT-{codigo}",
+                    f"Tienes una actualización en el pedido #CT-{codigo}. Revisa los datos de la entrega.",
+                    tipo="info",
+                    link=link_pedido,
+                    using=db_alias,
+                )
+
     elif evento == "en_ruta":
         nombre_actor = actor.nombre_mostrar if actor and hasattr(actor, "nombre_mostrar") else "El conductor"
         titulo_cliente = f"Pedido en ruta - Pedido #CT-{codigo}"
@@ -688,6 +718,140 @@ def _verificar_permiso_operacion_envio(orden, entrega, usuario, db_alias="defaul
     """Verifica que el usuario sea administrador o el conductor asignado al envío."""
     if usuario is None or not getattr(usuario, "is_authenticated", False):
         raise PermissionDenied("Usuario no autenticado.")
+def reasignar_recursos_entrega(
+    entrega_id, conductor_id=None, vehiculo_id=None, motivo="", detalle_motivo="", using=None
+):
+    """Reasigna uno o ambos recursos sin cambiar el estado logístico del envío."""
+    db_alias = using or "default"
+    ahora = timezone.now()
+    with transaction.atomic(using=db_alias):
+        entrega = (
+            select_for_update_if_supported(Entrega.objects.using(db_alias), db_alias)
+            .select_related("pedido")
+            .get(pk=entrega_id)
+        )
+        orden = select_for_update_if_supported(Pedido.objects.using(db_alias), db_alias).get(
+            pk=entrega.pedido_id
+        )
+        if orden.estado in (Pedido.ENTREGADO, Pedido.CANCELADO) or entrega.estado in (
+            "entregado", "cancelado"
+        ):
+            raise ValidationError("No se puede reasignar un envío finalizado o cancelado.")
+        if orden.estado not in (Pedido.AUTORIZADO_DESPACHO, Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA):
+            raise ValidationError("El pedido todavía no está autorizado para gestión logística.")
+
+        nuevo_conductor_id = conductor_id or entrega.conductor_id
+        nuevo_vehiculo_id = vehiculo_id or entrega.vehiculo_id
+        if not nuevo_conductor_id or not nuevo_vehiculo_id:
+            raise ValidationError("El envío debe conservar un conductor y un vehículo asignados.")
+        if (nuevo_conductor_id, nuevo_vehiculo_id) == (entrega.conductor_id, entrega.vehiculo_id):
+            raise ValidationError("Selecciona al menos un recurso distinto al actual.")
+
+        conductor = select_for_update_if_supported(
+            Conductor.objects.using(db_alias), db_alias
+        ).select_related("usuario").filter(pk=nuevo_conductor_id).first()
+        vehiculo = select_for_update_if_supported(
+            Vehiculo.objects.using(db_alias), db_alias
+        ).filter(pk=nuevo_vehiculo_id).first()
+        if conductor is None or (
+            conductor.pk != entrega.conductor_id
+            and (conductor.estado != "activo" or not conductor.usuario.is_active or conductor.usuario.estado != "activo")
+        ):
+            raise ValidationError("El conductor debe estar activo y disponible.")
+        if vehiculo is None:
+            raise ValidationError("El vehículo seleccionado no existe.")
+        if nuevo_vehiculo_id != entrega.vehiculo_id and vehiculo.estado != "disponible":
+            raise ValidationError("El nuevo vehículo no está disponible para asignación.")
+
+        estados_activos = [Pedido.AUTORIZADO_DESPACHO, Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA]
+        conflictos_conductor = Entrega.objects.using(db_alias).filter(
+            conductor_id=nuevo_conductor_id,
+            estado__in=["pendiente", "en_ruta"],
+            pedido__estado__in=estados_activos,
+        ).exclude(pk=entrega.pk)
+        if conflictos_conductor.exists():
+            raise ValidationError("El conductor ya tiene otro envío activo asignado.")
+        conflictos_vehiculo = Entrega.objects.using(db_alias).filter(
+            vehiculo_id=nuevo_vehiculo_id,
+            estado__in=["pendiente", "en_ruta"],
+            pedido__estado__in=estados_activos,
+        ).exclude(pk=entrega.pk)
+        if conflictos_vehiculo.exists():
+            raise ValidationError("El vehículo ya está asignado a otro envío activo.")
+
+        conductor_anterior_id, vehiculo_anterior_id = entrega.conductor_id, entrega.vehiculo_id
+        ConductorVehiculo.objects.using(db_alias).filter(
+            Q(conductor_id=conductor_anterior_id) | Q(vehiculo_id=vehiculo_anterior_id),
+            fecha_fin__isnull=True,
+        ).update(fecha_fin=ahora)
+        ConductorVehiculo.objects.using(db_alias).filter(
+            Q(conductor_id=nuevo_conductor_id) | Q(vehiculo_id=nuevo_vehiculo_id),
+            fecha_fin__isnull=True,
+        ).update(fecha_fin=ahora)
+        ConductorVehiculo.objects.using(db_alias).create(
+            conductor=conductor, vehiculo=vehiculo, fecha_asignacion=ahora
+        )
+
+        entrega.conductor = conductor
+        entrega.conductor_usuario = conductor.usuario
+        entrega.vehiculo = vehiculo
+        entrega.fecha_asignacion = ahora
+        entrega.save(using=db_alias, update_fields=["conductor", "conductor_usuario", "vehiculo", "fecha_asignacion"])
+        orden.conductor = conductor
+        orden.conductor_usuario_legacy = conductor.usuario
+        orden.save(using=db_alias, update_fields=["conductor", "conductor_usuario_legacy"])
+        entrega.pedido = orden
+
+        if vehiculo_anterior_id and vehiculo_anterior_id != vehiculo.pk:
+            anterior = Vehiculo.objects.using(db_alias).filter(pk=vehiculo_anterior_id).first()
+            sigue_en_ruta = Entrega.objects.using(db_alias).filter(
+                vehiculo_id=vehiculo_anterior_id, estado="en_ruta"
+            ).exclude(pk=entrega.pk).exists()
+            if anterior and anterior.estado == "en_ruta" and not sigue_en_ruta:
+                anterior.estado = "disponible"
+                anterior.save(using=db_alias, update_fields=["estado"])
+        if entrega.estado == "en_ruta" and vehiculo.estado != "en_ruta":
+            vehiculo.estado = "en_ruta"
+            vehiculo.save(using=db_alias, update_fields=["estado"])
+
+        entrega._reasignacion = {
+            "conductor_anterior": conductor_anterior_id,
+            "conductor_nuevo": conductor.pk,
+            "vehiculo_anterior": vehiculo_anterior_id,
+            "vehiculo_nuevo": vehiculo.pk,
+            "motivo": motivo,
+            "detalle_motivo": detalle_motivo,
+            "conductor_anterior_nombre": (
+                Conductor.objects.using(db_alias).select_related("usuario").filter(pk=conductor_anterior_id)
+                .values_list("usuario__nombres", "usuario__apellidos").first()
+                if conductor_anterior_id else None
+            ),
+            "conductor_nuevo_nombre": conductor.usuario.nombre_mostrar,
+            "vehiculo_anterior_placa": Vehiculo.objects.using(db_alias).filter(pk=vehiculo_anterior_id).values_list("placa", flat=True).first() if vehiculo_anterior_id else None,
+            "vehiculo_nuevo_placa": vehiculo.placa,
+        }
+        return entrega
+
+
+def reagendar_entrega(pedido_id, nueva_fecha, using=None):
+    """Actualiza la fecha programada y conserva estado y recursos del pedido."""
+    db_alias = using or "default"
+    if nueva_fecha <= timezone.now():
+        raise ValidationError("La nueva fecha de entrega debe ser futura.")
+    with transaction.atomic(using=db_alias):
+        pedido = select_for_update_if_supported(Pedido.objects.using(db_alias), db_alias).get(
+            pk=pedido_id
+        )
+        if pedido.estado in (Pedido.ENTREGADO, Pedido.CANCELADO):
+            raise ValidationError("No se puede reagendar un pedido finalizado o cancelado.")
+        anterior = pedido.fecha_entrega_programada
+        if anterior == nueva_fecha:
+            raise ValidationError("La fecha seleccionada es igual a la fecha actual.")
+        pedido.fecha_entrega_programada = nueva_fecha
+        pedido.save(using=db_alias, update_fields=["fecha_entrega_programada"])
+        return pedido, anterior
+
+
 
     es_admin = (
         getattr(usuario, "is_superuser", False)

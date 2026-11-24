@@ -59,36 +59,17 @@
                         </div>
                     </div>
 
-                    <form method="post" novalidate>
+                    <form method="post" enctype="multipart/form-data" novalidate>
                         {% csrf_token %}
-
+                        {% for field in form %}
                         <div class="mb-3">
-                            <label for="tipo" class="form-label fw-semibold">
-                                Tipo de novedad <span class="text-danger">*</span>
-                            </label>
-                            <select name="tipo" id="tipo" class="form-select form-select-lg" required>
-                                <option value="" selected disabled>-- Seleccione el tipo --</option>
-                                <option value="demora">Demora en entrega</option>
-                                <option value="producto_danado">Producto danado</option>
-                                <option value="cantidad_incorrecta">Cantidad incorrecta</option>
-                                <option value="devolucion">Devolucion</option>
-                                <option value="observacion">Observacion</option>
-                            </select>
+                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                            {% for error in field.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                         </div>
-
-                        <div class="mb-4">
-                            <label for="descripcion" class="form-label fw-semibold">
-                                Descripcion de la novedad <span class="text-danger">*</span>
-                            </label>
-                            <textarea
-                                name="descripcion"
-                                id="descripcion"
-                                class="form-control"
-                                rows="5"
-                                placeholder="Describa detalladamente la novedad presentada..."
-                                required
-                            ></textarea>
-                        </div>
+                        {% endfor %}
+                        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
 
                         <div class="d-flex justify-content-between align-items-center gap-2">
                             <a href="{% url 'pedidos:ver_pedido_admin' pedido.codigo_pedido %}"
