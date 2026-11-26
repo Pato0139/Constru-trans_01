@@ -1,21 +1,18 @@
 {% for reg in registros %}
 <tr>
-    <td class="text-nowrap">{{ reg.id }}</td>
-    <td class="text-nowrap">
+    <td class="text-nowrap col-id">{{ reg.id }}</td>
+    <td class="col-usuario">
         {% if reg.usuario %}
-        <span class="badge bg-info text-dark">{{ reg.usuario.get_full_name|default:reg.usuario.username }}</span>
-        <div class="small text-muted">{{ reg.usuario.username }}</div>
+        <span class="badge bg-info text-dark fw-semibold px-2 py-1 auditoria-user-badge" title="{{ reg.usuario.username }}">{{ reg.usuario.username }}</span>
         {% else %}
         <span class="badge bg-secondary">Sistema / Anónimo</span>
         {% endif %}
     </td>
-    <td><small class="text-white-50">{{ reg.descripcion|default:"—" }}</small></td>
-    <td class="text-nowrap">{{ reg.modulo|default:reg.tabla|default:"—"|capfirst }}</td>
-    <td class="text-nowrap text-center">{{ reg.elemento_id|default:reg.registro_id|default:"—" }}</td>
-    <td class="text-nowrap">{{ reg.envio_relacionado|default:"—" }}</td>
-    <td class="text-nowrap"><span class="small text-white-50 text-nowrap">{{ reg.fecha_hora|default:reg.fecha|date:"d/m/Y H:i" }}</span></td>
-    <td class="text-nowrap">{{ reg.get_accion_display|default:reg.accion }}</td>
-    <td class="text-nowrap text-center">
+    <td class="col-desc"><span class="auditoria-desc-text">{{ reg.descripcion|default:"—" }}</span></td>
+    <td class="text-nowrap text-center col-modulo"><span class="auditoria-modulo-pill">{{ reg.modulo|default:reg.tabla|default:"—"|capfirst }}</span></td>
+    <td class="text-nowrap col-fecha"><span class="auditoria-fecha-text text-nowrap">{{ reg.fecha_hora|default:reg.fecha|date:"d/m/Y H:i" }}</span></td>
+    <td class="text-nowrap col-accion">{{ reg.get_accion_display|default:reg.accion }}</td>
+    <td class="text-nowrap text-center col-ip">
         {% if reg.ip_address or reg.ip %}
         <span class="text-nowrap font-monospace text-muted small" style="white-space: nowrap !important; word-break: normal !important; display: inline-block;">{{ reg.ip_address|default:reg.ip }}</span>
         {% else %}
@@ -25,7 +22,7 @@
 </tr>
 {% empty %}
 <tr>
-    <td colspan="9" class="text-center py-5 text-muted">
+    <td colspan="7" class="text-center py-5 text-muted">
         <i class="bi bi-journal-x fs-3 d-block mb-2"></i>
         No hay acciones registradas con los filtros seleccionados.
     </td>

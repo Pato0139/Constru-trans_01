@@ -2,8 +2,7 @@
 <tr class="u-inline-e91738c112">
     <td class="py-3 px-4">
         <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold bg-dark border border-secondary text-accent"
-                 style="width: 42px; height: 42px; min-width: 42px;">
+            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold proveedor-avatar-icon">
                 <i class="bi bi-buildings fs-5"></i>
             </div>
             <div>
@@ -15,7 +14,7 @@
         </div>
     </td>
     <td class="py-3 px-4">
-        <span class="badge bg-dark border border-secondary px-3 py-2 text-white">{{ p.nit }}</span>
+        <span class="proveedor-nit-badge">{{ p.nit }}</span>
     </td>
     <td class="py-3 px-4">
         <div class="fw-medium text-white">{{ p.contacto_nombre|default:p.nombre_empresa }}</div>

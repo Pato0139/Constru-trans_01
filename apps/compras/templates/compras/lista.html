@@ -20,17 +20,17 @@
     <!-- Tabla con Glassmorphism -->
     <div class="table-container p-0 overflow-hidden u-inline-6b0d9e24ec" data-aos="fade-up">
         <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle mb-0">
+            <table class="table table-dark table-hover align-middle mb-0 compras-table">
                 <thead>
                     <tr class="u-inline-e91738c112">
-                        <th class="ps-4 py-4 text-muted small fw-bold text-uppercase">Orden</th>
-                        <th class="py-4 text-muted small fw-bold text-uppercase">Proveedor</th>
-                        <th class="py-4 text-muted small fw-bold text-uppercase">Fecha</th>
-                        <th class="py-4 text-muted small fw-bold text-uppercase text-center">Materiales</th>
-                        <th class="py-4 text-muted small fw-bold text-uppercase text-end">Total</th>
-                        <th class="py-4 text-muted small fw-bold text-uppercase text-center">Registrado Por</th>
-                        <th class="py-4 text-muted small fw-bold text-uppercase text-center">Estado</th>
-                        <th class="py-4 text-muted small fw-bold text-uppercase text-center pe-4">Acciones</th>
+                        <th class="ps-4 py-3 text-muted small fw-bold text-uppercase col-orden">Orden</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase col-proveedor">Proveedor</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase text-center col-fecha">Fecha</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase text-center col-materiales">Materiales</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase text-center col-total">Total</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase text-center col-registrado">Registrado Por</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase text-center col-estado">Estado</th>
+                        <th class="py-3 text-muted small fw-bold text-uppercase text-center pe-4 col-acciones">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="compras-tbody">
@@ -56,9 +56,43 @@
     }
 
     .table-responsive>.table {
-        min-width: 42rem;
+        width: 100% !important;
+        min-width: 960px;
+        table-layout: fixed;
         border-collapse: separate !important;
         border-radius: 24px;
+    }
+
+    .compras-table tbody td {
+        padding: 0.9rem 0.65rem !important;
+        vertical-align: middle;
+    }
+
+    .compras-table .col-orden { width: 9%; text-align: left !important; }
+    .compras-table .col-proveedor { width: 20%; text-align: left !important; }
+    .compras-table .col-fecha { width: 10%; text-align: center !important; }
+    .compras-table .col-materiales { width: 16%; text-align: center !important; }
+    .compras-table .col-total { width: 10%; text-align: center !important; font-variant-numeric: tabular-nums; }
+    .compras-table .col-registrado { width: 15%; text-align: center !important; }
+    .compras-table .col-estado { width: 12%; text-align: center !important; }
+    .compras-table .col-acciones { width: 8%; text-align: center !important; }
+
+    .compras-user-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        max-width: 100%;
+        padding: 0.3rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        overflow: hidden;
+    }
+
+    .compras-user-chip span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .table thead th:first-child {

@@ -100,10 +100,10 @@ _NAMESPACE_ROLES = {
     "auditoria": {"admin"},
     "pedidos": {"admin", "cliente"},
     "pagos": {"admin", "cliente"},
-    "inicio": {"admin", "cliente", "conductor", "empleado"},
-    "ia": {"admin", "cliente", "conductor", "empleado"},
-    "ayuda": {"admin", "cliente", "conductor", "empleado"},
-    "licensing": {"admin", "cliente", "conductor", "empleado"},
+    "inicio": {"admin", "cliente", "conductor"},
+    "ia": {"admin", "cliente", "conductor"},
+    "ayuda": {"admin", "cliente", "conductor"},
+    "licensing": {"admin", "cliente", "conductor"},
 }
 
 

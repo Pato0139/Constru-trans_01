@@ -382,12 +382,12 @@ _CONOCIMIENTO_PROYECTO = [
             "funciones del sistema",
             "funcionalidades del proyecto",
         ],
-        "keywords": ["rol", "roles", "panel", "admin", "cliente", "conductor", "empleado", "modulos"],
+        "keywords": ["rol", "roles", "panel", "admin", "cliente", "conductor", "modulos"],
         "min_score": 3,
         "respuesta": (
             "🏗️ **Roles y Módulos Completos de Constru-Trans**\n"
-            "Constru-Trans integra 3 paneles principales adaptados a cada rol:\n"
-            "- **Administrador / Empleado:** Dashboard con métricas, Usuarios y Conductores, Catálogo (Materiales, Tipos, Marcas, Unidades), Inventario y Movimientos, Pedidos, Pagos y Facturas, Compras y Proveedores, Flota y Logística, Reportes (PDF/Excel/XML), Auditoría, Backups y Sincronización Híbrida.\n"
+            "Constru-Trans integra los roles de Admin Global, Administrador, Conductor y Cliente:\n"
+            "- **Admin Global / Administrador:** Dashboard con métricas, Usuarios y Conductores, Catálogo (Materiales, Tipos, Marcas, Unidades), Inventario y Movimientos, Pedidos, Pagos y Facturas, Compras y Proveedores, Flota y Logística, Reportes (PDF/Excel/XML), Auditoría, Backups y Sincronización Híbrida.\n"
             "- **Cliente:** Panel de Cliente, Nuevo Pedido (con cálculo de envío y mínimo), Mis Pedidos con seguimiento en tiempo real, Pagos/Comprobantes, Facturas, Mi Perfil y Centro de Ayuda.\n"
             "- **Conductor:** Panel del Conductor, Vehículo asignado, Mis Entregas (Iniciar Ruta / Finalizar Entrega), Reporte de Novedades, Mi Perfil y Centro de Ayuda.\n\n"
             "Pregúntame por cualquier módulo o dato en tiempo real (ej. *«¿qué pagos hay pendientes?»*, *«¿qué vehículos están disponibles?»*, *«¿cómo funciona el modo híbrido?»*)."

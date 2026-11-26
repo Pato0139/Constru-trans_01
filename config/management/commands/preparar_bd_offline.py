@@ -28,6 +28,7 @@ class Command(BaseCommand):
         marker = Path(f"{db_name}.offline-ready")
         try:
             self._repair_empty_migration_history()
+            self._repair_orphan_foreign_keys()
             call_command("migrate", database="local", interactive=False, verbosity=0)
         except Exception:
             logger.exception("No se pudieron preparar las tablas locales para modo offline.")
@@ -271,3 +272,78 @@ class Command(BaseCommand):
             # solo ese historial permite crear el esquema completo con migrate.
             with connection.cursor() as cursor:
                 cursor.execute("DELETE FROM django_migrations")
+
+    @staticmethod
+    def _repair_orphan_foreign_keys():
+        """Repara filas huérfanas en SQLite antes de migrar para evitar IntegrityError."""
+        connection = connections["local"]
+        if connection.vendor != "sqlite":
+            return
+
+        qn = connection.ops.quote_name
+        nulled = 0
+        deleted = 0
+
+        disabled = connection.disable_constraint_checking()
+        try:
+            with connection.cursor() as cursor:
+                for _ in range(10):
+                    cursor.execute("PRAGMA foreign_key_check")
+                    violations = cursor.fetchall()
+                    if not violations:
+                        break
+
+                    fk_cols_cache = {}
+                    notnull_cache = {}
+                    rows_to_delete = {}
+                    cols_to_null = {}
+
+                    for table, rowid, _parent, fkid in violations:
+                        if table not in fk_cols_cache:
+                            cursor.execute(f"PRAGMA foreign_key_list({qn(table)})")
+                            fk_map = {}
+                            for row in cursor.fetchall():
+                                # (id, seq, table, from, to, on_update, on_delete, match)
+                                fk_map.setdefault(row[0], []).append(row[3])
+                            fk_cols_cache[table] = fk_map
+
+                            cursor.execute(f"PRAGMA table_info({qn(table)})")
+                            # (cid, name, type, notnull, dflt_value, pk)
+                            notnull_cache[table] = {
+                                info[1]: bool(info[3]) for info in cursor.fetchall()
+                            }
+
+                        cols = fk_cols_cache[table].get(fkid, [])
+                        table_notnull = notnull_cache[table]
+                        if cols and all(not table_notnull.get(col, True) for col in cols):
+                            for col in cols:
+                                cols_to_null.setdefault((table, col), set()).add(rowid)
+                        else:
+                            rows_to_delete.setdefault(table, set()).add(rowid)
+
+                    for (table, col), rowids in cols_to_null.items():
+                        placeholders = ",".join("%s" for _ in rowids)
+                        cursor.execute(
+                            f"UPDATE {qn(table)} SET {qn(col)} = NULL WHERE rowid IN ({placeholders})",
+                            list(rowids),
+                        )
+                        nulled += cursor.rowcount
+
+                    for table, rowids in rows_to_delete.items():
+                        placeholders = ",".join("%s" for _ in rowids)
+                        cursor.execute(
+                            f"DELETE FROM {qn(table)} WHERE rowid IN ({placeholders})",
+                            list(rowids),
+                        )
+                        deleted += cursor.rowcount
+        finally:
+            if disabled:
+                connection.enable_constraint_checking()
+
+        if nulled or deleted:
+            logger.warning(
+                "Se repararon referencias huérfanas en la base local SQLite antes de migrar "
+                "(campos puestos en NULL: %s, filas eliminadas: %s).",
+                nulled,
+                deleted,
+            )

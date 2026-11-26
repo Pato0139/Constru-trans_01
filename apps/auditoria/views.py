@@ -131,12 +131,12 @@ def _resolver_envios(registros):
     return resultados
 
 
-def _fila_json(registro, envio):
+def _fila_json(registro):
     usuario = (
-        format_html('<span class="badge bg-info text-dark">{}</span>', registro.usuario.username)
+        format_html('<span class="badge bg-info text-dark fw-semibold px-2 py-1 auditoria-user-badge" title="{}">{}</span>', registro.usuario.username, registro.usuario.username)
         if registro.usuario
         else format_html(
-            '<span class="badge bg-secondary text-white">Sistema/Anónimo</span>'
+            '<span class="badge bg-secondary text-white px-2 py-1">Sistema/Anónimo</span>'
         )
     )
     estilos_accion = {
@@ -151,15 +151,15 @@ def _fila_json(registro, envio):
         ("text-main", "bi-activity", registro.get_accion_display()),
     )
     accion = format_html(
-        '<span class="{}"><i class="bi {} me-1"></i>{}</span>', estilo, icono, etiqueta
+        '<span class="fw-semibold {}"><i class="bi {} me-1"></i>{}</span>', estilo, icono, etiqueta
     )
-    modulo = registro.modulo or registro.tabla or "—"
-    elemento_id = registro.elemento_id or registro.registro_id or "—"
-    descripcion = format_html("<small>{}</small>", registro.descripcion or "—")
+    modulo = (registro.modulo or registro.tabla or "—").capitalize()
+    modulo_html = format_html('<span class="auditoria-modulo-pill">{}</span>', modulo)
+    descripcion = format_html('<span class="auditoria-desc-text">{}</span>', registro.descripcion or "—")
     fecha = registro.fecha_hora or registro.fecha
     fecha_txt = (
         format_html(
-            '<span class="text-nowrap small text-white-50">{}</span>',
+            '<span class="text-nowrap auditoria-fecha-text">{}</span>',
             timezone.localtime(fecha).strftime("%d/%m/%Y %H:%M"),
         )
         if fecha
@@ -177,9 +177,7 @@ def _fila_json(registro, envio):
         registro.pk,
         usuario,
         descripcion,
-        format_html("{}", modulo.capitalize()),
-        elemento_id,
-        envio,
+        modulo_html,
         fecha_txt,
         accion,
         ip,
@@ -222,33 +220,27 @@ def lista_historial(request):
             "1": "usuario__username",
             "2": "descripcion",
             "3": "modulo",
-            "4": "elemento_id",
-            "5": "elemento_id",
-            "6": "fecha_hora",
-            "7": "accion",
-            "8": "ip_address",
+            "4": "fecha_hora",
+            "5": "accion",
+            "6": "ip_address",
         }
-        order_column = request.GET.get("order[0][column]", "6")
+        order_column = request.GET.get("order[0][column]", "4")
         order_field = columnas.get(order_column, "fecha_hora")
         if request.GET.get("order[0][dir]") == "desc":
             order_field = f"-{order_field}"
         registros = registros.order_by(order_field, "-id")
         pagina = list(registros[start : start + length])
-        envios = _resolver_envios(pagina)
 
         return JsonResponse(
             {
                 "draw": draw,
                 "recordsTotal": records_total,
                 "recordsFiltered": records_filtered,
-                "data": [_fila_json(reg, envios.get(reg.pk, "—")) for reg in pagina],
+                "data": [_fila_json(reg) for reg in pagina],
             }
         )
 
     ordenes = list(registros.order_by("-fecha_hora", "-id")[:10])
-    envios = _resolver_envios(ordenes)
-    for registro in ordenes:
-        registro.envio_relacionado = envios.get(registro.pk, "—")
 
     context = {
         "acciones": Historial.ACCIONES,

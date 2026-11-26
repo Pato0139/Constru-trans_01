@@ -56,8 +56,8 @@ class UsuarioForm(forms.ModelForm):
     def clean_documento(self):
         documento = self.cleaned_data.get("documento")
         documento = limpiar_telefono(documento)
-        if not (7 <= len(documento) <= 10):
-            raise forms.ValidationError("El número de documento debe tener entre 7 y 10 dígitos.")
+        if not documento.isdigit() or len(documento) != 10:
+            raise forms.ValidationError("El número de documento debe tener exactamente 10 dígitos numéricos.")
 
         existing = Usuario.objects.using("default").filter(documento=documento)
         if self.instance:
@@ -69,8 +69,8 @@ class UsuarioForm(forms.ModelForm):
     def clean_telefono(self):
         telefono = self.cleaned_data.get("telefono")
         telefono = limpiar_telefono(telefono)
-        if not (7 <= len(telefono) <= 10):
-            raise forms.ValidationError("El número de teléfono debe tener entre 7 y 10 dígitos.")
+        if not telefono.isdigit() or len(telefono) != 10:
+            raise forms.ValidationError("El número de celular debe tener exactamente 10 dígitos numéricos.")
         return telefono
 
 
@@ -143,20 +143,25 @@ class RegistroForm(forms.ModelForm):
             "documento": forms.TextInput(
                 attrs={
                     "class": "input-custom",
-                    "placeholder": "Ej: 12345678",
-                    "pattern": "[A-Za-z0-9\\s]*",
-                    "title": "Solo se admiten letras y números",
+                    "placeholder": "Ej: 1012345678",
+                    "pattern": "[0-9]{10}",
+                    "title": "Debe contener exactamente 10 dígitos numéricos",
+                    "minlength": "10",
                     "maxlength": "10",
+                    "inputmode": "numeric",
+                    "oninput": "this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)",
                 }
             ),
             "telefono": forms.TextInput(
                 attrs={
                     "class": "input-custom",
-                    "placeholder": "Ej: 300 123 4567",
-                    "pattern": "[0-9\\s]*",
-                    "title": "Solo se admiten números y espacios",
+                    "placeholder": "Ej: 3001234567",
+                    "pattern": "[0-9]{10}",
+                    "title": "Debe contener exactamente 10 dígitos numéricos",
+                    "minlength": "10",
                     "maxlength": "10",
-                    "oninput": "this.value = this.value.replace(/[^0-9\\s]/g, '')",
+                    "inputmode": "numeric",
+                    "oninput": "this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)",
                 }
             ),
         }
@@ -196,15 +201,12 @@ class RegistroForm(forms.ModelForm):
 
     def clean_documento(self):
         documento = (self.cleaned_data.get("documento") or "").strip()
-        tipo_documento = self.cleaned_data.get("tipo_documento")
-        if not re.fullmatch(r"[A-Za-z0-9 ]+", documento):
-            raise forms.ValidationError("El documento solo puede contener letras y números.")
-        if tipo_documento != "PA" and not re.fullmatch(r"[0-9 ]+", documento):
-            raise forms.ValidationError("Este tipo de documento solo admite números.")
-        documento = limpiar_documento(documento)
-        if not (7 <= len(documento) <= 10):
+        if not re.fullmatch(r"[0-9 ]+", documento):
+            raise forms.ValidationError("El número de documento solo puede contener números.")
+        documento = limpiar_telefono(documento)
+        if len(documento) != 10:
             raise forms.ValidationError(
-                "El documento debe tener entre 7 y 10 caracteres alfanuméricos."
+                "El número de documento debe tener exactamente 10 dígitos numéricos."
             )
         if Usuario.objects.using("default").filter(documento__iexact=documento).exists():
             raise forms.ValidationError("Este documento ya está registrado.")
@@ -213,10 +215,10 @@ class RegistroForm(forms.ModelForm):
     def clean_telefono(self):
         telefono = (self.cleaned_data.get("telefono") or "").strip()
         if not re.fullmatch(r"[0-9 ]+", telefono):
-            raise forms.ValidationError("El teléfono solo puede contener números.")
+            raise forms.ValidationError("El número de celular solo puede contener números.")
         telefono = limpiar_telefono(telefono)
-        if not (7 <= len(telefono) <= 10):
-            raise forms.ValidationError("El número de teléfono debe tener entre 7 y 10 dígitos.")
+        if len(telefono) != 10:
+            raise forms.ValidationError("El número de celular debe tener exactamente 10 dígitos numéricos.")
         return telefono
 
     def clean(self):

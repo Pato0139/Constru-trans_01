@@ -39,23 +39,8 @@
         <span class="badge bg-success-subtle text-success px-3"><i class="bi bi-check-circle me-1"></i>Entregado</span>
         {% elif p.estado == 'cancelado' %}
         <span class="badge bg-danger-subtle text-danger px-3">Cancelado</span>
-        {% if p.motivo_cancelacion_display %}
-        <div class="text-danger x-small mt-1" title="{{ p.motivo_cancelacion_display }}">
-            <i class="bi bi-info-circle me-1"></i>{{ p.motivo_cancelacion_display|truncatechars:42 }}
-        </div>
-        {% endif %}
         {% else %}
         <span class="badge bg-secondary-subtle text-light px-3">{{ p.get_estado_display }}</span>
-        {% endif %}
-        {% if p.fecha_salida_ruta %}
-        <div class="text-muted x-small mt-1" title="Inicio de ruta">
-            <i class="bi bi-play-circle text-info me-1"></i>Ruta: {{ p.fecha_salida_ruta|date:"d/m/Y H:i" }}
-        </div>
-        {% endif %}
-        {% if p.fecha_entrega_completada %}
-        <div class="text-muted x-small" title="Entrega completada">
-            <i class="bi bi-check2-all text-success me-1"></i>Entrega: {{ p.fecha_entrega_completada|date:"d/m/Y H:i" }}
-        </div>
         {% endif %}
     </td>
     <td class="p-3 small" data-label="Conductor asignado">

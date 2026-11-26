@@ -172,15 +172,6 @@
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
-.badge-tipo-empleado {
-    background: rgba(100, 116, 139, 0.15);
-    color: #94a3b8;
-}
-.badge-tipo-empleado:hover {
-    background: rgba(100, 116, 139, 0.25);
-    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.2);
-}
-
 /* Light Theme */
 [data-theme="light"] .badge-tipo-admin {
     background: rgba(217, 119, 6, 0.12);
@@ -207,13 +198,4 @@
 [data-theme="light"] .badge-tipo-conductor:hover {
     background: rgba(37, 99, 235, 0.2);
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-}
-
-[data-theme="light"] .badge-tipo-empleado {
-    background: rgba(71, 85, 105, 0.12);
-    color: #475569;
-}
-[data-theme="light"] .badge-tipo-empleado:hover {
-    background: rgba(71, 85, 105, 0.2);
-    box-shadow: 0 4px 12px rgba(71, 85, 105, 0.2);
 }

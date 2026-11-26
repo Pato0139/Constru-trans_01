@@ -72,7 +72,7 @@
                         <label class="form-label small fw-bold text-muted text-uppercase usuario-form-label">Teléfono de Contacto</label>
                         <div class="input-group">
                             <span class="input-group-text border-0 usuario-input-group-text"><i class="bi bi-telephone"></i></span>
-                            <input type="text" name="telefono" class="form-control py-2 usuario-input numeric-only" placeholder="3001234567" value="{% if form_data %}{{ form_data.telefono|default:usuario.telefono|default:'' }}{% else %}{{ usuario.telefono|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
+                            <input type="text" name="telefono" class="form-control py-2 usuario-input numeric-only" placeholder="3001234567" value="{% if form_data %}{{ form_data.telefono|default:usuario.telefono|default:'' }}{% else %}{{ usuario.telefono|default:'' }}{% endif %}" required pattern="[0-9]{10}" title="Debe contener exactamente 10 dígitos numéricos" minlength="10" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
                         </div>
 
                         <div class="mt-4">
@@ -89,7 +89,6 @@
                                     <option value="">Seleccione rol...</option>
                                     <option value="cliente" {% if form_data.rol == 'cliente' or usuario.rol == 'cliente' %}selected{% endif %}>Cliente</option>
                                     <option value="conductor" {% if form_data.rol == 'conductor' or usuario.rol == 'conductor' %}selected{% endif %}>Conductor</option>
-                                    <option value="empleado" {% if form_data.rol == 'empleado' or usuario.rol == 'empleado' %}selected{% endif %}>Empleado</option>
                                 </select>
                             {% else %}
                                 <div class="form-control text-white-50 d-flex align-items-center py-2 usuario-rol-disabled">
@@ -126,7 +125,7 @@
                             <input type="text" class="form-control py-2 usuario-input" value="{{ usuario.documento }}" readonly>
                             <small class="text-muted">El documento no puede modificarse.</small>
                         {% else %}
-                            <input type="text" name="documento" class="form-control py-2 usuario-input" placeholder="12345678" value="{% if form_data %}{{ form_data.documento|default:'' }}{% else %}{{ usuario.documento|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
+                            <input type="text" name="documento" class="form-control py-2 usuario-input" placeholder="1012345678" value="{% if form_data %}{{ form_data.documento|default:'' }}{% else %}{{ usuario.documento|default:'' }}{% endif %}" required pattern="[0-9]{10}" title="Debe contener exactamente 10 dígitos numéricos" minlength="10" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
                         {% endif %}
                     </div>
                 </div>

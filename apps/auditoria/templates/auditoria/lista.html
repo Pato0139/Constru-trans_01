@@ -12,12 +12,13 @@
         margin: 0 !important;
     }
     #tabla-historial {
-        table-layout: auto;
+        table-layout: fixed;
+        min-width: 880px;
     }
     #tabla-historial th,
     #tabla-historial td {
         vertical-align: middle;
-        padding: 0.75rem 0.65rem;
+        padding: 0.9rem 0.75rem;
     }
     /* Separar sutilmente la primera y última columna de los bordes de la tarjeta */
     #tabla-historial th:first-child,
@@ -28,34 +29,62 @@
     #tabla-historial td:last-child {
         padding-right: 1.25rem !important;
     }
-    #tabla-historial th.col-ip,
-    #tabla-historial td.col-ip {
+    #tabla-historial .col-id { width: 6%; }
+    #tabla-historial .col-usuario { width: 19%; }
+    #tabla-historial .col-desc { width: 34%; word-break: break-word; }
+    #tabla-historial .col-modulo { width: 10%; text-align: center; }
+    #tabla-historial .col-fecha { width: 12%; white-space: nowrap !important; }
+    #tabla-historial .col-accion { width: 11%; white-space: nowrap !important; }
+    #tabla-historial .col-ip {
+        width: 8%;
         white-space: nowrap !important;
-        min-width: 130px !important;
         text-align: center;
         word-break: keep-all !important;
     }
-    #tabla-historial th.col-fecha,
-    #tabla-historial td.col-fecha {
-        white-space: nowrap !important;
-        min-width: 140px !important;
+    .auditoria-user-badge {
+        display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
     }
-    #tabla-historial td.col-desc {
-        min-width: 220px;
-        word-break: break-word;
+    .auditoria-desc-text {
+        font-size: 0.88rem;
+        line-height: 1.45;
+        color: var(--color-text, #f1f5f9);
+        font-weight: 500;
+    }
+    .auditoria-fecha-text {
+        font-size: 0.8rem;
+        color: var(--color-text-muted, #94a3b8);
+        font-variant-numeric: tabular-nums;
+    }
+    .auditoria-modulo-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.22rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        font-weight: 700;
+        background: rgba(148, 163, 184, 0.14);
+        color: var(--color-text, #e2e8f0);
+        border: 1px solid rgba(148, 163, 184, 0.24);
     }
 
-    /* Definición estética del contenedor de filtros */
-    .filter-card-container {
-        background: #111827 !important;
-        border: 1px solid rgba(255, 255, 255, 0.14) !important;
-        border-radius: 12px;
+    /* Contenedores adaptados al tema activo (Claro / Oscuro / Accesibilidad) */
+    .filter-card-container,
+    .auditoria-table-card {
+        background: var(--card-bg, #111827) !important;
+        border: 1px solid var(--color-border, rgba(255, 255, 255, 0.14)) !important;
+        border-radius: 14px !important;
+        overflow: hidden;
     }
     .filter-card-container .form-control,
     .filter-card-container .form-select {
-        border: 1px solid rgba(255, 255, 255, 0.16) !important;
-        background-color: #1f2937 !important;
-        color: #f3f4f6 !important;
+        border: 1px solid var(--color-border, rgba(255, 255, 255, 0.16)) !important;
+        background-color: var(--color-surface, #1f2937) !important;
+        color: var(--color-text, #f3f4f6) !important;
     }
     .filter-card-container .form-control:focus,
     .filter-card-container .form-select:focus {
@@ -65,12 +94,12 @@
 
     /* Separación adecuada entre la barra de controles (Mostrar 10 / Buscar) y la cabecera de la tabla */
     .dt-controls-header {
-        margin-bottom: 0.75rem !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        margin-bottom: 0 !important;
+        border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
     }
     .dt-controls-footer {
-        margin-top: 0.5rem !important;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        margin-top: 0 !important;
+        border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
     }
     .dataTables_wrapper .dataTables_length,
     .dataTables_wrapper .dataTables_filter {
@@ -79,28 +108,67 @@
         margin: 0;
     }
     .dataTables_wrapper .dataTables_length label,
-    .dataTables_wrapper .dataTables_filter label {
+    .dataTables_wrapper .dataTables_filter label,
+    .dataTables_wrapper .dataTables_info {
         display: inline-flex;
         align-items: center;
         margin-bottom: 0;
         font-weight: 500;
-        color: rgba(255, 255, 255, 0.75);
+        color: var(--color-text-muted, rgba(255, 255, 255, 0.75)) !important;
     }
     .dataTables_wrapper .dataTables_length select {
-        background-color: #1f2937 !important;
-        color: #f3f4f6 !important;
-        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        background-color: var(--color-surface, #1f2937) !important;
+        color: var(--color-text, #f3f4f6) !important;
+        border: 1px solid var(--color-border, rgba(255, 255, 255, 0.18)) !important;
         border-radius: 8px;
         padding: 0.35rem 0.75rem;
         margin: 0 0.5rem;
     }
     .dataTables_wrapper .dataTables_filter input {
-        background-color: #1f2937 !important;
-        color: #f3f4f6 !important;
-        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        background-color: var(--color-surface, #1f2937) !important;
+        color: var(--color-text, #f3f4f6) !important;
+        border: 1px solid var(--color-border, rgba(255, 255, 255, 0.18)) !important;
         border-radius: 8px;
         padding: 0.35rem 0.75rem;
         margin-left: 0.5rem;
+    }
+
+    /* Ajustes explícitos para Modo Claro */
+    [data-theme="light"] .filter-card-container,
+    [data-theme="light"] .auditoria-table-card {
+        background: #ffffff !important;
+        border-color: #e2e8f0 !important;
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05) !important;
+    }
+    [data-theme="light"] #tabla-historial,
+    [data-theme="light"] #tabla-historial tbody,
+    [data-theme="light"] #tabla-historial tbody tr,
+    [data-theme="light"] #tabla-historial tbody td {
+        background-color: #ffffff !important;
+        color: #1e293b !important;
+        border-bottom-color: #e2e8f0 !important;
+    }
+    [data-theme="light"] #tabla-historial tbody tr:hover td {
+        background-color: #f8fafc !important;
+    }
+    [data-theme="light"] .auditoria-desc-text {
+        color: #0f172a !important;
+    }
+    [data-theme="light"] .auditoria-fecha-text {
+        color: #475569 !important;
+    }
+    [data-theme="light"] .auditoria-modulo-pill {
+        background: #f1f5f9 !important;
+        color: #334155 !important;
+        border-color: #cbd5e1 !important;
+    }
+    [data-theme="light"] .filter-card-container .form-control,
+    [data-theme="light"] .filter-card-container .form-select,
+    [data-theme="light"] .dataTables_wrapper .dataTables_length select,
+    [data-theme="light"] .dataTables_wrapper .dataTables_filter input {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border-color: #cbd5e1 !important;
     }
 </style>
 {% endblock %}
@@ -110,7 +178,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <h2 class="text-white"><i class="bi bi-clock-history text-accent me-2"></i>Auditoría de acciones</h2>
-            <p class="text-muted">Consulta de la bitácora del sistema: responsable, acción, envío relacionado y fecha.</p>
+            <p class="text-muted">Consulta de la bitácora del sistema: responsable, descripción, módulo, acción y fecha.</p>
         </div>
     </div>
 
@@ -175,21 +243,19 @@
     </div>
 
     <!-- Tabla de Registros -->
-    <div class="card bg-dark border border-secondary shadow-sm" style="background: #111827 !important; border-color: rgba(255, 255, 255, 0.14) !important;">
+    <div class="card auditoria-table-card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive w-100">
-                <table class="table table-dark table-hover mb-0 w-100 no-datatable" id="tabla-historial" style="width: 100% !important;">
-                    <thead class="table-secondary">
+                <table class="table table-hover mb-0 w-100 no-datatable" id="tabla-historial" style="width: 100% !important;">
+                    <thead>
                         <tr>
-                            <th class="text-nowrap" style="width: 50px;">ID</th>
-                            <th class="text-nowrap" style="width: 130px;">Usuario</th>
-                            <th>Descripción</th>
-                            <th class="text-nowrap" style="width: 110px;">Módulo</th>
-                            <th class="text-nowrap text-center" style="width: 90px;">Elemento ID</th>
-                            <th class="text-nowrap" style="width: 140px;">Envío relacionado</th>
-                            <th class="text-nowrap col-fecha" style="width: 140px;">Fecha y Hora</th>
-                            <th class="text-nowrap" style="width: 110px;">Acción</th>
-                            <th class="text-nowrap text-center col-ip" style="width: 130px;">IP</th>
+                            <th class="text-nowrap col-id">ID</th>
+                            <th class="text-nowrap col-usuario">Usuario</th>
+                            <th class="col-desc">Descripción</th>
+                            <th class="text-nowrap col-modulo">Módulo</th>
+                            <th class="text-nowrap col-fecha">Fecha y Hora</th>
+                            <th class="text-nowrap col-accion">Acción</th>
+                            <th class="text-nowrap text-center col-ip">IP</th>
                         </tr>
                     </thead>
                     <tbody id="historial-tbody">
@@ -220,17 +286,15 @@
                     d.fecha_fin = $('input[name="fecha_fin"]').val();
                 }
             },
-            "order": [[6, "desc"]], // Ordenar por fecha y hora descendente (columna 6)
+            "order": [[4, "desc"]], // Ordenar por fecha y hora descendente (columna 4)
             "columns": [
-                { "orderable": true, "className": "text-nowrap align-middle" }, // 0: ID
-                { "orderable": true, "className": "text-nowrap align-middle" }, // 1: Usuario
-                { "orderable": true, "className": "align-middle col-desc" },     // 2: Descripción
-                { "orderable": true, "className": "text-nowrap align-middle" }, // 3: Módulo
-                { "orderable": true, "className": "text-nowrap text-center align-middle" }, // 4: Elemento ID
-                { "orderable": true, "className": "text-nowrap align-middle" }, // 5: Envío relacionado
-                { "orderable": true, "className": "text-nowrap align-middle col-fecha" }, // 6: Fecha y Hora
-                { "orderable": true, "className": "text-nowrap align-middle" }, // 7: Acción
-                { "orderable": true, "className": "text-nowrap text-center align-middle font-monospace col-ip" }  // 8: IP
+                { "orderable": true, "className": "text-nowrap align-middle col-id" },                         // 0: ID
+                { "orderable": true, "className": "align-middle col-usuario" },                                // 1: Usuario
+                { "orderable": true, "className": "align-middle col-desc" },                                   // 2: Descripción
+                { "orderable": true, "className": "text-nowrap text-center align-middle col-modulo" },         // 3: Módulo
+                { "orderable": true, "className": "text-nowrap align-middle col-fecha" },                      // 4: Fecha y Hora
+                { "orderable": true, "className": "text-nowrap align-middle col-accion" },                     // 5: Acción
+                { "orderable": true, "className": "text-nowrap text-center align-middle font-monospace col-ip" } // 6: IP
             ],
             "pageLength": 10,
             "lengthMenu": [10, 25, 50, 100],
