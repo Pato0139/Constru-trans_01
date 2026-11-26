@@ -344,8 +344,8 @@ def procesar_parte_pregunta(parte, datos, secciones_vistas=None, usuario=None, r
     except Exception:
         logger.exception("Error en procesar_parte_pregunta matemáticas")
 
-    # --- SECCIONES ADMINISTRATIVAS: solo admin (y empleado, si aplica) ---
-    es_admin = rol_usuario in ("admin", "administrador", "empleado") or rol_usuario is None
+    # --- SECCIONES ADMINISTRATIVAS: solo admin ---
+    es_admin = rol_usuario in ("admin", "administrador") or rol_usuario is None
 
     if es_admin:
         # --- USUARIOS ---
@@ -363,8 +363,6 @@ def procesar_parte_pregunta(parte, datos, secciones_vistas=None, usuario=None, r
                     "conductores",
                     "cliente",
                     "clientes",
-                    "empleado",
-                    "empleados",
                 ],
             )
             and "ESTADO DE USUARIOS" not in secciones_vistas
@@ -408,8 +406,6 @@ def procesar_parte_pregunta(parte, datos, secciones_vistas=None, usuario=None, r
                     "administradores",
                     "cliente",
                     "clientes",
-                    "empleado",
-                    "empleados",
                 ],
             ):
                 if has_keywords(
@@ -430,10 +426,6 @@ def procesar_parte_pregunta(parte, datos, secciones_vistas=None, usuario=None, r
                     check_strings, ["cliente registrado", "clientes registrados"]
                 ):
                     lineas.append(f"- Clientes: {format_number_es(datos.get('cliente_count', 0))}")
-                if has_keywords(check_strings, ["empleado", "empleados"]):
-                    lineas.append(
-                        f"- Empleados: {format_number_es(datos.get('empleado_count', 0))}"
-                    )
                 # Solo agregamos conductores si NO hay nada de vehículos en la misma parte de pregunta
                 if has_keywords(check_strings, ["conductor", "conductores"]) and not hay_vehiculos:
                     lineas.append(

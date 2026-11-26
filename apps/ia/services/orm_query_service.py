@@ -15,7 +15,7 @@ ESTADO_PEDIDO = {
     "cancelado": "Cancelado",
 }
 
-ROLES_ADMIN = {"admin", "empleado", "administrador"}
+ROLES_ADMIN = {"admin", "administrador"}
 
 
 def _es_admin(usuario) -> bool:

@@ -72,19 +72,18 @@
 </div>
 
 <!-- Tabla de Conductores -->
-<div class="table-container p-0 rounded-4 overflow-hidden shadow-sm" style="border: 1px solid var(--color-border);">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+<div class="table-container conductores-table-card p-0 rounded-4 shadow-sm" style="border: 1px solid var(--color-border);">
+    <div class="conductores-scroll">
+        <table class="table table-hover align-middle mb-0 conductores-table">
             <thead>
                 <tr class="text-muted small text-uppercase" style="border-bottom: 1px solid var(--color-border); background: var(--item-bg);">
-                    <th class="py-3 px-3">Conductor</th>
-                    <th class="py-3 px-3">Documento</th>
-                    <th class="py-3 px-3">Contacto</th>
-                    <th class="py-3 px-3 text-center">Licencia</th>
-                    <th class="py-3 px-3 text-center">Estado</th>
-                    <th class="py-3 px-3 text-center">Vehículo Asignado</th>
-                    <th class="py-3 px-3 text-center">Envíos Activos</th>
-                    <th class="py-3 px-3 text-center">Acciones</th>
+                    <th class="py-3 px-3 col-conductor">Conductor</th>
+                    <th class="py-3 px-3 col-contacto">Contacto</th>
+                    <th class="py-3 px-3 col-licencia">Licencia</th>
+                    <th class="py-3 px-3 col-estado">Estado</th>
+                    <th class="py-3 px-3 col-vehiculo">Vehículo</th>
+                    <th class="py-3 px-3 col-envios">Envíos</th>
+                    <th class="py-3 px-3 col-acciones">Acciones</th>
                 </tr>
             </thead>
             <tbody id="conductores-tbody">
@@ -103,6 +102,84 @@
 }
 .hover-accent:hover {
     color: var(--color-accent) !important;
+}
+.conductores-table-card {
+    overflow: hidden;
+}
+.conductores-scroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(245, 158, 11, 0.45) transparent;
+}
+.conductores-scroll::-webkit-scrollbar {
+    height: 6px;
+    width: 0;
+}
+.conductores-scroll::-webkit-scrollbar-thumb {
+    background: rgba(245, 158, 11, 0.45);
+    border-radius: 999px;
+}
+.conductores-table {
+    width: 100% !important;
+    min-width: 920px;
+    table-layout: fixed;
+}
+.conductores-table tbody td {
+    padding: 0.9rem 0.75rem !important;
+    vertical-align: middle;
+}
+.conductores-table .col-conductor { width: 25%; text-align: left !important; }
+.conductores-table .col-contacto { width: 13%; text-align: left !important; }
+.conductores-table .col-licencia { width: 14%; text-align: center !important; }
+.conductores-table .col-estado { width: 9%; text-align: center !important; }
+.conductores-table .col-vehiculo { width: 12%; text-align: center !important; }
+.conductores-table .col-envios { width: 11%; text-align: center !important; }
+.conductores-table .col-acciones { width: 16%; text-align: center !important; }
+
+.conductor-identity {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+.conductor-meta {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+.conductor-name {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.conductor-email {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--color-text-muted, #94a3b8);
+    min-width: 0;
+}
+.conductor-email span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.conductor-licencia-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+.conductor-actions-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 0.3rem;
 }
 </style>
 

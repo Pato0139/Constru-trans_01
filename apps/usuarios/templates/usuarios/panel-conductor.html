@@ -229,13 +229,13 @@
     </div>
 </div>
 
-<div class="table-container p-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+<div class="table-container driver-deliveries-card p-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
             <h5 class="fw-800 m-0 text-color">Mis Envíos Asignados (Activos)</h5>
-            <p class="text-muted small mb-0">Entregas pendientes de despacho o actualmente en recorrido.</p>
+            <p class="text-muted small mb-0 mt-1">Entregas pendientes de despacho o actualmente en recorrido.</p>
         </div>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex flex-wrap align-items-center gap-2">
             <a href="{% url 'usuarios:mis_entregas' %}" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-clock-history me-1"></i>Historial de Entregas
             </a>
@@ -245,101 +245,119 @@
         </div>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle no-datatable">
+    <div class="driver-deliveries-scroll">
+        <table class="table table-hover align-middle no-datatable driver-deliveries-table mb-0">
             <thead>
                 <tr>
-                    <th>Envío / Pedido</th>
-                    <th>Destino & Cliente</th>
-                    <th>Vehículo</th>
-                    <th>Materiales</th>
-                    <th>Estado</th>
-                    <th class="text-center">Acciones</th>
+                    <th class="col-envio">Envío / Pedido</th>
+                    <th class="col-destino">Destino y Cliente</th>
+                    <th class="col-vehiculo">Vehículo</th>
+                    <th class="col-materiales">Materiales</th>
+                    <th class="col-estado">Estado</th>
+                    <th class="col-acciones text-end">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for entrega in entregas %}
                 <tr>
-                    <td>
-                        <div class="fw-700 text-accent">#ENV-{{ entrega.id_entrega }}</div>
-                        <div class="small text-muted">Pedido #CT-{{ entrega.pedido.codigo_pedido }}</div>
-                        {% if entrega.pedido.fecha_entrega_programada %}
-                        <div class="small text-main mt-1"><i class="bi bi-calendar-event me-1"></i>Entrega: {{ entrega.pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}</div>
-                        {% endif %}
-                        {% if entrega.ultimo_reagendamiento %}
-                        <details class="driver-reschedule-history mt-1">
-                            <summary><span class="badge bg-warning-subtle text-warning-emphasis">Reagendada</span> Ver motivo</summary>
-                            <div class="small text-muted mt-1">{{ entrega.ultimo_reagendamiento.descripcion }}<br>
-                                {{ entrega.ultimo_reagendamiento.fecha|date:"d/m/Y H:i" }} · {{ entrega.ultimo_reagendamiento.usuario.nombre_mostrar|default:entrega.ultimo_reagendamiento.usuario.username|default:"Sistema" }}
+                    <td class="col-envio">
+                        <div class="driver-cell-stack">
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <span class="driver-env-id">#ENV-{{ entrega.id_entrega }}</span>
+                                <span class="driver-order-pill">#CT-{{ entrega.pedido.codigo_pedido }}</span>
                             </div>
-                        </details>
-                        {% endif %}
-                        {% if entrega.fecha_asignacion_efectiva %}
-                        <div class="small text-muted" style="font-size: 0.72rem;">
-                            <i class="bi bi-calendar-check me-1"></i>Asignado: {{ entrega.fecha_asignacion_efectiva|date:"d/m/Y H:i" }}
+                            {% if entrega.pedido.fecha_entrega_programada %}
+                            <div class="driver-meta-primary">
+                                <i class="bi bi-calendar-event"></i>
+                                <span>{{ entrega.pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            {% endif %}
+                            {% if entrega.ultimo_reagendamiento %}
+                            <details class="driver-reschedule-history">
+                                <summary><span class="badge bg-warning-subtle text-warning-emphasis">Reagendada</span> Ver motivo</summary>
+                                <div class="small text-muted mt-1">{{ entrega.ultimo_reagendamiento.descripcion }}<br>
+                                    {{ entrega.ultimo_reagendamiento.fecha|date:"d/m/Y H:i" }} · {{ entrega.ultimo_reagendamiento.usuario.nombre_mostrar|default:entrega.ultimo_reagendamiento.usuario.username|default:"Sistema" }}
+                                </div>
+                            </details>
+                            {% endif %}
+                            <div class="driver-meta-secondary">
+                                {% if entrega.fecha_asignacion_efectiva %}
+                                <span><i class="bi bi-calendar-check me-1"></i>Asig. {{ entrega.fecha_asignacion_efectiva|date:"d/m H:i" }}</span>
+                                {% endif %}
+                                {% if entrega.fecha_salida %}
+                                <span><i class="bi bi-clock me-1"></i>Sal. {{ entrega.fecha_salida|date:"d/m H:i" }}</span>
+                                {% endif %}
+                            </div>
                         </div>
-                        {% endif %}
-                        {% if entrega.fecha_salida %}
-                        <div class="small text-muted" style="font-size: 0.72rem;">
-                            <i class="bi bi-clock me-1"></i>Salida: {{ entrega.fecha_salida|date:"d/m/Y H:i" }}
-                        </div>
-                        {% endif %}
                     </td>
-                    <td>
-                        <div class="fw-600 text-color">
-                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>
-                            {{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}
-                        </div>
-                        <div class="small text-muted">
-                            <i class="bi bi-person me-1"></i>{{ entrega.pedido.cliente_usuario.nombre_mostrar|default:entrega.pedido.usuario.username }}
+                    <td class="col-destino">
+                        <div class="driver-cell-stack">
+                            <div class="driver-address">
+                                <i class="bi bi-geo-alt-fill text-danger flex-shrink-0"></i>
+                                <span>{{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}</span>
+                            </div>
+                            <div class="driver-client-name">
+                                <i class="bi bi-person me-1"></i>{{ entrega.pedido.cliente_usuario.nombre_mostrar|default:entrega.pedido.usuario.username }}
+                            </div>
                             {% if entrega.pedido.cliente_usuario.telefono %}
-                            <span class="ms-1">(Tel: {{ entrega.pedido.cliente_usuario.telefono }})</span>
+                            <div class="driver-client-phone">
+                                <i class="bi bi-telephone me-1"></i>{{ entrega.pedido.cliente_usuario.telefono }}
+                            </div>
                             {% elif entrega.pedido.usuario.telefono %}
-                            <span class="ms-1">(Tel: {{ entrega.pedido.usuario.telefono }})</span>
+                            <div class="driver-client-phone">
+                                <i class="bi bi-telephone me-1"></i>{{ entrega.pedido.usuario.telefono }}
+                            </div>
                             {% endif %}
                         </div>
                     </td>
-                    <td>
+                    <td class="col-vehiculo">
                         {% if entrega.vehiculo %}
-                        <div class="fw-600">{{ entrega.vehiculo.placa }}</div>
-                        <div class="small text-muted">{{ entrega.vehiculo.modelo }} ({{ entrega.vehiculo.get_tipo_display }})</div>
+                        <div class="driver-cell-stack">
+                            <span class="driver-plate-badge">{{ entrega.vehiculo.placa }}</span>
+                            <div class="driver-vehicle-model">
+                                {{ entrega.vehiculo.modelo }}{% if entrega.vehiculo.get_tipo_display %} · {{ entrega.vehiculo.get_tipo_display }}{% endif %}
+                            </div>
+                        </div>
                         {% else %}
                         <span class="text-muted small">No asignado</span>
                         {% endif %}
                     </td>
-                    <td>
-                        <div class="small" style="max-width: 220px;">
+                    <td class="col-materiales">
+                        <div class="driver-materials-list">
                             {% for detalle in entrega.pedido.detalles.all|slice:":2" %}
-                            <div>• {{ detalle.cantidad }}x {{ detalle.material.nombre }}</div>
+                            <div class="driver-material-item">
+                                <span class="driver-material-qty">{{ detalle.cantidad }}x</span>
+                                <span class="driver-material-name">{{ detalle.material.nombre }}</span>
+                            </div>
                             {% empty %}
-                            <span class="text-muted">Sin detalles</span>
+                            <span class="text-muted small">Sin detalles</span>
                             {% endfor %}
                             {% if entrega.pedido.detalles.count > 2 %}
-                            <span class="text-muted font-monospace" style="font-size: 0.72rem;">+{{ entrega.pedido.detalles.count|add:"-2" }} más...</span>
+                            <span class="driver-material-more">+{{ entrega.pedido.detalles.count|add:"-2" }} materiales más</span>
                             {% endif %}
                         </div>
                     </td>
-                    <td>
+                    <td class="col-estado">
                         {% if entrega.estado == 'pendiente' %}
-                        <span class="badge bg-info text-dark px-2 py-1">
+                        <span class="badge driver-status-badge bg-info text-dark">
                             <i class="bi bi-truck-front me-1"></i>{{ entrega.estado_logistico_display }}
                         </span>
                         {% elif entrega.estado == 'en_ruta' %}
-                        <span class="badge bg-primary px-2 py-1">
+                        <span class="badge driver-status-badge bg-primary">
                             <i class="bi bi-truck me-1"></i>En Ruta
                         </span>
                         {% elif entrega.estado == 'entregado' %}
-                        <span class="badge bg-success px-2 py-1">
+                        <span class="badge driver-status-badge bg-success">
                             <i class="bi bi-check-circle me-1"></i>Entregado
                         </span>
                         {% else %}
-                        <span class="badge bg-secondary px-2 py-1">{{ entrega.get_estado_display }}</span>
+                        <span class="badge driver-status-badge bg-secondary">{{ entrega.get_estado_display }}</span>
                         {% endif %}
                     </td>
-                    <td class="text-center">
-                        <div class="d-inline-flex gap-1 align-items-center">
+                    <td class="col-acciones text-end">
+                        <div class="driver-actions-group">
                             <!-- Ver Detalle -->
-                            <a href="{% url 'usuarios:detalle_entrega_conductor' entrega.id_entrega %}" class="btn btn-sm btn-outline-info" title="Ver Detalle Completo">
+                            <a href="{% url 'usuarios:detalle_entrega_conductor' entrega.id_entrega %}" class="btn btn-sm btn-outline-info driver-action-icon" title="Ver Detalle Completo" aria-label="Ver Detalle Completo">
                                 <i class="bi bi-eye"></i>
                             </a>
 
@@ -351,18 +369,18 @@
                                 data-confirm-label="Sí, iniciar ruta"
                                 data-confirm-message="Confirma que recogiste y cargaste todos los materiales del pedido #CT-{{ entrega.pedido.codigo_pedido }} en el vehículo asignado. Al continuar, el pedido pasará a En ruta.">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-success fw-bold" title="Confirmar preparación e iniciar ruta">
-                                    <i class="bi bi-play-fill me-1"></i>Confirmar preparación e iniciar ruta
+                                <button type="submit" class="btn btn-sm btn-success fw-bold driver-action-cta" title="Confirmar preparación e iniciar ruta" aria-label="Confirmar preparación e iniciar ruta">
+                                    <i class="bi bi-play-fill me-1"></i>Iniciar ruta
                                 </button>
                             </form>
                             {% elif entrega.estado == 'en_ruta' %}
                             <!-- Marcar como entregado (Abre Modal) -->
-                            <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalFinalizar{{ entrega.id_entrega }}" title="Marcar como entregado">
-                                <i class="bi bi-check-lg me-1"></i>Marcar como entregado
+                            <button type="button" class="btn btn-sm btn-primary fw-bold driver-action-cta" data-bs-toggle="modal" data-bs-target="#modalFinalizar{{ entrega.id_entrega }}" title="Marcar como entregado" aria-label="Marcar como entregado">
+                                <i class="bi bi-check-lg me-1"></i>Entregado
                             </button>
 
                             <!-- Reportar Novedad -->
-                            <a href="{% url 'logistica:crear_novedad' entrega.id_entrega %}" class="btn btn-sm btn-outline-warning" title="Reportar Novedad">
+                            <a href="{% url 'logistica:crear_novedad' entrega.id_entrega %}" class="btn btn-sm btn-outline-warning driver-action-icon" title="Reportar Novedad" aria-label="Reportar Novedad">
                                 <i class="bi bi-exclamation-triangle"></i>
                             </a>
                             {% endif %}
@@ -429,6 +447,255 @@
     .fw-700 { font-weight: 700; }
     .text-accent { color: var(--color-accent) !important; }
     .text-color { color: var(--color-text) !important; }
+
+    /* ============================================================
+       Driver Deliveries Table - Clean, Balanced & Zero Clipping
+       ============================================================ */
+    .driver-deliveries-card {
+        overflow: visible !important;
+    }
+
+    .driver-deliveries-scroll {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: visible;
+        border-radius: 0.9rem;
+        border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+        scrollbar-width: thin;
+        scrollbar-color: rgba(245, 158, 11, 0.45) transparent;
+    }
+
+    .driver-deliveries-scroll::-webkit-scrollbar {
+        height: 6px;
+        width: 0;
+    }
+
+    .driver-deliveries-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .driver-deliveries-scroll::-webkit-scrollbar-thumb {
+        background: rgba(245, 158, 11, 0.45);
+        border-radius: 999px;
+    }
+
+    .driver-deliveries-table {
+        width: 100% !important;
+        min-width: 860px;
+        table-layout: fixed;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .driver-deliveries-table thead th {
+        padding: 0.9rem 1rem !important;
+        font-size: 0.72rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--color-border-strong, rgba(255, 255, 255, 0.12)) !important;
+    }
+
+    .driver-deliveries-table tbody td {
+        padding: 1.05rem 1rem !important;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.07)) !important;
+    }
+
+    .driver-deliveries-table tbody tr:last-child td {
+        border-bottom: none !important;
+    }
+
+    .driver-deliveries-table .col-envio { width: 18%; }
+    .driver-deliveries-table .col-destino { width: 22%; }
+    .driver-deliveries-table .col-vehiculo { width: 13%; }
+    .driver-deliveries-table .col-materiales { width: 18%; }
+    .driver-deliveries-table .col-estado { width: 14%; }
+    .driver-deliveries-table .col-acciones { width: 15%; }
+
+    .driver-cell-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        min-width: 0;
+    }
+
+    .driver-env-id {
+        font-weight: 800;
+        font-size: 0.92rem;
+        color: var(--color-accent, #f59e0b);
+        letter-spacing: 0.01em;
+    }
+
+    .driver-order-pill {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.14rem 0.48rem;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.14);
+        color: var(--color-text-muted, #94a3b8);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+    }
+
+    .driver-meta-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--color-text, #e2e8f0);
+    }
+
+    .driver-meta-secondary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.2rem 0.65rem;
+        font-size: 0.72rem;
+        color: var(--color-text-muted, #94a3b8);
+        opacity: 0.85;
+    }
+
+    .driver-address {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.4rem;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: var(--color-text, #f8fafc);
+        line-height: 1.35;
+        word-break: break-word;
+    }
+
+    .driver-client-name {
+        font-size: 0.8rem;
+        color: var(--color-text-muted, #cbd5e1);
+        line-height: 1.3;
+    }
+
+    .driver-client-phone {
+        font-size: 0.75rem;
+        color: var(--color-text-muted, #94a3b8);
+        opacity: 0.88;
+    }
+
+    .driver-plate-badge {
+        display: inline-flex;
+        align-items: center;
+        align-self: flex-start;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-weight: 800;
+        font-size: 0.8rem;
+        letter-spacing: 0.04em;
+        padding: 0.22rem 0.55rem;
+        border-radius: 0.45rem;
+        background: rgba(59, 130, 246, 0.12);
+        color: var(--color-text, #f8fafc);
+        border: 1px solid rgba(59, 130, 246, 0.28);
+    }
+
+    .driver-vehicle-model {
+        font-size: 0.76rem;
+        color: var(--color-text-muted, #94a3b8);
+        line-height: 1.35;
+    }
+
+    .driver-materials-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .driver-material-item {
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        font-size: 0.82rem;
+        line-height: 1.35;
+        color: var(--color-text, #e2e8f0);
+    }
+
+    .driver-material-qty {
+        font-weight: 700;
+        font-size: 0.75rem;
+        color: var(--color-accent, #f59e0b);
+        flex-shrink: 0;
+    }
+
+    .driver-material-name {
+        word-break: break-word;
+    }
+
+    .driver-material-more {
+        font-size: 0.72rem;
+        color: var(--color-text-muted, #94a3b8);
+        font-style: italic;
+    }
+
+    .driver-status-badge {
+        display: inline-flex;
+        align-items: center;
+        white-space: normal;
+        text-align: left;
+        line-height: 1.25;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.4rem 0.65rem;
+        border-radius: 999px;
+    }
+
+    .driver-actions-group {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        gap: 0.4rem;
+    }
+
+    .driver-action-icon {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.55rem;
+        flex-shrink: 0;
+    }
+
+    .driver-action-cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.78rem;
+        border-radius: 0.55rem;
+        line-height: 1.2;
+    }
+
+    [data-theme="light"] .driver-plate-badge {
+        background: #eff6ff;
+        color: #1e3a8a;
+        border-color: rgba(37, 99, 235, 0.25);
+    }
+
+    [data-theme="light"] .driver-order-pill {
+        background: #f1f5f9;
+        color: #475569;
+        border-color: rgba(15, 23, 42, 0.1);
+    }
+
+    [data-theme="accessibility"] .driver-deliveries-scroll {
+        border: 2px solid #ffffff !important;
+    }
+
+    [data-theme="accessibility"] .driver-plate-badge,
+    [data-theme="accessibility"] .driver-order-pill {
+        background: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid #ffd600 !important;
+    }
 
     /* Driver KPI Cards */
     .driver-kpi-card {

@@ -91,17 +91,18 @@ $(document).on('click', '.confirm-logout', function(e) {
     e.preventDefault();
     const url = $(this).attr('href');
     
+    const isLight = (document.documentElement.getAttribute('data-theme') || document.body.getAttribute('data-theme')) === 'light';
     Swal.fire({
         title: '¿Cerrar sesión?',
         text: '¿Estás seguro de que deseas salir del sistema?',
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#f97316',
-        cancelButtonColor: '#6c757d',
+        cancelButtonColor: isLight ? '#64748b' : '#475569',
         confirmButtonText: 'Sí, salir',
         cancelButtonText: 'Cancelar',
-        background: '#1a1a1a',
-        color: '#ffffff',
+        background: isLight ? '#ffffff' : '#1e293b',
+        color: isLight ? '#0f172a' : '#f8fafc',
         customClass: {
             popup: 'rounded-4 border-white-10 shadow-2xl'
         }

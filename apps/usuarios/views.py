@@ -1324,10 +1324,9 @@ def crear_usuario(request):
                 or len(apellidos) > 200
                 or len(email) > 150
                 or not contiene_solo_numeros(telefono_raw)
-                or not 7 <= len(telefono) <= 10
-                or not 7 <= len(documento) <= 10
-                or (tipo_doc == "PA" and not documento.isalnum())
-                or (tipo_doc != "PA" and not documento.isdigit())
+                or len(telefono) != 10
+                or len(documento) != 10
+                or not documento.isdigit()
                 or rol not in dict(Usuario.ROLES)
                 or tipo_doc not in dict(Usuario.TIPOS_DOCUMENTO)
                 or User.objects.using("default").filter(
@@ -1517,12 +1516,12 @@ def editar_usuario(request, id):
         if (
             not all([nombres, apellidos, telefono])
             or not contiene_solo_numeros(telefono_raw)
-            or not 7 <= len(telefono) <= 10
+            or len(telefono) != 10
         ):
             messages.error(
                 request,
                 "Los campos nombres, apellidos y teléfono son obligatorios "
-                "(teléfono de 7 a 10 dígitos, solo números).",
+                "(teléfono de exactamente 10 dígitos, solo números).",
             )
             context = {"usuario": usuario, "form_data": request.POST, "action": "editar"}
             return render(request, "usuarios/form.html", context)
@@ -1714,10 +1713,16 @@ def crear_conductor(request):
         form_data = request.POST.copy()
         form_data.pop("password", None)
 
-        if not all([nombres, apellidos, email, password, telefono, tipo_doc, documento, numero_licencia]) or not (
-            7 <= len(telefono) <= 10
-        ) or not (7 <= len(documento) <= 10):
-            messages.error(request, "Por favor completa todos los campos requeridos.")
+        if (
+            not all([nombres, apellidos, email, password, telefono, tipo_doc, documento, numero_licencia])
+            or len(telefono) != 10
+            or len(documento) != 10
+            or (telefono_empresarial and len(telefono_empresarial) != 10)
+        ):
+            messages.error(
+                request,
+                "Completa todos los campos requeridos. El documento y el celular deben tener exactamente 10 dígitos.",
+            )
             return render(
                 request,
                 "usuarios/conductor_form.html",
@@ -1728,7 +1733,7 @@ def crear_conductor(request):
         if (
             not contiene_solo_numeros(telefono_raw)
             or not contiene_solo_numeros(telefono_empresarial_raw)
-            or (tipo_doc != "PA" and not documento.isdigit())
+            or not documento.isdigit()
         ):
             messages.error(
                 request, "Los campos numéricos (teléfono y documento) solo admiten números."
@@ -1886,10 +1891,16 @@ def editar_conductor(request, id):
         telefono_empresarial = limpiar_telefono(telefono_empresarial_raw)
         estado = request.POST.get("estado") or perfil.estado
 
-        if not all([nombres, apellidos, email, telefono, tipo_doc, documento, numero_licencia]) or not (
-            7 <= len(telefono) <= 10
-        ) or not (7 <= len(documento) <= 10):
-            messages.error(request, "Por favor completa todos los campos requeridos.")
+        if (
+            not all([nombres, apellidos, email, telefono, tipo_doc, documento, numero_licencia])
+            or len(telefono) != 10
+            or len(documento) != 10
+            or (telefono_empresarial and len(telefono_empresarial) != 10)
+        ):
+            messages.error(
+                request,
+                "Completa todos los campos requeridos. El documento y el celular deben tener exactamente 10 dígitos.",
+            )
             return render(
                 request,
                 "usuarios/conductor_form.html",
@@ -1909,7 +1920,7 @@ def editar_conductor(request, id):
         if (
             not contiene_solo_numeros(telefono_raw)
             or not contiene_solo_numeros(telefono_empresarial_raw)
-            or (tipo_doc != "PA" and not documento.isdigit())
+            or not documento.isdigit()
         ):
             messages.error(
                 request, "Los campos numéricos (teléfono y documento) solo admiten números."

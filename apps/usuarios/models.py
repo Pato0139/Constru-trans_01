@@ -43,7 +43,7 @@ class UsuarioManager(UserManager):
     def create_user(self, username=None, email=None, password=None, **extra_fields):
         username = username or email
         extra_fields.setdefault("tipo_documento", "CC")
-        extra_fields.setdefault("documento", str(uuid.uuid4().int)[:20])
+        extra_fields.setdefault("documento", str(uuid.uuid4().int)[:10])
         return super().create_user(username, email, password, **extra_fields)
 
 
@@ -65,7 +65,6 @@ class Usuario(AbstractUser):
         ("admin", "Admin"),
         ("cliente", "Cliente"),
         ("conductor", "Conductor"),
-        ("empleado", "Empleado"),
     ]
 
     nombres = models.CharField(max_length=200, validators=[solo_letras])
@@ -195,10 +194,6 @@ class Usuario(AbstractUser):
     @property
     def es_cliente(self):
         return self.rol == "cliente"
-
-    @property
-    def es_empleado(self):
-        return self.rol == "empleado"
 
     @property
     def es_superadmin(self):

@@ -1,26 +1,26 @@
 {% load currency_tags %}
 {% for compra in compras %}
 <tr class="u-inline-dd0d9e7c89">
-    <td class="ps-4">
+    <td class="ps-4 col-orden">
         <span class="text-white fw-bold">{{ compra.numero_orden }}</span>
     </td>
-    <td>
-        <div class="d-flex align-items-center">
+    <td class="col-proveedor">
+        <div class="d-flex align-items-center min-w-0">
             <div
-                class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3 u-inline-7a3b56f7ab">
+                class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2 flex-shrink-0 u-inline-7a3b56f7ab">
                 <i class="bi bi-truck text-primary small"></i>
             </div>
-            <div>
-                <div class="text-white fw-medium">{{ compra.proveedor.nombre_empresa }}</div>
-                <div class="table-meta small">NIT: {{ compra.proveedor.nit }}</div>
+            <div class="min-w-0">
+                <div class="text-white fw-medium text-truncate" title="{{ compra.proveedor.nombre_empresa }}">{{ compra.proveedor.nombre_empresa }}</div>
+                <div class="table-meta small text-truncate">NIT: {{ compra.proveedor.nit }}</div>
             </div>
         </div>
     </td>
-    <td class="table-meta">
+    <td class="table-meta col-fecha">
         {{ compra.fecha_compra|date:"d M, Y" }}
         <div class="small">{{ compra.fecha_compra|date:"H:i" }}</div>
     </td>
-    <td class="text-center">
+    <td class="col-materiales">
         <div class="d-flex flex-wrap justify-content-center gap-1">
             {% for detalle in compra.detalles_cargados %}
             <span class="badge purchase-meta-badge">{{ detalle.material.nombre }}</span>
@@ -29,19 +29,20 @@
             {% endfor %}
         </div>
     </td>
-    <td class="text-end fw-bold text-success">
+    <td class="fw-bold text-success col-total">
         {{ compra.total_compra|currency }}
     </td>
-    <td class="text-center">
+    <td class="col-registrado">
         {% if compra.usuario %}
-        <span class="badge purchase-meta-badge">
-            <i class="bi bi-person-circle me-1"></i> {{ compra.usuario.username }}
+        <span class="purchase-meta-badge compras-user-chip" title="{{ compra.usuario.username }}">
+            <i class="bi bi-person-circle flex-shrink-0"></i>
+            <span>{{ compra.usuario.username }}</span>
         </span>
         {% else %}
         <span class="text-muted small">N/A</span>
         {% endif %}
     </td>
-    <td class="text-center">
+    <td class="col-estado">
         <span class="badge rounded-pill px-3 py-2 
             {% if compra.estado == 'pendiente' %}bg-warning text-dark
             {% elif compra.estado == 'recibida' %}bg-success
@@ -49,7 +50,7 @@
             {{ compra.get_estado_display }}
         </span>
     </td>
-    <td class="text-center pe-4">
+    <td class="pe-4 col-acciones">
         <div class="d-flex gap-2 justify-content-center">
             <a href="{% url 'compras:detalle_compra' compra.id_compra %}"
                 class="btn btn-sm btn-outline-info border-white-10" title="Ver Detalle">

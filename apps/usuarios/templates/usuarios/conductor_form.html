@@ -69,14 +69,14 @@
                         <label class="form-label small fw-bold text-muted">Número de Documento <span class="text-danger">*</span></label>
                         <input type="text" name="documento" class="form-control"
                                placeholder="Ej: 1020304050"
-                               value="{% if conductor_user %}{{ conductor_user.documento }}{% else %}{{ form_data.documento|default:'' }}{% endif %}" required {% if action == 'editar' %}readonly{% endif %} pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
+                               value="{% if conductor_user %}{{ conductor_user.documento }}{% else %}{{ form_data.documento|default:'' }}{% endif %}" required {% if action == 'editar' %}readonly{% endif %} pattern="[0-9]{10}" title="Debe contener exactamente 10 dígitos numéricos" minlength="10" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
                     </div>
 
                     <div class="col-md-4">
                         <label class="form-label small fw-bold text-muted">Teléfono Personal <span class="text-danger">*</span></label>
                         <input type="text" name="telefono" class="form-control"
                                placeholder="Ej: 3001234567"
-                               value="{% if conductor_user %}{{ conductor_user.telefono }}{% else %}{{ form_data.telefono|default:'' }}{% endif %}" required pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
+                               value="{% if conductor_user %}{{ conductor_user.telefono }}{% else %}{{ form_data.telefono|default:'' }}{% endif %}" required pattern="[0-9]{10}" title="Debe contener exactamente 10 dígitos numéricos" minlength="10" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
                     </div>
 
                     <div class="col-12 mt-4">
@@ -135,7 +135,7 @@
                         <label class="form-label small fw-bold text-muted">Teléfono de Flota / Empresarial</label>
                         <input type="text" name="telefono_empresarial" class="form-control"
                                placeholder="Ej: 3109876543 (Opcional)"
-                               value="{% if perfil %}{{ perfil.telefono_empresarial }}{% else %}{{ form_data.telefono_empresarial|default:'' }}{% endif %}" pattern="[0-9\s]*" title="Solo se admiten números y espacios" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\s]/g, '')">
+                               value="{% if perfil %}{{ perfil.telefono_empresarial }}{% else %}{{ form_data.telefono_empresarial|default:'' }}{% endif %}" pattern="[0-9]{10}" title="Debe contener exactamente 10 dígitos numéricos" minlength="10" maxlength="10" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
                     </div>
 
                     <div class="col-md-6">

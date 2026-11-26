@@ -57,6 +57,70 @@
     pointer-events: auto;
 }
 
+/* Distribución centrada y ordenada para la tabla de Movimientos en escritorio */
+@media (min-width: 1201px) {
+    .movimientos-table {
+        width: 100% !important;
+        table-layout: fixed;
+    }
+
+    .movimientos-table thead th,
+    .movimientos-table tbody td {
+        vertical-align: middle !important;
+        padding: 0.95rem 0.85rem !important;
+    }
+
+    .movimientos-table .col-fecha,
+    .movimientos-table td[data-label="Fecha"] {
+        width: 13%;
+        text-align: center !important;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .movimientos-table .col-material,
+    .movimientos-table td[data-label="Material"] {
+        width: 24%;
+        text-align: left !important;
+    }
+
+    .movimientos-table .col-tipo,
+    .movimientos-table td[data-label="Tipo"] {
+        width: 14%;
+        text-align: center !important;
+    }
+
+    .movimientos-table td[data-label="Tipo"] .inventory-status {
+        width: 7.75rem;
+        max-width: 100%;
+        justify-content: center;
+    }
+
+    .movimientos-table .col-cantidad,
+    .movimientos-table td[data-label="Cantidad"] {
+        width: 11%;
+        text-align: center !important;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .movimientos-table .col-motivo,
+    .movimientos-table td[data-label="Motivo"] {
+        width: 24%;
+        text-align: justify !important;
+        text-align-last: left;
+        line-height: 1.45;
+    }
+
+    .movimientos-table .col-usuario,
+    .movimientos-table td[data-label="Usuario"] {
+        width: 14%;
+        text-align: center !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
 /* En el espacio útil reducido por el menú, presentar cada registro como tarjeta. */
 @media (max-width: 1200px) {
     .inventory-materials-container .table-responsive {
