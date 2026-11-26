@@ -70,7 +70,7 @@ class CrearPedidoFlujoTests(TestCase):
             data={
                 "material_id[]": [str(self.material.cod_material)],
                 "cantidad[]": ["2"],
-                "ciudad": "Bogotá",
+                "ciudad": "Duitama",
                 "direccion_detalle": "Carrera 7 # 72-41",
             },
         )
@@ -95,7 +95,7 @@ class CrearPedidoFlujoTests(TestCase):
             data={
                 "material_id[]": [str(self.material.cod_material)],
                 "cantidad[]": ["3"],
-                "ciudad": "Bogotá",
+                "ciudad": "Duitama",
                 "direccion_detalle": "Carrera 7 # 72-41",
             },
         )
@@ -125,7 +125,7 @@ class CrearPedidoFlujoTests(TestCase):
             data={
                 "material_id[]": [str(self.material.cod_material)],
                 "cantidad[]": ["5000"],
-                "ciudad": "Bogotá",
+                "ciudad": "Duitama",
                 "direccion_detalle": "Carrera 7 # 72-41",
             },
         )
