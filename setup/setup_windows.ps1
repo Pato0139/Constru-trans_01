@@ -15,6 +15,15 @@ $scriptDir   = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptDir
 Set-Location $projectRoot
 
+# Mostrar banner ASCII a color de Constru-Trans al iniciar el setup
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $bannerPath = Join-Path $scriptDir "banner_logo.txt"
+    if (Test-Path $bannerPath) {
+        Get-Content -Path $bannerPath -Raw -Encoding UTF8 | Write-Host
+    }
+} catch {}
+
 # ---------- Colores y utilidades de salida ----------
 function Write-Ok    { param([string]$m) Write-Host "[  OK  ] $m" -ForegroundColor Green }
 function Write-Warn  { param([string]$m) Write-Host "[ AVISO ] $m" -ForegroundColor Yellow }

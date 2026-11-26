@@ -4,129 +4,302 @@
 {% block title %}Centro de Ayuda - ConstruTrans{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ayuda/ayuda.css' %}?v=2.1">
+<link rel="stylesheet" href="{% static 'css/ayuda/ayuda.css' %}?v=3.0">
 {% endblock %}
 
 {% block content %}
-<div class="ayuda-container">
-    <div class="row g-4 mb-5">
-        <div class="col-lg-12">
-            <div class="ayuda-card">
-                <div class="text-center mb-5">
-                    <h1 class="ayuda-title"><i class="bi bi-question-circle text-primary me-2"></i> Centro de Ayuda</h1>
-                    <p class="ayuda-subtitle">Todo lo que necesitas saber para usar el sistema</p>
-                </div>
+<div class="ayuda-page">
+    <!-- Hero principal con buscador instantáneo -->
+    <section class="ayuda-hero" data-aos="fade-down">
+        <div class="ayuda-hero__glow ayuda-hero__glow--blue" aria-hidden="true"></div>
+        <div class="ayuda-hero__glow ayuda-hero__glow--gold" aria-hidden="true"></div>
+        <div class="ayuda-hero__content">
+            <span class="ayuda-hero__badge">
+                <i class="bi bi-life-preserver"></i> Centro de Ayuda · Constru-Trans
+            </span>
+            <h1 class="ayuda-hero__title">¿En qué podemos ayudarte hoy?</h1>
+            <p class="ayuda-hero__subtitle">
+                Encuentra guías rápidas, descarga el manual de tu rol y resuelve dudas frecuentes sobre la plataforma.
+            </p>
+
+            <div class="ayuda-search-box">
+                <i class="bi bi-search ayuda-search-box__icon" aria-hidden="true"></i>
+                <input
+                    type="search"
+                    id="ayudaSearchInput"
+                    class="ayuda-search-box__input"
+                    placeholder="Buscar tema: pedidos, pagos, inventario, vehículos, modo local..."
+                    autocomplete="off"
+                >
+                <button type="button" id="ayudaSearchClear" class="ayuda-search-box__clear d-none" aria-label="Limpiar búsqueda">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="ayuda-quick-tags">
+                <span class="ayuda-quick-tags__label">Temas rápidos:</span>
+                <button type="button" class="ayuda-tag-btn" data-query="pedidos">Pedidos</button>
+                <button type="button" class="ayuda-tag-btn" data-query="pagos">Pagos</button>
+                <button type="button" class="ayuda-tag-btn" data-query="vehículos">Vehículos</button>
+                <button type="button" class="ayuda-tag-btn" data-query="filtros">Filtros</button>
+                <button type="button" class="ayuda-tag-btn" data-query="nube">Nube y Local</button>
             </div>
         </div>
-    </div>
+    </section>
 
+    <!-- Manual destacado del rol -->
     {% if manual_rol %}
-    <div class="row g-4 mb-5">
-        <div class="col-lg-12">
-            <section class="ayuda-card" aria-labelledby="manual-rol-title">
-                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                    <div>
-                        <h2 class="h5 fw-bold mb-2 text-white" id="manual-rol-title">
-                            <i class="bi bi-journal-bookmark-fill text-warning me-2"></i>{{ manual_rol.titulo }}
-                        </h2>
-                        <p class="text-muted mb-0">{{ manual_rol.descripcion }}</p>
-                    </div>
-                    <a href="{% static manual_rol.archivo %}" class="btn btn-warning rounded-pill px-4 flex-shrink-0" download>
-                        <i class="bi bi-download me-2"></i>Descargar manual
-                    </a>
-                </div>
-            </section>
+    <section class="ayuda-manual-banner" aria-labelledby="manual-rol-title" data-aos="fade-up">
+        <div class="ayuda-manual-banner__left">
+            <div class="ayuda-icon-pill ayuda-icon-pill--gold">
+                <i class="bi bi-journal-bookmark-fill"></i>
+            </div>
+            <div>
+                <div class="ayuda-manual-banner__kicker">DOCUMENTACIÓN OFICIAL · PDF</div>
+                <h2 class="ayuda-manual-banner__title" id="manual-rol-title">{{ manual_rol.titulo }}</h2>
+                <p class="ayuda-manual-banner__desc mb-0">{{ manual_rol.descripcion }}</p>
+            </div>
         </div>
-    </div>
+        <div class="ayuda-manual-banner__actions">
+            <a href="{% url 'ayuda:lista_guias' %}" class="ayuda-btn ayuda-btn--ghost">
+                <i class="bi bi-book"></i> Ver guías
+            </a>
+            <a href="{% static manual_rol.archivo %}" class="ayuda-btn ayuda-btn--gold" download>
+                <i class="bi bi-download"></i> Descargar manual
+            </a>
+        </div>
+    </section>
     {% endif %}
 
-    <div class="row g-4 mb-5">
-        <div class="col-lg-12">
-            <div class="ayuda-card">
-                <div class="row g-4 align-items-start">
-                    <div class="col-lg-4">
-                        <h5 class="fw-bold mb-3 text-white"><i class="bi bi-building text-primary me-2"></i> ¿Qué es ConstruTrans?</h5>
-                        <p class="text-muted mb-0">ConstruTrans es la plataforma que centraliza la operación de la empresa: gestión de pedidos, inventario, compras, clientes, pagos, facturación, entregas y seguimiento general del negocio.</p>
+    <!-- Tarjetas de primeros pasos -->
+    <section class="ayuda-section-block" data-aos="fade-up">
+        <div class="ayuda-section-head">
+            <h3>Primeros pasos en Constru-Trans</h3>
+            <p>Conceptos esenciales para aprovechar al máximo tu panel de trabajo.</p>
+        </div>
+        <div class="row g-4" id="ayudaCardsGrid">
+            <div class="col-lg-4 ayuda-searchable" data-keywords="que es construtrans plataforma pedidos inventario compras clientes pagos facturacion entregas">
+                <article class="ayuda-feature-card">
+                    <div class="ayuda-icon-pill ayuda-icon-pill--blue">
+                        <i class="bi bi-building"></i>
                     </div>
-                    <div class="col-lg-4">
-                        <h5 class="fw-bold mb-3 text-white"><i class="bi bi-rocket-takeoff text-success me-2"></i> ¿Cómo empezar?</h5>
-                        <p class="text-muted mb-0">Inicia sesión con tu usuario, revisa el menú lateral y comienza por la sección principal de tu rol: administración, clientes, conductores o perfiles personales.</p>
+                    <h4 class="ayuda-feature-card__title">¿Qué es Constru-Trans?</h4>
+                    <p class="ayuda-feature-card__text">
+                        Plataforma integral que centraliza pedidos, inventario, compras, clientes, pagos,
+                        facturación, vehículos y entregas en un solo lugar.
+                    </p>
+                </article>
+            </div>
+            <div class="col-lg-4 ayuda-searchable" data-keywords="como empezar inicio menu lateral rol administracion clientes conductores perfil">
+                <article class="ayuda-feature-card">
+                    <div class="ayuda-icon-pill ayuda-icon-pill--green">
+                        <i class="bi bi-rocket-takeoff"></i>
                     </div>
-                    <div class="col-lg-4">
-                        <h5 class="fw-bold mb-3 text-white"><i class="bi bi-lightbulb text-warning me-2"></i> Recomendaciones básicas</h5>
-                        <p class="text-muted mb-0">Usa siempre las guías del módulo de ayuda, revisa el estado de tus solicitudes y mantén actualizado tu perfil para evitar errores en entregas y pagos.</p>
+                    <h4 class="ayuda-feature-card__title">¿Cómo empezar?</h4>
+                    <p class="ayuda-feature-card__text">
+                        Usa el menú lateral para navegar por los módulos de tu rol. Desde el panel principal tienes
+                        accesos directos a vehículos, usuarios, pedidos y respaldo.
+                    </p>
+                </article>
+            </div>
+            <div class="col-lg-4 ayuda-searchable" data-keywords="recomendaciones buenas practicas filtros perfil entregas pagos seguridad">
+                <article class="ayuda-feature-card">
+                    <div class="ayuda-icon-pill ayuda-icon-pill--amber">
+                        <i class="bi bi-shield-check"></i>
                     </div>
-                </div>
+                    <h4 class="ayuda-feature-card__title">Recomendaciones clave</h4>
+                    <p class="ayuda-feature-card__text">
+                        Mantén actualizados tus datos de perfil, utiliza los chips de acceso rápido en las tablas
+                        y verifica el estado de cada solicitud antes de despachar.
+                    </p>
+                </article>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- Preguntas Frecuentes interactivas -->
+    <section class="ayuda-section-block" data-aos="fade-up">
+        <div class="ayuda-section-head">
+            <h3>Preguntas Frecuentes</h3>
+            <p>Respuestas rápidas a las dudas más comunes del día a día.</p>
+        </div>
+
+        <div class="ayuda-faq-list" id="ayudaFaqList">
+            <details class="ayuda-faq-item ayuda-searchable" data-keywords="nube neon local sqlite offline sincronizar celador sin internet" open>
+                <summary class="ayuda-faq-item__q">
+                    <span><i class="bi bi-cloud-check text-primary me-2"></i>¿Cómo funciona el Modo Nube y el Modo Local?</span>
+                    <i class="bi bi-chevron-down ayuda-faq-item__chev"></i>
+                </summary>
+                <div class="ayuda-faq-item__a">
+                    En <strong>Modo Nube (Neon)</strong> todos los cambios se guardan en línea y se replican automáticamente
+                    en tu base local SQLite. Si te quedas sin internet o cambias el interruptor superior a <strong>Modo Local</strong>,
+                    puedes seguir consultando y trabajando con los datos sincronizados sin interrupciones.
+                </div>
+            </details>
+
+            <details class="ayuda-faq-item ayuda-searchable" data-keywords="filtros buscar tablas acceso rapido limpiar sin recargar">
+                <summary class="ayuda-faq-item__q">
+                    <span><i class="bi bi-funnel text-warning me-2"></i>¿Cómo filtrar datos rápidamente en las tablas?</span>
+                    <i class="bi bi-chevron-down ayuda-faq-item__chev"></i>
+                </summary>
+                <div class="ayuda-faq-item__a">
+                    Cada tabla cuenta con <strong>chips de Acceso rápido</strong> por estado y campos de búsqueda instantánea que
+                    actualizan únicamente las filas sin recargar toda la página. Usa el botón <strong>Limpiar filtros</strong>
+                    para restablecer la vista completa en un clic.
+                </div>
+            </details>
+
+            <details class="ayuda-faq-item ayuda-searchable" data-keywords="pedidos pagos aprobar despacho comprobante facturacion">
+                <summary class="ayuda-faq-item__q">
+                    <span><i class="bi bi-receipt-cutoff text-success me-2"></i>¿Cómo se aprueba un pago y se autoriza un despacho?</span>
+                    <i class="bi bi-chevron-down ayuda-faq-item__chev"></i>
+                </summary>
+                <div class="ayuda-faq-item__a">
+                    Ingresa al módulo de <strong>Pagos</strong>, revisa el comprobante registrado por el cliente y selecciona
+                    <strong>Aprobar</strong>. Una vez aprobado, el pedido pasa automáticamente a estado
+                    <em>Autorizado para despacho</em> para asignar vehículo y conductor desde <strong>Entregas</strong>.
+                </div>
+            </details>
+
+            <details class="ayuda-faq-item ayuda-searchable" data-keywords="vehiculos flota conductores asignar entregas ruta mantenimiento">
+                <summary class="ayuda-faq-item__q">
+                    <span><i class="bi bi-truck text-info me-2"></i>¿Cómo gestionar vehículos y asignar conductores?</span>
+                    <i class="bi bi-chevron-down ayuda-faq-item__chev"></i>
+                </summary>
+                <div class="ayuda-faq-item__a">
+                    En <strong>Gestión de Vehículos</strong> puedes crear nuevas unidades, filtrar por placa, tipo o estado
+                    (<em>Disponible, En Ruta, Mantenimiento</em>) y ordenar la flota por fecha, placa o capacidad de carga.
+                </div>
+            </details>
+
+            <details class="ayuda-faq-item ayuda-searchable" data-keywords="contraseña recuperar clave perfil foto avatar cuenta usuario">
+                <summary class="ayuda-faq-item__q">
+                    <span><i class="bi bi-person-lock text-warning me-2"></i>¿Cómo actualizar mi perfil o recuperar mi contraseña?</span>
+                    <i class="bi bi-chevron-down ayuda-faq-item__chev"></i>
+                </summary>
+                <div class="ayuda-faq-item__a">
+                    Haz clic en tu avatar en la esquina superior derecha para editar tus datos o cambiar tu foto de perfil.
+                    Si olvidaste tu clave, usa la opción <strong>¿Se le olvidó la clave?</strong> en la pantalla de inicio de sesión
+                    para recibir un enlace seguro válido por 30 minutos.
+                </div>
+            </details>
+        </div>
+
+        <div id="ayudaNoResults" class="ayuda-empty-state d-none">
+            <i class="bi bi-search"></i>
+            <p class="mb-0">No encontramos temas que coincidan con tu búsqueda. Prueba con otra palabra o envíanos una sugerencia.</p>
+        </div>
+    </section>
 
     <!-- Guías Favoritas -->
     {% if guias_favoritas %}
-    <div class="row g-4 mb-5">
-        <div class="col-lg-12">
-            <div class="ayuda-card">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold m-0 text-white"><i class="bi bi-star-fill text-warning me-2"></i> Guías Favoritas</h5>
-                </div>
-                <div class="row g-3">
-                    {% for guia in guias_favoritas %}
-                    <div class="col-md-4">
-                        <a href="{% url 'ayuda:detalle_guia' guia.id %}" class="card h-100 text-decoration-none bg-dark border border-secondary">
-                            <div class="card-body">
-                                <h6 class="fw-bold mb-2 text-white">{{ guia.titulo }}</h6>
-                                <p class="text-muted small mb-0">{{ guia.categoria.nombre }}</p>
-                            </div>
-                        </a>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+    <section class="ayuda-section-block" data-aos="fade-up">
+        <div class="ayuda-section-head">
+            <h3><i class="bi bi-star-fill text-warning me-2"></i>Guías Destacadas</h3>
         </div>
-    </div>
+        <div class="row g-3">
+            {% for guia in guias_favoritas %}
+            <div class="col-md-4">
+                <a href="{% url 'ayuda:detalle_guia' guia.id %}" class="ayuda-feature-card text-decoration-none d-block h-100">
+                    <h5 class="ayuda-feature-card__title mb-1">{{ guia.titulo }}</h5>
+                    <p class="ayuda-feature-card__text small mb-0">{{ guia.categoria.nombre }}</p>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
     {% endif %}
 
-    <!-- Manual de Usuario -->
+    <!-- Manuales adicionales -->
     {% if manuales %}
-    <div class="row g-4 mb-5">
-        <div class="col-lg-12">
-            <div class="ayuda-card">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold m-0 text-white"><i class="bi bi-journal-bookmark text-success me-2"></i> Manual de Usuario</h5>
-                </div>
-                <div class="row g-3">
-                    {% for manual in manuales %}
-                    <div class="col-md-4">
-                        <div class="card bg-dark border border-secondary">
-                            <div class="card-body">
-                                <h6 class="fw-bold mb-2 text-white">{{ manual.titulo }}</h6>
-                                <p class="text-muted small mb-3">Versión {{ manual.version }} | {{ manual.fecha_publicacion|date:"d/m/Y" }}</p>
-                                <a href="{{ manual.archivo.url }}" class="btn btn-success d-flex align-items-center justify-content-center gap-2 px-4 py-2 rounded-pill" download>
-                                    <i class="bi bi-download"></i> Descargar
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+    <section class="ayuda-section-block" data-aos="fade-up">
+        <div class="ayuda-section-head">
+            <h3>Manuales Adicionales</h3>
+            <p>Documentos descargables de referencia del sistema.</p>
         </div>
-    </div>
-    {% endif %}
-
-    <!-- Sugerencias -->
-    <div class="row g-4 mb-5">
-        <div class="col-lg-12">
-            <div class="ayuda-card">
-                <div class="text-center">
-                    <h5 class="fw-bold mb-3 text-white"><i class="bi bi-lightbulb text-warning me-2"></i> ¿Tienes una sugerencia?</h5>
-                    <p class="text-muted mb-4">Ayúdanos a mejorar el sistema compartiendo tus ideas</p>
-                    <a href="{% url 'ayuda:crear_sugerencia' %}" class="btn-ayuda btn-ayuda--primary" aria-label="Agregar" data-tooltip="Agregar" title="Agregar">
-                        <i class="bi bi-plus-circle"></i> Enviar Sugerencia
+        <div class="row g-3">
+            {% for manual in manuales %}
+            <div class="col-md-4">
+                <div class="ayuda-feature-card d-flex flex-column justify-content-between h-100">
+                    <div>
+                        <h5 class="ayuda-feature-card__title mb-1">{{ manual.titulo }}</h5>
+                        <p class="ayuda-feature-card__text small mb-3">
+                            Versión {{ manual.version }} · {{ manual.fecha_publicacion|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                    <a href="{{ manual.archivo.url }}" class="ayuda-btn ayuda-btn--blue w-100 justify-content-center" download>
+                        <i class="bi bi-download"></i> Descargar
                     </a>
                 </div>
             </div>
+            {% endfor %}
         </div>
-    </div>
+    </section>
+    {% endif %}
+
+    <!-- Banner final de sugerencias -->
+    <section class="ayuda-cta-banner" data-aos="fade-up">
+        <div class="ayuda-cta-banner__left">
+            <div class="ayuda-icon-pill ayuda-icon-pill--blue">
+                <i class="bi bi-chat-heart-fill"></i>
+            </div>
+            <div>
+                <h4 class="ayuda-cta-banner__title">¿Tienes una sugerencia o no encontraste lo que buscabas?</h4>
+                <p class="ayuda-cta-banner__desc mb-0">
+                    Compártenos tus ideas o reportes para seguir mejorando Constru-Trans.
+                </p>
+            </div>
+        </div>
+        <a href="{% url 'ayuda:crear_sugerencia' %}" class="ayuda-btn ayuda-btn--blue flex-shrink-0">
+            <i class="bi bi-plus-circle"></i> Enviar Sugerencia
+        </a>
+    </section>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('ayudaSearchInput');
+    const clearBtn = document.getElementById('ayudaSearchClear');
+    const items = Array.from(document.querySelectorAll('.ayuda-searchable'));
+    const noResults = document.getElementById('ayudaNoResults');
+    const tagBtns = document.querySelectorAll('.ayuda-tag-btn');
+
+    function filterHelp(raw) {
+        const q = (raw || '').trim().toLowerCase();
+        if (clearBtn) clearBtn.classList.toggle('d-none', !q);
+
+        let visible = 0;
+        items.forEach((el) => {
+            const haystack = ((el.dataset.keywords || '') + ' ' + (el.textContent || '')).toLowerCase();
+            const match = !q || haystack.includes(q);
+            el.classList.toggle('d-none', !match);
+            if (match) {
+                visible++;
+                if (q && el.tagName === 'DETAILS') el.open = true;
+            }
+        });
+
+        if (noResults) noResults.classList.toggle('d-none', visible > 0);
+    }
+
+    if (input) {
+        input.addEventListener('input', () => filterHelp(input.value));
+    }
+    if (clearBtn && input) {
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            filterHelp('');
+            input.focus();
+        });
+    }
+    tagBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            if (!input) return;
+            input.value = btn.dataset.query || '';
+            filterHelp(input.value);
+            input.focus();
+        });
+    });
+});
+</script>
 {% endblock %}

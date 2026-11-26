@@ -293,8 +293,12 @@ class Pago(TransicionMixin, models.Model):
     @property
     def historial_intentos(self):
         """Devuelve la lista cronológica de intentos registrados en DetallePago."""
-        db_alias = self._state.db or "default"
-        registros = list(self.detalles.using(db_alias).order_by("id"))
+        prefetched = getattr(self, "_prefetched_objects_cache", {})
+        if "detalles" in prefetched:
+            registros = sorted(prefetched["detalles"], key=lambda d: d.pk or 0)
+        else:
+            db_alias = self._state.db or "default"
+            registros = list(self.detalles.using(db_alias).order_by("id"))
         resultado = []
         metodos_map = dict(self.METODOS)
         for idx, det in enumerate(registros, start=1):

@@ -35,17 +35,18 @@
                     <div class="standard-filter-label">
                         <span class="text-muted small fw-bold"><i class="bi bi-funnel"></i> FILTROS:</span>
                     </div>
-                    <div class="standard-filter-field" style="flex: 0 1 140px; min-width: 110px;">
+                    <div class="standard-filter-field" style="flex: 0 1 160px; min-width: 130px;">
                         <input type="text" id="filter-id" name="q" value="{{ q }}"
                             class="form-control form-control-sm bg-surface text-main filter-input"
-                            placeholder="N.° pedido o destino...">
+                            data-filter-label="N.° Pedido" data-filter-rule="digits" inputmode="numeric"
+                            placeholder="N.° pedido...">
                     </div>
                     <div class="standard-filter-field">
                         <input type="text" id="filter-cliente" name="cliente" value="{{ cliente_query }}"
                             class="form-control form-control-sm bg-surface text-main filter-input" placeholder="Cliente...">
                     </div>
                     <div class="standard-filter-field">
-                        <input type="text" id="filter-destino"
+                        <input type="text" id="filter-destino" name="destino" value="{{ destino_query }}"
                             class="form-control form-control-sm bg-surface text-main filter-input" placeholder="Dirección...">
                     </div>
                     <div class="standard-filter-field" style="flex: 1 1 190px; min-width: 160px;">

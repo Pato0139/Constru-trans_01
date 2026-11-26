@@ -7,6 +7,12 @@ class CoreConfig(AppConfig):
     label = "core"
 
     def ready(self):
+        # Conectar señales de replicación en tiempo real (remota -> local)
+        import config.signals_sync  # noqa: F401
+        from config.sync_local import iniciar_celador_automatico
+
+        iniciar_celador_automatico()
+
         from django.db.backends.signals import connection_created
         from django.dispatch import receiver
 

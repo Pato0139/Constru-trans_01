@@ -1,0 +1,46 @@
+"""
+Señales de replicación en tiempo real: Remota (Neon) -> Local (SQLite).
+
+Cada vez que se crea, edita o elimina un registro en la base 'remota',
+se replica automáticamente en 'local' (db.sqlite3) dentro de un bloque seguro
+para mantener la base offline siempre actualizada.
+"""
+
+import sys
+
+from django.conf import settings
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+
+from config.sync_local import (
+    MODELOS_SINCRONIZABLES,
+    eliminar_instancia_en_local,
+    esta_sincronizando,
+    replicar_instancia_a_local,
+)
+
+
+def _debe_replicar(sender, using) -> bool:
+    if "test" in sys.argv or "pytest" in sys.modules:
+        return False
+    if esta_sincronizando():
+        return False
+    if using != "remota":
+        return False
+    if "local" not in settings.DATABASES:
+        return False
+    return getattr(sender._meta, "label", None) in MODELOS_SINCRONIZABLES
+
+
+@receiver(post_save, dispatch_uid="core_replicar_remota_a_local_save")
+def replicar_guardado_a_local(sender, instance, using=None, **kwargs):
+    db_used = using or getattr(instance._state, "db", None)
+    if _debe_replicar(sender, db_used):
+        replicar_instancia_a_local(instance)
+
+
+@receiver(post_delete, dispatch_uid="core_replicar_remota_a_local_delete")
+def replicar_borrado_a_local(sender, instance, using=None, **kwargs):
+    db_used = using or getattr(instance._state, "db", None)
+    if _debe_replicar(sender, db_used):
+        eliminar_instancia_en_local(instance)

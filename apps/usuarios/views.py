@@ -49,6 +49,7 @@ from config.sync import (
 from config.utils import conexion_remota_disponible, registrar_actividad
 from config.validators import telefono_validator
 
+from .captcha import generar_reto_captcha, validar_token_captcha, verificar_reto_captcha
 from .forms import CustomPasswordResetForm, FotoPerfilForm, LoginForm, RegistroForm
 from .models import Conductor, Notificacion, Usuario
 from .utils import (
@@ -289,6 +290,37 @@ def registro(request):
 # =====================================================================
 
 
+@require_http_methods(["GET"])
+def captcha_generar_reto(request):
+    """Genera un reto CAPTCHA visual (imagen PNG distorsionada) guardado en sesión."""
+    reto = generar_reto_captcha(request)
+    response = JsonResponse(reto)
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    return response
+
+
+@require_POST
+def captcha_verificar_reto(request):
+    """Valida la respuesta del reto CAPTCHA del lado del servidor."""
+    import json as _json
+
+    if request.content_type and "application/json" in request.content_type:
+        try:
+            payload = _json.loads(request.body.decode("utf-8") or "{}")
+        except (ValueError, UnicodeDecodeError):
+            payload = {}
+        challenge_id = payload.get("challenge_id", "")
+        answer = payload.get("answer", "")
+    else:
+        challenge_id = request.POST.get("challenge_id", "")
+        answer = request.POST.get("answer", "")
+
+    ok, data = verificar_reto_captcha(request, challenge_id, answer)
+    response = JsonResponse(data, status=200 if ok else 400)
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    return response
+
+
 def login_usuario(request):
     if request.user.is_authenticated:
         usuario = request.user
@@ -319,6 +351,18 @@ def login_usuario(request):
 
         form = LoginForm(request.POST)
         if form.is_valid():
+            captcha_token = form.cleaned_data.get("captcha_token", "")
+            if not validar_token_captcha(request, captcha_token, consumir=True):
+                error_message = "Debes completar el reto de verificación 'No soy un robot'."
+                form.add_error("captcha", error_message)
+                messages.error(request, error_message)
+                if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                    return JsonResponse(
+                        {"status": "error", "message": error_message}, status=400
+                    )
+                context = {"form": form, "modo_local": modo_local}
+                return render(request, "usuarios/login.html", context)
+
             identifier = form.cleaned_data.get("username")
             password = form.cleaned_data.get("password")
 
@@ -1026,7 +1070,23 @@ def editar_perfil(request):
                         exc,
                     )
 
+            # Sincronizar nueva foto a remota si está disponible
+            if "remota" in settings.DATABASES and conexion_remota_disponible():
+                try:
+                    Usuario._base_manager.using("remota").filter(pk=usuario.pk).update(
+                        foto_perfil=usuario.foto_perfil.name
+                    )
+                except Exception:
+                    pass
+
             messages.success(request, "La foto de perfil se guardó correctamente.")
+            next_url = request.POST.get("next") or ""
+            if next_url and url_has_allowed_host_and_scheme(
+                url=next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
             return redirect("usuarios:editar_perfil")
 
         foto_form = FotoPerfilForm(request.POST, request.FILES)
@@ -2126,11 +2186,73 @@ def perfil_conductor(request):
 
     context = {
         "conductor": usuario_conductor,
+        "perfil_conductor": perfil_conductor,
         "pedidos": pedidos,
         "viajes_completados": viajes_completados,
+        "en_ruta_count": pedidos.filter(estado=Pedido.EN_RUTA).count(),
         "vehiculo": vehiculo,
     }
     return render(request, "usuarios/perfil-conductor.html", context)
+
+
+@login_required
+@require_POST
+def cambiar_password_perfil(request):
+    """Cambia la contraseña del usuario autenticado desde su perfil (Admin, Cliente o Conductor)."""
+    from django.contrib.auth import update_session_auth_hash
+    from django.contrib.auth.forms import PasswordChangeForm
+
+    form = PasswordChangeForm(request.user, request.POST)
+    if form.is_valid():
+        user = form.save()
+        update_session_auth_hash(request, user)
+        if "remota" in settings.DATABASES and conexion_remota_disponible():
+            try:
+                Usuario._base_manager.using("remota").filter(pk=user.pk).update(
+                    password=user.password
+                )
+            except Exception:
+                pass
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": True, "message": "Contraseña actualizada correctamente."})
+        messages.success(request, "Contraseña actualizada correctamente.")
+        return redirect(request.META.get("HTTP_REFERER") or "usuarios:panel")
+
+    first_error = next(
+        (str(err) for errs in form.errors.values() for err in errs),
+        "No se pudo actualizar la contraseña.",
+    )
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "error": first_error}, status=400)
+    messages.error(request, first_error)
+    return redirect(request.META.get("HTTP_REFERER") or "usuarios:panel")
+
+
+@admin_required
+@require_POST
+def sincronizar_bd_local_view(request):
+    """Sincroniza manualmente cambios nuevos desde Neon ('remota') hacia SQLite ('local')."""
+    from config.sync_local import sincronizar_cambios_remota_a_local
+
+    if "remota" not in settings.DATABASES or not conexion_remota_disponible():
+        msg = "No hay conexión con la nube (Neon) para sincronizar."
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": False, "error": msg}, status=503)
+        messages.error(request, msg)
+        return redirect("usuarios:perfil_admin")
+
+    res = sincronizar_cambios_remota_a_local()
+    descargados = res.get("registros_descargados", 0)
+    tablas = res.get("tablas_actualizadas", 0)
+    msg = (
+        f"Base local actualizada: {descargados} registros sincronizados ({tablas} tablas)."
+        if descargados > 0
+        else "Base local al día: no había cambios pendientes en la nube."
+    )
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({"ok": True, "message": msg, **res})
+    messages.success(request, msg)
+    return redirect("usuarios:perfil_admin")
 
 
 # =====================================================================
