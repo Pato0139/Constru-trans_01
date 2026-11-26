@@ -1,8 +1,14 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Detalle de Envío #ENV-{{ entrega.id_entrega }} - ConstruTrans{% endblock %}
 
 {% block header_title %}Detalle de Envío #ENV-{{ entrega.id_entrega }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
+<link rel="stylesheet" href="{% static 'css/logistica/conductor-ruta.css' %}?v=1.0">
+{% endblock %}
 
 {% block content %}
 <div class="row g-4">
@@ -146,6 +152,56 @@
         </div>
     </div>
 
+    <!-- Navegador de Ruta estilo Google Maps (Cómo llegar) -->
+    <div class="col-12">
+        <section id="ct-conductor-route-card" class="ct-route-card"
+                 data-direccion="{{ entrega.direccion_entrega|default:pedido.direccion_destino }}"
+                 data-ciudad="{{ pedido.ciudad_destino|default:'' }}">
+            <div class="ct-route-header">
+                <div class="ct-route-title-wrap">
+                    <span class="ct-route-icon"><i class="bi bi-sign-turn-right-fill"></i></span>
+                    <div>
+                        <h5 class="fw-bold text-main mb-0">Cómo llegar al destino</h5>
+                        <small class="text-muted" data-route-dest-label>{{ entrega.direccion_entrega|default:pedido.direccion_destino }}</small>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" data-route-gps>
+                        <i class="bi bi-crosshair me-1"></i> Mi ubicación GPS
+                    </button>
+                    <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-warning fw-bold rounded-pill px-3" data-route-gmaps>
+                        <i class="bi bi-geo-alt-fill me-1"></i> Abrir en Google Maps
+                    </a>
+                    <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-info rounded-pill px-3" data-route-waze>
+                        <i class="bi bi-compass me-1"></i> Waze
+                    </a>
+                </div>
+            </div>
+
+            <div class="ct-route-eta-strip">
+                <span class="ct-route-pill ct-route-pill--time">
+                    <i class="bi bi-clock-fill"></i> <span data-route-time>Calculando...</span>
+                </span>
+                <span class="ct-route-pill ct-route-pill--dist">
+                    <i class="bi bi-signpost-2-fill"></i> <span data-route-dist>-- km</span>
+                </span>
+                <span class="small text-muted ms-auto" data-route-status>Preparando mapa de ruta...</span>
+            </div>
+
+            <div class="ct-route-body">
+                <div class="ct-route-map" data-route-map></div>
+                <div class="ct-route-steps-panel">
+                    <div class="ct-route-steps-header">
+                        <span><i class="bi bi-list-ol me-1"></i> Indicaciones paso a paso</span>
+                    </div>
+                    <ul class="ct-route-steps-list" data-route-steps>
+                        <li class="ct-route-step text-muted">Calculando indicaciones de manejo...</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
     <!-- Column 3: Materiales a Entregar (Sin información financiera ni precios) -->
     <div class="col-12">
         <div class="card bg-surface border-0 shadow-sm p-4 rounded-4">
@@ -280,4 +336,9 @@
     .text-main { color: var(--color-text) !important; }
 </style>
 {% include "partials/confirmar_accion_modal.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+<script src="{% static 'js/logistica/conductor-ruta.js' %}?v=1.0"></script>
 {% endblock %}

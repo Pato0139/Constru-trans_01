@@ -85,7 +85,7 @@
                                 <td class="updated-cell">-</td>
                                 <td>{{ detail_form.cantidad }}</td>
                                 <td>{{ detail_form.precio_unitario }}</td>
-                                <td class="subtotal-cell">{% if detail_form.instance.pk %}{{ detail_form.instance.subtotal|currency }}{% else %}$0,00{% endif %}</td>
+                                <td class="subtotal-cell">{% if detail_form.instance.pk %}{{ detail_form.instance.subtotal|currency }}{% else %}$0{% endif %}</td>
                                 <td>
                                     {% if formset.can_delete %}<span class="purchase-delete-field">{{ detail_form.DELETE }}</span>{% endif %}
                                     <button type="button" class="btn btn-sm btn-outline-danger remove-form-row" aria-label="Quitar material" data-tooltip="Quitar material" title="Quitar material">
@@ -114,9 +114,9 @@
                 Resumen
             </div>
             <dl>
-                <div><dt>Subtotal</dt><dd id="subtotal-order">$0,00</dd></div>
-                <div><dt>IVA</dt><dd id="tax-order">$0,00</dd></div>
-                <div><dt>Total</dt><dd id="total-order">{% if compra %}{{ compra.total_compra|currency }}{% else %}$0,00{% endif %}</dd></div>
+                <div><dt>Subtotal</dt><dd id="subtotal-order">$0</dd></div>
+                <div><dt>IVA</dt><dd id="tax-order">$0</dd></div>
+                <div><dt>Total</dt><dd id="total-order">{% if compra %}{{ compra.total_compra|currency }}{% else %}$0{% endif %}</dd></div>
                 <div><dt>Materiales</dt><dd id="material-count">0</dd></div>
             </dl>
             <button type="submit" class="btn btn-warning w-100" aria-label="Guardar orden de compra" data-tooltip="Guardar orden de compra" title="Guardar orden de compra">

@@ -1,0 +1,213 @@
+/**
+ * conductor-ruta.css
+ * Navegador de ruta estilo Google Maps (Leaflet + OSRM + Cache Offline)
+ * para el panel del Conductor de Constru-Trans.
+ */
+
+.ct-route-card {
+    background: rgba(17, 24, 39, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+}
+
+.ct-route-header {
+    padding: 1.15rem 1.35rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+}
+
+.ct-route-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.ct-route-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(59, 130, 246, 0.16);
+    border: 1px solid rgba(59, 130, 246, 0.38);
+    color: #60a5fa;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.ct-route-eta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1.35rem;
+    background: rgba(15, 23, 42, 0.65);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.ct-route-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    color: #f8fafc;
+}
+
+.ct-route-pill--time {
+    background: rgba(16, 185, 129, 0.16);
+    border-color: rgba(16, 185, 129, 0.35);
+    color: #34d399;
+}
+
+.ct-route-pill--dist {
+    background: rgba(59, 130, 246, 0.16);
+    border-color: rgba(59, 130, 246, 0.35);
+    color: #60a5fa;
+}
+
+.ct-route-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(260px, 1fr);
+    min-height: 410px;
+}
+
+.ct-route-map {
+    width: 100%;
+    height: 410px;
+    min-height: 360px;
+    z-index: 1;
+}
+
+.ct-route-steps-panel {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid rgba(148, 163, 184, 0.16);
+    background: rgba(15, 23, 42, 0.55);
+    max-height: 410px;
+}
+
+.ct-route-steps-header {
+    padding: 0.85rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #fbbf24;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ct-route-steps-list {
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.ct-route-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    font-size: 0.83rem;
+    color: #e2e8f0;
+}
+
+.ct-route-step:last-child {
+    border-bottom: none;
+}
+
+.ct-route-step__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.ct-route-step__dist {
+    display: block;
+    font-size: 0.74rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.ct-route-pin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 1rem;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+    border: 2.5px solid #ffffff;
+}
+
+.ct-route-pin--origin {
+    background: #10b981;
+}
+
+.ct-route-pin--dest {
+    background: #ef4444;
+}
+
+/* Tema claro */
+[data-theme="light"] .ct-route-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="light"] .ct-route-eta-strip,
+[data-theme="light"] .ct-route-steps-panel {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+[data-theme="light"] .ct-route-pill {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+[data-theme="light"] .ct-route-step {
+    color: #1e293b;
+    border-color: #e2e8f0;
+}
+
+@media (max-width: 991.98px) {
+    .ct-route-body {
+        grid-template-columns: 1fr;
+    }
+    .ct-route-map {
+        height: 330px;
+    }
+    .ct-route-steps-panel {
+        border-left: none;
+        border-top: 1px solid rgba(148, 163, 184, 0.16);
+        max-height: 260px;
+    }
+}

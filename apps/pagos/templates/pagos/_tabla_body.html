@@ -10,7 +10,7 @@
     <td>
         {{ pago.pedido.cliente_usuario.nombres }} {{ pago.pedido.cliente_usuario.apellidos }}
     </td>
-    <td>${{ pago.monto|floatformat:2|intcomma }}</td>
+    <td>${{ pago.monto|floatformat:0|intcomma }}</td>
     <td>{{ pago.get_metodo_display }}</td>
     <td>
         {% if pago.estado == 'aprobado' %}

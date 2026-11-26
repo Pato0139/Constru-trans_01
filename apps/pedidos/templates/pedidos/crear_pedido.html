@@ -139,7 +139,12 @@
         const descuentoInput = document.getElementById('descuento');
 
         function formatCurrency(value) {
-            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(value);
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(Math.round(value || 0));
         }
 
         function calcularTotales() {

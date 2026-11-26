@@ -9,8 +9,34 @@
 {% block content %}
 
 <div class="table-container p-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
-        <h5 class="fw-800 m-0 text-white">Pedidos Finalizados</h5>
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25 flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-3 flex-shrink-0"
+                 style="width:46px;height:46px;background:rgba(16,185,129,0.14);border:1px solid rgba(16,185,129,0.35);color:#34d399;">
+                <i class="bi bi-check2-all fs-4"></i>
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <h4 class="fw-800 m-0 text-white" style="font-size:1.35rem;letter-spacing:-0.01em;">Pedidos Finalizados</h4>
+                    <span class="badge rounded-pill px-3 py-1" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);font-size:0.78rem;">
+                        {{ pedidos|length }} registro{{ pedidos|length|pluralize:"s" }}
+                    </span>
+                </div>
+                <p class="text-muted mb-0 mt-1" style="font-size:0.88rem;">
+                    Consulta el histórico de entregas completadas y solicitudes canceladas.
+                </p>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <a href="{% url 'clientes:mis_pedidos' %}" class="btn btn-outline-light d-inline-flex align-items-center gap-2 px-3 py-2"
+               style="border-radius:12px;border-color:rgba(148,163,184,0.3);font-weight:600;font-size:0.9rem;">
+                <i class="bi bi-box-seam"></i> Pedidos Activos
+            </a>
+            <a href="{% url 'clientes:crear_pedido' %}" class="btn btn-gold d-inline-flex align-items-center gap-2 px-4 py-2"
+               style="border-radius:12px;font-weight:700;font-size:0.95rem;box-shadow:0 8px 22px rgba(245,158,11,0.28);">
+                <i class="bi bi-plus-circle-fill fs-5"></i> Nuevo Pedido
+            </a>
+        </div>
     </div>
 
     <div class="card border-0 shadow-sm p-3 mb-3 filter-bar-card" data-aos="fade-down">

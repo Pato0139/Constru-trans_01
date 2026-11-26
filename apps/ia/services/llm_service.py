@@ -85,6 +85,16 @@ Datos actuales del sistema:
 def responder_fallback(mensaje, contexto, nombre_usuario):
     mensaje_lower = mensaje.lower().strip()
 
+    # Primero intentar conocimiento funcional completo del proyecto Constru-Trans
+    try:
+        from .project_knowledge_service import responder_conocimiento_proyecto
+
+        resp_proyecto = responder_conocimiento_proyecto(mensaje, datos=contexto)
+        if resp_proyecto:
+            return resp_proyecto
+    except Exception:
+        logger.debug("Fallback project_knowledge_service no disponible", exc_info=True)
+
     # Saludos (incluidos "hi", "hello", "hey", "como estas", etc.)
     if any(
         greet in mensaje_lower
@@ -172,9 +182,19 @@ def responder_fallback(mensaje, contexto, nombre_usuario):
     if any(
         word in mensaje_lower for word in ["ayuda", "que haces", "ayudame", "opciones", "saber"]
     ):
-        return "Puedo brindarte información en tiempo real de los siguientes módulos:\n1. **Usuarios y Personal** (roles, activos)\n2. **Pedidos y Facturación** (estados de pedidos, ventas totales)\n3. **Inventario** (materiales, stock crítico)\n4. **Compras y Proveedores**\n5. **Flota de Vehículos** (disponibles, asignaciones)\n\nEscribe sobre cualquiera de estos temas para consultarme directamente."
+        return (
+            "Puedo responder sobre **todo lo que existe en Constru-Trans** (datos en tiempo real y guías de uso):\n"
+            "1. **Usuarios, Roles y Mi Perfil** (avatares, edición, cambio de contraseña, CAPTCHA)\n"
+            "2. **Pedidos y Envíos** (estados, tarifa de envío, mínimos, detalle por código `#`)\n"
+            "3. **Pagos y Facturas** (Nequi, DaviPlata, Bancolombia, contraentrega, corrección de pago)\n"
+            "4. **Catálogo e Inventario** (materiales, marcas, unidades, stock crítico y movimientos)\n"
+            "5. **Logística y Flota** (vehículos, conductores, entregas activas y novedades)\n"
+            "6. **Compras, Proveedores, Reportes (PDF/Excel/XML) y Auditoría**\n"
+            "7. **Modo Híbrido (Neon/SQLite), Sincronización, Backups, Filtros AJAX y Accesibilidad**\n\n"
+            "Pregúntame directamente sobre cualquiera de estos temas."
+        )
 
-    return "En este momento el servicio de IA está desconectado. Mientras tanto, puedes consultarme datos en tiempo real sobre usuarios, pedidos, inventario, compras o vehículos del sistema."
+    return "Puedo responder sobre cualquier módulo o dato de Constru-Trans: pedidos, pagos, facturas, inventario, catálogo, vehículos, entregas, novedades, compras, proveedores, usuarios, reportes, auditoría, modo híbrido, seguridad o tu perfil. ¿Qué deseas consultar?"
 
 
 def preguntar_llm(mensaje, contexto, nombre_usuario, historial, contexto_web=""):

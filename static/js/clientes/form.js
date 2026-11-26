@@ -45,20 +45,20 @@ function parseStockNumber(value) {
 }
 
 /**
- * Formatea un valor numérico como moneda colombiana
+ * Formatea un valor numérico como moneda colombiana sin decimales innecesarios
  * @function formatCurrency
  * @param {number|string} value - Valor a formatear
  * @returns {string} Valor formateado con símbolo de peso colombiano y separadores de miles
  * @example
- * formatCurrency(150000) // Returns "$150.000,00"
+ * formatCurrency(150000) // Returns "$150.000"
  */
 function formatCurrency(value) {
-    const val = parseFloat(value || 0);
+    const val = Math.round(parseFloat(value || 0) || 0);
     const formatted = val.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
     });
-    const res = formatted.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
+    const res = formatted.replace(/,/g, '.');
     return '$' + res;
 }
 

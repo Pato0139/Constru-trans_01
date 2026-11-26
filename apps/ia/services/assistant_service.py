@@ -12,6 +12,7 @@ from .kb_service import check_knowledge_base, update_knowledge_base
 from .llm_service import LLM_MODEL, LLM_PROVIDER, preguntar_llm
 from .math_service import evaluar_expresion_matematica
 from .orm_query_service import consultar_datos
+from .project_knowledge_service import responder_conocimiento_proyecto
 from .time_service import responder_hora
 from .web_search_service import buscar_web_si_aplica
 
@@ -845,7 +846,7 @@ def verificar_pregunta_especifica(mensaje, usuario, historial, datos):
     """Verifica si la pregunta es específica y devuelve la respuesta (incluye múltiples partes)"""
     mensaje_lower = mensaje.lower()
     mensaje_normalizado = normalizar_texto(mensaje)
-    es_primera_interaccion = len(historial) == 0
+    es_primera_interaccion = len(historial or []) == 0
     respuestas = []
     secciones_vistas = set()
 
@@ -952,7 +953,7 @@ def obtener_respuesta_inteligente(mensaje, usuario=None, historial=None, datos=N
     if datos is None:
         datos = obtener_contexto_datos(usuario=usuario)
 
-    es_primera_interaccion = len(historial) == 0
+    es_primera_interaccion = len(historial or []) == 0
     mensaje_lower = mensaje.lower()
     es_saludo = any(
         palabra in mensaje_lower
@@ -1071,18 +1072,6 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
             )
             return respuesta_hora, bot_message.id if bot_message else None
 
-        respuesta_especifica = verificar_pregunta_especifica(mensaje, usuario, historial, datos)
-        if respuesta_especifica:
-            bot_message = add_message_to_conversation(
-                conversation,
-                "assistant",
-                respuesta_especifica,
-                prompt_used="Rule-Based",
-                model_used="Rule-Based",
-                response_time=time.time() - start_time,
-            )
-            return respuesta_especifica, bot_message.id if bot_message else None
-
         respuesta_orm = consultar_datos(mensaje, usuario)
         if respuesta_orm:
             bot_message = add_message_to_conversation(
@@ -1094,6 +1083,30 @@ def preguntar_ia(mensaje, usuario=None, historial=None, session_id=None):
                 response_time=time.time() - start_time,
             )
             return respuesta_orm, bot_message.id if bot_message else None
+
+        respuesta_proyecto = responder_conocimiento_proyecto(mensaje, usuario=usuario, datos=datos)
+        if respuesta_proyecto:
+            bot_message = add_message_to_conversation(
+                conversation,
+                "assistant",
+                respuesta_proyecto,
+                prompt_used="Project-Knowledge",
+                model_used="Constru-Trans KB",
+                response_time=time.time() - start_time,
+            )
+            return respuesta_proyecto, bot_message.id if bot_message else None
+
+        respuesta_especifica = verificar_pregunta_especifica(mensaje, usuario, historial, datos)
+        if respuesta_especifica:
+            bot_message = add_message_to_conversation(
+                conversation,
+                "assistant",
+                respuesta_especifica,
+                prompt_used="Rule-Based",
+                model_used="Rule-Based",
+                response_time=time.time() - start_time,
+            )
+            return respuesta_especifica, bot_message.id if bot_message else None
 
         contexto_web = buscar_web_si_aplica(mensaje)
 

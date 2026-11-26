@@ -31,12 +31,15 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
         try:
             from django.db.models import Count
 
-            from apps.catalogo.models import MaterialConstruccion, Stock
+            from apps.ayuda.models import SugerenciaRecomendacion
+            from apps.catalogo.models import Catalogo, Marca, MaterialConstruccion, Stock
             from apps.clientes.models import Cliente
             from apps.compras.models import Compra, Proveedor
-            from apps.logistica.models import ConductorVehiculo, Vehiculo
+            from apps.logistica.models import ConductorVehiculo, Entrega, Novedad, Vehiculo
+            from apps.pagos.models import Factura, Pago
             from apps.pedidos.models import Pedido as PedidoGestion
             from apps.usuarios.models import Usuario
+            from config.db_preference import debe_usar_bd_remota
 
             # --- DATOS GLOBALES ---
             # Obtener vehículos asociados a cada conductor
@@ -115,6 +118,20 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
                     "vehiculos_por_conductor_lista": vehiculos_por_conductor_lista,
                     "clientes_registrados": Cliente.objects.count(),
                     "top_cliente": top_cliente,
+                    "pagos_pendientes": Pago.objects.filter(estado=Pago.PENDIENTE).count(),
+                    "pagos_aprobados": Pago.objects.filter(estado=Pago.APROBADO).count(),
+                    "pagos_rechazados": Pago.objects.filter(estado=Pago.RECHAZADO).count(),
+                    "facturas_totales": Factura.objects.count(),
+                    "entregas_activas": Entrega.objects.filter(
+                        estado__in=["pendiente", "en_ruta"]
+                    ).count(),
+                    "novedades_abiertas": Novedad.objects.filter(
+                        estado__in=["abierta", "en_atencion"]
+                    ).count(),
+                    "marcas_count": Marca.objects.filter(activo=True).count(),
+                    "catalogos_count": Catalogo.objects.filter(activo=True).count(),
+                    "sugerencias_count": SugerenciaRecomendacion.objects.count(),
+                    "bd_modo": "PostgreSQL (Nube Activa)" if debe_usar_bd_remota() else "SQLite3 (Local)",
                 }
             )
 

@@ -447,3 +447,190 @@
     .pedido-total-value { font-size: 1.2rem; }
     .material-stock-badge { padding: .3rem .45rem; }
 }
+
+
+/* Selector interactivo de dirección en mapa (Leaflet + OpenStreetMap) */
+.pedido-direccion-group {
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--input-bg, rgba(15, 23, 42, 0.72));
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pedido-direccion-group:focus-within {
+    border-color: rgba(245, 158, 11, 0.65);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.16);
+}
+
+.pedido-direccion-group .pedido-input-icon {
+    cursor: pointer;
+    padding-left: 1rem;
+    padding-right: 0.75rem;
+}
+
+.pedido-direccion-group .pedido-input-bg {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.pedido-map-trigger-btn {
+    border: none !important;
+    border-left: 1px solid rgba(245, 158, 11, 0.35) !important;
+    border-radius: 0 999px 999px 0 !important;
+    padding: 0.55rem 1.15rem !important;
+    font-weight: 700 !important;
+    font-size: 0.84rem !important;
+    white-space: nowrap;
+    background: rgba(245, 158, 11, 0.12) !important;
+    color: #fbbf24 !important;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.pedido-map-trigger-btn:hover {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: #0f172a !important;
+}
+
+.ct-map-modal {
+    background: #111827;
+    color: #f8fafc;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.ct-map-modal__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(245, 158, 11, 0.16);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #fbbf24;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+}
+
+.ct-map-search-input {
+    background: rgba(15, 23, 42, 0.85) !important;
+    border: 1px solid rgba(148, 163, 184, 0.24) !important;
+    color: #ffffff !important;
+    min-height: 44px;
+}
+
+.ct-map-search-input::placeholder {
+    color: #94a3b8 !important;
+}
+
+.ct-map-canvas {
+    height: 390px;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    z-index: 1;
+}
+
+[data-theme="light"] .ct-map-modal {
+    background: #ffffff;
+    color: #0f172a;
+    border-color: #e2e8f0;
+}
+
+[data-theme="light"] .ct-map-search-input {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .pedido-map-trigger-btn {
+    background: rgba(245, 158, 11, 0.14) !important;
+    color: #b45309 !important;
+}
+
+/* Dropdown de sugerencias en tiempo real dentro del modal del mapa */
+.ct-map-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 1200;
+    max-height: 240px;
+    overflow-y: auto;
+    background: #0f172a;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.ct-map-suggestion {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    padding: 0.7rem 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #f8fafc;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.ct-map-suggestion:last-child {
+    border-bottom: none;
+}
+
+.ct-map-suggestion:hover {
+    background: rgba(245, 158, 11, 0.14);
+}
+
+.ct-map-suggestion__icon {
+    color: #fbbf24;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.ct-map-suggestion__body {
+    min-width: 0;
+    flex: 1;
+}
+
+.ct-map-suggestion__title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ct-map-suggestion__sub {
+    font-size: 0.76rem;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ct-map-suggestion--empty {
+    color: #94a3b8;
+    font-size: 0.84rem;
+    cursor: default;
+}
+
+[data-theme="light"] .ct-map-suggestions {
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+
+[data-theme="light"] .ct-map-suggestion {
+    color: #0f172a;
+}
+
+[data-theme="light"] .ct-map-suggestion__title {
+    color: #0f172a;
+}
