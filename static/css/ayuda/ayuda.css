@@ -851,8 +851,130 @@
 [data-theme="light"] .ayuda-feature-card,
 [data-theme="light"] .ayuda-faq-item,
 [data-theme="light"] .ayuda-manual-banner,
-[data-theme="light"] .ayuda-cta-banner {
+[data-theme="light"] .ayuda-cta-banner,
+[data-theme="light"] .ayuda-card,
+[data-theme="light"] .ayuda-step-card,
+[data-theme="light"] .sugerencia-form {
   background: #ffffff !important;
-  border-color: #e2e8f0 !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .ayuda-feature-card:hover {
+  border-color: #93c5fd !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08) !important;
+}
+
+[data-theme="light"] .ayuda-icon-pill--blue {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border-color: #bfdbfe !important;
+}
+
+[data-theme="light"] .ayuda-icon-pill--gold,
+[data-theme="light"] .ayuda-icon-pill--amber {
+  background: #fef3c7 !important;
+  color: #b45309 !important;
+  border-color: #fde68a !important;
+}
+
+[data-theme="light"] .ayuda-icon-pill--green {
+  background: #d1fae5 !important;
+  color: #047857 !important;
+  border-color: #a7f3d0 !important;
+}
+
+[data-theme="light"] .ayuda-faq-item__a {
+  border-top-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .ayuda-faq-item__chev {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .ayuda-faq-item[open] .ayuda-faq-item__chev {
+  color: #2563eb !important;
+}
+
+[data-theme="light"] .ayuda-search-box__clear {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+[data-theme="light"] .ayuda-empty-state {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #64748b !important;
+}
+
+[data-theme="light"] .ayuda-btn--ghost:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .sugerencia-form .form-control,
+[data-theme="light"] .sugerencia-form .form-select,
+[data-theme="light"] .sugerencia-form textarea {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid #cbd5e1 !important;
+}
+
+[data-theme="light"] .sugerencia-form label,
+[data-theme="light"] .ayuda-heading,
+[data-theme="light"] .guia-content,
+[data-theme="light"] .guia-content p,
+[data-theme="light"] .guia-content li,
+[data-theme="light"] .guia-content h2 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .btn-ayuda--secondary {
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
+
+.ayuda-step-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 14px;
+}
+
+.ayuda-heading {
+  color: var(--color-text, #ffffff);
+}
+
+.ayuda-ver-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: rgba(59, 130, 246, 0.14);
+  color: #60a5fa !important;
+  border: 1px solid rgba(59, 130, 246, 0.32);
+  transition: all 0.18s ease;
+}
+
+.ayuda-ver-btn:hover {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+
+[data-theme="light"] .ayuda-ver-btn {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border: 1px solid #bfdbfe !important;
+}
+
+[data-theme="light"] .ayuda-ver-btn:hover {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
 }

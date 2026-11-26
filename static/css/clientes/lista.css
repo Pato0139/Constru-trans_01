@@ -138,3 +138,69 @@
 .clientes__empty-icon {
     font-size: 3rem;
 }
+
+/* ==========================================================================
+   Modo Claro: tarjetas e íconos luminosos y con realce limpio al pasar cursor
+   ========================================================================== */
+[data-theme="light"] .stat-card:hover {
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.09) !important;
+}
+
+[data-theme="light"] .clientes__action-card--primary {
+    background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%) !important;
+    border: 1.5px solid #fde68a !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] .clientes__action-card--secondary {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .clientes__action-icon-wrapper--accent {
+    background: #fef3c7 !important;
+    color: #d97706 !important;
+    border: 1.5px solid #fcd34d;
+}
+
+[data-theme="light"] .clientes__action-icon-wrapper--secondary {
+    background: #eff6ff !important;
+    color: #2563eb !important;
+    border: 1.5px solid #bfdbfe;
+}
+
+[data-theme="light"] .clientes__action-icon-wrapper--accent i,
+[data-theme="light"] .clientes__action-icon-wrapper--secondary i {
+    color: inherit !important;
+}
+
+[data-theme="light"] .card-action-link:hover .clientes__action-card--primary {
+    background: #ffffff !important;
+    border-color: #f59e0b !important;
+    box-shadow: 0 14px 30px rgba(245, 158, 11, 0.18) !important;
+}
+
+[data-theme="light"] .card-action-link:hover .clientes__action-card--secondary {
+    background: #ffffff !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.14) !important;
+}
+
+[data-theme="light"] .card-action-link:hover .clientes__action-icon-wrapper--accent {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="light"] .card-action-link:hover .clientes__action-icon-wrapper--secondary {
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.32);
+}
+
+[data-theme="light"] .card-action-link:hover .action-icon-wrapper i {
+    color: #ffffff !important;
+}

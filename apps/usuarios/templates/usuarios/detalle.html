@@ -4,7 +4,7 @@
 {% block title %}Mi Perfil - Administrador | Constru-Trans{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/perfil-moderno.css' %}?v=1.1">
+<link rel="stylesheet" href="{% static 'css/perfil-moderno.css' %}?v=1.2">
 {% endblock %}
 
 {% block content %}
@@ -13,20 +13,25 @@
         <!-- Columna izquierda: Identidad del Administrador -->
         <div class="col-lg-5" data-aos="fade-right">
             <section class="ct-profile-card">
-                <form id="ctAvatarUploadForm" method="POST" action="{% url 'usuarios:editar_perfil' %}" enctype="multipart/form-data" class="d-none">
+                <form id="ctAvatarUploadForm" method="POST" action="{% url 'usuarios:editar_perfil' %}"
+                    enctype="multipart/form-data" class="d-none">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="upload_photo">
                     <input type="hidden" name="next" value="{{ request.path }}">
-                    <input type="file" name="foto_perfil" id="ctAvatarFileInput" accept="image/png,image/jpeg,image/webp">
+                    <input type="file" name="foto_perfil" id="ctAvatarFileInput"
+                        accept="image/png,image/jpeg,image/webp">
                 </form>
 
                 <div class="ct-avatar-stage">
                     {% if usuario.foto_perfil %}
-                        <img src="{{ usuario.foto_perfil.url }}" alt="{{ usuario.get_full_name|default:usuario.username }}" class="ct-avatar-img">
+                    <img src="{{ usuario.foto_perfil.url }}" alt="{{ usuario.get_full_name|default:usuario.username }}"
+                        class="ct-avatar-img">
                     {% else %}
-                        <div class="ct-avatar-fallback">{{ usuario.nombres|default:usuario.username|slice:":1"|upper }}</div>
+                    <div class="ct-avatar-fallback">{{ usuario.nombres|default:usuario.username|slice:":1"|upper }}
+                    </div>
                     {% endif %}
-                    <label for="ctAvatarFileInput" class="ct-avatar-cam-btn" title="Cambiar foto de perfil" aria-label="Cambiar foto de perfil">
+                    <label for="ctAvatarFileInput" class="ct-avatar-cam-btn" title="Cambiar foto de perfil"
+                        aria-label="Cambiar foto de perfil">
                         <i class="bi bi-camera"></i>
                     </label>
                     <label for="ctAvatarFileInput" class="ct-avatar-change-pill">
@@ -46,7 +51,8 @@
                         <div class="ct-info-box__icon"><i class="bi bi-envelope"></i></div>
                         <div class="ct-info-box__body">
                             <div class="ct-info-box__label">Correo electrónico</div>
-                            <div class="ct-info-box__value" title="{{ usuario.email }}">{{ usuario.email|default:"No registrado" }}</div>
+                            <div class="ct-info-box__value" title="{{ usuario.email }}">{{ usuario.email|default:"No
+                                registrado" }}</div>
                         </div>
                     </div>
                     <div class="ct-info-box">
@@ -60,7 +66,8 @@
                         <div class="ct-info-box__icon"><i class="bi bi-shield-check"></i></div>
                         <div class="ct-info-box__body">
                             <div class="ct-info-box__label">Nivel de Acceso</div>
-                            <div class="ct-info-box__value">{% if usuario.is_superuser %}Superusuario / Total{% else %}Staff / Admin{% endif %}</div>
+                            <div class="ct-info-box__value">{% if usuario.is_superuser %}Superusuario / Total{% else
+                                %}Staff / Admin{% endif %}</div>
                         </div>
                     </div>
                     <div class="ct-info-box">
@@ -68,7 +75,8 @@
                         <div class="ct-info-box__body">
                             <div class="ct-info-box__label">Última Conexión</div>
                             <div class="ct-info-box__value">
-                                {% if usuario.last_login %}{{ usuario.last_login|date:"d/m/Y, h:i A" }}{% else %}Sesión actual{% endif %}
+                                {% if usuario.last_login %}{{ usuario.last_login|date:"d/m/Y, h:i A" }}{% else %}Sesión
+                                actual{% endif %}
                             </div>
                         </div>
                     </div>
@@ -78,7 +86,8 @@
                     <a href="{% url 'usuarios:editar_perfil' %}" class="ct-profile-btn ct-profile-btn--outline-gold">
                         <i class="bi bi-pencil"></i> Editar Perfil
                     </a>
-                    <button type="button" class="ct-profile-btn ct-profile-btn--outline-slate" data-bs-toggle="modal" data-bs-target="#cambiarPasswordModal">
+                    <button type="button" class="ct-profile-btn ct-profile-btn--outline-slate" data-bs-toggle="modal"
+                        data-bs-target="#cambiarPasswordModal">
                         <i class="bi bi-lock"></i> Cambiar Contraseña
                     </button>
                 </div>
@@ -100,9 +109,9 @@
                             <i class="bi bi-hdd-stack me-1"></i>
                             Copia local: SQLite3
                             {% if bd_usando_remota %}
-                                <span class="ct-status-ok">(Sincronización automática activa)</span>
+                            <span class="ct-status-ok">(Sincronización automática activa)</span>
                             {% else %}
-                                <span class="ct-status-warn">(Trabajando sin nube)</span>
+                            <span class="ct-status-warn">(Trabajando sin nube)</span>
                             {% endif %}
                         </p>
                     </div>
@@ -159,7 +168,8 @@
             <div class="ct-bottom-card__kicker"><i class="bi bi-person-badge"></i> Credenciales de Cuenta</div>
             <div class="ct-bottom-card__main">@{{ usuario.username }}</div>
             <div class="ct-bottom-card__meta">
-                Documento: {{ usuario.tipo_documento|default:"CC" }} {{ usuario.documento|default:"No registrado" }} · Estado: <span class="ct-status-ok">{{ usuario.estado|default:"activo"|capfirst }}</span>
+                Documento: {{ usuario.tipo_documento|default:"CC" }} {{ usuario.documento|default:"No registrado" }} ·
+                Estado: <span class="ct-status-ok">{{ usuario.estado|default:"activo"|capfirst }}</span>
             </div>
         </div>
         <div class="ct-bottom-card">
@@ -172,10 +182,14 @@
         <div class="ct-bottom-card">
             <div class="ct-bottom-card__kicker"><i class="bi bi-lightning-charge"></i> Accesos Directos</div>
             <div class="ct-quick-pills">
-                <a href="{% url 'usuarios:lista_usuarios' %}" class="ct-quick-pill"><i class="bi bi-people"></i> Usuarios</a>
-                <a href="{% url 'pedidos:lista_pedidos_admin' %}" class="ct-quick-pill"><i class="bi bi-truck"></i> Pedidos</a>
-                <a href="{% url 'auditoria:lista_historial' %}" class="ct-quick-pill"><i class="bi bi-journal-text"></i> Auditoría</a>
-                <a href="{% url 'reportes:reportes_admin' %}" class="ct-quick-pill"><i class="bi bi-bar-chart"></i> Reportes</a>
+                <a href="{% url 'usuarios:lista_usuarios' %}" class="ct-quick-pill"><i class="bi bi-people"></i>
+                    Usuarios</a>
+                <a href="{% url 'pedidos:lista_pedidos' %}" class="ct-quick-pill"><i class="bi bi-truck"></i>
+                    Pedidos</a>
+                <a href="{% url 'auditoria:lista_historial' %}" class="ct-quick-pill"><i class="bi bi-journal-text"></i>
+                    Auditoría</a>
+                <a href="{% url 'reportes:reportes_admin' %}" class="ct-quick-pill"><i class="bi bi-bar-chart"></i>
+                    Reportes</a>
             </div>
         </div>
     </div>
@@ -184,42 +198,42 @@
 {% include "partials/cambiar_password_modal.html" %}
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const syncForm = document.getElementById('ctSyncLocalForm');
-    const syncBtn = document.getElementById('ctSyncLocalBtn');
-    const syncSub = document.getElementById('ctSyncStatusSub');
-    if (syncForm && syncBtn && syncForm.dataset.bound !== '1') {
-        syncForm.dataset.bound = '1';
-        syncForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const originalHtml = syncBtn.innerHTML;
-            syncBtn.disabled = true;
-            syncBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sincronizando...';
-            try {
-                const resp = await fetch(syncForm.action, {
-                    method: 'POST',
-                    body: new FormData(syncForm),
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    credentials: 'same-origin',
-                });
-                const data = await resp.json();
-                if (resp.ok && data.ok) {
-                    if (syncSub) {
-                        syncSub.innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i> ' + (data.message || 'Base local actualizada.');
+    document.addEventListener('DOMContentLoaded', function () {
+        const syncForm = document.getElementById('ctSyncLocalForm');
+        const syncBtn = document.getElementById('ctSyncLocalBtn');
+        const syncSub = document.getElementById('ctSyncStatusSub');
+        if (syncForm && syncBtn && syncForm.dataset.bound !== '1') {
+            syncForm.dataset.bound = '1';
+            syncForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const originalHtml = syncBtn.innerHTML;
+                syncBtn.disabled = true;
+                syncBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sincronizando...';
+                try {
+                    const resp = await fetch(syncForm.action, {
+                        method: 'POST',
+                        body: new FormData(syncForm),
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin',
+                    });
+                    const data = await resp.json();
+                    if (resp.ok && data.ok) {
+                        if (syncSub) {
+                            syncSub.innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i> ' + (data.message || 'Base local actualizada.');
+                        }
+                    } else if (syncSub) {
+                        syncSub.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> ' + (data.error || 'No se pudo sincronizar.');
                     }
-                } else if (syncSub) {
-                    syncSub.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> ' + (data.error || 'No se pudo sincronizar.');
+                } catch (_err) {
+                    if (syncSub) {
+                        syncSub.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> Error de red al sincronizar.';
+                    }
+                } finally {
+                    syncBtn.disabled = false;
+                    syncBtn.innerHTML = originalHtml;
                 }
-            } catch (_err) {
-                if (syncSub) {
-                    syncSub.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> Error de red al sincronizar.';
-                }
-            } finally {
-                syncBtn.disabled = false;
-                syncBtn.innerHTML = originalHtml;
-            }
-        });
-    }
-});
+            });
+        }
+    });
 </script>
 {% endblock %}

@@ -56,7 +56,7 @@
                         {% endif %}
                     </td>
                     <td class="text-center">
-                        <div class="d-flex justify-content-center gap-2">
+                        <div class="d-inline-flex justify-content-center align-items-center gap-2">
                             <a href="{% url 'pagos:detalle_pago' p.id %}" class="btn-action" title="Ver Detalle del Pago">
                                 <i class="bi bi-eye"></i>
                             </a>
@@ -64,6 +64,10 @@
                             <a href="{% url 'pagos:ver_comprobante_pago' p.id %}" target="_blank" rel="noopener" class="btn-action text-info" title="Ver comprobante adjunto">
                                 <i class="bi bi-paperclip"></i>
                             </a>
+                            {% else %}
+                            <button type="button" class="btn-action opacity-50" disabled title="Sin comprobante adjunto" aria-label="Sin comprobante adjunto" style="cursor: not-allowed;">
+                                <i class="bi bi-paperclip"></i>
+                            </button>
                             {% endif %}
                             {% if p.estado == "rechazado" %}
                             <a href="{% url 'pagos:registrar_pago_pedido' p.pedido.codigo_pedido %}" class="btn-action text-warning" title="Volver a presentar comprobante">

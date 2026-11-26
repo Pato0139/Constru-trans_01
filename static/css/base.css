@@ -1499,10 +1499,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 /* Tooltips customization */
+.tooltip {
+  --bs-tooltip-opacity: 1;
+}
 .tooltip-inner {
-  background-color: var(--color-accent) !important;
-  color: #000 !important;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.55rem;
 }
 
 /* Forzar que los dropdowns de Bootstrap salgan siempre al frente */
