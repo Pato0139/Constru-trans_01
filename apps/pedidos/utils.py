@@ -1,9 +1,13 @@
 import logging
+from datetime import timedelta
 from io import BytesIO
 
 import qrcode
 from django.core.files.base import ContentFile
+from django.db import transaction
+from django.db.models.deletion import Collector, ProtectedError
 from django.db.models import F
+from django.utils import timezone
 
 from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
@@ -55,6 +59,72 @@ def liberar_vehiculo_pedido(orden):
         vehiculo.save()
         return vehiculo
     return None
+
+
+def eliminar_pedidos_checkout_incompletos(*, using=None, pedido_id=None, usuario=None):
+    """Elimina checkouts pendientes sin pago/proof y devuelve su stock una sola vez."""
+    from apps.pagos.models import Pago
+    from apps.pedidos.models import Pedido
+
+    db_alias = using or ("remota" if debe_usar_bd_remota() else "default")
+    limite = timezone.now() - timedelta(minutes=30)
+    pedidos = Pedido.objects.using(db_alias).filter(estado=Pedido.PENDIENTE)
+    if pedido_id is not None:
+        pedidos = pedidos.filter(codigo_pedido=pedido_id)
+    else:
+        pedidos = pedidos.filter(fecha_solicitud__lte=limite)
+
+    eliminados = []
+    for codigo in list(pedidos.values_list("codigo_pedido", flat=True)):
+        try:
+            with transaction.atomic(using=db_alias):
+                pedido = select_for_update_if_supported(
+                    Pedido.objects.using(db_alias), db_alias
+                ).filter(codigo_pedido=codigo).first()
+                if not pedido or pedido.estado != Pedido.PENDIENTE:
+                    continue
+                if pedido_id is None and pedido.fecha_solicitud > limite:
+                    continue
+
+                pago = Pago.objects.using(db_alias).filter(pedido_id=pedido.pk).first()
+                if pago:
+                    # Contraentrega no usa archivo. Pagos rechazados conservan su plazo de corrección.
+                    if pago.metodo == Pago.METODO_CONTRAENTREGA or pago.estado != Pago.PENDIENTE:
+                        continue
+                    if not pago.requiere_comprobante():
+                        continue
+                    if pago.comprobante and pago.comprobante.name:
+                        try:
+                            if pago.comprobante.storage.exists(pago.comprobante.name):
+                                continue
+                        except Exception:
+                            if pedido_id is None:
+                                logger.warning(
+                                    "No se pudo comprobar el archivo del pago del pedido #%s; se conserva para reintento.",
+                                    pedido.codigo_pedido,
+                                )
+                                continue
+
+                collector = Collector(using=db_alias)
+                collector.collect([pedido])
+                revertir_stock_pedido(
+                    pedido,
+                    usuario,
+                    motivo_prefijo="Eliminación automática por pago incompleto",
+                    using=db_alias,
+                )
+                liberar_vehiculo_pedido(pedido)
+                pedido.delete(using=db_alias)
+                eliminados.append(codigo)
+        except ProtectedError:
+            logger.warning(
+                "No se eliminó el pedido incompleto #%s porque tiene registros financieros protegidos.",
+                codigo,
+            )
+        except Exception:
+            logger.exception("No se pudo eliminar el checkout incompleto #%s", codigo)
+
+    return eliminados
 
 
 def generar_qr_orden(orden):

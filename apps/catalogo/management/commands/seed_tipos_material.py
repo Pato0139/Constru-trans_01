@@ -34,6 +34,13 @@ _router = EnrutadorInventario()
 class Command(BaseCommand):
     help = "Inserta o actualiza los 20 tipos de material del catálogo (TM001–TM020)."
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--database",
+            choices=tuple(settings.DATABASES),
+            help="Limita la carga a una base de datos específica.",
+        )
+
     def _databases(self):
         if "remota" in settings.DATABASES and conexion_remota_disponible():
             return ["default", "remota"]
@@ -43,7 +50,8 @@ class Command(BaseCommand):
         total_creados = 0
         total_actualizados = 0
 
-        for db_alias in self._databases():
+        db_aliases = [options["database"]] if options.get("database") else self._databases()
+        for db_alias in db_aliases:
             self.stdout.write(self.style.NOTICE(f"\n--- Catálogo en: {db_alias} ---"))
             creados = 0
             actualizados = 0
