@@ -1153,10 +1153,20 @@
                             </div>
                             {% if orden.estado == "cancelado" or entrega and entrega.motivo_cancelacion %}
                             <div
-                                class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 text-white p-2 rounded-3 small mt-2 mb-0">
+                                class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 p-2 rounded-3 small mt-2 mb-0">
                                 <strong class="text-danger"><i class="bi bi-x-octagon-fill me-1"></i>Motivo de
                                     cancelación:</strong>
                                 <span>{{ orden.motivo_cancelacion_display|default:"Cancelado" }}</span>
+                            </div>
+                            {% endif %}
+                            {% if pago and pago.observaciones %}
+                            <div
+                                class="alert {% if pago.estado == 'aprobado' %}alert-success bg-success border-success{% elif pago.estado == 'rechazado' %}alert-warning bg-warning border-warning{% else %}alert-info bg-info border-info{% endif %} bg-opacity-10 border-opacity-25 p-2 rounded-3 small mt-2 mb-0">
+                                <strong class="{% if pago.estado == 'aprobado' %}text-success{% elif pago.estado == 'rechazado' %}text-warning{% else %}text-info{% endif %}">
+                                    <i class="bi {% if pago.estado == 'aprobado' %}bi-check-circle-fill{% else %}bi-info-circle-fill{% endif %} me-1"></i>
+                                    {% if pago.estado == 'aprobado' %}Motivo / observación de aprobación:{% elif pago.estado == 'rechazado' %}Motivo de rechazo del pago:{% else %}Observación de revisión:{% endif %}
+                                </strong>
+                                <span>{{ pago.observaciones }}</span>
                             </div>
                             {% endif %}
                         </div>

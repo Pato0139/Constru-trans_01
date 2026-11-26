@@ -20,17 +20,16 @@ numeric_and_space_validator = RegexValidator(
     code="formato_numerico",
 )
 
-# Colombia: celular (10 dígitos inicia en 3), fijo nacional (10 dígitos inicia en 601-608),
-# fijo local (7 dígitos) o indicativos antiguos. Admite +57, espacios y guiones como separadores.
+# Colombia: celular/teléfono de exactamente 10 dígitos numéricos.
 telefono_validator = RegexValidator(
-    r"^(\+?57[ -]?)?(3\d{2}[ -]?\d{3}[ -]?\d{4}|60[1-8][ -]?\d{3}[ -]?\d{4}|[1-8][ -]?\d{3}[ -]?\d{4}|\d{7,10})$",
-    message="Ingresa un teléfono válido (celular de 10 dígitos o fijo nacional).",
+    r"^\d{10}$",
+    message="El número de celular debe tener exactamente 10 dígitos numéricos.",
     code="telefono_invalido",
 )
 
 documento_validator = RegexValidator(
-    r"^[0-9A-Za-z]{4,20}$",
-    message="El documento debe tener entre 4 y 20 caracteres alfanuméricos, sin espacios.",
+    r"^\d{10}$",
+    message="El número de documento debe tener exactamente 10 dígitos numéricos.",
     code="documento_invalido",
 )
 

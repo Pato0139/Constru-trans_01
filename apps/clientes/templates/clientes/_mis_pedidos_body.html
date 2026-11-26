@@ -22,12 +22,6 @@
         {% else %}
         <span class="badge-tipo">{{ pedido.get_estado_display }}</span>
         {% endif %}
-        {% if pedido.fecha_asignacion_logistica and pedido.estado == "vehiculo_asignado" %}
-        <div class="text-muted x-small mt-1">Asignado: {{ pedido.fecha_asignacion_logistica|date:"d/m/Y H:i" }}</div>
-        {% endif %}
-        {% if pedido.fecha_salida_ruta and pedido.estado == "en_ruta" %}
-        <div class="text-muted x-small mt-1">En ruta desde: {{ pedido.fecha_salida_ruta|date:"d/m/Y H:i" }}</div>
-        {% endif %}
     </td>
     <td class="text-center">
         <div class="d-flex justify-content-center gap-2">

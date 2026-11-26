@@ -19,10 +19,10 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
     if usuario and usuario.is_authenticated:
         rol_usuario = getattr(usuario, "rol", None)
 
-    es_admin_o_empleado = rol_usuario in ["admin", "administrador", "empleado"]
+    es_admin = rol_usuario in ["admin", "administrador"]
 
-    # Si es admin, empleado o no hay usuario (anónimo, pero views bloquean anónimo), obtenemos datos globales
-    if es_admin_o_empleado or not usuario:
+    # Si es admin o no hay usuario (anónimo, pero views bloquean anónimo), obtenemos datos globales
+    if es_admin or not usuario:
         if not force_refresh and not usuario:
             cached = cache.get(CONTEXT_CACHE_KEY)
             if cached:
@@ -90,7 +90,6 @@ def obtener_contexto_datos(force_refresh=False, usuario=None):
                     "admin_count": Usuario.objects.filter(rol="admin").count(),
                     "cliente_count": Usuario.objects.filter(rol="cliente").count(),
                     "conductor_count": Usuario.objects.filter(rol="conductor").count(),
-                    "empleado_count": Usuario.objects.filter(rol="empleado").count(),
                     "total_materiales": MaterialConstruccion.objects.count(),
                     "total_stock": Stock.objects.aggregate(total=Sum("cantidad_actual"))["total"]
                     or 0,

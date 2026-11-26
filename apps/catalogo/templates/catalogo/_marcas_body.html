@@ -1,9 +1,11 @@
 {% for marca in marcas %}
 <tr>
-    <td class="py-3 px-4 fw-bold text-accent">{{ marca.nombre }}</td>
-    <td class="py-3 px-4 text-center">{{ marca.num_materiales }}</td>
-    <td class="py-3 px-4 text-center">
-        <div class="d-flex justify-content-center gap-2">
+    <td class="py-3 px-4 fw-bold text-accent col-marca">{{ marca.nombre }}</td>
+    <td class="py-3 px-4 col-materiales">
+        <span class="marca-count-pill">{{ marca.num_materiales }}</span>
+    </td>
+    <td class="py-3 px-4 col-acciones">
+        <div class="marcas-actions-wrap">
             <a href="{% url 'catalogo:editar_marca' marca.pk %}"
                class="btn-action btn-action--edit btn-table-action rounded-circle"
                title="Editar">

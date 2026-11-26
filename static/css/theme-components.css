@@ -546,8 +546,30 @@
     border-radius: 999px !important;
 }
 
+/* Tamaño uniforme global para todas las burbujas/badges de estado dentro de tablas */
+table td > .badge:not(.rounded-circle):not(.auditoria-user-badge):not(.driver-order-pill):not(.marca-count-pill):not(.auditoria-modulo-pill):not(.purchase-meta-badge),
+table td > .badge-tipo,
+table td > .badge-order-status,
+table td[data-label="Estado"] .badge:not(.rounded-circle),
+table td[data-label="Estado logístico"] .badge:not(.rounded-circle),
+.driver-status-badge,
+.status-badge-uniform {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 11.75rem;
+    max-width: 100%;
+    min-height: 2rem;
+    padding: 0.35rem 0.75rem !important;
+    text-align: center;
+    line-height: 1.2;
+    white-space: normal;
+    box-sizing: border-box;
+}
+
 .badge.bg-warning-subtle,
 .badge.bg-warning-subtle.text-warning,
+table td > .badge.bg-warning:not(.rounded-circle),
 .badge-tipo-pendiente,
 .badge-tipo-warning {
     background-color: rgba(245, 158, 11, 0.18) !important;
@@ -559,6 +581,7 @@
 
 .badge.bg-info-subtle,
 .badge.bg-info-subtle.text-info,
+table td > .badge.bg-info:not(.rounded-circle):not(.auditoria-user-badge),
 .badge-tipo-info {
     background-color: rgba(14, 165, 233, 0.18) !important;
     color: #38bdf8 !important;
@@ -569,6 +592,7 @@
 
 .badge.bg-success-subtle,
 .badge.bg-success-subtle.text-success,
+table td > .badge.bg-success:not(.rounded-circle),
 .badge-tipo-entregado,
 .badge-tipo-success {
     background-color: rgba(16, 185, 129, 0.18) !important;
@@ -580,6 +604,7 @@
 
 .badge.bg-danger-subtle,
 .badge.bg-danger-subtle.text-danger,
+table td > .badge.bg-danger:not(.rounded-circle),
 .badge-tipo-cancelado,
 .badge-tipo-danger {
     background-color: rgba(239, 68, 68, 0.18) !important;
@@ -591,6 +616,7 @@
 
 .badge.bg-primary-subtle,
 .badge.bg-primary-subtle.text-primary,
+table td > .badge.bg-primary:not(.rounded-circle),
 .badge-tipo-en-ruta {
     background-color: rgba(59, 130, 246, 0.2) !important;
     color: #93c5fd !important;
@@ -601,7 +627,8 @@
 
 .badge.bg-secondary-subtle,
 .badge.bg-secondary-subtle.text-light,
-.badge.bg-secondary-subtle.text-secondary {
+.badge.bg-secondary-subtle.text-secondary,
+table td > .badge.bg-secondary:not(.rounded-circle) {
     background-color: rgba(148, 163, 184, 0.18) !important;
     color: #f1f5f9 !important;
     border: 1px solid rgba(148, 163, 184, 0.45) !important;
@@ -612,6 +639,7 @@
 /* Contraste para Modo Claro */
 [data-theme="light"] .badge.bg-warning-subtle,
 [data-theme="light"] .badge.bg-warning-subtle.text-warning,
+[data-theme="light"] table td > .badge.bg-warning:not(.rounded-circle),
 [data-theme="light"] .badge-tipo-pendiente,
 [data-theme="light"] .badge-tipo-warning {
     background-color: #fef3c7 !important;
@@ -621,6 +649,7 @@
 
 [data-theme="light"] .badge.bg-info-subtle,
 [data-theme="light"] .badge.bg-info-subtle.text-info,
+[data-theme="light"] table td > .badge.bg-info:not(.rounded-circle):not(.auditoria-user-badge),
 [data-theme="light"] .badge-tipo-info {
     background-color: #e0f2fe !important;
     color: #075985 !important;
@@ -629,6 +658,7 @@
 
 [data-theme="light"] .badge.bg-success-subtle,
 [data-theme="light"] .badge.bg-success-subtle.text-success,
+[data-theme="light"] table td > .badge.bg-success:not(.rounded-circle),
 [data-theme="light"] .badge-tipo-entregado,
 [data-theme="light"] .badge-tipo-success {
     background-color: #d1fae5 !important;
@@ -638,6 +668,7 @@
 
 [data-theme="light"] .badge.bg-danger-subtle,
 [data-theme="light"] .badge.bg-danger-subtle.text-danger,
+[data-theme="light"] table td > .badge.bg-danger:not(.rounded-circle),
 [data-theme="light"] .badge-tipo-cancelado,
 [data-theme="light"] .badge-tipo-danger {
     background-color: #fee2e2 !important;
@@ -647,6 +678,7 @@
 
 [data-theme="light"] .badge.bg-primary-subtle,
 [data-theme="light"] .badge.bg-primary-subtle.text-primary,
+[data-theme="light"] table td > .badge.bg-primary:not(.rounded-circle),
 [data-theme="light"] .badge-tipo-en-ruta {
     background-color: #dbeafe !important;
     color: #1e40af !important;
@@ -655,8 +687,42 @@
 
 [data-theme="light"] .badge.bg-secondary-subtle,
 [data-theme="light"] .badge.bg-secondary-subtle.text-light,
-[data-theme="light"] .badge.bg-secondary-subtle.text-secondary {
+[data-theme="light"] .badge.bg-secondary-subtle.text-secondary,
+[data-theme="light"] table td > .badge.bg-secondary:not(.rounded-circle) {
     background-color: #e2e8f0 !important;
     color: #1e293b !important;
     border: 1px solid #94a3b8 !important;
+}
+
+/* ==========================================================================
+   SWEETALERT2 — Z-INDEX UNIFORME SOBRE SIDEBAR/CHAT Y ADAPTACIÓN A MODO CLARO
+   ========================================================================== */
+.swal2-container {
+    z-index: 20000 !important;
+}
+
+[data-theme="light"] .swal2-container.swal2-backdrop-show {
+    background: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(3px);
+}
+
+[data-theme="light"] .swal2-popup {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.16) !important;
+}
+
+[data-theme="light"] .swal2-title {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .swal2-html-container {
+    color: #475569 !important;
+}
+
+[data-theme="light"] .swal2-icon.swal2-question {
+    border-color: #94a3b8 !important;
+    color: #475569 !important;
 }

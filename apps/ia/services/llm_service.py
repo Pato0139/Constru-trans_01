@@ -123,15 +123,14 @@ def responder_fallback(mensaje, contexto, nombre_usuario):
     # Preguntas sobre usuarios (verificando palabras completas o patrones para evitar falsos positivos con saludos cortos)
     if any(
         word in mensaje_lower
-        for word in ["usuario", "conductor", "cliente", "admin", "empleado", "rol"]
+        for word in ["usuario", "conductor", "cliente", "admin", "rol"]
     ):
         total = contexto.get("total_usuarios", 0)
         activos = contexto.get("usuarios_activos", 0)
         clientes = contexto.get("cliente_count", 0)
         conductores = contexto.get("conductor_count", 0)
         admins = contexto.get("admin_count", 0)
-        empleados = contexto.get("empleado_count", 0)
-        return f"Aquí tienes la información de los usuarios del sistema:\n- Total de usuarios registrados: {total}\n- Usuarios activos: {activos}\n- Clientes registrados: {clientes}\n- Conductores contratados: {conductores}\n- Administradores: {admins}\n- Empleados: {empleados}."
+        return f"Aquí tienes la información de los usuarios del sistema:\n- Total de usuarios registrados: {total}\n- Usuarios activos: {activos}\n- Clientes registrados: {clientes}\n- Conductores contratados: {conductores}\n- Administradores: {admins}."
 
     # Preguntas sobre pedidos
     if any(word in mensaje_lower for word in ["pedido", "orden", "venta"]):

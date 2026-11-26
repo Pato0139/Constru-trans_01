@@ -1,68 +1,69 @@
 {% for conductor in conductores %}
 <tr id="conductor-row-{{ conductor.id }}">
-    <td>
-        <div class="d-flex align-items-center gap-3">
-            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold text-white shadow-sm" style="width: 40px; height: 40px; min-width: 40px;">
+    <td class="col-conductor">
+        <div class="conductor-identity">
+            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold text-white shadow-sm flex-shrink-0" style="width: 38px; height: 38px; min-width: 38px;">
                 {% if conductor.foto_perfil %}
                     <img src="{{ conductor.foto_perfil.url }}" alt="{{ conductor.nombre_mostrar }}" class="rounded-circle w-100 h-100 object-fit-cover">
                 {% else %}
                     {{ conductor.iniciales }}
                 {% endif %}
             </div>
-            <div>
-                <a href="{% url 'usuarios:detalle_conductor' conductor.id %}" class="fw-bold text-main text-decoration-none hover-accent">
+            <div class="conductor-meta">
+                <a href="{% url 'usuarios:detalle_conductor' conductor.id %}" class="fw-bold text-main text-decoration-none hover-accent conductor-name" title="{{ conductor.nombres }} {{ conductor.apellidos }}">
                     {{ conductor.nombres }} {{ conductor.apellidos }}
                 </a>
-                <div class="text-muted small"><i class="bi bi-envelope me-1"></i>{{ conductor.email }}</div>
+                <div class="conductor-email" title="{{ conductor.email }}">
+                    <i class="bi bi-envelope flex-shrink-0"></i>
+                    <span>{{ conductor.email }}</span>
+                </div>
             </div>
         </div>
     </td>
-    <td class="text-muted small">
-        <span class="badge border text-uppercase" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border) !important;">{{ conductor.tipo_documento }}</span>
-        <span class="text-main fw-semibold">{{ conductor.documento }}</span>
-    </td>
-    <td class="text-muted small">
+    <td class="col-contacto text-muted small text-nowrap">
         <i class="bi bi-telephone me-1 text-accent"></i>{{ conductor.telefono|default:"Sin teléfono" }}
     </td>
-    <td class="text-center">
+    <td class="col-licencia">
         {% if conductor.conductor_profile %}
-            <span class="badge border" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border) !important;">{{ conductor.conductor_profile.numero_licencia }}</span>
-            <span class="badge bg-secondary-subtle text-body small ms-1">{{ conductor.conductor_profile.categoria_licencia }}</span>
+            <div class="conductor-licencia-wrap">
+                <span class="badge border" style="background: var(--item-bg); color: var(--color-text); border-color: var(--color-border) !important;">{{ conductor.conductor_profile.numero_licencia }}</span>
+                <span class="badge bg-secondary-subtle text-body small">{{ conductor.conductor_profile.categoria_licencia }}</span>
+            </div>
         {% else %}
             <span class="text-muted small">Sin perfil</span>
         {% endif %}
     </td>
-    <td class="text-center">
+    <td class="col-estado">
         {% if conductor.estado == 'activo' and conductor.conductor_profile.estado == 'activo' %}
             <span class="badge rounded-pill bg-success px-3 py-1">Activo</span>
         {% else %}
             <span class="badge rounded-pill bg-danger px-3 py-1">Inactivo</span>
         {% endif %}
     </td>
-    <td class="text-center">
+    <td class="col-vehiculo">
         {% if conductor.vehiculo_asignado_obj %}
-            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
-                <i class="bi bi-truck me-1"></i> {{ conductor.vehiculo_asignado_obj.placa }}
+            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2 py-1 text-nowrap">
+                <i class="bi bi-truck me-1"></i>{{ conductor.vehiculo_asignado_obj.placa }}
             </span>
         {% elif conductor.vehiculo_actual %}
-            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
-                <i class="bi bi-truck me-1"></i> {{ conductor.vehiculo_actual.placa }}
+            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2 py-1 text-nowrap">
+                <i class="bi bi-truck me-1"></i>{{ conductor.vehiculo_actual.placa }}
             </span>
         {% else %}
             <span class="text-muted small fst-italic">Sin asignar</span>
         {% endif %}
     </td>
-    <td class="text-center">
+    <td class="col-envios">
         {% if conductor.envios_activos_count > 0 %}
-            <span class="badge rounded-pill bg-warning text-dark px-2 py-1">
+            <span class="badge rounded-pill bg-warning text-dark px-2 py-1 text-nowrap">
                 <i class="bi bi-box-seam me-1"></i>{{ conductor.envios_activos_count }} en curso
             </span>
         {% else %}
-            <span class="badge rounded-pill bg-secondary px-2 py-1">0 activos</span>
+            <span class="badge rounded-pill bg-secondary px-2 py-1 text-nowrap">0 activos</span>
         {% endif %}
     </td>
-    <td class="text-center">
-        <div class="d-inline-flex align-items-center gap-1">
+    <td class="col-acciones">
+        <div class="conductor-actions-wrap">
             <a href="{% url 'usuarios:detalle_conductor' conductor.id %}" class="btn btn-sm btn-outline-info rounded-circle p-2" title="Ver Detalle" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
                 <i class="bi bi-eye"></i>
             </a>
@@ -89,7 +90,7 @@
 </tr>
 {% empty %}
 <tr>
-    <td colspan="8" class="text-center py-5 text-muted">
+    <td colspan="7" class="text-center py-5 text-muted">
         <i class="bi bi-person-x fs-1 d-block mb-2 text-secondary"></i>
         No hay conductores registrados con los filtros seleccionados.
     </td>

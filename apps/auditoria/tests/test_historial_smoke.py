@@ -14,7 +14,7 @@ class SmokeViewsTests(TestCase):
             password="password123",
             nombres="Admin",
             apellidos="Smoke",
-            documento="555444333",
+            documento="5554443330",
             tipo_documento="CC",
             rol="admin",
         )
@@ -42,8 +42,8 @@ class SmokeViewsTests(TestCase):
         self.assertIn("data", datos)
         self.assertTrue(len(datos["data"]) > 0)
         fila = datos["data"][0]
-        # Columna 8 es la IP
-        ip_html = fila[8]
+        # Columna 6 es la IP
+        ip_html = fila[6]
         self.assertIn("192.168.32.1", ip_html)
         self.assertIn("text-nowrap", ip_html)
         self.assertIn("font-monospace", ip_html)
