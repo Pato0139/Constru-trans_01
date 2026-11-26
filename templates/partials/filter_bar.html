@@ -1,8 +1,5 @@
 <div class="card bg-surface border-0 shadow-sm p-3 mb-4 filter-bar-card standard-filter-bar" data-aos="fade-down">
-    <form id="filterForm"
-          action="."
-          method="GET"
-          class="w-100 standard-filter-form"
+    <form id="filterForm" action="." method="GET" class="w-100 standard-filter-form"
           {% if form_data_ajax %}data-ajax-filter-form="true"{% endif %}
           {% if tbody_id %}data-tbody-id="{{ tbody_id }}"{% endif %}>
 
@@ -17,17 +14,19 @@
                 {% if field.type == 'text' %}
                 <input type="text" name="{{ field.name }}"
                     class="form-control form-control-sm bg-surface text-main filter-input"
-                    placeholder="{{ field.placeholder }}" value="{{ field.value|default:'' }}">
+                    data-filter-label="{{ field.label|default:'' }}" placeholder="{{ field.placeholder }}"
+                    value="{{ field.value|default:'' }}">
                 {% elif field.type == 'date' %}
                 <input type="date" name="{{ field.name }}"
                     class="form-control form-control-sm bg-surface text-main filter-input"
-                    value="{{ field.value|default:'' }}">
+                    data-filter-label="{{ field.label|default:'Fecha' }}" value="{{ field.value|default:'' }}">
                 {% elif field.type == 'select' %}
-                <select name="{{ field.name }}" class="form-select form-select-sm bg-surface text-main filter-select">
-
+                <select name="{{ field.name }}" class="form-select form-select-sm bg-surface text-main filter-select"
+                    data-filter-label="{{ field.label|default:'' }}">
                     <option value="">{{ field.placeholder|default:'Todos' }}</option>
                     {% for option in field.options %}
-                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}</option>
+                    <option value="{{ option.value }}" {% if option.selected %}selected{% endif %}>{{ option.label }}
+                    </option>
                     {% endfor %}
                 </select>
                 {% endif %}
@@ -36,8 +35,9 @@
             {% endif %}
 
             <div class="standard-filter-actions">
-                <a href="." class="btn btn-sm btn-outline-secondary filter-clear-btn" title="Limpiar filtros" aria-label="Limpiar filtros">
-                    <i class="bi bi-x-circle fs-5"></i>
+                <a href="." class="btn btn-sm btn-outline-secondary filter-clear-btn ct-clear-btn"
+                    title="Limpiar filtros" aria-label="Limpiar filtros">
+                    <i class="bi bi-eraser"></i><span>Limpiar filtros</span>
                 </a>
             </div>
         </div>

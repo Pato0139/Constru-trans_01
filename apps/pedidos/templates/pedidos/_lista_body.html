@@ -20,11 +20,19 @@
             <i class="bi bi-bell-fill me-1"></i>Pago corregido · Por revisar
         </span>
         {% elif p.estado == 'pendiente' %}
-        <span class="badge bg-warning-subtle text-warning px-3">Pendiente</span>
+        <span class="badge bg-warning-subtle text-warning px-3">{{ p.estado_gestion_display }}</span>
         {% elif p.estado == 'autorizado_despacho' %}
+            {% if p.transporte_asignado %}
         <span class="badge bg-info-subtle text-info px-3">Autorizado para despacho</span>
+            {% else %}
+        <span class="badge bg-warning-subtle text-warning px-3">Pendiente de asignación</span>
+            {% endif %}
         {% elif p.estado == 'vehiculo_asignado' %}
+            {% if p.transporte_asignado %}
         <span class="badge bg-info-subtle text-info px-3">Autorizado para despacho</span>
+            {% else %}
+        <span class="badge bg-warning-subtle text-warning px-3">Pendiente de asignación</span>
+            {% endif %}
         {% elif p.estado == 'en_ruta' %}
         <span class="badge bg-primary text-white px-3"><i class="bi bi-truck me-1"></i>En Ruta</span>
         {% elif p.estado == 'entregado' %}

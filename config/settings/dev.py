@@ -3,8 +3,8 @@ from .base import *  # noqa: F401,F403
 DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
-# Email: se imprime en consola en desarrollo
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# El backend de correo (SMTP o consola) se toma de la configuración del proyecto
+# en .env. Así los enlaces de recuperación sí se envían durante el desarrollo.
 
 # CACHES más simple (para dev, sin Redis si lo hubiera en base)
 CACHES = {

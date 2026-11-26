@@ -120,36 +120,19 @@
     <!-- Gráfico y Stock Crítico -->
     <div class="row g-4 mb-5" data-aos="fade-up">
         <div class="col-lg-6">
-            <div class="stats-card p-4 h-100">
-                <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h6 class="text-white fw-bold mb-0">Distribución de Órdenes</h6>
+            <div class="stats-card p-4 h-100 d-flex flex-column">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <h6 class="text-white fw-bold mb-1">Distribución de Órdenes</h6>
+                        <p class="text-white-50 small mb-0">Resumen proporcional por estado</p>
+                    </div>
                     <span class="orders-chart-total-badge">{{ total_ordenes }} órdenes</span>
                 </div>
-                <div class="orders-3d-chart-wrap">
-                    <div class="orders-3d-chart" id="orders-3d-chart" role="img" aria-label="Distribución de órdenes en 3D"></div>
-                    <div class="orders-3d-tooltip" id="orders-3d-tooltip" aria-hidden="true"></div>
+                <div class="orders-donut-wrap">
+                    <div class="orders-donut-chart" id="orders-donut-chart" role="img" aria-label="Distribución de órdenes"></div>
                 </div>
                 {{ distribucion_ordenes|json_script:"orders-distribution-data" }}
-                <div class="d-flex justify-content-center gap-4 mt-4">
-                    <div class="d-flex align-items-center gap-2 small">
-                        <span class="u-inline-b17d7bd996"></span>
-                        <span class="text-white-50">Pendientes</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2 small">
-                        <span class="u-inline-b97d7315c7"></span>
-                        <span class="text-white-50">En Ruta</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2 small">
-                        <span class="u-inline-fec99794f4"></span>
-                        <span class="text-white-50">Entregadas</span>
-                    </div>
-                    {% if otros %}
-                    <div class="d-flex align-items-center gap-2 small">
-                        <span class="orders-chart-other-key"></span>
-                        <span class="text-white-50">Otros</span>
-                    </div>
-                    {% endif %}
-                </div>
+                <div class="orders-legend-grid mt-3" id="orders-legend-grid"></div>
             </div>
         </div>
         <div class="col-lg-6">
@@ -316,93 +299,94 @@
         z-index: 5;
     }
 
-    .orders-3d-chart-wrap {
+    .orders-donut-wrap {
         position: relative;
-        z-index: 10;
         width: 100%;
-    }
-
-    .orders-3d-chart {
-        width: 100%;
-        height: 360px;
-        cursor: grab;
-    }
-
-    .orders-3d-chart:active {
-        cursor: grabbing;
-    }
-
-    .orders-3d-tooltip {
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 20;
-        min-width: 132px;
-        padding: 0.7rem 0.85rem;
-        border: 1px solid rgba(148, 163, 184, 0.3);
-        border-radius: 0.75rem;
-        background: rgba(15, 23, 42, 0.94);
-        box-shadow: 0 12px 30px rgba(2, 6, 23, 0.45);
-        color: #f8fafc;
-        opacity: 0;
-        pointer-events: none;
-        transform: translateY(4px);
-        transition: opacity 140ms ease, transform 140ms ease;
-    }
-
-    .orders-3d-tooltip.is-visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    .orders-3d-tooltip__head {
+        flex: 1 1 auto;
         display: flex;
         align-items: center;
-        gap: 0.45rem;
-        font-size: 0.8rem;
-        font-weight: 700;
+        justify-content: center;
     }
 
-    .orders-3d-tooltip__dot {
+    .orders-donut-chart {
+        width: 100%;
+        height: 270px;
+        cursor: default;
+        user-select: none;
+    }
+
+    .orders-legend-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem;
+    }
+
+    .orders-legend-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+        padding: 0.55rem 0.8rem;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.45);
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        font-size: 0.82rem;
+    }
+
+    [data-theme="light"] .orders-legend-item {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+    }
+
+    .orders-legend-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+
+    .orders-legend-dot {
         width: 10px;
         height: 10px;
-        border-radius: 3px;
-        flex: 0 0 auto;
+        border-radius: 50%;
+        flex-shrink: 0;
     }
 
-    .orders-3d-tooltip__value {
-        margin-top: 0.25rem;
-        font-size: 1.3rem;
-        font-weight: 800;
-        line-height: 1.1;
+    .orders-legend-name {
+        color: var(--color-text, #e2e8f0);
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .orders-3d-tooltip__meta {
-        margin-top: 0.15rem;
-        color: #cbd5e1;
-        font-size: 0.72rem;
+    .orders-legend-stat {
+        color: var(--color-muted, #94a3b8);
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .orders-legend-stat strong {
+        color: var(--color-text, #ffffff);
+        margin-right: 4px;
     }
 
     .orders-chart-total-badge {
-        padding: 0.35rem 0.75rem;
-        border: 1px solid var(--color-border);
+        padding: 0.35rem 0.85rem;
+        border: 1px solid rgba(59, 130, 246, 0.35);
         border-radius: 999px;
-        background: var(--item-bg);
-        color: var(--color-text);
+        background: rgba(59, 130, 246, 0.12);
+        color: #60a5fa;
         font-size: 0.8rem;
         font-weight: 700;
     }
 
-    .orders-chart-other-key {
-        width: 12px;
-        height: 12px;
-        border-radius: 2px;
-        background: #94a3b8;
-    }
-
     @media (max-width: 575.98px) {
-        .orders-3d-chart {
-            height: 300px;
+        .orders-donut-chart {
+            height: 230px;
+        }
+        .orders-legend-grid {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -411,14 +395,13 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
 <script>
     (() => {
-        const container = document.getElementById('orders-3d-chart');
+        const container = document.getElementById('orders-donut-chart');
         const dataNode = document.getElementById('orders-distribution-data');
-        const tooltip = document.getElementById('orders-3d-tooltip');
+        const legendGrid = document.getElementById('orders-legend-grid');
 
-        if (!container || !dataNode || !tooltip || typeof echarts === 'undefined') {
+        if (!container || !dataNode || typeof echarts === 'undefined') {
             return;
         }
 
@@ -430,23 +413,35 @@
             return;
         }
 
+        const paletteFallback = ['#f59e0b', '#3b82f6', '#10b981', '#64748b'];
         const data = distribucion
-            .map((item) => ({
+            .map((item, idx) => ({
                 name: item.label,
                 value: Number(item.value) || 0,
-                color: item.color
+                color: item.color || paletteFallback[idx % paletteFallback.length]
             }))
             .filter((item) => item.value > 0);
+
+        const total = data.reduce((sum, item) => sum + item.value, 0);
+
+        if (legendGrid) {
+            legendGrid.innerHTML = data.map((item) => {
+                const pct = total ? ((item.value * 100) / total).toFixed(1) : '0.0';
+                return `
+                    <div class="orders-legend-item">
+                        <div class="orders-legend-left">
+                            <span class="orders-legend-dot" style="background:${item.color}; box-shadow:0 0 8px ${item.color}66;"></span>
+                            <span class="orders-legend-name">${item.name}</span>
+                        </div>
+                        <div class="orders-legend-stat"><strong>${item.value}</strong>(${pct}%)</div>
+                    </div>
+                `;
+            }).join('');
+        }
 
         if (!data.length) {
             return;
         }
-
-        const total = data.reduce((sum, item) => sum + item.value, 0);
-        // Proporción del hueco central: a mayor valor, el anillo es más fino.
-        const innerRatio = 0.55;
-        const k = (1 - innerRatio) / (1 + innerRatio);
-        const sliceHeight = 10;
 
         if (window.__ordersChartInstance) {
             window.__ordersChartInstance.dispose();
@@ -455,159 +450,82 @@
             window.removeEventListener('resize', window.__ordersChartResize);
         }
 
-        const chart = echarts.init(container);
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        const borderGapColor = isLight ? '#ffffff' : '#161d2b';
+        const titleColor = isLight ? '#0f172a' : '#f8fafc';
+        const subColor = isLight ? '#64748b' : '#94a3b8';
+
+        const chart = echarts.init(container, null, { renderer: 'svg' });
         window.__ordersChartInstance = chart;
 
-        // Superficie paramétrica de cada sector del anillo (top, base, paredes y tapas).
-        function getParametricEquation(startRatio, endRatio, isSelected, isHovered, factor, height) {
-            const startRadian = startRatio * Math.PI * 2;
-            const endRadian = endRatio * Math.PI * 2;
-            const midRadian = ((startRatio + endRatio) / 2) * Math.PI * 2;
-
-            if (startRatio === 0 && endRatio === 1) {
-                isSelected = false;
-            }
-
-            const offsetX = isSelected ? Math.cos(midRadian) * 0.1 : 0;
-            const offsetY = isSelected ? Math.sin(midRadian) * 0.1 : 0;
-            const hoverRate = isHovered ? 1.05 : 1;
-
-            return {
-                u: { min: -Math.PI, max: Math.PI * 3, step: Math.PI / 32 },
-                v: { min: 0, max: Math.PI * 2, step: Math.PI / 20 },
-                x(u, v) {
-                    if (u < startRadian) return offsetX + Math.cos(startRadian) * (1 + Math.cos(v) * factor) * hoverRate;
-                    if (u > endRadian) return offsetX + Math.cos(endRadian) * (1 + Math.cos(v) * factor) * hoverRate;
-                    return offsetX + Math.cos(u) * (1 + Math.cos(v) * factor) * hoverRate;
-                },
-                y(u, v) {
-                    if (u < startRadian) return offsetY + Math.sin(startRadian) * (1 + Math.cos(v) * factor) * hoverRate;
-                    if (u > endRadian) return offsetY + Math.sin(endRadian) * (1 + Math.cos(v) * factor) * hoverRate;
-                    return offsetY + Math.sin(u) * (1 + Math.cos(v) * factor) * hoverRate;
-                },
-                z(u, v) {
-                    if (u < -Math.PI * 0.5) return Math.sin(u);
-                    if (u > Math.PI * 2.5) return Math.sin(u) * height * 0.1;
-                    return Math.sin(v) > 0 ? height * 0.1 : -1;
-                }
-            };
-        }
-
-        function buildSeries() {
-            const series = [];
-            let startValue = 0;
-
-            data.forEach((item) => {
-                const endValue = startValue + item.value;
-                series.push({
-                    name: item.name,
-                    type: 'surface',
-                    parametric: true,
-                    wireframe: { show: false },
-                    shading: 'lambert',
-                    pieData: {
-                        name: item.name,
-                        value: item.value,
-                        color: item.color,
-                        startRatio: startValue / total,
-                        endRatio: endValue / total
-                    },
-                    itemStyle: { color: item.color, opacity: 0.95 }
-                });
-                startValue = endValue;
-            });
-
-            series.forEach((item) => {
-                item.parametricEquation = getParametricEquation(
-                    item.pieData.startRatio,
-                    item.pieData.endRatio,
-                    false,
-                    false,
-                    k,
-                    sliceHeight
-                );
-            });
-
-            return series;
-        }
-
         chart.setOption({
-            tooltip: { show: false },
-            xAxis3D: { min: -1, max: 1 },
-            yAxis3D: { min: -1, max: 1 },
-            zAxis3D: { min: -1, max: 1 },
-            grid3D: {
-                show: false,
-                boxHeight: 5,
-                center: ['50%', '50%'],
-                viewControl: {
-                    alpha: 35,
-                    beta: 20,
-                    distance: 150,
-                    rotateSensitivity: 1,
-                    zoomSensitivity: 0,
-                    panSensitivity: 0,
-                    autoRotate: true,
-                    autoRotateSpeed: 9,
-                    autoRotateAfterStill: 5
-                },
-                light: {
-                    main: { intensity: 1.2, shadow: true, alpha: 40, beta: 30 },
-                    ambient: { intensity: 0.45 }
+            animationDuration: 650,
+            animationEasing: 'cubicOut',
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(15, 23, 42, 0.96)',
+                borderColor: 'rgba(148, 163, 184, 0.25)',
+                borderWidth: 1,
+                padding: [10, 14],
+                textStyle: { color: '#f8fafc', fontSize: 13 },
+                formatter: (p) => {
+                    return `
+                        <div style="font-weight:700; margin-bottom:4px;">
+                            <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${p.color};margin-right:6px;"></span>${p.name}
+                        </div>
+                        <div style="font-size:15px; font-weight:800;">${Number(p.value).toLocaleString('es-CO')} órdenes <span style="color:#94a3b8;font-weight:600;font-size:12px;">(${p.percent}%)</span></div>
+                    `;
                 }
             },
-            series: buildSeries()
-        });
-
-        // Tooltip propio: el de ECharts GL no es fiable sobre superficies paramétricas.
-        function renderTooltip(item) {
-            const percent = total ? ((item.value * 100) / total).toFixed(1) : '0.0';
-            tooltip.innerHTML = [
-                '<div class="orders-3d-tooltip__head">',
-                `<span class="orders-3d-tooltip__dot" style="background:${item.color};"></span>`,
-                `<span>${item.name}</span>`,
-                '</div>',
-                `<div class="orders-3d-tooltip__value">${item.value.toLocaleString('es-CO')}</div>`,
-                `<div class="orders-3d-tooltip__meta">${percent}% del total de órdenes</div>`
-            ].join('');
-        }
-
-        function positionTooltip(event) {
-            const wrap = tooltip.parentElement;
-            if (!wrap) return;
-
-            const padding = 12;
-            const offsetX = event && typeof event.offsetX === 'number' ? event.offsetX : wrap.clientWidth / 2;
-            const offsetY = event && typeof event.offsetY === 'number' ? event.offsetY : wrap.clientHeight / 2;
-            let left = offsetX + 18;
-            let top = offsetY + 18;
-
-            if (left + tooltip.offsetWidth + padding > wrap.clientWidth) {
-                left = offsetX - tooltip.offsetWidth - 18;
-            }
-            if (top + tooltip.offsetHeight + padding > wrap.clientHeight) {
-                top = offsetY - tooltip.offsetHeight - 18;
-            }
-
-            tooltip.style.left = `${Math.max(padding, left)}px`;
-            tooltip.style.top = `${Math.max(padding, top)}px`;
-        }
-
-        function hideTooltip() {
-            tooltip.classList.remove('is-visible');
-        }
-
-        chart.on('mouseover', (params) => {
-            const item = data.find((entry) => entry.name === params.seriesName);
-            if (!item) return;
-            renderTooltip(item);
-            positionTooltip(params.event);
-            tooltip.classList.add('is-visible');
-        });
-        chart.on('mouseout', hideTooltip);
-        chart.on('globalout', hideTooltip);
-        chart.getZr().on('mousemove', (event) => {
-            if (tooltip.classList.contains('is-visible')) positionTooltip(event);
+            title: {
+                text: total.toLocaleString('es-CO'),
+                subtext: 'Órdenes totales',
+                left: 'center',
+                top: '39%',
+                textStyle: {
+                    color: titleColor,
+                    fontSize: 30,
+                    fontWeight: 800,
+                    fontFamily: 'Plus Jakarta Sans, Inter, sans-serif'
+                },
+                subtextStyle: {
+                    color: subColor,
+                    fontSize: 12,
+                    fontWeight: 600
+                },
+                itemGap: 4
+            },
+            series: [
+                {
+                    name: 'Distribución de Órdenes',
+                    type: 'pie',
+                    radius: ['62%', '84%'],
+                    center: ['50%', '50%'],
+                    avoidLabelOverlap: true,
+                    selectedMode: false,
+                    padAngle: 2,
+                    itemStyle: {
+                        borderRadius: 8,
+                        borderColor: borderGapColor,
+                        borderWidth: 3
+                    },
+                    label: { show: false },
+                    labelLine: { show: false },
+                    emphasis: {
+                        scale: true,
+                        scaleSize: 5,
+                        itemStyle: {
+                            shadowBlur: 18,
+                            shadowColor: 'rgba(0, 0, 0, 0.35)'
+                        }
+                    },
+                    data: data.map((item) => ({
+                        name: item.name,
+                        value: item.value,
+                        itemStyle: { color: item.color }
+                    }))
+                }
+            ]
         });
 
         const resizeHandler = () => chart.resize();

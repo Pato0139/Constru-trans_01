@@ -12,7 +12,7 @@
             <i class="bi bi-exclamation-triangle-fill me-1"></i>Pendiente de corrección de pago
         </span>
         {% elif pedido.estado == "pendiente" %}
-        <span class="badge-tipo badge-tipo-pendiente">Pendiente</span>
+        <span class="badge-tipo badge-tipo-pendiente">{{ pedido.estado_gestion_display }}</span>
         {% elif pedido.estado == "autorizado_despacho" %}
         <span class="badge-tipo badge-tipo-warning">Autorizado para despacho</span>
         {% elif pedido.estado == "vehiculo_asignado" %}
@@ -47,10 +47,12 @@
                     <i class="bi bi-receipt"></i>
                 </a>
                 {% endif %}
-                <a href="{% url 'clientes:editar_pedido' pedido.codigo_pedido %}" class="btn-action text-warning"
-                    title="Modificar pedido">
-                    <i class="bi bi-pencil-square"></i>
-                </a>
+            {% endif %}
+            {% if pedido.estado == 'pendiente' %}
+            <a href="{% url 'clientes:editar_pedido' pedido.codigo_pedido %}" class="btn-action text-warning"
+                title="Modificar pedido">
+                <i class="bi bi-pencil-square"></i>
+            </a>
             {% endif %}
         </div>
     </td>

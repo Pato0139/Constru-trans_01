@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/clientes/form.css' %}?v=1.1">
+<link rel="stylesheet" href="{% static 'css/clientes/form.css' %}?v=1.7">
 {% endblock %}
 
 {% block content %}
@@ -39,19 +39,26 @@
                 </div>
             {% endif %}
 
-            <form method="POST" id="form-pedido" data-ajax="false" autocomplete="off">
+            <form method="POST" id="form-pedido" data-ajax="false" data-stock-url="{% url 'clientes:api_stock_pedido' %}" data-ciudad-gratis="{{ ciudad_envio_gratis|default:'Duitama' }}" data-tarifa-envio="{{ tarifa_envio_externa|default:15000|unlocalize }}" data-monto-minimo="{{ monto_minimo_pedido|default:50000|unlocalize }}" autocomplete="off">
                 {% csrf_token %}
 
                 <div class="mb-5 p-4 rounded-4 shadow-sm pedido-section">
                     <label class="form-label fw-800 text-accent text-uppercase small mb-3 pedido-section-label">1. Selección de Materiales</label>
-                    <div class="row g-3">
-                        <div class="col-md-7">
-                            <select id="select-material" class="form-select rounded-pill border-0 px-4 py-2 pedido-input-bg">
-                                <option value="" data-precio="0">Seleccione un material...</option>
+                    <div class="row g-3 align-items-start">
+                        <div class="col-md-7 material-picker">
+                            <div class="material-picker-control">
+                                <label class="visually-hidden" for="material-search">Buscar material</label>
+                                <input id="material-search" type="search" class="form-control material-search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="material-options" placeholder="Buscar material por nombre..." autocomplete="off">
+                                <div id="material-options" class="material-options" role="listbox" aria-label="Materiales disponibles" hidden></div>
+                            </div>
+                            <select id="select-material" class="visually-hidden" aria-hidden="true" tabindex="-1">
+                                <option value="" data-precio="0" data-stock="">Seleccione un material...</option>
                                 {% for m in materiales %}
-                                    <option value="{{ m.id }}" data-precio="{{ m.precio_referencia|unlocalize }}">{{ m.nombre }} - {{ m.precio_referencia|currency }}</option>
+                                    <option value="{{ m.id }}" data-precio="{{ m.precio_referencia|unlocalize }}" data-stock="{{ m.stock_info.cantidad_actual|default:0|unlocalize }}" data-stock-minimo="{{ m.stock_info.stock_minimo|default:0|unlocalize }}" data-unit="{{ m.unidad_medida.abreviatura|default:m.unidad_medida.nombre }}">{{ m.nombre }}</option>
                                 {% endfor %}
                             </select>
+                            <div id="disponibilidad-stock" class="material-stock-summary mt-2" aria-live="polite" hidden></div>
+                            <small id="stock-live-status" class="material-stock-live-status" aria-live="polite">Existencias actualizadas automáticamente cada 5 segundos.</small>
                         </div>
                         <div class="col-md-3">
                             <div class="quantity-stepper pedido-quantity-stepper" data-min="1">
@@ -65,7 +72,7 @@
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <button type="button" id="btn-agregar-material" class="btn btn-gold rounded-pill w-100 py-2 h-100" aria-label="Agregar material al pedido" data-tooltip="Agregar material al pedido" title="Agregar material al pedido">
+                            <button type="button" id="btn-agregar-material" class="btn btn-gold rounded-pill w-100 py-2 pedido-add-material-btn" aria-label="Agregar material al pedido" data-tooltip="Agregar material al pedido" title="Agregar material al pedido">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
                         </div>
@@ -112,7 +119,18 @@
                 <div class="p-4 rounded-4 mb-5 shadow-sm pedido-total-box">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-800 text-muted small text-uppercase pedido-total-label">Total Estimado del Pedido:</span>
-                        <h3 class="mb-0 fw-900 text-accent pedido-total-value" id="display-total" data-total-inicial="{% if action == 'editar' %}{{ orden.precio|default:0|unlocalize }}{% else %}0{% endif %}">{% if action == 'editar' %}{{ orden.precio|currency }}{% else %}$0,00{% endif %}</h3>
+                        <h3 class="mb-0 fw-900 text-accent pedido-total-value" id="display-total" data-subtotal-inicial="{% if action == 'editar' %}{{ orden.subtotal|default:0|unlocalize }}{% else %}0{% endif %}">{% if action == 'editar' %}{{ orden.total|currency }}{% else %}$0,00{% endif %}</h3>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pedido-shipping-row mt-3 pt-3">
+                        <div>
+                            <span class="fw-700 text-muted small text-uppercase pedido-shipping-label">Tarifa por envío:</span>
+                            <small id="display-tarifa-detalle" class="d-block pedido-shipping-note">Envío gratis en Duitama; otros destinos $15.000,00.</small>
+                        </div>
+                        <span class="fw-800 pedido-shipping-value" id="display-tarifa-envio">{% if action == 'editar' %}{{ orden.tarifa_envio|currency }}{% else %}$0,00{% endif %}</span>
+                    </div>
+                    <div id="pedido-minimo-alerta" class="pedido-minimo-alerta mt-3" role="alert" hidden>
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                        <span id="pedido-minimo-texto">El pedido mínimo es de $50.000,00 para continuar al pago.</span>
                     </div>
                 </div>
 
@@ -125,7 +143,7 @@
                             <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase pedido-input-label">Ciudad de destino</label>
                             <div class="input-group">
                                 <span class="input-group-text border-0 pedido-input-icon"><i class="bi bi-building"></i></span>
-                                <select name="ciudad" class="form-select rounded-pill border-0 px-4 py-2 pedido-input-bg" required>
+                                <select name="ciudad" id="select-ciudad" class="form-select rounded-pill border-0 px-4 py-2 pedido-input-bg" required>
                                     <option value="">Seleccione ciudad...</option>
                                     {% for c in ciudades_despacho %}
                                     <option value="{{ c }}" {% if ciudad == c %}selected{% endif %}>{{ c }}</option>
@@ -155,7 +173,7 @@
                 </div>
 
                 <div class="d-grid gap-3 mt-4">
-                    <button type="submit" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase pedido-submit-btn" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
+                    <button type="submit" id="btn-confirmar-pedido" class="btn btn-gold rounded-pill py-3 fw-900 shadow-sm text-uppercase pedido-submit-btn" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
                         <i class="bi bi-check2-all me-2"></i> {% if action == 'crear' %}Confirmar y Enviar Pedido{% else %}Guardar Cambios{% endif %}
                     </button>
                     {% if action == 'editar' and orden %}
@@ -180,5 +198,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/clientes/form.js' %}?v=1.2"></script>
+<script src="{% static 'js/clientes/form.js' %}?v=1.6"></script>
 {% endblock %}

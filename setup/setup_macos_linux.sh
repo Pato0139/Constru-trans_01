@@ -28,6 +28,9 @@ for arg in "$@"; do
     esac
 done
 
+if [ -f "$SCRIPT_DIR/banner_logo.txt" ]; then
+    cat "$SCRIPT_DIR/banner_logo.txt"
+fi
 echo -e "${CYAN}================================================================"
 echo -e "${BLUE}CONSTRU-TRANS - Instalacion automatica (macOS / Linux)"
 echo -e "${CYAN}================================================================${NC}"

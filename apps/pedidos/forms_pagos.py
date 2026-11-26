@@ -31,8 +31,23 @@ class PagoRegistroForm(forms.ModelForm):
         cleaned = super().clean()
         metodo = cleaned.get("metodo")
         comprobante = cleaned.get("comprobante")
-        if metodo in Pago.METODOS_CON_COMPROBANTE and not comprobante:
-            self.add_error("comprobante", "Este método de pago requiere comprobante.")
+        if metodo == Pago.METODO_CONTRAENTREGA:
+            cleaned["comprobante"] = None
+            return cleaned
+
+        if metodo in Pago.METODOS_CON_COMPROBANTE:
+            if not comprobante:
+                self.add_error("comprobante", "Este método de pago requiere comprobante.")
+            elif (
+                self.instance
+                and self.instance.pk
+                and self.instance.estado == Pago.RECHAZADO
+                and "comprobante" not in self.files
+            ):
+                self.add_error(
+                    "comprobante",
+                    "Debes adjuntar un nuevo comprobante válido para reenviar el pago.",
+                )
         return cleaned
 
 

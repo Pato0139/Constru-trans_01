@@ -331,7 +331,7 @@ class FlujoPagosPedidosCancelacionesTests(TestCase):
             {"conductor": self.conductor_user.pk, "vehiculo": self.vehiculo.pk},
         )
         self.pedido.refresh_from_db()
-        self.assertEqual(self.pedido.estado, Pedido.VEHICULO_ASIGNADO)
+        self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
 
         # Cancelar pedido asignado
         self.client.post(
@@ -426,7 +426,7 @@ class FlujoPagosPedidosCancelacionesTests(TestCase):
             {"conductor": self.conductor_user.pk, "vehiculo": self.vehiculo.pk},
         )
         self.pedido.refresh_from_db()
-        self.assertEqual(self.pedido.estado, Pedido.VEHICULO_ASIGNADO)
+        self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
 
         # 3. Conductor confirma preparación e inicia ruta
         self.client.force_login(self.conductor_user)
@@ -603,7 +603,7 @@ class FlujoPagosPedidosCancelacionesTests(TestCase):
         )
         self.assertEqual(res_asig.status_code, 302)
         self.pedido.refresh_from_db()
-        self.assertEqual(self.pedido.estado, Pedido.VEHICULO_ASIGNADO)
+        self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
         entrega = self.pedido.envio_actual
         self.assertIsNotNone(entrega)
         self.assertEqual(entrega.conductor_id, self.conductor.pk)

@@ -182,3 +182,85 @@ class LoginFormTests(TestCase):
         )
         self.assertFalse(form.is_valid())
         self.assertIn("captcha", form.errors)
+
+
+class LoginCaptchaServerTests(TestCase):
+    def setUp(self):
+        self.user = Usuario.objects.create_user(
+            username="captcha_tester",
+            email="captcha_tester@test.com",
+            password="PasswordSeguro123!",
+            nombres="Test",
+            apellidos="Captcha",
+            documento="99887766",
+            rol="admin",
+            estado="activo",
+        )
+
+    def test_reto_captcha_genera_imagen_y_rechaza_codigo_incorrecto(self):
+        resp = self.client.get("/usuarios/captcha/reto/")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("challenge_id", data)
+        self.assertTrue(data["image"].startswith("data:image/png;base64,"))
+
+        bad = self.client.post(
+            "/usuarios/captcha/verificar/",
+            data={"challenge_id": data["challenge_id"], "answer": "WRONG"},
+            content_type="application/json",
+        )
+        self.assertEqual(bad.status_code, 400)
+        bad_data = bad.json()
+        self.assertFalse(bad_data["ok"])
+        self.assertIn("challenge", bad_data)
+        self.assertNotEqual(bad_data["challenge"]["challenge_id"], data["challenge_id"])
+
+    def test_login_rechaza_captcha_checkbox_sin_token_verificado(self):
+        resp = self.client.post(
+            "/usuarios/login/",
+            data={
+                "username": "captcha_tester",
+                "password": "PasswordSeguro123!",
+                "captcha": "on",
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_login_acepta_token_verificado_y_lo_consume_una_sola_vez(self):
+        reto_resp = self.client.get("/usuarios/captcha/reto/")
+        challenge = self.client.session["login_captcha_challenge"]
+
+        verify_resp = self.client.post(
+            "/usuarios/captcha/verificar/",
+            data={"challenge_id": challenge["id"], "answer": challenge["answer"]},
+            content_type="application/json",
+        )
+        self.assertEqual(verify_resp.status_code, 200)
+        token = verify_resp.json()["token"]
+
+        login_resp = self.client.post(
+            "/usuarios/login/",
+            data={
+                "username": "captcha_tester",
+                "password": "PasswordSeguro123!",
+                "captcha": "on",
+                "captcha_token": token,
+            },
+        )
+        self.assertEqual(login_resp.status_code, 302)
+        self.assertIn("_auth_user_id", self.client.session)
+
+        # El token ya fue consumido; reutilizarlo debe fallar
+        self.client.logout()
+        replay_resp = self.client.post(
+            "/usuarios/login/",
+            data={
+                "username": "captcha_tester",
+                "password": "PasswordSeguro123!",
+                "captcha": "on",
+                "captcha_token": token,
+            },
+        )
+        self.assertEqual(replay_resp.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)

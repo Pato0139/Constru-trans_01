@@ -108,10 +108,8 @@
     width: 280px;
 }
 .navbar-dropdown-xs {
-    width: 100vw;
+    width: min(18rem, calc(100vw - 1rem));
     max-width: calc(100vw - 1rem);
-    right: 0.5rem;
-    left: auto;
     overflow-wrap: break-word;
 }
 .navbar-dropdown,
@@ -209,8 +207,79 @@
     border-color: #ffd600;
     color: #000000 !important;
 }
+
+/* El menú de accesibilidad cambia con el tema y evita el esquema fijo oscuro de Bootstrap. */
+[data-theme="light"] .accessibility-menu {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .accessibility-menu .dropdown-header {
+    color: #1e40af !important;
+}
+
+[data-theme="light"] .accessibility-menu .dropdown-item,
+[data-theme="light"] .accessibility-menu .dropdown-item:not(.active) {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .accessibility-menu .dropdown-item:hover,
+[data-theme="light"] .accessibility-menu .dropdown-item:focus-visible {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+[data-theme="accessibility"] .accessibility-menu {
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .accessibility-menu .dropdown-header {
+    color: #ffd600 !important;
+}
+
+[data-theme="accessibility"] .accessibility-menu .dropdown-item,
+[data-theme="accessibility"] .accessibility-menu .dropdown-item:not(.active) {
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .accessibility-menu .dropdown-item:hover,
+[data-theme="accessibility"] .accessibility-menu .dropdown-item:focus-visible {
+    background: #1f1f1f !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+}
+
+[data-theme="accessibility"] .accessibility-menu .dropdown-item.active {
+    background: #ffd600 !important;
+    border-color: #ffd600 !important;
+    color: #000000 !important;
+}
+
 .navbar-dropdown-xs .dropdown-item {
     white-space: normal;
+}
+
+@media (max-width: 767.98px) {
+    .app-navbar .dropdown-menu.navbar-dropdown,
+    .app-navbar .dropdown-menu.navbar-dropdown-xs {
+        max-width: calc(100vw - 1rem);
+        max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 5rem);
+        overflow-x: hidden;
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+
+    .app-navbar .dropdown-menu.navbar-dropdown-xs {
+        width: min(18rem, calc(100vw - 1rem));
+    }
+
+    .app-navbar .dropdown-menu.navbar-dropdown {
+        width: min(22rem, calc(100vw - 1rem));
+    }
 }
 .navbar-notif-date {
     font-size: 0.7rem;

@@ -67,10 +67,14 @@ GUIAS = [
 
 
 COLORES = [
-    ("Fondo claro", "#F8FAFC", "Tema claro", "Fondos principales del modo claro"),
+    ("Fondo claro", "#F1F5F9", "Tema claro", "Fondo principal definido para el modo claro"),
     ("Fondo oscuro", "#0B0D12", "Tema oscuro", "Fondos principales del modo oscuro"),
-    ("Contraste alto", "#FFD600", "Accesibilidad", "Resaltado principal del modo accesible"),
-    ("Texto principal", "#FFFFFF", "Accesibilidad", "Texto de alto contraste"),
+    ("Acento claro", "#D97706", "Tema claro", "Color de acento del modo claro"),
+    ("Acento oscuro", "#F59E0B", "Tema oscuro", "Color de acento del modo oscuro"),
+    ("Contraste alto", "#FFD600", "Accesibilidad", "Color primario y resaltado del modo accesible"),
+    ("Texto principal claro", "#0F172A", "Tema claro", "Color principal del texto en modo claro"),
+    ("Texto principal oscuro", "#E2E8F0", "Tema oscuro", "Color principal del texto en modo oscuro"),
+    ("Texto de alto contraste", "#FFFFFF", "Accesibilidad", "Texto principal del modo accesible"),
 ]
 
 

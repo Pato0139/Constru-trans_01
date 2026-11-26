@@ -37,6 +37,7 @@ _COMANDOS_SIN_SCHEDULER = {
     "dbshell",
     "inspectdb",
     "poblar_todo",
+    "poblar_demo",
     "seed_data",
     "cargar_tipos_material",
     "llenar_datos_prueba",

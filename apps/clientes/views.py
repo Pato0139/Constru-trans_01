@@ -11,18 +11,23 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F, Q, Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from apps.catalogo.models import Catalogo, Stock, UnidadMedida
 from apps.catalogo.models import MaterialConstruccion as Material
+from apps.pagos.models import Pago
 from apps.pedidos.models import DetallePedido, Pedido
 from apps.usuarios.models import Usuario
 from apps.usuarios.utils import contiene_solo_numeros
 from config.db_preference import debe_usar_bd_remota
 from config.db_utils import select_for_update_if_supported
 from config.despacho import (
+    CIUDAD_ENVIO_GRATIS,
     CIUDADES_DESPACHO,
+    MONTO_MINIMO_PEDIDO,
+    TARIFA_ENVIO_EXTERNA,
     ciudad_valida,
     construir_direccion_destino,
     separar_direccion_destino,
@@ -34,6 +39,7 @@ from config.security import (
     registrar_warning,
     role_required,
 )
+from config.superadmin_lock import es_superadmin_global
 
 from .models import Cliente
 
@@ -49,7 +55,7 @@ def pedidos_visibles_para_cliente(usuario_local, usuario_remoto):
             | Q(usuario__username__in=usernames)
             | Q(cliente__usuario__username__in=usernames)
         )
-        .select_related("cliente__usuario", "conductor")
+        .select_related("cliente__usuario", "conductor", "pago")
         .prefetch_related("detalles", "entregas")
         .distinct()
         .order_by("-fecha_solicitud")
@@ -57,11 +63,39 @@ def pedidos_visibles_para_cliente(usuario_local, usuario_remoto):
 
 
 def _contexto_formulario_pedido(**extra):
-    return {"ciudades_despacho": CIUDADES_DESPACHO, **extra}
+    return {
+        "ciudades_despacho": CIUDADES_DESPACHO,
+        "ciudad_envio_gratis": CIUDAD_ENVIO_GRATIS,
+        "tarifa_envio_externa": TARIFA_ENVIO_EXTERNA,
+        "monto_minimo_pedido": MONTO_MINIMO_PEDIDO,
+        **extra,
+    }
 
 
 def _obtener_alias_db():
     return "remota" if debe_usar_bd_remota() else "default"
+
+
+@role_required(["cliente", "admin"])
+@require_GET
+def api_stock_pedido(request):
+    """Devuelve existencias sin formato local para refrescar el formulario de pedidos."""
+    db_alias = _obtener_alias_db()
+    material_ids = Material.objects.using(db_alias).values_list("pk", flat=True)
+    stocks = {
+        str(stock["material_id"]): {
+            "cantidad": stock["cantidad_actual"],
+            "minimo": stock["stock_minimo"],
+        }
+        for stock in Stock.objects.using(db_alias)
+        .filter(material_id__in=material_ids)
+        .values("material_id", "cantidad_actual", "stock_minimo")
+    }
+    response = JsonResponse({"stocks": stocks})
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    return response
 
 
 def _obtener_usuario_local(usuario):
@@ -179,6 +213,14 @@ def _es_dueno_pedido(pedido, usuario_remoto, usuario_local):
         pass
 
     return False
+
+
+def _pedido_bloqueado_para_edicion(pedido):
+    """Solo bloquea pedidos finales, en ruta o con conductor/vehículo asignados."""
+    return bool(
+        pedido.estado in (Pedido.CANCELADO, Pedido.EN_RUTA, Pedido.ENTREGADO)
+        or pedido.asignacion_transporte_iniciada
+    )
 
 
 def parse_fecha_entrega(value):
@@ -301,13 +343,19 @@ def mis_pedidos(request):
     from apps.logistica.services import (
         verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago,
     )
+    from apps.pedidos.utils import eliminar_pedidos_checkout_incompletos
 
     verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
+    eliminar_pedidos_checkout_incompletos(using=_obtener_alias_db(), usuario=usuario)
     pedidos = (
         pedidos_visibles_para_cliente(usuario, usuario_remoto)
         .exclude(estado__in=["entregado", "cancelado"])
-        .select_related("pago")
-        .prefetch_related("detalles__material")
+        .select_related("pago", "usuario", "cliente__usuario", "conductor__usuario")
+        .prefetch_related(
+            "detalles__material",
+            "entregas__conductor__usuario",
+            "entregas__vehiculo",
+        )
     )
 
     # Get filter parameters
@@ -427,8 +475,10 @@ def historial_pedidos(request):
     from apps.logistica.services import (
         verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago,
     )
+    from apps.pedidos.utils import eliminar_pedidos_checkout_incompletos
 
     verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
+    eliminar_pedidos_checkout_incompletos(using=_obtener_alias_db(), usuario=usuario)
     pedidos = (
         pedidos_visibles_para_cliente(usuario, usuario_remoto)
         .filter(estado__in=["entregado", "cancelado"])
@@ -466,7 +516,7 @@ def crear_pedido(request):
     usuario_local = _obtener_usuario_local(usuario_remoto)
 
     _cliente_local = _obtener_cliente_local(usuario_local)
-    materiales = Material.objects.all()
+    materiales = Material.objects.select_related("stock_info", "unidad_medida").all()
 
     if request.method == "POST":
         materiales_ids = request.POST.getlist("material_id[]")
@@ -604,6 +654,11 @@ def crear_pedido(request):
                     stock_obj.save(using=db_alias)
 
                 nuevo_pedido.calcular_total(using=db_alias)
+                if nuevo_pedido.total < MONTO_MINIMO_PEDIDO:
+                    raise ValueError(
+                        "El monto mínimo del pedido es de $50.000,00. "
+                        "Agrega más materiales para poder continuar al pago."
+                    )
             messages.success(
                 request,
                 f"Pedido #{nuevo_pedido.codigo_pedido} creado. Registra ahora el método de pago y su comprobante.",
@@ -618,6 +673,9 @@ def crear_pedido(request):
                 _contexto_formulario_pedido(
                     materiales=materiales,
                     action="crear",
+                    fecha_entrega=fecha_entrega_raw,
+                    ciudad=ciudad,
+                    direccion_detalle=direccion_detalle,
                 ),
             )
         except Exception:
@@ -683,20 +741,22 @@ def editar_pedido(request, id):
             },
         )
 
-    if pedido.estado != Pedido.PENDIENTE:
+    if _pedido_bloqueado_para_edicion(pedido):
         messages.error(
             request,
-            "El pedido ya no se puede modificar (estado actual: {}).".format(pedido.estado),
+            "No puedes modificar este pedido porque está cancelado, en ruta o ya tiene conductor y vehículo asignados.",
         )
         return redirect("clientes:mis_pedidos")
 
     detalle_total = sum(d.subtotal for d in pedido.detalles.using(db_alias).all())
-    if pedido.total != detalle_total or pedido.precio != detalle_total:
-        pedido.total = detalle_total
-        pedido.precio = detalle_total
+    total_esperado = detalle_total + pedido.tarifa_envio + (pedido.impuesto or 0) - (pedido.descuento or 0)
+    if pedido.subtotal != detalle_total or pedido.total != total_esperado or pedido.precio != total_esperado:
+        pedido.subtotal = detalle_total
+        pedido.total = total_esperado
+        pedido.precio = total_esperado
         pedido.save(using=db_alias)
 
-    materiales = Material.objects.all()
+    materiales = Material.objects.select_related("stock_info", "unidad_medida").all()
 
     if request.method == "POST":
         materiales_ids = request.POST.getlist("material_id[]")
@@ -781,13 +841,17 @@ def editar_pedido(request, id):
                 ),
             )
 
+        pago_requiere_actualizacion = False
         try:
             with transaction.atomic(using=db_alias):
                 pedido = select_for_update_if_supported(
                     Pedido.objects.using(db_alias), db_alias
                 ).get(pk=pedido.pk)
-                if pedido.estado != Pedido.PENDIENTE:
-                    messages.error(request, "El pedido ya no se puede modificar porque dejó de estar pendiente.")
+                if _pedido_bloqueado_para_edicion(pedido):
+                    messages.error(
+                        request,
+                        "No puedes modificar este pedido porque está cancelado, en ruta o ya tiene conductor y vehículo asignados.",
+                    )
                     return redirect("clientes:mis_pedidos")
 
                 for detalle in pedido.detalles.using(db_alias).all():
@@ -836,10 +900,80 @@ def editar_pedido(request, id):
                 pedido.fecha_entrega_programada = fecha_entrega if fecha_entrega else None
                 pedido.save(using=db_alias)
                 pedido.calcular_total(using=db_alias)
+                if pedido.total < MONTO_MINIMO_PEDIDO:
+                    raise ValueError(
+                        "El monto mínimo del pedido es de $50.000,00. "
+                        "Agrega más materiales para poder continuar al pago."
+                    )
+
+                pago = (
+                    Pago.objects.using(db_alias)
+                    .select_for_update()
+                    .filter(pedido=pedido)
+                    .first()
+                )
+                if pago and pago.monto != pedido.total:
+                    pago.registrar_intento_historial(
+                        estado_intento=pago.estado,
+                        metodo=pago.metodo,
+                        comprobante_nombre=pago.comprobante.name if pago.comprobante else "",
+                        revisor=pago.revisado_por,
+                        observaciones="El cliente modificó el pedido; se actualizó el importe.",
+                        using=db_alias,
+                    )
+                    pago.monto = pedido.total
+                    if pago.metodo != Pago.METODO_CONTRAENTREGA:
+                        # El comprobante anterior ya no representa el nuevo total.
+                        pago.comprobante = None
+                        pago.estado = Pago.PENDIENTE
+                        pago.revisado_por = None
+                        pago.fecha_revision = None
+                        pago.observaciones = "El pedido fue modificado. Registra nuevamente el pago con el importe actualizado."
+                        pago.save(
+                            using=db_alias,
+                            update_fields=[
+                                "monto",
+                                "comprobante",
+                                "estado",
+                                "revisado_por",
+                                "fecha_revision",
+                                "observaciones",
+                            ],
+                        )
+                        pago_requiere_actualizacion = True
+                        if pedido.estado in (
+                            Pedido.AUTORIZADO_DESPACHO,
+                            Pedido.VEHICULO_ASIGNADO,
+                        ):
+                            pedido.transicionar(Pedido.PENDIENTE)
+                            pedido.save(using=db_alias, update_fields=["estado"])
+                    else:
+                        pago.save(using=db_alias, update_fields=["monto"])
+
+            if pago_requiere_actualizacion:
+                messages.warning(
+                    request,
+                    "El total del pedido cambió. Registra nuevamente el comprobante con el importe actualizado.",
+                )
+                return redirect("pagos:registrar_pago_pedido", pedido_id=pedido.codigo_pedido)
 
             messages.success(request, f"Pedido #{pedido.codigo_pedido} actualizado correctamente.")
             return redirect("clientes:mis_pedidos")
 
+        except ValueError as e:
+            messages.error(request, str(e))
+            return render(
+                request,
+                "clientes/form.html",
+                _contexto_formulario_pedido(
+                    orden=pedido,
+                    materiales=materiales,
+                    action="editar",
+                    fecha_entrega=fecha_entrega_raw,
+                    ciudad=ciudad,
+                    direccion_detalle=direccion_detalle,
+                ),
+            )
         except Exception:
             logger.exception("Error al actualizar el pedido %s", id)
             messages.error(

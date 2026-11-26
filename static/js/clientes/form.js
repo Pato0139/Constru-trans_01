@@ -9,6 +9,40 @@
  * @global
  */
 let totalGeneral = 0;
+let stockRefreshTimer = null;
+let stockRefreshInFlight = false;
+
+function obtenerConfigDespacho() {
+    const form = document.getElementById('form-pedido');
+    return {
+        ciudadGratis: (form?.dataset.ciudadGratis || 'Duitama').trim().toLocaleLowerCase(),
+        tarifaExterna: parseFloat(form?.dataset.tarifaEnvio || '15000') || 15000,
+        montoMinimo: parseFloat(form?.dataset.montoMinimo || '50000') || 50000,
+    };
+}
+
+function obtenerCiudadSeleccionada() {
+    const selectCiudad = document.getElementById('select-ciudad') || document.querySelector('select[name="ciudad"]');
+    return (selectCiudad?.value || '').trim();
+}
+
+function calcularTarifaEnvio(ciudad) {
+    const { ciudadGratis, tarifaExterna } = obtenerConfigDespacho();
+    const ciudadNorm = (ciudad || '').trim().toLocaleLowerCase();
+    if (!ciudadNorm) return 0;
+    if (ciudadNorm === ciudadGratis) return 0;
+    return tarifaExterna;
+}
+
+function calcularTotalConEnvio() {
+    const tarifa = calcularTarifaEnvio(obtenerCiudadSeleccionada());
+    return Math.round((totalGeneral + tarifa) * 100) / 100;
+}
+
+function parseStockNumber(value) {
+    const normalized = String(value ?? '').replace(/[^\d-]/g, '');
+    return Number.parseInt(normalized, 10) || 0;
+}
 
 /**
  * Formatea un valor numérico como moneda colombiana
@@ -36,8 +70,51 @@ function formatCurrency(value) {
  */
 function actualizarTotalDisplay() {
     const totalElement = document.getElementById('display-total');
+    const tarifaElement = document.getElementById('display-tarifa-envio');
+    const tarifaDetalleElement = document.getElementById('display-tarifa-detalle');
+    const alertaMinimo = document.getElementById('pedido-minimo-alerta');
+    const alertaMinimoTexto = document.getElementById('pedido-minimo-texto');
+    const btnConfirmar = document.getElementById('btn-confirmar-pedido');
+
+    const { ciudadGratis, tarifaExterna, montoMinimo } = obtenerConfigDespacho();
+    const ciudad = obtenerCiudadSeleccionada();
+    const tarifaEnvio = calcularTarifaEnvio(ciudad);
+    const totalConEnvio = Math.round((totalGeneral + tarifaEnvio) * 100) / 100;
+
     if (totalElement) {
-        totalElement.innerText = formatCurrency(totalGeneral);
+        totalElement.innerText = formatCurrency(totalConEnvio);
+    }
+
+    if (tarifaElement) {
+        tarifaElement.innerText = formatCurrency(tarifaEnvio);
+        tarifaElement.classList.toggle('is-free', Boolean(ciudad) && tarifaEnvio === 0);
+    }
+
+    if (tarifaDetalleElement) {
+        if (!ciudad) {
+            tarifaDetalleElement.textContent = `Envío gratis en Duitama; otros destinos ${formatCurrency(tarifaExterna)}.`;
+        } else if (ciudad.toLocaleLowerCase() === ciudadGratis) {
+            tarifaDetalleElement.textContent = 'Envío gratis por destino en Duitama.';
+        } else {
+            tarifaDetalleElement.textContent = `Tarifa fija aplicada para envío a ${ciudad}.`;
+        }
+    }
+
+    const cumpleMinimo = totalConEnvio >= montoMinimo;
+    if (alertaMinimo && alertaMinimoTexto) {
+        alertaMinimo.hidden = cumpleMinimo;
+        if (!cumpleMinimo) {
+            const faltante = Math.max(0, Math.round((montoMinimo - totalConEnvio) * 100) / 100);
+            if (totalConEnvio > 0) {
+                alertaMinimoTexto.textContent = `El pedido mínimo es de ${formatCurrency(montoMinimo)}. Te faltan ${formatCurrency(faltante)} para poder continuar al pago.`;
+            } else {
+                alertaMinimoTexto.textContent = `El pedido mínimo es de ${formatCurrency(montoMinimo)} para poder continuar al pago.`;
+            }
+        }
+    }
+
+    if (btnConfirmar) {
+        btnConfirmar.disabled = !cumpleMinimo;
     }
 }
 
@@ -72,10 +149,16 @@ function agregarMaterial() {
     const materialId = select.value;
     const materialNombre = select.options[select.selectedIndex]?.text || '';
     const precio = parseFloat(select.options[select.selectedIndex]?.getAttribute('data-precio') || 0);
+    const stockDisponible = parseStockNumber(select.options[select.selectedIndex]?.dataset.stock);
     const cantidad = parseInt(cantidadInput.value || 0, 10);
 
     if (!materialId || cantidad <= 0) {
         alert('Seleccione un material y una cantidad válida');
+        return;
+    }
+
+    if (cantidad > stockDisponible) {
+        alert(`Stock insuficiente. Solo hay ${stockDisponible} unidades disponibles de este material.`);
         return;
     }
 
@@ -107,6 +190,198 @@ function agregarMaterial() {
 
     select.value = '';
     cantidadInput.value = 1;
+    cantidadInput.removeAttribute('max');
+    const search = document.getElementById('material-search');
+    if (search) search.value = '';
+    cerrarSelectorMaterial();
+    actualizarStockDisponible();
+}
+
+function actualizarStockDisponible() {
+    const select = document.getElementById('select-material');
+    const cantidadInput = document.getElementById('input-cantidad');
+    const stockInfo = document.getElementById('disponibilidad-stock');
+    if (!select || !cantidadInput || !stockInfo) return;
+
+    const option = select.options[select.selectedIndex];
+    if (!select.value || !option) {
+        stockInfo.hidden = true;
+        cantidadInput.removeAttribute('max');
+        return;
+    }
+
+    const stock = parseStockNumber(option.dataset.stock);
+    const minimo = parseStockNumber(option.dataset.stockMinimo);
+    const unidad = option.dataset.unit || 'unidades';
+    const cantidad = parseInt(cantidadInput.value, 10) || 0;
+    const estado = obtenerEstadoStock(stock, minimo);
+    cantidadInput.max = stock;
+    stockInfo.hidden = false;
+    stockInfo.replaceChildren();
+    const cantidadLabel = document.createElement('span');
+    cantidadLabel.textContent = `Existencias: ${stock} ${unidad}`;
+    const estadoBadge = document.createElement('span');
+    estadoBadge.className = `material-stock-badge stock-state--${estado.clase}`;
+    estadoBadge.textContent = estado.texto;
+    stockInfo.append(cantidadLabel, estadoBadge);
+    if (cantidad > stock) {
+        const aviso = document.createElement('span');
+        aviso.className = 'text-danger';
+        aviso.textContent = `La cantidad supera las existencias por ${cantidad - stock} ${unidad}.`;
+        stockInfo.append(aviso);
+    }
+}
+
+function obtenerEstadoStock(stock, minimo) {
+    if (stock <= 0) return { clase: 'empty', texto: 'Sin existencias' };
+    if (minimo > 0 && stock <= Math.ceil(minimo / 2)) return { clase: 'critical', texto: 'Stock crítico' };
+    if (minimo > 0 && stock <= minimo) return { clase: 'low', texto: 'Stock bajo' };
+    return { clase: 'sufficient', texto: 'Stock suficiente' };
+}
+
+function cerrarSelectorMaterial() {
+    const opciones = document.getElementById('material-options');
+    const busqueda = document.getElementById('material-search');
+    if (opciones) opciones.hidden = true;
+    busqueda?.setAttribute('aria-expanded', 'false');
+}
+
+function renderizarOpcionesMateriales(filtro = '') {
+    const select = document.getElementById('select-material');
+    const lista = document.getElementById('material-options');
+    if (!select || !lista) return;
+    const termino = filtro.trim().toLocaleLowerCase();
+    lista.replaceChildren();
+
+    Array.from(select.options).slice(1).forEach((option) => {
+        if (!option.text.toLocaleLowerCase().includes(termino)) return;
+        const stock = parseStockNumber(option.dataset.stock);
+        const minimo = parseStockNumber(option.dataset.stockMinimo);
+        const estado = obtenerEstadoStock(stock, minimo);
+        const fila = document.createElement('button');
+        fila.type = 'button';
+        fila.className = 'material-option';
+        fila.dataset.materialId = option.value;
+        fila.setAttribute('role', 'option');
+        fila.setAttribute('aria-selected', String(select.value === option.value));
+
+        const detalle = document.createElement('span');
+        detalle.className = 'material-option__details';
+        const nombre = document.createElement('span');
+        nombre.className = 'material-option__name';
+        nombre.textContent = option.text;
+        nombre.title = option.text;
+        const precio = document.createElement('span');
+        precio.className = 'material-option__price';
+        precio.textContent = `Precio unitario: ${formatCurrency(option.dataset.precio)}`;
+        detalle.append(nombre, precio);
+
+        const insignia = document.createElement('span');
+        insignia.className = `material-stock-badge stock-state--${estado.clase}`;
+        insignia.textContent = `${estado.texto}: ${stock} ${option.dataset.unit || 'unid.'}`;
+        insignia.title = estado.texto;
+        fila.append(detalle, insignia);
+        fila.addEventListener('click', () => {
+            select.value = option.value;
+            const busqueda = document.getElementById('material-search');
+            if (busqueda) busqueda.value = option.text;
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+            cerrarSelectorMaterial();
+        });
+        lista.appendChild(fila);
+    });
+
+    if (!lista.children.length) {
+        const vacio = document.createElement('div');
+        vacio.className = 'material-options__empty';
+        vacio.textContent = 'No se encontraron materiales.';
+        lista.appendChild(vacio);
+    }
+}
+
+async function actualizarExistenciasEnVivo() {
+    const form = document.getElementById('form-pedido');
+    const select = document.getElementById('select-material');
+    const estadoActualizacion = document.getElementById('stock-live-status');
+    const url = form?.dataset.stockUrl;
+    if (!url || !select || stockRefreshInFlight || document.hidden) return;
+
+    stockRefreshInFlight = true;
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: { Accept: 'application/json' }
+        });
+        if (!response.ok) throw new Error('No se pudo consultar el inventario.');
+        const data = await response.json();
+        let huboCambios = false;
+        const lista = document.getElementById('material-options');
+        const search = document.getElementById('material-search');
+        const materialEnFoco = document.activeElement
+            ?.closest('.material-option')
+            ?.dataset.materialId;
+
+        Array.from(select.options).slice(1).forEach((option) => {
+            const stockActualizado = data.stocks?.[String(option.value)];
+            if (!stockActualizado) return;
+            const cantidad = Number(stockActualizado.cantidad);
+            const minimo = Number(stockActualizado.minimo);
+            if (!Number.isInteger(cantidad) || !Number.isInteger(minimo)) return;
+
+            if (
+                parseStockNumber(option.dataset.stock) !== cantidad
+                || parseStockNumber(option.dataset.stockMinimo) !== minimo
+            ) {
+                huboCambios = true;
+                option.dataset.stock = String(cantidad);
+                option.dataset.stockMinimo = String(minimo);
+            }
+        });
+
+        if (huboCambios) {
+            actualizarStockDisponible();
+            if (lista && !lista.hidden) {
+                renderizarOpcionesMateriales(search?.value || '');
+                if (materialEnFoco) {
+                    Array.from(lista.querySelectorAll('.material-option'))
+                        .find((option) => option.dataset.materialId === materialEnFoco)
+                        ?.focus();
+                }
+            }
+        }
+
+        if (estadoActualizacion) {
+            const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            estadoActualizacion.textContent = 'Existencias actualizadas a las ' + hora + '.';
+            estadoActualizacion.classList.remove('text-warning');
+        }
+    } catch (error) {
+        if (estadoActualizacion) {
+            estadoActualizacion.textContent = 'No se pudo actualizar; el servidor validará el stock al enviar.';
+            estadoActualizacion.classList.add('text-warning');
+        }
+    } finally {
+        stockRefreshInFlight = false;
+    }
+}
+
+function iniciarActualizacionExistencias() {
+    const form = document.getElementById('form-pedido');
+    if (!form?.dataset.stockUrl || form.dataset.stockLiveInitialized === 'true') return;
+    form.dataset.stockLiveInitialized = 'true';
+
+    actualizarExistenciasEnVivo();
+    stockRefreshTimer = window.setInterval(actualizarExistenciasEnVivo, 5000);
+    window.addEventListener('focus', actualizarExistenciasEnVivo);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) actualizarExistenciasEnVivo();
+    });
+    window.addEventListener('pagehide', () => {
+        if (stockRefreshTimer) window.clearInterval(stockRefreshTimer);
+        stockRefreshTimer = null;
+    }, { once: true });
 }
 
 /**
@@ -223,11 +498,67 @@ function formatFechaParaInput(value) {
  * @listens DOMContentLoaded
  */
 window.AppPageLifecycle.onPageLoad(() => {
-    const totalInicial = document.getElementById('display-total')?.dataset.totalInicial;
-    totalGeneral = parseFloat(totalInicial || 0);
+    const displayTotal = document.getElementById('display-total');
+    const subtotalInicial = displayTotal?.dataset.subtotalInicial ?? displayTotal?.dataset.totalInicial;
+    totalGeneral = parseFloat(subtotalInicial || 0);
 
     document.getElementById('btn-agregar-material')
         ?.addEventListener('click', agregarMaterial);
+
+    const selectCiudad = document.getElementById('select-ciudad') || document.querySelector('select[name="ciudad"]');
+    selectCiudad?.addEventListener('change', actualizarTotalDisplay);
+
+    const formPedido = document.getElementById('form-pedido');
+    formPedido?.addEventListener('submit', (event) => {
+        const { montoMinimo } = obtenerConfigDespacho();
+        const totalConEnvio = calcularTotalConEnvio();
+        if (totalConEnvio < montoMinimo) {
+            event.preventDefault();
+            actualizarTotalDisplay();
+            document.getElementById('pedido-minimo-alerta')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+
+    document.getElementById('select-material')
+        ?.addEventListener('change', actualizarStockDisponible);
+    document.getElementById('input-cantidad')
+        ?.addEventListener('input', actualizarStockDisponible);
+    iniciarActualizacionExistencias();
+
+    const busquedaMaterial = document.getElementById('material-search');
+    const opcionesMaterial = document.getElementById('material-options');
+    if (busquedaMaterial && opcionesMaterial) {
+        const abrirOpciones = () => {
+            const seleccionado = document.querySelector('#select-material option:checked');
+            if (seleccionado?.value && busquedaMaterial.value === seleccionado.text) {
+                busquedaMaterial.value = '';
+            }
+            renderizarOpcionesMateriales(busquedaMaterial.value);
+            opcionesMaterial.hidden = false;
+            busquedaMaterial.setAttribute('aria-expanded', 'true');
+        };
+        busquedaMaterial.addEventListener('focus', abrirOpciones);
+        busquedaMaterial.addEventListener('click', abrirOpciones);
+        busquedaMaterial.addEventListener('input', () => {
+            renderizarOpcionesMateriales(busquedaMaterial.value);
+            opcionesMaterial.hidden = false;
+            busquedaMaterial.setAttribute('aria-expanded', 'true');
+        });
+        busquedaMaterial.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') cerrarSelectorMaterial();
+            if (event.key === 'ArrowDown') opcionesMaterial.querySelector('button')?.focus();
+        });
+        opcionesMaterial.addEventListener('keydown', (event) => {
+            const filas = Array.from(opcionesMaterial.querySelectorAll('button'));
+            const indice = filas.indexOf(document.activeElement);
+            if (event.key === 'ArrowDown') { event.preventDefault(); filas[Math.min(indice + 1, filas.length - 1)]?.focus(); }
+            if (event.key === 'ArrowUp') { event.preventDefault(); (filas[Math.max(indice - 1, 0)] || busquedaMaterial).focus(); }
+            if (event.key === 'Escape') { cerrarSelectorMaterial(); busquedaMaterial.focus(); }
+        });
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.material-picker')) cerrarSelectorMaterial();
+        });
+    }
 
     const picker = document.getElementById('fecha_entrega_picker');
     const visibleField = document.getElementById('fecha_entrega_text');

@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 
 from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
+from apps.auditoria.models import Historial
 from apps.logistica.models import ConductorVehiculo, Entrega, Vehiculo
 from apps.logistica.services import (
     asignar_conductor_y_vehiculo,
@@ -36,7 +37,11 @@ from config.utils import registrar_actividad
 
 from .forms import AgregarMaterialForm, FiltroPedidosForm
 from .models import DetallePedido, DetalleSolicitudPedido, Pedido, SolicitudPedido
-from .utils import liberar_vehiculo_pedido, revertir_stock_pedido
+from .utils import (
+    eliminar_pedidos_checkout_incompletos,
+    liberar_vehiculo_pedido,
+    revertir_stock_pedido,
+)
 
 
 def _mensajes_error(request, origen):
@@ -148,12 +153,13 @@ def agregar_materiales(request, id):
     return render(request, "pedidos/agregar_materiales.html", context)
 
 
-def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=None):
+def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=None, destino_query=None):
     pedidos = (
         Pedido.objects.all()
         .select_related("usuario", "cliente__usuario", "conductor__usuario", "pago")
         .prefetch_related(
             "detalles__material",
+            "pago__detalles",
             "entregas__conductor__usuario",
             "entregas__vehiculo",
             "entregas__confirmado_salida_por",
@@ -164,11 +170,16 @@ def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=No
 
     if cliente_query:
         pedidos = pedidos.filter(
-            Q(cliente__nombres__icontains=cliente_query)
-            | Q(cliente__apellidos__icontains=cliente_query)
+            Q(cliente__usuario__nombres__icontains=cliente_query)
+            | Q(cliente__usuario__apellidos__icontains=cliente_query)
+            | Q(cliente__usuario__username__icontains=cliente_query)
             | Q(usuario__nombres__icontains=cliente_query)
             | Q(usuario__apellidos__icontains=cliente_query)
+            | Q(usuario__username__icontains=cliente_query)
         )
+
+    if destino_query:
+        pedidos = pedidos.filter(direccion_destino__icontains=destino_query)
 
     if fecha_query:
         pedidos = pedidos.filter(fecha_solicitud__date=fecha_query)
@@ -177,8 +188,8 @@ def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=No
         pedidos = pedidos.filter(
             Q(codigo_pedido__icontains=q)
             | Q(direccion_destino__icontains=q)
-            | Q(cliente__nombres__icontains=q)
-            | Q(cliente__apellidos__icontains=q)
+            | Q(cliente__usuario__nombres__icontains=q)
+            | Q(cliente__usuario__apellidos__icontains=q)
             | Q(usuario__nombres__icontains=q)
             | Q(usuario__apellidos__icontains=q)
         )
@@ -197,10 +208,31 @@ def _render_lista_por_estado(
     *,
     solo_autorizados_despacho=False,
     es_historial=False,
+    exigir_pago_recibido=False,
 ):
     from apps.pagos.models import Pago
 
-    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
+    if request.headers.get("X-Requested-With") != "XMLHttpRequest":
+        from django.core.cache import cache as _cache
+
+        if not _cache.get("pedidos:vencimiento_check_ok"):
+            verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
+            _cache.set("pedidos:vencimiento_check_ok", True, 60)
+
+        if exigir_pago_recibido:
+            db_alias = "remota" if debe_usar_bd_remota() else "default"
+            pedidos_eliminados = eliminar_pedidos_checkout_incompletos(
+                using=db_alias,
+                usuario=request.user,
+            )
+            for codigo in pedidos_eliminados:
+                registrar_actividad(
+                    request,
+                    "eliminar",
+                    "pedidos",
+                    codigo,
+                    f"Pedido #{codigo} eliminado automáticamente por no completar el pago o comprobante dentro del plazo.",
+                )
 
     filtro = FiltroPedidosForm(request.GET)
     if filtro.is_valid():
@@ -209,17 +241,28 @@ def _render_lista_por_estado(
         _mensajes_error(request, filtro.errors)
         datos = {k: v for k, v in (filtro.cleaned_data or {}).items()}
     cliente_query = datos.get("cliente") or ""
+    destino_query = datos.get("destino") or ""
     fecha_valor = datos.get("fecha")
     fecha_query = fecha_valor.isoformat() if fecha_valor else ""
     q = datos.get("q") or ""
     estado_query = datos.get("estado") or ""
 
-    pedidos = buscar_pedidos_admin(cliente_query=cliente_query, fecha_query=fecha_valor, q=q)
+    pedidos = buscar_pedidos_admin(
+        cliente_query=cliente_query,
+        fecha_query=fecha_valor,
+        q=q,
+        destino_query=destino_query,
+    )
     if estado:
         if isinstance(estado, (list, tuple, set)):
             pedidos = pedidos.filter(estado__in=estado)
         else:
             pedidos = pedidos.filter(estado=estado)
+    if exigir_pago_recibido:
+        pedidos = pedidos.filter(
+            Q(pago__metodo=Pago.METODO_CONTRAENTREGA)
+            | Q(pago__comprobante__gt="")
+        )
     if solo_autorizados_despacho:
         pedidos = pedidos.exclude(
             pago__estado__in=[Pago.PENDIENTE, Pago.RECHAZADO]
@@ -234,23 +277,25 @@ def _render_lista_por_estado(
         else:
             pedidos = pedidos.filter(estado=estado_query)
 
-    has_filters = bool(cliente_query or fecha_query or q or estado_query)
-    total_resultados = pedidos.count()
+    has_filters = bool(cliente_query or destino_query or fecha_query or q or estado_query)
+    pedidos_list = list(pedidos)
+    total_resultados = len(pedidos_list)
 
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return render(
             request,
             "pedidos/_lista_body.html",
             {
-                "pedidos": pedidos,
+                "pedidos": pedidos_list,
                 "solo_autorizados_despacho": solo_autorizados_despacho,
                 "es_historial": es_historial,
             },
         )
 
     context = {
-        "pedidos": pedidos,
+        "pedidos": pedidos_list,
         "cliente_query": cliente_query,
+        "destino_query": destino_query,
         "fecha_query": fecha_query,
         "q": q,
         "estado_query": estado_query,
@@ -274,6 +319,7 @@ def lista_pedidos_admin(request):
             Pedido.VEHICULO_ASIGNADO,
         ],
         "Gestión de Pedidos",
+        exigir_pago_recibido=True,
     )
 
 
@@ -391,7 +437,22 @@ def _obtener_recursos_transporte_para_pedido(orden):
 
 @login_required
 def ver_pedido_admin(request, id):
-    orden = get_object_or_404(Pedido, codigo_pedido=id)
+    orden = Pedido.objects.filter(codigo_pedido=id).first()
+    if orden is None:
+        usuario_actual = request.user
+        is_super = getattr(usuario_actual, "is_superuser", False) or getattr(
+            usuario_actual, "es_superadmin", False
+        )
+        es_admin = is_super or getattr(usuario_actual, "rol", "") == "admin"
+        messages.warning(
+            request,
+            f"El pedido #{id} ya no existe o fue eliminado automáticamente porque no se completó su pago con comprobante.",
+        )
+        if es_admin:
+            return redirect("pedidos:lista_pedidos_admin")
+        if getattr(usuario_actual, "rol", "") == "cliente":
+            return redirect("clientes:mis_pedidos")
+        return redirect("usuarios:panel")
     verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago(pedido=orden)
     orden.refresh_from_db()
     usuario_actual = request.user
@@ -498,9 +559,16 @@ def ver_pedido_admin(request, id):
     )
     vehiculo = (entrega.vehiculo if entrega else None) or orden.vehiculo_asignado_actual
     transporte_asignado = bool(
-        (entrega and entrega.conductor_id and entrega.vehiculo_id)
-        or (orden.conductor_id and orden.vehiculo_asignado_actual)
-        or orden.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA)
+        (
+            entrega
+            and (entrega.conductor_id or entrega.conductor_usuario_id)
+            and entrega.vehiculo_id
+        )
+        or (
+            (orden.conductor_id or orden.conductor_usuario_legacy_id)
+            and orden.vehiculo_asignado_actual
+        )
+        or orden.estado == Pedido.EN_RUTA
     )
 
     if request.method == "POST":
@@ -684,22 +752,10 @@ def ver_pedido_admin(request, id):
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
             if accion == "confirmar":
-                observacion = request.POST.get("observacion", "").strip()[:2000]
-                try:
-                    marcar_pedido_entregado(orden, request.user, observacion=observacion)
-                    registrar_actividad(
-                        request,
-                        "confirmar_entrega",
-                        "pedidos",
-                        orden.codigo_pedido,
-                        f"Administrador {request.user.username} marcó como entregado el pedido #{orden.codigo_pedido}",
-                    )
-                    messages.success(
-                        request,
-                        f"El pedido #{orden.codigo_pedido} fue marcado como «Entregado».",
-                    )
-                except ValidationError as exc:
-                    _mensajes_error(request, exc)
+                messages.error(
+                    request,
+                    "Solo el conductor asignado puede confirmar que la entrega fue completada.",
+                )
                 return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
 
             if accion == "cancelar":
@@ -741,8 +797,37 @@ def ver_pedido_admin(request, id):
     )
     vehiculo = entrega.vehiculo if entrega else None
     transporte_asignado = bool(
-        entrega and entrega.conductor_id and entrega.vehiculo_id
+        orden.transporte_asignado or orden.estado == Pedido.EN_RUTA
     )
+    novedades_entrega = list(
+        entrega.novedades.select_related("reportado_por").order_by("-fecha_generada")
+    ) if entrega else []
+    eventos_logisticos = [
+        {
+            "fecha": registro.fecha_hora or registro.fecha,
+            "titulo": "Cambio logístico",
+            "descripcion": registro.descripcion,
+            "usuario": registro.usuario,
+            "tipo": "cambio",
+        }
+        for registro in Historial.objects.filter(
+            Q(modulo__in=["pedido", "pedidos"], elemento_id=str(orden.codigo_pedido))
+            | Q(modulo__in=["entrega", "envio", "envíos"], elemento_id=str(entrega.pk if entrega else -1))
+        ).select_related("usuario")
+    ]
+    eventos_logisticos.extend(
+        {
+            "fecha": novedad.fecha_generada,
+            "titulo": f"Novedad: {novedad.get_tipo_display()}",
+            "descripcion": novedad.descripcion,
+            "usuario": novedad.reportado_por,
+            "tipo": "novedad",
+            "solucion": novedad.solucion,
+            "evidencia": novedad.evidencia,
+        }
+        for novedad in novedades_entrega
+    )
+    eventos_logisticos.sort(key=lambda evento: evento["fecha"], reverse=True)
     pago = orden.pago_actual
 
     conductores_disponibles = []
@@ -775,7 +860,8 @@ def ver_pedido_admin(request, id):
             and bool(entrega.conductor_id and entrega.vehiculo_id)
         ),
         "puede_confirmar_entrega": (
-            (es_admin or (usuario_actual.rol == "conductor" and conductor_asignado))
+            usuario_actual.rol == "conductor"
+            and conductor_asignado
             and orden.estado == Pedido.EN_RUTA
         ),
     }
@@ -957,6 +1043,11 @@ def _crear_solicitud_pedido(usuario, items, descuento):
 @login_required
 @transaction.atomic
 def crear_pedido(request):
+    # Los clientes deben usar el flujo de pedidos del panel cliente, que los
+    # lleva al registro del método de pago y del comprobante.
+    if request.user.rol == "cliente":
+        return redirect("clientes:crear_pedido")
+
     materiales = MaterialConstruccion.objects.all()
 
     if request.method == "POST":
@@ -1002,29 +1093,6 @@ def crear_pedido(request):
                 raise ValueError("Solo un administrador puede aplicar un descuento.")
 
             pedido = _crear_solicitud_pedido(request.user, items, descuento)
-            pedido = SolicitudPedido.objects.create(
-                cliente=request.user, descuento=descuento, estado="pendiente"
-            )
-
-            for m_id, cant in zip(materiales_ids, cantidades, strict=False):
-                cant = int(cant)
-                material = get_object_or_404(MaterialConstruccion, pk=m_id)
-                stock_obj = select_for_update_if_supported(Stock.objects, "default").get(
-                    material=material
-                )
-
-                if stock_obj.cantidad_actual < cant:
-                    raise ValueError(
-                        f"Stock insuficiente para {material.nombre}. Disponible: {stock_obj.cantidad_actual}"
-                    )
-
-                stock_obj.cantidad_actual -= cant
-                stock_obj.save()
-
-                DetalleSolicitudPedido.objects.create(
-                    pedido=pedido, material=material, cantidad=cant
-                )
-
             messages.success(request, f"Solicitud #{pedido.id} creada exitosamente.")
             return redirect("pedidos:lista_solicitudes")
 
@@ -1138,12 +1206,12 @@ def estado_pedido_api(request, id):
     data = {
         "codigo_pedido": orden.codigo_pedido,
         "estado": orden.estado,
-        "estado_display": orden.estado_gestion_display,
+        "estado_display": (
+            orden.estado_admin_display if es_admin else orden.estado_gestion_display
+        ),
         "estado_logistico_display": orden.estado_logistico_display,
         "transporte_asignado": bool(
-            (entrega and entrega.conductor_id and entrega.vehiculo_id)
-            or (orden.conductor_id and orden.vehiculo_asignado_actual)
-            or orden.estado in (Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA)
+            orden.transporte_asignado or orden.estado == Pedido.EN_RUTA
         ),
         "requiere_correccion_pago": orden.requiere_correccion_pago,
         "fecha_solicitud": (

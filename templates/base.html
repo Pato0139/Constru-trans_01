@@ -5,7 +5,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="{% static 'img/Logo1.jpeg' %}?v=2" type="image/x-icon">
+  <link rel="icon" href="{% static 'img/icon.png' %}?v=3" type="image/png">
+  <link rel="shortcut icon" href="{% static 'img/icon.png' %}?v=3" type="image/png">
 
   <title>{% block title %}Panel Administrador{% endblock %}</title>
 
@@ -33,9 +34,10 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=6.0">
-  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=3.1">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=3.3">
+  <link rel="stylesheet" href="{% static 'css/filter-bars.css' %}?v=1.4">
   <link rel="stylesheet" href="{% static 'css/utilities.css' %}?v=3.0">
-  <link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=3.0">
+  <link rel="stylesheet" href="{% static 'css/partials/navbar.css' %}?v=3.4">
   <link rel="stylesheet" href="{% static 'css/sticky-topbar.css' %}?v=3.0">
 
   <script src="{% static 'js/user-preferences.js' %}?v=3.3"></script>
@@ -43,7 +45,7 @@
   <link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=3.0">
   {% block extra_css %}{% endblock %}
   <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=4.1">
-  <link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=3.2">
+  <link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=3.3">
 </head>
 
 <body data-ajax-shell="admin">
@@ -106,7 +108,7 @@
   <script src="{% static 'js/partials/navbar.js' %}?v=1.4"></script>
   <script src="{% static 'js/partials/bd-mode-toggle.js' %}?v=1.0"></script>
   <script src="{% static 'js/sticky-topbar.js' %}?v=1.1"></script>
-  <script src="{% static 'js/filters-ajax.js' %}?v=1.0"></script>
+  <script src="{% static 'js/filters-ajax.js' %}?v=2.3"></script>
   {% block extra_js %}{% endblock %}
 
   <!-- Asistente Virtual IA -->

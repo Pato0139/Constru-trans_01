@@ -93,6 +93,10 @@ class LoginForm(forms.Form):
         required=True,
         error_messages={"required": "Por favor confirme que no es un robot."},
     )
+    captcha_token = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(attrs={"id": "id_captcha_token"}),
+    )
 
 
 class RegistroForm(forms.ModelForm):

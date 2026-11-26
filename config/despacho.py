@@ -1,14 +1,43 @@
+from decimal import Decimal
+
 CIUDADES_DESPACHO = [
-    "Bogotá",
-    "Medellín",
-    "Cali",
-    "Barranquilla",
-    "Cartagena",
+    "Duitama",
+    "Sogamoso",
+    "Paipa",
+    "Nobsa",
+    "Tibasosa",
 ]
+
+CIUDAD_ENVIO_GRATIS = "Duitama"
+TARIFA_ENVIO_EXTERNA = Decimal("15000.00")
+MONTO_MINIMO_PEDIDO = Decimal("50000.00")
 
 
 def ciudad_valida(ciudad: str) -> bool:
     return ciudad.strip() in CIUDADES_DESPACHO
+
+
+def calcular_tarifa_envio(ciudad_o_direccion: str) -> Decimal:
+    if not ciudad_o_direccion:
+        return Decimal("0.00")
+
+    texto = str(ciudad_o_direccion).strip()
+    if not texto:
+        return Decimal("0.00")
+
+    ciudad, _ = separar_direccion_destino(texto)
+    ciudad_norm = ciudad.strip().lower()
+    if not ciudad_norm:
+        return Decimal("0.00")
+
+    ciudades_norm = {c.lower() for c in CIUDADES_DESPACHO}
+    if ciudad_norm not in ciudades_norm:
+        return Decimal("0.00")
+
+    if ciudad_norm == CIUDAD_ENVIO_GRATIS.lower():
+        return Decimal("0.00")
+
+    return TARIFA_ENVIO_EXTERNA
 
 
 def construir_direccion_destino(*partes) -> str:
