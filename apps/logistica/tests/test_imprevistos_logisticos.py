@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.auditoria.models import Historial
-from apps.logistica.models import Entrega, Vehiculo
+from apps.logistica.models import ConductorVehiculo, Entrega, Vehiculo
 from apps.pedidos.models import Pedido
 from apps.usuarios.models import Conductor, Notificacion, Usuario
 
@@ -60,7 +60,7 @@ class ImprevistosLogisticosTests(TestCase):
             marca="Chevrolet",
             modelo="NHR",
             tipo_vehiculo="Camión",
-            capacidad_carga=Decimal("3.50"),
+            capacidad_carga=Decimal("5.50"),
             estado="disponible",
         )
 
@@ -96,9 +96,9 @@ class ImprevistosLogisticosTests(TestCase):
         )
         self.assertTrue(Notificacion.objects.filter(usuario=self.cliente, titulo__startswith="Actualización logística").exists())
 
-    def test_no_permite_reasignar_recurso_en_otro_envio_activo(self):
+    def test_permite_reasignar_a_conductor_con_otro_envio_y_conserva_el_otro_pedido(self):
         pedido_otro = Pedido.objects.create(usuario=self.cliente, estado=Pedido.VEHICULO_ASIGNADO)
-        Entrega.objects.create(
+        entrega_otra = Entrega.objects.create(
             pedido=pedido_otro,
             conductor=self.conductor_alt,
             vehiculo=self.vehiculo_alt,
@@ -106,10 +106,59 @@ class ImprevistosLogisticosTests(TestCase):
             direccion_entrega="Santa Marta, Colombia",
         )
         response = self._reassign(conductor=self.conductor_alt.pk)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "otro envío activo")
+        self.assertEqual(response.status_code, 302)
         self.entrega.refresh_from_db()
-        self.assertEqual(self.entrega.conductor_id, self.conductor.pk)
+        entrega_otra.refresh_from_db()
+        self.assertEqual(self.entrega.conductor_id, self.conductor_alt.pk)
+        self.assertEqual(self.entrega.vehiculo_id, self.vehiculo.pk)
+        self.assertEqual(entrega_otra.conductor_id, self.conductor_alt.pk)
+        self.assertEqual(entrega_otra.vehiculo_id, self.vehiculo_alt.pk)
+
+    def test_reasignar_no_cierra_el_vehiculo_que_el_nuevo_conductor_usa_en_otro_pedido(self):
+        asignacion_actual = ConductorVehiculo.objects.create(
+            conductor=self.conductor, vehiculo=self.vehiculo
+        )
+        asignacion_otro_pedido = ConductorVehiculo.objects.create(
+            conductor=self.conductor_alt, vehiculo=self.vehiculo_alt
+        )
+        pedido_otro = Pedido.objects.create(usuario=self.cliente, estado=Pedido.VEHICULO_ASIGNADO)
+        entrega_otra = Entrega.objects.create(
+            pedido=pedido_otro,
+            conductor=self.conductor_alt,
+            vehiculo=self.vehiculo_alt,
+            estado="pendiente",
+            direccion_entrega="Santa Marta, Colombia",
+        )
+
+        response = self._reassign(conductor=self.conductor_alt.pk)
+
+        self.assertEqual(response.status_code, 302)
+        asignacion_actual.refresh_from_db()
+        asignacion_otro_pedido.refresh_from_db()
+        entrega_otra.refresh_from_db()
+        self.assertIsNotNone(asignacion_actual.fecha_fin)
+        self.assertIsNone(asignacion_otro_pedido.fecha_fin)
+        self.assertEqual(entrega_otra.vehiculo_id, self.vehiculo_alt.pk)
+        self.assertTrue(
+            ConductorVehiculo.objects.filter(
+                conductor=self.conductor_alt,
+                vehiculo=self.vehiculo,
+                fecha_fin__isnull=True,
+            ).exists()
+        )
+
+    def test_reasignacion_rechaza_vehiculo_asignado_a_otro_conductor_aunque_diga_disponible(self):
+        asignacion = ConductorVehiculo.objects.create(
+            conductor=self.conductor_alt, vehiculo=self.vehiculo_alt
+        )
+
+        response = self._reassign(vehiculo=self.vehiculo_alt.pk)
+
+        self.assertEqual(response.status_code, 200)
+        self.entrega.refresh_from_db()
+        asignacion.refresh_from_db()
+        self.assertEqual(self.entrega.vehiculo_id, self.vehiculo.pk)
+        self.assertIsNone(asignacion.fecha_fin)
 
     def test_rechaza_vehiculo_fuera_de_servicio_y_no_cambia_asignacion(self):
         self.vehiculo_alt.estado = "mantenimiento"

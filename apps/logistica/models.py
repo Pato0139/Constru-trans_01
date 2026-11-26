@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, router, transaction
 from django.utils import timezone
 
 from config.state_machine import TransicionMixin
@@ -139,25 +139,45 @@ class ConductorVehiculo(models.Model):
         db_table = "conductor_vehiculo"
         unique_together = ("conductor", "vehiculo", "fecha_asignacion")
         ordering = ["-fecha_asignacion"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["vehiculo"],
+                condition=models.Q(fecha_fin__isnull=True),
+                name="uniq_active_driver_per_vehicle",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.conductor} - {self.vehiculo.placa}"
 
     def clean(self):
         super().clean()
-        if self.conductor_id and self.fecha_fin is None:
-            qs = ConductorVehiculo.objects.filter(conductor=self.conductor, fecha_fin__isnull=True)
+        if self.vehiculo_id and self.fecha_fin is None:
+            db_alias = self._state.db or router.db_for_read(type(self), instance=self)
+            qs = ConductorVehiculo.objects.using(db_alias).filter(
+                vehiculo_id=self.vehiculo_id, fecha_fin__isnull=True
+            )
             if self.pk:
                 qs = qs.exclude(pk=self.pk)
-            if qs.exists():
-                raise ValidationError("Este conductor ya tiene una asignación de vehículo activa.")
+            if qs.exclude(conductor_id=self.conductor_id).exists():
+                raise ValidationError("Este vehículo ya está asignado a otro conductor.")
 
     def save(self, *args, **kwargs):
-        if self.conductor_id and self.fecha_fin is None and not self.pk:
-            ConductorVehiculo.objects.filter(
-                conductor=self.conductor, fecha_fin__isnull=True
-            ).update(fecha_fin=timezone.now())
-        super().save(*args, **kwargs)
+        db_alias = kwargs.get("using") or self._state.db or router.db_for_write(type(self), instance=self)
+        if self.vehiculo_id and self.fecha_fin is None:
+            with transaction.atomic(using=db_alias):
+                Vehiculo.objects.using(db_alias).select_for_update().filter(pk=self.vehiculo_id).exists()
+                asignado_a_otro = (
+                    ConductorVehiculo.objects.using(db_alias)
+                    .filter(vehiculo_id=self.vehiculo_id, fecha_fin__isnull=True)
+                    .exclude(conductor_id=self.conductor_id)
+                    .exclude(pk=self.pk)
+                    .exists()
+                )
+                if asignado_a_otro:
+                    raise ValidationError("Este vehículo ya está asignado a otro conductor.")
+                return super().save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
 
 class Entrega(TransicionMixin, models.Model):

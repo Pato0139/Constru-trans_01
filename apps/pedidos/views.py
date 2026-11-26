@@ -389,23 +389,29 @@ def _obtener_recursos_transporte_para_pedido(orden):
         .order_by("nombres", "apellidos")
     )
 
-    vehiculos_ocupados_ids = (
+    vehiculos_ocupados_ids = set(
         Entrega.objects.filter(
             estado__in=["pendiente", "en_ruta"],
-            pedido__estado__in=[
-                Pedido.AUTORIZADO_DESPACHO,
-                Pedido.VEHICULO_ASIGNADO,
-                Pedido.EN_RUTA,
-            ],
             vehiculo__isnull=False,
         )
         .exclude(pedido=orden)
         .values_list("vehiculo_id", flat=True)
     )
+    vehiculos_ocupados_ids.update(
+        ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values_list(
+            "vehiculo_id", flat=True
+        )
+    )
+    vehiculos_ocupados_ids.discard(
+        Entrega.objects.filter(pedido=orden, estado__in=["pendiente", "en_ruta"])
+        .values_list("vehiculo_id", flat=True)
+        .first()
+    )
 
     vehiculos = (
         Vehiculo.objects.filter(
-            Q(estado="disponible") | Q(entregas__pedido=orden, entregas__estado__in=["pendiente", "en_ruta"])
+            Q(estado="disponible", capacidad_carga__gte=5)
+            | Q(entregas__pedido=orden, entregas__estado__in=["pendiente", "en_ruta"])
         )
         .exclude(pk__in=vehiculos_ocupados_ids)
         .distinct()

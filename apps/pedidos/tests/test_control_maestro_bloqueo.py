@@ -66,7 +66,7 @@ class ControlMaestroBloqueoTests(TestCase):
             marca="Foton",
             modelo="Aumark",
             tipo_vehiculo="Camión",
-            capacidad_carga=Decimal("4.50"),
+            capacidad_carga=Decimal("5.00"),
             estado="disponible",
         )
 

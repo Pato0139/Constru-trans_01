@@ -40,7 +40,7 @@ class AsignarVehiculoForm(StrictForm):
                 id_vehiculo__in=asignados_activos
             )
 
-        self.fields["vehiculo"].queryset = disponibles.order_by("placa")
+        self.fields["vehiculo"].queryset = disponibles.filter(capacidad_carga__gte=5).order_by("placa")
 
 
 MOTIVOS_REASIGNACION = [
@@ -81,11 +81,18 @@ class ReasignarRecursosForm(StrictForm):
     def __init__(self, *args, entrega=None, **kwargs):
         super().__init__(*args, **kwargs)
         conductores = Conductor.objects.filter(estado="activo", usuario__is_active=True, usuario__estado="activo")
-        vehiculos = Vehiculo.objects.filter(estado="disponible")
+        asignados_a_otro = ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values_list(
+            "vehiculo_id", flat=True
+        )
+        vehiculos = Vehiculo.objects.filter(
+            estado="disponible", capacidad_carga__gte=5
+        ).exclude(pk__in=asignados_a_otro)
         if entrega and entrega.conductor_id:
             conductores = Conductor.objects.filter(Q(pk=entrega.conductor_id) | Q(pk__in=conductores.values("pk")))
         if entrega and entrega.vehiculo_id:
-            vehiculos = Vehiculo.objects.filter(Q(pk=entrega.vehiculo_id) | Q(pk__in=vehiculos.values("pk")))
+            vehiculos = Vehiculo.objects.filter(
+                Q(pk=entrega.vehiculo_id) | Q(pk__in=vehiculos.values("pk"))
+            )
         self.fields["conductor"].queryset = conductores.select_related("usuario").order_by("usuario__nombres")
         self.fields["vehiculo"].queryset = vehiculos.order_by("placa")
 
