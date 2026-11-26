@@ -11,8 +11,9 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F, Q, Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from apps.catalogo.models import Catalogo, Stock, UnidadMedida
 from apps.catalogo.models import MaterialConstruccion as Material
@@ -23,7 +24,10 @@ from apps.usuarios.utils import contiene_solo_numeros
 from config.db_preference import debe_usar_bd_remota
 from config.db_utils import select_for_update_if_supported
 from config.despacho import (
+    CIUDAD_ENVIO_GRATIS,
     CIUDADES_DESPACHO,
+    MONTO_MINIMO_PEDIDO,
+    TARIFA_ENVIO_EXTERNA,
     ciudad_valida,
     construir_direccion_destino,
     separar_direccion_destino,
@@ -59,11 +63,39 @@ def pedidos_visibles_para_cliente(usuario_local, usuario_remoto):
 
 
 def _contexto_formulario_pedido(**extra):
-    return {"ciudades_despacho": CIUDADES_DESPACHO, **extra}
+    return {
+        "ciudades_despacho": CIUDADES_DESPACHO,
+        "ciudad_envio_gratis": CIUDAD_ENVIO_GRATIS,
+        "tarifa_envio_externa": TARIFA_ENVIO_EXTERNA,
+        "monto_minimo_pedido": MONTO_MINIMO_PEDIDO,
+        **extra,
+    }
 
 
 def _obtener_alias_db():
     return "remota" if debe_usar_bd_remota() else "default"
+
+
+@role_required(["cliente", "admin"])
+@require_GET
+def api_stock_pedido(request):
+    """Devuelve existencias sin formato local para refrescar el formulario de pedidos."""
+    db_alias = _obtener_alias_db()
+    material_ids = Material.objects.using(db_alias).values_list("pk", flat=True)
+    stocks = {
+        str(stock["material_id"]): {
+            "cantidad": stock["cantidad_actual"],
+            "minimo": stock["stock_minimo"],
+        }
+        for stock in Stock.objects.using(db_alias)
+        .filter(material_id__in=material_ids)
+        .values("material_id", "cantidad_actual", "stock_minimo")
+    }
+    response = JsonResponse({"stocks": stocks})
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    return response
 
 
 def _obtener_usuario_local(usuario):
@@ -311,8 +343,10 @@ def mis_pedidos(request):
     from apps.logistica.services import (
         verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago,
     )
+    from apps.pedidos.utils import eliminar_pedidos_checkout_incompletos
 
     verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
+    eliminar_pedidos_checkout_incompletos(using=_obtener_alias_db(), usuario=usuario)
     pedidos = (
         pedidos_visibles_para_cliente(usuario, usuario_remoto)
         .exclude(estado__in=["entregado", "cancelado"])
@@ -441,8 +475,10 @@ def historial_pedidos(request):
     from apps.logistica.services import (
         verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago,
     )
+    from apps.pedidos.utils import eliminar_pedidos_checkout_incompletos
 
     verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
+    eliminar_pedidos_checkout_incompletos(using=_obtener_alias_db(), usuario=usuario)
     pedidos = (
         pedidos_visibles_para_cliente(usuario, usuario_remoto)
         .filter(estado__in=["entregado", "cancelado"])
@@ -618,6 +654,11 @@ def crear_pedido(request):
                     stock_obj.save(using=db_alias)
 
                 nuevo_pedido.calcular_total(using=db_alias)
+                if nuevo_pedido.total < MONTO_MINIMO_PEDIDO:
+                    raise ValueError(
+                        "El monto mínimo del pedido es de $50.000,00. "
+                        "Agrega más materiales para poder continuar al pago."
+                    )
             messages.success(
                 request,
                 f"Pedido #{nuevo_pedido.codigo_pedido} creado. Registra ahora el método de pago y su comprobante.",
@@ -632,6 +673,9 @@ def crear_pedido(request):
                 _contexto_formulario_pedido(
                     materiales=materiales,
                     action="crear",
+                    fecha_entrega=fecha_entrega_raw,
+                    ciudad=ciudad,
+                    direccion_detalle=direccion_detalle,
                 ),
             )
         except Exception:
@@ -705,9 +749,11 @@ def editar_pedido(request, id):
         return redirect("clientes:mis_pedidos")
 
     detalle_total = sum(d.subtotal for d in pedido.detalles.using(db_alias).all())
-    if pedido.total != detalle_total or pedido.precio != detalle_total:
-        pedido.total = detalle_total
-        pedido.precio = detalle_total
+    total_esperado = detalle_total + pedido.tarifa_envio + (pedido.impuesto or 0) - (pedido.descuento or 0)
+    if pedido.subtotal != detalle_total or pedido.total != total_esperado or pedido.precio != total_esperado:
+        pedido.subtotal = detalle_total
+        pedido.total = total_esperado
+        pedido.precio = total_esperado
         pedido.save(using=db_alias)
 
     materiales = Material.objects.select_related("stock_info", "unidad_medida").all()
@@ -854,6 +900,11 @@ def editar_pedido(request, id):
                 pedido.fecha_entrega_programada = fecha_entrega if fecha_entrega else None
                 pedido.save(using=db_alias)
                 pedido.calcular_total(using=db_alias)
+                if pedido.total < MONTO_MINIMO_PEDIDO:
+                    raise ValueError(
+                        "El monto mínimo del pedido es de $50.000,00. "
+                        "Agrega más materiales para poder continuar al pago."
+                    )
 
                 pago = (
                     Pago.objects.using(db_alias)
@@ -909,6 +960,20 @@ def editar_pedido(request, id):
             messages.success(request, f"Pedido #{pedido.codigo_pedido} actualizado correctamente.")
             return redirect("clientes:mis_pedidos")
 
+        except ValueError as e:
+            messages.error(request, str(e))
+            return render(
+                request,
+                "clientes/form.html",
+                _contexto_formulario_pedido(
+                    orden=pedido,
+                    materiales=materiales,
+                    action="editar",
+                    fecha_entrega=fecha_entrega_raw,
+                    ciudad=ciudad,
+                    direccion_detalle=direccion_detalle,
+                ),
+            )
         except Exception:
             logger.exception("Error al actualizar el pedido %s", id)
             messages.error(
