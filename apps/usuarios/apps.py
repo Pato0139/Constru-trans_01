@@ -84,6 +84,7 @@ class UsuariosConfig(AppConfig):
             ModelAdmin.log_deletions = log_deletions
 
             # Importar señales
+            import apps.usuarios.avatar_signals  # noqa: F401
             import apps.usuarios.signals  # noqa: F401
 
             # Iniciar el respaldo automático (una vez al día)

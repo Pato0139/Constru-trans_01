@@ -35,6 +35,7 @@ BLOCKED_PATH_WHITELIST = (
     "/usuarios/logout/",
     "/usuarios/registro/",
     "/usuarios/recuperar/",
+    "/usuarios/captcha/",
     "/usuarios/bd/cambiar/",
     "/admin/",
 )
@@ -42,6 +43,7 @@ BLOCKED_PATH_WHITELIST = (
 AUTH_DB_PATHS = (
     "/usuarios/login/",
     "/usuarios/recuperar/",
+    "/usuarios/captcha/",
 )
 
 

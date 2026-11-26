@@ -9,6 +9,8 @@ ALLOWED_VIEW_NAMES = {
     "licensing:license_activate",
     "usuarios:login",
     "usuarios:logout",
+    "usuarios:captcha_reto",
+    "usuarios:captcha_verificar",
     "inicio:inicio",
 }
 

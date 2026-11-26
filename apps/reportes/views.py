@@ -1,15 +1,18 @@
 import xml.etree.ElementTree as ET
+from decimal import Decimal
+from xml.sax.saxutils import escape
 
 import openpyxl
-from django.db.models import Sum
-from django.http import HttpResponse
+from django.contrib.staticfiles import finders
+from django.db.models import F, Sum
+from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.utils.timezone import now
 from openpyxl.styles import Alignment, Font, PatternFill
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from apps.catalogo.models import MaterialConstruccion as Material
 from apps.catalogo.services.kardex import calcular_nivel_alerta_stock
@@ -18,6 +21,101 @@ from apps.pedidos.models import Pedido
 from apps.usuarios.models import Usuario
 from apps.usuarios.views import admin_required
 from config.utils import registrar_actividad
+
+REPORT_FIELDS = {
+    "clientes": [
+        ("id", "ID"),
+        ("nombre", "Nombre"),
+        ("email", "Correo"),
+        ("telefono", "Teléfono"),
+        ("estado", "Estado"),
+    ],
+    "materiales": [
+        ("id", "ID"),
+        ("nombre", "Nombre"),
+        ("tipo", "Tipo"),
+        ("precio", "Precio"),
+        ("stock", "Stock"),
+    ],
+    "ventas": [
+        ("id", "ID"),
+        ("cliente", "Cliente"),
+        ("fecha", "Fecha"),
+        ("total", "Total"),
+        ("estado", "Estado"),
+    ],
+    "pedidos": [
+        ("id", "ID"),
+        ("cliente", "Cliente"),
+        ("fecha", "Fecha"),
+        ("materiales", "Materiales"),
+        ("total", "Total"),
+        ("estado", "Estado"),
+    ],
+}
+
+
+def _report_data(tipo):
+    fields = REPORT_FIELDS.get(tipo)
+    if fields is None:
+        raise Http404("Tipo de reporte no disponible.")
+
+    if tipo == "clientes":
+        records = [
+            {
+                "id": user.id,
+                "nombre": f"{user.nombres} {user.apellidos}".strip(),
+                "email": user.email,
+                "telefono": user.telefono or "N/A",
+                "estado": user.estado,
+            }
+            for user in Usuario.objects.filter(rol="cliente")
+        ]
+    elif tipo == "materiales":
+        records = [
+            {
+                "id": material.id,
+                "nombre": material.nombre,
+                "tipo": material.tipo or "N/A",
+                "precio": material.precio or Decimal("0"),
+                "stock": material.stock,
+            }
+            for material in Material.objects.select_related("catalogo").all()
+        ]
+    else:
+        pedidos = Pedido.objects.select_related("cliente__usuario").all()
+        if tipo == "pedidos":
+            pedidos = pedidos.prefetch_related("detalles__material")
+
+        records = []
+        for pedido in pedidos:
+            cliente = pedido.cliente.usuario if pedido.cliente_id else None
+            cliente_nombre = f"{cliente.nombres} {cliente.apellidos}".strip() if cliente else "N/A"
+            fecha = pedido.fecha or pedido.fecha_solicitud
+            record = {
+                "id": pedido.id,
+                "cliente": cliente_nombre,
+                "fecha": fecha.strftime("%Y-%m-%d") if fecha else "N/A",
+                "total": pedido.total or pedido.precio or Decimal("0"),
+                "estado": pedido.estado,
+            }
+            if tipo == "pedidos":
+                detalles = list(pedido.detalles.all())
+                record["materiales"] = (
+                    ", ".join(
+                        f"{detalle.cantidad} x {detalle.material.nombre}" for detalle in detalles
+                    )
+                    or "Sin materiales"
+                )
+                record["detalles"] = detalles
+            records.append(record)
+
+    return fields, records
+
+
+def _format_money(value):
+    amount = Decimal(str(value or 0))
+    return f"{amount:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 @admin_required
@@ -78,113 +176,153 @@ def reportes_admin(request):
 
 @admin_required
 def exportar_reporte_pdf(request, tipo):
+    fields, records = _report_data(tipo)
+    generated_at = now()
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = (
-        f'attachment; filename="reporte_{tipo}_{now().strftime("%Y%m%d")}.pdf"'
+        f'attachment; filename="reporte_{tipo}_{generated_at.strftime("%Y%m%d")}.pdf"'
     )
 
-    doc = SimpleDocTemplate(response, pagesize=letter)
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=landscape(letter),
+        leftMargin=32,
+        rightMargin=32,
+        topMargin=30,
+        bottomMargin=42,
+    )
     elements = []
     styles = getSampleStyleSheet()
-
-    titulo = f"Reporte de {tipo.replace('_', ' ').capitalize()}"
-    elements.append(Paragraph(titulo, styles["Title"]))
-    elements.append(Spacer(1, 12))
-    elements.append(
-        Paragraph(f"Fecha de generación: {now().strftime('%Y-%m-%d %H:%M')}", styles["Normal"])
+    styles.add(
+        ParagraphStyle(
+            name="BrandTitle",
+            parent=styles["Title"],
+            fontName="Helvetica-Bold",
+            fontSize=19,
+            leading=23,
+            textColor=colors.HexColor("#172033"),
+            alignment=0,
+        )
     )
-    elements.append(Spacer(1, 24))
+    styles.add(
+        ParagraphStyle(
+            name="ReportCell",
+            parent=styles["BodyText"],
+            fontName="Helvetica",
+            fontSize=7,
+            leading=9,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            name="ReportHeader",
+            parent=styles["BodyText"],
+            fontName="Helvetica-Bold",
+            fontSize=7,
+            leading=9,
+            textColor=colors.white,
+        )
+    )
 
-    def format_money(val):
-        try:
-            v = float(val)
-            rounded = int(round(v))
-            s = str(rounded)
-            parts = []
-            while s:
-                parts.append(s[-3:])
-                s = s[:-3]
-            return ".".join(reversed(parts))
-        except Exception:
-            return "0"
+    logo_path = finders.find("img/Logo1.jpeg")
+    if not logo_path:
+        raise FileNotFoundError("No se encontró el logo estático img/Logo1.jpeg.")
 
-    data = []
-    if tipo == "clientes":
-        data.append(["ID", "Nombre", "Correo", "Teléfono", "Estado"])
-        for u in Usuario.objects.filter(rol="cliente"):
-            data.append(
-                [u.id, f"{u.nombres} {u.apellidos}", u.email, u.telefono or "N/A", u.estado]
-            )
+    brand = Paragraph(
+        "<font size='8' color='#F59E0B'>CONSTRU TRANS</font><br/>"
+        "<font size='7' color='#64748B'>GESTIÓN DE CONSTRUCCIÓN Y TRANSPORTE</font>",
+        styles["Normal"],
+    )
+    brand_header = Table(
+        [[Image(logo_path, width=76, height=42, kind="proportional"), brand]],
+        colWidths=[96, doc.width - 96],
+    )
+    brand_header.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LINEBELOW", (0, 0), (-1, -1), 2, colors.HexColor("#F59E0B")),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+            ]
+        )
+    )
+    elements.append(brand_header)
+    elements.append(Spacer(1, 18))
+    elements.append(
+        Paragraph(f"Reporte de {tipo.replace('_', ' ').capitalize()}", styles["BrandTitle"])
+    )
+    elements.append(Spacer(1, 5))
+    elements.append(
+        Paragraph(
+            f"Generado: {generated_at.strftime('%Y-%m-%d %H:%M')} "
+            f"&nbsp;&nbsp;|&nbsp;&nbsp; Registros: {len(records)}",
+            styles["Normal"],
+        )
+    )
+    elements.append(Spacer(1, 18))
 
-    elif tipo == "materiales":
-        data.append(["ID", "Nombre", "Tipo", "Precio", "Stock"])
-        for m in Material.objects.all().select_related("stock_info"):
-            p = m.precio or 0
-            precio_formateado = format_money(p)
-            tipo_material = m.tipo or "N/A"
-            data.append([m.id, m.nombre, tipo_material, precio_formateado, m.stock])
+    if records:
+        data = [[Paragraph(escape(label), styles["ReportHeader"]) for _, label in fields]]
+        for record in records:
+            row = []
+            for key, _ in fields:
+                value = record[key]
+                if key in {"precio", "total"}:
+                    value = _format_money(value)
+                row.append(Paragraph(escape(str(value)), styles["ReportCell"]))
+            data.append(row)
 
-    elif tipo == "ventas":
-        data.append(["ID", "Cliente", "Fecha", "Total", "Estado"])
-        for o in Pedido.objects.all().select_related("cliente__usuario"):
-            p = o.total or o.precio or 0
-            precio_formateado = format_money(p)
-            fecha_str = o.fecha.strftime("%Y-%m-%d") if o.fecha else "N/A"
-            cliente_nombre = (
-                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
-                if (o.cliente and o.cliente.usuario)
-                else "N/A"
-            )
-            data.append([o.id, cliente_nombre, fecha_str, precio_formateado, o.estado])
-
-    elif tipo == "pedidos":
-        data.append(["ID", "Cliente", "Materiales", "Total", "Estado"])
-        for o in (
-            Pedido.objects.all()
-            .select_related("cliente__usuario")
-            .prefetch_related("detalles__material")
-        ):
-            materiales = ", ".join(
-                [f"{d.cantidad} x {d.material.nombre}" for d in o.detalles.all()]
-            )
-            p = o.total or o.precio or 0
-            precio_formateado = format_money(p)
-            cliente_nombre = (
-                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
-                if (o.cliente and o.cliente.usuario)
-                else "N/A"
-            )
-            data.append(
-                [
-                    o.id,
-                    cliente_nombre,
-                    materiales[:50] + "..." if len(materiales) > 50 else materiales,
-                    precio_formateado,
-                    o.estado,
-                ]
-            )
-
-    # Estilo de la tabla
-    if data:
-        t = Table(data)
-        t.setStyle(
+        column_widths = {
+            "clientes": [35, 145, 250, 120, 80],
+            "materiales": [35, 180, 160, 110, 100],
+            "ventas": [35, 165, 100, 115, 100],
+            "pedidos": [35, 125, 85, 330, 90, 63],
+        }[tipo]
+        table = Table(data, colWidths=column_widths, repeatRows=1, splitByRow=1, splitInRow=1)
+        table.setStyle(
             TableStyle(
                 [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-                    ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#172033")),
+                    (
+                        "ROWBACKGROUNDS",
+                        (0, 1),
+                        (-1, -1),
+                        [
+                            colors.white,
+                            colors.HexColor("#F1F5F9"),
+                        ],
+                    ),
+                    ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#1E293B")),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("ALIGN", (0, 0), (0, -1), "CENTER"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                    ("TOPPADDING", (0, 0), (-1, -1), 7),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+                    ("LINEBELOW", (0, 0), (-1, 0), 1, colors.HexColor("#F59E0B")),
+                    ("GRID", (0, 1), (-1, -1), 0.35, colors.HexColor("#CBD5E1")),
                 ]
             )
         )
-        elements.append(t)
+        elements.append(table)
     else:
         elements.append(Paragraph("No hay datos disponibles para este reporte.", styles["Normal"]))
 
-    doc.build(elements)
+    def draw_footer(canvas, _doc):
+        canvas.saveState()
+        canvas.setStrokeColor(colors.HexColor("#CBD5E1"))
+        canvas.line(doc.leftMargin, 30, landscape(letter)[0] - doc.rightMargin, 30)
+        canvas.setFont("Helvetica", 8)
+        canvas.setFillColor(colors.HexColor("#64748B"))
+        canvas.drawString(doc.leftMargin, 18, "ConstruTrans · Reporte administrativo")
+        canvas.drawRightString(
+            landscape(letter)[0] - doc.rightMargin,
+            18,
+            f"Página {canvas.getPageNumber()}",
+        )
+        canvas.restoreState()
+
+    doc.build(elements, onFirstPage=draw_footer, onLaterPages=draw_footer)
 
     registrar_actividad(request, "otro", "reportes", None, f"Reporte de {tipo} exportado a PDF")
 
@@ -193,6 +331,7 @@ def exportar_reporte_pdf(request, tipo):
 
 @admin_required
 def exportar_reporte_excel(request, tipo):
+    fields, records = _report_data(tipo)
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = f"Reporte {tipo.capitalize()}"
@@ -202,72 +341,23 @@ def exportar_reporte_excel(request, tipo):
     header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
     center_aligned = Alignment(horizontal="center")
 
-    def format_money_raw(val):
-        try:
-            return float(val)
-        except Exception:
-            return 0.0
-
-    if tipo == "clientes":
-        headers = ["ID", "Nombre", "Correo", "Teléfono", "Estado"]
-        ws.append(headers)
-        for u in Usuario.objects.filter(rol="cliente"):
-            ws.append([u.id, f"{u.nombres} {u.apellidos}", u.email, u.telefono or "N/A", u.estado])
-
-    elif tipo == "materiales":
-        headers = ["ID", "Nombre", "Tipo", "Precio", "Stock"]
-        ws.append(headers)
-        for m in Material.objects.all().select_related("stock_info"):
-            ws.append([m.id, m.nombre, m.tipo or "N/A", format_money_raw(m.precio), m.stock])
-
-    elif tipo == "ventas":
-        headers = ["ID", "Cliente", "Fecha", "Total", "Estado"]
-        ws.append(headers)
-        for o in Pedido.objects.all().select_related("cliente__usuario"):
-            fecha_str = o.fecha.strftime("%Y-%m-%d") if o.fecha else "N/A"
-            cliente_nombre = (
-                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
-                if (o.cliente and o.cliente.usuario)
-                else "N/A"
-            )
-            ws.append(
-                [o.id, cliente_nombre, fecha_str, format_money_raw(o.total or o.precio), o.estado]
-            )
-
-    elif tipo == "pedidos":
-        headers = ["ID", "Cliente", "Materiales", "Total", "Estado"]
-        ws.append(headers)
-        for o in (
-            Pedido.objects.all()
-            .select_related("cliente__usuario")
-            .prefetch_related("detalles__material")
-        ):
-            materiales = ", ".join(
-                [f"{d.cantidad} x {d.material.nombre}" for d in o.detalles.all()]
-            )
-            cliente_nombre = (
-                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
-                if (o.cliente and o.cliente.usuario)
-                else "N/A"
-            )
-            ws.append(
-                [o.id, cliente_nombre, materiales, format_money_raw(o.total or o.precio), o.estado]
-            )
+    headers = [label for _, label in fields]
+    ws.append(headers)
+    for record in records:
+        ws.append([record[key] for key, _ in fields])
 
     for cell in ws[1]:
         cell.font = header_font
         cell.fill = header_fill
         cell.alignment = center_aligned
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = ws.dimensions
 
     for col in ws.columns:
         max_length = 0
         column = col[0].column_letter
         for cell in col:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except Exception:
-                pass
+            max_length = max(max_length, len(str(cell.value or "")))
         adjusted_width = max_length + 2
         ws.column_dimensions[column].width = adjusted_width
 
@@ -285,64 +375,30 @@ def exportar_reporte_excel(request, tipo):
 
 @admin_required
 def exportar_reporte_xml(request, tipo):
+    fields, records = _report_data(tipo)
     root = ET.Element("reporte")
     root.set("tipo", tipo)
     root.set("fecha_generacion", now().strftime("%Y-%m-%d %H:%M:%S"))
 
-    if tipo == "clientes":
-        for u in Usuario.objects.filter(rol="cliente"):
-            item = ET.SubElement(root, "cliente")
-            ET.SubElement(item, "id").text = str(u.id)
-            ET.SubElement(item, "nombre").text = f"{u.nombres} {u.apellidos}"
-            ET.SubElement(item, "email").text = u.email
-            ET.SubElement(item, "telefono").text = u.telefono or ""
-            ET.SubElement(item, "estado").text = u.estado
-
-    elif tipo == "materiales":
-        for m in Material.objects.all().select_related("stock_info"):
-            item = ET.SubElement(root, "material")
-            ET.SubElement(item, "id").text = str(m.id)
-            ET.SubElement(item, "nombre").text = m.nombre
-            ET.SubElement(item, "tipo").text = m.tipo or ""
-            ET.SubElement(item, "precio").text = str(m.precio or 0)
-            ET.SubElement(item, "stock").text = str(m.stock)
-
-    elif tipo == "ventas":
-        for o in Pedido.objects.all().select_related("cliente__usuario"):
-            item = ET.SubElement(root, "venta")
-            ET.SubElement(item, "id").text = str(o.id)
-            cliente_nombre = (
-                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
-                if (o.cliente and o.cliente.usuario)
-                else "N/A"
-            )
-            ET.SubElement(item, "cliente").text = cliente_nombre
-            fecha_str = o.fecha.strftime("%Y-%m-%d") if o.fecha else "N/A"
-            ET.SubElement(item, "fecha").text = fecha_str
-            ET.SubElement(item, "total").text = str(o.total or o.precio or 0)
-            ET.SubElement(item, "estado").text = o.estado
-
-    elif tipo == "pedidos":
-        for o in (
-            Pedido.objects.all()
-            .select_related("cliente__usuario")
-            .prefetch_related("detalles__material")
-        ):
-            item = ET.SubElement(root, "pedido")
-            ET.SubElement(item, "id").text = str(o.id)
-            cliente_nombre = (
-                f"{o.cliente.usuario.nombres} {o.cliente.usuario.apellidos}"
-                if (o.cliente and o.cliente.usuario)
-                else "N/A"
-            )
-            ET.SubElement(item, "cliente").text = cliente_nombre
-            ET.SubElement(item, "total").text = str(o.total or o.precio or 0)
-            ET.SubElement(item, "estado").text = o.estado
-            dets = ET.SubElement(item, "detalles")
-            for d in o.detalles.all():
-                det = ET.SubElement(dets, "detalle")
-                ET.SubElement(det, "material").text = d.material.nombre
-                ET.SubElement(det, "cantidad").text = str(d.cantidad)
+    item_names = {
+        "clientes": "cliente",
+        "materiales": "material",
+        "ventas": "venta",
+        "pedidos": "pedido",
+    }
+    for record in records:
+        item = ET.SubElement(root, item_names[tipo])
+        for key, _ in fields:
+            value = record[key]
+            if key in {"precio", "total"}:
+                value = str(value or 0)
+            ET.SubElement(item, key).text = str(value)
+        if tipo == "pedidos":
+            details = ET.SubElement(item, "detalles")
+            for detail in record["detalles"]:
+                detail_node = ET.SubElement(details, "detalle")
+                ET.SubElement(detail_node, "material").text = detail.material.nombre
+                ET.SubElement(detail_node, "cantidad").text = str(detail.cantidad)
 
     # Convertir a string indentado
     from xml.dom import minidom

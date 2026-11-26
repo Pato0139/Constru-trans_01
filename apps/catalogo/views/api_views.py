@@ -36,10 +36,12 @@ def api_materiales_listado(request):
     material_query = request.GET.get("material", "").strip()
     id_query = request.GET.get("id", "").strip()
 
-    qs = Material.objects.select_related("stock_info", "catalogo", "unidad_medida").all()
+    qs = Material.objects.select_related("stock_info", "catalogo", "marca", "unidad_medida").all()
     total = qs.count()
 
-    qs = apply_search(qs, params["search"], ["nombre", "descripcion"])
+    has_filter = bool(params["search"] or tipo or material_query or id_query)
+    if params["search"]:
+        qs = apply_search(qs, params["search"], ["nombre", "descripcion"])
 
     if tipo:
         qs = qs.filter(catalogo__codigo_catalogo=tipo)
@@ -48,8 +50,9 @@ def api_materiales_listado(request):
     if id_query:
         qs = qs.filter(id__icontains=id_query)
 
-    filtrados = qs.count()
+    filtrados = qs.count() if has_filter else total
     materiales = qs.order_by("nombre")[params["start"] : params["start"] + params["length"]]
+    csrf_token = get_token(request)
 
     data = []
     for material in materiales:
@@ -78,7 +81,7 @@ def api_materiales_listado(request):
                             <i class="bi bi-pencil"></i>
                         </a>
                         <form method="post" action="{reverse("catalogo:cambiar_estado_material", args=[material.id])}" class="d-inline">
-                            <input type="hidden" name="csrfmiddlewaretoken" value="{get_token(request)}">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
                             <button type="submit" class="btn-action {"btn-action--success" if material.activo else "btn-action--danger"}"
                                     title="{"Inhabilitar" if material.activo else "Habilitar"} material"
                                     aria-label="{"Inhabilitar" if material.activo else "Habilitar"} {nombre_seguro}">

@@ -8,6 +8,8 @@ app_name = "usuarios"
 urlpatterns = [
     # auth
     path("login/", views.login_usuario, name="login"),
+    path("captcha/reto/", views.captcha_generar_reto, name="captcha_reto"),
+    path("captcha/verificar/", views.captcha_verificar_reto, name="captcha_verificar"),
     path("registro/", views.registro, name="registro"),
     path("panel/", views.panel, name="panel"),
     path("logout/", views.cerrar_sesion, name="logout"),
@@ -23,6 +25,7 @@ urlpatterns = [
     path("usuarios/editar/<int:id>/", views.editar_usuario, name="editar_usuario"),
     path("perfil/admin/", views.perfil_admin, name="perfil_admin"),
     path("perfil/editar/", views.editar_perfil, name="editar_perfil"),
+    path("perfil/cambiar-password/", views.cambiar_password_perfil, name="cambiar_password_perfil"),
     path("conductores/", views.lista_conductores, name="lista_conductores"),
     path("conductores/crear/", views.crear_conductor, name="crear_conductor"),
     path("conductores/editar/<int:id>/", views.editar_conductor, name="editar_conductor"),
@@ -65,6 +68,7 @@ urlpatterns = [
     # Configuraciones
     path("configuraciones/", views.configuraciones_usuario, name="configuraciones"),
     path("bd/cambiar/", views.cambiar_modo_bd, name="cambiar_modo_bd"),
+    path("bd/sincronizar/", views.sincronizar_bd_local_view, name="sincronizar_bd_local"),
     path("backup/descargar/", views.descargar_backup_db, name="descargar_backup"),
     # recuperar contraseña
     path(

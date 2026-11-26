@@ -9,11 +9,11 @@ from django.db.utils import ConnectionDoesNotExist, OperationalError
 logger = logging.getLogger(__name__)
 
 _REMOTA_NEGATIVA_TTL = 5
-_REMOTA_POSITIVA_TTL = 10
+_REMOTA_POSITIVA_TTL = 60
 
 
-def _socket_check_rapido(host, port, timeout=2.0):
-    """Prueba TCP rápida sin tocar psycopg2. Si no llega en 2s, asumimos offline."""
+def _socket_check_rapido(host, port, timeout=3.0):
+    """Prueba TCP rápida sin tocar psycopg2. Si no llega en 3s, asumimos offline."""
     if not (host and port):
         return None  # no podemos validar por socket; que lo decida ensure_connection
     try:
@@ -27,33 +27,52 @@ def _socket_check_rapido(host, port, timeout=2.0):
 
 def _host_port_from_database_url():
     url = os.getenv("DATABASE_URL", "") or ""
-    try:
-        from urllib.parse import urlparse
+    if url:
+        try:
+            from urllib.parse import urlparse
 
-        parsed = urlparse(url)
-        host = parsed.hostname
-        port = parsed.port or 5432
-        return host, port
-    except Exception:
-        return None, None
+            parsed = urlparse(url)
+            if parsed.hostname:
+                return parsed.hostname, parsed.port or 5432
+        except Exception:
+            pass
+    remota_cfg = connections.databases.get("remota") or {}
+    host = remota_cfg.get("HOST")
+    port = remota_cfg.get("PORT") or 5432
+    try:
+        port = int(port)
+    except (TypeError, ValueError):
+        port = 5432
+    return host, port
 
 
 def conexion_remota_disponible_cached():
     if "remota" not in connections.databases:
         return False
-    if not os.getenv("DATABASE_URL"):
-        return False
-
     host, port = _host_port_from_database_url()
-    rapido = _socket_check_rapido(host, port, timeout=2.0)
-    if rapido is False:
+    if not os.getenv("DATABASE_URL") and not host:
         return False
 
-    try:
-        connections["remota"].ensure_connection()
-        return True
-    except (OperationalError, ConnectionDoesNotExist, Exception):
-        return False
+    conn = connections["remota"]
+    # Si no hay conexión abierta todavía, validar rápido por TCP antes de intentar psycopg2.
+    if conn.connection is None:
+        rapido = _socket_check_rapido(host, port, timeout=3.0)
+        if rapido is False:
+            return False
+
+    for intento in range(2):
+        try:
+            conn.close_if_unusable_or_obsolete()
+            conn.ensure_connection()
+            return True
+        except (OperationalError, ConnectionDoesNotExist, Exception):
+            try:
+                conn.close()
+            except Exception:
+                pass
+            if intento == 1:
+                return False
+    return False
 
 
 def conexion_remota_disponible():

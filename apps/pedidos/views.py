@@ -155,12 +155,13 @@ def agregar_materiales(request, id):
     return render(request, "pedidos/agregar_materiales.html", context)
 
 
-def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=None):
+def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=None, destino_query=None):
     pedidos = (
         Pedido.objects.all()
         .select_related("usuario", "cliente__usuario", "conductor__usuario", "pago")
         .prefetch_related(
             "detalles__material",
+            "pago__detalles",
             "entregas__conductor__usuario",
             "entregas__vehiculo",
             "entregas__confirmado_salida_por",
@@ -171,11 +172,16 @@ def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=No
 
     if cliente_query:
         pedidos = pedidos.filter(
-            Q(cliente__nombres__icontains=cliente_query)
-            | Q(cliente__apellidos__icontains=cliente_query)
+            Q(cliente__usuario__nombres__icontains=cliente_query)
+            | Q(cliente__usuario__apellidos__icontains=cliente_query)
+            | Q(cliente__usuario__username__icontains=cliente_query)
             | Q(usuario__nombres__icontains=cliente_query)
             | Q(usuario__apellidos__icontains=cliente_query)
+            | Q(usuario__username__icontains=cliente_query)
         )
+
+    if destino_query:
+        pedidos = pedidos.filter(direccion_destino__icontains=destino_query)
 
     if fecha_query:
         pedidos = pedidos.filter(fecha_solicitud__date=fecha_query)
@@ -184,8 +190,8 @@ def buscar_pedidos_admin(cliente_query=None, fecha_query=None, q=None, estado=No
         pedidos = pedidos.filter(
             Q(codigo_pedido__icontains=q)
             | Q(direccion_destino__icontains=q)
-            | Q(cliente__nombres__icontains=q)
-            | Q(cliente__apellidos__icontains=q)
+            | Q(cliente__usuario__nombres__icontains=q)
+            | Q(cliente__usuario__apellidos__icontains=q)
             | Q(usuario__nombres__icontains=q)
             | Q(usuario__apellidos__icontains=q)
         )
@@ -208,21 +214,27 @@ def _render_lista_por_estado(
 ):
     from apps.pagos.models import Pago
 
-    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
-    if exigir_pago_recibido:
-        db_alias = "remota" if debe_usar_bd_remota() else "default"
-        pedidos_eliminados = eliminar_pedidos_checkout_incompletos(
-            using=db_alias,
-            usuario=request.user,
-        )
-        for codigo in pedidos_eliminados:
-            registrar_actividad(
-                request,
-                "eliminar",
-                "pedidos",
-                codigo,
-                f"Pedido #{codigo} eliminado automáticamente por no completar el pago o comprobante dentro del plazo.",
+    if request.headers.get("X-Requested-With") != "XMLHttpRequest":
+        from django.core.cache import cache as _cache
+
+        if not _cache.get("pedidos:vencimiento_check_ok"):
+            verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
+            _cache.set("pedidos:vencimiento_check_ok", True, 60)
+
+        if exigir_pago_recibido:
+            db_alias = "remota" if debe_usar_bd_remota() else "default"
+            pedidos_eliminados = eliminar_pedidos_checkout_incompletos(
+                using=db_alias,
+                usuario=request.user,
             )
+            for codigo in pedidos_eliminados:
+                registrar_actividad(
+                    request,
+                    "eliminar",
+                    "pedidos",
+                    codigo,
+                    f"Pedido #{codigo} eliminado automáticamente por no completar el pago o comprobante dentro del plazo.",
+                )
 
     filtro = FiltroPedidosForm(request.GET)
     if filtro.is_valid():
@@ -231,12 +243,18 @@ def _render_lista_por_estado(
         _mensajes_error(request, filtro.errors)
         datos = {k: v for k, v in (filtro.cleaned_data or {}).items()}
     cliente_query = datos.get("cliente") or ""
+    destino_query = datos.get("destino") or ""
     fecha_valor = datos.get("fecha")
     fecha_query = fecha_valor.isoformat() if fecha_valor else ""
     q = datos.get("q") or ""
     estado_query = datos.get("estado") or ""
 
-    pedidos = buscar_pedidos_admin(cliente_query=cliente_query, fecha_query=fecha_valor, q=q)
+    pedidos = buscar_pedidos_admin(
+        cliente_query=cliente_query,
+        fecha_query=fecha_valor,
+        q=q,
+        destino_query=destino_query,
+    )
     if estado:
         if isinstance(estado, (list, tuple, set)):
             pedidos = pedidos.filter(estado__in=estado)
@@ -264,23 +282,25 @@ def _render_lista_por_estado(
     if exigir_pago_recibido:
         pedidos = filtrar_pedidos_con_pago_recibido(pedidos)
 
-    has_filters = bool(cliente_query or fecha_query or q or estado_query)
-    total_resultados = len(pedidos) if isinstance(pedidos, list) else pedidos.count()
+    has_filters = bool(cliente_query or destino_query or fecha_query or q or estado_query)
+    pedidos_list = list(pedidos)
+    total_resultados = len(pedidos_list)
 
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return render(
             request,
             "pedidos/_lista_body.html",
             {
-                "pedidos": pedidos,
+                "pedidos": pedidos_list,
                 "solo_autorizados_despacho": solo_autorizados_despacho,
                 "es_historial": es_historial,
             },
         )
 
     context = {
-        "pedidos": pedidos,
+        "pedidos": pedidos_list,
         "cliente_query": cliente_query,
+        "destino_query": destino_query,
         "fecha_query": fecha_query,
         "q": q,
         "estado_query": estado_query,

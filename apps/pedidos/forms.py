@@ -67,6 +67,7 @@ class FiltroPedidosForm(forms.Form):
     """Valida el query string de las listas (no estricto: GET puede traer page, etc.)."""
 
     cliente = forms.CharField(required=False, max_length=100, strip=True)
+    destino = forms.CharField(required=False, max_length=150, strip=True)
     q = forms.CharField(required=False, max_length=100, strip=True)
     fecha = forms.DateField(
         required=False,

@@ -43,17 +43,21 @@ def lista_compras(request):
         )
     )
 
+    estado = request.GET.get("estado", "").strip()
     if proveedor:
         compras = compras.filter(proveedor__nombre_empresa__icontains=proveedor)
     if fecha_compra:
         compras = compras.filter(fecha_compra__date=fecha_compra)
     if material:
         compras = compras.filter(detalles__material__nombre__icontains=material).distinct()
+    if estado:
+        compras = compras.filter(estado=estado)
 
     filter_fields = [
         {
             "type": "text",
             "name": "proveedor",
+            "label": "Proveedor",
             "placeholder": "Proveedor",
             "value": proveedor,
             "size": "3",
@@ -61,16 +65,31 @@ def lista_compras(request):
         {
             "type": "date",
             "name": "fecha_compra",
+            "label": "Fecha",
             "placeholder": "Fecha",
             "value": fecha_compra,
-            "size": "3",
+            "size": "2",
         },
         {
             "type": "text",
             "name": "material",
+            "label": "Material",
             "placeholder": "Material",
             "value": material,
             "size": "3",
+        },
+        {
+            "type": "select",
+            "name": "estado",
+            "label": "Estado",
+            "placeholder": "Estado (Todos)",
+            "value": estado,
+            "size": "2",
+            "options": [
+                {"value": "completada", "label": "Completada", "selected": estado == "completada"},
+                {"value": "pendiente", "label": "Pendiente", "selected": estado == "pendiente"},
+                {"value": "cancelada", "label": "Cancelada", "selected": estado == "cancelada"},
+            ],
         },
     ]
 

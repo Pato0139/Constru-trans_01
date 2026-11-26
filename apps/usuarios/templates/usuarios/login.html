@@ -5,7 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/usuarios/auth-modals.css' %}?v=1.0">
-<link rel="stylesheet" href="{% static 'css/usuarios/login.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/usuarios/login.css' %}?v=2.0">
 {% endblock %}
 
 {% block content %}
@@ -63,21 +63,53 @@
     </div>
 
     <div class="mb-4 d-flex justify-content-center flex-column align-items-center">
-        <!-- Mock reCAPTCHA UI -->
-        <div class="recaptcha-mock" role="checkbox" aria-checked="false" tabindex="0" onclick="toggleCaptcha()"
+        <!-- Verificación CAPTCHA real validada en servidor -->
+        <div class="recaptcha-mock" id="captcha-widget" role="checkbox" aria-checked="false" tabindex="0"
+            data-reto-url="{% url 'usuarios:captcha_reto' %}"
+            data-verificar-url="{% url 'usuarios:captcha_verificar' %}"
+            onclick="toggleCaptcha()"
             onkeydown="handleCaptchaKeydown(event)">
             <div class="recaptcha-left">
                 <div class="recaptcha-checkbox" id="captcha-box">
+                    <span class="recaptcha-spinner d-none" id="captcha-spinner" aria-hidden="true"></span>
                     <i class="bi bi-check d-none" id="captcha-icon"></i>
                 </div>
-                <span class="recaptcha-text">No soy un robot</span>
+                <span class="recaptcha-text" id="captcha-label">No soy un robot</span>
             </div>
             <div class="recaptcha-right">
-                <div class="recaptcha-local-mark" aria-hidden="true">↻</div>
-                <div class="recaptcha-privacy">Verificación<br>local</div>
+                <div class="recaptcha-local-mark" aria-hidden="true">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div class="recaptcha-privacy">Verificación<br>de seguridad</div>
             </div>
         </div>
+
+        <!-- Panel del reto visual -->
+        <div class="captcha-challenge-panel d-none" id="captcha-challenge-panel" aria-live="polite">
+            <div class="captcha-challenge-header">
+                <span><i class="bi bi-shield-lock me-1"></i> Escribe los 5 caracteres de la imagen</span>
+                <button type="button" class="captcha-refresh-btn" id="captcha-refresh-btn"
+                    onclick="cargarRetoCaptcha(event)" title="Generar nuevo código" aria-label="Generar nuevo código">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+            <div class="captcha-image-wrap">
+                <img id="captcha-challenge-img" src="" alt="Código de verificación" class="captcha-challenge-img">
+            </div>
+            <div class="captcha-input-row">
+                <input type="text" id="captcha-answer-input" class="captcha-answer-input"
+                    maxlength="6" autocomplete="off" spellcheck="false"
+                    placeholder="Ej: 7K4PM" aria-label="Código de verificación">
+                <button type="button" id="captcha-verify-btn" class="captcha-verify-btn"
+                    onclick="verificarRetoCaptcha(event)">
+                    Verificar
+                </button>
+            </div>
+            <div class="captcha-feedback d-none" id="captcha-feedback"></div>
+        </div>
+
         <input type="checkbox" name="captcha" id="id_captcha" class="d-none">
+        <input type="hidden" name="captcha_token" id="id_captcha_token" value="">
         {% if form.captcha.errors %}
         <div class="text-danger small mt-2 text-center w-100 fw-bold animate__animated animate__headShake">
             <i class="bi bi-exclamation-triangle-fill"></i> {{ form.captcha.errors|striptags }}
@@ -240,5 +272,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/usuarios/login.js' %}?v=1.0"></script>
+<script src="{% static 'js/usuarios/login.js' %}?v=2.0"></script>
 {% endblock %}

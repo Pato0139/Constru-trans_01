@@ -14,20 +14,12 @@ from apps.logistica.models import Entrega, Vehiculo
 from apps.pedidos.models import Pedido
 from apps.usuarios.models import Usuario
 from config.models import Historial
+from config.sync_local import sincronizar_cambios_remota_a_local
+from config.utils import conexion_remota_disponible as _conexion_remota_disponible
 
 
 def conexion_remota_disponible():
-    try:
-        from django.db.utils import ConnectionDoesNotExist
-
-        if "remota" not in connections:
-            return False
-        if not os.getenv("DB_ENGINE") or not os.getenv("DB_PASSWORD"):
-            return False
-        connections["remota"].ensure_connection()
-        return True
-    except (OperationalError, ConnectionDoesNotExist, Exception):
-        return False
+    return _conexion_remota_disponible()
 
 
 class Command(BaseCommand):
@@ -66,6 +58,14 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS("Conexión con la nube establecida."))
 
                     self.descargar_usuarios()
+                    res_bajada = sincronizar_cambios_remota_a_local()
+                    if res_bajada.get("registros_descargados", 0) > 0:
+                        self.stdout.write(
+                            self.style.SUCCESS(
+                                f"  [OK] Descargados {res_bajada['registros_descargados']} cambios nuevos "
+                                f"desde Neon ({res_bajada['tablas_actualizadas']} tablas)."
+                            )
+                        )
                     self.sincronizar_grupos(force=force)
                     self.sincronizar_usuarios(force=force)
                     self.sincronizar_modelo(Proveedor, force=force)
