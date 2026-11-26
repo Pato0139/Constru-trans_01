@@ -76,10 +76,75 @@ table.table {
 }
 
 .table td .badge,
+.table td .badge-tipo,
+.table td .badge-order-status {
+  max-width: 100%;
+  width: max-content;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+/* Reserva espacio para estados largos; al hacer zoom se permite scroll dentro
+   de la tabla en vez de dibujar la etiqueta encima de la fecha o acciones. */
+.table td:has(.badge.bg-warning-subtle, .badge.bg-warning, .badge.bg-info-subtle, .badge.bg-info,
+  .badge.bg-success-subtle, .badge.bg-success, .badge.bg-danger-subtle, .badge.bg-danger,
+  .badge.bg-primary-subtle, .badge.bg-primary, .badge-order-status) {
+  min-width: 8.5rem;
+  vertical-align: middle;
+}
+
 .table td .btn,
-.table td .btn-action,
+.table td .btn-action {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
 .table th {
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* La lista administrativa de pedidos necesita columnas legibles. Conserva
+   cada encabezado junto a su columna y deja que el contenedor haga scroll. */
+@media (min-width: 768px) {
+  .orders-list-scroll > .orders-list-table {
+    width: max(100%, 68rem) !important;
+    min-width: 68rem !important;
+    table-layout: fixed !important;
+  }
+
+  .table-responsive > table.table.orders-list-table:not(#tablaMateriales):not(.ct-table-auto) {
+    width: max(100%, 68rem) !important;
+    min-width: 68rem !important;
+    table-layout: fixed !important;
+  }
+
+  .orders-list-table > thead > tr > th {
+    min-width: 0 !important;
+    padding: 0.8rem 0.65rem !important;
+    line-height: 1.35;
+    white-space: normal !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+    vertical-align: middle;
+  }
+
+  .table-responsive > table.table.orders-list-table:not(#tablaMateriales):not(.ct-table-auto) > thead > tr > th {
+    min-width: 5.5rem !important;
+    width: auto !important;
+  }
+
+  .table-responsive > table.table.orders-list-table:not(#tablaMateriales):not(.ct-table-auto) > thead > tr > th:nth-child(1) { width: 8% !important; }
+  .table-responsive > table.table.orders-list-table:not(#tablaMateriales):not(.ct-table-auto) > thead > tr > th:nth-child(2) { width: 13% !important; }
+  .table-responsive > table.table.orders-list-table:not(#tablaMateriales):not(.ct-table-auto) > thead > tr > th:nth-child(3) { width: 12% !important; }
+  .table-responsive > table.table.orders-list-table:not(#tablaMateriales):not(.ct-table-auto) > thead > tr > th:nth-child(4) { width: 17% !important; }
+  .table-responsive > table.table.orders-list-table:not(#tablaMateriales):not(.ct-table-auto) > thead > tr > th:nth-child(5) { width: 14% !important; }
+  .table-responsive > table.table.orders-list-table:not(#tablaMateriales):not(.ct-table-auto) > thead > tr > th:nth-child(6) { width: 13% !important; }
+  .table-responsive > table.table.orders-list-table:not(#tablaMateriales):not(.ct-table-auto) > thead > tr > th:nth-child(7) { width: 13% !important; }
+  .table-responsive > table.table.orders-list-table:not(#tablaMateriales):not(.ct-table-auto) > thead > tr > th:nth-child(8) { width: 10% !important; }
 }
 
 /* The dashboard scrolls inside main-content.  Keep the fixed header clear of
@@ -120,6 +185,7 @@ table.table {
 .orders-list-scroll {
   height: calc(100vh - 23rem);
   min-height: 15rem;
+  container: orders-list-container / inline-size;
   overflow-y: scroll !important;
   overflow-x: auto !important;
   scrollbar-gutter: stable;
@@ -334,19 +400,26 @@ table.table {
   }
 
   .orders-list-row > td:nth-child(3) {
-    grid-area: destino;
-  }
-
-  .orders-list-row > td:nth-child(4) {
-    grid-area: estado;
-    text-align: right;
-  }
-
-  .orders-list-row > td:nth-child(5) {
     grid-area: fecha;
   }
 
+  .orders-list-row > td:nth-child(4) {
+    grid-area: destino;
+  }
+
+  .orders-list-row > td:nth-child(5) {
+    grid-area: estado;
+  }
+
   .orders-list-row > td:nth-child(6) {
+    grid-area: conductor;
+  }
+
+  .orders-list-row > td:nth-child(7) {
+    grid-area: vehiculo;
+  }
+
+  .orders-list-row > td:nth-child(8) {
     grid-area: acciones;
   }
 
@@ -397,6 +470,97 @@ table.table {
   .modal-footer {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+}
+
+/* Al estrecharse el espacio real del contenido (por el sidebar o el zoom),
+   la tabla de pedidos cambia a fichas para mostrar todos los datos completos. */
+@container orders-list-container (max-width: 1050px) {
+  .orders-list-scroll > .orders-list-table,
+  .table-responsive > table.table.orders-list-table:not(#tablaMateriales):not(.ct-table-auto) {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: auto !important;
+  }
+
+  .orders-list-table > thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .orders-list-table > tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .orders-list-table > tbody > .orders-list-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "id estado"
+      "cliente cliente"
+      "fecha fecha"
+      "destino destino"
+      "conductor vehiculo"
+      "acciones acciones";
+    gap: 0.15rem 0.9rem;
+    margin: 0 0 0.75rem;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    background: var(--card-bg);
+  }
+
+  .orders-list-row > td {
+    display: block;
+    min-width: 0;
+    padding: 0.5rem 0.25rem !important;
+    border: 0;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  .orders-list-row > td::before {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: var(--color-accent);
+    content: attr(data-label);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .orders-list-row > td:nth-child(1) { grid-area: id; }
+  .orders-list-row > td:nth-child(2) { grid-area: cliente; }
+  .orders-list-row > td:nth-child(3) { grid-area: fecha; }
+  .orders-list-row > td:nth-child(4) { grid-area: destino; }
+  .orders-list-row > td:nth-child(5) { grid-area: estado; }
+  .orders-list-row > td:nth-child(6) { grid-area: conductor; }
+  .orders-list-row > td:nth-child(7) { grid-area: vehiculo; }
+  .orders-list-row > td:nth-child(8) { grid-area: acciones; }
+
+  .orders-list-row > td:nth-child(5) .badge {
+    width: max-content;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .orders-list-row > td:nth-child(8) > .d-flex {
+    justify-content: flex-start !important;
+  }
+
+  .orders-list-table > tbody > .orders-list-empty,
+  .orders-list-empty > td {
+    display: block;
+    width: 100%;
   }
 }
 

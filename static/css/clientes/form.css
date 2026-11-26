@@ -102,7 +102,6 @@
     font-size: .82rem;
 }
 .material-options__empty { padding: .9rem; color: #94a3b8; font-size: .85rem; text-align: center; }
-.material-stock-live-status { display: block; margin: .4rem .2rem 0; color: #94a3b8; font-size: .72rem; }
 
 .pedido-alert-error {
     background: rgba(239, 68, 68, 0.1);

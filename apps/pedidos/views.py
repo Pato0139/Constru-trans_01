@@ -100,7 +100,7 @@ def agregar_materiales(request, id):
     if orden.estado != Pedido.PENDIENTE:
         messages.error(request, "Solo se pueden modificar pedidos pendientes.")
         return redirect("pedidos:ver_pedido_admin", id=orden.codigo_pedido)
-    materiales = MaterialConstruccion.objects.all()
+    materiales = MaterialConstruccion.objects.filter(activo=True, estado="activo")
     detalles = orden.detalles.all()
 
     if request.method == "POST":
@@ -110,6 +110,12 @@ def agregar_materiales(request, id):
             return redirect("pedidos:agregar_materiales", id=orden.codigo_pedido)
         cantidad = form.cleaned_data["cantidad"]
         material = get_object_or_404(MaterialConstruccion, pk=form.cleaned_data["material"])
+        if not material.activo or material.estado != "activo":
+            messages.error(
+                request,
+                f"El material {material.nombre} está desactivado y no puede agregarse al pedido.",
+            )
+            return redirect("pedidos:agregar_materiales", id=orden.codigo_pedido)
 
         with transaction.atomic():
             orden = Pedido.objects.select_for_update().get(pk=orden.pk)
@@ -1036,6 +1042,10 @@ def _crear_solicitud_pedido(usuario, items, descuento):
             material = MaterialConstruccion.objects.filter(pk=material_id).first()
             if material is None:
                 raise ValueError("Uno de los materiales seleccionados no existe.")
+            if not material.activo or material.estado != "activo":
+                raise ValueError(
+                    f"El material {material.nombre} está desactivado y no puede agregarse al pedido."
+                )
             stock_obj = select_for_update_if_supported(Stock.objects, "default").filter(
                 material=material
             ).first()
@@ -1071,7 +1081,7 @@ def crear_pedido(request):
     if request.user.rol == "cliente":
         return redirect("clientes:crear_pedido")
 
-    materiales = MaterialConstruccion.objects.all()
+    materiales = MaterialConstruccion.objects.filter(activo=True, estado="activo")
 
     if request.method == "POST":
         materiales_ids = request.POST.getlist("materiales[]")

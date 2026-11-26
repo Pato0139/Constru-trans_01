@@ -546,6 +546,75 @@
     border-radius: 999px !important;
 }
 
+/* Uniforme para todas las insignias de estado; permite que el texto se adapte
+   al ancho de la celda sin invadir la columna vecina. */
+.badge.bg-warning-subtle:not(.rounded-circle),
+.badge.bg-warning:not(.rounded-circle),
+.badge.bg-info-subtle:not(.rounded-circle),
+.badge.bg-info:not(.rounded-circle),
+.badge.bg-success-subtle:not(.rounded-circle),
+.badge.bg-success:not(.rounded-circle),
+.badge.bg-danger-subtle:not(.rounded-circle),
+.badge.bg-danger:not(.rounded-circle),
+.badge.bg-primary-subtle:not(.rounded-circle),
+.badge.bg-primary:not(.rounded-circle),
+.badge.bg-secondary-subtle:not(.rounded-circle),
+.badge.bg-secondary:not(.rounded-circle),
+.badge-tipo,
+.badge-order-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.22rem;
+    max-width: 100%;
+    padding: 0.2rem 0.55rem;
+    line-height: 1.25;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: middle;
+    font-size: 0.76rem;
+}
+
+.badge.bg-warning-subtle:not(.rounded-circle),
+.badge.bg-warning:not(.rounded-circle),
+.badge.bg-info-subtle:not(.rounded-circle),
+.badge.bg-info:not(.rounded-circle),
+.badge.bg-success-subtle:not(.rounded-circle),
+.badge.bg-success:not(.rounded-circle),
+.badge.bg-danger-subtle:not(.rounded-circle),
+.badge.bg-danger:not(.rounded-circle),
+.badge.bg-primary-subtle:not(.rounded-circle),
+.badge.bg-primary:not(.rounded-circle),
+.badge.bg-secondary-subtle:not(.rounded-circle),
+.badge.bg-secondary:not(.rounded-circle),
+.badge-tipo,
+.badge-order-status {
+    padding: 0.22rem 0.62rem !important;
+    max-width: 100% !important;
+    width: max-content;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+}
+
+.badge.bg-warning-subtle > i:first-child,
+.badge.bg-warning > i:first-child,
+.badge.bg-info-subtle > i:first-child,
+.badge.bg-info > i:first-child,
+.badge.bg-success-subtle > i:first-child,
+.badge.bg-success > i:first-child,
+.badge.bg-danger-subtle > i:first-child,
+.badge.bg-danger > i:first-child,
+.badge.bg-primary-subtle > i:first-child,
+.badge.bg-primary > i:first-child,
+.badge.bg-secondary-subtle > i:first-child,
+.badge.bg-secondary > i:first-child,
+.badge-tipo > i:first-child,
+.badge-order-status > i:first-child {
+    margin-inline-end: 0 !important;
+}
+
 /* Tamaño uniforme global para todas las burbujas/badges de estado dentro de tablas */
 table td > .badge:not(.rounded-circle):not(.auditoria-user-badge):not(.driver-order-pill):not(.marca-count-pill):not(.auditoria-modulo-pill):not(.purchase-meta-badge),
 table td > .badge-tipo,
@@ -570,7 +639,7 @@ table td[data-label="Estado logístico"] .badge:not(.rounded-circle),
 
 .badge.bg-warning-subtle,
 .badge.bg-warning-subtle.text-warning,
-table td > .badge.bg-warning:not(.rounded-circle),
+    .badge.bg-warning,
 .badge-tipo-pendiente,
 .badge-tipo-warning {
     background-color: rgba(245, 158, 11, 0.18) !important;
@@ -582,7 +651,7 @@ table td > .badge.bg-warning:not(.rounded-circle),
 
 .badge.bg-info-subtle,
 .badge.bg-info-subtle.text-info,
-table td > .badge.bg-info:not(.rounded-circle):not(.auditoria-user-badge),
+    .badge.bg-info,
 .badge-tipo-info {
     background-color: rgba(14, 165, 233, 0.18) !important;
     color: #38bdf8 !important;
@@ -593,7 +662,7 @@ table td > .badge.bg-info:not(.rounded-circle):not(.auditoria-user-badge),
 
 .badge.bg-success-subtle,
 .badge.bg-success-subtle.text-success,
-table td > .badge.bg-success:not(.rounded-circle),
+    .badge.bg-success,
 .badge-tipo-entregado,
 .badge-tipo-success {
     background-color: rgba(16, 185, 129, 0.18) !important;
@@ -605,7 +674,7 @@ table td > .badge.bg-success:not(.rounded-circle),
 
 .badge.bg-danger-subtle,
 .badge.bg-danger-subtle.text-danger,
-table td > .badge.bg-danger:not(.rounded-circle),
+    .badge.bg-danger,
 .badge-tipo-cancelado,
 .badge-tipo-danger {
     background-color: rgba(239, 68, 68, 0.18) !important;
@@ -617,7 +686,7 @@ table td > .badge.bg-danger:not(.rounded-circle),
 
 .badge.bg-primary-subtle,
 .badge.bg-primary-subtle.text-primary,
-table td > .badge.bg-primary:not(.rounded-circle),
+    .badge.bg-primary,
 .badge-tipo-en-ruta {
     background-color: rgba(59, 130, 246, 0.2) !important;
     color: #93c5fd !important;
@@ -628,6 +697,7 @@ table td > .badge.bg-primary:not(.rounded-circle),
 
 .badge.bg-secondary-subtle,
 .badge.bg-secondary-subtle.text-light,
+    .badge.bg-secondary,
 .badge.bg-secondary-subtle.text-secondary,
 table td > .badge.bg-secondary:not(.rounded-circle) {
     background-color: rgba(148, 163, 184, 0.18) !important;
@@ -637,10 +707,142 @@ table td > .badge.bg-secondary:not(.rounded-circle) {
     letter-spacing: 0.01em;
 }
 
+/* Unifica también los estados logísticos que usan clases propias en detalle de pedido. */
+.badge-order-status.pendiente {
+    background-color: rgba(245, 158, 11, 0.18) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.48) !important;
+}
+
+.badge-order-status.autorizado_despacho,
+.badge-order-status.vehiculo_asignado,
+.badge-order-status.en_ruta,
+.badge-order-status.entregado,
+.badge-order-status.cancelado {
+    font-weight: 700 !important;
+    letter-spacing: 0.01em;
+}
+
+.badge-order-status.autorizado_despacho {
+    background-color: rgba(16, 185, 129, 0.18) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(52, 211, 153, 0.48) !important;
+}
+
+.badge-order-status.vehiculo_asignado,
+.badge-order-status.en_ruta {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+    color: #93c5fd !important;
+    border: 1px solid rgba(96, 165, 250, 0.5) !important;
+}
+
+.badge-order-status.entregado {
+    background-color: rgba(16, 185, 129, 0.18) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(52, 211, 153, 0.48) !important;
+}
+
+.badge-order-status.cancelado {
+    background-color: rgba(239, 68, 68, 0.18) !important;
+    color: #fca5a5 !important;
+    border: 1px solid rgba(248, 113, 113, 0.48) !important;
+}
+
+/* Estado tipo pago: icono circular y color semántico incluso cuando la
+   plantilla heredada solo trae texto dentro de la insignia. */
+.badge.bg-warning-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-warning:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge-tipo-pendiente:not(:has(i)):not(:has(svg))::before,
+.badge-tipo-warning:not(:has(i)):not(:has(svg))::before {
+    content: "◷";
+}
+
+.badge.bg-info-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-info:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge-tipo-info:not(:has(i)):not(:has(svg))::before {
+    content: "i";
+}
+
+.badge.bg-success-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-success:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge-tipo-entregado:not(:has(i)):not(:has(svg))::before,
+.badge-tipo-success:not(:has(i)):not(:has(svg))::before {
+    content: "✓";
+}
+
+.badge.bg-danger-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-danger:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge-tipo-cancelado:not(:has(i)):not(:has(svg))::before,
+.badge-tipo-danger:not(:has(i)):not(:has(svg))::before {
+    content: "!";
+}
+
+.badge.bg-primary-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-primary:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge-tipo-en-ruta:not(:has(i)):not(:has(svg))::before {
+    content: "➜";
+}
+
+.badge.bg-secondary-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-secondary:not(.rounded-circle):not(:has(i)):not(:has(svg))::before {
+    content: "•";
+}
+
+.badge-order-status:not(:has(i)):not(:has(svg))::before {
+    content: "◷";
+}
+
+.badge-order-status.autorizado_despacho:not(:has(i)):not(:has(svg))::before,
+.badge-order-status.entregado:not(:has(i)):not(:has(svg))::before {
+    content: "✓";
+}
+
+.badge-order-status.vehiculo_asignado:not(:has(i)):not(:has(svg))::before,
+.badge-order-status.en_ruta:not(:has(i)):not(:has(svg))::before {
+    content: "➜";
+}
+
+.badge-order-status.cancelado:not(:has(i)):not(:has(svg))::before {
+    content: "!";
+}
+
+.badge.bg-warning-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-warning:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-info-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-info:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-success-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-success:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-danger-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-danger:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-primary-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-primary:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-secondary-subtle:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge.bg-secondary:not(.rounded-circle):not(:has(i)):not(:has(svg))::before,
+.badge-tipo-pendiente:not(:has(i)):not(:has(svg))::before,
+.badge-tipo-warning:not(:has(i)):not(:has(svg))::before,
+.badge-tipo-info:not(:has(i)):not(:has(svg))::before,
+.badge-tipo-entregado:not(:has(i)):not(:has(svg))::before,
+.badge-tipo-success:not(:has(i)):not(:has(svg))::before,
+.badge-tipo-cancelado:not(:has(i)):not(:has(svg))::before,
+.badge-tipo-danger:not(:has(i)):not(:has(svg))::before,
+.badge-tipo-en-ruta:not(:has(i)):not(:has(svg))::before {
+    display: inline-grid;
+    width: 0.9rem;
+    height: 0.9rem;
+    flex: 0 0 0.9rem;
+    place-items: center;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: color-mix(in srgb, currentColor 16%, transparent);
+    font-size: 0.66rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
 /* Contraste para Modo Claro */
 [data-theme="light"] .badge.bg-warning-subtle,
 [data-theme="light"] .badge.bg-warning-subtle.text-warning,
-[data-theme="light"] table td > .badge.bg-warning:not(.rounded-circle),
+    [data-theme="light"] .badge.bg-warning,
 [data-theme="light"] .badge-tipo-pendiente,
 [data-theme="light"] .badge-tipo-warning {
     background-color: #fef3c7 !important;
@@ -650,7 +852,7 @@ table td > .badge.bg-secondary:not(.rounded-circle) {
 
 [data-theme="light"] .badge.bg-info-subtle,
 [data-theme="light"] .badge.bg-info-subtle.text-info,
-[data-theme="light"] table td > .badge.bg-info:not(.rounded-circle):not(.auditoria-user-badge),
+    [data-theme="light"] .badge.bg-info,
 [data-theme="light"] .badge-tipo-info {
     background-color: #e0f2fe !important;
     color: #075985 !important;
@@ -659,7 +861,7 @@ table td > .badge.bg-secondary:not(.rounded-circle) {
 
 [data-theme="light"] .badge.bg-success-subtle,
 [data-theme="light"] .badge.bg-success-subtle.text-success,
-[data-theme="light"] table td > .badge.bg-success:not(.rounded-circle),
+    [data-theme="light"] .badge.bg-success,
 [data-theme="light"] .badge-tipo-entregado,
 [data-theme="light"] .badge-tipo-success {
     background-color: #d1fae5 !important;
@@ -669,7 +871,7 @@ table td > .badge.bg-secondary:not(.rounded-circle) {
 
 [data-theme="light"] .badge.bg-danger-subtle,
 [data-theme="light"] .badge.bg-danger-subtle.text-danger,
-[data-theme="light"] table td > .badge.bg-danger:not(.rounded-circle),
+    [data-theme="light"] .badge.bg-danger,
 [data-theme="light"] .badge-tipo-cancelado,
 [data-theme="light"] .badge-tipo-danger {
     background-color: #fee2e2 !important;
@@ -679,7 +881,7 @@ table td > .badge.bg-secondary:not(.rounded-circle) {
 
 [data-theme="light"] .badge.bg-primary-subtle,
 [data-theme="light"] .badge.bg-primary-subtle.text-primary,
-[data-theme="light"] table td > .badge.bg-primary:not(.rounded-circle),
+    [data-theme="light"] .badge.bg-primary,
 [data-theme="light"] .badge-tipo-en-ruta {
     background-color: #dbeafe !important;
     color: #1e40af !important;
@@ -688,6 +890,7 @@ table td > .badge.bg-secondary:not(.rounded-circle) {
 
 [data-theme="light"] .badge.bg-secondary-subtle,
 [data-theme="light"] .badge.bg-secondary-subtle.text-light,
+    [data-theme="light"] .badge.bg-secondary,
 [data-theme="light"] .badge.bg-secondary-subtle.text-secondary,
 [data-theme="light"] table td > .badge.bg-secondary:not(.rounded-circle) {
     background-color: #e2e8f0 !important;
@@ -695,9 +898,15 @@ table td > .badge.bg-secondary:not(.rounded-circle) {
     border: 1px solid #94a3b8 !important;
 }
 
-/* ==========================================================================
+    [data-theme="light"] .badge-order-status.cancelado {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+    border-color: #f87171 !important;
+}
+
+/* ========================================================================
    SWEETALERT2 — Z-INDEX UNIFORME SOBRE SIDEBAR/CHAT Y ADAPTACIÓN A MODO CLARO
-   ========================================================================== */
+   ======================================================================== */
 .swal2-container {
     z-index: 20000 !important;
 }

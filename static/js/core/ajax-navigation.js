@@ -316,7 +316,10 @@ window.AppAjaxNavigation = (() => {
         currentContent.replaceWith(nextContent);
 
         const destination = new URL(response.url || requestedUrl.href, window.location.href);
-        if (replaceHistory) {
+        if (lockHistory) {
+            lockedUrl = destination.href;
+            window.history.replaceState({ appHistoryLock: true }, '', destination);
+        } else if (replaceHistory) {
             window.history.replaceState({}, '', destination);
         } else {
             window.history.pushState({}, '', destination);
@@ -446,8 +449,32 @@ window.AppAjaxNavigation = (() => {
         navigate(destination.href, { method, body: formData });
     });
 
+    const lockHistory = Boolean(document.body?.dataset?.ajaxShell)
+        && document.body.dataset.ajaxShell !== 'landing';
+    let lockedUrl = window.location.href;
+    if (lockHistory && window.history && typeof window.history.pushState === 'function') {
+        window.history.replaceState({ appHistoryLock: true }, '', lockedUrl);
+        window.history.pushState({ appHistoryLock: true }, '', lockedUrl);
+    }
+
     window.addEventListener('popstate', () => {
+        if (lockHistory) {
+            window.history.pushState({ appHistoryLock: true }, '', lockedUrl);
+            return;
+        }
         navigate(window.location.href, { replaceHistory: true });
+    });
+
+    window.addEventListener('pageshow', (event) => {
+        if (!lockHistory) return;
+        const navEntries = window.performance && typeof window.performance.getEntriesByType === 'function'
+            ? window.performance.getEntriesByType('navigation')
+            : [];
+        const isBackForward = event.persisted
+            || (navEntries.length > 0 && navEntries[0].type === 'back_forward');
+        if (isBackForward) {
+            window.location.replace('/usuarios/panel/');
+        }
     });
 
     return { navigate };

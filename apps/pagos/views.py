@@ -58,6 +58,20 @@ def _cliente_es_dueno(usuario, pedido):
     return bool(pedido.cliente_id and pedido.cliente.usuario_id == usuario.pk)
 
 
+def _pago_ya_registrado_y_bloqueado(pago):
+    """Indica si el pago ya fue enviado (contraentrega o con comprobante) o aprobado y no admite cambios."""
+    if not pago:
+        return False
+    if pago.estado == Pago.APROBADO:
+        return True
+    if pago.estado == Pago.PENDIENTE:
+        if pago.metodo == Pago.METODO_CONTRAENTREGA:
+            return True
+        if pago.comprobante and pago.comprobante.name:
+            return True
+    return False
+
+
 def _monto_pedido(pedido):
     if pedido.detalles.exists():
         subtotal = sum(
@@ -192,9 +206,16 @@ def registrar_pago_pedido(request, pedido_id):
     pedido.total = monto_pedido
 
     pago = pedido.pago_actual
-    if pago and pago.estado == Pago.APROBADO:
-        messages.info(request, "Este pedido ya tiene un pago aprobado.")
-        return redirect("pagos:detalle_pago", pk=pago.pk)
+    if _pago_ya_registrado_y_bloqueado(pago):
+        messages.info(
+            request,
+            "Este pedido ya tiene un pago registrado y no se puede modificar el método de pago.",
+        )
+        return (
+            redirect("pagos:detalle_pago", pk=pago.pk)
+            if es_admin
+            else redirect("clientes:mis_pedidos")
+        )
 
     estado_previo = pago.estado if pago else None
     metodo_previo = pago.metodo if pago else ""
@@ -216,9 +237,16 @@ def registrar_pago_pedido(request, pedido_id):
                         Pago.objects.using(using).filter(pedido=pedido_bloqueado), using
                     ).first()
 
-                    if pago_existente and pago_existente.estado == Pago.APROBADO:
-                        messages.info(request, "Este pedido ya tiene un pago aprobado.")
-                        return redirect("pagos:detalle_pago", pk=pago_existente.pk)
+                    if _pago_ya_registrado_y_bloqueado(pago_existente):
+                        messages.info(
+                            request,
+                            "Este pedido ya tiene un pago registrado y no se puede modificar el método de pago.",
+                        )
+                        return (
+                            redirect("pagos:detalle_pago", pk=pago_existente.pk)
+                            if es_admin
+                            else redirect("clientes:mis_pedidos")
+                        )
 
                     era_rechazado = bool(
                         pago_existente
@@ -346,9 +374,14 @@ def registrar_pago_pedido(request, pedido_id):
                         request,
                         "Pago registrado y aprobado automáticamente. El pedido queda autorizado para despacho.",
                     )
-                else:
-                    messages.success(request, "Pago registrado. Queda pendiente de revisión.")
-                return redirect("pagos:detalle_pago", pk=instancia_pago.pk)
+                    return redirect("pagos:detalle_pago", pk=instancia_pago.pk)
+
+                messages.success(
+                    request,
+                    f"Pago del pedido #{pedido.codigo_pedido} registrado correctamente. Queda pendiente de revisión.",
+                )
+                request.session["pago_completado_reciente"] = True
+                return redirect("clientes:mis_pedidos")
             except ValidationError as exc:
                 if pago is None and form.cleaned_data.get("metodo") in Pago.METODOS_CON_COMPROBANTE:
                     eliminados = eliminar_pedidos_checkout_incompletos(
@@ -383,11 +416,15 @@ def registrar_pago_pedido(request, pedido_id):
             instance=pago,
         )
 
-    return render(
+    response = render(
         request,
         "pagos/registrar.html",
         {"form": form, "pedido": pedido, "pago": pago},
     )
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0, private"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    return response
 
 
 def _puede_ver_pago(usuario, pago):
