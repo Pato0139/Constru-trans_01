@@ -23,7 +23,7 @@
                     </div>
                 </div>
 
-                <form method="post" enctype="multipart/form-data" id="form-registro-pago" data-es-admin="{% if request.user.rol == 'admin' or request.user.usuario.rol == 'admin' %}true{% else %}false{% endif %}">
+                <form method="post" enctype="multipart/form-data" id="form-registro-pago" autocomplete="off" data-es-admin="{% if request.user.rol == 'admin' or request.user.usuario.rol == 'admin' %}true{% else %}false{% endif %}">
                     {% csrf_token %}
                     {{ form.non_field_errors }}
 
@@ -671,11 +671,27 @@
                 if (comprobanteInput) {
                     comprobanteInput.focus();
                 }
+                return;
+            }
+            if (submitBtn) {
+                submitBtn.disabled = true;
             }
         });
 
         actualizarComprobantePorMetodo();
     }
+
+    // Evita que el navegador restaure esta pantalla desde caché/historial (botón Atrás)
+    // después de haber enviado el pago.
+    window.addEventListener('pageshow', function(event) {
+        var navEntries = window.performance && typeof window.performance.getEntriesByType === 'function'
+            ? window.performance.getEntriesByType('navigation')
+            : [];
+        var isBackForward = event.persisted || (navEntries.length > 0 && navEntries[0].type === 'back_forward');
+        if (isBackForward) {
+            window.location.reload();
+        }
+    });
 
     if (window.AppPageLifecycle && typeof window.AppPageLifecycle.onPageLoad === 'function') {
         window.AppPageLifecycle.onPageLoad(initPaymentOptions);

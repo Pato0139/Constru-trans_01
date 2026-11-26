@@ -141,4 +141,19 @@
     }
 })();
 </script>
+{% if pago_completado %}
+<script>
+(function () {
+    if (!window.history || typeof window.history.pushState !== 'function') return;
+    window.history.replaceState({ checkoutCompleted: true }, '', window.location.href);
+    window.history.pushState({ checkoutCompleted: true }, '', window.location.href);
+    window.addEventListener('popstate', function (event) {
+        if (event.state && event.state.checkoutCompleted) {
+            event.stopImmediatePropagation();
+            window.history.pushState({ checkoutCompleted: true }, '', window.location.href);
+        }
+    }, true);
+})();
+</script>
+{% endif %}
 {% endblock %}

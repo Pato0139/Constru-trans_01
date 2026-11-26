@@ -355,12 +355,6 @@
                         }
                     }
                 });
-                const card = form.closest('.filter-bar-card');
-                if (card && card.previousElementSibling && card.previousElementSibling.classList.contains('ct-quick-filters')) {
-                    card.previousElementSibling.querySelectorAll('.ct-quick-chip').forEach(function (chip) {
-                        chip.classList.toggle('is-active', chip.dataset.value === '');
-                    });
-                }
                 _updateClearBtnState(form, clearLink);
                 applyAjaxFilter();
             });
@@ -383,47 +377,14 @@
 
     /* =====================================================================
        Mejora visual automática para todas las barras de filtro (.filter-bar-card)
-       - Agrega micro-etiquetas e íconos en cada campo
-       - Genera chips de "Acceso rápido" con punto semántico para filtros de estado
+       - Agrega íconos dentro de cada campo sin duplicar sus placeholders
+       - Decora el filtro desplegable de estado con un indicador semántico
        - Mejora el botón "Limpiar filtros" y soporta limpieza instantánea por AJAX
        ===================================================================== */
     function _inferFieldMeta(el) {
         const name = (el.getAttribute('name') || el.id || '').toLowerCase();
         const tag = el.tagName;
         const type = (el.getAttribute('type') || '').toLowerCase();
-        const customLabel = (el.dataset.filterLabel || '').trim();
-        const placeholder = (el.getAttribute('placeholder') || '').trim();
-        const firstOpt = tag === 'SELECT' && el.options.length ? (el.options[0].textContent || '').trim() : '';
-
-        let label = customLabel;
-        if (!label) {
-            if (type === 'date') {
-                if (name.includes('inicio') || name.includes('desde')) label = 'Desde';
-                else if (name.includes('fin') || name.includes('hasta')) label = 'Hasta';
-                else label = 'Fecha';
-            } else if (tag === 'SELECT') {
-                if (name.includes('estado')) label = 'Estado';
-                else if (name.includes('tipo')) label = 'Tipo';
-                else if (name.includes('rol')) label = 'Rol';
-                else if (name.includes('categoria')) label = 'Categoría';
-                else if (name.includes('marca')) label = 'Marca';
-                else if (name.includes('proveedor')) label = 'Proveedor';
-                else if (name.includes('modulo')) label = 'Módulo';
-                else if (name.includes('accion')) label = 'Acción';
-                else if (name.includes('metodo')) label = 'Método';
-                else if (firstOpt) label = firstOpt.replace(/\(.*?\)/g, '').replace(/^(todos|todas)\s*(los|las)?\s*/i, '').trim() || 'Filtro';
-                else label = 'Filtro';
-            } else {
-                if (name === 'q' || name.includes('buscar') || name.includes('search')) label = 'Buscar';
-                else if (name.includes('placa')) label = 'Placa';
-                else if (name.includes('cliente')) label = 'Cliente';
-                else if (name.includes('conductor')) label = 'Conductor';
-                else if (name.includes('direccion') || name.includes('destino')) label = 'Destino';
-                else if (name.includes('documento') || name.includes('nit')) label = 'Documento';
-                else if (placeholder) label = placeholder.split(',')[0].replace(/\.\.\.$/, '').trim().slice(0, 18);
-                else label = 'Buscar';
-            }
-        }
 
         let icon = 'bi-search';
         if (type === 'date') icon = 'bi-calendar3';
@@ -436,12 +397,15 @@
         else if (name.includes('direccion') || name.includes('destino')) icon = 'bi-geo-alt';
         else if (tag === 'SELECT') icon = 'bi-funnel';
 
-        return { label: label, icon: icon };
+        return { icon: icon };
     }
 
     function _inferDotClass(value, text) {
         const s = ((value || '') + ' ' + (text || '')).toLowerCase();
         if (!value) return '';
+        if (/(inactivo|inactiva|cancelado|rechazado|suspendido|bloqueado|salida|bajo|agotado|incidente|fallid|vencid|indisponible|no disponible)/.test(s)) {
+            return 'ct-dot--red';
+        }
         if (/(disponible|activo|activa|entregado|completado|aprobado|pagado|entrada|resuelt|cerrad|autorizado|verificado)/.test(s)) {
             return 'ct-dot--green';
         }
@@ -450,9 +414,6 @@
         }
         if (/(mantenimiento|pendiente|revision|revisión|correccion|corrección|abiert|espera|cliente|parcial)/.test(s)) {
             return 'ct-dot--amber';
-        }
-        if (/(inactivo|inactiva|cancelado|rechazado|suspendido|bloqueado|salida|bajo|agotado|incidente|fallid|vencid)/.test(s)) {
-            return 'ct-dot--red';
         }
         return 'ct-dot--slate';
     }
@@ -605,7 +566,7 @@
             }
         });
 
-        // 1. Envolver cada control con micro-etiqueta + ícono (incluyendo los que venían en .input-group)
+        // 1. Envolver cada control con un ícono discreto, sin etiquetas que repitan el placeholder.
         controls.forEach(function (el) {
             if (el.closest('.ct-field-box')) return;
             const ig = el.closest('.input-group');
@@ -619,18 +580,38 @@
             const wrap = document.createElement('div');
             wrap.className = 'ct-field-box';
 
-            const lbl = document.createElement('span');
-            lbl.className = 'ct-field-label';
-            lbl.textContent = meta.label;
-
             const ico = document.createElement('i');
             ico.className = 'bi ' + meta.icon + ' ct-field-icon';
             ico.setAttribute('aria-hidden', 'true');
 
             el.parentNode.insertBefore(wrap, el);
-            wrap.appendChild(lbl);
             wrap.appendChild(ico);
             wrap.appendChild(el);
+
+            if (el.tagName === 'SELECT' && (el.name || el.id || '').toLowerCase().includes('estado')) {
+                const statusDot = document.createElement('span');
+                statusDot.className = 'ct-status-dot';
+                statusDot.setAttribute('aria-hidden', 'true');
+                wrap.appendChild(statusDot);
+                el.classList.add('ct-status-select');
+
+                const syncStatusStyle = function () {
+                    Array.from(el.options).forEach(function (option) {
+                        const optionTone = _inferDotClass(option.value, option.textContent).replace('ct-dot--', '');
+                        if (optionTone) option.dataset.ctStatusTone = optionTone;
+                    });
+
+                    const selected = el.options[el.selectedIndex];
+                    const toneClass = selected ? _inferDotClass(selected.value, selected.textContent) : '';
+                    const tone = toneClass.replace('ct-dot--', '');
+                    statusDot.className = 'ct-status-dot' + (tone ? ' ct-status-dot--' + tone : '');
+                    el.classList.remove('ct-status-select--green', 'ct-status-select--blue', 'ct-status-select--amber', 'ct-status-select--red', 'ct-status-select--slate');
+                    if (tone) el.classList.add('ct-status-select--' + tone);
+                };
+
+                el.addEventListener('change', syncStatusStyle);
+                syncStatusStyle();
+            }
             _attachInputSanitizer(el);
         });
 
@@ -651,92 +632,15 @@
             });
         }
 
-        // 3. Crear barra "Acceso rápido" a partir del select principal (estado, tipo_movimiento, rol o el primer select disponible)
-        const quickSelect =
-            form.querySelector('select[name="estado"]') ||
-            form.querySelector('select[name*="estado"]') ||
-            form.querySelector('select[id*="estado"]') ||
-            form.querySelector('select[name="tipo_movimiento"]') ||
-            form.querySelector('select[name="rol"]') ||
-            form.querySelector('select[id*="rol"]') ||
-            form.querySelector('select');
-
-        const disableQuickFilters = form.dataset.disableQuickFilters === 'true';
-        if (disableQuickFilters && card.previousElementSibling && card.previousElementSibling.classList.contains('ct-quick-filters')) {
+        // 3. El filtro desplegable es la única fuente de selección de estado.
+        if (card.previousElementSibling && card.previousElementSibling.classList.contains('ct-quick-filters')) {
             card.previousElementSibling.remove();
-        }
-
-        if (!disableQuickFilters && quickSelect && quickSelect.options.length >= 2) {
-            const parentContainer = card.parentNode;
-            if (parentContainer && !(card.previousElementSibling && card.previousElementSibling.classList.contains('ct-quick-filters'))) {
-                const strip = document.createElement('div');
-                strip.className = 'ct-quick-filters';
-                strip.setAttribute('role', 'group');
-                strip.setAttribute('aria-label', 'Acceso rápido de filtros');
-
-                const stripLabel = document.createElement('span');
-                stripLabel.className = 'ct-quick-filters__label';
-                stripLabel.textContent = 'Acceso rápido:';
-                strip.appendChild(stripLabel);
-
-                const chips = [];
-                const allOpts = Array.from(quickSelect.options);
-                // Mostrar "Todos" + hasta 6 opciones rápidas para mantener la barra limpia
-                const visibleOpts = allOpts.slice(0, 7);
-                if (quickSelect.value && !visibleOpts.some(function (o) { return o.value === quickSelect.value; })) {
-                    const selectedOpt = allOpts.find(function (o) { return o.value === quickSelect.value; });
-                    if (selectedOpt) visibleOpts.push(selectedOpt);
-                }
-
-                visibleOpts.forEach(function (opt) {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'ct-quick-chip';
-                    btn.dataset.value = opt.value;
-
-                    const dotClass = _inferDotClass(opt.value, opt.textContent);
-                    const cleanText = !opt.value ? 'Todos' : opt.textContent.trim();
-
-                    if (dotClass) {
-                        const dot = document.createElement('span');
-                        dot.className = 'ct-dot ' + dotClass;
-                        dot.setAttribute('aria-hidden', 'true');
-                        btn.appendChild(dot);
-                    }
-                    const span = document.createElement('span');
-                    span.textContent = cleanText;
-                    btn.appendChild(span);
-
-                    if (quickSelect.value === opt.value) {
-                        btn.classList.add('is-active');
-                    }
-
-                    btn.addEventListener('click', function () {
-                        if (quickSelect.value === opt.value) return;
-                        quickSelect.value = opt.value;
-                        chips.forEach(function (c) {
-                            c.classList.toggle('is-active', c.dataset.value === quickSelect.value);
-                        });
-                        quickSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                    });
-
-                    chips.push(btn);
-                    strip.appendChild(btn);
-                });
-
-                quickSelect.addEventListener('change', function () {
-                    chips.forEach(function (c) {
-                        c.classList.toggle('is-active', c.dataset.value === quickSelect.value);
-                    });
-                });
-
-                parentContainer.insertBefore(strip, card);
-            }
         }
     }
 
     function initAll(scope) {
         const root = scope || document;
+        root.querySelectorAll('.ct-quick-filters').forEach(function (strip) { strip.remove(); });
         const forms = root.querySelectorAll(
             'form[data-ajax-filter-form="true"], form[data-tbody-id], form#filterForm, form.standard-filter-form, form.ajax-filter-form, .filter-bar-card form, .filter-card-container form'
         );

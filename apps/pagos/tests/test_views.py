@@ -317,3 +317,46 @@ class PagoViewsTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Pago.objects.filter(pedido=self.pedido).exists())
+
+    def test_pago_registrado_redirige_a_mis_pedidos_y_bloquea_cambio_metodo(self):
+        self.client.force_login(self.cliente)
+        url_pago = reverse("pagos:registrar_pago_pedido", args=[self.pedido.codigo_pedido])
+
+        # Antes de pagar, la pantalla de pago no se debe cachear en el navegador
+        res_get_inicial = self.client.get(url_pago)
+        self.assertEqual(res_get_inicial.status_code, 200)
+        self.assertIn("no-store", res_get_inicial.get("Cache-Control", ""))
+
+        # Cliente envía el pago contraentrega -> redirige a Mis Pedidos
+        res_post = self.client.post(url_pago, {"metodo": Pago.METODO_CONTRAENTREGA})
+        self.assertRedirects(
+            res_post,
+            reverse("clientes:mis_pedidos"),
+            fetch_redirect_response=False,
+        )
+
+        # Si intenta volver a abrir la pantalla de pago (botón atrás o URL directa), redirige a Mis Pedidos
+        res_get_despues = self.client.get(url_pago)
+        self.assertRedirects(
+            res_get_despues,
+            reverse("clientes:mis_pedidos"),
+            fetch_redirect_response=False,
+        )
+
+        # Si intenta enviar POST para cambiar el método de pago, queda bloqueado y conserva el original
+        comprobante = SimpleUploadedFile(
+            "nuevo.png",
+            b"\x89PNG\r\n\x1a\n" + b"\x00" * 32,
+            content_type="image/png",
+        )
+        res_cambio = self.client.post(
+            url_pago,
+            {"metodo": Pago.METODO_BANCOLOMBIA, "comprobante": comprobante},
+        )
+        self.assertRedirects(
+            res_cambio,
+            reverse("clientes:mis_pedidos"),
+            fetch_redirect_response=False,
+        )
+        pago = Pago.objects.get(pedido=self.pedido)
+        self.assertEqual(pago.metodo, Pago.METODO_CONTRAENTREGA)
