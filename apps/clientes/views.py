@@ -62,6 +62,13 @@ def pedidos_visibles_para_cliente(usuario_local, usuario_remoto):
     )
 
 
+def _sin_cache(response):
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0, private"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    return response
+
+
 def _contexto_formulario_pedido(**extra):
     return {
         "ciudades_despacho": CIUDADES_DESPACHO,
@@ -81,7 +88,11 @@ def _obtener_alias_db():
 def api_stock_pedido(request):
     """Devuelve existencias sin formato local para refrescar el formulario de pedidos."""
     db_alias = _obtener_alias_db()
-    material_ids = Material.objects.using(db_alias).values_list("pk", flat=True)
+    material_ids = (
+        Material.objects.using(db_alias)
+        .filter(activo=True, estado="activo")
+        .values_list("pk", flat=True)
+    )
     stocks = {
         str(stock["material_id"]): {
             "cantidad": stock["cantidad_actual"],
@@ -185,10 +196,36 @@ def _obtener_material_local(material_id):
                 "unidad_medida": unidad_local,
                 "descripcion": remote_material.descripcion,
                 "precio_referencia": remote_material.precio_referencia,
+                "estado": remote_material.estado,
+                "activo": remote_material.activo,
                 "sincronizado": True,
             },
         )
         return material_local
+
+
+def _materiales_activos_queryset(using=None):
+    db_alias = using or _obtener_alias_db()
+    return (
+        Material.objects.using(db_alias)
+        .filter(activo=True, estado="activo")
+        .select_related("stock_info", "unidad_medida")
+    )
+
+
+def _obtener_material_activo(material_id, using=None):
+    db_alias = using or _obtener_alias_db()
+    material = Material.objects.using(db_alias).filter(pk=material_id).first()
+    if material is None:
+        try:
+            material = _obtener_material_local(material_id)
+        except Material.DoesNotExist as err:
+            raise ValueError("Uno de los materiales seleccionados no existe.") from err
+    if not material.activo or material.estado != "activo":
+        raise ValueError(
+            f"El material {material.nombre} está desactivado y no puede agregarse al pedido."
+        )
+    return material
 
 
 def _es_dueno_pedido(pedido, usuario_remoto, usuario_local):
@@ -407,6 +444,7 @@ def mis_pedidos(request):
     ]
 
     has_filters = any([destino, estado, q])
+    pago_completado = request.session.pop("pago_completado_reciente", False)
     context = {
         "pedidos": pedidos,
         "filter_fields": filter_fields,
@@ -414,6 +452,7 @@ def mis_pedidos(request):
         "q": q,
         "destino": destino,
         "estado": estado,
+        "pago_completado": pago_completado,
     }
 
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
@@ -516,7 +555,8 @@ def crear_pedido(request):
     usuario_local = _obtener_usuario_local(usuario_remoto)
 
     _cliente_local = _obtener_cliente_local(usuario_local)
-    materiales = Material.objects.select_related("stock_info", "unidad_medida").all()
+    db_alias = _obtener_alias_db()
+    materiales = _materiales_activos_queryset(using=db_alias)
 
     if request.method == "POST":
         materiales_ids = request.POST.getlist("material_id[]")
@@ -614,7 +654,7 @@ def crear_pedido(request):
                 )
 
                 for m_id, cantidad in items:
-                    material = _obtener_material_local(m_id)
+                    material = _obtener_material_activo(m_id, using=db_alias)
                     try:
                         stock_obj = select_for_update_if_supported(
                             Stock.objects.using(db_alias),
@@ -693,13 +733,15 @@ def crear_pedido(request):
                 ),
             )
 
-    return render(
-        request,
-        "clientes/form.html",
-        _contexto_formulario_pedido(
-            materiales=materiales,
-            action="crear",
-        ),
+    return _sin_cache(
+        render(
+            request,
+            "clientes/form.html",
+            _contexto_formulario_pedido(
+                materiales=materiales,
+                action="crear",
+            ),
+        )
     )
 
 
@@ -756,7 +798,7 @@ def editar_pedido(request, id):
         pedido.precio = total_esperado
         pedido.save(using=db_alias)
 
-    materiales = Material.objects.select_related("stock_info", "unidad_medida").all()
+    materiales = _materiales_activos_queryset(using=db_alias)
 
     if request.method == "POST":
         materiales_ids = request.POST.getlist("material_id[]")
@@ -872,7 +914,7 @@ def editar_pedido(request, id):
 
                 total_general = 0
                 for m_id, cantidad in items:
-                    material = _obtener_material_local(m_id)
+                    material = _obtener_material_activo(m_id, using=db_alias)
                     try:
                         stock_obj = select_for_update_if_supported(
                             Stock.objects.using(db_alias),

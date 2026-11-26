@@ -211,3 +211,39 @@ class TarifaEnvioYMinimoPedidoTests(TestCase):
         self.assertEqual(pedido.tarifa_envio, Decimal("15000.00"))
         self.assertEqual(pedido.total, Decimal("67000.00"))
 
+    def test_material_desactivado_no_aparece_en_formulario_ni_api_stock(self):
+        self.material_36k.estado = "inactivo"
+        self.material_36k.save()
+
+        self.client.force_login(self.cliente_user)
+        resp = self.client.get(reverse("clientes:crear_pedido"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, self.material_26k.nombre)
+        self.assertNotContains(resp, self.material_36k.nombre)
+
+        resp_stock = self.client.get(reverse("clientes:api_stock_pedido"))
+        self.assertEqual(resp_stock.status_code, 200)
+        stocks = resp_stock.json()["stocks"]
+        self.assertIn(str(self.material_26k.pk), stocks)
+        self.assertNotIn(str(self.material_36k.pk), stocks)
+
+    def test_material_desactivado_no_permite_crear_pedido_ni_bajar_stock(self):
+        self.material_36k.estado = "inactivo"
+        self.material_36k.save()
+
+        self.client.force_login(self.cliente_user)
+        resp = self.client.post(
+            reverse("clientes:crear_pedido"),
+            data={
+                "material_id[]": [str(self.material_36k.cod_material)],
+                "cantidad[]": ["2"],
+                "ciudad": "Duitama",
+                "direccion_detalle": "Calle 10 # 15-20",
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "desactivado")
+        self.assertEqual(Pedido.objects.count(), 0)
+        self.stock_36k.refresh_from_db()
+        self.assertEqual(self.stock_36k.cantidad_actual, 100)
+

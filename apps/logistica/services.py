@@ -417,7 +417,7 @@ def validar_integridad_pedido_y_pago_para_despacho(
     o autorizar un pedido para despacho:
     - Que el pedido exista y no esté cancelado.
     - Que tenga productos asociados con cantidades > 0 y precios/subtotales coherentes.
-    - Que el total del pedido sea > 0 y coincida con sus líneas.
+    - Que el total del pedido sea > 0 y coincida con productos, envío, impuestos y descuentos.
     - Que el pago exista, su método sea válido, adjunte comprobante cuando aplica,
       y su importe coincida con el total del pedido.
     """
@@ -459,7 +459,8 @@ def validar_integridad_pedido_y_pago_para_despacho(
     impuesto = pedido.impuesto or Decimal("0.00")
     descuento = pedido.descuento or Decimal("0.00")
     if detalles:
-        total_esperado = suma_subtotales + impuesto - descuento
+        tarifa_envio = pedido.tarifa_envio or Decimal("0.00")
+        total_esperado = suma_subtotales + tarifa_envio + impuesto - descuento
         if (pedido.total or Decimal("0.00")) == Decimal("0.00") and total_esperado > 0:
             pedido.subtotal = suma_subtotales
             pedido.total = total_esperado
@@ -467,7 +468,8 @@ def validar_integridad_pedido_y_pago_para_despacho(
             pedido.save(using=db_alias, update_fields=["subtotal", "total", "precio"])
         elif pedido.total != total_esperado:
             raise ValidationError(
-                f"El total del pedido ({pedido.total}) no es coherente con la suma de sus productos ({total_esperado})."
+                f"El total del pedido ({pedido.total}) no coincide con productos, envío, impuestos y descuentos "
+                f"({total_esperado})."
             )
     else:
         total_esperado = pedido.total or pedido.precio or Decimal("0.00")

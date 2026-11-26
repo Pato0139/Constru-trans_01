@@ -302,7 +302,6 @@ function renderizarOpcionesMateriales(filtro = '') {
 async function actualizarExistenciasEnVivo() {
     const form = document.getElementById('form-pedido');
     const select = document.getElementById('select-material');
-    const estadoActualizacion = document.getElementById('stock-live-status');
     const url = form?.dataset.stockUrl;
     if (!url || !select || stockRefreshInFlight || document.hidden) return;
 
@@ -351,17 +350,8 @@ async function actualizarExistenciasEnVivo() {
                 }
             }
         }
-
-        if (estadoActualizacion) {
-            const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            estadoActualizacion.textContent = 'Existencias actualizadas a las ' + hora + '.';
-            estadoActualizacion.classList.remove('text-warning');
-        }
     } catch (error) {
-        if (estadoActualizacion) {
-            estadoActualizacion.textContent = 'No se pudo actualizar; el servidor validará el stock al enviar.';
-            estadoActualizacion.classList.add('text-warning');
-        }
+        // El servidor validará el stock al enviar el pedido.
     } finally {
         stockRefreshInFlight = false;
     }
@@ -599,4 +589,15 @@ window.AppPageLifecycle.onPageLoad(() => {
     });
 
     actualizarTotalDisplay();
+});
+
+// Evita que el navegador restaure un formulario de pedido viejo desde BFCache al usar el botón Atrás.
+window.addEventListener('pageshow', (event) => {
+    const navEntries = window.performance && typeof window.performance.getEntriesByType === 'function'
+        ? window.performance.getEntriesByType('navigation')
+        : [];
+    const isBackForward = event.persisted || (navEntries.length > 0 && navEntries[0].type === 'back_forward');
+    if (isBackForward && document.getElementById('form-pedido')) {
+        window.location.reload();
+    }
 });

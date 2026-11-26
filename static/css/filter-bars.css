@@ -76,73 +76,17 @@ main > .container-fluid > .row p.text-muted {
   }
 }
 
-/* =====================================================================
-   2. Barra de Acceso Rápido (chips de estado con punto de color)
-   ===================================================================== */
+/* No duplicar filtros rápidos: el desplegable es el único control de estado. */
 .ct-quick-filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.85rem;
-  padding: 0 0.25rem;
+  display: none !important;
 }
 
-.ct-quick-filters__label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--color-muted, #94a3b8);
-  margin-right: 0.25rem;
-  white-space: nowrap;
+.ct-field-label {
+  display: none !important;
 }
-
-.ct-quick-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.38rem 0.85rem;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  line-height: 1.2;
-  color: #cbd5e1;
-  background: rgba(30, 41, 59, 0.72);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  cursor: pointer;
-  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.15s ease;
-  white-space: nowrap;
-}
-
-.ct-quick-chip:hover {
-  background: rgba(51, 65, 85, 0.88);
-  border-color: rgba(148, 163, 184, 0.42);
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.ct-quick-chip.is-active {
-  background: rgba(59, 130, 246, 0.18);
-  border-color: rgba(96, 165, 250, 0.65);
-  color: #ffffff;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.25);
-}
-
-.ct-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: inline-block;
-}
-
-.ct-dot--green { background-color: #22c55e; box-shadow: 0 0 6px rgba(34, 197, 94, 0.55); }
-.ct-dot--blue  { background-color: #3b82f6; box-shadow: 0 0 6px rgba(59, 130, 246, 0.55); }
-.ct-dot--amber { background-color: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.55); }
-.ct-dot--red   { background-color: #ef4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.55); }
-.ct-dot--slate { background-color: #94a3b8; }
 
 /* =====================================================================
-   3. Tarjeta de filtros moderna (campos con micro-etiqueta + ícono)
+   3. Tarjeta de filtros moderna (íconos internos y controles compactos)
    ===================================================================== */
 .filter-bar-card.ct-filter-enhanced {
   background: rgba(17, 24, 39, 0.72) !important;
@@ -236,28 +180,6 @@ main > .container-fluid > .row p.text-muted {
   align-items: center;
 }
 
-.ct-field-label {
-  position: absolute;
-  top: -7px;
-  left: 12px;
-  z-index: 3;
-  padding: 0 5px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.65px;
-  text-transform: uppercase;
-  line-height: 1.1;
-  color: #94a3b8;
-  background: #131b2b;
-  border-radius: 3px;
-  pointer-events: none;
-  transition: color 0.18s ease;
-}
-
-.ct-field-box:focus-within .ct-field-label {
-  color: #60a5fa;
-}
-
 .ct-field-icon {
   position: absolute;
   left: 13px;
@@ -289,6 +211,40 @@ main > .container-fluid > .row p.text-muted {
 .ct-field-box .form-select {
   padding-right: 2.2rem !important;
 }
+
+/* El estado seleccionado conserva el código de color de los antiguos chips,
+   ahora aplicado directamente al campo desplegable. */
+.ct-status-select {
+  padding-right: 3.25rem !important;
+}
+
+.ct-status-dot {
+  position: absolute;
+  top: 50%;
+  right: 2.15rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.ct-status-dot--green { background: #22c55e; box-shadow: 0 0 0.45rem rgba(34, 197, 94, 0.6); }
+.ct-status-dot--blue { background: #3b82f6; box-shadow: 0 0 0.45rem rgba(59, 130, 246, 0.6); }
+.ct-status-dot--amber { background: #f59e0b; box-shadow: 0 0 0.45rem rgba(245, 158, 11, 0.6); }
+.ct-status-dot--red { background: #ef4444; box-shadow: 0 0 0.45rem rgba(239, 68, 68, 0.6); }
+.ct-status-dot--slate { background: #94a3b8; }
+
+.main-content .ct-field-box .ct-status-select--green { border-color: rgba(34, 197, 94, 0.6) !important; }
+.main-content .ct-field-box .ct-status-select--blue { border-color: rgba(59, 130, 246, 0.65) !important; }
+.main-content .ct-field-box .ct-status-select--amber { border-color: rgba(245, 158, 11, 0.7) !important; }
+.main-content .ct-field-box .ct-status-select--red { border-color: rgba(239, 68, 68, 0.65) !important; }
+
+.ct-status-select option[data-ct-status-tone="green"] { color: #34d399 !important; background-color: #12352c !important; font-weight: 700; }
+.ct-status-select option[data-ct-status-tone="blue"] { color: #93c5fd !important; background-color: #172b47 !important; font-weight: 700; }
+.ct-status-select option[data-ct-status-tone="amber"] { color: #fbbf24 !important; background-color: #3a2b12 !important; font-weight: 700; }
+.ct-status-select option[data-ct-status-tone="red"] { color: #fca5a5 !important; background-color: #3b1b22 !important; font-weight: 700; }
+.ct-status-select option[data-ct-status-tone="slate"] { color: #cbd5e1 !important; background-color: #273244 !important; font-weight: 700; }
 
 .ct-field-box .form-control::placeholder {
   color: #64748b !important;
@@ -391,29 +347,6 @@ main > .container-fluid > .row p.text-muted {
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06) !important;
 }
 
-[data-theme="light"] .ct-quick-chip {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #334155;
-}
-
-[data-theme="light"] .ct-quick-chip:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
-  color: #0f172a;
-}
-
-[data-theme="light"] .ct-quick-chip.is-active {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  color: #1d4ed8;
-}
-
-[data-theme="light"] .ct-field-label {
-  background: #ffffff;
-  color: #64748b;
-}
-
 [data-theme="light"] .ct-field-box .form-control,
 [data-theme="light"] .ct-field-box .form-select {
   background-color: #f8fafc !important;
@@ -424,6 +357,32 @@ main > .container-fluid > .row p.text-muted {
 [data-theme="light"] .ct-field-box .form-select option {
   background-color: #ffffff;
   color: #0f172a;
+}
+
+[data-theme="light"] .main-content .ct-field-box .ct-status-select--green { border-color: #16a34a !important; }
+[data-theme="light"] .main-content .ct-field-box .ct-status-select--blue { border-color: #2563eb !important; }
+[data-theme="light"] .main-content .ct-field-box .ct-status-select--amber { border-color: #d97706 !important; }
+[data-theme="light"] .main-content .ct-field-box .ct-status-select--red { border-color: #dc2626 !important; }
+
+[data-theme="light"] .ct-status-select option[data-ct-status-tone="green"] { color: #15803d !important; background-color: #dcfce7 !important; }
+[data-theme="light"] .ct-status-select option[data-ct-status-tone="blue"] { color: #1d4ed8 !important; background-color: #dbeafe !important; }
+[data-theme="light"] .ct-status-select option[data-ct-status-tone="amber"] { color: #b45309 !important; background-color: #fef3c7 !important; }
+[data-theme="light"] .ct-status-select option[data-ct-status-tone="red"] { color: #b91c1c !important; background-color: #fee2e2 !important; }
+
+[data-theme="accessibility"] .ct-field-box .ct-status-select {
+  border: 2px solid #fff !important;
+  background-color: #000 !important;
+  color: #fff !important;
+}
+
+[data-theme="accessibility"] .ct-status-dot {
+  outline: 1px solid #fff;
+  box-shadow: none;
+}
+
+[data-theme="accessibility"] .ct-status-select option {
+  background: #000 !important;
+  color: #fff !important;
 }
 
 [data-theme="light"] .filter-bar-card.ct-filter-enhanced .filter-clear-btn,
@@ -481,28 +440,34 @@ main > .container-fluid > .row p.text-muted {
 @media (min-width: 992px) {
   .table-container table.table:not(#tablaMateriales):not(.ct-table-auto),
   .table-responsive > table.table:not(#tablaMateriales):not(.ct-table-auto) {
-    table-layout: fixed !important;
+    table-layout: auto !important;
     width: 100% !important;
   }
 
   .table-container table.table:not(#tablaMateriales):not(.ct-table-auto) > thead > tr > th,
   .table-responsive > table.table:not(#tablaMateriales):not(.ct-table-auto) > thead > tr > th {
     width: auto !important;
-    min-width: 0 !important;
+    min-width: 5rem !important;
     max-width: none !important;
     padding: 0.9rem 1rem !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
   }
 
   .table-container table.table:not(#tablaMateriales):not(.ct-table-auto) > tbody > tr > td,
   .table-responsive > table.table:not(#tablaMateriales):not(.ct-table-auto) > tbody > tr > td {
     width: auto !important;
-    min-width: 0 !important;
+    min-width: 5rem !important;
     padding: 0.9rem 1rem !important;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     word-break: normal;
+    vertical-align: middle;
+  }
+
+  .table-container table.table:not(#tablaMateriales):not(.ct-table-auto) > tbody > tr > td:last-child,
+  .table-responsive > table.table:not(#tablaMateriales):not(.ct-table-auto) > tbody > tr > td:last-child {
+    min-width: 7rem !important;
   }
 }
 
