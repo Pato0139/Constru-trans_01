@@ -1,35 +1,45 @@
-version: "3.8"
-
 services:
   web:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    volumes:
-      - ..:/app
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
-    ports:
-      - "8000:8000"
+    image: constru-trans:latest
+    restart: unless-stopped
     env_file:
       - ../.env
     environment:
-      DATABASE_URL: postgres://constru_trans:constru_trans@db:5432/constru_trans
-    command: sh -c "python manage.py migrate --noinput && gunicorn --bind 0.0.0.0:8000 core.wsgi:application"
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ..:/app
+      - static_data:/app/staticfiles
+      - media_data:/app/media
     depends_on:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import socket; socket.create_connection(('127.0.0.1', 8000), 5)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   db:
-    image: postgres:15-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: constru_trans
       POSTGRES_USER: constru_trans
       POSTGRES_PASSWORD: constru_trans
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U constru_trans -d constru_trans"]
       interval: 5s
@@ -38,11 +48,18 @@ services:
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   postgres_data:
-  static_volume:
-  media_volume:
   redis_data:
+  static_data:
+  media_data:
