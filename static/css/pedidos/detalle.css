@@ -463,3 +463,133 @@
         flex-shrink: 0;
     }
 }
+
+/* Selección visual de conductor y vehículo en el detalle del pedido */
+.transport-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+    gap: 0.55rem;
+    max-height: 14rem;
+    overflow-y: auto;
+    padding: 0.12rem 0.2rem 0.12rem 0;
+    scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+    scrollbar-width: thin;
+}
+
+.transport-native-select {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.transport-choice-card {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    min-width: 0;
+    padding: 0.7rem 0.75rem;
+    color: #e2e8f0;
+    text-align: left;
+    background: rgba(15, 23, 42, 0.58);
+    border: 1px solid rgba(148, 163, 184, 0.17);
+    border-radius: 0.8rem;
+    transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.transport-choice-card:hover {
+    background: rgba(30, 41, 59, 0.82);
+    border-color: rgba(245, 158, 11, 0.48);
+    transform: translateY(-1px);
+}
+
+.transport-choice-card:focus-visible {
+    outline: 2px solid #f59e0b;
+    outline-offset: 2px;
+}
+
+.transport-choice-card.is-selected {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.78);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.12), 0 8px 18px rgba(0, 0, 0, 0.16);
+}
+
+.transport-choice-icon,
+.transport-choice-check {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.65rem;
+}
+
+.transport-choice-icon {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.12);
+}
+
+.transport-choice-card[data-value] .transport-choice-icon:has(.bi-truck) {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+}
+
+.transport-choice-copy { display: grid; min-width: 0; gap: 0.15rem; }
+.transport-choice-copy strong { overflow: hidden; font-size: 0.79rem; text-overflow: ellipsis; white-space: nowrap; }
+.transport-choice-copy small { overflow: hidden; color: #94a3b8; font-size: 0.66rem; text-overflow: ellipsis; white-space: nowrap; }
+
+.transport-choice-check {
+    margin-left: auto;
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.12);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.transport-choice-card.is-selected .transport-choice-check { opacity: 1; transform: scale(1); }
+
+.transport-assignment-summary {
+    padding: 0.85rem 1rem;
+    background: linear-gradient(120deg, rgba(15, 23, 42, 0.72), rgba(30, 41, 59, 0.52));
+    border: 1px solid rgba(148, 163, 184, 0.17);
+    border-radius: 0.9rem;
+}
+
+.transport-summary-heading,
+.transport-summary-items,
+.transport-summary-items > div { display: flex; align-items: center; }
+.transport-summary-heading { justify-content: space-between; gap: 0.75rem; margin-bottom: 0.7rem; color: #cbd5e1; font-size: 0.76rem; font-weight: 750; }
+.transport-summary-heading > span:first-child i { color: #fbbf24; }
+.transport-summary-status { padding: 0.25rem 0.55rem; color: #fbbf24; background: rgba(245, 158, 11, 0.1); border-radius: 2rem; font-size: 0.64rem; }
+.transport-summary-status.is-complete { color: #34d399; background: rgba(16, 185, 129, 0.12); }
+.transport-summary-items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; }
+.transport-summary-items > div { min-width: 0; gap: 0.55rem; padding: 0.6rem; background: rgba(15, 23, 42, 0.45); border-radius: 0.7rem; }
+.transport-summary-items > div > i { color: #38bdf8; }
+.transport-summary-items > div span { display: grid; min-width: 0; gap: 0.1rem; }
+.transport-summary-items small { color: #94a3b8; font-size: 0.62rem; }
+.transport-summary-items strong { overflow: hidden; color: #e2e8f0; font-size: 0.73rem; text-overflow: ellipsis; white-space: nowrap; }
+
+[data-theme="light"] .transport-choice-card { color: #1e293b; background: #fff; border-color: rgba(100, 116, 139, 0.22); }
+[data-theme="light"] .transport-choice-card:hover { background: #f8fafc; }
+[data-theme="light"] .transport-choice-card.is-selected { background: #fffbeb; }
+[data-theme="light"] .transport-choice-copy small { color: #64748b; }
+[data-theme="light"] .transport-assignment-summary { background: linear-gradient(120deg, #f8fafc, #fff); border-color: rgba(100, 116, 139, 0.22); }
+[data-theme="light"] .transport-summary-heading { color: #334155; }
+[data-theme="light"] .transport-summary-items > div { background: #f1f5f9; }
+[data-theme="light"] .transport-summary-items strong { color: #1e293b; }
+
+@media (max-width: 575.98px) {
+    .transport-choice-grid { grid-template-columns: 1fr; max-height: 12rem; }
+    .transport-summary-items { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .transport-choice-card, .transport-choice-check { transition: none; }
+}

@@ -102,6 +102,11 @@ class Command(BaseCommand):
             action="store_true",
             help="Crea pedidos de demo aunque el cliente ya tenga pedidos",
         )
+        parser.add_argument(
+            "--database",
+            choices=tuple(settings.DATABASES),
+            help="Limita la carga a una base de datos específica.",
+        )
 
     def _seed_database(self, db_alias, force_pedidos=False):
         self.stdout.write(self.style.NOTICE(f"\n--- Poblando base de datos: {db_alias} ---"))
@@ -120,10 +125,6 @@ class Command(BaseCommand):
         )
         if created:
             self.stdout.write(self.style.SUCCESS("Administrador Edward_Fonseca creado."))
-        else:
-            admin_user.is_staff = True
-            admin_user.is_superuser = True
-            admin_user.save(using=db_alias)
 
         # 1. EPS (requerida para conductores)
         eps, _ = EPS.objects.using(db_alias).get_or_create(
@@ -202,7 +203,7 @@ class Command(BaseCommand):
             mat, created = self._get_or_create_material(db_alias, m_data)
             mats.append(mat)
 
-            stock, s_created = Stock.objects.using(db_alias).get_or_create(
+            stock, _ = Stock.objects.using(db_alias).get_or_create(
                 material=mat,
                 defaults={
                     "cantidad_actual": 1000,
@@ -210,9 +211,6 @@ class Command(BaseCommand):
                     "ubicacion": "Bodega Principal",
                 },
             )
-            if not s_created:
-                stock.cantidad_actual = 1000
-                stock.save(using=db_alias)
             self.stdout.write(f"Material: {mat.nombre} - Stock: {stock.cantidad_actual}")
 
         # 4. Conductores y vehículos
@@ -350,11 +348,6 @@ class Command(BaseCommand):
                     "tipo_cliente": "empresa",
                 },
             )
-            cliente_perfil.nombre_empresa = cl_data["empresa"]
-            cliente_perfil.direccion = "Av Siempre Viva 123"
-            cliente_perfil.tipo_cliente = "empresa"
-            cliente_perfil.save(using=db_alias)
-
             if not force_pedidos and Pedido.objects.using(db_alias).filter(usuario=p_cl).exists():
                 self.stdout.write(
                     f"Cliente {cl_data['empresa']}: ya tiene pedidos (use --force-pedidos para duplicar)."
@@ -402,13 +395,21 @@ class Command(BaseCommand):
         # 6. Movimientos de inventario
         self.stdout.write("\nGenerando movimientos de inventario...")
         for mat in mats:
-            MovimientoInventario.objects.using(db_alias).create(
+            movimiento_existente = MovimientoInventario.objects.using(db_alias).filter(
                 material=mat,
                 tipo_movimiento="entrada",
                 cantidad=1000,
                 observacion="Carga inicial de inventario - Seeding",
-            )
-            self.stdout.write(f"Movimiento de entrada creado para: {mat.nombre}")
+            ).exists()
+            if not movimiento_existente:
+                MovimientoInventario.objects.using(db_alias).create(
+                    material=mat,
+                    tipo_movimiento="entrada",
+                    cantidad=1000,
+                    observacion="Carga inicial de inventario - Seeding",
+                    usuario=admin_user,
+                )
+                self.stdout.write(f"Movimiento de entrada creado para: {mat.nombre}")
 
         self.stdout.write(self.style.SUCCESS("\nDatos de prueba generados exitosamente!"))
         self.stdout.write("\nCredenciales de acceso:")
@@ -426,7 +427,8 @@ class Command(BaseCommand):
         # Evitar que el signal cree Cliente en otra BD durante el seed
         post_save.disconnect(crear_perfil_cliente, sender=Usuario)
         try:
-            for db_alias in self._databases_to_seed():
+            db_aliases = [options["database"]] if options.get("database") else self._databases_to_seed()
+            for db_alias in db_aliases:
                 self._seed_database(db_alias, force_pedidos=force_pedidos)
         finally:
             post_save.connect(crear_perfil_cliente, sender=Usuario)

@@ -26,6 +26,7 @@ from apps.pagos.models import Factura, Pago, PagoFactura
 from apps.pagos.pdf import render_factura_pdf
 from apps.pedidos.forms_pagos import PagoRegistroForm, PagoRevisionForm
 from apps.pedidos.models import Pedido
+from apps.pedidos.utils import eliminar_pedidos_checkout_incompletos
 from apps.usuarios.views import admin_required
 from config.db_utils import select_for_update_if_supported
 from config.security import (
@@ -59,12 +60,18 @@ def _cliente_es_dueno(usuario, pedido):
 
 def _monto_pedido(pedido):
     if pedido.detalles.exists():
-        return sum(
+        subtotal = sum(
             (
                 Decimal(detalle.cantidad) * detalle.precio_unitario
                 for detalle in pedido.detalles.all()
             ),
             Decimal("0"),
+        )
+        return (
+            subtotal
+            + pedido.tarifa_envio
+            + (pedido.impuesto or Decimal("0"))
+            - (pedido.descuento or Decimal("0"))
         )
 
     return pedido.total or pedido.precio or Decimal("0")
@@ -241,6 +248,11 @@ def registrar_pago_pedido(request, pedido_id):
                             observaciones="Aprobado por administrador al registrar el pago.",
                         )
                         instancia_pago.save(using=using)
+                        if instancia_pago.requiere_comprobante():
+                            if not instancia_pago.comprobante or not instancia_pago.comprobante.name:
+                                raise ValidationError(
+                                    "Este método de pago requiere un comprobante válido (a menos que sea contraentrega)."
+                                )
                         instancia_pago.registrar_intento_historial(
                             estado_intento=Pago.APROBADO,
                             revisor=revisor_adm,
@@ -329,6 +341,19 @@ def registrar_pago_pedido(request, pedido_id):
                     messages.success(request, "Pago registrado. Queda pendiente de revisión.")
                 return redirect("pagos:detalle_pago", pk=instancia_pago.pk)
             except ValidationError as exc:
+                if pago is None and form.cleaned_data.get("metodo") in Pago.METODOS_CON_COMPROBANTE:
+                    eliminados = eliminar_pedidos_checkout_incompletos(
+                        using=pedido._state.db or using,
+                        pedido_id=pedido.codigo_pedido,
+                        usuario=usuario,
+                    )
+                    if eliminados:
+                        messages.error(
+                            request,
+                            f"No se pudo detectar un comprobante válido. El pedido #{pedido.codigo_pedido} "
+                            "fue eliminado y el inventario devuelto. Crea el pedido nuevamente y adjunta el comprobante.",
+                        )
+                        return redirect("clientes:mis_pedidos")
                 for error in exc.messages:
                     messages.error(request, error)
             except Exception as exc:
@@ -340,6 +365,10 @@ def registrar_pago_pedido(request, pedido_id):
                     "Ocurrió un error al procesar el registro del pago. "
                     "Por favor intenta nuevamente o contacta a soporte.",
                 )
+        else:
+            for errores in form.errors.values():
+                for err in errores:
+                    messages.error(request, err)
     else:
         form = PagoRegistroForm(
             instance=pago,
@@ -669,6 +698,8 @@ def revisar_pago_pedido(request, pk):
                     request,
                     f"Pago rechazado. Se notificó al cliente que tiene 12 horas para corregir su pago o comprobante del pedido #{pedido.codigo_pedido}.",
                 )
+        if accion == "aprobar":
+            return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
         return redirect("pagos:detalle_pago", pk=pago.pk)
 
     return redirect("pagos:detalle_pago", pk=pago.pk)

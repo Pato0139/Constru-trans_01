@@ -160,6 +160,11 @@
                             </div>
                         </div>
 
+                        <div id="comprobante-required-error" class="alert alert-danger py-2 px-3 small rounded-3 mt-2 d-none" role="alert">
+                            <i class="bi bi-exclamation-circle-fill me-1"></i>
+                            Debes adjuntar el comprobante de pago (JPG o PNG) para continuar, o selecciona <strong>Contraentrega</strong>.
+                        </div>
+
                         {{ form.comprobante.errors }}
                     </div>
 
@@ -394,13 +399,14 @@
 <script>
 (function() {
     function initPaymentOptions() {
-        if (document.body.dataset.paymentOptionsReady === '1') {
+        var formPago = document.getElementById('form-registro-pago');
+        if (!formPago || formPago.dataset.paymentOptionsReady === '1') {
             return;
         }
-        document.body.dataset.paymentOptionsReady = '1';
+        formPago.dataset.paymentOptionsReady = '1';
 
-    var formPago = document.getElementById('form-registro-pago');
-    var userRol = formPago ? formPago.dataset.esAdmin === 'true' ? 'admin' : 'cliente' : '';
+        var userRol = formPago.dataset.esAdmin === 'true' ? 'admin' : 'cliente';
+        var comprobanteRequiredError = document.getElementById('comprobante-required-error');
     var paymentOptions = document.querySelectorAll('.payment-option');
         var metodoRadios = document.querySelectorAll('input[name="metodo"]');
         var cuentaSection = document.getElementById('cuenta-section');
@@ -432,6 +438,24 @@
             'bancolombia': 'Bancolombia',
             'contraentrega': 'Contraentrega'
         };
+
+        function tieneComprobanteSeleccionado() {
+            return !!(comprobanteInput && comprobanteInput.files && comprobanteInput.files.length > 0);
+        }
+
+        function actualizarEstadoBotonEnvio() {
+            var metodoSeleccionado = document.querySelector('input[name="metodo"]:checked');
+            var metodo = metodoSeleccionado ? metodoSeleccionado.value : '';
+            var esContraentrega = (metodo === 'contraentrega');
+            var puedeEnviar = esContraentrega || tieneComprobanteSeleccionado();
+
+            if (submitBtn) {
+                submitBtn.disabled = !puedeEnviar;
+            }
+            if (comprobanteRequiredError && puedeEnviar) {
+                comprobanteRequiredError.classList.add('d-none');
+            }
+        }
 
         function actualizarComprobantePorMetodo() {
             var metodoSeleccionado = document.querySelector('input[name="metodo"]:checked');
@@ -467,6 +491,7 @@
                     comprobanteInput.disabled = esContraentrega;
                     comprobanteInput.required = !esContraentrega;
                 }
+                actualizarEstadoBotonEnvio();
                 return;
             }
 
@@ -522,6 +547,7 @@
                     ? 'Confirmar pedido contraentrega'
                     : 'Enviar comprobante de pago';
             }
+            actualizarEstadoBotonEnvio();
         }
 
         paymentOptions.forEach(function(card) {
@@ -620,6 +646,7 @@
                         fileChosenInfo.classList.add('d-none');
                     }
                 }
+                actualizarEstadoBotonEnvio();
             };
         }
 
@@ -629,8 +656,23 @@
                 if (fileChosenInfo) {
                     fileChosenInfo.classList.add('d-none');
                 }
+                actualizarEstadoBotonEnvio();
             };
         }
+
+        formPago.addEventListener('submit', function(e) {
+            var metodoSeleccionado = document.querySelector('input[name="metodo"]:checked');
+            var metodo = metodoSeleccionado ? metodoSeleccionado.value : '';
+            if (metodo !== 'contraentrega' && !tieneComprobanteSeleccionado()) {
+                e.preventDefault();
+                if (comprobanteRequiredError) {
+                    comprobanteRequiredError.classList.remove('d-none');
+                }
+                if (comprobanteInput) {
+                    comprobanteInput.focus();
+                }
+            }
+        });
 
         actualizarComprobantePorMetodo();
     }

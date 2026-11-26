@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 import logging
 
 from django.core.exceptions import ValidationError
@@ -10,6 +11,7 @@ from django.utils import timezone
 from apps.catalogo.models import MaterialConstruccion
 from apps.pagos.models import Pago, comprobante_upload_to  # noqa: F401, E402
 from apps.usuarios.models import Usuario
+from config.despacho import calcular_tarifa_envio
 from config.state_machine import TransicionMixin
 from config.validators import (
     cantidad_validators,
@@ -190,18 +192,25 @@ class Pedido(TransicionMixin, models.Model):
             and self.descuento is not None
             and self.total is not None
         ):
-            esperado = self.subtotal + self.impuesto - self.descuento
+            esperado = self.subtotal + self.tarifa_envio + self.impuesto - self.descuento
             if self.total != esperado:
-                errores["total"] = f"El total ({self.total}) debe coincidir con subtotal + impuesto - descuento ({esperado})."
+                errores["total"] = f"El total ({self.total}) debe coincidir con subtotal + tarifa_envio + impuesto - descuento ({esperado})."
 
         if errores:
             raise ValidationError(errores)
 
+    @property
+    def tarifa_envio(self) -> Decimal:
+        return calcular_tarifa_envio(self.direccion_destino)
+
     def calcular_total(self, using=None):
         if using is None:
             using = self._state.db
-        self.subtotal = sum(d.subtotal for d in self.detalles.using(using).all())
-        self.total = self.subtotal + (self.impuesto or 0) - (self.descuento or 0)
+        self.subtotal = sum(
+            (d.subtotal for d in self.detalles.using(using).all()),
+            Decimal("0.00"),
+        )
+        self.total = self.subtotal + self.tarifa_envio + (self.impuesto or 0) - (self.descuento or 0)
         self.precio = self.total
         self.save(using=using)
         return self.total

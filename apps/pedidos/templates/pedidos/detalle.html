@@ -8,7 +8,7 @@
 {% block header_title %}Información del Pedido #CT-{{ orden.codigo_pedido }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pedidos/detalle.css' %}?v=2.1">
+<link rel="stylesheet" href="{% static 'css/pedidos/detalle.css' %}?v=2.2">
 {% endblock %}
 
 {% block content %}
@@ -972,28 +972,20 @@
                                     <div class="transport-card h-100">
                                         <p class="text-muted small mb-2"><i
                                                 class="bi bi-person-badge text-gold me-1"></i>Conductor Asignado</p>
-                                        <div id="conductor-info-block" class="mb-2">
-                                            {% if conductor_usuario %}
-                                            <p class="text-white fw-700 mb-1">{{ conductor_usuario.nombres }} {{ conductor_usuario.apellidos }}</p>
-                                            {% if conductor_usuario.telefono %}
-                                            <span class="text-accent x-small">
-                                                <i class="bi bi-telephone-fill me-1"></i>{{ conductor_usuario.telefono }}
-                                            </span>
-                                            {% endif %}
-                                            {% else %}
-                                            <p class="text-muted small mb-0 fst-italic"><i
-                                                    class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
-                                            {% endif %}
-                                        </div>
                                         <label for="select-conductor-detalle"
                                             class="form-label text-white-50 x-small mb-1">Seleccionar conductor:</label>
+                                        <div id="conductor-cards-detalle" class="transport-choice-grid" role="group" aria-label="Seleccionar conductor"></div>
                                         <select id="select-conductor-detalle" name="conductor"
-                                            class="form-select form-select-sm bg-surface text-white border-secondary"
-                                            required>
+                                            class="form-select form-select-sm bg-surface text-white border-secondary transport-native-select"
+                                            tabindex="-1" aria-hidden="true" required>
                                             <option value="">-- Selecciona un conductor --</option>
                                             {% for c in conductores_disponibles %}
                                             <option value="{{ c.id }}"
-                                                data-vehiculo-id="{{ c.vehiculo_asignado.id_vehiculo|default:'' }}" {% if conductor_usuario and conductor_usuario.id == c.id %}selected{% endif %}>
+                                                data-vehiculo-id="{{ c.vehiculo_asignado.id_vehiculo|default:'' }}"
+                                                data-nombre="{{ c.nombres }} {{ c.apellidos }}"
+                                                data-documento="{{ c.documento|default:'' }}"
+                                                data-licencia="{{ c.perfil_conductor.numero_licencia|default:'' }}"
+                                                {% if conductor_usuario and conductor_usuario.id == c.id %}selected{% endif %}>
                                                 {{ c.nombres }} {{ c.apellidos }} (Lic. {{ c.perfil_conductor.numero_licencia|default:"ACTIVO" }})
                                             </option>
                                             {% endfor %}
@@ -1004,27 +996,20 @@
                                     <div class="transport-card h-100">
                                         <p class="text-muted small mb-2"><i
                                                 class="bi bi-truck text-info me-1"></i>Vehículo Asignado</p>
-                                        <div id="vehiculo-info-block" class="mb-2">
-                                            {% if vehiculo %}
-                                            <div class="d-flex align-items-center gap-2 mb-1">
-                                                <span class="plate-badge">{{ vehiculo.placa }}</span>
-                                                <span class="text-white fw-600 small">{{ vehiculo.marca }} {{ vehiculo.modelo }}</span>
-                                            </div>
-                                            <p class="text-muted x-small mb-0">{{ vehiculo.tipo_vehiculo }} &bull;
-                                                Capacidad: {{ vehiculo.capacidad_carga }} t</p>
-                                            {% else %}
-                                            <p class="text-muted small mb-0 fst-italic"><i
-                                                    class="bi bi-hourglass me-1"></i>Pendiente de asignación</p>
-                                            {% endif %}
-                                        </div>
                                         <label for="select-vehiculo-detalle"
                                             class="form-label text-white-50 x-small mb-1">Seleccionar vehículo:</label>
+                                        <div id="vehiculo-cards-detalle" class="transport-choice-grid" role="group" aria-label="Seleccionar vehículo"></div>
                                         <select id="select-vehiculo-detalle" name="vehiculo"
-                                            class="form-select form-select-sm bg-surface text-white border-secondary"
-                                            required>
+                                            class="form-select form-select-sm bg-surface text-white border-secondary transport-native-select"
+                                            tabindex="-1" aria-hidden="true" required>
                                             <option value="">-- Selecciona un vehículo --</option>
                                             {% for v in vehiculos_disponibles %}
-                                            <option value="{{ v.id_vehiculo }}" {% if vehiculo and vehiculo.id_vehiculo == v.id_vehiculo %}selected{% endif %}>
+                                            <option value="{{ v.id_vehiculo }}"
+                                                data-placa="{{ v.placa }}"
+                                                data-tipo="{{ v.tipo_vehiculo }}"
+                                                data-capacidad="{{ v.capacidad_carga|default:'' }}"
+                                                data-modelo="{{ v.marca }} {{ v.modelo }}"
+                                                {% if vehiculo and vehiculo.id_vehiculo == v.id_vehiculo %}selected{% endif %}>
                                                 {{ v.placa }} - {{ v.tipo_vehiculo }} ({{ v.capacidad_carga }} t)
                                             </option>
                                             {% endfor %}
@@ -1032,6 +1017,16 @@
                                     </div>
                                 </div>
                             </div>
+                            <section class="transport-assignment-summary mt-3" aria-live="polite">
+                                <div class="transport-summary-heading">
+                                    <span><i class="bi bi-diagram-3-fill me-2"></i>Asignación de transporte</span>
+                                    <span id="transport-summary-status" class="transport-summary-status">Pendiente</span>
+                                </div>
+                                <div class="transport-summary-items">
+                                    <div><i class="bi bi-person-badge"></i><span><small>Conductor</small><strong id="transport-summary-driver">Sin seleccionar</strong></span></div>
+                                    <div><i class="bi bi-truck-front"></i><span><small>Vehículo</small><strong id="transport-summary-vehicle">Sin seleccionar</strong></span></div>
+                                </div>
+                            </section>
                             <button type="submit" name="accion" value="asignar_transporte"
                                 id="btn-asignar-transporte-detalle"
                                 class="btn btn-gold w-100 rounded-pill py-2 fw-800 shadow-sm small mt-3">
@@ -1330,7 +1325,7 @@
 
                         </h6>
                         <div class="d-flex flex-column gap-2">
-                            {% if user_rol == "cliente" and orden.estado != "cancelado" and orden.estado != "en_ruta" and orden.estado != "entregado" and not orden.asignacion_transporte_iniciada %}
+                            {% if user_rol == "cliente" and orden.estado == "pendiente" %}
                             <a href="{% url 'clientes:editar_pedido' orden.codigo_pedido %}"
                                 class="btn btn-outline-warning rounded-pill py-2 fw-700 small">
                                 <i class="bi bi-pencil-square me-1"></i> Modificar Pedido
@@ -1724,6 +1719,72 @@
         const selectConductorDetalle = document.getElementById('select-conductor-detalle');
         const selectVehiculoDetalle = document.getElementById('select-vehiculo-detalle');
         if (selectConductorDetalle && selectVehiculoDetalle) {
+            const driverCards = document.getElementById('conductor-cards-detalle');
+            const vehicleCards = document.getElementById('vehiculo-cards-detalle');
+            const summaryDriver = document.getElementById('transport-summary-driver');
+            const summaryVehicle = document.getElementById('transport-summary-vehicle');
+            const summaryStatus = document.getElementById('transport-summary-status');
+
+            const createChoiceCard = (icon, title, subtitle, value, selected) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'transport-choice-card';
+                button.dataset.value = value;
+                button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+                button.classList.toggle('is-selected', selected);
+                button.innerHTML = `<span class="transport-choice-icon"><i class="bi ${icon}"></i></span><span class="transport-choice-copy"><strong></strong><small></small></span><span class="transport-choice-check"><i class="bi bi-check-lg"></i></span>`;
+                button.querySelector('strong').textContent = title;
+                button.querySelector('small').textContent = subtitle;
+                return button;
+            };
+
+            const renderChoiceCards = (select, container, kind) => {
+                if (!container) return;
+                container.replaceChildren();
+                Array.from(select.options).filter(option => option.value).forEach(option => {
+                    const isDriver = kind === 'driver';
+                    const title = isDriver ? (option.dataset.nombre || option.textContent.trim()) : (option.dataset.placa || option.textContent.trim());
+                    const subtitle = isDriver
+                        ? [option.dataset.documento ? `Doc. ${option.dataset.documento}` : '', option.dataset.licencia ? `Lic. ${option.dataset.licencia}` : '', 'Disponible'].filter(Boolean).join(' · ')
+                        : [option.dataset.tipo || '', option.dataset.capacidad ? `${option.dataset.capacidad} t` : '', option.dataset.modelo || '', 'Disponible'].filter(Boolean).join(' · ');
+                    const card = createChoiceCard(isDriver ? 'bi-person-vcard' : 'bi-truck', title, subtitle, option.value, option.selected);
+                    card.addEventListener('click', () => {
+                        select.value = option.value;
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    container.append(card);
+                });
+            };
+
+            const updateTransportSummary = () => {
+                const driverOption = selectConductorDetalle.selectedOptions[0];
+                const vehicleOption = selectVehiculoDetalle.selectedOptions[0];
+                const driverName = driverOption && driverOption.value ? (driverOption.dataset.nombre || driverOption.textContent.trim()) : '';
+                const vehicleName = vehicleOption && vehicleOption.value ? `${vehicleOption.dataset.placa || vehicleOption.textContent.trim()}${vehicleOption.dataset.tipo ? ` · ${vehicleOption.dataset.tipo}` : ''}` : '';
+                if (summaryDriver) summaryDriver.textContent = driverName || 'Sin seleccionar';
+                if (summaryVehicle) summaryVehicle.textContent = vehicleName || 'Sin seleccionar';
+                const complete = Boolean(driverName && vehicleName);
+                if (summaryStatus) {
+                    summaryStatus.textContent = complete ? 'Asignación completa' : 'Pendiente';
+                    summaryStatus.classList.toggle('is-complete', complete);
+                }
+                [driverCards, vehicleCards].forEach((container, index) => {
+                    const select = index === 0 ? selectConductorDetalle : selectVehiculoDetalle;
+                    container?.querySelectorAll('.transport-choice-card').forEach(card => {
+                        const selected = card.dataset.value === select.value;
+                        card.classList.toggle('is-selected', selected);
+                        card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+                    });
+                });
+            };
+
+            renderChoiceCards(selectConductorDetalle, driverCards, 'driver');
+            renderChoiceCards(selectVehiculoDetalle, vehicleCards, 'vehicle');
+            // La selección visual replica el required del select y conserva los valores enviados al backend.
+            selectConductorDetalle.required = false;
+            selectVehiculoDetalle.required = false;
+            selectConductorDetalle.addEventListener('change', updateTransportSummary);
+            selectVehiculoDetalle.addEventListener('change', updateTransportSummary);
             selectConductorDetalle.addEventListener('change', function () {
                 const selectedOption = this.options[this.selectedIndex];
                 const vehiculoId = selectedOption ? selectedOption.getAttribute('data-vehiculo-id') : '';
@@ -1731,9 +1792,21 @@
                     for (let i = 0; i < selectVehiculoDetalle.options.length; i++) {
                         if (selectVehiculoDetalle.options[i].value === vehiculoId) {
                             selectVehiculoDetalle.selectedIndex = i;
+                            selectVehiculoDetalle.dispatchEvent(new Event('change', { bubbles: true }));
                             break;
                         }
                     }
+                }
+            });
+            updateTransportSummary();
+            document.getElementById('form-asignar-transporte-detalle')?.addEventListener('submit', event => {
+                if (!selectConductorDetalle.value || !selectVehiculoDetalle.value) {
+                    event.preventDefault();
+                    if (summaryStatus) {
+                        summaryStatus.textContent = 'Selecciona conductor y vehículo';
+                        summaryStatus.classList.remove('is-complete');
+                    }
+                    (selectConductorDetalle.value ? vehicleCards : driverCards)?.querySelector('.transport-choice-card')?.focus();
                 }
             });
         }

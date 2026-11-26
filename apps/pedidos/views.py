@@ -37,7 +37,11 @@ from config.utils import registrar_actividad
 
 from .forms import AgregarMaterialForm, FiltroPedidosForm
 from .models import DetallePedido, DetalleSolicitudPedido, Pedido, SolicitudPedido
-from .utils import liberar_vehiculo_pedido, revertir_stock_pedido
+from .utils import (
+    eliminar_pedidos_checkout_incompletos,
+    liberar_vehiculo_pedido,
+    revertir_stock_pedido,
+)
 
 
 def _mensajes_error(request, origen):
@@ -198,10 +202,25 @@ def _render_lista_por_estado(
     *,
     solo_autorizados_despacho=False,
     es_historial=False,
+    exigir_pago_recibido=False,
 ):
     from apps.pagos.models import Pago
 
     verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
+    if exigir_pago_recibido:
+        db_alias = "remota" if debe_usar_bd_remota() else "default"
+        pedidos_eliminados = eliminar_pedidos_checkout_incompletos(
+            using=db_alias,
+            usuario=request.user,
+        )
+        for codigo in pedidos_eliminados:
+            registrar_actividad(
+                request,
+                "eliminar",
+                "pedidos",
+                codigo,
+                f"Pedido #{codigo} eliminado automáticamente por no completar el pago o comprobante dentro del plazo.",
+            )
 
     filtro = FiltroPedidosForm(request.GET)
     if filtro.is_valid():
@@ -221,6 +240,11 @@ def _render_lista_por_estado(
             pedidos = pedidos.filter(estado__in=estado)
         else:
             pedidos = pedidos.filter(estado=estado)
+    if exigir_pago_recibido:
+        pedidos = pedidos.filter(
+            Q(pago__metodo=Pago.METODO_CONTRAENTREGA)
+            | Q(pago__comprobante__gt="")
+        )
     if solo_autorizados_despacho:
         pedidos = pedidos.exclude(
             pago__estado__in=[Pago.PENDIENTE, Pago.RECHAZADO]
@@ -275,6 +299,7 @@ def lista_pedidos_admin(request):
             Pedido.VEHICULO_ASIGNADO,
         ],
         "Gestión de Pedidos",
+        exigir_pago_recibido=True,
     )
 
 
@@ -392,7 +417,22 @@ def _obtener_recursos_transporte_para_pedido(orden):
 
 @login_required
 def ver_pedido_admin(request, id):
-    orden = get_object_or_404(Pedido, codigo_pedido=id)
+    orden = Pedido.objects.filter(codigo_pedido=id).first()
+    if orden is None:
+        usuario_actual = request.user
+        is_super = getattr(usuario_actual, "is_superuser", False) or getattr(
+            usuario_actual, "es_superadmin", False
+        )
+        es_admin = is_super or getattr(usuario_actual, "rol", "") == "admin"
+        messages.warning(
+            request,
+            f"El pedido #{id} ya no existe o fue eliminado automáticamente porque no se completó su pago con comprobante.",
+        )
+        if es_admin:
+            return redirect("pedidos:lista_pedidos_admin")
+        if getattr(usuario_actual, "rol", "") == "cliente":
+            return redirect("clientes:mis_pedidos")
+        return redirect("usuarios:panel")
     verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago(pedido=orden)
     orden.refresh_from_db()
     usuario_actual = request.user
