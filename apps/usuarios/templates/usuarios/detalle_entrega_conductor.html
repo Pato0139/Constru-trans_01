@@ -100,6 +100,17 @@
                     <span class="text-muted small d-block">Fecha Programada:</span>
                     <strong class="text-main">{{ pedido.fecha_entrega_programada|date:"d/m/Y H:i"|default:"Sin fecha específica" }}</strong>
                 </li>
+                {% if historial_reagendamientos %}
+                <li>
+                    <span class="text-muted small d-block">Historial de reagendamientos:</span>
+                    {% for registro in historial_reagendamientos %}
+                    <div class="border-start border-warning border-2 ps-3 mt-2">
+                        <strong class="text-main">{{ registro.fecha|date:"d/m/Y H:i" }} · {{ registro.usuario.nombre_mostrar|default:registro.usuario.username|default:"Sistema" }}</strong>
+                        <p class="text-muted small mb-0">{{ registro.descripcion }}</p>
+                    </div>
+                    {% endfor %}
+                </li>
+                {% endif %}
                 {% if entrega.fecha_salida %}
                 <li>
                     <span class="text-muted small d-block">Hora de Inicio de Ruta:</span>

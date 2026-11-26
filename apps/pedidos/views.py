@@ -39,7 +39,9 @@ from .forms import AgregarMaterialForm, FiltroPedidosForm
 from .models import DetallePedido, DetalleSolicitudPedido, Pedido, SolicitudPedido
 from .utils import (
     eliminar_pedidos_checkout_incompletos,
+    filtrar_pedidos_con_pago_recibido,
     liberar_vehiculo_pedido,
+    pedido_tiene_pago_recibido,
     revertir_stock_pedido,
 )
 
@@ -277,6 +279,9 @@ def _render_lista_por_estado(
         else:
             pedidos = pedidos.filter(estado=estado_query)
 
+    if exigir_pago_recibido:
+        pedidos = filtrar_pedidos_con_pago_recibido(pedidos)
+
     has_filters = bool(cliente_query or destino_query or fecha_query or q or estado_query)
     pedidos_list = list(pedidos)
     total_resultados = len(pedidos_list)
@@ -409,23 +414,29 @@ def _obtener_recursos_transporte_para_pedido(orden):
         .order_by("nombres", "apellidos")
     )
 
-    vehiculos_ocupados_ids = (
+    vehiculos_ocupados_ids = set(
         Entrega.objects.filter(
             estado__in=["pendiente", "en_ruta"],
-            pedido__estado__in=[
-                Pedido.AUTORIZADO_DESPACHO,
-                Pedido.VEHICULO_ASIGNADO,
-                Pedido.EN_RUTA,
-            ],
             vehiculo__isnull=False,
         )
         .exclude(pedido=orden)
         .values_list("vehiculo_id", flat=True)
     )
+    vehiculos_ocupados_ids.update(
+        ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values_list(
+            "vehiculo_id", flat=True
+        )
+    )
+    vehiculos_ocupados_ids.discard(
+        Entrega.objects.filter(pedido=orden, estado__in=["pendiente", "en_ruta"])
+        .values_list("vehiculo_id", flat=True)
+        .first()
+    )
 
     vehiculos = (
         Vehiculo.objects.filter(
-            Q(estado="disponible") | Q(entregas__pedido=orden, entregas__estado__in=["pendiente", "en_ruta"])
+            Q(estado="disponible", capacidad_carga__gte=5)
+            | Q(entregas__pedido=orden, entregas__estado__in=["pendiente", "en_ruta"])
         )
         .exclude(pk__in=vehiculos_ocupados_ids)
         .distinct()
@@ -460,6 +471,17 @@ def ver_pedido_admin(request, id):
         usuario_actual, "es_superadmin", False
     )
     es_admin = is_super or usuario_actual.rol == "admin"
+
+    if (
+        es_admin
+        and orden.estado == Pedido.PENDIENTE
+        and not pedido_tiene_pago_recibido(orden)
+    ):
+        messages.info(
+            request,
+            "El pedido no está disponible para gestión hasta que se registre contraentrega o se reciba un comprobante válido.",
+        )
+        return redirect("pedidos:lista_pedidos_admin")
 
     cliente_dueno = orden.usuario_id == usuario_actual.pk or (
         orden.cliente is not None
@@ -848,6 +870,7 @@ def ver_pedido_admin(request, id):
         "vehiculo": vehiculo,
         "transporte_asignado": transporte_asignado,
         "pago": pago,
+        "eventos_logisticos": eventos_logisticos,
         "conductores_disponibles": conductores_disponibles,
         "vehiculos_disponibles": vehiculos_disponibles,
         "puede_asignar_transporte": puede_asignar_transporte,

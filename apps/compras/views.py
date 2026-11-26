@@ -535,8 +535,17 @@ def catalogo_proveedor(request, codigo_proveedor):
                     f"Entrada física del proveedor {proveedor.nombre_empresa}: {resumen}",
                 )
             else:
-                messages.success(request, "Catálogo del proveedor actualizado. Para ingresar stock, indica la cantidad recibida.")
+                messages.warning(
+                    request,
+                    "No se registró ninguna entrada y el inventario no cambió. "
+                    "Indica la cantidad recibida en al menos un producto antes de registrar.",
+                )
             return redirect("compras:catalogo_proveedor", codigo_proveedor=proveedor.codigo_proveedor)
+        logger.warning(
+            "[ENTRADA_INVENTARIO_INVALIDA] Proveedor %s: %s",
+            proveedor.codigo_proveedor,
+            formset.errors.as_json(),
+        )
         messages.error(request, "Revisa los materiales y precios indicados.")
     else:
         formset = ProveedorMaterialFormSet(instance=proveedor, prefix="catalogo")

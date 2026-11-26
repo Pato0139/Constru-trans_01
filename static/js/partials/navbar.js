@@ -100,9 +100,9 @@ document.addEventListener('click', (event) => {
                                 </div>
                             </div>
                             <div class="flex-grow-1 min-w-0">
-                                <p class="small mb-1 fw-bold text-white text-truncate">${escapeHtml(notif.titulo)}</p>
-                                <p class="small mb-1 text-muted text-truncate">${escapeHtml(notif.mensaje)}</p>
-                                <span class="small text-muted navbar-notif-date">${escapeHtml(notif.fecha)}</span>
+                                <p class="mb-1 fw-bold text-white navbar-notif-title">${escapeHtml(notif.titulo)}</p>
+                                <p class="mb-2 text-muted navbar-notif-message">${escapeHtml(notif.mensaje)}</p>
+                                <span class="text-muted navbar-notif-date">${escapeHtml(notif.fecha)}</span>
                             </div>
                         </div>
                     </a>

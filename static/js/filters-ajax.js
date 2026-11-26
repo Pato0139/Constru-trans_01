@@ -661,7 +661,12 @@
             form.querySelector('select[id*="rol"]') ||
             form.querySelector('select');
 
-        if (quickSelect && quickSelect.options.length >= 2) {
+        const disableQuickFilters = form.dataset.disableQuickFilters === 'true';
+        if (disableQuickFilters && card.previousElementSibling && card.previousElementSibling.classList.contains('ct-quick-filters')) {
+            card.previousElementSibling.remove();
+        }
+
+        if (!disableQuickFilters && quickSelect && quickSelect.options.length >= 2) {
             const parentContainer = card.parentNode;
             if (parentContainer && !(card.previousElementSibling && card.previousElementSibling.classList.contains('ct-quick-filters'))) {
                 const strip = document.createElement('div');

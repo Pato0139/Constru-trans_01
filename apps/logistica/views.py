@@ -1,4 +1,5 @@
 from functools import lru_cache
+from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -222,6 +223,9 @@ def crear_vehiculo(request):
             )
 
         try:
+            capacidad_decimal = Decimal(str(capacidad).replace(",", "."))
+            if capacidad_decimal < Decimal("5"):
+                raise ValueError("La capacidad mínima para registrar un vehículo es 5 toneladas.")
             vehiculo = Vehiculo(
                 placa=placa,
                 marca=marca,
@@ -290,14 +294,20 @@ def editar_vehiculo(request, id):
 
     if request.method == "POST":
         nuevo_estado = request.POST.get("estado")
+        conductor_id = request.POST.get("conductor") or None
+        conductor_actual_id = current_assignment.conductor.usuario_id if current_assignment else None
 
-        if nuevo_estado in ["mantenimiento", "fuera_de_servicio"] and vehiculo.estado == "en_ruta":
+        entregas_activas = Entrega.objects.filter(
+            vehiculo=vehiculo, estado__in=["pendiente", "en_ruta"]
+        ).exists()
+        if entregas_activas and (
+            nuevo_estado != vehiculo.estado or conductor_id != conductor_actual_id
+        ):
             messages.error(
                 request,
-                "No se puede cambiar el estado mientras el vehículo tenga una entrega activa (En Ruta).",
+                "No se puede cambiar el estado ni el conductor asignado mientras el vehículo tenga entregas pendientes o en ruta.",
             )
         else:
-            conductor_id = request.POST.get("conductor")
             conductor_perfil = None
             if conductor_id:
                 conductor_perfil = conductores.filter(usuario_id=conductor_id).first()
@@ -315,15 +325,7 @@ def editar_vehiculo(request, id):
                         status=400,
                     )
 
-            entregas_activas = Entrega.objects.filter(
-                vehiculo=vehiculo, estado__in=["pendiente", "en_ruta"]
-            ).exists()
-            if nuevo_estado != "disponible" and entregas_activas:
-                messages.error(
-                    request,
-                    "No se puede desactivar el vehículo porque tiene entregas pendientes o en curso.",
-                )
-            else:
+            if not entregas_activas or (nuevo_estado == vehiculo.estado and conductor_id == conductor_actual_id):
                 marca_sel = request.POST.get("marca", "").strip()
                 if marca_sel not in MARCAS_VEHICULO:
                     messages.error(
@@ -345,6 +347,18 @@ def editar_vehiculo(request, id):
                 vehiculo.marca = marca_sel
                 vehiculo.modelo = request.POST.get("modelo", "").strip()
                 capacidad = request.POST.get("capacidad", "").replace(",", ".")
+                try:
+                    capacidad_decimal = Decimal(capacidad)
+                    if capacidad_decimal < Decimal("5") and capacidad_decimal != vehiculo.capacidad_carga:
+                        raise ValidationError("La capacidad mínima para vehículos nuevos o modificados es 5 toneladas.")
+                except (InvalidOperation, ValueError):
+                    messages.error(request, "Indica una capacidad válida en toneladas.")
+                    return render(
+                        request,
+                        "logistica/form.html",
+                        {"vehiculo": vehiculo, "action": "editar", "conductores": conductores, "marcas": MARCAS_VEHICULO},
+                        status=400,
+                    )
                 vehiculo.capacidad_carga = capacidad
                 vehiculo.estado = nuevo_estado
                 try:
@@ -365,14 +379,15 @@ def editar_vehiculo(request, id):
                 vehiculo.save()
 
                 try:
-                    ConductorVehiculo.objects.filter(
-                        vehiculo=vehiculo, fecha_fin__isnull=True
-                    ).update(fecha_fin=now())
+                    if conductor_id != conductor_actual_id:
+                        ConductorVehiculo.objects.filter(
+                            vehiculo=vehiculo, fecha_fin__isnull=True
+                        ).update(fecha_fin=now())
 
-                    if conductor_id:
-                        ConductorVehiculo.objects.create(
-                            conductor=conductor_perfil, vehiculo=vehiculo
-                        )
+                        if conductor_id and conductor_perfil:
+                            ConductorVehiculo.objects.create(
+                                conductor=conductor_perfil, vehiculo=vehiculo
+                            )
 
                     messages.success(request, f"Vehículo {vehiculo.placa} actualizado.")
                     return redirect("logistica:lista_vehiculos")
@@ -392,6 +407,16 @@ def editar_vehiculo(request, id):
 @require_POST
 def eliminar_vehiculo(request, id):
     vehiculo = get_object_or_404(Vehiculo, pk=id)
+
+    asignacion_activa = ConductorVehiculo.objects.filter(
+        vehiculo=vehiculo, fecha_fin__isnull=True
+    ).exists()
+    if asignacion_activa:
+        messages.error(
+            request,
+            f"No se puede eliminar {vehiculo.placa} mientras siga asignado a un conductor. Libera primero la asignación.",
+        )
+        return redirect("logistica:lista_vehiculos")
 
     tiene_historial = Entrega.objects.filter(vehiculo=vehiculo).exists()
     if tiene_historial:
@@ -505,7 +530,7 @@ def crear_novedad(request, entrega_id):
         messages.success(request, "Novedad registrada correctamente.")
         if es_conductor:
             return redirect("logistica:mis_novedades")
-        return redirect("pedidos:ver_pedido_admin", id=entrega.pedido.codigo_pedido)
+        return redirect("logistica:lista_novedades_admin")
 
     return render(
         request,
@@ -574,7 +599,9 @@ def reagendar_entrega_view(request, pedido_id):
         detalle_motivo = form.cleaned_data["detalle_motivo"].strip()
         try:
             actualizado, anterior = reagendar_entrega(
-                pedido.pk, form.cleaned_data["fecha_entrega_programada"]
+                pedido.pk,
+                form.cleaned_data["fecha_entrega_programada"],
+                using=pedido._state.db or "default",
             )
         except ValidationError as exc:
             for error in exc.messages:
@@ -587,7 +614,21 @@ def reagendar_entrega_view(request, pedido_id):
                 f"Motivo: {motivo}. {detalle_motivo}".strip()
             )
             registrar_actividad(request, "editar", "pedido", pedido.codigo_pedido, descripcion)
-            notificar_evento_logistico("fecha_reagendada", actualizado, extra_info=f"Motivo: {motivo}.")
+            evento_key = (
+                f"{anterior.strftime('%Y%m%d%H%M') if anterior else 'sin-fecha'}-"
+                f"{actualizado.fecha_entrega_programada.strftime('%Y%m%d%H%M')}"
+            )
+            notificar_evento_logistico(
+                "fecha_reagendada",
+                actualizado,
+                extra_info=(
+                    f"Fecha anterior: {anterior_texto}. Nueva fecha y hora: {nueva_texto}. "
+                    f"Motivo: {motivo}. {detalle_motivo} "
+                    "El pedido sigue activo y conserva su conductor y vehículo."
+                ).strip(),
+                using=actualizado._state.db or "default",
+                event_key=evento_key,
+            )
             messages.success(request, "La nueva fecha quedó guardada y se notificó al cliente.")
             return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
 
@@ -700,7 +741,9 @@ def agregar_seguimiento(request, novedad_id):
         if novedad.estado == "abierta":
             novedad.estado = "en_atencion"
             novedad.save(update_fields=["estado"])
-        return redirect("logistica:crear_novedad", entrega_id=novedad.entrega_id)
+        if request.user.rol == "conductor":
+            return redirect("logistica:mis_novedades")
+        return redirect("logistica:lista_novedades_admin")
     return render(request, "logistica/seguimiento.html", {"novedad": novedad})
 
 

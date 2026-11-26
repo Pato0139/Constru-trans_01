@@ -80,6 +80,17 @@
                     <td>
                         <div class="fw-700 text-accent">#ENV-{{ entrega.id_entrega }}</div>
                         <div class="small text-muted">Pedido #CT-{{ entrega.pedido.codigo_pedido }}</div>
+                        {% if entrega.pedido.fecha_entrega_programada %}
+                        <div class="small text-main mt-1"><i class="bi bi-calendar-event me-1"></i>Entrega: {{ entrega.pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}</div>
+                        {% endif %}
+                        {% if entrega.ultimo_reagendamiento %}
+                        <details class="driver-reschedule-history mt-1">
+                            <summary><span class="badge bg-warning-subtle text-warning-emphasis">Reagendada</span> Ver motivo</summary>
+                            <div class="small text-muted mt-1">{{ entrega.ultimo_reagendamiento.descripcion }}<br>
+                                {{ entrega.ultimo_reagendamiento.fecha|date:"d/m/Y H:i" }} · {{ entrega.ultimo_reagendamiento.usuario.nombre_mostrar|default:entrega.ultimo_reagendamiento.usuario.username|default:"Sistema" }}
+                            </div>
+                        </details>
+                        {% endif %}
                         {% if entrega.fecha_asignacion_efectiva %}
                         <div class="small text-muted" style="font-size: 0.72rem;">
                             <i class="bi bi-calendar-check me-1"></i>Asignado: {{ entrega.fecha_asignacion_efectiva|date:"d/m/Y H:i" }}

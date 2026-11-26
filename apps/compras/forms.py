@@ -183,6 +183,12 @@ class MaterialStockSelect(forms.Select):
                 stock = material.stock_info.cantidad_actual
             except ObjectDoesNotExist:
                 pass
+            unidad = getattr(material, "unidad_medida", None)
+            option["attrs"]["data-unit"] = (
+                getattr(unidad, "abreviatura", None)
+                or getattr(unidad, "nombre", None)
+                or "unidades"
+            )
             option["attrs"]["data-stock"] = stock
         return option
 
@@ -224,7 +230,7 @@ class ProveedorMaterialForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["material"].queryset = self.fields["material"].queryset.select_related(
-            "stock_info"
+            "stock_info", "unidad_medida"
         ).order_by("nombre")
 
     def clean(self):

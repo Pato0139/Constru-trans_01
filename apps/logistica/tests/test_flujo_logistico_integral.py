@@ -371,7 +371,9 @@ class FlujoLogisticoIntegralTests(TestCase):
         self.pedido.refresh_from_db()
         self.assertEqual(self.pago.estado, Pago.RECHAZADO)
         self.assertEqual(self.pedido.estado, Pedido.PENDIENTE)
-        self.assertFalse(Entrega.objects.filter(pedido=self.pedido).exists())
+        self.assertFalse(
+            Entrega.objects.filter(pedido=self.pedido, vehiculo__isnull=False).exists()
+        )
 
     def test_no_permite_asignar_conductor_inactivo_o_inexistente(self):
         self.pago.estado = Pago.APROBADO
@@ -419,6 +421,28 @@ class FlujoLogisticoIntegralTests(TestCase):
         self.assertEqual(resp.status_code, 400)
         self.pedido.refresh_from_db()
         self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
+
+    def test_no_asigna_un_vehiculo_que_conserva_asignacion_activa_a_otro_conductor(self):
+        self.pago.estado = Pago.APROBADO
+        self.pago.save()
+        autorizar_despacho_por_pago(self.pedido, usuario_admin=self.admin)
+        asignacion = ConductorVehiculo.objects.create(
+            conductor=self.otro_conductor_perfil,
+            vehiculo=self.vehiculo_disponible,
+        )
+
+        with self.assertRaises(ValidationError):
+            asignar_conductor_y_vehiculo(
+                self.pedido,
+                self.conductor_user.pk,
+                self.vehiculo_disponible.pk,
+                usuario_admin=self.admin,
+            )
+
+        asignacion.refresh_from_db()
+        self.assertIsNone(asignacion.fecha_fin)
+        self.assertEqual(asignacion.conductor_id, self.otro_conductor_perfil.pk)
+        self.assertFalse(Entrega.objects.filter(pedido=self.pedido, vehiculo__isnull=False).exists())
 
     def test_no_permite_iniciar_ruta_sin_asignacion(self):
         self.pago.estado = Pago.APROBADO

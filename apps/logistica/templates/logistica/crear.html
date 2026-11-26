@@ -3,12 +3,16 @@
 
 {% block title %}Registrar Novedad{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/logistica/novedad-form.css' %}?v=1.0">
+{% endblock %}
+
 {% block content %}
-<div class="container py-4">
+<div class="container py-4 novedad-form-page">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card shadow border-0 rounded-4 overflow-hidden">
-                <div class="card-header bg-gradient-to-r from-warning to-orange-500 text-white py-3">
+            <div class="card novedad-form-card shadow border-0 rounded-4 overflow-hidden">
+                <div class="card-header novedad-form-header py-3">
                     <h4 class="mb-0">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         Registrar Novedad
@@ -17,7 +21,7 @@
                 <div class="card-body p-4">
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3">
+                            <div class="p-3 novedad-meta-card rounded-3">
                                 <small class="text-muted text-uppercase fw-semibold">Pedido</small>
                                 <p class="fw-bold mb-0 mt-1">
                                     #{{ pedido.codigo_pedido }}
@@ -25,7 +29,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3">
+                            <div class="p-3 novedad-meta-card rounded-3">
                                 <small class="text-muted text-uppercase fw-semibold">Envio / Entrega</small>
                                 <p class="fw-bold mb-0 mt-1">
                                     #{{ entrega.id_entrega }}
@@ -34,7 +38,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3">
+                            <div class="p-3 novedad-meta-card rounded-3">
                                 <small class="text-muted text-uppercase fw-semibold">Conductor</small>
                                 <p class="mb-0 mt-1">
                                     {% if entrega.conductor %}
@@ -46,7 +50,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3">
+                            <div class="p-3 novedad-meta-card rounded-3">
                                 <small class="text-muted text-uppercase fw-semibold">Vehiculo</small>
                                 <p class="mb-0 mt-1">
                                     {% if entrega.vehiculo %}
@@ -72,11 +76,11 @@
                         {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
 
                         <div class="d-flex justify-content-between align-items-center gap-2">
-                            <a href="{% url 'pedidos:ver_pedido_admin' pedido.codigo_pedido %}"
+                            <a href="{% if user.rol == 'conductor' %}{% url 'logistica:mis_novedades' %}{% else %}{% url 'logistica:lista_novedades_admin' %}{% endif %}"
                                class="btn btn-outline-secondary px-4 rounded-pill">
                                 <i class="bi bi-arrow-left me-1"></i> Cancelar
                             </a>
-                            <button type="submit" class="btn btn-warning text-white px-5 rounded-pill fw-semibold shadow-sm">
+                            <button type="submit" class="btn novedad-submit-button px-5 rounded-pill fw-semibold shadow-sm">
                                 <i class="bi bi-send-fill me-2"></i>Guardar Novedad
                             </button>
                         </div>

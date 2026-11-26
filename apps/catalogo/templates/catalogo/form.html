@@ -126,6 +126,18 @@
                     </div>
                 </div>
 
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5" for="{{ form.stock_minimo.id_for_label }}">Stock mínimo para alerta</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-0 u-inline-b6cbaa05fa">
+                            <i class="bi bi-bell"></i>
+                        </span>
+                        {{ form.stock_minimo }}
+                    </div>
+                    {% if form.stock_minimo.help_text %}<div class="form-text text-white-50 mt-2">{{ form.stock_minimo.help_text }}</div>{% endif %}
+                    {% for error in form.stock_minimo.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+
                 <div class="mb-5">
                     <label class="form-label small fw-bold text-muted text-uppercase u-inline-2ecb5783f5">Ubicación en bodega</label>
                     <div class="input-group">

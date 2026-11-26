@@ -75,6 +75,7 @@ class CatalogoModelsTests(TestCase):
                 "descripcion": "Material de prueba",
                 "precio_referencia": "25000.00",
                 "stock": 7,
+                "stock_minimo": 12,
                 "ubicacion": "Bodega QA",
             }
         )
@@ -83,4 +84,5 @@ class CatalogoModelsTests(TestCase):
         material = form.save()
 
         self.assertEqual(material.stock_info.cantidad_actual, 7)
+        self.assertEqual(material.stock_info.stock_minimo, 12)
         self.assertEqual(material.stock_info.ubicacion, "Bodega QA")

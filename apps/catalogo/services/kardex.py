@@ -5,7 +5,7 @@ from datetime import datetime
 
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q, Sum
+from django.db.models import F, Q, Sum
 from django.urls import reverse
 from django.utils import timezone
 
@@ -205,58 +205,26 @@ def obtener_etiqueta_tipo_material(material) -> str:
     return "Materiales de Construcción"
 
 
+STOCK_CRITICO_PORCENTAJE = 50
+
+
+def calcular_nivel_alerta_stock(cantidad_actual: int, stock_minimo: int) -> str:
+    """Clasifica el stock usando el mínimo individual configurado para el material."""
+    if cantidad_actual > stock_minimo:
+        return "suficiente"
+    if cantidad_actual <= 0 or cantidad_actual * 100 <= stock_minimo * STOCK_CRITICO_PORCENTAJE:
+        return "critico"
+    return "bajo"
+
+
 def calcular_umbral_stock_bajo(material) -> int:
-    """
-    Calcula el umbral de stock mínimo/bajo de forma generalizada según el tipo de material,
-    el producto específico y su unidad de medida:
-      - Ej. Ladrillos / bloques / mampostería (TM001): 1000 unidades
-      - Ej. Puntillas / tornillos / ferretería general (TM012): 50 unidades
-      - Ej. Cementos y morteros (TM003): 100 bultos
-      - Ej. Agregados en m3/ton (TM002): 20 m3
-      - Y así para los 20 tipos del catálogo (TM001–TM020).
-    """
+    """Devuelve el mínimo individual; no infiere umbrales por tipo, marca o unidad."""
     if material is None:
-        return 30
-
-    texto = _normalizar_texto(f"{getattr(material, 'nombre', '')} {getattr(material, 'descripcion', '')}")
-
-    # 1. Coincidencia específica por producto (garantiza que ej. ladrillo=1000 y puntilla=50 siempre)
-    for palabras, umbral, _etiqueta in REGLAS_PALABRAS_CLAVE:
-        if any(p in texto for p in palabras):
-            return umbral
-
-    # 2. Coincidencia por tipo de material (Catalogo TM001–TM020 por código o por nombre)
-    catalogo = getattr(material, "catalogo", None)
-    unidad = getattr(material, "unidad_medida", None)
-    unidad_cod = _normalizar_texto(
-        f"{getattr(unidad, 'codigo', '')} {getattr(unidad, 'nombre', '')} {getattr(unidad, 'abreviatura', '')}"
-    )
-
-    if catalogo:
-        codigo_cat = (getattr(catalogo, "codigo_catalogo", "") or "").strip().upper()
-        nombre_cat = _normalizar_texto(getattr(catalogo, "nombre_empresa", ""))
-
-        umbral_cat = UMBRALES_POR_CODIGO_TIPO.get(codigo_cat) or UMBRALES_POR_NOMBRE_TIPO.get(nombre_cat)
-        if umbral_cat is not None:
-            # Si es TM001 general pero se mide en m3/toneladas o bultos, ajustar proporcionalmente
-            if codigo_cat == "TM001" or nombre_cat == "materiales de construccion":
-                if any(u in unidad_cod for u in ("m3", "metro cubico", "ton")):
-                    return 20
-                if any(u in unidad_cod for u in ("bto", "bulto", "bolsa", "saco")):
-                    return 100
-            return umbral_cat
-
-    # 3. Respaldo por unidad de medida
-    if any(u in unidad_cod for u in ("m3", "metro cubico", "ton")):
-        return 20
-    if any(u in unidad_cod for u in ("bto", "bulto", "bolsa", "saco")):
-        return 100
-    if any(u in unidad_cod for u in ("kg", "kilo", "mt", "metro", "m2")):
-        return 50
-    if any(u in unidad_cod for u in ("gl", "galon", "lt", "litro")):
-        return 20
-
-    return 50
+        return 0
+    try:
+        return max(0, int(material.stock_info.stock_minimo))
+    except (AttributeError, TypeError, ValueError):
+        return 0
 
 
 def evaluar_y_notificar_stock_bajo(
@@ -265,20 +233,16 @@ def evaluar_y_notificar_stock_bajo(
     cantidad_anterior: int | None = None,
     umbral: int | None = None,
 ):
-    """
-    Evalúa si el stock actual de un material cayó en o por debajo del umbral de su tipo
-    (o se agotó) y genera/actualiza la notificación para los administradores activos.
-    Si el stock se reabastece por encima del umbral, marca las alertas previas como leídas.
-    """
+    """Crea o actualiza una sola alerta activa por material y por administrador."""
     if material is None or not getattr(material, "pk", None):
         return
 
     from apps.usuarios.models import Notificacion, Usuario
 
-    if umbral is None or umbral <= 0:
+    if umbral is None:
         umbral = calcular_umbral_stock_bajo(material)
+    umbral = max(0, int(umbral))
 
-    tipo_label = obtener_etiqueta_tipo_material(material)
     unidad = getattr(material, "unidad_medida", None)
     unidad_label = (
         getattr(unidad, "abreviatura", None)
@@ -287,98 +251,106 @@ def evaluar_y_notificar_stock_bajo(
     )
 
     try:
-        link_stock = f"{reverse('catalogo:stock_lista')}?q={material.nombre}"
+        link_stock = reverse("catalogo:editar_material", args=[material.pk])
     except Exception:
         link_stock = "/catalogo/stock/"
 
-    titulo_bajo = f"Stock bajo - {material.nombre}"
-    titulo_agotado = f"¡Stock agotado! - {material.nombre}"
+    titulo = f"Alerta de inventario - Material #{material.pk}"
+    nivel = calcular_nivel_alerta_stock(cantidad_actual, umbral)
 
-    # Obtener administradores activos en la base 'default' (donde vive la app usuarios/notificaciones)
-    admins = list(
-        Usuario.objects.using("default")
-        .filter(Q(rol="admin") | Q(is_superuser=True), is_active=True)
-        .exclude(estado__in=["inactivo", "suspendido"])
-        .order_by("id")
-    )
-    if not admins:
-        return
-
-    # Caso 1: Stock reabastecido por encima del umbral -> cerrar alertas pendientes de este material
-    if cantidad_actual > umbral:
-        actualizadas = (
-            Notificacion.objects.using("default")
-            .filter(
-                usuario__in=admins,
-                titulo__in=[titulo_bajo, titulo_agotado],
-                leida=False,
-            )
-            .update(leida=True)
-        )
-        if actualizadas:
-            for adm in admins:
-                cache.delete(f"notif_user_{adm.pk}")
-        return
-
-    # Caso 2: Stock en o por debajo del umbral (0 < cantidad_actual <= umbral o cantidad_actual == 0)
-    # Solo disparamos cuando baja el stock o cuando aún no existe alerta activa sin leer.
-    bajo_o_cambio = (
-        cantidad_anterior is None
-        or cantidad_actual < cantidad_anterior
-        or (cantidad_anterior > umbral and cantidad_actual <= umbral)
-    )
-
-    if cantidad_actual <= 0:
-        titulo = titulo_agotado
-        mensaje = (
-            f"¡Atención! El producto «{material.nombre}» ({tipo_label}) se ha agotado "
-            f"(0 {unidad_label} disponibles). El mínimo para este tipo de material es "
-            f"{umbral} {unidad_label}."
-        )
-    else:
-        titulo = titulo_bajo
-        mensaje = (
-            f"Queda poco stock de «{material.nombre}» ({tipo_label}): quedan "
-            f"{cantidad_actual} {unidad_label} disponibles (umbral mínimo para este tipo: "
-            f"{umbral} {unidad_label}). Se recomienda reabastecer."
-        )
-
+    nivel_label = "crítico" if nivel == "critico" else "bajo"
     ahora = timezone.now()
-    for adm in admins:
-        notif_no_leida = (
-            Notificacion.objects.using("default")
-            .filter(
-                usuario=adm,
-                titulo__in=[titulo_bajo, titulo_agotado],
-                leida=False,
-            )
-            .first()
+    with transaction.atomic(using="default"):
+        admins = list(
+            Usuario.objects.using("default")
+            .select_for_update()
+            .filter(Q(rol="admin") | Q(is_superuser=True), is_active=True)
+            .exclude(estado__in=["inactivo", "suspendido"])
+            .order_by("id")
         )
-        if notif_no_leida:
-            if (
-                notif_no_leida.titulo != titulo
-                or notif_no_leida.mensaje != mensaje
-                or bajo_o_cambio
-            ):
-                notif_no_leida.titulo = titulo
-                notif_no_leida.mensaje = mensaje
-                notif_no_leida.tipo = "warning"
-                notif_no_leida.link = link_stock
-                notif_no_leida.fecha = ahora
-                notif_no_leida.save(
-                    using="default",
-                    update_fields=["titulo", "mensaje", "tipo", "link", "fecha"],
-                )
-                cache.delete(f"notif_user_{adm.pk}")
-        elif bajo_o_cambio:
-            Notificacion.objects.using("default").create(
-                usuario=adm,
-                titulo=titulo,
-                mensaje=mensaje,
-                tipo="warning",
-                link=link_stock,
+        for admin in admins:
+            alerta = (
+                Notificacion.objects.using("default")
+                .select_for_update()
+                .filter(usuario=admin, titulo=titulo)
+                .first()
             )
-            cache.delete(f"notif_user_{adm.pk}")
+
+            if nivel == "suficiente":
+                if alerta and alerta.tipo in ("warning", "danger"):
+                    alerta.tipo = "success"
+                    alerta.leida = True
+                    alerta.fecha = ahora
+                    alerta.mensaje = (
+                        f"Alerta resuelta para «{material.nombre}». Existencias actuales: "
+                        f"{cantidad_actual} {unidad_label}; mínimo configurado: "
+                        f"{umbral} {unidad_label}. Stock suficiente desde "
+                        f"{timezone.localtime(ahora).strftime('%d/%m/%Y %H:%M')}."
+                    )
+                    alerta.link = link_stock
+                    alerta.save(
+                        using="default",
+                        update_fields=["tipo", "leida", "fecha", "mensaje", "link"],
+                    )
+                    cache.delete(f"notif_user_{admin.pk}")
+                continue
+
+            fecha_deteccion = alerta.fecha if alerta else ahora
+            mensaje = (
+                f"Alerta de inventario {nivel_label} para «{material.nombre}». "
+                f"Stock actual: {cantidad_actual} {unidad_label}. "
+                f"Stock mínimo: {umbral} {unidad_label}. "
+                f"Detección: {timezone.localtime(fecha_deteccion).strftime('%d/%m/%Y %H:%M')}. "
+                "Se recomienda revisar el abastecimiento."
+            )
+            tipo_notificacion = "danger" if nivel == "critico" else "warning"
+
+            if alerta is None:
+                Notificacion.objects.using("default").create(
+                    usuario=admin,
+                    titulo=titulo,
+                    mensaje=mensaje,
+                    tipo=tipo_notificacion,
+                    link=link_stock,
+                )
+                cache.delete(f"notif_user_{admin.pk}")
+                continue
+
+            if alerta.tipo == "success":
+                alerta.leida = False
+                alerta.tipo = tipo_notificacion
+                alerta.fecha = ahora
+                mensaje = (
+                    f"Alerta de inventario {nivel_label} para «{material.nombre}». "
+                    f"Stock actual: {cantidad_actual} {unidad_label}. "
+                    f"Stock mínimo: {umbral} {unidad_label}. "
+                    f"Detección: {timezone.localtime(ahora).strftime('%d/%m/%Y %H:%M')}. "
+                    "Se recomienda revisar el abastecimiento."
+                )
+            elif alerta.tipo != tipo_notificacion:
+                alerta.leida = False
+                alerta.tipo = tipo_notificacion
+                alerta.fecha = ahora
+                mensaje = (
+                    f"El nivel de alerta cambió a {nivel_label} para «{material.nombre}». "
+                    f"Stock actual: {cantidad_actual} {unidad_label}. "
+                    f"Stock mínimo: {umbral} {unidad_label}. "
+                    f"Detección: {timezone.localtime(ahora).strftime('%d/%m/%Y %H:%M')}. "
+                    "Se recomienda revisar el abastecimiento."
+                )
+
+            if (
+                alerta.mensaje != mensaje
+                or alerta.link != link_stock
+                or alerta.tipo != tipo_notificacion
+            ):
+                alerta.mensaje = mensaje
+                alerta.link = link_stock
+                alerta.save(
+                    using="default",
+                    update_fields=["mensaje", "link", "tipo", "leida", "fecha"],
+                )
+                cache.delete(f"notif_user_{admin.pk}")
 
 
 
@@ -489,10 +461,10 @@ class KardexService:
         )
 
     @classmethod
-    def alertas_stock_bajo(cls, umbral: int = 10):
+    def alertas_stock_bajo(cls):
         return (
             Stock.objects.select_related("material")
-            .filter(cantidad_actual__lte=umbral)
+            .filter(cantidad_actual__lte=F("stock_minimo"))
             .order_by("cantidad_actual")
         )
 

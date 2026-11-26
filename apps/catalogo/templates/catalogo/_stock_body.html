@@ -1,3 +1,4 @@
+{% load humanize %}
 {% for s in stocks %}
 <tr class="u-inline-e91738c112">
     <td class="py-3 px-4" data-label="Material">
@@ -8,14 +9,23 @@
             </div>
             <div>
                 <span class="fw-medium u-inline-6e24079678">{{ s.material.nombre }}</span>
-                <div class="text-muted small">{{ s.material.tipo }}</div>
+                <div class="text-muted small">{{ s.material.tipo }}{% if s.material.marca %} · {{ s.material.marca.nombre }}{% endif %}</div>
             </div>
         </div>
     </td>
     <td class="py-3 px-4" data-label="Stock actual">
         <span
-            class="badge inventory-status {% if s.cantidad > 100 %}inventory-status--success{% elif s.cantidad > 0 %}inventory-status--warning{% else %}inventory-status--danger{% endif %} px-3">
-            {{ s.cantidad }} unidades
+            class="badge inventory-status {% if s.nivel_alerta == 'critico' %}inventory-status--danger{% elif s.nivel_alerta == 'bajo' %}inventory-status--warning{% else %}inventory-status--success{% endif %} px-3">
+            {{ s.cantidad_actual|intcomma }} {{ s.unidad_label }}
+        </span>
+    </td>
+    <td class="py-3 px-4" data-label="Stock mínimo">{{ s.stock_minimo|intcomma }} {{ s.unidad_label }}</td>
+    <td class="py-3 px-4" data-label="Diferencia">
+        {% if s.diferencia_stock_minimo %}<span class="text-warning">Faltan {{ s.diferencia_stock_minimo|intcomma }} {{ s.unidad_label }}</span>{% else %}<span class="text-muted">—</span>{% endif %}
+    </td>
+    <td class="py-3 px-4" data-label="Estado alerta">
+        <span class="inventory-alert-badge inventory-alert-badge--{{ s.nivel_alerta }}">
+            {% if s.nivel_alerta == 'critico' %}Crítico{% elif s.nivel_alerta == 'bajo' %}Bajo{% else %}Suficiente{% endif %}
         </span>
     </td>
     <td class="py-3 px-4" data-label="Precio unitario">
@@ -31,7 +41,7 @@
 </tr>
 {% empty %}
 <tr class="inventory-stock-empty">
-    <td colspan="6" class="text-center py-5">
+    <td colspan="9" class="text-center py-5">
         <div class="py-5">
             <i class="bi bi-archive text-muted mb-3 d-block u-inline-8ae57e885d"></i>
             <p class="text-muted fw-medium mb-0">No hay materiales en inventario</p>

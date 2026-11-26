@@ -17,6 +17,37 @@ from config.db_utils import select_for_update_if_supported
 logger = logging.getLogger(__name__)
 
 
+def pedido_tiene_pago_recibido(pedido):
+    """Admite contraentrega o un comprobante físicamente disponible."""
+    from apps.pagos.models import Pago
+
+    pago = getattr(pedido, "pago_actual", None)
+    if pago is None:
+        return False
+    if pago.metodo == Pago.METODO_CONTRAENTREGA:
+        return True
+    if not pago.requiere_comprobante():
+        return False
+    return pago.comprobante_existe_en_disco
+
+
+def filtrar_pedidos_con_pago_recibido(pedidos, *, limite=None):
+    """Filtra usando existencia real del archivo, no solo la ruta guardada en BD."""
+    from django.db.models import Q
+    from apps.pagos.models import Pago
+
+    candidatos = pedidos.filter(
+        Q(pago__metodo=Pago.METODO_CONTRAENTREGA) | Q(pago__comprobante__gt="")
+    ).select_related("pago")
+    recibidos = []
+    for pedido in candidatos:
+        if pedido_tiene_pago_recibido(pedido):
+            recibidos.append(pedido)
+            if limite is not None and len(recibidos) >= limite:
+                break
+    return recibidos
+
+
 def revertir_stock_pedido(orden, usuario, motivo_prefijo="Cancelación", using=None):
     db_alias = using if using else ("remota" if debe_usar_bd_remota() else "default")
     detalles = list(orden.detalles.using(db_alias).all())

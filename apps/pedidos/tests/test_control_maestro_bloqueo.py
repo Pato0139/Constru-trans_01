@@ -66,7 +66,7 @@ class ControlMaestroBloqueoTests(TestCase):
             marca="Foton",
             modelo="Aumark",
             tipo_vehiculo="Camión",
-            capacidad_carga=Decimal("4.50"),
+            capacidad_carga=Decimal("5.00"),
             estado="disponible",
         )
 
@@ -122,9 +122,9 @@ class ControlMaestroBloqueoTests(TestCase):
             reverse("pedidos:ver_pedido_admin", args=[self.pedido.codigo_pedido])
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'id="order-master-state" name="estado" disabled')
-        self.assertContains(resp, "Asignación Confirmada")
-        self.assertContains(resp, "El pedido ya cuenta con conductor y vehículo asignados")
+        self.assertNotContains(resp, 'name="estado"')
+        self.assertContains(resp, "Asignación de Transporte")
+        self.assertContains(resp, "Asignación confirmada")
 
     def test_backend_rechaza_cambio_estado_control_maestro_cuando_vehiculo_asignado(self):
         """Si un usuario intenta enviar un POST al Control Maestro con un pedido asignado (bypass de DOM), el backend lo rechaza."""
@@ -153,7 +153,7 @@ class ControlMaestroBloqueoTests(TestCase):
         # Verificar mensaje de error del backend
         mensajes = [m.message for m in get_messages(resp.wsgi_request)]
         self.assertTrue(
-            any("ya tiene conductor y vehículo asignados" in m for m in mensajes)
+            any("No se permiten cambios manuales de estado" in m for m in mensajes)
         )
 
     def test_backend_rechaza_crear_entrega_si_ya_esta_asignado(self):
@@ -201,7 +201,7 @@ class ControlMaestroBloqueoTests(TestCase):
 
         mensajes = [m.message for m in get_messages(resp.wsgi_request)]
         self.assertTrue(
-            any("sin asignar un conductor y vehículo válidos" in m for m in mensajes)
+            any("No se permiten cambios manuales de estado" in m for m in mensajes)
         )
 
     def test_control_maestro_bloqueado_en_ruta(self):
@@ -221,7 +221,8 @@ class ControlMaestroBloqueoTests(TestCase):
         resp_get = self.client.get(
             reverse("pedidos:ver_pedido_admin", args=[self.pedido.codigo_pedido])
         )
-        self.assertContains(resp_get, 'id="order-master-state" name="estado" disabled')
+        self.assertNotContains(resp_get, 'name="estado"')
+        self.assertContains(resp_get, "En Ruta")
 
         self.client.post(
             reverse("pedidos:ver_pedido_admin", args=[self.pedido.codigo_pedido]),

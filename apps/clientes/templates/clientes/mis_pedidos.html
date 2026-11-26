@@ -42,7 +42,8 @@
     </div>
 
     <div class="card border-0 shadow-sm p-3 mb-4 filter-bar-card" data-aos="fade-down">
-        <form method="GET" class="standard-filter-form row g-2 align-items-center" id="filtros-mis-pedidos">
+        <form method="GET" class="standard-filter-form row g-2 align-items-center" id="filtros-mis-pedidos"
+            data-disable-quick-filters="true">
             <div class="col-12 col-lg-auto d-flex align-items-center">
                 <span class="text-accent small fw-bold text-nowrap"><i class="bi bi-funnel-fill text-gold me-1"></i> FILTROS:</span>
             </div>
@@ -56,10 +57,11 @@
             </div>
             <div class="col-12 col-sm-6 col-lg-3">
                 <select name="estado" class="form-select form-select-sm bg-surface text-white">
-                    <option value="">Estado (Todos)</option>
+                    <option value="">Todos los estados</option>
                     <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="pendiente_correccion_pago" {% if estado == 'pendiente_correccion_pago' %}selected{% endif %}>Pendiente de corrección de pago</option>
                     <option value="autorizado_despacho" {% if estado == 'autorizado_despacho' or estado == 'vehiculo_asignado' %}selected{% endif %}>Autorizado para despacho</option>
-                    <option value="en_ruta" {% if estado == 'en_ruta' %}selected{% endif %}>En Ruta</option>
+                    <option value="en_ruta" {% if estado == 'en_ruta' %}selected{% endif %}>En ruta</option>
                 </select>
             </div>
             <div class="col-12 col-sm-6 col-lg-auto ms-auto d-flex gap-2 justify-content-end">

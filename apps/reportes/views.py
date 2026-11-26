@@ -15,6 +15,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from apps.catalogo.models import MaterialConstruccion as Material
+from apps.catalogo.services.kardex import calcular_nivel_alerta_stock
 from apps.logistica.models import Vehiculo
 from apps.pedidos.models import Pedido
 from apps.usuarios.models import Usuario
@@ -138,9 +139,15 @@ def reportes_admin(request):
     pct_entregadas = (entregadas * 100 / total) if total > 0 else 0
 
     # Materiales con stock crítico
-    stock_critico = Material.objects.filter(
-        stock_info__cantidad_actual__lt=F("stock_info__stock_minimo")
-    ).select_related("stock_info")
+    stock_critico = [
+        material
+        for material in Material.objects.filter(stock_info__isnull=False).select_related(
+            "stock_info", "unidad_medida"
+        )
+        if calcular_nivel_alerta_stock(
+            material.stock_info.cantidad_actual, material.stock_info.stock_minimo
+        ) == "critico"
+    ]
 
     context = {
         # Resumen de Órdenes

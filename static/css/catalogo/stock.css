@@ -4,22 +4,62 @@
  */
 
 .inventory-stock-table {
-	min-width: 68rem;
+	min-width: 92rem;
 	table-layout: fixed;
 }
 
 .inventory-stock-table th:nth-child(1),
-.inventory-stock-table td:nth-child(1) { width: 18rem; }
+.inventory-stock-table td:nth-child(1) { width: 17rem; }
 .inventory-stock-table th:nth-child(2),
-.inventory-stock-table td:nth-child(2) { width: 11rem; }
+.inventory-stock-table td:nth-child(2) { width: 10rem; }
 .inventory-stock-table th:nth-child(3),
-.inventory-stock-table td:nth-child(3) { width: 9rem; }
+.inventory-stock-table td:nth-child(3) { width: 10rem; }
 .inventory-stock-table th:nth-child(4),
 .inventory-stock-table td:nth-child(4) { width: 11rem; }
 .inventory-stock-table th:nth-child(5),
-.inventory-stock-table td:nth-child(5) { width: 12rem; }
+.inventory-stock-table td:nth-child(5) { width: 9rem; }
 .inventory-stock-table th:nth-child(6),
-.inventory-stock-table td:nth-child(6) { width: 7rem; }
+.inventory-stock-table td:nth-child(6) { width: 10rem; }
+.inventory-stock-table th:nth-child(7),
+.inventory-stock-table td:nth-child(7) { width: 11rem; }
+.inventory-stock-table th:nth-child(8),
+.inventory-stock-table td:nth-child(8) { width: 12rem; }
+.inventory-stock-table th:nth-child(9),
+.inventory-stock-table td:nth-child(9) { width: 7rem; }
+
+.inventory-alert-summary {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 1rem;
+}
+
+.inventory-alert-card {
+	display: flex;
+	align-items: center;
+	gap: 0.85rem;
+	padding: 1rem 1.15rem;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--card-bg);
+}
+
+.inventory-alert-card__icon { font-size: 1.25rem; }
+.inventory-alert-card__label { display: block; color: var(--color-muted); font-size: 0.78rem; }
+.inventory-alert-card strong { color: var(--color-text); font-size: 1.25rem; }
+.inventory-alert-card--critical .inventory-alert-card__icon { color: #ef4444; }
+.inventory-alert-card--low .inventory-alert-card__icon { color: #f59e0b; }
+.inventory-alert-card--total .inventory-alert-card__icon { color: var(--color-accent); }
+
+.inventory-alert-badge {
+	display: inline-block;
+	padding: 0.3rem 0.65rem;
+	border-radius: 999px;
+	font-size: 0.75rem;
+	font-weight: 700;
+}
+.inventory-alert-badge--suficiente { color: #34d399; background: rgb(16 185 129 / 14%); }
+.inventory-alert-badge--bajo { color: #fbbf24; background: rgb(245 158 11 / 14%); }
+.inventory-alert-badge--critico { color: #f87171; background: rgb(239 68 68 / 14%); }
 
 .main-content .inventory-stock-table td {
 	overflow-wrap: normal;
@@ -27,6 +67,7 @@
 }
 
 @media (max-width: 576px) {
+	.inventory-alert-summary { grid-template-columns: 1fr; gap: 0.6rem; }
 	.inventory-stock-table {
 		display: block;
 		width: 100%;

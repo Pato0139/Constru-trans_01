@@ -18,6 +18,47 @@ from config.db_utils import select_for_update_if_supported
 
 logger = logging.getLogger(__name__)
 
+ESTADOS_ENTREGA_ACTIVA = ("pendiente", "en_ruta")
+
+
+def _entregas_activas_vehiculo(db_alias, vehiculo_id, *, excluir_entrega_id=None, conductor_id=None):
+    qs = Entrega.objects.using(db_alias).filter(
+        vehiculo_id=vehiculo_id, estado__in=ESTADOS_ENTREGA_ACTIVA
+    )
+    if excluir_entrega_id is not None:
+        qs = qs.exclude(pk=excluir_entrega_id)
+    if conductor_id is not None:
+        qs = qs.filter(conductor_id=conductor_id)
+    return qs
+
+
+def _cerrar_asignacion_vehiculo_si_libre(
+    db_alias, vehiculo_id, conductor_id, *, excluir_entrega_id=None, ahora=None
+):
+    """Cierra solo la relación conductor/vehículo cuando ya no quedan entregas activas."""
+    if not vehiculo_id or not conductor_id:
+        return
+    if _entregas_activas_vehiculo(
+        db_alias,
+        vehiculo_id,
+        excluir_entrega_id=excluir_entrega_id,
+        conductor_id=conductor_id,
+    ).exists():
+        return
+
+    fin = ahora or timezone.now()
+    ConductorVehiculo.objects.using(db_alias).filter(
+        vehiculo_id=vehiculo_id,
+        conductor_id=conductor_id,
+        fecha_fin__isnull=True,
+    ).update(fecha_fin=fin)
+
+    if not _entregas_activas_vehiculo(db_alias, vehiculo_id).exists():
+        vehiculo = Vehiculo.objects.using(db_alias).filter(pk=vehiculo_id).first()
+        if vehiculo and vehiculo.estado == "en_ruta":
+            vehiculo.estado = "disponible"
+            vehiculo.save(using=db_alias, update_fields=["estado"])
+
 
 def _resolver_db_alias(obj=None, using=None):
     if using:
@@ -80,7 +121,7 @@ def models_q_admin():
     return Q(rol="admin") | Q(is_superuser=True)
 
 
-def notificar_evento_logistico(evento, pedido, actor=None, extra_info="", using=None):
+def notificar_evento_logistico(evento, pedido, actor=None, extra_info="", using=None, event_key=None):
     """
     Dispara notificaciones para Administrador(es) y Cliente (y Conductor cuando aplica)
     según la matriz de eventos del flujo logístico, sin duplicados.
@@ -178,7 +219,8 @@ def notificar_evento_logistico(evento, pedido, actor=None, extra_info="", using=
             mensaje = f"Se actualizó la asignación de tu pedido #CT-{codigo}. {extra_info}".strip()
             tipo = "warning"
         elif evento == "fecha_reagendada":
-            titulo = f"Nueva fecha de entrega - Pedido #CT-{codigo} - {timezone.localtime().strftime('%Y%m%d%H%M%S%f')}"
+            identificador_evento = event_key or timezone.localtime().strftime("%Y%m%d%H%M%S%f")
+            titulo = f"Nueva fecha de entrega - Pedido #CT-{codigo} - {identificador_evento}"
             fecha = pedido.fecha_entrega_programada
             fecha_texto = timezone.localtime(fecha).strftime("%d/%m/%Y %H:%M") if fecha else "por confirmar"
             mensaje = f"La entrega del pedido #CT-{codigo} fue reagendada para el {fecha_texto}. {extra_info}".strip()
@@ -634,44 +676,50 @@ def asignar_conductor_y_vehiculo(pedido, conductor_usuario_o_id, vehiculo_o_id, 
             entrega_existente is not None and entrega_existente.vehiculo_id == vehiculo_bloqueado.pk
         )
 
+        if vehiculo_bloqueado.capacidad_carga < Decimal("5") and not mismo_vehiculo_actual:
+            raise ValidationError("Solo se pueden asignar vehículos con capacidad mínima de 5 toneladas.")
+
         if vehiculo_bloqueado.estado != "disponible" and not mismo_vehiculo_actual:
             raise ValidationError(
                 f"El vehículo {vehiculo_bloqueado.placa} no está disponible (estado actual: {vehiculo_bloqueado.get_estado_display()})."
             )
 
-        envios_activos_vehiculo = (
-            Entrega.objects.using(db_alias)
-            .filter(
-                vehiculo=vehiculo_bloqueado,
-                estado__in=["pendiente", "en_ruta"],
-                pedido__estado__in=[
-                    Pedido.AUTORIZADO_DESPACHO,
-                    Pedido.VEHICULO_ASIGNADO,
-                    Pedido.EN_RUTA,
-                ],
-            )
-            .exclude(pedido=orden)
+        asignacion_vehiculo_activa = (
+            ConductorVehiculo.objects.using(db_alias)
+            .filter(vehiculo_id=vehiculo_bloqueado.pk, fecha_fin__isnull=True)
+            .exclude(conductor_id=conductor_perfil.pk)
+            .select_related("conductor__usuario")
+            .first()
         )
+        if asignacion_vehiculo_activa:
+            nombre = asignacion_vehiculo_activa.conductor.usuario.nombre_mostrar
+            raise ValidationError(
+                f"El vehículo {vehiculo_bloqueado.placa} sigue asignado a {nombre}; "
+                "no se puede transferir mientras conserve esa asignación."
+            )
+
+        envios_activos_vehiculo = _entregas_activas_vehiculo(
+            db_alias,
+            vehiculo_bloqueado.pk,
+            excluir_entrega_id=entrega_existente.pk if entrega_existente else None,
+        ).exclude(conductor_id=conductor_perfil.pk)
         if envios_activos_vehiculo.exists():
             raise ValidationError(
-                f"El vehículo {vehiculo_bloqueado.placa} ya está ocupado en otro envío activo."
+                f"El vehículo {vehiculo_bloqueado.placa} está en uso por otro conductor."
             )
 
         ahora = timezone.now()
 
-        # Cerrar asignaciones previas en ConductorVehiculo y abrir la nueva
-        ConductorVehiculo.objects.using(db_alias).filter(
-            conductor=conductor_perfil,
-            fecha_fin__isnull=True,
-        ).update(fecha_fin=ahora)
-        ConductorVehiculo.objects.using(db_alias).filter(
-            vehiculo=vehiculo_bloqueado,
-            fecha_fin__isnull=True,
-        ).update(fecha_fin=ahora)
-        ConductorVehiculo.objects.using(db_alias).create(
+        asignacion_activa = ConductorVehiculo.objects.using(db_alias).filter(
             conductor=conductor_perfil,
             vehiculo=vehiculo_bloqueado,
-        )
+            fecha_fin__isnull=True,
+        ).first()
+        if not asignacion_activa:
+            ConductorVehiculo.objects.using(db_alias).create(
+                conductor=conductor_perfil,
+                vehiculo=vehiculo_bloqueado,
+            )
 
         if entrega_existente:
             entrega = entrega_existente
@@ -760,56 +808,79 @@ def reasignar_recursos_entrega(
             raise ValidationError("El conductor debe estar activo y disponible.")
         if vehiculo is None:
             raise ValidationError("El vehículo seleccionado no existe.")
+        if vehiculo.capacidad_carga < Decimal("5") and nuevo_vehiculo_id != entrega.vehiculo_id:
+            raise ValidationError("Solo se pueden asignar vehículos con capacidad mínima de 5 toneladas.")
         if nuevo_vehiculo_id != entrega.vehiculo_id and vehiculo.estado != "disponible":
             raise ValidationError("El nuevo vehículo no está disponible para asignación.")
 
-        estados_activos = [Pedido.AUTORIZADO_DESPACHO, Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA]
-        conflictos_conductor = Entrega.objects.using(db_alias).filter(
-            conductor_id=nuevo_conductor_id,
-            estado__in=["pendiente", "en_ruta"],
-            pedido__estado__in=estados_activos,
-        ).exclude(pk=entrega.pk)
-        if conflictos_conductor.exists():
-            raise ValidationError("El conductor ya tiene otro envío activo asignado.")
-        conflictos_vehiculo = Entrega.objects.using(db_alias).filter(
-            vehiculo_id=nuevo_vehiculo_id,
-            estado__in=["pendiente", "en_ruta"],
-            pedido__estado__in=estados_activos,
-        ).exclude(pk=entrega.pk)
+        # El conductor puede conservar otros pedidos y otras asociaciones. El vehículo
+        # puede tener varios pedidos activos únicamente para el mismo conductor.
+        conflictos_vehiculo = _entregas_activas_vehiculo(
+            db_alias,
+            nuevo_vehiculo_id,
+            excluir_entrega_id=entrega.pk,
+        ).exclude(conductor_id=nuevo_conductor_id)
         if conflictos_vehiculo.exists():
-            raise ValidationError("El vehículo ya está asignado a otro envío activo.")
+            raise ValidationError("El vehículo está en uso por otro conductor y no se puede transferir.")
+
+        asignacion_vehiculo = (
+            ConductorVehiculo.objects.using(db_alias)
+            .filter(vehiculo_id=nuevo_vehiculo_id, fecha_fin__isnull=True)
+            .select_related("conductor__usuario")
+            .first()
+        )
+        puede_transferir_vehiculo_actual = (
+            nuevo_vehiculo_id == entrega.vehiculo_id
+            and asignacion_vehiculo is not None
+            and asignacion_vehiculo.conductor_id == entrega.conductor_id
+        )
+        if (
+            asignacion_vehiculo
+            and asignacion_vehiculo.conductor_id != nuevo_conductor_id
+            and not puede_transferir_vehiculo_actual
+        ):
+            raise ValidationError(
+                f"El vehículo {vehiculo.placa} continúa asignado a "
+                f"{asignacion_vehiculo.conductor.usuario.nombre_mostrar}. Libéralo antes de reasignarlo."
+            )
 
         conductor_anterior_id, vehiculo_anterior_id = entrega.conductor_id, entrega.vehiculo_id
-        ConductorVehiculo.objects.using(db_alias).filter(
-            Q(conductor_id=conductor_anterior_id) | Q(vehiculo_id=vehiculo_anterior_id),
-            fecha_fin__isnull=True,
-        ).update(fecha_fin=ahora)
-        ConductorVehiculo.objects.using(db_alias).filter(
-            Q(conductor_id=nuevo_conductor_id) | Q(vehiculo_id=nuevo_vehiculo_id),
-            fecha_fin__isnull=True,
-        ).update(fecha_fin=ahora)
-        ConductorVehiculo.objects.using(db_alias).create(
-            conductor=conductor, vehiculo=vehiculo, fecha_asignacion=ahora
-        )
+        if (conductor_anterior_id, vehiculo_anterior_id) != (nuevo_conductor_id, nuevo_vehiculo_id):
+            _cerrar_asignacion_vehiculo_si_libre(
+                db_alias,
+                vehiculo_anterior_id,
+                conductor_anterior_id,
+                excluir_entrega_id=entrega.pk,
+                ahora=ahora,
+            )
 
         entrega.conductor = conductor
         entrega.conductor_usuario = conductor.usuario
         entrega.vehiculo = vehiculo
         entrega.fecha_asignacion = ahora
         entrega.save(using=db_alias, update_fields=["conductor", "conductor_usuario", "vehiculo", "fecha_asignacion"])
+        if (conductor_anterior_id, vehiculo_anterior_id) != (nuevo_conductor_id, nuevo_vehiculo_id):
+            _cerrar_asignacion_vehiculo_si_libre(
+                db_alias,
+                vehiculo_anterior_id,
+                conductor_anterior_id,
+                ahora=ahora,
+            )
+        if not ConductorVehiculo.objects.using(db_alias).filter(
+            conductor_id=nuevo_conductor_id,
+            vehiculo_id=nuevo_vehiculo_id,
+            fecha_fin__isnull=True,
+        ).exists():
+            ConductorVehiculo.objects.using(db_alias).create(
+                conductor=conductor,
+                vehiculo=vehiculo,
+                fecha_asignacion=ahora,
+            )
         orden.conductor = conductor
         orden.conductor_usuario_legacy = conductor.usuario
         orden.save(using=db_alias, update_fields=["conductor", "conductor_usuario_legacy"])
         entrega.pedido = orden
 
-        if vehiculo_anterior_id and vehiculo_anterior_id != vehiculo.pk:
-            anterior = Vehiculo.objects.using(db_alias).filter(pk=vehiculo_anterior_id).first()
-            sigue_en_ruta = Entrega.objects.using(db_alias).filter(
-                vehiculo_id=vehiculo_anterior_id, estado="en_ruta"
-            ).exclude(pk=entrega.pk).exists()
-            if anterior and anterior.estado == "en_ruta" and not sigue_en_ruta:
-                anterior.estado = "disponible"
-                anterior.save(using=db_alias, update_fields=["estado"])
         if entrega.estado == "en_ruta" and vehiculo.estado != "en_ruta":
             vehiculo.estado = "en_ruta"
             vehiculo.save(using=db_alias, update_fields=["estado"])
@@ -844,6 +915,13 @@ def reagendar_entrega(pedido_id, nueva_fecha, using=None):
         )
         if pedido.estado in (Pedido.ENTREGADO, Pedido.CANCELADO):
             raise ValidationError("No se puede reagendar un pedido finalizado o cancelado.")
+        entrega_en_ruta = select_for_update_if_supported(
+            Entrega.objects.using(db_alias), db_alias
+        ).filter(pedido_id=pedido.pk, estado="en_ruta").order_by("id_entrega").first()
+        if pedido.estado == Pedido.EN_RUTA or entrega_en_ruta:
+            raise ValidationError(
+                "No se puede reagendar una entrega que ya está en ruta. Registra una novedad logística para gestionarla."
+            )
         anterior = pedido.fecha_entrega_programada
         if anterior == nueva_fecha:
             raise ValidationError("La fecha seleccionada es igual a la fecha actual.")
@@ -1037,40 +1115,12 @@ def marcar_pedido_entregado(entrega_o_pedido, usuario, observacion="", using=Non
             update_fields=["estado", "fecha_entrega_real"],
         )
 
-        # Liberar vehículo si no tiene otras entregas activas
-        if entrega.vehiculo_id:
-            vehiculo = (
-                select_for_update_if_supported(Vehiculo.objects.using(db_alias), db_alias)
-                .filter(pk=entrega.vehiculo_id)
-                .first()
-            )
-            otras_activas = (
-                Entrega.objects.using(db_alias)
-                .filter(vehiculo_id=entrega.vehiculo_id, estado="en_ruta")
-                .exclude(pk=entrega.pk)
-                .exists()
-            )
-            if vehiculo and not otras_activas:
-                vehiculo.estado = "disponible"
-                vehiculo.save(using=db_alias, update_fields=["estado"])
-
-        # Liberar asignación activa en ConductorVehiculo si no tiene otros envíos pendientes/en_ruta
-        if entrega.conductor_id:
-            otros_envios_conductor = (
-                Entrega.objects.using(db_alias)
-                .filter(
-                    conductor_id=entrega.conductor_id,
-                    estado__in=["pendiente", "en_ruta"],
-                    pedido__estado__in=[Pedido.VEHICULO_ASIGNADO, Pedido.EN_RUTA],
-                )
-                .exclude(pk=entrega.pk)
-                .exists()
-            )
-            if not otros_envios_conductor:
-                ConductorVehiculo.objects.using(db_alias).filter(
-                    conductor_id=entrega.conductor_id,
-                    fecha_fin__isnull=True,
-                ).update(fecha_fin=ahora)
+        _cerrar_asignacion_vehiculo_si_libre(
+            db_alias,
+            entrega.vehiculo_id,
+            entrega.conductor_id,
+            ahora=ahora,
+        )
 
         observacion_limpia = (observacion or "").strip()
         if observacion_limpia and actor_db:
@@ -1149,21 +1199,12 @@ def cancelar_envio_pedido(pedido, usuario, motivo="", revertir_stock=True, using
             else:
                 entrega.save(using=db_alias, update_fields=["motivo_cancelacion"])
 
-            if entrega.vehiculo_id:
-                vehiculo = (
-                    select_for_update_if_supported(Vehiculo.objects.using(db_alias), db_alias)
-                    .filter(pk=entrega.vehiculo_id)
-                    .first()
-                )
-                if vehiculo and vehiculo.estado == "en_ruta":
-                    vehiculo.estado = "disponible"
-                    vehiculo.save(using=db_alias, update_fields=["estado"])
-
-            if entrega.conductor_id:
-                ConductorVehiculo.objects.using(db_alias).filter(
-                    conductor_id=entrega.conductor_id,
-                    fecha_fin__isnull=True,
-                ).update(fecha_fin=ahora)
+            _cerrar_asignacion_vehiculo_si_libre(
+                db_alias,
+                entrega.vehiculo_id,
+                entrega.conductor_id,
+                ahora=ahora,
+            )
         else:
             liberar_vehiculo_pedido(orden)
 

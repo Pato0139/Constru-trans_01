@@ -441,7 +441,10 @@ table.table {
 /* The sidebar is fixed, so reserve exactly its width for main content on
    desktop and large tablets.  This removes the extra hidden margin that
    caused misalignment and empty space between sidebar and centered forms. */
-@media (min-width: 768px) {
+/* Reserve the sidebar only when the effective viewport has room for it.
+   Browser zoom reduces the CSS viewport, so this breakpoint also keeps the
+   dashboard usable when zoomed in on a laptop. */
+@media (min-width: 1200px) {
   :root {
     --page-gutter: 1.75rem;
   }
@@ -466,9 +469,290 @@ table.table {
   }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1440px) {
   :root {
     --page-gutter: 2.25rem;
+  }
+}
+
+/* Shared layout guardrails.  Modules may keep their own grids, but their
+   content must be allowed to shrink inside the available page width. */
+.main-content [class*="col-"],
+.main-content :is(.card, .panel-card, .table-container, .table-responsive),
+.main-content :is(.d-flex, .d-grid) > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.main-content > [data-ajax-content],
+.main-content > [data-ajax-content] > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.main-content :is(input, select, textarea, .form-control, .form-select) {
+  max-width: 100%;
+}
+
+.main-content :is(pre, code, .text-truncate) {
+  overflow-wrap: anywhere;
+}
+
+.main-content pre {
+  max-width: 100%;
+  white-space: pre-wrap;
+}
+
+.quick-actions-row .quick-action-btn {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+
+.main-content .quick-actions-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.main-content .quick-actions-row .quick-action-btn {
+  width: 100%;
+  min-height: 2.75rem;
+  height: auto;
+  padding: 0.65rem 0.85rem;
+  line-height: 1.35;
+}
+
+/* Give the status and action columns enough room so long order states never
+   overlap the view button in the recent-orders table. */
+.admin-recent-orders-table {
+  width: 100%;
+  min-width: 850px !important;
+  table-layout: fixed;
+}
+
+.admin-recent-orders-table :is(th, td):nth-child(1) { width: 10%; }
+.admin-recent-orders-table :is(th, td):nth-child(2) { width: 22%; }
+.admin-recent-orders-table :is(th, td):nth-child(3) { width: 16%; }
+.admin-recent-orders-table :is(th, td):nth-child(4) { width: 16%; }
+.admin-recent-orders-table :is(th, td):nth-child(5) { width: 26%; }
+.admin-recent-orders-table :is(th, td):nth-child(6) {
+  width: 10%;
+  min-width: 5.5rem;
+  text-align: center;
+}
+
+.admin-recent-orders-table td:nth-child(5) .badge {
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.admin-recent-orders-table td:last-child .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The admin KPI row used Bootstrap's md breakpoint, which forced four narrow
+   cards as soon as zoom made the CSS viewport cross 768px. */
+.admin-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem !important;
+  margin: 0 0 2rem !important;
+  --bs-gutter-x: 0;
+  --bs-gutter-y: 0;
+}
+
+.admin-kpi-grid > [class*="col-"] {
+  width: auto;
+  max-width: none;
+  padding: 0;
+}
+
+/* At 1200px and below, show the dashboard as a single-column canvas and put
+   navigation behind its existing menu button.  This includes zoomed desktop
+   windows where the CSS viewport is narrower than the physical monitor. */
+@media (max-width: 1199.98px) {
+  .sidebar-custom {
+    position: fixed !important;
+    top: 0;
+    left: calc(-1 * var(--app-sidebar-width)) !important;
+    width: min(85vw, var(--app-sidebar-width)) !important;
+    height: 100dvh;
+    z-index: 1200;
+    transition: left 0.25s ease;
+  }
+
+  .sidebar-custom.active {
+    left: 0 !important;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+    z-index: 1150;
+  }
+
+  .main-content.app-main,
+  .main-content {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    padding: 6rem clamp(0.75rem, 2vw, 1.5rem) 1.5rem !important;
+  }
+
+  .app-navbar,
+  .app-topbar,
+  .navbar-premium {
+    top: 0.5rem !important;
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 3.75rem;
+    padding: 0.5rem 0.65rem !important;
+    gap: 0.5rem;
+  }
+
+  .app-navbar #sidebarToggle {
+    display: inline-flex !important;
+    flex: 0 0 2.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .app-navbar > .d-flex:last-child {
+    flex: 0 0 auto;
+    gap: clamp(0.25rem, 1vw, 0.75rem) !important;
+  }
+
+  .app-navbar .js-accessibility-dropdown:not(.d-none) > button {
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 2.75rem;
+    padding: 0.5rem !important;
+    justify-content: center;
+  }
+
+  .app-navbar .js-accessibility-dropdown:not(.d-none) > button span {
+    display: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .main-content.app-main,
+  .main-content {
+    padding-top: 5.5rem !important;
+  }
+
+  .admin-kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  }
+
+  .main-content .quick-actions-row {
+    grid-template-columns: 1fr;
+  }
+
+  .main-content .quick-actions-row .quick-action-btn {
+    flex: initial;
+  }
+
+  .main-content .admin-recent-orders-wrap {
+    overflow: visible !important;
+  }
+
+  .admin-recent-orders-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    table-layout: fixed;
+  }
+
+  .admin-recent-orders-table thead {
+    display: none;
+  }
+
+  .admin-recent-orders-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-recent-orders-table tbody > tr:not(.admin-recent-orders-empty) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.15rem;
+    width: 100%;
+    margin: 0 0 0.75rem;
+    padding: 0.55rem 0.7rem;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: 0.85rem;
+    background: var(--card-bg);
+  }
+
+  .admin-recent-orders-table tbody > tr > td {
+    display: grid;
+    grid-template-columns: minmax(5.25rem, 34%) minmax(0, 1fr);
+    align-items: center;
+    gap: 0.5rem;
+    width: 100% !important;
+    min-width: 0;
+    padding: 0.4rem 0.15rem !important;
+    border: 0;
+    text-align: left !important;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-recent-orders-table tbody > tr > td::before {
+    content: attr(data-label);
+    color: var(--color-muted);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1.25;
+    text-transform: uppercase;
+  }
+
+  .admin-recent-orders-table tbody > tr > td:nth-child(2) > .d-flex {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .admin-recent-orders-table tbody > tr > td:nth-child(5) .badge {
+    justify-self: start;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-recent-orders-table tbody > tr > td:nth-child(6) > .d-flex {
+    justify-content: flex-end !important;
+    flex-wrap: wrap;
+    gap: 0.35rem !important;
+  }
+
+  .admin-recent-orders-table tbody > tr.admin-recent-orders-empty > td {
+    display: block;
+    text-align: center !important;
+  }
+
+  .admin-recent-orders-table tbody > tr.admin-recent-orders-empty > td::before {
+    content: none;
+  }
+
+  .table-container > .d-flex.justify-content-between {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .table-container > .d-flex.justify-content-between > a {
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 }
 
