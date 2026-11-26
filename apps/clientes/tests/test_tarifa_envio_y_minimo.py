@@ -123,7 +123,7 @@ class TarifaEnvioYMinimoPedidoTests(TestCase):
             },
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "50.000,00")
+        self.assertContains(resp, "50.000")
         self.assertEqual(Pedido.objects.count(), 0)
         self.stock_26k.refresh_from_db()
         self.assertEqual(self.stock_26k.cantidad_actual, 100)
@@ -141,7 +141,7 @@ class TarifaEnvioYMinimoPedidoTests(TestCase):
             },
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "50.000,00")
+        self.assertContains(resp, "50.000")
         self.assertEqual(Pedido.objects.count(), 0)
         self.stock_26k.refresh_from_db()
         self.assertEqual(self.stock_26k.cantidad_actual, 100)
@@ -192,7 +192,7 @@ class TarifaEnvioYMinimoPedidoTests(TestCase):
             },
         )
         self.assertEqual(resp_invalido.status_code, 200)
-        self.assertContains(resp_invalido, "50.000,00")
+        self.assertContains(resp_invalido, "50.000")
         pedido.refresh_from_db()
         self.assertEqual(pedido.total, Decimal("52000.00"))
 

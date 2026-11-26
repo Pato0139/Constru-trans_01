@@ -32,10 +32,11 @@ window.AppPageLifecycle.onPageLoad(() => {
    * @returns {string} Valor formateado con símbolo de peso colombiano
    */
   function formatCurrency(value) {
-    return Number(value || 0).toLocaleString('es-CO', {
+    return Math.round(Number(value || 0)).toLocaleString('es-CO', {
       style: 'currency',
       currency: 'COP',
-      minimumFractionDigits: 2,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     });
   }
 

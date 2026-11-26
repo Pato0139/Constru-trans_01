@@ -178,9 +178,9 @@
 
     if (opt && opt.dataset.precio && cant > 0) {
       const sub = (cant * parseFloat(opt.dataset.precio));
-      val.textContent = '$' + sub.toLocaleString('es-CO', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+      val.textContent = '$' + Math.round(sub).toLocaleString('es-CO', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
       });
       box.classList.remove('d-none');
       stock.textContent = 'Stock disponible: ' + opt.dataset.stock + ' ' + opt.dataset.unidad;
@@ -194,9 +194,9 @@
     fetch(URL_TOTAL)
       .then(r => r.json())
       .then(data => {
-        const fmt = v => '$' + v.toLocaleString('es-CO', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
+        const fmt = v => '$' + Math.round(v || 0).toLocaleString('es-CO', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
         });
         const totalElem = document.getElementById('d-total');
         if (totalElem) {

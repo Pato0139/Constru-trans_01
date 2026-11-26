@@ -656,7 +656,7 @@ def crear_pedido(request):
                 nuevo_pedido.calcular_total(using=db_alias)
                 if nuevo_pedido.total < MONTO_MINIMO_PEDIDO:
                     raise ValueError(
-                        "El monto mínimo del pedido es de $50.000,00. "
+                        "El monto mínimo del pedido es de $50.000. "
                         "Agrega más materiales para poder continuar al pago."
                     )
             messages.success(
@@ -902,7 +902,7 @@ def editar_pedido(request, id):
                 pedido.calcular_total(using=db_alias)
                 if pedido.total < MONTO_MINIMO_PEDIDO:
                     raise ValueError(
-                        "El monto mínimo del pedido es de $50.000,00. "
+                        "El monto mínimo del pedido es de $50.000. "
                         "Agrega más materiales para poder continuar al pago."
                     )
 

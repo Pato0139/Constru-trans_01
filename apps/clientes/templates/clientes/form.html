@@ -13,7 +13,8 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/clientes/form.css' %}?v=1.7">
+<link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
+<link rel="stylesheet" href="{% static 'css/clientes/form.css' %}?v=1.9">
 {% endblock %}
 
 {% block content %}
@@ -119,18 +120,18 @@
                 <div class="p-4 rounded-4 mb-5 shadow-sm pedido-total-box">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-800 text-muted small text-uppercase pedido-total-label">Total Estimado del Pedido:</span>
-                        <h3 class="mb-0 fw-900 text-accent pedido-total-value" id="display-total" data-subtotal-inicial="{% if action == 'editar' %}{{ orden.subtotal|default:0|unlocalize }}{% else %}0{% endif %}">{% if action == 'editar' %}{{ orden.total|currency }}{% else %}$0,00{% endif %}</h3>
+                        <h3 class="mb-0 fw-900 text-accent pedido-total-value" id="display-total" data-subtotal-inicial="{% if action == 'editar' %}{{ orden.subtotal|default:0|unlocalize }}{% else %}0{% endif %}">{% if action == 'editar' %}${{ orden.total|currency }}{% else %}$0{% endif %}</h3>
                     </div>
                     <div class="d-flex justify-content-between align-items-center pedido-shipping-row mt-3 pt-3">
                         <div>
                             <span class="fw-700 text-muted small text-uppercase pedido-shipping-label">Tarifa por envío:</span>
-                            <small id="display-tarifa-detalle" class="d-block pedido-shipping-note">Envío gratis en Duitama; otros destinos $15.000,00.</small>
+                            <small id="display-tarifa-detalle" class="d-block pedido-shipping-note">Envío gratis en Duitama; otros destinos $15.000.</small>
                         </div>
-                        <span class="fw-800 pedido-shipping-value" id="display-tarifa-envio">{% if action == 'editar' %}{{ orden.tarifa_envio|currency }}{% else %}$0,00{% endif %}</span>
+                        <span class="fw-800 pedido-shipping-value" id="display-tarifa-envio">{% if action == 'editar' %}${{ orden.tarifa_envio|currency }}{% else %}$0{% endif %}</span>
                     </div>
                     <div id="pedido-minimo-alerta" class="pedido-minimo-alerta mt-3" role="alert" hidden>
                         <i class="bi bi-exclamation-circle-fill me-2"></i>
-                        <span id="pedido-minimo-texto">El pedido mínimo es de $50.000,00 para continuar al pago.</span>
+                        <span id="pedido-minimo-texto">El pedido mínimo es de $50.000 para continuar al pago.</span>
                     </div>
                 </div>
 
@@ -152,10 +153,24 @@
                             </div>
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase pedido-input-label">Dirección (calle, barrio, referencia)</label>
-                            <div class="input-group">
-                                <span class="input-group-text border-0 pedido-input-icon"><i class="bi bi-geo-alt"></i></span>
-                                <input type="text" name="direccion_detalle" class="form-control rounded-pill border-0 px-4 py-2 pedido-input-bg" placeholder="Ej: Calle 10 #15-20, Barrio Centro" value="{{ direccion_detalle|default:'' }}" required>
+                            <label class="form-label text-muted small px-3 mb-1 fw-bold text-uppercase pedido-input-label" for="input-direccion">Dirección (calle, barrio, referencia)</label>
+                            <div class="input-group pedido-direccion-group">
+                                <button type="button" class="input-group-text border-0 pedido-input-icon" data-bs-toggle="modal" data-bs-target="#modalMapa" title="Elegir ubicación en el mapa" aria-label="Elegir ubicación en el mapa">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                </button>
+                                <input type="text" id="input-direccion" name="direccion_detalle" class="form-control border-0 px-3 py-2 pedido-input-bg" placeholder="Ej: Calle 10 #15-20, Barrio Centro" value="{{ direccion_detalle|default:'' }}" required>
+                                <button type="button" class="btn btn-outline-warning pedido-map-trigger-btn d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#modalMapa">
+                                    <i class="bi bi-map-fill"></i>
+                                    <span>Elegir en mapa</span>
+                                </button>
+                            </div>
+                            <input type="hidden" id="input-latitud" name="latitud" value="">
+                            <input type="hidden" id="input-longitud" name="longitud" value="">
+                            <div id="direccion-mapa-badge" class="d-none mt-2 px-2 small d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <span class="text-success fw-600"><i class="bi bi-check-circle-fill me-1"></i>Ubicación verificada en el mapa</span>
+                                <a id="direccion-gmaps-link" href="#" target="_blank" rel="noopener noreferrer" class="text-warning text-decoration-none fw-600">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>Abrir en Google Maps
+                                </a>
                             </div>
                         </div>
                         <div class="col-md-12">
@@ -195,8 +210,83 @@
     </div>
 </div>
 
+<!-- Modal: Selector interactivo de dirección con Leaflet + OpenStreetMap -->
+<div class="modal fade" id="modalMapa" tabindex="-1" aria-labelledby="modalMapaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content ct-map-modal">
+            <div class="modal-header border-secondary border-opacity-25">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="ct-map-modal__icon"><i class="bi bi-geo-alt-fill"></i></span>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <h5 class="modal-title fw-800 mb-0" id="modalMapaLabel">Seleccionar ubicación exacta</h5>
+                            <span id="mapa-modo-badge" class="badge rounded-pill" style="background:rgba(16,185,129,0.16);color:#34d399;border:1px solid rgba(16,185,129,0.35);font-size:0.72rem;">
+                                <i class="bi bi-wifi me-1"></i>En línea
+                            </span>
+                        </div>
+                        <small class="text-muted">Busca una calle, barrio o referencia, o haz clic / arrastra el marcador</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="position-relative mb-3">
+                    <div class="input-group ct-map-search-group">
+                        <span class="input-group-text bg-transparent border-secondary border-opacity-25 text-warning">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" id="buscador-mapa" class="form-control ct-map-search-input"
+                               placeholder="Busca barrio, calle, lugar o pega enlace de Google Maps..." autocomplete="off">
+                        <button type="button" id="btn-mi-ubicacion" class="btn btn-outline-light border-secondary border-opacity-25"
+                                title="Usar mi ubicación actual (GPS)" aria-label="Usar mi ubicación actual">
+                            <i class="bi bi-crosshair"></i>
+                        </button>
+                        <button type="button" id="btn-buscar-mapa" class="btn btn-warning fw-bold px-3">
+                            <i class="bi bi-search me-1"></i> Buscar
+                        </button>
+                    </div>
+                    <div id="mapa-sugerencias" class="ct-map-suggestions d-none" role="listbox" aria-label="Sugerencias de direcciones"></div>
+                </div>
+
+                <div id="mapa-selector" class="ct-map-canvas"></div>
+
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3 px-1">
+                    <small class="text-light opacity-75" id="preview-direccion">
+                        <i class="bi bi-info-circle text-warning me-1"></i>Haz clic en el mapa o arrastra el marcador hacia el punto exacto.
+                    </small>
+                    <a id="preview-gmaps-link" href="#" target="_blank" rel="noopener noreferrer"
+                       class="small text-warning text-decoration-none fw-600 d-none">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Ver en Google Maps
+                    </a>
+                </div>
+
+                <div class="row g-2 mt-2">
+                    <div class="col-md-7">
+                        <label class="form-label text-muted small mb-1 fw-bold text-uppercase" for="mapa-direccion-editable">Dirección detectada (puedes ajustarla)</label>
+                        <input type="text" id="mapa-direccion-editable" class="form-control form-control-sm ct-map-search-input"
+                               placeholder="Se completará al marcar en el mapa...">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small mb-1 fw-bold text-uppercase" for="mapa-complemento">Número / Referencia (opcional)</label>
+                        <input type="text" id="mapa-complemento" class="form-control form-control-sm ct-map-search-input"
+                               placeholder="Ej: #15-20, Casa 4, frente al parque">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary border-opacity-25">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btn-confirmar-ubicacion" class="btn btn-warning fw-bold rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="bi bi-check2-circle me-1"></i> Usar esta dirección
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/clientes/form.js' %}?v=1.6"></script>
+<script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
+<script src="{% static 'js/clientes/form.js' %}?v=1.7"></script>
+<script src="{% static 'js/clientes/map-picker.js' %}?v=1.2"></script>
 {% endblock %}
