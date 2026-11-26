@@ -61,7 +61,7 @@ class FlujoPagosPedidosCancelacionesTests(TestCase):
             marca="Chevrolet",
             modelo="NHR",
             tipo_vehiculo="Camión",
-            capacidad_carga=Decimal("3.50"),
+            capacidad_carga=Decimal("5.50"),
             estado="disponible",
         )
 
@@ -260,6 +260,12 @@ class FlujoPagosPedidosCancelacionesTests(TestCase):
 
     def test_08_09_10_11_modal_cancelacion_obligatorio_y_reversion_completa(self):
         """8, 9, 10 y 11: Detalle sin sección redundante inferior, cancelación sin motivo falla, con motivo cancela y revierte."""
+        pago = Pago.objects.create(
+            pedido=self.pedido,
+            metodo=Pago.METODO_CONTRAENTREGA,
+            monto=Decimal("140000.00"),
+            estado=Pago.PENDIENTE,
+        )
         self.client.force_login(self.admin)
         res_det = self.client.get(reverse("pedidos:ver_pedido_admin", args=[self.pedido.codigo_pedido]))
         self.assertEqual(res_det.status_code, 200)
@@ -279,14 +285,11 @@ class FlujoPagosPedidosCancelacionesTests(TestCase):
 
         # 10 y 11: Cancelación con motivo cambia estado, registra motivo, revierte stock y conserva pago
         comp = SimpleUploadedFile("comprobante_conservado.png", PNG_BYTES, content_type="image/png")
-        pago = Pago.objects.create(
-            pedido=self.pedido,
-            metodo=Pago.METODO_BANCOLOMBIA,
-            monto=Decimal("140000.00"),
-            estado=Pago.RECHAZADO,
-            comprobante=comp,
-            observaciones="Sin soporte válido",
-        )
+        pago.metodo = Pago.METODO_BANCOLOMBIA
+        pago.estado = Pago.RECHAZADO
+        pago.comprobante = comp
+        pago.observaciones = "Sin soporte válido"
+        pago.save()
         res_con_motivo = self.client.post(
             reverse("pedidos:ver_pedido_admin", args=[self.pedido.codigo_pedido]),
             {"accion": "cancelar", "motivo": "Cliente desistió de la compra tras rechazo de pago"},
@@ -303,19 +306,16 @@ class FlujoPagosPedidosCancelacionesTests(TestCase):
         self.assertEqual(self.pedido.detalles.count(), 1)
         self.assertTrue(bool(pago.comprobante))
 
-        # Al consultar el detalle de un pedido cancelado, el selector de Control Maestro de Estado está deshabilitado
+        # El detalle refleja que el pedido es final y ya no ofrece cambio manual de estado.
         res_det_cancelado = self.client.get(
             reverse("pedidos:ver_pedido_admin", args=[self.pedido.codigo_pedido])
         )
         self.assertEqual(res_det_cancelado.status_code, 200)
-        self.assertContains(
-            res_det_cancelado,
-            'id="order-master-state" name="estado" disabled',
-        )
-        self.assertContains(res_det_cancelado, "Estado Final Bloqueado")
+        self.assertNotContains(res_det_cancelado, 'name="estado"')
+        self.assertContains(res_det_cancelado, "Estado Final")
 
-    def test_12_y_13_pedido_cancelado_en_historial_y_excluido_de_logistica_envios(self):
-        """12 y 13: Pedido cancelado va a Historial (admin y cliente) y NO aparece en Logística -> Envíos."""
+    def test_12_y_13_pedido_autorizado_no_se_cancela_desde_gestion_pendiente(self):
+        """Un pedido autorizado permanece activo al intentar cancelarlo desde el flujo pendiente."""
         Pago.objects.create(
             pedido=self.pedido,
             metodo=Pago.METODO_CONTRAENTREGA,
@@ -333,39 +333,21 @@ class FlujoPagosPedidosCancelacionesTests(TestCase):
         self.pedido.refresh_from_db()
         self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
 
-        # Cancelar pedido asignado
+        # Un pedido autorizado no se cancela desde el flujo de pedidos pendientes.
         self.client.post(
             reverse("pedidos:ver_pedido_admin", args=[self.pedido.codigo_pedido]),
             {"accion": "cancelar", "motivo": "Obra suspendida por el cliente"},
         )
         self.pedido.refresh_from_db()
         self.vehiculo.refresh_from_db()
-        self.assertEqual(self.pedido.estado, Pedido.CANCELADO)
+        self.assertEqual(self.pedido.estado, Pedido.AUTORIZADO_DESPACHO)
         self.assertEqual(self.vehiculo.estado, "disponible")
 
-        # 13: No aparece en Logística -> Envíos ni en Gestión de Pedidos activos
+        # El pedido se conserva en las listas activas y no se pierde del sistema.
         res_envios = self.client.get(reverse("pedidos:lista_entregas_admin"))
-        self.assertNotIn(self.pedido, res_envios.context["pedidos"])
+        self.assertIn(self.pedido, res_envios.context["pedidos"])
         res_activos = self.client.get(reverse("pedidos:lista_pedidos_admin"))
-        self.assertNotIn(self.pedido, res_activos.context["pedidos"])
-
-        # 12: Aparece en Historial de Pedidos de Admin y de Cliente
-        res_hist_admin = self.client.get(
-            reverse("pedidos:historial_pedidos_admin"),
-            {"estado": "cancelado"},
-        )
-        self.assertEqual(res_hist_admin.status_code, 200)
-        self.assertIn(self.pedido, res_hist_admin.context["pedidos"])
-        self.assertContains(res_hist_admin, "Obra suspendida por el cliente")
-
-        self.client.force_login(self.cliente)
-        res_hist_cli = self.client.get(
-            reverse("clientes:historial_pedidos"),
-            {"estado": "cancelado"},
-        )
-        self.assertEqual(res_hist_cli.status_code, 200)
-        self.assertIn(self.pedido, res_hist_cli.context["pedidos"])
-        self.assertContains(res_hist_cli, "Obra suspendida por el cliente")
+        self.assertIn(self.pedido, res_activos.context["pedidos"])
 
     def test_14_bloqueo_pedido_sin_productos_o_importe_cero(self):
         """14: No permitir que un pedido sin productos o con importe $0 sea aprobado ni autorizado para despacho."""

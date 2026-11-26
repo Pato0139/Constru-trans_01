@@ -7,6 +7,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/catalogo/lista.css' %}?v=1.8">
 <link rel="stylesheet" href="{% static 'css/catalogo/theme.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/logistica/novedades.css' %}?v=1.0">
 {% endblock %}
 
 {% block header_title %}Control de Novedades e Incidencias Logísticas{% endblock %}
@@ -80,7 +81,6 @@
                         <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Envío & Pedido</th>
                         <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Reportado Por</th>
                         <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Tipo</th>
-                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Descripción</th>
                         <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Estado</th>
                         <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold">Acciones</th>
                     </tr>
@@ -94,7 +94,9 @@
                     </td>
                     <td>
                         <div class="fw-600 text-main">#ENV-{{ nov.entrega.id_entrega }}</div>
-                        <div class="small text-muted">Pedido #CT-{{ nov.entrega.pedido.codigo_pedido }}</div>
+                        <a class="novedad-pedido-link small" href="{% url 'pedidos:ver_pedido_admin' nov.entrega.pedido.codigo_pedido %}" title="Abrir pedido asociado">
+                            Pedido #CT-{{ nov.entrega.pedido.codigo_pedido }}
+                        </a>
                     </td>
                     <td>
                         <div class="fw-600 text-main">
@@ -110,16 +112,6 @@
                         <span class="badge bg-secondary text-uppercase">{{ nov.get_tipo_display }}</span>
                     </td>
                     <td>
-                        <div class="text-main small" style="max-width: 260px;">{{ nov.descripcion }}</div>
-                        {% if nov.solucion %}<div class="text-info small mt-1"><strong>Acción:</strong> {{ nov.solucion|truncatechars:100 }}</div>{% endif %}
-                        {% if nov.evidencia %}<a href="{{ nov.evidencia.url }}" target="_blank" rel="noopener" class="small">Ver evidencia</a>{% endif %}
-                        {% if nov.respuesta_admin %}
-                        <div class="text-info small mt-1" style="font-size: 0.72rem;">
-                            <strong>Resp:</strong> {{ nov.respuesta_admin|truncatechars:60 }}
-                        </div>
-                        {% endif %}
-                    </td>
-                    <td>
                         {% if nov.estado == 'abierta' %}
                             <span class="badge bg-danger px-2 py-1"><i class="bi bi-exclamation-circle me-1"></i>Abierta</span>
                         {% elif nov.estado == 'en_atencion' %}
@@ -133,8 +125,8 @@
                     <td class="text-center">
                         <div class="d-inline-flex gap-1 align-items-center">
                             <!-- Gestionar / Atender Seguimiento -->
-                            <a href="{% url 'logistica:agregar_seguimiento' nov.id_novedad %}" class="btn btn-sm btn-outline-warning" title="Atender / Seguimiento">
-                                <i class="bi bi-pencil-square"></i>
+                            <a href="{% url 'logistica:agregar_seguimiento' nov.id_novedad %}" class="btn btn-sm btn-outline-warning" title="Ver novedad y seguimientos">
+                                <i class="bi bi-eye-fill"></i>
                             </a>
                             <!-- Ver Pedido Admin -->
                             <a href="{% url 'pedidos:ver_pedido_admin' nov.entrega.pedido.codigo_pedido %}" class="btn btn-sm btn-outline-info" title="Ver Pedido">
@@ -145,7 +137,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="text-center py-5 text-muted">
+                    <td colspan="6" class="text-center py-5 text-muted">
                         <i class="bi bi-check2-circle fs-2 mb-3 d-block text-success"></i>
                         No se encontraron incidencias registradas con los filtros aplicados.
                     </td>

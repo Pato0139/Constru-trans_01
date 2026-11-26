@@ -15,7 +15,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import validate_email
 from django.db import DatabaseError, IntegrityError, transaction
-from django.db.models import Prefetch, Q, Sum
+from django.db.models import F, Prefetch, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -27,6 +27,7 @@ from apps.catalogo.models import MaterialConstruccion as Material
 from apps.logistica.forms import AsignarVehiculoForm
 from apps.logistica.models import ConductorVehiculo
 from apps.pedidos.models import Pedido
+from apps.pedidos.utils import filtrar_pedidos_con_pago_recibido
 from apps.usuarios.weather import get_route_weather
 from config.db_preference import (
     PREF_LOCAL,
@@ -533,22 +534,26 @@ def panel(request):
     if usuario.rol == "admin":
         # Estos valores dependen del flujo de pagos y logística; se leen en vivo
         # para que aprobar o asignar transporte se refleje al volver al panel.
+        pedidos_base = Pedido.objects.exclude(
+            estado__in=[Pedido.CANCELADO, Pedido.ENTREGADO]
+        )
+        pendientes_con_pago = filtrar_pedidos_con_pago_recibido(
+            pedidos_base.filter(estado=Pedido.PENDIENTE)
+        )
+        recientes_con_pago = filtrar_pedidos_con_pago_recibido(
+            pedidos_base.select_related("usuario", "cliente__usuario", "pago").prefetch_related(
+                "entregas__conductor", "entregas__vehiculo"
+            ).order_by("-fecha_solicitud", "-codigo_pedido"),
+            limite=5,
+        )
         context = {
-            "pedidos_pendientes": Pedido.objects.filter(estado=Pedido.PENDIENTE).count(),
+            "pedidos_pendientes": len(pendientes_con_pago),
             "conductores": Usuario.objects.filter(rol="conductor").count(),
             "entregas_hoy": Pedido.objects.filter(
                 estado=Pedido.ENTREGADO, fecha_solicitud__date=now().date()
             ).count(),
             "clientes": Usuario.objects.filter(rol="cliente").count(),
-            "pedidos_recientes": Pedido.objects.select_related(
-                "usuario", "cliente__usuario", "pago"
-            )
-            .prefetch_related(
-                "entregas__conductor",
-                "entregas__vehiculo",
-            )
-            .exclude(estado__in=[Pedido.CANCELADO, Pedido.ENTREGADO])
-            .order_by("-fecha_solicitud", "-codigo_pedido")[:5],
+            "pedidos_recientes": recientes_con_pago,
         }
 
         return render(request, "usuarios/panel-admin.html", context)
@@ -602,6 +607,49 @@ def descargar_backup_db(request):
 # =====================================================================
 
 
+def _historial_reagendamientos_pedidos(codigos_pedido):
+    codigos = {str(codigo) for codigo in codigos_pedido if codigo is not None}
+    if not codigos:
+        return {}
+
+    try:
+        from config.models import Historial
+
+        registros = (
+            Historial.objects.filter(
+                modulo="pedido",
+                elemento_id__in=codigos,
+                descripcion__startswith="Entrega reagendada:",
+            )
+            .select_related("usuario")
+            .order_by("-fecha", "-pk")
+        )
+        historial_por_pedido = {}
+        for registro in registros:
+            historial_por_pedido.setdefault(registro.elemento_id, []).append(registro)
+        return historial_por_pedido
+    except Exception:
+        logger.warning("No se pudo consultar el historial de reagendamientos", exc_info=True)
+        return {}
+
+
+def _adjuntar_historial_reagendamientos(entregas):
+    entregas = list(entregas)
+    historial = _historial_reagendamientos_pedidos(
+        entrega.pedido.codigo_pedido for entrega in entregas
+    )
+    for entrega in entregas:
+        entrega.historial_reagendamientos = historial.get(
+            str(entrega.pedido.codigo_pedido), []
+        )
+        entrega.ultimo_reagendamiento = (
+            entrega.historial_reagendamientos[0]
+            if entrega.historial_reagendamientos
+            else None
+        )
+    return entregas
+
+
 @role_required(["conductor", "admin"])
 def panel_conductor(request):
     if not request.user.is_active or request.user.estado != "activo":
@@ -638,7 +686,7 @@ def panel_conductor(request):
             base_qs.filter(estado__in=["pendiente", "en_ruta"])
             .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario", "conductor__usuario")
             .prefetch_related("pedido__detalles__material")
-            .order_by("fecha_salida", "pedido__fecha_solicitud")
+            .order_by(F("pedido__fecha_entrega_programada").asc(nulls_last=True), "pedido__fecha_solicitud")
         )
     else:
         base_qs = (
@@ -653,11 +701,13 @@ def panel_conductor(request):
             base_qs.filter(estado__in=["pendiente", "en_ruta"])
             .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario")
             .prefetch_related("pedido__detalles__material")
-            .order_by("fecha_salida", "pedido__fecha_solicitud")
+            .order_by(F("pedido__fecha_entrega_programada").asc(nulls_last=True), "pedido__fecha_solicitud")
         )
 
+    entregas_activas = _adjuntar_historial_reagendamientos(entregas_activas)
+
     # Próxima entrega para pronóstico del clima
-    proxima_entrega = entregas_activas.first()
+    proxima_entrega = entregas_activas[0] if entregas_activas else None
     clima_ruta = None
     if proxima_entrega:
         direccion_destino = (
@@ -851,6 +901,9 @@ def detalle_entrega_conductor(request, entrega_id):
         "detalles": entrega.pedido.detalles.all(),
         "vehiculo": entrega.vehiculo,
         "novedades": entrega.novedades.all(),
+        "historial_reagendamientos": _historial_reagendamientos_pedidos(
+            [entrega.pedido.codigo_pedido]
+        ).get(str(entrega.pedido.codigo_pedido), []),
     }
     return render(request, "usuarios/detalle_entrega_conductor.html", context)
 
@@ -869,7 +922,7 @@ def pedidos_conductor(request):
             .exclude(pedido__pago__estado__in=["pendiente", "rechazado"])
             .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario", "conductor__usuario")
             .prefetch_related("pedido__detalles__material")
-            .order_by("fecha_salida", "pedido__fecha_solicitud")
+            .order_by(F("pedido__fecha_entrega_programada").asc(nulls_last=True), "pedido__fecha_solicitud")
         )
     else:
         conductor, _ = Conductor.ensure_for_user(request.user)
@@ -882,7 +935,7 @@ def pedidos_conductor(request):
             .exclude(pedido__pago__estado__in=["pendiente", "rechazado"])
             .select_related("pedido", "vehiculo", "pedido__usuario", "pedido__cliente__usuario")
             .prefetch_related("pedido__detalles__material")
-            .order_by("fecha_salida", "pedido__fecha_solicitud")
+            .order_by(F("pedido__fecha_entrega_programada").asc(nulls_last=True), "pedido__fecha_solicitud")
         )
 
     id_pedido = request.GET.get("id_pedido")
@@ -897,6 +950,8 @@ def pedidos_conductor(request):
         )
     if estado:
         entregas = entregas.filter(estado=estado)
+
+    entregas = _adjuntar_historial_reagendamientos(entregas)
 
     context = {
         "entregas": entregas,

@@ -39,7 +39,9 @@ from .forms import AgregarMaterialForm, FiltroPedidosForm
 from .models import DetallePedido, DetalleSolicitudPedido, Pedido, SolicitudPedido
 from .utils import (
     eliminar_pedidos_checkout_incompletos,
+    filtrar_pedidos_con_pago_recibido,
     liberar_vehiculo_pedido,
+    pedido_tiene_pago_recibido,
     revertir_stock_pedido,
 )
 
@@ -259,8 +261,11 @@ def _render_lista_por_estado(
         else:
             pedidos = pedidos.filter(estado=estado_query)
 
+    if exigir_pago_recibido:
+        pedidos = filtrar_pedidos_con_pago_recibido(pedidos)
+
     has_filters = bool(cliente_query or fecha_query or q or estado_query)
-    total_resultados = pedidos.count()
+    total_resultados = len(pedidos) if isinstance(pedidos, list) else pedidos.count()
 
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return render(
@@ -446,6 +451,17 @@ def ver_pedido_admin(request, id):
         usuario_actual, "es_superadmin", False
     )
     es_admin = is_super or usuario_actual.rol == "admin"
+
+    if (
+        es_admin
+        and orden.estado == Pedido.PENDIENTE
+        and not pedido_tiene_pago_recibido(orden)
+    ):
+        messages.info(
+            request,
+            "El pedido no está disponible para gestión hasta que se registre contraentrega o se reciba un comprobante válido.",
+        )
+        return redirect("pedidos:lista_pedidos_admin")
 
     cliente_dueno = orden.usuario_id == usuario_actual.pk or (
         orden.cliente is not None
@@ -834,6 +850,7 @@ def ver_pedido_admin(request, id):
         "vehiculo": vehiculo,
         "transporte_asignado": transporte_asignado,
         "pago": pago,
+        "eventos_logisticos": eventos_logisticos,
         "conductores_disponibles": conductores_disponibles,
         "vehiculos_disponibles": vehiculos_disponibles,
         "puede_asignar_transporte": puede_asignar_transporte,

@@ -75,14 +75,44 @@ window.AppPageLifecycle.onPageLoad(() => {
     if (!select || !stockCell) return;
 
     const selectedOption = select.selectedOptions[0];
-    stockCell.textContent = selectedOption?.dataset.stock ?? '0';
+    const stock = Number(selectedOption?.dataset.stock ?? 0);
+    stockCell.dataset.currentStock = String(stock);
+    stockCell.dataset.unit = selectedOption?.dataset.unit || 'unidades';
+    const stockValue = stockCell.querySelector('.supplier-stock-value');
+    if (stockValue) stockValue.textContent = new Intl.NumberFormat('es-CO').format(stock);
+    refreshStockPreview(row);
   }
 
-  tbody.querySelectorAll('.supplier-formset-row').forEach(refreshRowStock);
+  function refreshStockPreview(row) {
+    const stockCell = row.querySelector('.supplier-stock-current');
+    const quantityField = row.querySelector('input[name$="-cantidad_recibida"]');
+    const preview = row.querySelector('.supplier-stock-preview');
+    if (!stockCell || !quantityField || !preview) return;
+
+    const currentStock = Number(stockCell.dataset.currentStock || 0);
+    const unit = stockCell.dataset.unit || 'unidades';
+    const quantityReceived = Number(quantityField.value);
+    if (!Number.isInteger(quantityReceived) || quantityReceived <= 0) {
+      preview.textContent = '';
+      return;
+    }
+
+    const resultingStock = currentStock + quantityReceived;
+    preview.textContent = `Al registrar: ${new Intl.NumberFormat('es-CO').format(resultingStock)} ${unit} en inventario`;
+  }
+
+  tbody.querySelectorAll('.supplier-formset-row').forEach((row) => {
+    refreshRowStock(row);
+    row.querySelector('input[name$="-cantidad_recibida"]')?.addEventListener('input', () => {
+      refreshStockPreview(row);
+    });
+  });
 
   tbody.addEventListener('change', (event) => {
     const select = event.target.closest('select[name$="-material"]');
     if (select) refreshRowStock(select.closest('.supplier-formset-row'));
+    const quantity = event.target.closest('input[name$="-cantidad_recibida"]');
+    if (quantity) refreshStockPreview(quantity.closest('.supplier-formset-row'));
   });
 
   addButton.addEventListener('click', () => {
@@ -108,6 +138,9 @@ window.AppPageLifecycle.onPageLoad(() => {
 
     newRow.classList.remove('d-none');
     refreshRowStock(newRow);
+    newRow.querySelector('input[name$="-cantidad_recibida"]')?.addEventListener('input', () => {
+      refreshStockPreview(newRow);
+    });
     tbody.appendChild(newRow);
     totalForms.value = formCount + 1;
     refreshCounters();

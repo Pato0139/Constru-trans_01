@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 from apps.catalogo.forms import MaterialForm
 from apps.catalogo.models import Catalogo, Stock
 from apps.catalogo.models import MaterialConstruccion as Material
+from apps.catalogo.services.kardex import calcular_nivel_alerta_stock
 from apps.usuarios.views import admin_required
 from config.utils import registrar_actividad
 
@@ -69,7 +70,10 @@ def crear_material(request):
                 material = form.save()
                 Stock.objects.get_or_create(
                     material=material,
-                    defaults={"cantidad_actual": 0, "stock_minimo": 10},
+                    defaults={
+                        "cantidad_actual": form.cleaned_data.get("stock") or 0,
+                        "stock_minimo": form.cleaned_data["stock_minimo"],
+                    },
                 )
                 registrar_actividad(
                     request,
@@ -173,7 +177,9 @@ def stock_lista(request):
     stock_actual = request.GET.get("stock_actual", "")
     q = request.GET.get("q", "")
 
-    stocks = Stock.objects.all().select_related("material")
+    stocks = Stock.objects.all().select_related(
+        "material", "material__unidad_medida", "material__marca", "material__catalogo"
+    )
 
     if material:
         stocks = stocks.filter(material__nombre__icontains=material)
@@ -195,8 +201,35 @@ def stock_lista(request):
         },
     ]
 
+    stocks = list(stocks.order_by("material__nombre"))
+    for item in stocks:
+        item.nivel_alerta = calcular_nivel_alerta_stock(
+            item.cantidad_actual, item.stock_minimo
+        )
+        item.diferencia_stock_minimo = max(0, item.stock_minimo - item.cantidad_actual)
+        item.unidad_label = (
+            item.material.unidad_medida.abreviatura
+            or item.material.unidad_medida.nombre
+            or "unidades"
+        )
+
+    conteo_alertas = list(
+        Stock.objects.values_list("cantidad_actual", "stock_minimo")
+    )
+    total_stock_critico = sum(
+        calcular_nivel_alerta_stock(actual, minimo) == "critico"
+        for actual, minimo in conteo_alertas
+    )
+    total_stock_bajo = sum(
+        calcular_nivel_alerta_stock(actual, minimo) == "bajo"
+        for actual, minimo in conteo_alertas
+    )
+
     context = {
         "stocks": stocks,
+        "total_stock_critico": total_stock_critico,
+        "total_stock_bajo": total_stock_bajo,
+        "total_stock_alerta": total_stock_critico + total_stock_bajo,
         "material": material,
         "ubicacion": ubicacion,
         "stock_actual": stock_actual,
@@ -216,17 +249,19 @@ def editar_stock(request, id):
     if request.method == "POST":
         ubicacion = request.POST.get("ubicacion", "").strip()
         try:
-            cantidad = int(request.POST.get("cantidad", "0"))
+            cantidad = int(request.POST.get("cantidad", ""))
+            stock_minimo = int(request.POST.get("stock_minimo", ""))
         except (ValueError, TypeError):
-            messages.error(request, "La cantidad debe ser un número válido.")
+            messages.error(request, "El stock actual y su mínimo deben ser números enteros válidos.")
             return redirect("catalogo:stock_lista")
-        if not 1 <= cantidad <= 100000 or len(ubicacion) > 120:
-            messages.error(request, "La cantidad debe ser mayor que 0 y la ubicación no es válida.")
+        if not 0 <= cantidad <= 100000 or stock_minimo < 0 or len(ubicacion) > 120:
+            messages.error(request, "Las cantidades no pueden ser negativas y la ubicación debe ser válida.")
             return redirect("catalogo:stock_lista")
         stock.cantidad_actual = cantidad
+        stock.stock_minimo = stock_minimo
         stock.ubicacion = ubicacion
         stock.save()
-        messages.success(request, f"Stock de {stock.material.nombre} actualizado.")
+        messages.success(request, f"Stock actual y mínimo de {stock.material.nombre} actualizados.")
         return redirect("catalogo:stock_lista")
     context = {"stock": stock}
 

@@ -1,0 +1,23 @@
+.novedad-pedido-link {
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color .18s ease, text-decoration-color .18s ease;
+}
+
+.novedad-pedido-link:hover,
+.novedad-pedido-link:focus-visible {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+[data-theme="accessibility"] .novedad-pedido-link {
+    color: #fff;
+    text-decoration: underline;
+}
+
+[data-theme="accessibility"] .novedad-pedido-link:hover,
+[data-theme="accessibility"] .novedad-pedido-link:focus-visible {
+    color: #ff0;
+}

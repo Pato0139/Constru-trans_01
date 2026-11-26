@@ -4,7 +4,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/catalogo/theme.css' %}?v=1.0">
-<link rel="stylesheet" href="{% static 'css/catalogo/stock.css' %}?v=1.2">
+<link rel="stylesheet" href="{% static 'css/catalogo/stock.css' %}?v=1.3">
 {% endblock %}
 
 {% block title %}Inventario - ConstruTrans{% endblock %}
@@ -27,6 +27,21 @@
     </div>
 </div>
 
+<div class="inventory-alert-summary mb-4" aria-label="Resumen de alertas de inventario">
+    <div class="inventory-alert-card inventory-alert-card--critical">
+        <span class="inventory-alert-card__icon"><i class="bi bi-exclamation-octagon-fill"></i></span>
+        <div><span class="inventory-alert-card__label">Stock crítico</span><strong>{{ total_stock_critico }}</strong></div>
+    </div>
+    <div class="inventory-alert-card inventory-alert-card--low">
+        <span class="inventory-alert-card__icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+        <div><span class="inventory-alert-card__label">Stock bajo</span><strong>{{ total_stock_bajo }}</strong></div>
+    </div>
+    <div class="inventory-alert-card inventory-alert-card--total">
+        <span class="inventory-alert-card__icon"><i class="bi bi-box-seam-fill"></i></span>
+        <div><span class="inventory-alert-card__label">Materiales con alerta</span><strong>{{ total_stock_alerta }}</strong></div>
+    </div>
+</div>
+
 <div class="inventory-page table-container p-0 rounded-4 overflow-visible shadow-sm u-inline-54085855f8" data-aos="fade-up">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0 inventory-stock-table u-inline-3e7cad1772">
@@ -34,6 +49,9 @@
                 <tr class="u-inline-0d59a3f53c">
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Material</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Stock Actual</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Stock Mínimo</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Diferencia</th>
+                    <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Estado</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Precio Unitario</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Ubicación</th>
                     <th class="py-3 px-4 text-muted small text-uppercase fw-bold u-inline-2ecb5783f5">Última

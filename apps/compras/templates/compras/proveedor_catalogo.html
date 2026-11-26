@@ -15,8 +15,8 @@
                 <tr class="supplier-formset-row">
                     <td class="supplier-row-count" data-label="#">{{ forloop.counter }}</td>
                     <td data-label="Producto">{{ f.non_field_errors }}{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}{{ f.material }}{{ f.material.errors }}</td>
-                    <td data-label="Cantidad recibida">{{ f.cantidad_recibida }}{{ f.cantidad_recibida.errors }}</td>
-                    <td class="supplier-stock-current" data-label="Stock actual">{{ f.instance.material.stock_info.cantidad_actual|default:f.instance.material.stock|default:0 }}</td>
+                    <td data-label="Cantidad recibida">{{ f.cantidad_recibida }}{{ f.cantidad_recibida.errors }}<small class="supplier-stock-preview text-info d-block mt-1" aria-live="polite"></small></td>
+                    <td class="supplier-stock-current" data-current-stock="{{ f.instance.material.stock_info.cantidad_actual|default:f.instance.material.stock|default:0 }}" data-label="Stock actual"><span class="supplier-stock-value">{{ f.instance.material.stock_info.cantidad_actual|default:f.instance.material.stock|default:0 }}</span></td>
                     <td data-label="Precio unitario">{{ f.precio_actual }}{{ f.precio_actual.errors }}</td>
                     <td data-label="Referencia">{{ f.referencia_proveedor }}{{ f.referencia_proveedor.errors }}</td>
                     <td data-label="Observaciones">{{ f.observaciones }}{{ f.observaciones.errors }}</td>

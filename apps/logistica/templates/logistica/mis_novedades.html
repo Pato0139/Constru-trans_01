@@ -7,6 +7,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/catalogo/lista.css' %}?v=1.8">
 <link rel="stylesheet" href="{% static 'css/catalogo/theme.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/logistica/novedades.css' %}?v=1.0">
 {% endblock %}
 
 {% block header_title %}Mis Novedades Reportadas{% endblock %}
@@ -74,7 +75,6 @@
                         <th class="py-3 px-4 text-muted small text-uppercase fw-bold">ID / Fecha</th>
                         <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Envío & Pedido</th>
                         <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Tipo</th>
-                        <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Descripción</th>
                         <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Respuesta Admin</th>
                         <th class="py-3 px-4 text-muted small text-uppercase fw-bold">Estado</th>
                         <th class="py-3 px-4 text-center text-muted small text-uppercase fw-bold">Acción</th>
@@ -89,13 +89,14 @@
                     </td>
                     <td>
                         <div class="fw-600 text-main">#ENV-{{ nov.entrega.id_entrega }}</div>
-                        <div class="small text-muted">Pedido #CT-{{ nov.entrega.pedido.codigo_pedido }}</div>
+                        {% if user.rol == 'admin' %}
+                        <a class="novedad-pedido-link small" href="{% url 'pedidos:ver_pedido_admin' nov.entrega.pedido.codigo_pedido %}" title="Abrir pedido asociado">Pedido #CT-{{ nov.entrega.pedido.codigo_pedido }}</a>
+                        {% else %}
+                        <a class="novedad-pedido-link small" href="{% url 'usuarios:detalle_entrega_conductor' nov.entrega.id_entrega %}" title="Abrir entrega asociada">Pedido #CT-{{ nov.entrega.pedido.codigo_pedido }}</a>
+                        {% endif %}
                     </td>
                     <td>
                         <span class="badge bg-secondary text-uppercase">{{ nov.get_tipo_display }}</span>
-                    </td>
-                    <td>
-                        <div class="text-main small" style="max-width: 280px;">{{ nov.descripcion }}</div>
                     </td>
                     <td>
                         {% if nov.respuesta_admin %}
@@ -125,7 +126,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="text-center py-5 text-muted">
+                    <td colspan="6" class="text-center py-5 text-muted">
                         <i class="bi bi-check2-circle fs-2 mb-3 d-block text-success"></i>
                         No has registrado novedades o incidencias actualmente.
                     </td>

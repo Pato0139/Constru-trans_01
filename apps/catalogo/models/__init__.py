@@ -215,7 +215,7 @@ class Stock(models.Model):
     cantidad_actual = models.IntegerField(
         default=0, validators=[MinValueValidator(0), MaxValueValidator(100000)]
     )
-    stock_minimo = models.IntegerField(default=10, validators=[MinValueValidator(0)])
+    stock_minimo = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     ubicacion = models.CharField(max_length=120, blank=True, default="", validators=[texto_sin_simbolos])
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 

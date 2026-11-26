@@ -57,6 +57,20 @@ class MaterialForm(StrictModelForm):
             }
         ),
     )
+    stock_minimo = forms.IntegerField(
+        required=True,
+        min_value=0,
+        label="Stock mínimo para alerta",
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control numeric-only",
+                "min": 0,
+                "step": 1,
+                "placeholder": "Configura el mínimo de este material",
+            }
+        ),
+        help_text="Se generará una alerta cuando las existencias sean iguales o inferiores a esta cantidad.",
+    )
     ubicacion = forms.CharField(
         required=False,
         label="Ubicación en bodega",
@@ -122,6 +136,7 @@ class MaterialForm(StrictModelForm):
             try:
                 stock = self.instance.stock_info
                 self.fields["stock"].initial = stock.cantidad_actual
+                self.fields["stock_minimo"].initial = stock.stock_minimo
                 self.fields["ubicacion"].initial = stock.ubicacion
             except Stock.DoesNotExist:
                 self.fields["stock"].initial = 0
@@ -178,18 +193,27 @@ class MaterialForm(StrictModelForm):
         stock_value = self.cleaned_data.get("stock")
         ubicacion = self.cleaned_data.get("ubicacion", "")
 
+        minimo_value = self.cleaned_data["stock_minimo"]
+        stock_obj, created = Stock.objects.get_or_create(
+            material=material,
+            defaults={
+                "cantidad_actual": stock_value if stock_value is not None else 0,
+                "stock_minimo": minimo_value,
+                "ubicacion": ubicacion or "",
+            },
+        )
+        update_fields = []
         if stock_value is not None:
-            stock_obj, created = Stock.objects.get_or_create(
-                material=material,
-                defaults={
-                    "cantidad_actual": stock_value,
-                    "ubicacion": ubicacion or "",
-                },
-            )
-            if not created:
-                stock_obj.cantidad_actual = stock_value
-                stock_obj.ubicacion = ubicacion or stock_obj.ubicacion
-                stock_obj.save()
+            stock_obj.cantidad_actual = stock_value
+            update_fields.append("cantidad_actual")
+        if stock_obj.stock_minimo != minimo_value:
+            stock_obj.stock_minimo = minimo_value
+            update_fields.append("stock_minimo")
+        if ubicacion:
+            stock_obj.ubicacion = ubicacion
+            update_fields.append("ubicacion")
+        if not created and update_fields:
+            stock_obj.save(update_fields=update_fields)
 
         return material
 

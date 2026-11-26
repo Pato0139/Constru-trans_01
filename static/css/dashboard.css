@@ -539,6 +539,20 @@ body {
     font-size: 0.875rem;
 }
 
+/* Tipografía uniforme para las acciones rápidas del panel de administración */
+.quick-actions-panel .quick-action-button {
+    font-size: 0.76rem !important;
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+}
+
+.quick-actions-panel .quick-action-button i {
+    flex: 0 0 auto;
+    font-size: 0.82rem;
+}
+
 @media (min-width: 768px) {
     .btn-premium {
         padding: 0.875rem 2rem;

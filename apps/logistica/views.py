@@ -490,7 +490,7 @@ def crear_novedad(request, entrega_id):
         messages.success(request, "Novedad registrada correctamente.")
         if es_conductor:
             return redirect("logistica:mis_novedades")
-        return redirect("pedidos:ver_pedido_admin", id=entrega.pedido.codigo_pedido)
+        return redirect("logistica:lista_novedades_admin")
 
     return render(
         request,
@@ -559,7 +559,9 @@ def reagendar_entrega_view(request, pedido_id):
         detalle_motivo = form.cleaned_data["detalle_motivo"].strip()
         try:
             actualizado, anterior = reagendar_entrega(
-                pedido.pk, form.cleaned_data["fecha_entrega_programada"]
+                pedido.pk,
+                form.cleaned_data["fecha_entrega_programada"],
+                using=pedido._state.db or "default",
             )
         except ValidationError as exc:
             for error in exc.messages:
@@ -572,7 +574,21 @@ def reagendar_entrega_view(request, pedido_id):
                 f"Motivo: {motivo}. {detalle_motivo}".strip()
             )
             registrar_actividad(request, "editar", "pedido", pedido.codigo_pedido, descripcion)
-            notificar_evento_logistico("fecha_reagendada", actualizado, extra_info=f"Motivo: {motivo}.")
+            evento_key = (
+                f"{anterior.strftime('%Y%m%d%H%M') if anterior else 'sin-fecha'}-"
+                f"{actualizado.fecha_entrega_programada.strftime('%Y%m%d%H%M')}"
+            )
+            notificar_evento_logistico(
+                "fecha_reagendada",
+                actualizado,
+                extra_info=(
+                    f"Fecha anterior: {anterior_texto}. Nueva fecha y hora: {nueva_texto}. "
+                    f"Motivo: {motivo}. {detalle_motivo} "
+                    "El pedido sigue activo y conserva su conductor y vehículo."
+                ).strip(),
+                using=actualizado._state.db or "default",
+                event_key=evento_key,
+            )
             messages.success(request, "La nueva fecha quedó guardada y se notificó al cliente.")
             return redirect("pedidos:ver_pedido_admin", id=pedido.codigo_pedido)
 
@@ -685,7 +701,9 @@ def agregar_seguimiento(request, novedad_id):
         if novedad.estado == "abierta":
             novedad.estado = "en_atencion"
             novedad.save(update_fields=["estado"])
-        return redirect("logistica:crear_novedad", entrega_id=novedad.entrega_id)
+        if request.user.rol == "conductor":
+            return redirect("logistica:mis_novedades")
+        return redirect("logistica:lista_novedades_admin")
     return render(request, "logistica/seguimiento.html", {"novedad": novedad})
 
 

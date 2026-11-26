@@ -121,7 +121,7 @@ def models_q_admin():
     return Q(rol="admin") | Q(is_superuser=True)
 
 
-def notificar_evento_logistico(evento, pedido, actor=None, extra_info="", using=None):
+def notificar_evento_logistico(evento, pedido, actor=None, extra_info="", using=None, event_key=None):
     """
     Dispara notificaciones para Administrador(es) y Cliente (y Conductor cuando aplica)
     según la matriz de eventos del flujo logístico, sin duplicados.
@@ -219,7 +219,8 @@ def notificar_evento_logistico(evento, pedido, actor=None, extra_info="", using=
             mensaje = f"Se actualizó la asignación de tu pedido #CT-{codigo}. {extra_info}".strip()
             tipo = "warning"
         elif evento == "fecha_reagendada":
-            titulo = f"Nueva fecha de entrega - Pedido #CT-{codigo} - {timezone.localtime().strftime('%Y%m%d%H%M%S%f')}"
+            identificador_evento = event_key or timezone.localtime().strftime("%Y%m%d%H%M%S%f")
+            titulo = f"Nueva fecha de entrega - Pedido #CT-{codigo} - {identificador_evento}"
             fecha = pedido.fecha_entrega_programada
             fecha_texto = timezone.localtime(fecha).strftime("%d/%m/%Y %H:%M") if fecha else "por confirmar"
             mensaje = f"La entrega del pedido #CT-{codigo} fue reagendada para el {fecha_texto}. {extra_info}".strip()
@@ -914,6 +915,13 @@ def reagendar_entrega(pedido_id, nueva_fecha, using=None):
         )
         if pedido.estado in (Pedido.ENTREGADO, Pedido.CANCELADO):
             raise ValidationError("No se puede reagendar un pedido finalizado o cancelado.")
+        entrega_en_ruta = select_for_update_if_supported(
+            Entrega.objects.using(db_alias), db_alias
+        ).filter(pedido_id=pedido.pk, estado="en_ruta").order_by("id_entrega").first()
+        if pedido.estado == Pedido.EN_RUTA or entrega_en_ruta:
+            raise ValidationError(
+                "No se puede reagendar una entrega que ya está en ruta. Registra una novedad logística para gestionarla."
+            )
         anterior = pedido.fecha_entrega_programada
         if anterior == nueva_fecha:
             raise ValidationError("La fecha seleccionada es igual a la fecha actual.")

@@ -1,44 +1,144 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Reasignar envío · Pedido #CT-{{ pedido.codigo_pedido }}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/logistica/reasignar.css' %}?v=1.0">
+{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-  <div class="row justify-content-center"><div class="col-lg-8">
-    <div class="card bg-surface text-main border-secondary shadow rounded-4">
-      <div class="card-header border-secondary py-3"><h4 class="mb-0 text-accent"><i class="bi bi-arrow-repeat me-2"></i>Reasignar conductor y vehículo</h4></div>
-      <div class="card-body p-4">
-        <p class="text-muted">Pedido <strong class="text-main">#CT-{{ pedido.codigo_pedido }}</strong> · el estado logístico se conservará.</p>
-        <div class="row g-3 mb-4">
-          <div class="col-md-6"><div class="border border-secondary rounded-3 p-3"><small class="text-muted d-block">Asignación actual</small><strong>{{ entrega.conductor.usuario.nombre_mostrar|default:"Sin conductor" }}</strong><div class="small text-muted">{{ entrega.vehiculo.placa|default:"Sin vehículo" }}</div></div></div>
-          <div class="col-md-6"><div class="border border-info rounded-3 p-3"><small class="text-muted d-block">Estado actual</small><strong>{{ pedido.get_estado_display }}</strong><div class="small text-muted">{{ entrega.get_estado_display }}</div></div></div>
+<main class="container py-4 py-lg-5 reassignment-page">
+  <div class="row justify-content-center">
+    <div class="col-xl-9 col-lg-10">
+      <section class="reassignment-shell">
+        <header class="reassignment-header">
+          <div class="reassignment-title-icon"><i class="bi bi-arrow-repeat"></i></div>
+          <div class="flex-grow-1">
+            <p class="reassignment-eyebrow mb-1">Gestión logística · Pedido #CT-{{ pedido.codigo_pedido }}</p>
+            <h1>Reasignar transporte</h1>
+            <p class="mb-0">Actualiza el conductor, el vehículo o ambos para este envío.</p>
+          </div>
+          <span class="reassignment-preserve-badge"><i class="bi bi-shield-check"></i> Estado logístico protegido</span>
+        </header>
+
+        <div class="reassignment-body">
+          <section class="current-assignment" aria-label="Asignación y estado actuales">
+            <article class="current-resource-card">
+              <div class="current-card-icon driver-icon"><i class="bi bi-person-badge"></i></div>
+              <div class="current-card-content">
+                <span class="current-card-label">Conductor actual</span>
+                <strong>{{ entrega.conductor.usuario.nombre_mostrar|default:"Sin conductor" }}</strong>
+                <small>{% if entrega.conductor.usuario.documento %}Documento {{ entrega.conductor.usuario.documento }}{% else %}Se conservará si no eliges otro{% endif %}</small>
+              </div>
+            </article>
+            <article class="current-resource-card">
+              <div class="current-card-icon vehicle-icon"><i class="bi bi-truck-front"></i></div>
+              <div class="current-card-content">
+                <span class="current-card-label">Vehículo actual</span>
+                <strong>{{ entrega.vehiculo.placa|default:"Sin vehículo" }}</strong>
+                <small>{% if entrega.vehiculo %}{{ entrega.vehiculo.tipo_vehiculo }}{% else %}Se conservará si no eliges otro{% endif %}</small>
+              </div>
+            </article>
+            <article class="current-status-card">
+              <span class="current-card-label"><i class="bi bi-activity me-1"></i> Estado del pedido</span>
+              <strong>{{ pedido.get_estado_display }}</strong>
+              <small>Envío: {{ entrega.get_estado_display }}</small>
+            </article>
+          </section>
+
+          <form method="post" id="reasignar-form" novalidate>
+            {% csrf_token %}
+            <section class="resource-selection-section">
+              <div class="section-heading">
+                <span class="section-step">1</span>
+                <div><h2>Recursos del envío</h2><p>Deja una selección vacía para conservar el recurso actual.</p></div>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="resource-select-card">
+                    <label class="form-label" for="{{ form.conductor.id_for_label }}"><i class="bi bi-person-vcard"></i> Nuevo conductor <span>Opcional</span></label>
+                    {{ form.conductor }}
+                    {% for error in form.conductor.errors %}<div class="field-error"><i class="bi bi-exclamation-circle"></i>{{ error }}</div>{% endfor %}
+                    <small class="field-hint">Puedes seleccionar un conductor que ya tenga otros pedidos asignados.</small>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="resource-select-card">
+                    <label class="form-label" for="{{ form.vehiculo.id_for_label }}"><i class="bi bi-truck"></i> Nuevo vehículo <span>Opcional</span></label>
+                    {{ form.vehiculo }}
+                    {% for error in form.vehiculo.errors %}<div class="field-error"><i class="bi bi-exclamation-circle"></i>{{ error }}</div>{% endfor %}
+                    <small class="field-hint">Solo se muestran vehículos disponibles y el actual.</small>
+                  </div>
+                </div>
+              </div>
+              {% for error in form.non_field_errors %}<div class="form-error-banner"><i class="bi bi-exclamation-triangle-fill"></i>{{ error }}</div>{% endfor %}
+            </section>
+
+            <section class="assignment-preview-card" aria-live="polite">
+              <div class="preview-icon"><i class="bi bi-signpost-split"></i></div>
+              <div class="preview-copy"><span>Vista previa de la asignación</span><strong id="propuesta-asignacion">La selección vacía conserva el recurso actual.</strong></div>
+              <i class="bi bi-check2-circle preview-check"></i>
+            </section>
+
+            <section class="reason-section">
+              <div class="section-heading">
+                <span class="section-step">2</span>
+                <div><h2>Justificación del cambio</h2><p>Registra el motivo para conservar la trazabilidad.</p></div>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-5">
+                  <label class="form-label" for="{{ form.motivo.id_for_label }}"><i class="bi bi-list-check"></i> {{ form.motivo.label }} <span class="required-mark">*</span></label>
+                  {{ form.motivo }}
+                  {% for error in form.motivo.errors %}<div class="field-error"><i class="bi bi-exclamation-circle"></i>{{ error }}</div>{% endfor %}
+                </div>
+                <div class="col-md-7">
+                  <label class="form-label" for="{{ form.detalle_motivo.id_for_label }}"><i class="bi bi-chat-left-text"></i> {{ form.detalle_motivo.label }}<span id="detalle-motivo-obligatorio" class="required-mark" hidden>*</span><span id="detalle-motivo-opcional">Si aplica</span></label>
+                  {{ form.detalle_motivo }}
+                  {% for error in form.detalle_motivo.errors %}<div class="field-error"><i class="bi bi-exclamation-circle"></i>{{ error }}</div>{% endfor %}
+                </div>
+              </div>
+            </section>
+
+            <footer class="reassignment-actions">
+              <a class="btn btn-cancel-reassignment" href="{% url 'pedidos:ver_pedido_admin' pedido.codigo_pedido %}"><i class="bi bi-arrow-left me-1"></i>Cancelar</a>
+              <button class="btn btn-confirm-reassignment" type="submit"><i class="bi bi-check2-circle me-1"></i>Confirmar reasignación</button>
+            </footer>
+          </form>
         </div>
-        <form method="post" id="reasignar-form" novalidate>{% csrf_token %}
-          {% for field in form %}<div class="mb-3"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>{{ field }}{% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>{% endfor %}
-          {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
-          <div class="alert alert-info small" id="propuesta-asignacion">La selección vacía conserva el recurso actual.</div>
-          <div class="d-flex justify-content-between gap-2"><a class="btn btn-outline-secondary rounded-pill" href="{% url 'pedidos:ver_pedido_admin' pedido.codigo_pedido %}">Cancelar</a><button class="btn btn-primary rounded-pill" type="submit">Confirmar reasignación</button></div>
-        </form>
-      </div>
+      </section>
     </div>
-  </div></div>
-</div>
+  </div>
+</main>
+
 <script>
 (() => {
   const form = document.getElementById('reasignar-form');
   const driver = document.getElementById('id_conductor');
   const vehicle = document.getElementById('id_vehiculo');
+  const reason = document.getElementById('id_motivo');
   const preview = document.getElementById('propuesta-asignacion');
+  const reasonRequired = document.getElementById('detalle-motivo-obligatorio');
+  const reasonOptional = document.getElementById('detalle-motivo-opcional');
   const driverOld = "{{ entrega.conductor.usuario.nombre_mostrar|default:'Sin conductor'|escapejs }}";
   const vehicleOld = "{{ entrega.vehiculo.placa|default:'Sin vehículo'|escapejs }}";
   function updatePreview() {
     const driverNew = driver.value ? driver.options[driver.selectedIndex].text : driverOld;
     const vehicleNew = vehicle.value ? vehicle.options[vehicle.selectedIndex].text : vehicleOld;
-    preview.textContent = `Nueva asignación: ${driverNew} · ${vehicleNew}`;
+    preview.textContent = `${driverNew} · ${vehicleNew}`;
   }
-  driver.addEventListener('change', updatePreview); vehicle.addEventListener('change', updatePreview);
+  function updateReasonHint() {
+    const otherReason = reason.value === 'otro';
+    reasonRequired.hidden = !otherReason;
+    reasonOptional.hidden = otherReason;
+  }
+  driver.addEventListener('change', updatePreview);
+  vehicle.addEventListener('change', updatePreview);
+  reason.addEventListener('change', updateReasonHint);
+  updatePreview();
+  updateReasonHint();
   form.addEventListener('submit', event => {
     updatePreview();
-    if (!window.confirm(`${preview.textContent}. ¿Confirmas la reasignación?`)) event.preventDefault();
+    if (!window.confirm(`Nueva asignación: ${preview.textContent}. ¿Confirmas la reasignación?`)) event.preventDefault();
   });
 })();
 </script>

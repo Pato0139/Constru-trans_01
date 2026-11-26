@@ -2,6 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 from io import BytesIO
 import tempfile
+from unittest.mock import patch
 
 from PIL import Image
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -193,6 +194,7 @@ class ImprevistosLogisticosTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_reagendar_conserva_estado_y_notifica_cliente(self):
+        anterior = timezone.localtime(self.pedido.fecha_entrega_programada).replace(second=0, microsecond=0)
         nueva = timezone.localtime(timezone.now() + timedelta(days=5)).replace(second=0, microsecond=0)
         response = self.client.post(
             reverse("logistica:reagendar_entrega", args=[self.pedido.codigo_pedido]),
@@ -205,8 +207,149 @@ class ImprevistosLogisticosTests(TestCase):
         self.pedido.refresh_from_db()
         self.assertEqual(self.pedido.estado, Pedido.VEHICULO_ASIGNADO)
         self.assertEqual(timezone.localtime(self.pedido.fecha_entrega_programada), nueva)
-        self.assertTrue(Historial.objects.filter(modulo="pedido", elemento_id=str(self.pedido.pk), descripcion__icontains="Entrega reagendada").exists())
-        self.assertTrue(Notificacion.objects.filter(usuario=self.cliente, titulo__startswith="Nueva fecha de entrega").exists())
+        historial = Historial.objects.filter(
+            modulo="pedido",
+            elemento_id=str(self.pedido.codigo_pedido),
+            descripcion__icontains="Entrega reagendada",
+        )
+        self.assertTrue(historial.exists())
+        self.assertIn(anterior.strftime("%d/%m/%Y %H:%M"), historial.first().descripcion)
+        notificacion = Notificacion.objects.get(
+            usuario=self.cliente,
+            titulo__startswith="Nueva fecha de entrega",
+        )
+        self.assertIn(anterior.strftime("%d/%m/%Y %H:%M"), notificacion.mensaje)
+        self.assertIn(nueva.strftime("%d/%m/%Y %H:%M"), notificacion.mensaje)
+        self.assertIn("Condiciones climáticas desfavorables", notificacion.mensaje)
+        self.assertFalse(Notificacion.objects.filter(usuario=self.conductor_user).exists())
+        self.assertFalse(Notificacion.objects.filter(usuario=self.admin).exists())
+
+    def test_reagendamiento_individual_no_cambia_otros_pedidos_del_conductor(self):
+        otra_fecha = timezone.localtime(timezone.now() + timedelta(days=8)).replace(second=0, microsecond=0)
+        otra_programacion = Pedido.objects.create(
+            usuario=self.cliente,
+            estado=Pedido.VEHICULO_ASIGNADO,
+            total=Decimal("200000.00"),
+            subtotal=Decimal("200000.00"),
+            direccion_destino="Santa Marta, Colombia",
+            fecha_entrega_programada=otra_fecha,
+        )
+        otra_entrega = Entrega.objects.create(
+            pedido=otra_programacion,
+            conductor=self.conductor,
+            vehiculo=self.vehiculo_alt,
+            estado="pendiente",
+            direccion_entrega=otra_programacion.direccion_destino,
+        )
+        fecha_seleccionada = timezone.localtime(timezone.now() + timedelta(days=4)).replace(second=0, microsecond=0)
+
+        response = self.client.post(
+            reverse("logistica:reagendar_entrega", args=[self.pedido.codigo_pedido]),
+            {
+                "fecha_entrega_programada": fecha_seleccionada.strftime("%Y-%m-%dT%H:%M"),
+                "motivo": "clima",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.pedido.refresh_from_db()
+        otra_programacion.refresh_from_db()
+        self.entrega.refresh_from_db()
+        otra_entrega.refresh_from_db()
+        self.assertEqual(self.pedido.fecha_entrega_programada, fecha_seleccionada)
+        self.assertEqual(self.pedido.estado, Pedido.VEHICULO_ASIGNADO)
+        self.assertEqual(self.entrega.conductor_id, self.conductor.pk)
+        self.assertEqual(self.entrega.vehiculo_id, self.vehiculo.pk)
+        self.assertEqual(otra_programacion.fecha_entrega_programada, otra_fecha)
+        self.assertEqual(otra_programacion.estado, Pedido.VEHICULO_ASIGNADO)
+        self.assertEqual(otra_entrega.conductor_id, self.conductor.pk)
+        self.assertEqual(otra_entrega.vehiculo_id, self.vehiculo_alt.pk)
+
+    def test_reagendar_en_ruta_se_rechaza_y_conserva_programacion(self):
+        fecha_original = self.pedido.fecha_entrega_programada
+        self.pedido.estado = Pedido.EN_RUTA
+        self.pedido.save(update_fields=["estado"])
+        self.entrega.estado = "en_ruta"
+        self.entrega.save(update_fields=["estado"])
+        propuesta = timezone.localtime(timezone.now() + timedelta(days=2)).replace(second=0, microsecond=0)
+
+        response = self.client.post(
+            reverse("logistica:reagendar_entrega", args=[self.pedido.codigo_pedido]),
+            {
+                "fecha_entrega_programada": propuesta.strftime("%Y-%m-%dT%H:%M"),
+                "motivo": "clima",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "ya está en ruta")
+        self.pedido.refresh_from_db()
+        self.entrega.refresh_from_db()
+        self.assertEqual(self.pedido.fecha_entrega_programada, fecha_original)
+        self.assertEqual(self.pedido.estado, Pedido.EN_RUTA)
+        self.assertEqual(self.entrega.estado, "en_ruta")
+        self.assertEqual(self.entrega.conductor_id, self.conductor.pk)
+        self.assertEqual(self.entrega.vehiculo_id, self.vehiculo.pk)
+
+    def test_reagendar_varias_veces_conserva_historial_y_notifica_cada_cambio(self):
+        fechas = [
+            timezone.localtime(timezone.now() + timedelta(days=d)).replace(second=0, microsecond=0)
+            for d in (4, 6)
+        ]
+        for fecha in fechas:
+            response = self.client.post(
+                reverse("logistica:reagendar_entrega", args=[self.pedido.codigo_pedido]),
+                {
+                    "fecha_entrega_programada": fecha.strftime("%Y-%m-%dT%H:%M"),
+                    "motivo": "operativo",
+                },
+            )
+            self.assertEqual(response.status_code, 302)
+
+        historial = Historial.objects.filter(
+            modulo="pedido",
+            elemento_id=str(self.pedido.codigo_pedido),
+            descripcion__startswith="Entrega reagendada:",
+        )
+        notificaciones = Notificacion.objects.filter(
+            usuario=self.cliente,
+            titulo__startswith="Nueva fecha de entrega",
+        )
+        self.assertEqual(historial.count(), 2)
+        self.assertEqual(notificaciones.count(), 2)
+        self.pedido.refresh_from_db()
+        self.assertEqual(timezone.localtime(self.pedido.fecha_entrega_programada), fechas[-1])
+
+    def test_conductor_ve_nueva_programacion_y_motivo_del_reagendamiento(self):
+        nueva = timezone.localtime(timezone.now() + timedelta(days=5)).replace(second=0, microsecond=0)
+        self.client.post(
+            reverse("logistica:reagendar_entrega", args=[self.pedido.codigo_pedido]),
+            {
+                "fecha_entrega_programada": nueva.strftime("%Y-%m-%dT%H:%M"),
+                "motivo": "clima",
+            },
+        )
+        self.client.force_login(self.conductor_user)
+
+        response = self.client.get(reverse("usuarios:pedidos_conductor"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, nueva.strftime("%d/%m/%Y %H:%M"))
+        self.assertContains(response, "Reagendada")
+        self.assertContains(response, "Condiciones climáticas desfavorables")
+        self.assertEqual(self.pedido.entregas.count(), 1)
+
+        detalle = self.client.get(
+            reverse("usuarios:detalle_entrega_conductor", args=[self.entrega.pk])
+        )
+        self.assertEqual(detalle.status_code, 200)
+        self.assertContains(detalle, "Historial de reagendamientos")
+        self.assertContains(detalle, "Condiciones climáticas desfavorables")
+
+        with patch("apps.usuarios.views.get_route_weather", return_value=None):
+            panel = self.client.get(reverse("usuarios:panel_conductor"))
+        self.assertEqual(panel.status_code, 200)
+        self.assertContains(panel, nueva.strftime("%d/%m/%Y %H:%M"))
 
     def test_no_admite_fecha_pasada(self):
         anterior = timezone.localtime(timezone.now() - timedelta(days=1)).replace(second=0, microsecond=0)

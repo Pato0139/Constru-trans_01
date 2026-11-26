@@ -64,9 +64,9 @@
                                     </div>
                                 </div>
                                 <div class="flex-grow-1 min-w-0">
-                                    <p class="small mb-1 fw-bold text-white text-truncate">{{ notif.titulo }}</p>
-                                    <p class="small mb-1 text-muted text-truncate">{{ notif.mensaje }}</p>
-                                    <span class="small text-muted navbar-notif-date">{{ notif.fecha|date:"d/m/Y H:i" }}</span>
+                                    <p class="mb-1 fw-bold text-white navbar-notif-title">{{ notif.titulo }}</p>
+                                    <p class="mb-2 text-muted navbar-notif-message">{{ notif.mensaje }}</p>
+                                    <span class="text-muted navbar-notif-date">{{ notif.fecha|date:"d/m/Y H:i" }}</span>
                                 </div>
                             </div>
                         </a>

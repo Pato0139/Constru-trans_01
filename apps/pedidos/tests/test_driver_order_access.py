@@ -46,7 +46,7 @@ class DriverOrderAccessTests(TestCase):
             marca="Chevrolet",
             modelo="NHR",
             tipo_vehiculo="Camión",
-            capacidad_carga=Decimal("3.50"),
+            capacidad_carga=Decimal("5.50"),
             estado="disponible",
         )
         self.pedido = Pedido.objects.create(
