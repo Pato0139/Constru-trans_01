@@ -29,6 +29,11 @@ def tipos_material_lista(request):
         tipos = tipos.filter(codigo_catalogo__icontains=codigo)
     if nombre:
         tipos = tipos.filter(nombre_empresa__icontains=nombre)
+    estado = request.GET.get("estado", "").strip()
+    if estado == "activo":
+        tipos = tipos.filter(activo=True)
+    elif estado == "inactivo":
+        tipos = tipos.filter(activo=False)
     if materiales_asociados:
         try:
             numero = int(materiales_asociados)
@@ -43,20 +48,34 @@ def tipos_material_lista(request):
     tipos = tipos.order_by("codigo_catalogo")
 
     filter_fields = [
-        {"type": "text", "name": "codigo", "placeholder": "Código", "value": codigo, "size": "3"},
+        {"type": "text", "name": "codigo", "label": "Código", "placeholder": "Código", "value": codigo, "size": "3"},
         {
             "type": "text",
             "name": "nombre",
-            "placeholder": "Nombre del material",
+            "label": "Nombre",
+            "placeholder": "Nombre de la categoría",
             "value": nombre,
             "size": "3",
         },
         {
             "type": "text",
             "name": "materiales_asociados",
-            "placeholder": "Materiales asociados",
+            "label": "Materiales",
+            "placeholder": "Cantidad de materiales",
             "value": materiales_asociados,
-            "size": "3",
+            "size": "2",
+        },
+        {
+            "type": "select",
+            "name": "estado",
+            "label": "Estado",
+            "placeholder": "Estado (Todos)",
+            "value": estado,
+            "size": "2",
+            "options": [
+                {"value": "activo", "label": "Activas", "selected": estado == "activo"},
+                {"value": "inactivo", "label": "Inactivas", "selected": estado == "inactivo"},
+            ],
         },
     ]
 
@@ -161,6 +180,7 @@ def eliminar_tipo_material(request, codigo):
 @admin_required
 def unidades_medida_lista(request):
     query = request.GET.get("q")
+    estado = request.GET.get("estado", "").strip()
 
     unidades = UnidadMedida.objects.all()
 
@@ -170,6 +190,10 @@ def unidades_medida_lista(request):
             | Q(nombre__icontains=query)
             | Q(abreviatura__icontains=query)
         )
+    if estado == "activo":
+        unidades = unidades.filter(activa=True)
+    elif estado == "inactivo":
+        unidades = unidades.filter(activa=False)
 
     unidades = unidades.order_by("orden", "nombre")
 
@@ -182,17 +206,31 @@ def unidades_medida_lista(request):
         {
             "type": "text",
             "name": "q",
+            "label": "Buscar",
             "placeholder": "Buscar unidad de medida...",
             "value": query,
             "size": "4",
+        },
+        {
+            "type": "select",
+            "name": "estado",
+            "label": "Estado",
+            "placeholder": "Estado (Todos)",
+            "value": estado,
+            "size": "3",
+            "options": [
+                {"value": "activo", "label": "Activas", "selected": estado == "activo"},
+                {"value": "inactivo", "label": "Inactivas", "selected": estado == "inactivo"},
+            ],
         },
     ]
 
     context = {
         "unidades": unidades_lista,
         "query": query,
+        "estado": estado,
         "filter_fields": filter_fields,
-        "has_filters": bool(query),
+        "has_filters": bool(query or estado),
     }
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return render(request, "catalogo/_unidades_body.html", context)
@@ -302,8 +340,13 @@ def marcas_lista(request):
         ),
     )
 
+    estado = request.GET.get("estado", "").strip()
     if query:
         marcas = marcas.filter(nombre__icontains=query)
+    if estado == "activo":
+        marcas = marcas.filter(activo=True)
+    elif estado == "inactivo":
+        marcas = marcas.filter(activo=False)
 
     marcas = marcas.order_by("nombre")
 
@@ -311,17 +354,31 @@ def marcas_lista(request):
         {
             "type": "text",
             "name": "q",
+            "label": "Buscar",
             "placeholder": "Buscar marca...",
             "value": query,
             "size": "4",
+        },
+        {
+            "type": "select",
+            "name": "estado",
+            "label": "Estado",
+            "placeholder": "Estado (Todos)",
+            "value": estado,
+            "size": "3",
+            "options": [
+                {"value": "activo", "label": "Activas", "selected": estado == "activo"},
+                {"value": "inactivo", "label": "Inactivas", "selected": estado == "inactivo"},
+            ],
         },
     ]
 
     context = {
         "marcas": marcas,
         "query": query,
+        "estado": estado,
         "filter_fields": filter_fields,
-        "has_filters": bool(query),
+        "has_filters": bool(query or estado),
     }
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return render(request, "catalogo/_marcas_body.html", context)

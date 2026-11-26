@@ -100,15 +100,24 @@ def _estado_archivos_comprobante(pago):
 
 @role_required(["admin", "cliente"])
 def lista_pagos(request):
-    verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
+    if request.headers.get("X-Requested-With") != "XMLHttpRequest":
+        from django.core.cache import cache as _cache
+
+        if not _cache.get("pedidos:vencimiento_check_ok"):
+            verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago()
+            _cache.set("pedidos:vencimiento_check_ok", True, 60)
     usuario = _usuario_actual(request)
     query = request.GET.get("q", "").strip()
     estado = request.GET.get("estado", "").strip()
     metodo = request.GET.get("metodo", "").strip()
 
-    pagos = Pago.objects.select_related(
-        "pedido", "pedido__usuario", "pedido__cliente__usuario", "revisado_por"
-    ).order_by("-fecha_registro")
+    pagos = (
+        Pago.objects.select_related(
+            "pedido", "pedido__usuario", "pedido__cliente__usuario", "revisado_por"
+        )
+        .prefetch_related("detalles")
+        .order_by("-fecha_registro")
+    )
 
     if getattr(usuario, "rol", "") == "cliente":
         pagos = pagos.filter(Q(pedido__usuario=usuario) | Q(pedido__cliente__usuario=usuario))
@@ -117,8 +126,8 @@ def lista_pagos(request):
         pagos = pagos.filter(
             Q(id__icontains=query)
             | Q(pedido__codigo_pedido__icontains=query)
-            | Q(pedido__cliente__nombres__icontains=query)
-            | Q(pedido__cliente__apellidos__icontains=query)
+            | Q(pedido__cliente__usuario__nombres__icontains=query)
+            | Q(pedido__cliente__usuario__apellidos__icontains=query)
             | Q(pedido__usuario__nombres__icontains=query)
             | Q(pedido__usuario__apellidos__icontains=query)
         )

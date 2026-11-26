@@ -254,7 +254,9 @@ if database_url:
     if "OPTIONS" not in remote_database:
         remote_database["OPTIONS"] = {}
     if remote_database.get("ENGINE") == "django.db.backends.postgresql":
-        remote_database["OPTIONS"].setdefault("connect_timeout", 5)
+        # Neon (serverless) puede tardar 6-12s al despertar de auto-suspend;
+        # el socket check rápido en config/utils.py corta en <=3s si realmente no hay red.
+        remote_database["OPTIONS"].setdefault("connect_timeout", 15)
     remote_database["OPTIONS"].pop("options", None)
     remote_database["DISABLE_SERVER_SIDE_CURSORS"] = True
 

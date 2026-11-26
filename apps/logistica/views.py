@@ -54,6 +54,7 @@ def lista_vehiculos(request):
     estado = request.GET.get("estado")
     conductor = request.GET.get("conductor")
     query = request.GET.get("q", "")
+    orden = (request.GET.get("orden") or "recientes").strip()
 
     asignaciones_activas = Prefetch(
         "asignaciones_conductor",
@@ -69,7 +70,22 @@ def lista_vehiculos(request):
     if id_vehiculo and id_vehiculo.isdigit():
         vehiculos = vehiculos.filter(id_vehiculo=int(id_vehiculo))
     if placa:
-        vehiculos = vehiculos.filter(placa__icontains=placa)
+        vehiculos = vehiculos.filter(
+            models.Q(placa__icontains=placa)
+            | models.Q(marca__icontains=placa)
+            | models.Q(tipo_vehiculo__icontains=placa)
+            | (
+                models.Q(asignaciones_conductor__fecha_fin__isnull=True)
+                & (
+                    models.Q(
+                        asignaciones_conductor__conductor__usuario__nombres__icontains=placa
+                    )
+                    | models.Q(
+                        asignaciones_conductor__conductor__usuario__apellidos__icontains=placa
+                    )
+                )
+            )
+        ).distinct()
     if tipo:
         vehiculos = vehiculos.filter(tipo_vehiculo__icontains=tipo)
     if estado:
@@ -86,20 +102,31 @@ def lista_vehiculos(request):
         ).distinct()
     if query:
         vehiculos = vehiculos.filter(
-            models.Q(placa__icontains=query) | models.Q(tipo_vehiculo__icontains=query)
+            models.Q(placa__icontains=query)
+            | models.Q(marca__icontains=query)
+            | models.Q(tipo_vehiculo__icontains=query)
         )
+
+    orden_map = {
+        "recientes": "-id_vehiculo",
+        "placa": "placa",
+        "capacidad": "-capacidad_carga",
+    }
+    vehiculos = vehiculos.order_by(orden_map.get(orden, "-id_vehiculo"))
 
     filter_fields = [
         {
             "type": "text",
             "name": "placa",
-            "placeholder": "Placa",
+            "label": "Buscar",
+            "placeholder": "Buscar por placa, marca o conductor...",
             "value": placa or "",
             "size": "3",
         },
         {
             "type": "text",
             "name": "tipo",
+            "label": "Tipo",
             "placeholder": "Tipo de vehículo",
             "value": tipo or "",
             "size": "3",
@@ -107,6 +134,7 @@ def lista_vehiculos(request):
         {
             "type": "select",
             "name": "estado",
+            "label": "Estado",
             "placeholder": "Estado (Todos)",
             "value": estado or "",
             "size": "3",
@@ -123,6 +151,18 @@ def lista_vehiculos(request):
                     "label": "Fuera de Servicio",
                     "selected": estado == "fuera_de_servicio",
                 },
+            ],
+        },
+        {
+            "type": "select",
+            "name": "orden",
+            "label": "Ordenar por",
+            "placeholder": "Más recientes",
+            "value": orden if orden != "recientes" else "",
+            "size": "3",
+            "options": [
+                {"value": "placa", "label": "Placa (A-Z)", "selected": orden == "placa"},
+                {"value": "capacidad", "label": "Mayor capacidad", "selected": orden == "capacidad"},
             ],
         },
     ]

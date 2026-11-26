@@ -168,9 +168,12 @@ def cambiar_estado_material(request, id):
 
 @admin_required
 def stock_lista(request):
+    from django.db.models import F
+
     material = request.GET.get("material", "")
     ubicacion = request.GET.get("ubicacion", "")
     stock_actual = request.GET.get("stock_actual", "")
+    estado = request.GET.get("estado", "").strip()
     q = request.GET.get("q", "")
 
     stocks = Stock.objects.all().select_related("material")
@@ -181,17 +184,36 @@ def stock_lista(request):
         stocks = stocks.filter(ubicacion__icontains=ubicacion)
     if stock_actual and stock_actual.isdigit():
         stocks = stocks.filter(cantidad_actual=int(stock_actual))
+    if estado == "disponible":
+        stocks = stocks.filter(cantidad_actual__gt=F("stock_minimo"))
+    elif estado == "bajo":
+        stocks = stocks.filter(cantidad_actual__gt=0, cantidad_actual__lte=F("stock_minimo"))
+    elif estado == "agotado":
+        stocks = stocks.filter(cantidad_actual__lte=0)
     if q:
         stocks = stocks.filter(Q(material__nombre__icontains=q) | Q(ubicacion__icontains=q))
 
     filter_fields = [
-        {"type": "text", "name": "material", "placeholder": "Material", "value": material},
-        {"type": "text", "name": "ubicacion", "placeholder": "Ubicación", "value": ubicacion},
+        {"type": "text", "name": "material", "label": "Material", "placeholder": "Material", "value": material},
+        {"type": "text", "name": "ubicacion", "label": "Ubicación", "placeholder": "Ubicación", "value": ubicacion},
         {
             "type": "text",
             "name": "stock_actual",
+            "label": "Cantidad",
             "placeholder": "Stock exacto",
             "value": stock_actual,
+        },
+        {
+            "type": "select",
+            "name": "estado",
+            "label": "Estado",
+            "placeholder": "Estado (Todos)",
+            "value": estado,
+            "options": [
+                {"value": "disponible", "label": "Disponible", "selected": estado == "disponible"},
+                {"value": "bajo", "label": "Stock bajo", "selected": estado == "bajo"},
+                {"value": "agotado", "label": "Agotado", "selected": estado == "agotado"},
+            ],
         },
     ]
 

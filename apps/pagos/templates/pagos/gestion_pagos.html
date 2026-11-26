@@ -9,23 +9,23 @@
     </h1>
   </div>
 
-  <form method="get" class="mb-3">
-    <div class="row g-2">
-      <div class="col-md-3">
-        <select name="estado" class="form-select">
+  <div class="card bg-surface border-0 shadow-sm p-3 mb-4 filter-bar-card standard-filter-bar" data-aos="fade-down">
+    <form method="get" class="standard-filter-form standard-filter-layout">
+      <div class="standard-filter-field">
+        <select name="estado" class="form-select form-select-sm filter-select">
           <option value="">Todos los estados</option>
           <option value="pendiente" {% if estado_actual == "pendiente" %}selected{% endif %}>Pendientes</option>
           <option value="aprobado" {% if estado_actual == "aprobado" %}selected{% endif %}>Aprobados</option>
           <option value="rechazado" {% if estado_actual == "rechazado" %}selected{% endif %}>Rechazados</option>
         </select>
       </div>
-      <div class="col-md-2">
-        <button class="btn btn-primary w-100">
-          <i class="bi bi-filter me-1"></i>Filtrar
-        </button>
+      <div class="standard-filter-actions">
+        <a href="{{ request.path }}" class="btn btn-sm btn-outline-secondary filter-clear-btn ct-clear-btn" title="Limpiar filtros">
+          <i class="bi bi-eraser"></i><span>Limpiar filtros</span>
+        </a>
       </div>
-    </div>
-  </form>
+    </form>
+  </div>
 
   <div class="card shadow-sm border-0">
     <div class="card-body p-0">
