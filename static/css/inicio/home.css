@@ -655,9 +655,60 @@ main {
     border-radius: 20px;
   }
 
+  .inicio-stat-card {
+    padding: 1.2rem 0.75rem;
+  }
+
+  .inicio-stats-section .stat-number-premium,
+  #nosotros .inicio-mini-stat .stat-number-premium {
+    font-size: clamp(1.85rem, 8.5vw, 2.75rem);
+    line-height: 1.05;
+    white-space: nowrap;
+  }
+
+  .inicio-stats-section .stat-label-premium {
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+  }
+
+  .inicio-info-card.p-5,
+  .inicio-module-card.p-5 {
+    padding: 1.5rem !important;
+  }
+
+  .inicio-mini-stats {
+    justify-content: center;
+  }
+
+  .inicio-mini-stat {
+    flex: 1 1 130px;
+    padding: 1rem 0.75rem;
+  }
+
   .inicio-contact-side,
   .inicio-contact-form-side {
-    padding: 2rem !important;
+    padding: 1.5rem !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .inicio-stats-section .row.g-4 {
+    --bs-gutter-x: 0.75rem;
+    --bs-gutter-y: 0.75rem;
+  }
+
+  .inicio-stat-card {
+    padding: 1rem 0.5rem;
+  }
+
+  .inicio-stats-section .stat-number-premium,
+  #nosotros .inicio-mini-stat .stat-number-premium {
+    font-size: clamp(1.7rem, 8.2vw, 2.25rem);
+  }
+
+  .inicio-stats-section .stat-label-premium {
+    font-size: 0.68rem;
+    letter-spacing: 1.2px;
   }
 }
 

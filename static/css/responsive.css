@@ -1099,7 +1099,7 @@ table.table {
   }
 }
 
-/* Proyector (XGA / WXGA: 1024x768 - 1279px): más espacio útil para tablas y filtros */
+/* Proyector (XGA / WXGA: 992px - 1279px): más espacio útil para tablas y filtros */
 @media (min-width: 992px) and (max-width: 1279.98px) {
   :root {
     --app-sidebar-width: 236px;
@@ -1111,17 +1111,5 @@ table.table {
 
   .standard-filter-layout {
     gap: 0.5rem !important;
-  }
-}
-
-/* Televisor / Pantallas grandes (Full HD 1920x1080 y 4K): centrado cómodo sin estiramiento excesivo */
-@media (min-width: 1680px) {
-  [data-ajax-content] {
-    max-width: 1680px;
-    margin-inline: auto;
-  }
-
-  .supplier-kpi-value {
-    font-size: 1.6rem;
   }
 }
