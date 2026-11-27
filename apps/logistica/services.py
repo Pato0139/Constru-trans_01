@@ -22,14 +22,43 @@ ESTADOS_ENTREGA_ACTIVA = ("pendiente", "en_ruta")
 
 
 def _entregas_activas_vehiculo(db_alias, vehiculo_id, *, excluir_entrega_id=None, conductor_id=None):
-    qs = Entrega.objects.using(db_alias).filter(
-        vehiculo_id=vehiculo_id, estado__in=ESTADOS_ENTREGA_ACTIVA
+    qs = (
+        Entrega.objects.using(db_alias)
+        .filter(vehiculo_id=vehiculo_id, estado__in=ESTADOS_ENTREGA_ACTIVA)
+        .exclude(pedido__estado__in=[Pedido.ENTREGADO, Pedido.CANCELADO])
     )
     if excluir_entrega_id is not None:
         qs = qs.exclude(pk=excluir_entrega_id)
     if conductor_id is not None:
         qs = qs.filter(conductor_id=conductor_id)
     return qs
+
+
+def obtener_vehiculo_activo_conductor(conductor_perfil, *, db_alias="default", excluir_pedido_id=None):
+    """
+    Devuelve el primer vehículo activamente asignado al conductor mientras tenga
+    entregas pendientes o en ruta. Si ya terminó todas sus entregas, devuelve None.
+    """
+    if not conductor_perfil:
+        return None
+    entregas_qs = (
+        Entrega.objects.using(db_alias)
+        .filter(
+            conductor=conductor_perfil,
+            estado__in=ESTADOS_ENTREGA_ACTIVA,
+            vehiculo__isnull=False,
+        )
+        .exclude(pedido__estado__in=[Pedido.ENTREGADO, Pedido.CANCELADO])
+        .select_related("vehiculo")
+        .order_by("fecha_asignacion", "id_entrega")
+    )
+    if excluir_pedido_id is not None:
+        entregas_qs = entregas_qs.exclude(pedido_id=excluir_pedido_id)
+
+    primera_entrega = entregas_qs.first()
+    if primera_entrega and primera_entrega.vehiculo:
+        return primera_entrega.vehiculo
+    return None
 
 
 def _cerrar_asignacion_vehiculo_si_libre(
@@ -665,6 +694,25 @@ def asignar_conductor_y_vehiculo(pedido, conductor_usuario_o_id, vehiculo_o_id, 
                 f"El conductor {conductor_user.nombre_mostrar} ya está en ruta con otro pedido."
             )
 
+        # Un conductor solo puede usar un único vehículo mientras tenga entregas activas.
+        vehiculo_activo_conductor = obtener_vehiculo_activo_conductor(
+            conductor_perfil,
+            db_alias=db_alias,
+            excluir_pedido_id=orden.pk,
+        )
+        if vehiculo_activo_conductor is None:
+            # Si ya no tiene entregas activas, liberar asignaciones ConductorVehiculo rezagadas.
+            for asignacion_previa in list(
+                ConductorVehiculo.objects.using(db_alias).filter(
+                    conductor=conductor_perfil, fecha_fin__isnull=True
+                )
+            ):
+                _cerrar_asignacion_vehiculo_si_libre(
+                    db_alias,
+                    asignacion_previa.vehiculo_id,
+                    conductor_perfil.pk,
+                )
+
         # Resolver y bloquear vehículo
         vehiculo_bloqueado = (
             select_for_update_if_supported(Vehiculo.objects.using(db_alias), db_alias)
@@ -674,14 +722,36 @@ def asignar_conductor_y_vehiculo(pedido, conductor_usuario_o_id, vehiculo_o_id, 
         if vehiculo_bloqueado is None:
             raise ValidationError("El vehículo seleccionado no existe.")
 
+        if (
+            vehiculo_activo_conductor is not None
+            and vehiculo_bloqueado.pk != vehiculo_activo_conductor.pk
+        ):
+            raise ValidationError(
+                f"El conductor {conductor_user.nombre_mostrar} ya tiene asignado el vehículo "
+                f"{vehiculo_activo_conductor.placa}. Debe terminar todas sus entregas activas "
+                "antes de poder asignarle otro vehículo."
+            )
+
         mismo_vehiculo_actual = (
             entrega_existente is not None and entrega_existente.vehiculo_id == vehiculo_bloqueado.pk
         )
+        mismo_vehiculo_del_conductor = (
+            vehiculo_activo_conductor is not None
+            and vehiculo_bloqueado.pk == vehiculo_activo_conductor.pk
+        )
 
-        if vehiculo_bloqueado.capacidad_carga < Decimal("5") and not mismo_vehiculo_actual:
+        if (
+            vehiculo_bloqueado.capacidad_carga < Decimal("5")
+            and not mismo_vehiculo_actual
+            and not mismo_vehiculo_del_conductor
+        ):
             raise ValidationError("Solo se pueden asignar vehículos con capacidad mínima de 5 toneladas.")
 
-        if vehiculo_bloqueado.estado != "disponible" and not mismo_vehiculo_actual:
+        if (
+            vehiculo_bloqueado.estado != "disponible"
+            and not mismo_vehiculo_actual
+            and not mismo_vehiculo_del_conductor
+        ):
             raise ValidationError(
                 f"El vehículo {vehiculo_bloqueado.placa} no está disponible (estado actual: {vehiculo_bloqueado.get_estado_display()})."
             )

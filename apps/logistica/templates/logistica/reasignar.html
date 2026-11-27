@@ -3,7 +3,7 @@
 
 {% block title %}Reasignar envío · Pedido #CT-{{ pedido.codigo_pedido }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/logistica/reasignar.css' %}?v=1.0">
+<link rel="stylesheet" href="{% static 'css/logistica/reasignar.css' %}?v=1.1">
 {% endblock %}
 
 {% block content %}
@@ -57,6 +57,20 @@
                 <div class="col-md-6">
                   <div class="resource-select-card">
                     <label class="form-label" for="{{ form.conductor.id_for_label }}"><i class="bi bi-person-vcard"></i> Nuevo conductor <span>Opcional</span></label>
+                    <div class="reassignment-choice-grid" data-choice-grid="conductor" role="group" aria-label="Seleccionar conductor para el pedido">
+                      <button type="button" class="reassignment-choice-card" data-value="" aria-pressed="false">
+                        <span class="reassignment-choice-icon"><i class="bi bi-person-check"></i></span>
+                        <span class="reassignment-choice-copy"><strong>Conservar conductor actual</strong><small>{{ entrega.conductor.usuario.nombre_mostrar|default:"Sin conductor" }}</small></span>
+                        <span class="reassignment-choice-check"><i class="bi bi-check-lg"></i></span>
+                      </button>
+                      {% for conductor in form.conductor.field.queryset %}
+                      <button type="button" class="reassignment-choice-card" data-value="{{ conductor.pk }}" aria-pressed="false">
+                        <span class="reassignment-choice-icon"><i class="bi bi-person-vcard"></i></span>
+                        <span class="reassignment-choice-copy"><strong>{{ conductor.usuario.nombre_mostrar|default:conductor.usuario.nombres }}</strong><small>{% if conductor.usuario.documento %}Doc. {{ conductor.usuario.documento }} · {% endif %}{% if entrega.conductor_id == conductor.pk %}Asignado actualmente{% else %}Conductor activo{% endif %}</small></span>
+                        <span class="reassignment-choice-check"><i class="bi bi-check-lg"></i></span>
+                      </button>
+                      {% endfor %}
+                    </div>
                     {{ form.conductor }}
                     {% for error in form.conductor.errors %}<div class="field-error"><i class="bi bi-exclamation-circle"></i>{{ error }}</div>{% endfor %}
                     <small class="field-hint">Puedes seleccionar un conductor que ya tenga otros pedidos asignados.</small>
@@ -65,6 +79,20 @@
                 <div class="col-md-6">
                   <div class="resource-select-card">
                     <label class="form-label" for="{{ form.vehiculo.id_for_label }}"><i class="bi bi-truck"></i> Nuevo vehículo <span>Opcional</span></label>
+                    <div class="reassignment-choice-grid" data-choice-grid="vehiculo" role="group" aria-label="Seleccionar vehículo para el pedido">
+                      <button type="button" class="reassignment-choice-card" data-value="" aria-pressed="false">
+                        <span class="reassignment-choice-icon vehicle-choice-icon"><i class="bi bi-arrow-left-right"></i></span>
+                        <span class="reassignment-choice-copy"><strong>Conservar vehículo actual</strong><small>{{ entrega.vehiculo.placa|default:"Sin vehículo" }}</small></span>
+                        <span class="reassignment-choice-check"><i class="bi bi-check-lg"></i></span>
+                      </button>
+                      {% for vehiculo in form.vehiculo.field.queryset %}
+                      <button type="button" class="reassignment-choice-card" data-value="{{ vehiculo.pk }}" aria-pressed="false">
+                        <span class="reassignment-choice-icon vehicle-choice-icon"><i class="bi bi-truck-front"></i></span>
+                        <span class="reassignment-choice-copy"><strong>{{ vehiculo.placa }}</strong><small>{{ vehiculo.tipo_vehiculo }} · {{ vehiculo.capacidad_carga|floatformat:0 }} t · {% if entrega.vehiculo_id == vehiculo.pk %}Asignado actualmente{% else %}Disponible{% endif %}</small></span>
+                        <span class="reassignment-choice-check"><i class="bi bi-check-lg"></i></span>
+                      </button>
+                      {% endfor %}
+                    </div>
                     {{ form.vehiculo }}
                     {% for error in form.vehiculo.errors %}<div class="field-error"><i class="bi bi-exclamation-circle"></i>{{ error }}</div>{% endfor %}
                     <small class="field-hint">Solo se muestran vehículos disponibles y el actual.</small>
@@ -131,6 +159,26 @@
     reasonRequired.hidden = !otherReason;
     reasonOptional.hidden = otherReason;
   }
+  function enableChoiceCards(select, kind) {
+    const grid = document.querySelector(`[data-choice-grid="${kind}"]`);
+    if (!select || !grid) return;
+    const cards = Array.from(grid.querySelectorAll('.reassignment-choice-card'));
+    const syncSelection = () => cards.forEach(card => {
+      const selected = card.dataset.value === select.value;
+      card.classList.toggle('is-selected', selected);
+      card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+    cards.forEach(card => card.addEventListener('click', () => {
+      select.value = card.dataset.value;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      syncSelection();
+    }));
+    select.closest('.resource-select-card')?.classList.add('has-choice-cards');
+    select.addEventListener('change', syncSelection);
+    syncSelection();
+  }
+  enableChoiceCards(driver, 'conductor');
+  enableChoiceCards(vehicle, 'vehiculo');
   driver.addEventListener('change', updatePreview);
   vehicle.addEventListener('change', updatePreview);
   reason.addEventListener('change', updateReasonHint);

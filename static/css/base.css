@@ -291,15 +291,13 @@ small { font-size: var(--font-size-sm); }
   }
 
   .table td, .table th {
-    padding: 0.75rem 0.5rem;
+    padding: 0.75rem 0.65rem;
     white-space: normal;
   }
 
-  /* Cabecera sticky en tablas */
+  /* Evitar que la cabecera sticky translucida se monte sobre la primera fila en móvil */
   .table thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    position: static;
   }
 }
 
