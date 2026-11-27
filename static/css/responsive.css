@@ -1125,11 +1125,170 @@ table.table {
 }
 
 @media (max-width: 767.98px) {
-  /* Espacio inferior para que el dock nunca tape contenido ni botones */
+  /* Espacio superior e inferior exacto para la navbar de 1 fila y el dock inferior */
   .main-content.app-main,
   .main-content {
-    padding-top: 4.85rem !important;
+    padding-top: 5.15rem !important;
     padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* =====================================================================
+     NAVBAR SUPERIOR UNIFICADA EN MÓVIL (1 sola fila, botones simétricos)
+     ===================================================================== */
+  .app-navbar,
+  .app-topbar,
+  .navbar-premium {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 0.45rem !important;
+    height: auto !important;
+    min-height: 3.5rem !important;
+    padding: 0.45rem 0.6rem !important;
+    border-radius: 1rem !important;
+  }
+
+  .app-navbar > .d-flex:first-child {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    gap: 0.45rem !important;
+    align-items: center !important;
+  }
+
+  .app-navbar .navbar-title {
+    font-size: 0.94rem !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+
+  .app-navbar > .d-flex:last-child {
+    flex: 0 0 auto !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+  }
+
+  /* Todos los controles circulares del header al mismo tamaño exacto (36x36) */
+  .app-navbar #sidebarToggle,
+  .app-navbar .navbar-icon-btn,
+  .app-navbar .js-accessibility-dropdown:not(.d-none) > button,
+  .app-navbar .btn-icon-circle {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 36px !important;
+  }
+
+  .app-navbar #sidebarToggle i,
+  .app-navbar .navbar-icon-btn i,
+  .app-navbar .js-accessibility-dropdown:not(.d-none) > button i {
+    font-size: 1.05rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+  }
+
+  /* Botón de modo BD (nube/local) también exactamente 36x36 y centrado */
+  .app-navbar .bd-mode-widget--navbar {
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    height: 36px !important;
+    flex: 0 0 36px !important;
+  }
+
+  .app-navbar .bd-mode-widget--navbar .bd-mode-switch,
+  .app-navbar .bd-mode-widget--navbar .bd-mode-switch__body {
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .app-navbar .bd-mode-widget--navbar .bd-mode-switch__icon {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .app-navbar .bd-mode-widget--navbar .bd-mode-switch__text,
+  .app-navbar .bd-mode-widget--navbar .bd-mode-switch__track,
+  .app-navbar .bd-mode-widget--navbar .bd-mode-switch__hint {
+    display: none !important;
+  }
+
+  /* Badge de notificaciones limpio y bien anclado, sin montarse sobre otros íconos */
+  .app-navbar #navbarNotifBtn {
+    overflow: visible !important;
+  }
+
+  .app-navbar .navbar-notif-badge {
+    position: absolute !important;
+    top: -4px !important;
+    right: -4px !important;
+    left: auto !important;
+    transform: none !important;
+    min-width: 18px !important;
+    width: auto !important;
+    height: 18px !important;
+    padding: 0 4px !important;
+    font-size: 0.62rem !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    border-radius: 999px !important;
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border: 2px solid var(--card-bg, #111827) !important;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.45) !important;
+    z-index: 5 !important;
+  }
+
+  /* Avatar de usuario exactamente 36x36 y sin flecha flotante desalineada */
+  .app-navbar .navbar-user-btn {
+    padding: 0 !important;
+    gap: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .app-navbar .navbar-user-btn::after {
+    display: none !important;
+  }
+
+  .app-navbar .avatar-container,
+  .app-navbar .avatar-container img,
+  .app-navbar .navbar-avatar-default,
+  .app-navbar .navbar-avatar-img {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* En pantallas muy angostas (< 365px), ocultar el ícono de ajustes (está en el menú) */
+  @media (max-width: 364.98px) {
+    .app-navbar a[aria-label="Abrir configuraciones"] {
+      display: none !important;
+    }
   }
 
   /* Dock de navegación inferior estilo app móvil */
