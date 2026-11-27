@@ -80,9 +80,7 @@ class Command(BaseCommand):
                     exclude=[
                         "admin.logentry",
                         "sessions.session",
-                        # Estas tablas remotas contienen filas legacy inválidas
-                        # para el esquema local actual.
-                        "pagos",
+                        # IA puede depender de extensiones y servicios no presentes offline.
                         "ia",
                     ],
                     format="json",
@@ -177,7 +175,7 @@ class Command(BaseCommand):
         with fixture_path.open(encoding="utf-8") as fixture:
             records = json.load(fixture)
 
-        excluded_apps = {"pagos", "ia"}
+        excluded_apps = {"ia"}
         records = [record for record in records if record["model"].split(".", 1)[0] not in excluded_apps]
 
         changed = True

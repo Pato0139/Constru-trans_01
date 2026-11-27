@@ -10,6 +10,10 @@ _APPS_LOCALES = {"sessions", "auth", "usuarios", "contenttypes", "admin"}
 
 class EnrutadorInventario:
     def _elegir_bd(self):
+        from django.conf import settings
+
+        if getattr(settings, "OFFLINE_MODE", False):
+            return "local"
         if "pytest" in sys.modules or "test" in sys.argv:
             return "default"
 

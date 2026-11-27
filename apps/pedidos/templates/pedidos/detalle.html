@@ -1158,7 +1158,7 @@
                                 class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 p-2 rounded-3 small mt-2 mb-0">
                                 <strong class="text-danger"><i class="bi bi-x-octagon-fill me-1"></i>Motivo de
                                     cancelación:</strong>
-                                <span>{{ orden.motivo_cancelacion_display|default:"Cancelado" }}</span>
+                                <span class="text-main">{{ orden.motivo_cancelacion_display|default:"Cancelado" }}</span>
                             </div>
                             {% endif %}
                             {% if pago and pago.observaciones %}
@@ -1168,7 +1168,7 @@
                                     <i class="bi {% if pago.estado == 'aprobado' %}bi-check-circle-fill{% else %}bi-info-circle-fill{% endif %} me-1"></i>
                                     {% if pago.estado == 'aprobado' %}Motivo / observación de aprobación:{% elif pago.estado == 'rechazado' %}Motivo de rechazo del pago:{% else %}Observación de revisión:{% endif %}
                                 </strong>
-                                <span>{{ pago.observaciones }}</span>
+                                <span class="text-main">{{ pago.observaciones }}</span>
                             </div>
                             {% endif %}
                         </div>
@@ -1313,28 +1313,6 @@
                     <div class="order-section-card">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3">
                             <i class="bi bi-sliders me-2"></i>Gestión del Pedido
-                    {% if eventos_logisticos %}
-                    <div class="order-section-card">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
-                            <i class="bi bi-clock-history me-2"></i>Historial logístico
-                        </h6>
-                        <div class="d-flex flex-column gap-3">
-                            {% for evento in eventos_logisticos %}
-                            <div class="border-start border-2 {% if evento.tipo == 'novedad' %}border-warning{% else %}border-info{% endif %} ps-3">
-                                <div class="d-flex justify-content-between gap-2 flex-wrap">
-                                    <strong class="text-white small">{{ evento.titulo }}</strong>
-                                    <time class="text-muted x-small">{{ evento.fecha|date:"d/m/Y H:i" }}</time>
-                                </div>
-                                <p class="text-white-50 small mb-1">{{ evento.descripcion }}</p>
-                                {% if evento.solucion %}<p class="text-muted small mb-0"><strong>Acción aplicada:</strong> {{ evento.solucion }}</p>{% endif %}
-                                {% if evento.evidencia %}<a class="small" href="{{ evento.evidencia.url }}" target="_blank" rel="noopener">Ver evidencia fotográfica</a>{% endif %}
-                                <span class="text-muted x-small">Por: {% if evento.usuario %}{{ evento.usuario.nombre_mostrar|default:evento.usuario.username }}{% else %}Usuario del sistema{% endif %}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
                         </h6>
                         <div class="d-flex flex-column gap-2">
                             {% if user_rol == "cliente" and orden.estado == "pendiente" %}

@@ -22,6 +22,7 @@ env = environ.Env(
     PASSWORD_RESET_TIMEOUT=(int, 1800),
     SESSION_COOKIE_AGE=(int, 1209600),
     USE_S3=(bool, False),
+    OFFLINE_MODE=(bool, False),
     LICENSE_REQUIRED=(bool, False),
     LICENSE_SERVER_URL=(str, ""),
     LICENSE_PUBLIC_KEY=(str, ""),
@@ -262,12 +263,14 @@ if database_url:
 
 # La base local debe seguir disponible para autenticación, sesiones y trabajo sin
 # internet. Las consultas de negocio se enrutan a Neon cuando hay conexión.
+OFFLINE_MODE = env("OFFLINE_MODE")
+
 DATABASES = {
     "default": LOCAL_DATABASE,
     "local": LOCAL_DATABASE,
 }
 
-if remote_database:
+if remote_database and not OFFLINE_MODE:
     DATABASES["remota"] = remote_database
 
 DATABASE_ROUTERS = ["config.routers.EnrutadorInventario"]
@@ -364,6 +367,8 @@ PASSWORD_RESET_TIMEOUT = env("PASSWORD_RESET_TIMEOUT")
 # ============================================================
 
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+if OFFLINE_MODE:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
 EMAIL_PORT = env("EMAIL_PORT")
 EMAIL_USE_TLS = env("EMAIL_USE_TLS")
@@ -406,7 +411,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ALMACENAMIENTO EN LA NUBE (opcional)
 # ============================================================
 
-USE_S3 = env("USE_S3")
+USE_S3 = env("USE_S3") and not OFFLINE_MODE
 if USE_S3:
     DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
     AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")

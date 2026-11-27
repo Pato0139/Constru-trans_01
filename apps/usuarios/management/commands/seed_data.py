@@ -13,6 +13,7 @@ from apps.clientes.models import Cliente, crear_perfil_cliente
 from apps.compras.models import Proveedor
 from apps.logistica.models import ConductorVehiculo, Entrega, Vehiculo
 from apps.pedidos.models import DetallePedido, Pedido
+from apps.pagos.models import Pago
 from apps.usuarios.models import EPS, Conductor, Usuario
 from config.routers import EnrutadorInventario
 from config.utils import conexion_remota_disponible
@@ -349,8 +350,24 @@ class Command(BaseCommand):
                 },
             )
             if not force_pedidos and Pedido.objects.using(db_alias).filter(usuario=p_cl).exists():
+                for pedido_existente in Pedido.objects.using(db_alias).filter(usuario=p_cl):
+                    estado_pago = (
+                        Pago.APROBADO if pedido_existente.estado != "pendiente" else Pago.PENDIENTE
+                    )
+                    Pago.objects.using(db_alias).get_or_create(
+                        pedido=pedido_existente,
+                        defaults={
+                            "metodo": Pago.METODO_CONTRAENTREGA,
+                            "monto": pedido_existente.total,
+                            "estado": estado_pago,
+                            "observaciones": (
+                                "Pedido de demostración contraentrega; no requiere comprobante."
+                            ),
+                        },
+                    )
                 self.stdout.write(
-                    f"Cliente {cl_data['empresa']}: ya tiene pedidos (use --force-pedidos para duplicar)."
+                    f"Cliente {cl_data['empresa']}: ya tiene pedidos; se verificaron sus pagos demo "
+                    "contraentrega (use --force-pedidos para duplicar pedidos)."
                 )
                 continue
 
@@ -373,6 +390,18 @@ class Command(BaseCommand):
                     )
 
                 pedido.calcular_total(using=db_alias)
+
+                Pago.objects.using(db_alias).get_or_create(
+                    pedido=pedido,
+                    defaults={
+                        "metodo": Pago.METODO_CONTRAENTREGA,
+                        "monto": pedido.total,
+                        "estado": Pago.APROBADO if estado_p != "pendiente" else Pago.PENDIENTE,
+                        "observaciones": (
+                            "Pedido de demostración contraentrega; no requiere comprobante."
+                        ),
+                    },
+                )
 
                 if estado_p != "pendiente" and conductores_creados and vehiculos_creados:
                     conductor_idx = idx % len(conductores_creados)
