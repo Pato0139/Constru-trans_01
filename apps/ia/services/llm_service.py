@@ -117,7 +117,7 @@ def responder_fallback(mensaje, contexto, nombre_usuario):
         saludo = f"¡Hola {nombre_usuario or ''}! " if nombre_usuario else "¡Hola! "
         return (
             saludo
-            + "Soy el asistente virtual de Constru-Trans. En este momento el servicio de IA no está disponible, pero puedo darte datos en tiempo real del sistema. ¿En qué te puedo ayudar hoy?"
+            + "Soy el asistente virtual de Constru-Trans. Puedo ayudarte con datos en tiempo real de pedidos, entregas, pagos, inventario, vehículos, compras y guías de uso. ¿Qué deseas consultar hoy?"
         )
 
     # Preguntas sobre usuarios (verificando palabras completas o patrones para evitar falsos positivos con saludos cortos)

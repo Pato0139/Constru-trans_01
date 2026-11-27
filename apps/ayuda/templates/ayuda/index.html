@@ -25,7 +25,7 @@
             <div class="ayuda-search-box">
                 <i class="bi bi-search ayuda-search-box__icon" aria-hidden="true"></i>
                 <input
-                    type="search"
+                    type="text"
                     id="ayudaSearchInput"
                     class="ayuda-search-box__input"
                     placeholder="Buscar tema: pedidos, pagos, inventario, vehículos, modo local..."
@@ -257,49 +257,68 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+(function initAyudaSearch() {
     const input = document.getElementById('ayudaSearchInput');
+    if (!input || input.dataset.ayudaBound === '1') return;
+    input.dataset.ayudaBound = '1';
+
     const clearBtn = document.getElementById('ayudaSearchClear');
     const items = Array.from(document.querySelectorAll('.ayuda-searchable'));
     const noResults = document.getElementById('ayudaNoResults');
     const tagBtns = document.querySelectorAll('.ayuda-tag-btn');
 
+    function norm(str) {
+        return (str || '')
+            .toString()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+    }
+
     function filterHelp(raw) {
-        const q = (raw || '').trim().toLowerCase();
+        const q = norm(raw);
         if (clearBtn) clearBtn.classList.toggle('d-none', !q);
 
         let visible = 0;
         items.forEach((el) => {
-            const haystack = ((el.dataset.keywords || '') + ' ' + (el.textContent || '')).toLowerCase();
+            const haystack = norm((el.dataset.keywords || '') + ' ' + (el.textContent || ''));
             const match = !q || haystack.includes(q);
             el.classList.toggle('d-none', !match);
             if (match) {
                 visible++;
                 if (q && el.tagName === 'DETAILS') el.open = true;
+            } else if (el.tagName === 'DETAILS') {
+                el.open = false;
             }
         });
 
         if (noResults) noResults.classList.toggle('d-none', visible > 0);
     }
 
-    if (input) {
-        input.addEventListener('input', () => filterHelp(input.value));
-    }
-    if (clearBtn && input) {
+    input.addEventListener('input', () => filterHelp(input.value));
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            input.value = '';
+            filterHelp('');
+        }
+    });
+
+    if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             input.value = '';
             filterHelp('');
             input.focus();
         });
     }
+
     tagBtns.forEach((btn) => {
         btn.addEventListener('click', () => {
-            if (!input) return;
             input.value = btn.dataset.query || '';
             filterHelp(input.value);
             input.focus();
         });
     });
-});
+})();
 </script>
 {% endblock %}

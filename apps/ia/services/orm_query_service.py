@@ -298,7 +298,7 @@ def consultar_logistica(mensaje, usuario=None):
             for n in novedades
         )
 
-    if any(k in m for k in ["entrega", "entregas", "despacho", "despachos"]):
+    if any(k in m for k in ["entrega", "entregas", "envio", "envío", "envios", "envíos", "despacho", "despachos"]):
         qs = Entrega.objects.select_related("pedido", "vehiculo", "conductor__usuario").order_by("-id_entrega")
         if usuario and getattr(usuario, "is_authenticated", False) and not es_admin:
             if getattr(usuario, "rol", "") == "conductor":
@@ -311,10 +311,19 @@ def consultar_logistica(mensaje, usuario=None):
             qs = qs.filter(estado="pendiente")
         elif "entregad" in m:
             qs = qs.filter(estado="entregado")
-        entregas = list(qs[:8])
-        if not entregas:
-            return "No encontré entregas con ese criterio."
-        return f"Entregas ({len(entregas)} recientes):\n" + "\n".join(
+        total = qs.count()
+        if total == 0:
+            return "No encontré entregas registradas con ese criterio."
+        pendientes = qs.filter(estado="pendiente").count()
+        en_ruta = qs.filter(estado="en_ruta").count()
+        entregadas = qs.filter(estado="entregado").count()
+        entregas = list(qs[:6])
+        resumen = (
+            f"Hay **{total} entrega(s)** en total "
+            f"(Pendientes: {pendientes} | En ruta: {en_ruta} | Entregadas: {entregadas}).\n"
+            f"Más recientes:\n"
+        )
+        return resumen + "\n".join(
             f"- Entrega #{e.id_entrega} (Pedido #{e.pedido.codigo_pedido}): {e.estado_logistico_display}"
             + (f" — Vehículo {e.vehiculo.placa}" if e.vehiculo_id else "")
             for e in entregas
@@ -467,22 +476,41 @@ def consultar_datos(mensaje, usuario=None):
             if resp:
                 return resp
 
+        es_pregunta_conceptual = bool(
+            re.search(
+                r"\b(como funciona|cómo funciona|como se|cómo se|como puedo|cómo puedo|que es|qué es|para que sirve|para qué sirve|pasos para|explicame|explícame|tutorial|guia|guía)\b",
+                mensaje_lower,
+            )
+        )
+
         # 4. Auditoría / historial reciente (consulta de datos)
-        if re.search(r"(ultim[ao]s?|recientes?|ver|muestra|listar?).*(auditor[íi]a|acciones|bit[áa]cora|historial de actividad)", mensaje_lower):
+        if not es_pregunta_conceptual and re.search(
+            r"\b(auditor[íi]a|bit[áa]cora|historial de actividad)\b|(ultim[ao]s?|recientes?|ver|muestra|listar?).*(auditor[íi]a|acciones|bit[áa]cora)",
+            mensaje_lower,
+        ):
             return consultar_auditoria(mensaje, usuario)
 
         # 5. Pagos y facturas (consulta de datos)
-        if re.search(r"(cu[áa]ntos|cuales|cuáles|ver|listar?|mis|ultim[ao]s?|estado|pendientes?|aprobados?|rechazados?).*(pago|pagos|factura|facturas)|(pago|pagos|factura|facturas).*(pendientes?|aprobados?|rechazados?|pagadas?)", mensaje_lower):
+        if not es_pregunta_conceptual and re.search(
+            r"\b(pago|pagos|factura|facturas)\b",
+            mensaje_lower,
+        ):
             return consultar_pagos_y_facturas(mensaje, usuario)
 
-        # 6. Logística: novedades, entregas y vehículos (consulta de datos)
-        if re.search(r"(cu[áa]nt[ao]s|cuales|cuáles|ver|listar?|mis|ultim[ao]s?|disponibles?|en ruta|mantenimiento|abiertas?).*(novedad|novedades|entrega|entregas|veh[íi]culo|veh[íi]culos|flota|cami[oó]n)|(novedad|novedades|entrega|entregas|veh[íi]culo|veh[íi]culos).*(disponibles?|en ruta|mantenimiento|pendientes?|abiertas?)", mensaje_lower):
+        # 6. Logística: novedades, entregas y vehículos (consulta de datos, incluso palabra suelta como "entrega")
+        if not es_pregunta_conceptual and re.search(
+            r"\b(novedad|novedades|entrega|entregas|env[íi]o|env[íi]os|despacho|despachos|veh[íi]culo|veh[íi]culos|flota|cami[oó]n|camiones)\b",
+            mensaje_lower,
+        ):
             resp = consultar_logistica(mensaje, usuario)
             if resp:
                 return resp
 
         # 7. Compras y proveedores (consulta de datos)
-        if re.search(r"(cu[áa]nt[ao]s|cuales|cuáles|ver|listar?|ultim[ao]s?|total|pendientes?|recibidas?).*(compra|compras|proveedor|proveedores)", mensaje_lower):
+        if not es_pregunta_conceptual and re.search(
+            r"\b(compra|compras|proveedor|proveedores)\b",
+            mensaje_lower,
+        ):
             return consultar_compras_y_proveedores(mensaje, usuario)
 
         # 8. Stock crítico / movimientos de inventario
