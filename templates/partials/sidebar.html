@@ -28,16 +28,17 @@
         <p class="sidebar-brand-sub" data-i18n="sidebar.brandSub">
             Panel de gestión
         </p>
-        <div class="sidebar-role-badge {% if active_role == 'admin' or is_super %}sidebar-role-badge--admin{% elif active_role == 'conductor' %}sidebar-role-badge--conductor{% else %}sidebar-role-badge--cliente{% endif %}">
+        <div
+            class="sidebar-role-badge {% if active_role == 'admin' or is_super %}sidebar-role-badge--admin{% elif active_role == 'conductor' %}sidebar-role-badge--conductor{% else %}sidebar-role-badge--cliente{% endif %}">
             {% if active_role == 'admin' or is_super %}
-                <i class="bi bi-shield-lock-fill"></i>
-                <span>Administrador</span>
+            <i class="bi bi-shield-lock-fill"></i>
+            <span>Administrador</span>
             {% elif active_role == 'conductor' %}
-                <i class="bi bi-truck"></i>
-                <span>Conductor</span>
+            <i class="bi bi-truck"></i>
+            <span>Conductor</span>
             {% else %}
-                <i class="bi bi-person-badge-fill"></i>
-                <span>Cliente</span>
+            <i class="bi bi-person-badge-fill"></i>
+            <span>Cliente</span>
             {% endif %}
         </div>
     </div>
@@ -130,7 +131,8 @@
                         </a>
                         <a href="{% url 'catalogo:unidades_medida_lista' %}"
                             class="nav-link-premium {% if request.resolver_match.app_name == 'catalogo' and request.resolver_match.url_name in 'unidades_medida_lista,crear_unidad_medida,editar_unidad_medida' %}active{% endif %}"
-                            aria-label="Unidades de Medida" data-tooltip="Unidades de Medida" title="Unidades de Medida">
+                            aria-label="Unidades de Medida" data-tooltip="Unidades de Medida"
+                            title="Unidades de Medida">
                             <i class="bi bi-rulers"></i>
                             <span data-i18n="sidebar.unidadesMedida">Unidades de Medida</span>
                         </a>
@@ -255,7 +257,8 @@
             </div>
 
             {% elif active_role == 'cliente' %}
-            <p class="sidebar-nav-label"><i class="bi bi-person-badge"></i> <span data-i18n="sidebar.label.miCuenta">Mi Cuenta</span></p>
+            <p class="sidebar-nav-label"><i class="bi bi-person-badge"></i> <span data-i18n="sidebar.label.miCuenta">Mi
+                    Cuenta</span></p>
             <a href="{% url 'clientes:panel_cliente' %}"
                 class="nav-link-premium {% if request.resolver_match.url_name == 'panel_cliente' %}active{% endif %}">
                 <span class="nav-icon-wrap nav-icon-wrap--gold"><i class="bi bi-grid-1x2-fill"></i></span>
@@ -268,7 +271,8 @@
                 <span data-i18n="sidebar.solicitarPedido">Solicitar Pedido</span>
             </a>
 
-            <p class="sidebar-nav-label"><i class="bi bi-box-seam"></i> <span data-i18n="sidebar.label.pedidos">Gestión</span></p>
+            <p class="sidebar-nav-label"><i class="bi bi-box-seam"></i> <span
+                    data-i18n="sidebar.label.pedidos">Gestión</span></p>
             <a href="{% url 'clientes:mis_pedidos' %}"
                 class="nav-link-premium {% if request.resolver_match.url_name == 'mis_pedidos' %}active{% endif %}">
                 <span class="nav-icon-wrap nav-icon-wrap--blue"><i class="bi bi-cart-fill"></i></span>
@@ -346,11 +350,10 @@
                     <span data-i18n="sidebar.miCuenta">Mi Cuenta</span>
                 </a>
                 {% endif %}
-                            <a href="{% url 'usuarios:logout' %}"
-                                class="nav-link-premium nav-link-premium--danger confirm-logout">
-                                <span class="nav-icon-wrap nav-icon-wrap--danger"><i class="bi bi-power"></i></span>
-                                <span data-i18n="sidebar.cerrarSesion">Cerrar Sesión</span>
-                            </a>
+                <a href="{% url 'usuarios:logout' %}" class="nav-link-premium nav-link-premium--danger confirm-logout">
+                    <span class="nav-icon-wrap nav-icon-wrap--danger"><i class="bi bi-power"></i></span>
+                    <span data-i18n="sidebar.cerrarSesion">Cerrar Sesión</span>
+                </a>
             </nav>
         </div>
     </div>
