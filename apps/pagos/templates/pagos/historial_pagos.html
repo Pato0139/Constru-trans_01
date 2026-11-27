@@ -27,7 +27,7 @@
           <tbody>
             {% for p in pagos %}
             <tr>
-              <td>{{ p.fecha_revision|date:"Y-m-d H:i" }}</td>
+              <td>{{ p.fecha_revision|date:"Y-m-d h:i A" }}</td>
               <td class="fw-semibold">{{ p.factura.numero }}</td>
               <td class="fw-semibold text-success">${{ p.monto }}</td>
               <td>{{ p.get_metodo_display }}</td>

@@ -36,7 +36,7 @@
                             #CT-{{ p.pedido.codigo_pedido }}
                         </a>
                     </td>
-                    <td class="text-muted small">{{ p.fecha_registro|date:"d M, Y H:i" }}</td>
+                    <td class="text-muted small">{{ p.fecha_registro|date:"d M, Y h:i A" }}</td>
                     <td class="price-tag">{{ p.monto|currency }}</td>
                     <td>
                         {% if p.estado == "pendiente" %}

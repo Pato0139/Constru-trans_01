@@ -587,7 +587,7 @@ def materiales_proveedor_json(request, codigo_proveedor):
             "nombre": item.material.nombre,
             "unidad": getattr(item.material.unidad_medida, "abreviatura", ""),
             "precio": str(item.precio_actual),
-            "fecha_actualizacion": item.fecha_actualizacion.strftime("%d/%m/%Y %H:%M"),
+            "fecha_actualizacion": item.fecha_actualizacion.strftime("%d/%m/%Y %I:%M %p"),
             "disponible": item.activo,
             "referencia": item.referencia_proveedor,
         }

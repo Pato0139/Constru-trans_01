@@ -2433,7 +2433,7 @@ def notificaciones_estado_json(request):
                 "mensaje": n.mensaje,
                 "tipo": n.tipo,
                 "leida": n.leida,
-                "fecha": timezone.localtime(n.fecha).strftime("%d/%m/%Y %H:%M") if n.fecha else "",
+                "fecha": timezone.localtime(n.fecha).strftime("%d/%m/%Y %I:%M %p") if n.fecha else "",
                 "fecha_ts": int(n.fecha.timestamp()) if n.fecha else 0,
                 "url": reverse("usuarios:marcar_notificacion_leida", args=[n.id]),
             }

@@ -36,7 +36,7 @@ def periodo(hour: int) -> str:
 def hora_lugar(nombre: str, tz_name: str) -> str:
     now = datetime.now(ZoneInfo(tz_name))
     return (
-        f"En {nombre} son las {now.strftime('%H:%M')}, "
+        f"En {nombre} son las {now.strftime('%I:%M %p')}, "
         f"es {periodo(now.hour)} "
         f"y la fecha es {now.strftime('%d/%m/%Y')}."
     )
@@ -66,7 +66,7 @@ def responder_hora(texto: str) -> str | None:
     if has_basic_time:
         now = datetime.now()
         partes.append(
-            f"Son las {now.strftime('%H:%M')}, es {periodo(now.hour)} y la fecha es {now.strftime('%d/%m/%Y')}."
+            f"Son las {now.strftime('%I:%M %p')}, es {periodo(now.hour)} y la fecha es {now.strftime('%d/%m/%Y')}."
         )
 
         if "estados unidos" in t or "usa" in t or "eeuu" in t:
@@ -74,7 +74,7 @@ def responder_hora(texto: str) -> str | None:
             for label, tz in US_ZONES.items():
                 now = datetime.now(ZoneInfo(tz))
                 partes.append(
-                    f"- {label}: {now.strftime('%H:%M')} ({periodo(now.hour)}), {now.strftime('%d/%m/%Y')}"
+                    f"- {label}: {now.strftime('%I:%M %p')} ({periodo(now.hour)}), {now.strftime('%d/%m/%Y')}"
                 )
 
         encontrados = []

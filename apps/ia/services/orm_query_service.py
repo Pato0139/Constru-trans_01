@@ -99,7 +99,7 @@ def consultar_pedido(codigo, usuario=None):
         partes.append(f"Conductor: {cu.nombres} {cu.apellidos}".strip())
     if pedido.fecha_entrega_programada:
         partes.append(
-            f"Entrega programada: {pedido.fecha_entrega_programada.strftime('%d/%m/%Y %H:%M')}"
+            f"Entrega programada: {pedido.fecha_entrega_programada.strftime('%d/%m/%Y %I:%M %p')}"
         )
     if pedido.direccion_destino:
         partes.append(f"Destino: {pedido.direccion_destino}")
@@ -441,7 +441,7 @@ def consultar_mi_perfil(usuario):
     if not usuario or not getattr(usuario, "is_authenticated", False):
         return "Inicia sesión para consultar los datos de tu perfil."
     nombre = f"{usuario.nombres} {usuario.apellidos}".strip() or usuario.username
-    ultimo = usuario.last_login.strftime("%d/%m/%Y %H:%M") if usuario.last_login else "Sesión actual"
+    ultimo = usuario.last_login.strftime("%d/%m/%Y %I:%M %p") if usuario.last_login else "Sesión actual"
     return (
         f"Datos de tu perfil:\n"
         f"- Nombre: {nombre}\n"

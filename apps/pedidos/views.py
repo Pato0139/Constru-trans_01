@@ -1282,7 +1282,7 @@ def estado_pedido_api(request, id):
         ),
         "requiere_correccion_pago": orden.requiere_correccion_pago,
         "fecha_solicitud": (
-            orden.fecha_solicitud.strftime("%d/%m/%Y %H:%M") if orden.fecha_solicitud else ""
+            orden.fecha_solicitud.strftime("%d/%m/%Y %I:%M %p") if orden.fecha_solicitud else ""
         ),
         "pago": {
             "existe": bool(pago),
@@ -1292,19 +1292,19 @@ def estado_pedido_api(request, id):
             "metodo": pago.metodo if pago else "",
             "metodo_display": pago.get_metodo_display() if pago else "",
             "fecha_revision": (
-                pago.fecha_revision.strftime("%d/%m/%Y %H:%M")
+                pago.fecha_revision.strftime("%d/%m/%Y %I:%M %p")
                 if (pago and pago.fecha_revision)
                 else ""
             ),
         },
         "logistica": {
             "fecha_toma_entrega": (
-                orden.fecha_toma_entrega.strftime("%d/%m/%Y %H:%M")
+                orden.fecha_toma_entrega.strftime("%d/%m/%Y %I:%M %p")
                 if orden.fecha_toma_entrega
                 else ""
             ),
             "fecha_entrega_real": (
-                orden.fecha_entrega_real.strftime("%d/%m/%Y %H:%M")
+                orden.fecha_entrega_real.strftime("%d/%m/%Y %I:%M %p")
                 if orden.fecha_entrega_real
                 else ""
             ),

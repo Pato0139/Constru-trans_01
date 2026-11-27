@@ -37,7 +37,7 @@
                         </p>
                         {% if pago.fecha_limite_correccion %}
                         <p class="text-warning small mb-1 fw-bold">
-                            <i class="bi bi-clock-history me-1"></i>Fecha límite para enviar la corrección: {{ pago.fecha_limite_correccion|date:"d/m/Y H:i" }}
+                            <i class="bi bi-clock-history me-1"></i>Fecha límite para enviar la corrección: {{ pago.fecha_limite_correccion|date:"d/m/Y h:i A" }}
                         </p>
                         {% endif %}
                         <p class="text-light-high small mb-0">

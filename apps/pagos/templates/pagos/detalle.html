@@ -49,7 +49,7 @@
                 <p class="text-white small mb-2">
                     <strong>Plazo límite de corrección (12 horas):</strong>
                     {% if pago.fecha_limite_correccion %}
-                        Tienes hasta el <span class="text-warning fw-700">{{ pago.fecha_limite_correccion|date:"d/m/Y H:i" }}</span> para corregir tu pago o cargar un nuevo comprobante. Si no lo envías dentro de ese tiempo o vuelve a ser rechazado, el pedido se cancelará automáticamente.
+                        Tienes hasta el <span class="text-warning fw-700">{{ pago.fecha_limite_correccion|date:"d/m/Y h:i A" }}</span> para corregir tu pago o cargar un nuevo comprobante. Si no lo envías dentro de ese tiempo o vuelve a ser rechazado, el pedido se cancelará automáticamente.
                     {% else %}
                         Tienes 12 horas a partir del rechazo para corregir tu comprobante.
                     {% endif %}
@@ -125,9 +125,9 @@
                         <h6 class="fw-800 text-accent text-uppercase small mb-3">Trazabilidad de Revisión</h6>
                         <dl class="row mb-0 text-white small">
                             <dt class="col-sm-5 text-muted">Fecha de registro:</dt>
-                            <dd class="col-sm-7">{{ pago.fecha_registro|date:"d/m/Y H:i" }}</dd>
+                            <dd class="col-sm-7">{{ pago.fecha_registro|date:"d/m/Y h:i A" }}</dd>
                             <dt class="col-sm-5 text-muted">Fecha de revisión:</dt>
-                            <dd class="col-sm-7">{{ pago.fecha_revision|date:"d/m/Y H:i"|default:"Pendiente de revisión" }}</dd>
+                            <dd class="col-sm-7">{{ pago.fecha_revision|date:"d/m/Y h:i A"|default:"Pendiente de revisión" }}</dd>
                             <dt class="col-sm-5 text-muted">Revisado por:</dt>
                             <dd class="col-sm-7">
                                 {% if pago.revisado_por %}

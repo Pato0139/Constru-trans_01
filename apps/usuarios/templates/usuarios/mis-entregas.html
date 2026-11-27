@@ -71,7 +71,7 @@
                         <div class="fw-700 text-accent">#ENV-{{ entrega.id_entrega }}</div>
                         <div class="small text-muted">Pedido #CT-{{ entrega.pedido.codigo_pedido }}</div>
                         {% if entrega.fecha_asignacion_efectiva %}
-                        <div class="small text-muted" style="font-size: 0.72rem;">Asignado: {{ entrega.fecha_asignacion_efectiva|date:"d/m/Y H:i" }}</div>
+                        <div class="small text-muted" style="font-size: 0.72rem;">Asignado: {{ entrega.fecha_asignacion_efectiva|date:"d/m/Y h:i A" }}</div>
                         {% endif %}
                     </td>
                     <td>
@@ -95,9 +95,9 @@
                         {% endif %}
                     </td>
                     <td>
-                        <div class="fw-600 text-main">{{ entrega.fecha_entrega|date:"d/m/Y H:i"|default:"Finalizado" }}</div>
+                        <div class="fw-600 text-main">{{ entrega.fecha_entrega|date:"d/m/Y h:i A"|default:"Finalizado" }}</div>
                         {% if entrega.fecha_salida %}
-                        <div class="small text-muted" style="font-size: 0.72rem;">Salida: {{ entrega.fecha_salida|date:"d/m/Y H:i" }}</div>
+                        <div class="small text-muted" style="font-size: 0.72rem;">Salida: {{ entrega.fecha_salida|date:"d/m/Y h:i A" }}</div>
                         {% endif %}
                     </td>
                     <td>

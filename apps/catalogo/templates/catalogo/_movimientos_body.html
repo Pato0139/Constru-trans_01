@@ -1,6 +1,6 @@
 {% for m in movimientos %}
 <tr class="u-inline-e91738c112 inventory-movement-row">
-    <td class="py-3 px-4 text-muted small" data-label="Fecha">{{ m.fecha|date:"d/m/Y H:i" }}</td>
+    <td class="py-3 px-4 text-muted small" data-label="Fecha">{{ m.fecha|date:"d/m/Y h:i A" }}</td>
     <td class="py-3 px-4 inventory-movement-material" data-label="Material">
         <div class="d-flex align-items-center gap-3">
             <div

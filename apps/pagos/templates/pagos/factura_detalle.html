@@ -33,7 +33,7 @@
             <dd class="col-sm-7">#{{ factura.pedido.codigo_pedido }}</dd>
 
             <dt class="col-sm-5">Fecha emisión</dt>
-            <dd class="col-sm-7">{{ factura.fecha_emision|date:"Y-m-d H:i" }}</dd>
+            <dd class="col-sm-7">{{ factura.fecha_emision|date:"Y-m-d h:i A" }}</dd>
 
             <dt class="col-sm-5">Subtotal</dt>
             <dd class="col-sm-7">${{ factura.subtotal }}</dd>
@@ -88,7 +88,7 @@
               <tbody>
                 {% for p in pagos %}
                 <tr>
-                  <td>{{ p.fecha_registro|date:"Y-m-d H:i" }}</td>
+                  <td>{{ p.fecha_registro|date:"Y-m-d h:i A" }}</td>
                   <td>${{ p.monto }}</td>
                   <td>{{ p.get_metodo_display }}</td>
                   <td>

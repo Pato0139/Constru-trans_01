@@ -29,7 +29,7 @@
         <span class="badge bg-warning-subtle text-warning">Pendiente de revisión</span>
         {% endif %}
     </td>
-    <td>{{ pago.fecha_registro|date:"d/m/Y H:i" }}</td>
+    <td>{{ pago.fecha_registro|date:"d/m/Y h:i A" }}</td>
     <td>
         <div class="d-flex gap-1 flex-wrap">
             <a href="{% url 'pagos:detalle_pago' pago.pk %}" class="btn btn-sm btn-outline-info" aria-label="Ver detalle del pago" data-tooltip="Ver detalle del pago">

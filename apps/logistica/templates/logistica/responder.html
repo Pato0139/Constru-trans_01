@@ -23,7 +23,7 @@
                                 {% if seguimiento.atendido_por %}
                                     Atendido por: <strong>{{ seguimiento.atendido_por.nombres }} {{ seguimiento.atendido_por.apellidos }}</strong>
                                 {% endif %}
-                                &middot; {{ seguimiento.fecha_seguimiento|date:"d/m/Y H:i" }}
+                                &middot; {{ seguimiento.fecha_seguimiento|date:"d/m/Y h:i A" }}
                             </small>
                         </p>
                         <p class="mb-0 fw-medium">{{ seguimiento.comentario }}</p>

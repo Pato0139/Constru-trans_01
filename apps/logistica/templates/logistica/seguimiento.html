@@ -65,7 +65,7 @@
                                                 </small>
                                                 <p class="mt-2 mb-1">{{ seg.comentario }}</p>
                                                 <small class="text-muted">
-                                                    {{ seg.fecha_seguimiento|date:"d/m/Y H:i" }}
+                                                    {{ seg.fecha_seguimiento|date:"d/m/Y h:i A" }}
                                                     {% if seg.respuesta %}
                                                         &middot;
                                                         <span class="text-success">
@@ -87,7 +87,7 @@
                                                 <small class="text-muted">
                                                     Respuesta de
                                                     <strong>{{ seg.respuesta.redactada_por.nombres }} {{ seg.respuesta.redactada_por.apellidos }}</strong>
-                                                    el {{ seg.respuesta.fecha_respuesta|date:"d/m/Y H:i" }}
+                                                    el {{ seg.respuesta.fecha_respuesta|date:"d/m/Y h:i A" }}
                                                 </small>
                                                 <p class="mb-0 mt-1">{{ seg.respuesta.texto }}</p>
                                             </div>

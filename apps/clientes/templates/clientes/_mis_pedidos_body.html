@@ -4,7 +4,7 @@
 <tr>
     <td class="fw-700 text-accent">#CT-{{ pedido.codigo_pedido }}</td>
     <td class="fw-600 text-white">{{ pedido.direccion_destino }}</td>
-    <td class="text-muted small">{{ pedido.fecha_solicitud|date:"d M, Y H:i" }}</td>
+    <td class="text-muted small">{{ pedido.fecha_solicitud|date:"d M, Y h:i A" }}</td>
     <td class="price-tag">{{ pedido.total|currency }}</td>
     <td>
         {% if pedido.requiere_correccion_pago %}

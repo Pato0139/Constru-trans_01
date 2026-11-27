@@ -285,7 +285,7 @@ def evaluar_y_notificar_stock_bajo(
                         f"Alerta resuelta para «{material.nombre}». Existencias actuales: "
                         f"{cantidad_actual} {unidad_label}; mínimo configurado: "
                         f"{umbral} {unidad_label}. Stock suficiente desde "
-                        f"{timezone.localtime(ahora).strftime('%d/%m/%Y %H:%M')}."
+                        f"{timezone.localtime(ahora).strftime('%d/%m/%Y %I:%M %p')}."
                     )
                     alerta.link = link_stock
                     alerta.save(
@@ -300,7 +300,7 @@ def evaluar_y_notificar_stock_bajo(
                 f"Alerta de inventario {nivel_label} para «{material.nombre}». "
                 f"Stock actual: {cantidad_actual} {unidad_label}. "
                 f"Stock mínimo: {umbral} {unidad_label}. "
-                f"Detección: {timezone.localtime(fecha_deteccion).strftime('%d/%m/%Y %H:%M')}. "
+                f"Detección: {timezone.localtime(fecha_deteccion).strftime('%d/%m/%Y %I:%M %p')}. "
                 "Se recomienda revisar el abastecimiento."
             )
             tipo_notificacion = "danger" if nivel == "critico" else "warning"
@@ -324,7 +324,7 @@ def evaluar_y_notificar_stock_bajo(
                     f"Alerta de inventario {nivel_label} para «{material.nombre}». "
                     f"Stock actual: {cantidad_actual} {unidad_label}. "
                     f"Stock mínimo: {umbral} {unidad_label}. "
-                    f"Detección: {timezone.localtime(ahora).strftime('%d/%m/%Y %H:%M')}. "
+                    f"Detección: {timezone.localtime(ahora).strftime('%d/%m/%Y %I:%M %p')}. "
                     "Se recomienda revisar el abastecimiento."
                 )
             elif alerta.tipo != tipo_notificacion:
@@ -335,7 +335,7 @@ def evaluar_y_notificar_stock_bajo(
                     f"El nivel de alerta cambió a {nivel_label} para «{material.nombre}». "
                     f"Stock actual: {cantidad_actual} {unidad_label}. "
                     f"Stock mínimo: {umbral} {unidad_label}. "
-                    f"Detección: {timezone.localtime(ahora).strftime('%d/%m/%Y %H:%M')}. "
+                    f"Detección: {timezone.localtime(ahora).strftime('%d/%m/%Y %I:%M %p')}. "
                     "Se recomienda revisar el abastecimiento."
                 )
 

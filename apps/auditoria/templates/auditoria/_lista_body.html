@@ -11,7 +11,7 @@
     <td class="text-nowrap text-center col-modulo"><span class="auditoria-modulo-pill">{{ reg.modulo|default:reg.tabla|default:"—"|capfirst }}</span></td>
     <td class="text-nowrap text-center col-fecha">
         <div class="auditoria-datetime-stack">
-            <span class="auditoria-time">{{ reg.fecha_hora|default:reg.fecha|date:"H:i" }}</span>
+            <span class="auditoria-time">{{ reg.fecha_hora|default:reg.fecha|date:"h:i A" }}</span>
             <span class="auditoria-date">{{ reg.fecha_hora|default:reg.fecha|date:"d/m/Y" }}</span>
         </div>
     </td>

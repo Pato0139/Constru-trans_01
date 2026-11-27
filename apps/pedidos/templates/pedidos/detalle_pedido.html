@@ -84,7 +84,7 @@
                     </div>
                 </div>
                 <div class="text-muted small mb-1">Fecha de Solicitud:</div>
-                <div class="text-main mb-3 fw-semibold">{{ pedido.fecha_creacion|date:"d \d\e F, Y - H:i" }}</div>
+                <div class="text-main mb-3 fw-semibold">{{ pedido.fecha_creacion|date:"d \d\e F, Y - h:i A" }}</div>
             </div>
 
             {% if user.rol == 'admin' %}

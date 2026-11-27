@@ -171,7 +171,7 @@
                             <td><strong class="text-main">#ENV-{{ nov.entrega.id_entrega }}</strong> (#CT-{{ nov.entrega.pedido.codigo_pedido }})</td>
                             <td><span class="badge bg-secondary">{{ nov.get_tipo_display }}</span></td>
                             <td class="text-main small">{{ nov.descripcion }}</td>
-                            <td class="text-muted small">{{ nov.fecha_generada|date:"d/m/Y H:i" }}</td>
+                            <td class="text-muted small">{{ nov.fecha_generada|date:"d/m/Y h:i A" }}</td>
                             <td>
                                 <span class="badge {% if nov.estado == 'resuelto' %}bg-success{% elif nov.estado == 'en_proceso' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
                                     {{ nov.get_estado_display }}

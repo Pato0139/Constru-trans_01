@@ -168,7 +168,7 @@ def _fila_json(registro):
             '<span class="auditoria-time">{}</span>'
             '<span class="auditoria-date">{}</span>'
             '</div>',
-            local_dt.strftime("%H:%M"),
+            local_dt.strftime("%I:%M %p"),
             local_dt.strftime("%d/%m/%Y"),
         )
     else:

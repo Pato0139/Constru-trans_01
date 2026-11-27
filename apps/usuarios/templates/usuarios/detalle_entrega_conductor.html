@@ -31,7 +31,7 @@
                     {% else %}
                         <span class="badge bg-secondary">{{ entrega.get_estado_display }}</span>
                     {% endif %}
-                    <span class="text-muted small">Asignado el {{ entrega.fecha_asignacion_efectiva|date:"d/m/Y H:i"|default:pedido.fecha_solicitud|date:"d/m/Y" }}</span>
+                    <span class="text-muted small">Asignado el {{ entrega.fecha_asignacion_efectiva|date:"d/m/Y h:i A"|default:pedido.fecha_solicitud|date:"d/m/Y" }}</span>
                 </div>
             </div>
 
@@ -101,14 +101,14 @@
                 </li>
                 <li>
                     <span class="text-muted small d-block">Fecha Programada:</span>
-                    <strong class="text-main">{{ pedido.fecha_entrega_programada|date:"d/m/Y H:i"|default:"Sin fecha específica" }}</strong>
+                    <strong class="text-main">{{ pedido.fecha_entrega_programada|date:"d/m/Y h:i A"|default:"Sin fecha específica" }}</strong>
                 </li>
                 {% if historial_reagendamientos %}
                 <li>
                     <span class="text-muted small d-block">Historial de reagendamientos:</span>
                     {% for registro in historial_reagendamientos %}
                     <div class="border-start border-warning border-2 ps-3 mt-2">
-                        <strong class="text-main">{{ registro.fecha|date:"d/m/Y H:i" }} · {{ registro.usuario.nombre_mostrar|default:registro.usuario.username|default:"Sistema" }}</strong>
+                        <strong class="text-main">{{ registro.fecha|date:"d/m/Y h:i A" }} · {{ registro.usuario.nombre_mostrar|default:registro.usuario.username|default:"Sistema" }}</strong>
                         <p class="text-muted small mb-0">{{ registro.descripcion }}</p>
                     </div>
                     {% endfor %}
@@ -117,7 +117,7 @@
                 {% if entrega.fecha_salida %}
                 <li>
                     <span class="text-muted small d-block">Hora de Inicio de Ruta:</span>
-                    <strong class="text-info">{{ entrega.fecha_salida|date:"d/m/Y H:i" }}</strong>
+                    <strong class="text-info">{{ entrega.fecha_salida|date:"d/m/Y h:i A" }}</strong>
                     {% if entrega.confirmado_salida_por %}
                         <span class="text-muted small d-block">Confirmado por: {{ entrega.confirmado_salida_por.nombre_mostrar }}</span>
                     {% endif %}
@@ -126,7 +126,7 @@
                 {% if entrega.fecha_entrega %}
                 <li>
                     <span class="text-muted small d-block">Hora Confirmada de Entrega:</span>
-                    <strong class="text-success">{{ entrega.fecha_entrega|date:"d/m/Y H:i" }}</strong>
+                    <strong class="text-success">{{ entrega.fecha_entrega|date:"d/m/Y h:i A" }}</strong>
                     {% if entrega.entregado_por %}
                         <span class="text-muted small d-block">Entregado por: {{ entrega.entregado_por.nombre_mostrar }}</span>
                     {% endif %}
@@ -281,7 +281,7 @@
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-warning text-dark fw-bold text-uppercase">{{ nov.get_tipo_display }}</span>
-                            <span class="text-muted small">{{ nov.fecha_reporte|date:"d/m/Y H:i" }}</span>
+                            <span class="text-muted small">{{ nov.fecha_reporte|date:"d/m/Y h:i A" }}</span>
                         </div>
                         <span class="badge {% if nov.estado == 'resuelto' %}bg-success{% elif nov.estado == 'en_proceso' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
                             {{ nov.get_estado_display }}

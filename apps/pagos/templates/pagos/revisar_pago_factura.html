@@ -25,7 +25,7 @@
                 <dt class="col-sm-5">Referencia</dt>
                 <dd class="col-sm-7">{{ pago.referencia|default:"—" }}</dd>
                 <dt class="col-sm-5">Fecha registro</dt>
-                <dd class="col-sm-7">{{ pago.fecha_registro|date:"Y-m-d H:i" }}</dd>
+                <dd class="col-sm-7">{{ pago.fecha_registro|date:"Y-m-d h:i A" }}</dd>
                 <dt class="col-sm-5">Registrado por</dt>
                 <dd class="col-sm-7">{{ pago.registrado_por.username|default:"—" }}</dd>
               </dl>

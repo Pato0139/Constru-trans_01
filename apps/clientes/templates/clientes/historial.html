@@ -86,10 +86,10 @@
                     <td class="fw-700 text-accent">#CT-{{ pedido.codigo_pedido }}</td>
                     <td class="text-muted small">
                         {% if pedido.fecha_entrega_real %}
-                            <div><i class="bi bi-check2-circle text-success me-1"></i>{{ pedido.fecha_entrega_real|date:"d M, Y H:i" }}</div>
+                            <div><i class="bi bi-check2-circle text-success me-1"></i>{{ pedido.fecha_entrega_real|date:"d M, Y h:i A" }}</div>
                             <span class="x-small text-muted">(Entrega)</span>
                         {% else %}
-                            <div>{{ pedido.fecha_solicitud|date:"d M, Y H:i" }}</div>
+                            <div>{{ pedido.fecha_solicitud|date:"d M, Y h:i A" }}</div>
                             <span class="x-small text-muted">(Solicitud)</span>
                         {% endif %}
                     </td>

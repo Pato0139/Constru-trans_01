@@ -251,7 +251,7 @@ def notificar_evento_logistico(evento, pedido, actor=None, extra_info="", using=
             identificador_evento = event_key or timezone.localtime().strftime("%Y%m%d%H%M%S%f")
             titulo = f"Nueva fecha de entrega - Pedido #CT-{codigo} - {identificador_evento}"
             fecha = pedido.fecha_entrega_programada
-            fecha_texto = timezone.localtime(fecha).strftime("%d/%m/%Y %H:%M") if fecha else "por confirmar"
+            fecha_texto = timezone.localtime(fecha).strftime("%d/%m/%Y %I:%M %p") if fecha else "por confirmar"
             mensaje = f"La entrega del pedido #CT-{codigo} fue reagendada para el {fecha_texto}. {extra_info}".strip()
             tipo = "warning"
         else:
@@ -1285,7 +1285,7 @@ def cancelar_envio_pedido(pedido, usuario, motivo="", revertir_stock=True, using
             if actor_db and hasattr(actor_db, "nombre_mostrar")
             else getattr(usuario, "username", "Sistema")
         )
-        fecha_txt = ahora.strftime("%d/%m/%Y %H:%M")
+        fecha_txt = ahora.strftime("%d/%m/%Y %I:%M %p")
         prefijo_obs = f"[Cancelado el {fecha_txt} por {responsable_txt}: {motivo_limpio}]"
         orden.observacion_admin = (
             f"{orden.observacion_admin}\n{prefijo_obs}".strip()

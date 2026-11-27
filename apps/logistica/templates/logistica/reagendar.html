@@ -7,7 +7,7 @@
     <div class="card-header border-secondary py-3"><h4 class="mb-0 text-accent"><i class="bi bi-calendar2-event me-2"></i>Reagendar entrega</h4></div>
     <div class="card-body p-4">
       <p class="text-muted">Pedido <strong class="text-main">#CT-{{ pedido.codigo_pedido }}</strong> · estado: {{ pedido.get_estado_display }}. Reagendar no cancela ni retrocede el pedido.</p>
-      <div class="border border-secondary rounded-3 p-3 mb-4"><small class="text-muted d-block">Fecha programada actual</small><strong>{% if pedido.fecha_entrega_programada %}{{ pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}{% else %}Sin programar{% endif %}</strong></div>
+      <div class="border border-secondary rounded-3 p-3 mb-4"><small class="text-muted d-block">Fecha programada actual</small><strong>{% if pedido.fecha_entrega_programada %}{{ pedido.fecha_entrega_programada|date:"d/m/Y h:i A" }}{% else %}Sin programar{% endif %}</strong></div>
       <form method="post" id="reagendar-form" novalidate>{% csrf_token %}
         {% for field in form %}<div class="mb-3"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>{{ field }}{% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}</div>{% endfor %}
         {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
