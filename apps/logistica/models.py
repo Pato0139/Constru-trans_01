@@ -316,6 +316,116 @@ class Novedad(models.Model):
         ("observacion", "Observación"),
         ("otro", "Otro"),
     ]
+    TIPOS_CONDUCTOR_GRUPOS = [
+        (
+            "Incidencias en ruta y vehículo",
+            [
+                ("demora", "Demora en entrega"),
+                ("clima", "Condiciones climáticas"),
+                ("mecanico", "Problemas mecánicos"),
+                ("acceso_vias", "Problemas de acceso o vías"),
+            ],
+        ),
+        (
+            "Quejas o novedades con el cliente",
+            [
+                ("cliente", "Queja o inconveniente con el cliente"),
+                ("ausencia_cliente", "Ausencia del cliente"),
+            ],
+        ),
+        (
+            "Carga y observaciones",
+            [
+                ("mercancia", "Problemas con la mercancía"),
+                ("observacion", "Observación en ruta"),
+                ("otro", "Otro"),
+            ],
+        ),
+    ]
+    TIPOS_CLIENTE_GRUPOS = [
+        (
+            "Inconformidad con el pedido o entrega",
+            [
+                ("demora", "Demora en entrega"),
+                ("producto_danado", "Producto dañado"),
+                ("cantidad_incorrecta", "Cantidad incorrecta"),
+                ("mercancia", "Problemas con la mercancía"),
+                ("devolucion", "Solicitud de devolución"),
+            ],
+        ),
+        (
+            "Quejas de servicio y otros",
+            [
+                ("observacion", "Queja o comentario sobre la entrega"),
+                ("otro", "Otro"),
+            ],
+        ),
+    ]
+    TIPOS_ADMIN_GRUPOS = [
+        (
+            "Novedades en ruta / Conductor",
+            [
+                ("demora", "Demora en entrega"),
+                ("clima", "Condiciones climáticas"),
+                ("mecanico", "Problemas mecánicos"),
+                ("acceso_vias", "Problemas de acceso o vías"),
+                ("cliente", "Queja o inconveniente con el cliente"),
+                ("ausencia_cliente", "Ausencia del cliente"),
+            ],
+        ),
+        (
+            "Novedades de pedido / Cliente",
+            [
+                ("producto_danado", "Producto dañado"),
+                ("cantidad_incorrecta", "Cantidad incorrecta"),
+                ("mercancia", "Problemas con la mercancía"),
+                ("devolucion", "Devolución"),
+            ],
+        ),
+        (
+            "Generales",
+            [
+                ("observacion", "Observación"),
+                ("otro", "Otro"),
+            ],
+        ),
+    ]
+    TIPOS_PERMITIDOS_POR_ROL = {
+        "conductor": {
+            "demora",
+            "clima",
+            "mecanico",
+            "acceso_vias",
+            "cliente",
+            "ausencia_cliente",
+            "mercancia",
+            "observacion",
+            "otro",
+        },
+        "cliente": {
+            "demora",
+            "producto_danado",
+            "cantidad_incorrecta",
+            "mercancia",
+            "devolucion",
+            "observacion",
+            "otro",
+        },
+        "admin": {clave for clave, _ in TIPOS},
+    }
+
+    @classmethod
+    def get_grupos_tipos_por_rol(cls, rol):
+        if rol == "conductor":
+            return cls.TIPOS_CONDUCTOR_GRUPOS
+        if rol == "cliente":
+            return cls.TIPOS_CLIENTE_GRUPOS
+        return cls.TIPOS_ADMIN_GRUPOS
+
+    @classmethod
+    def get_tipos_planos_por_rol(cls, rol):
+        grupos = cls.get_grupos_tipos_por_rol(rol)
+        return [item for _, opciones in grupos for item in opciones]
     ESTADOS = [
         ("abierta", "Abierta"),
         ("en_atencion", "En atención"),
@@ -351,6 +461,35 @@ class Novedad(models.Model):
     @property
     def pedido(self):
         return self.entrega.pedido
+
+    @property
+    def rol_reportante(self):
+        return getattr(self.reportado_por, "rol", "admin") or "admin"
+
+    @property
+    def rol_reportante_label(self):
+        return {
+            "conductor": "Conductor",
+            "cliente": "Cliente",
+            "admin": "Administrador",
+        }.get(self.rol_reportante, self.rol_reportante.title())
+
+    @property
+    def ultima_respuesta_admin(self):
+        """Devuelve la última respuesta registrada por administración para esta novedad."""
+        seguimientos = list(self.seguimientos.all())
+        for seg in seguimientos:
+            respuesta = getattr(seg, "respuesta", None)
+            if respuesta and respuesta.texto:
+                return respuesta.texto
+        for seg in seguimientos:
+            if getattr(seg.atendido_por, "rol", "") == "admin" and seg.comentario:
+                return seg.comentario
+        return ""
+
+    @property
+    def respuesta_admin(self):
+        return self.ultima_respuesta_admin
 
     def cerrar(self):
         self.estado = "cerrada"

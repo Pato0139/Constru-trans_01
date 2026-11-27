@@ -160,20 +160,13 @@ def cambiar_estado_tipo(request, codigo):
 @require_POST
 def eliminar_tipo_material(request, codigo):
     tipo = get_object_or_404(Catalogo, pk=codigo)
-
-    if tipo.materiales.exists():
-        messages.error(
-            request,
-            f"No se puede eliminar '{tipo.nombre_empresa}' porque tiene materiales asociados.",
-        )
-        return redirect("catalogo:tipos_material_lista")
-
     nombre = tipo.nombre_empresa
-    tipo.delete()
+    tipo.activo = False
+    tipo.save(update_fields=["activo"])
     registrar_actividad(
-        request, "eliminar", "catalogo", codigo, f"Tipo de material eliminado: {nombre}"
+        request, "desactivar", "catalogo", codigo, f"Tipo de material desactivado: {nombre}"
     )
-    messages.success(request, f"Tipo de material '{nombre}' eliminado correctamente.")
+    messages.success(request, f"Tipo de material '{nombre}' desactivado correctamente.")
     return redirect("catalogo:tipos_material_lista")
 
 
@@ -305,20 +298,13 @@ def cambiar_estado_unidad_medida(request, id):
 @require_POST
 def eliminar_unidad_medida(request, id):
     unidad = get_object_or_404(UnidadMedida, pk=id)
-
-    if unidad.materiales.exists():
-        messages.error(
-            request,
-            f"No se puede eliminar '{unidad.nombre}' porque tiene materiales asociados.",
-        )
-        return redirect("catalogo:unidades_medida_lista")
-
     nombre = unidad.nombre
-    unidad.delete()
+    unidad.activa = False
+    unidad.save(update_fields=["activa"])
     registrar_actividad(
-        request, "eliminar", "unidad_medida", id, f"Unidad de medida eliminada: {nombre}"
+        request, "desactivar", "unidad_medida", id, f"Unidad de medida desactivada: {nombre}"
     )
-    messages.success(request, f"Unidad de medida '{nombre}' eliminada correctamente.")
+    messages.success(request, f"Unidad de medida '{nombre}' desactivada correctamente.")
     return redirect("catalogo:unidades_medida_lista")
 
 
@@ -455,16 +441,9 @@ def cambiar_estado_marca(request, id):
 @require_POST
 def eliminar_marca(request, id):
     marca = get_object_or_404(Marca, pk=id)
-
-    if marca.materiales.exists():
-        messages.error(
-            request,
-            f"No se puede eliminar '{marca.nombre}' porque tiene materiales asociados.",
-        )
-        return redirect("catalogo:marcas_lista")
-
     nombre = marca.nombre
-    marca.delete()
-    registrar_actividad(request, "eliminar", "marca", id, f"Marca eliminada: {nombre}")
-    messages.success(request, f"Marca '{nombre}' eliminada correctamente.")
+    marca.activa = False
+    marca.save(update_fields=["activa"])
+    registrar_actividad(request, "desactivar", "marca", id, f"Marca desactivada: {nombre}")
+    messages.success(request, f"Marca '{nombre}' desactivada correctamente.")
     return redirect("catalogo:marcas_lista")

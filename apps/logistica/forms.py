@@ -136,8 +136,57 @@ class NovedadForm(StrictModelForm):
             "solucion": forms.Textarea(attrs={"class": "form-control", "rows": 3, "maxlength": 3000}),
             "evidencia": forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*"}),
         }
-        labels = {"tipo": "Tipo de novedad", "descripcion": "Descripción detallada", "solucion": "Acción o solución aplicada", "evidencia": "Evidencia fotográfica (opcional)"}
+        labels = {
+            "tipo": "Tipo de novedad",
+            "descripcion": "Descripción detallada",
+            "solucion": "Acción o solución aplicada",
+            "evidencia": "Evidencia fotográfica (opcional)",
+        }
         help_texts = {"evidencia": "Imagen de hasta 5 MB."}
+
+    def __init__(self, *args, rol=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.rol = rol or "admin"
+        grupos = Novedad.get_grupos_tipos_por_rol(self.rol)
+        self.fields["tipo"].choices = [("", "Selecciona una opción..."), *grupos]
+
+        if self.rol == "conductor":
+            self.fields["tipo"].label = "Tipo de novedad o queja en ruta"
+            self.fields["descripcion"].label = "Detalle de lo ocurrido en ruta o con el cliente"
+            self.fields["descripcion"].widget.attrs["placeholder"] = (
+                "Describe qué ocurrió en ruta o en el punto de entrega, detalles del incidente o queja..."
+            )
+            self.fields["solucion"].required = False
+            self.fields["solucion"].label = "Acción inmediata tomada en ruta (opcional)"
+            self.fields["solucion"].widget.attrs["placeholder"] = (
+                "Ej: Se esperó 20 min, se contactó al cliente, se tomó vía alterna..."
+            )
+            self.fields["evidencia"].label = "Evidencia fotográfica en sitio (opcional)"
+        elif self.rol == "cliente":
+            self.fields["tipo"].label = "Motivo de tu novedad o queja"
+            self.fields["descripcion"].label = "Cuéntanos qué ocurrió con tu pedido"
+            self.fields["descripcion"].widget.attrs["placeholder"] = (
+                "Indícanos qué materiales presentaron problema, qué ocurrió en la entrega o el motivo de tu queja..."
+            )
+            self.fields["evidencia"].label = "Foto del pedido o entrega (opcional)"
+            self.fields.pop("solucion", None)
+        else:
+            self.fields["solucion"].required = False
+            self.fields["descripcion"].widget.attrs["placeholder"] = (
+                "Describe la incidencia operativa o reporte registrado..."
+            )
+            self.fields["solucion"].widget.attrs["placeholder"] = (
+                "Acción correctiva o solución aplicada (opcional)..."
+            )
+
+    def clean_tipo(self):
+        tipo = self.cleaned_data.get("tipo")
+        permitidos = Novedad.TIPOS_PERMITIDOS_POR_ROL.get(
+            self.rol, Novedad.TIPOS_PERMITIDOS_POR_ROL["admin"]
+        )
+        if tipo and tipo not in permitidos:
+            raise ValidationError("El tipo de novedad seleccionado no corresponde a tu rol.")
+        return tipo
 
     def clean_evidencia(self):
         archivo = self.cleaned_data.get("evidencia")

@@ -45,6 +45,14 @@
                                 placeholder="Buscar pedido, conductor, texto...">
                         </div>
                         <div class="standard-filter-field">
+                            <select name="rol" class="form-select form-select-sm bg-surface text-main filter-select">
+                                <option value="">Origen (Todos)</option>
+                                {% for val, label in roles_origen %}
+                                <option value="{{ val }}" {% if rol_actual == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="standard-filter-field">
                             <select name="tipo" class="form-select form-select-sm bg-surface text-main filter-select">
                                 <option value="">Tipo (Todos)</option>
                                 {% for val, label in tipos %}
@@ -99,12 +107,21 @@
                         </a>
                     </td>
                     <td>
-                        <div class="fw-600 text-main">
-                            {{ nov.reportado_por.get_full_name|default:nov.reportado_por.username }}
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="fw-600 text-main">
+                                {{ nov.reportado_por.get_full_name|default:nov.reportado_por.username }}
+                            </span>
+                            {% if nov.rol_reportante == 'conductor' %}
+                            <span class="badge bg-warning text-dark">Conductor</span>
+                            {% elif nov.rol_reportante == 'cliente' %}
+                            <span class="badge bg-info text-dark">Cliente</span>
+                            {% else %}
+                            <span class="badge bg-primary">Admin</span>
+                            {% endif %}
                         </div>
                         <div class="small text-muted">
                             {% if nov.entrega.conductor %}
-                            Conductor: {{ nov.entrega.conductor.nombres }} {{ nov.entrega.conductor.apellidos }}
+                            Conductor asignado: {{ nov.entrega.conductor.nombres }} {{ nov.entrega.conductor.apellidos }}
                             {% endif %}
                         </div>
                     </td>

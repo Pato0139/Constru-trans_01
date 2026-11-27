@@ -148,14 +148,28 @@ window.AppAjaxNavigation = (() => {
         }
     }
 
-    function synchronizeStyles(nextDocument) {
-        document.head.querySelectorAll('style[data-ajax-navigation-style]').forEach((style) => {
-            style.remove();
+    function waitForStylesheet(linkEl, timeoutMs = 450) {
+        return new Promise((resolve) => {
+            let done = false;
+            const finish = () => {
+                if (done) return;
+                done = true;
+                resolve();
+            };
+            linkEl.addEventListener('load', finish, { once: true });
+            linkEl.addEventListener('error', finish, { once: true });
+            window.setTimeout(finish, timeoutMs);
         });
+    }
+
+    async function synchronizeStyles(nextDocument) {
+        const oldInlineStyles = Array.from(document.head.querySelectorAll('style[data-ajax-navigation-style]'));
+        const newInlineStyles = [];
         nextDocument.head.querySelectorAll('style').forEach((style) => {
             const replacement = style.cloneNode(true);
             replacement.dataset.ajaxNavigationStyle = 'true';
             document.head.appendChild(replacement);
+            newInlineStyles.push(replacement);
         });
 
         const currentStyles = new Map(
@@ -167,15 +181,27 @@ window.AppAjaxNavigation = (() => {
                 .map((link) => link.href)
         );
 
-        currentStyles.forEach((link, href) => {
-            if (!nextStyles.has(href)) link.remove();
-        });
-
+        // Cargar primero las nuevas hojas de estilo y esperar a que estén listas antes de cambiar el DOM
+        const pendingLoads = [];
         nextDocument.head.querySelectorAll('link[rel="stylesheet"][href]').forEach((link) => {
             if (!currentStyles.has(link.href)) {
-                document.head.appendChild(link.cloneNode(true));
+                const clone = link.cloneNode(true);
+                pendingLoads.push(waitForStylesheet(clone));
+                document.head.appendChild(clone);
             }
         });
+
+        if (pendingLoads.length > 0) {
+            await Promise.all(pendingLoads);
+        }
+
+        // Retornar función de limpieza para remover estilos viejos solo después del reemplazo del DOM
+        return () => {
+            oldInlineStyles.forEach((style) => style.remove());
+            currentStyles.forEach((link, href) => {
+                if (!nextStyles.has(href)) link.remove();
+            });
+        };
     }
 
     function ensureLoadedScripts() {
@@ -282,7 +308,7 @@ window.AppAjaxNavigation = (() => {
         }
 
         document.title = nextDocument.title;
-        synchronizeStyles(nextDocument);
+        const cleanupOldStyles = await synchronizeStyles(nextDocument);
         synchronizeNavigationChrome(nextDocument);
         synchronizeMessages(nextDocument);
         pageScopedListeners.forEach(([target, type, listener, options]) => {
@@ -314,6 +340,7 @@ window.AppAjaxNavigation = (() => {
         }
         window.AppPageLifecycle.beginNavigation();
         currentContent.replaceWith(nextContent);
+        if (typeof cleanupOldStyles === 'function') cleanupOldStyles();
 
         const destination = new URL(response.url || requestedUrl.href, window.location.href);
         if (lockHistory) {

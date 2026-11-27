@@ -1321,6 +1321,12 @@
                                 <i class="bi bi-pencil-square me-1"></i> Modificar Pedido
                             </a>
                             {% endif %}
+                            {% if user_rol == "cliente" and entrega %}
+                            <a href="{% url 'logistica:crear_novedad' entrega.id_entrega %}"
+                                class="btn btn-outline-warning rounded-pill py-2 fw-700 small">
+                                <i class="bi bi-chat-square-text me-1"></i> Reportar novedad o queja
+                            </a>
+                            {% endif %}
                             {% if user_rol == "admin" %}
                             <a href="{% url 'logistica:reagendar_entrega' orden.codigo_pedido %}" class="btn btn-outline-info rounded-pill py-2 fw-700 small">
                                 <i class="bi bi-calendar2-event me-1"></i> Reagendar entrega

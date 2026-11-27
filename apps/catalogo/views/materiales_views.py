@@ -130,25 +130,12 @@ def editar_material(request, id):
 @require_POST
 def eliminar_material(request, id):
     material = get_object_or_404(Material, pk=id)
-
-    stock_actual = getattr(getattr(material, "stock_info", None), "cantidad_actual", 0)
-    if stock_actual > 0:
-        messages.error(
-            request,
-            f"No se puede eliminar {material.nombre} porque aún tiene stock ({stock_actual}).",
-        )
-        return redirect("catalogo:materiales_lista")
-
-    if material.detallepedido_set.exists():
-        messages.error(
-            request, f"No se puede eliminar {material.nombre}: está en pedidos existentes."
-        )
-        return redirect("catalogo:materiales_lista")
-
     nombre = material.nombre
-    material.delete()
-    registrar_actividad(request, "eliminar", "catalogo", id, f"Material eliminado: {nombre}")
-    messages.success(request, f"Material {nombre} eliminado correctamente.")
+    material.activo = False
+    material.estado = "inactivo"
+    material.save(update_fields=["activo", "estado"])
+    registrar_actividad(request, "desactivar", "catalogo", id, f"Material inhabilitado: {nombre}")
+    messages.success(request, f"Material {nombre} inhabilitado correctamente.")
     return redirect("catalogo:materiales_lista")
 
 

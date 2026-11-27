@@ -560,7 +560,7 @@ def login_usuario(request):
                 )
 
     else:
-        form = LoginForm(initial={"username": request.COOKIES.get(LOGIN_REMEMBER_COOKIE, "")})
+        form = LoginForm()
 
     context = {"form": form, "modo_local": modo_local}
     return render(request, "usuarios/login.html", context)
@@ -833,8 +833,14 @@ def iniciar_entrega(request, entrega_id):
         request,
         f"¡Preparación confirmada! Has iniciado la ruta del pedido #{pedido.codigo_pedido}. Conduce con precaución.",
     )
-    referer = request.META.get("HTTP_REFERER")
-    if referer and ("pedidos-conductor" in referer or "panel-conductor" in referer or "detalles-entrega" in referer):
+    referer = request.META.get("HTTP_REFERER", "")
+    if (
+        referer
+        and url_has_allowed_host_and_scheme(
+            referer, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        )
+        and ("pedidos-conductor" in referer or "panel-conductor" in referer or "detalles-entrega" in referer)
+    ):
         return redirect(referer)
     return redirect("usuarios:panel_conductor")
 
@@ -906,8 +912,14 @@ def finalizar_entrega(request, entrega_id):
         request,
         f"¡Excelente! La entrega del pedido #{pedido.codigo_pedido} ha sido marcada como entregada.",
     )
-    referer = request.META.get("HTTP_REFERER")
-    if referer and ("pedidos-conductor" in referer or "panel-conductor" in referer or "detalles-entrega" in referer):
+    referer = request.META.get("HTTP_REFERER", "")
+    if (
+        referer
+        and url_has_allowed_host_and_scheme(
+            referer, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        )
+        and ("pedidos-conductor" in referer or "panel-conductor" in referer or "detalles-entrega" in referer)
+    ):
         return redirect(referer)
     return redirect("usuarios:panel_conductor")
 
@@ -1157,7 +1169,7 @@ def editar_perfil(request):
 
         nombres = request.POST.get("nombres")
         apellidos = request.POST.get("apellidos")
-        pais_codigo = request.POST.get("pais_codigo") or "+57"
+        pais_codigo = "+57"
         telefono_raw = request.POST.get("telefono") or ""
         telefono = normalizar_telefono(pais_codigo, telefono_raw)
         email = (request.POST.get("email") or "").strip().casefold()
@@ -1453,11 +1465,20 @@ def eliminar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
 
     if usuario.es_superadmin:
-        messages.error(request, "El Administrador Global no puede eliminarse desde aquí.")
+        messages.error(request, "El Administrador Global no puede desactivarse desde aquí.")
         return redirect("usuarios:lista_usuarios")
 
-    usuario.delete()
-    messages.success(request, f"Usuario {usuario.nombres} eliminado correctamente.")
+    usuario.is_active = False
+    usuario.estado = "inactivo"
+    usuario.save(update_fields=["is_active", "estado"])
+    registrar_actividad(
+        request,
+        "desactivar",
+        "usuarios",
+        id,
+        f"Usuario desactivado: {usuario.nombres} {usuario.apellidos}",
+    )
+    messages.success(request, f"Usuario {usuario.nombres} desactivado correctamente.")
     return redirect("usuarios:lista_usuarios")
 
 
@@ -2089,44 +2110,23 @@ def eliminar_conductor(request, id):
     conductor_user = get_object_or_404(Usuario, id=id, rol="conductor")
     perfil = getattr(conductor_user, "perfil_conductor", None)
 
-    from apps.logistica.models import Entrega
-
-    tiene_historial = False
-    if perfil:
-        tiene_historial = (
-            Entrega.objects.filter(conductor=perfil).exists()
-            or Pedido.objects.filter(conductor=perfil).exists()
-            or ConductorVehiculo.objects.filter(conductor=perfil).exists()
-        )
-    else:
-        tiene_historial = (
-            Entrega.objects.filter(conductor_usuario_id=conductor_user.pk).exists()
-            or Pedido.objects.filter(conductor_usuario_legacy_id=conductor_user.pk).exists()
-        )
-
-    if tiene_historial:
-        messages.error(
-            request,
-            f"No es posible eliminar físicamente al conductor {conductor_user.nombre_mostrar} "
-            "porque posee historial de entregas o vehículos asociados. Utiliza la opción de "
-            "desactivar cuenta para restringir su acceso.",
-        )
-        return redirect("usuarios:lista_conductores")
-
     nombre = conductor_user.nombre_mostrar
     with transaction.atomic():
         if perfil:
-            perfil.delete()
-        conductor_user.delete()
+            perfil.estado = "inactivo"
+            perfil.save(update_fields=["estado"])
+        conductor_user.is_active = False
+        conductor_user.estado = "inactivo"
+        conductor_user.save(update_fields=["is_active", "estado"])
         registrar_actividad(
             request,
-            "eliminar",
+            "desactivar",
             "conductor",
             id,
-            f"Admin eliminó conductor sin historial: {nombre}",
+            f"Admin inhabilitó cuenta del conductor: {nombre}",
         )
 
-    messages.success(request, f"Conductor {nombre} eliminado correctamente.")
+    messages.success(request, f"Conductor {nombre} inhabilitado correctamente.")
     return redirect("usuarios:lista_conductores")
 
 
@@ -2282,7 +2282,12 @@ def cambiar_password_perfil(request):
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
             return JsonResponse({"ok": True, "message": "Contraseña actualizada correctamente."})
         messages.success(request, "Contraseña actualizada correctamente.")
-        return redirect(request.META.get("HTTP_REFERER") or "usuarios:panel")
+        referer = request.META.get("HTTP_REFERER", "")
+        if referer and url_has_allowed_host_and_scheme(
+            referer, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        ):
+            return redirect(referer)
+        return redirect("usuarios:panel")
 
     first_error = next(
         (str(err) for errs in form.errors.values() for err in errs),
@@ -2291,7 +2296,12 @@ def cambiar_password_perfil(request):
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({"ok": False, "error": first_error}, status=400)
     messages.error(request, first_error)
-    return redirect(request.META.get("HTTP_REFERER") or "usuarios:panel")
+    referer = request.META.get("HTTP_REFERER", "")
+    if referer and url_has_allowed_host_and_scheme(
+        referer, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        return redirect(referer)
+    return redirect("usuarios:panel")
 
 
 @admin_required
@@ -2372,7 +2382,9 @@ def cerrar_sesion(request):
             logger.error("Fallo registrando logout: %s", e)
 
     logout(request)
-    return redirect("usuarios:login")
+    response = redirect("usuarios:login")
+    response.delete_cookie(LOGIN_REMEMBER_COOKIE, samesite="Lax")
+    return response
 
 
 # =====================================================================
@@ -2528,5 +2540,9 @@ def cambiar_modo_bd(request):
         )
         return response
 
-    destino = request.META.get("HTTP_REFERER") or reverse("usuarios:login")
+    destino = request.META.get("HTTP_REFERER", "")
+    if not destino or not url_has_allowed_host_and_scheme(
+        destino, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        destino = reverse("usuarios:login")
     return redirect(destino)

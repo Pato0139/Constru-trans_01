@@ -48,6 +48,9 @@
                             <i class="bi bi-play-circle-fill me-1"></i> Confirmar preparación e iniciar ruta
                         </button>
                     </form>
+                    <a href="{% url 'logistica:crear_novedad' entrega.id_entrega %}" class="btn btn-outline-warning rounded-pill px-3 shadow-sm">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Reportar Novedad
+                    </a>
                 {% elif entrega.estado == 'en_ruta' %}
                     <button type="button" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalFinalizarEntrega">
                         <i class="bi bi-check-circle-fill me-1"></i> Marcar como entregado
@@ -351,5 +354,5 @@
 
 {% block extra_js %}
 <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
-<script src="{% static 'js/logistica/conductor-ruta.js' %}?v=1.0"></script>
+<script src="{% static 'js/logistica/conductor-ruta.js' %}?v=1.1"></script>
 {% endblock %}

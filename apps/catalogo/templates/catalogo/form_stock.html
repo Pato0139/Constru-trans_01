@@ -18,11 +18,11 @@
                 {% csrf_token %}
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-muted text-uppercase">Cantidad en Stock</label>
-                    <input type="number" name="cantidad" class="form-control" value="{{ stock.cantidad }}" min="0" max="100000" step="1" inputmode="numeric" placeholder="Ej: 10" required>
+                    <input type="number" name="cantidad" class="form-control numeric-only" value="{{ stock.cantidad }}" min="0" max="100000" step="1" inputmode="numeric" placeholder="Ej: 10" required>
                 </div>
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-muted text-uppercase">Stock mínimo para alerta ({{ stock.material.unidad_medida.abreviatura|default:"unidades" }})</label>
-                    <input type="number" name="stock_minimo" class="form-control" value="{{ stock.stock_minimo }}" min="0" step="1" inputmode="numeric" required>
+                    <input type="number" name="stock_minimo" class="form-control numeric-only" value="{{ stock.stock_minimo }}" min="0" step="1" inputmode="numeric" required>
                     <div class="form-text text-white-50 mt-2">La alerta se activa cuando el stock actual es igual o inferior a este mínimo.</div>
                 </div>
                 <div class="mb-4">

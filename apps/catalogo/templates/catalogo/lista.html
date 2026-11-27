@@ -33,14 +33,13 @@
         </a>
     </div>
 
-    <!-- Contenedor integrado: filtros + tabla en la misma tarjeta -->
-    <div class="inventory-page table-container inventory-materials-container rounded-4 overflow-hidden shadow-sm"
-        data-aos="fade-up">
+    <!-- Barra de filtros estándar -->
+    <div class="inventory-page">
+        {% include "partials/filter_bar.html" with filter_fields=filter_fields form_data_ajax=True %}
+    </div>
 
-        <!-- Barra de filtros DENTRO del contenedor de la tabla -->
-        <div class="materiales-filter-bar">
-            {% include "partials/filter_bar.html" with filter_fields=filter_fields form_data_ajax=True %}
-        </div>
+    <!-- Contenedor de tabla -->
+    <div class="inventory-page table-container inventory-materials-container rounded-4 overflow-hidden shadow-sm">
 
         <div class="table-responsive">
             <table id="tablaMateriales"

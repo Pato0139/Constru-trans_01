@@ -126,68 +126,45 @@
         tile.alt = "";
         tile.setAttribute("role", "presentation");
         const url = this.getTileUrl(coords);
+        const cartoUrl = `https://a.basemaps.cartocdn.com/rastertiles/voyager/${coords.z}/${coords.x}/${coords.y}.png`;
+        let triedBackup = false;
 
         const usarFallback = function () {
+          tile.onload = null;
+          tile.onerror = null;
           tile.src = OFFLINE_TILE_SVG;
           done(null, tile);
         };
 
-        if (!("caches" in window)) {
-          tile.onload = function () { done(null, tile); };
-          tile.onerror = usarFallback;
-          tile.src = navigator.onLine ? url : OFFLINE_TILE_SVG;
+        if (!navigator.onLine) {
+          usarFallback();
           return tile;
         }
 
-        caches
-          .open(TILE_CACHE_NAME)
-          .then(function (cache) {
-            return cache.match(url).then(function (cached) {
-              if (cached) {
-                return cached.blob().then(function (blob) {
-                  const objUrl = URL.createObjectURL(blob);
-                  tile.onload = function () {
-                    URL.revokeObjectURL(objUrl);
-                    done(null, tile);
-                  };
-                  tile.onerror = usarFallback;
-                  tile.src = objUrl;
-                });
-              }
-              if (!navigator.onLine) {
-                usarFallback();
-                return;
-              }
-              return fetch(url, { mode: "cors" })
-                .then(function (resp) {
-                  if (!resp || !resp.ok) {
-                    usarFallback();
-                    return;
-                  }
-                  cache.put(url, resp.clone()).catch(function () {});
-                  return resp.blob().then(function (blob) {
-                    const objUrl = URL.createObjectURL(blob);
-                    tile.onload = function () {
-                      URL.revokeObjectURL(objUrl);
-                      done(null, tile);
-                    };
-                    tile.onerror = usarFallback;
-                    tile.src = objUrl;
-                  });
-                })
-                .catch(usarFallback);
-            });
-          })
-          .catch(usarFallback);
-
+        tile.referrerPolicy = "origin";
+        tile.onload = function () {
+          done(null, tile);
+        };
+        tile.onerror = function () {
+          if (!triedBackup) {
+            triedBackup = true;
+            tile.src = cartoUrl;
+          } else {
+            usarFallback();
+          }
+        };
+        tile.src = url;
         return tile;
       },
     });
 
-    return new OfflineTileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    if (window.L.Icon && window.L.Icon.Default) {
+      window.L.Icon.Default.imagePath = "/static/vendor/leaflet/images/";
+    }
+
+    return new OfflineTileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
       maxZoom: 19,
-      crossOrigin: true,
     });
   }
 
@@ -447,19 +424,23 @@
     };
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function initConductorRuta() {
     // 1. Mapa embebido en detalle_entrega_conductor.html
     const embedded = document.getElementById("ct-conductor-route-card");
-    if (embedded) {
+    if (embedded && embedded.dataset.routeBound !== "1") {
+      embedded.dataset.routeBound = "1";
       const nav = inicializarNavegadorRuta(embedded);
       if (nav) {
         nav.cargarRuta(embedded.dataset.direccion, embedded.dataset.ciudad);
+        nav.invalidate();
+        setTimeout(() => nav.invalidate(), 400);
       }
     }
 
     // 2. Modal reutilizable "Cómo llegar" en pedidos_conductor.html
     const modalEl = document.getElementById("modalRutaConductor");
-    if (modalEl) {
+    if (modalEl && modalEl.dataset.routeModalBound !== "1") {
+      modalEl.dataset.routeModalBound = "1";
       const navModal = inicializarNavegadorRuta(modalEl);
       let pendienteDir = "";
       let pendienteCiudad = "";
@@ -482,5 +463,15 @@
         }
       });
     }
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initConductorRuta);
+  } else {
+    initConductorRuta();
+  }
+  if (window.AppPageLifecycle && typeof window.AppPageLifecycle.onPageLoad === "function") {
+    window.AppPageLifecycle.onPageLoad(initConductorRuta);
+  }
+  document.addEventListener("app:page-loaded", initConductorRuta);
 })();

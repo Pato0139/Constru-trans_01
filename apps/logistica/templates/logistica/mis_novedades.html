@@ -18,10 +18,10 @@
         data-aos="fade-down">
         <div>
             <h2 class="fw-bold mb-0 text-white">
-                <i class="bi bi-journal-text text-accent me-2"></i>Mis Novedades Reportadas
+                <i class="bi bi-journal-text text-accent me-2"></i>{% if user.rol == 'cliente' %}Mis Novedades y Quejas{% else %}Mis Novedades Reportadas{% endif %}
             </h2>
             <div class="d-flex align-items-center gap-2 mt-1">
-                <p class="page-subtitle small mb-0">Seguimiento de incidencias reportadas en ruta y sus respuestas</p>
+                <p class="page-subtitle small mb-0">{% if user.rol == 'cliente' %}Seguimiento de novedades o quejas sobre tus pedidos y respuestas de administración{% else %}Seguimiento de incidencias y quejas reportadas en ruta y sus respuestas{% endif %}</p>
                 <span class="badge rounded-pill px-3 u-inline-b2204c9e00">{{ novedades|length }} novedad{{ novedades|length|pluralize:"es" }}</span>
             </div>
         </div>
@@ -89,19 +89,19 @@
                     </td>
                     <td>
                         <div class="fw-600 text-main">#ENV-{{ nov.entrega.id_entrega }}</div>
-                        {% if user.rol == 'admin' %}
-                        <a class="novedad-pedido-link small" href="{% url 'pedidos:ver_pedido_admin' nov.entrega.pedido.codigo_pedido %}" title="Abrir pedido asociado">Pedido #CT-{{ nov.entrega.pedido.codigo_pedido }}</a>
-                        {% else %}
+                        {% if user.rol == 'conductor' %}
                         <a class="novedad-pedido-link small" href="{% url 'usuarios:detalle_entrega_conductor' nov.entrega.id_entrega %}" title="Abrir entrega asociada">Pedido #CT-{{ nov.entrega.pedido.codigo_pedido }}</a>
+                        {% else %}
+                        <a class="novedad-pedido-link small" href="{% url 'pedidos:ver_pedido_admin' nov.entrega.pedido.codigo_pedido %}" title="Abrir pedido asociado">Pedido #CT-{{ nov.entrega.pedido.codigo_pedido }}</a>
                         {% endif %}
                     </td>
                     <td>
                         <span class="badge bg-secondary text-uppercase">{{ nov.get_tipo_display }}</span>
                     </td>
                     <td>
-                        {% if nov.respuesta_admin %}
-                            <div class="text-info small" style="max-width: 250px;">
-                                <i class="bi bi-chat-quote-fill me-1"></i>{{ nov.respuesta_admin }}
+                        {% if nov.ultima_respuesta_admin %}
+                            <div class="text-info small" style="max-width: 260px;">
+                                <i class="bi bi-chat-quote-fill me-1"></i>{{ nov.ultima_respuesta_admin|truncatechars:120 }}
                             </div>
                         {% else %}
                             <span class="text-muted small fst-italic">En revisión por administración</span>
@@ -119,9 +119,20 @@
                         {% endif %}
                     </td>
                     <td class="text-center">
-                        <a href="{% url 'usuarios:detalle_entrega_conductor' nov.entrega.id_entrega %}" class="btn btn-sm btn-outline-info" title="Ver Detalle del Envío">
-                            <i class="bi bi-eye"></i>
-                        </a>
+                        <div class="d-inline-flex gap-1 align-items-center">
+                            <a href="{% url 'logistica:agregar_seguimiento' nov.id_novedad %}" class="btn btn-sm btn-outline-warning" title="Ver seguimiento y respuestas">
+                                <i class="bi bi-chat-left-text"></i>
+                            </a>
+                            {% if user.rol == 'conductor' %}
+                            <a href="{% url 'usuarios:detalle_entrega_conductor' nov.entrega.id_entrega %}" class="btn btn-sm btn-outline-info" title="Ver Detalle del Envío">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% else %}
+                            <a href="{% url 'pedidos:ver_pedido_admin' nov.entrega.pedido.codigo_pedido %}" class="btn btn-sm btn-outline-info" title="Ver Pedido">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% empty %}

@@ -1019,3 +1019,109 @@ table.table {
     padding: 0.35rem 0.45rem !important;
   }
 }
+
+/* =====================================================================
+   Responsive hardening para módulos recientes (Ayuda, Auditoría,
+   Perfil de Proveedor, Mapas, Tablas y Filtros en móvil / tablet)
+   ===================================================================== */
+#tabla-historial {
+  min-width: 560px !important;
+}
+
+.supplier-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 767.98px) {
+  .ayuda-search-box {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ayuda-search-box__submit {
+    width: 100%;
+  }
+
+  .ayuda-manual-banner,
+  .ayuda-cta-banner {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+
+  .ayuda-manual-banner__actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .supplier-hero {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+
+  .supplier-profile-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .supplier-profile-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .supplier-tx-search {
+    max-width: 100% !important;
+  }
+
+  .ct-route-body {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ct-route-map,
+  .ct-map-canvas {
+    min-height: 280px !important;
+    height: 280px !important;
+  }
+
+  .modal-dialog {
+    margin: 0.5rem !important;
+  }
+
+  .swal2-popup {
+    width: min(92vw, 32rem) !important;
+    padding: 1.15rem !important;
+  }
+}
+
+/* Proyector (XGA / WXGA: 1024x768 - 1279px): más espacio útil para tablas y filtros */
+@media (min-width: 992px) and (max-width: 1279.98px) {
+  :root {
+    --app-sidebar-width: 236px;
+  }
+
+  .supplier-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .standard-filter-layout {
+    gap: 0.5rem !important;
+  }
+}
+
+/* Televisor / Pantallas grandes (Full HD 1920x1080 y 4K): centrado cómodo sin estiramiento excesivo */
+@media (min-width: 1680px) {
+  [data-ajax-content] {
+    max-width: 1680px;
+    margin-inline: auto;
+  }
+
+  .supplier-kpi-value {
+    font-size: 1.6rem;
+  }
+}

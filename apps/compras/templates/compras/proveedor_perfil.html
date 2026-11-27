@@ -1,28 +1,284 @@
 {% extends "base.html" %}
 {% load static currency_tags %}
 {% block title %}Proveedor - {{ proveedor.nombre_empresa }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/compras/proveedores.css' %}?v=2.3">{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/compras/proveedores.css' %}?v=2.4">
+<style>
+    .supplier-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 992px) {
+        .supplier-kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 576px) {
+        .supplier-kpi-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .supplier-kpi-card {
+        background: var(--card-bg, #111827);
+        border: 1px solid var(--color-border, rgba(148, 163, 184, 0.2));
+        border-radius: 16px;
+        padding: 1.1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .supplier-kpi-card--cyan {
+        border-color: rgba(34, 211, 238, 0.38);
+    }
+
+    .supplier-kpi-card--amber {
+        border-color: rgba(245, 158, 11, 0.42);
+    }
+
+    .supplier-kpi-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--color-text-muted, #94a3b8);
+    }
+
+    .supplier-kpi-value {
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: var(--color-text, #f8fafc);
+        font-variant-numeric: tabular-nums;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .supplier-kpi-card--cyan .supplier-kpi-value {
+        color: #38bdf8;
+    }
+
+    .supplier-kpi-card--amber .supplier-kpi-value {
+        color: #f59e0b;
+    }
+
+    .supplier-panel__header--split {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .supplier-tx-search {
+        max-width: 240px;
+        width: 100%;
+        padding: 0.38rem 0.75rem;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        background: var(--item-bg, rgba(15, 23, 42, 0.6));
+        border: 1px solid var(--color-border, rgba(148, 163, 184, 0.24));
+        color: var(--color-text, #f8fafc);
+    }
+
+    .supplier-tx-ref {
+        display: block;
+        font-size: 0.74rem;
+        font-weight: 700;
+        color: #38bdf8;
+    }
+
+    [data-theme="light"] .supplier-kpi-card {
+        background: #ffffff !important;
+        border-color: #e2e8f0 !important;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+    }
+
+    [data-theme="light"] .supplier-kpi-value {
+        color: #0f172a !important;
+    }
+
+    [data-theme="light"] .supplier-kpi-card--cyan .supplier-kpi-value {
+        color: #0284c7 !important;
+    }
+
+    [data-theme="light"] .supplier-kpi-card--amber .supplier-kpi-value {
+        color: #d97706 !important;
+    }
+
+    [data-theme="light"] .supplier-tx-search {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+    }
+
+    [data-theme="light"] .supplier-tx-ref {
+        color: #0284c7 !important;
+    }
+</style>
+{% endblock %}
 {% block content %}
 <section class="supplier-page supplier-profile">
     <header class="supplier-hero">
-        <div><p class="supplier-eyebrow">Información del proveedor</p><h2 class="supplier-title">{{ proveedor.nombre_empresa }}</h2><p class="supplier-subtitle">{{ proveedor.descripcion|default:"Proveedor registrado para abastecimiento." }}</p></div>
+        <div>
+            <p class="supplier-eyebrow">Información del proveedor</p>
+            <h2 class="supplier-title">{{ proveedor.nombre_empresa }}</h2>
+            <p class="supplier-subtitle">{{ proveedor.descripcion|default:"Proveedor registrado para abastecimiento." }}
+            </p>
+        </div>
         <div class="supplier-profile-actions">
-            <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light rounded-pill px-3"><i class="bi bi-arrow-left me-1"></i>Volver</a>
-            <a href="{% url 'compras:catalogo_proveedor' proveedor.codigo_proveedor %}" class="btn btn-outline-info rounded-pill px-3"><i class="bi bi-box-seam me-1"></i>Gestionar catálogo</a>
-            {% if proveedor.activo %}<a href="{% url 'compras:catalogo_proveedor' proveedor.codigo_proveedor %}" class="btn btn-premium btn-premium-gold rounded-pill px-3 fw-bold"><i class="bi bi-box-arrow-in-down me-1"></i>Registrar entrada</a>{% endif %}
+            <a href="{% url 'compras:lista_proveedores' %}" class="btn btn-outline-light rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i>Volver
+            </a>
+            {% if proveedor.activo %}
+            <a href="{% url 'compras:catalogo_proveedor' proveedor.codigo_proveedor %}"
+                class="btn btn-premium btn-premium-gold rounded-pill px-3 fw-bold">
+                <i class="bi bi-box-arrow-in-down me-1"></i>Registrar entrada
+            </a>
+            {% endif %}
         </div>
     </header>
+
+    <!-- Tarjetas resumen de compras al proveedor -->
+    <div class="supplier-kpi-grid">
+        <div class="supplier-kpi-card">
+            <span class="supplier-kpi-label">Total comprado</span>
+            <span class="supplier-kpi-value">${{ total_comprado|currency }} COP</span>
+        </div>
+        <div class="supplier-kpi-card supplier-kpi-card--cyan">
+            <span class="supplier-kpi-label">Entradas totales</span>
+            <span class="supplier-kpi-value">{{ total_entradas }} registro{{ total_entradas|pluralize:"s" }}</span>
+        </div>
+        <div class="supplier-kpi-card supplier-kpi-card--amber">
+            <span class="supplier-kpi-label">Última compra</span>
+            <span class="supplier-kpi-value">{% if ultima_compra %}{{ ultima_compra|date:"d M Y" }}{% else %}Sin
+                compras{% endif %}</span>
+        </div>
+        <div class="supplier-kpi-card">
+            <span class="supplier-kpi-label">Material frecuente</span>
+            <span class="supplier-kpi-value" title="{{ material_frecuente }}">{{ material_frecuente }}</span>
+        </div>
+    </div>
+
     <div class="supplier-profile-grid">
-        <aside class="supplier-panel"><div class="supplier-panel__header"><i class="bi bi-info-circle"></i>Información general</div>
+        <aside class="supplier-panel">
+            <div class="supplier-panel__header"><i class="bi bi-info-circle"></i>Información general</div>
             <dl class="supplier-detail-list">
-                <div><dt>Contacto</dt><dd>{{ proveedor.contacto_nombre|default:proveedor.nombre_empresa }}</dd></div><div><dt>Empresa</dt><dd>{{ proveedor.nombre_empresa }}</dd></div><div><dt>NIT</dt><dd>{{ proveedor.nit }}</dd></div><div><dt>Correo</dt><dd>{{ proveedor.correo|default:"Sin correo" }}</dd></div><div><dt>Teléfono</dt><dd>{{ proveedor.telefono|default:"Sin teléfono" }}</dd></div><div><dt>Dirección</dt><dd>{{ proveedor.direccion|default:"Sin dirección" }}</dd></div><div><dt>Ciudad</dt><dd>{{ proveedor.ciudad|default:"Sin ciudad" }}</dd></div><div><dt>Estado</dt><dd>{% if proveedor.activo %}<span class="supplier-status supplier-status--active">Activo</span>{% else %}<span class="supplier-status supplier-status--inactive">Inactivo</span>{% endif %}</dd></div>
+                <div>
+                    <dt><i class="bi bi-person me-1"></i>Contacto</dt>
+                    <dd>{{ proveedor.contacto_nombre|default:proveedor.nombre_empresa }}</dd>
+                </div>
+                <div>
+                    <dt><i class="bi bi-building me-1"></i>Empresa</dt>
+                    <dd>{{ proveedor.nombre_empresa }}</dd>
+                </div>
+                <div>
+                    <dt><i class="bi bi-card-text me-1"></i>NIT</dt>
+                    <dd>{{ proveedor.nit }}</dd>
+                </div>
+                <div>
+                    <dt><i class="bi bi-envelope me-1"></i>Correo</dt>
+                    <dd>{{ proveedor.correo|default:"Sin correo" }}</dd>
+                </div>
+                <div>
+                    <dt><i class="bi bi-telephone me-1"></i>Teléfono</dt>
+                    <dd>{{ proveedor.telefono|default:"Sin teléfono" }}</dd>
+                </div>
+                <div>
+                    <dt><i class="bi bi-geo-alt me-1"></i>Dirección</dt>
+                    <dd>{{ proveedor.direccion|default:"Sin dirección" }}</dd>
+                </div>
+                <div>
+                    <dt><i class="bi bi-pin-map me-1"></i>Ciudad</dt>
+                    <dd>{{ proveedor.ciudad|default:"Sin ciudad" }}</dd>
+                </div>
+                <div>
+                    <dt>Estado</dt>
+                    <dd>{% if proveedor.activo %}<span class="supplier-status supplier-status--active">Activo</span>{%
+                        else %}<span class="supplier-status supplier-status--inactive">Inactivo</span>{% endif %}</dd>
+                </div>
             </dl>
         </aside>
-        <main class="supplier-panel"><div class="supplier-panel__header"><i class="bi bi-box-seam"></i>Materiales que ofrece</div>
-            <div class="supplier-table-wrap"><table class="supplier-table"><thead><tr><th>Material</th><th>Unidad</th><th>Precio actual</th><th>Actualización</th><th>Disponibilidad</th></tr></thead><tbody>
-                {% for item in catalogo %}<tr><td>{{ item.material.nombre }}</td><td>{{ item.material.unidad_medida.abreviatura|default:"—" }}</td><td>{{ item.precio_actual|currency }}</td><td>{{ item.fecha_actualizacion|date:"d/m/Y H:i" }}</td><td>{% if item.activo %}<span class="supplier-status supplier-status--active">Disponible</span>{% else %}<span class="supplier-status supplier-status--inactive">Inactivo</span>{% endif %}</td></tr>{% empty %}<tr><td colspan="5" class="supplier-empty-row">Este proveedor aún no tiene materiales registrados.</td></tr>{% endfor %}
-            </tbody></table></div>
+
+        <main class="supplier-panel">
+            <div class="supplier-panel__header supplier-panel__header--split">
+                <span><i class="bi bi-list-check me-2"></i>Historial de compras y entradas</span>
+                <input type="text" id="supplierTxSearch" class="supplier-tx-search" placeholder="Buscar transacción..."
+                    autocomplete="off">
+            </div>
+            <div class="supplier-table-wrap">
+                <table class="supplier-table" id="supplierTxTable">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Material / Detalle</th>
+                            <th>Cantidad</th>
+                            <th>Valor unit.</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in historial_compras %}
+                        <tr class="supplier-tx-row">
+                            <td>
+                                <div>{{ item.compra.fecha_compra|date:"d/m/Y" }}</div>
+                                <a href="{% url 'compras:detalle_compra' item.compra.id_compra %}"
+                                    class="supplier-tx-ref text-decoration-none">{{ item.compra.numero_orden }}</a>
+                            </td>
+                            <td class="fw-semibold">{{ item.material.nombre }}</td>
+                            <td>{{ item.cantidad }} {{ item.material.unidad_medida.abreviatura|default:"Und" }}</td>
+                            <td>${{ item.precio_unitario|currency }}</td>
+                            <td class="fw-bold">${{ item.subtotal|currency }}</td>
+                            <td>
+                                {% if item.compra.estado == 'recibida' %}
+                                <span class="supplier-status supplier-status--active">Recibido</span>
+                                {% elif item.compra.estado == 'pendiente' %}
+                                <span class="badge bg-warning text-dark rounded-pill px-2">Pendiente</span>
+                                {% else %}
+                                <span class="supplier-status supplier-status--inactive">{{
+                                    item.compra.get_estado_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="supplier-empty-row">Aún no se han registrado compras o entradas a
+                                este proveedor.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </main>
     </div>
 </section>
+
+<script>
+    (function () {
+        function initSupplierTxSearch() {
+            const input = document.getElementById('supplierTxSearch');
+            if (!input || input.dataset.bound === '1') return;
+            input.dataset.bound = '1';
+            const rows = Array.from(document.querySelectorAll('#supplierTxTable tbody .supplier-tx-row'));
+            input.addEventListener('input', () => {
+                const q = (input.value || '').toLowerCase().trim();
+                rows.forEach((tr) => {
+                    tr.style.display = !q || (tr.textContent || '').toLowerCase().includes(q) ? '' : 'none';
+                });
+            });
+        }
+        initSupplierTxSearch();
+        if (window.AppPageLifecycle && typeof window.AppPageLifecycle.onPageLoad === 'function') {
+            window.AppPageLifecycle.onPageLoad(initSupplierTxSearch);
+        }
+        document.addEventListener('app:page-loaded', initSupplierTxSearch);
+    })();
+</script>
 {% endblock %}

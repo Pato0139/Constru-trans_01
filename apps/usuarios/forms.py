@@ -100,7 +100,7 @@ class LoginForm(forms.Form):
 
 
 class RegistroForm(forms.ModelForm):
-    CODIGOS_PAIS = ("+57", "+1", "+52", "+54", "+34", "+56")
+    CODIGOS_PAIS = ("+57",)
 
     correo = forms.EmailField(
         widget=forms.EmailInput(

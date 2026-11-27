@@ -32,11 +32,28 @@ def index_ayuda(request):
             "descripcion": "Guía del panel del conductor, las entregas y sus novedades.",
         },
     }
-    manual_rol = manuales_por_rol.get(getattr(request.user, "rol", ""))
+    rol_actual = getattr(request.user, "rol", "")
+    manual_rol = manuales_por_rol.get(rol_actual)
+    manual_desarrollador = None
+    if rol_actual == "admin" or getattr(request.user, "es_superadmin", False):
+        manual_desarrollador = {
+            "titulo": "Manual del Desarrollador",
+            "archivo": "manuales/Manual_Desarrollador_CONSTRU_TRANS.pdf",
+        }
+
+    guias_busqueda = (
+        GuiaEdicion.objects.filter(activo=True)
+        .select_related("categoria")
+        .order_by("orden", "titulo")
+    )
+    query_inicial = request.GET.get("q", "").strip()
 
     context = {
         "manuales": manuales,
         "manual_rol": manual_rol,
+        "manual_desarrollador": manual_desarrollador,
+        "guias_busqueda": guias_busqueda,
+        "query_inicial": query_inicial,
     }
     return render(request, "ayuda/index.html", context)
 

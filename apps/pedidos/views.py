@@ -1052,13 +1052,14 @@ def eliminar_orden(request, id):
 
     registrar_actividad(
         request,
-        "eliminar",
+        "desactivar",
         "pedidos",
         order_id,
-        f"Pedido #{order_id} eliminado definitivamente por admin",
+        f"Pedido #{order_id} cancelado / inhabilitado por admin (sin eliminación física)",
     )
-    orden.delete()
-    messages.success(request, f"Pedido #{order_id} eliminado correctamente.")
+    orden.estado = Pedido.CANCELADO
+    orden.save(using=db_alias, update_fields=["estado"])
+    messages.success(request, f"Pedido #{order_id} cancelado e inhabilitado correctamente.")
     return redirect("pedidos:lista_pedidos_admin")
 
 

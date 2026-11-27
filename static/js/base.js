@@ -102,22 +102,47 @@ window.AppPageLifecycle.onPageLoad(function() {
     const djangoMessagesDiv = document.getElementById('django-messages-data');
     if (djangoMessagesDiv && djangoMessagesDiv.dataset.toastShown !== 'true') {
         djangoMessagesDiv.dataset.toastShown = 'true';
+        const isLight = (document.documentElement.getAttribute('data-theme') || document.body.getAttribute('data-theme')) === 'light';
         djangoMessagesDiv.querySelectorAll('.django-message-item').forEach(msgEl => {
-            const tags = msgEl.dataset.tags;
-            const text = msgEl.dataset.text;
+            const tags = (msgEl.dataset.tags || '').toLowerCase();
+            const text = (msgEl.dataset.text || '').trim();
+            if (!text) return;
+
+            let icon = 'info';
+            let title = 'Información';
+            let iconColor = '#3b82f6';
+            if (tags.includes('error') || tags.includes('danger')) {
+                icon = 'error';
+                title = 'Error';
+                iconColor = '#ef4444';
+            } else if (tags.includes('warning')) {
+                icon = 'warning';
+                title = 'Atención';
+                iconColor = '#f59e0b';
+            } else if (tags.includes('success')) {
+                icon = 'success';
+                title = '¡Listo!';
+                iconColor = '#10b981';
+            }
+
             Swal.fire({
-                icon:             tags === 'error' ? 'error' : (tags === 'success' ? 'success' : 'info'),
-                title:            tags.charAt(0).toUpperCase() + tags.slice(1),
+                icon,
+                title,
                 text,
-                toast:            true,
-                position:         'top-end',
+                toast: true,
+                position: 'top-end',
                 showConfirmButton: false,
-                timer:            5000,
+                showCloseButton: true,
+                timer: 4500,
                 timerProgressBar: true,
-                background:       '#1a1a1a',
-                color:            '#ffffff',
-                iconColor:        tags === 'success' ? '#10b981' : (tags === 'error' ? '#ef4444' : '#F39C12'),
-                customClass:      { popup: 'rounded-4 border-white-10 shadow-2xl' }
+                background: isLight ? '#ffffff' : '#1e293b',
+                color: isLight ? '#0f172a' : '#f8fafc',
+                iconColor,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                },
+                customClass: { popup: 'rounded-4 shadow-lg' }
             });
         });
     }
@@ -164,9 +189,159 @@ $(document).on('input', '.plate-only', function() {
     this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 });
 
+/**
+ * Protección global contra números negativos, notación científica (e/E) y ceros inválidos
+ * en todos los inputs numéricos de precios, cantidades, stock y capacidades.
+ */
+$(document).on('keydown', 'input[type="number"]', function(e) {
+    const minAttr = this.getAttribute('min');
+    const minVal = minAttr !== null && minAttr !== '' ? parseFloat(minAttr) : 0;
+    const allowNegative = !Number.isNaN(minVal) && minVal < 0;
+    const blocked = allowNegative ? ['e', 'E', '+'] : ['-', 'e', 'E', '+'];
+    if (blocked.includes(e.key)) {
+        e.preventDefault();
+    }
+});
+
+$(document).on('input change blur', 'input[type="number"]', function(e) {
+    const minAttr = this.getAttribute('min');
+    const minVal = minAttr !== null && minAttr !== '' ? parseFloat(minAttr) : 0;
+    const maxAttr = this.getAttribute('max');
+    const maxVal = maxAttr !== null && maxAttr !== '' ? parseFloat(maxAttr) : null;
+    const allowNegative = !Number.isNaN(minVal) && minVal < 0;
+
+    if (!allowNegative && typeof this.value === 'string' && this.value.includes('-')) {
+        this.value = this.value.replace(/-/g, '');
+    }
+
+    if (e.type === 'change' || e.type === 'blur') {
+        if (this.value === '') return;
+        const num = parseFloat(this.value);
+        if (Number.isNaN(num)) {
+            this.value = !Number.isNaN(minVal) ? String(minVal) : '';
+            return;
+        }
+        if (!Number.isNaN(minVal) && num < minVal) {
+            this.value = String(minVal);
+        } else if (maxVal !== null && !Number.isNaN(maxVal) && num > maxVal) {
+            this.value = String(maxVal);
+        }
+    }
+});
+
 /* =====================================================================
-   Confirmaciones SweetAlert2
+   Confirmaciones y Alertas SweetAlert2 (Continuar / Cancelar)
    ===================================================================== */
+
+function _swalThemeColors() {
+    const isLight = (document.documentElement.getAttribute('data-theme') || document.body.getAttribute('data-theme')) === 'light';
+    return {
+        isLight,
+        background: isLight ? '#ffffff' : '#1e293b',
+        color: isLight ? '#0f172a' : '#f8fafc',
+        cancelButtonColor: isLight ? '#64748b' : '#475569',
+    };
+}
+
+window.AppAlert = function(message, title = 'Validación', icon = 'warning') {
+    if (typeof Swal === 'undefined') {
+        window.alert(message);
+        return Promise.resolve();
+    }
+    const theme = _swalThemeColors();
+    return Swal.fire({
+        title,
+        text: message,
+        icon,
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#2563eb',
+        background: theme.background,
+        color: theme.color,
+        customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
+    });
+};
+
+window.AppConfirm = function(options = {}) {
+    const {
+        title = '¿Deseas continuar?',
+        text = 'Confirma esta acción para continuar.',
+        icon = 'question',
+        confirmText = 'Continuar',
+        cancelText = 'Cancelar',
+        confirmColor = '#2563eb',
+    } = options;
+    if (typeof Swal === 'undefined') {
+        return Promise.resolve({ isConfirmed: window.confirm(text || title) });
+    }
+    const theme = _swalThemeColors();
+    return Swal.fire({
+        title,
+        text,
+        icon,
+        showCancelButton: true,
+        confirmButtonColor: confirmColor,
+        cancelButtonColor: theme.cancelButtonColor,
+        confirmButtonText: confirmText,
+        cancelButtonText: cancelText,
+        background: theme.background,
+        color: theme.color,
+        customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
+    });
+};
+
+/**
+ * Confirmación universal con SweetAlert2 (Continuar / Cancelar) para cualquier
+ * formulario o botón con data-confirm-action="Mensaje".
+ */
+$(document).on('submit', 'form[data-confirm-action]', function(e) {
+    const form = this;
+    if (form.dataset.confirmApproved === '1') {
+        delete form.dataset.confirmApproved;
+        return;
+    }
+    e.preventDefault();
+    const title = form.dataset.confirmTitle || 'Confirmar acción';
+    const text = form.dataset.confirmAction || '¿Deseas continuar con esta acción?';
+    const confirmText = form.dataset.confirmBtn || 'Continuar';
+    const confirmColor = form.dataset.confirmColor || '#2563eb';
+    const icon = form.dataset.confirmIcon || 'question';
+
+    window.AppConfirm({ title, text, icon, confirmText, cancelText: 'Cancelar', confirmColor })
+        .then(result => {
+            if (result.isConfirmed) {
+                form.dataset.confirmApproved = '1';
+                form.requestSubmit();
+            }
+        });
+});
+
+$(document).on('click', 'button[data-confirm-action], a[data-confirm-action]', function(e) {
+    const el = this;
+    if (el.dataset.confirmApproved === '1') {
+        delete el.dataset.confirmApproved;
+        return;
+    }
+    e.preventDefault();
+    const title = el.dataset.confirmTitle || 'Confirmar acción';
+    const text = el.dataset.confirmAction || '¿Deseas continuar con esta acción?';
+    const confirmText = el.dataset.confirmBtn || 'Continuar';
+    const confirmColor = el.dataset.confirmColor || '#2563eb';
+    const icon = el.dataset.confirmIcon || 'question';
+
+    window.AppConfirm({ title, text, icon, confirmText, cancelText: 'Cancelar', confirmColor })
+        .then(result => {
+            if (!result.isConfirmed) return;
+            if (el.tagName === 'A' && el.href) {
+                window.location.href = el.href;
+            } else {
+                const form = el.closest('form');
+                if (form) {
+                    el.dataset.confirmApproved = '1';
+                    form.requestSubmit(el);
+                }
+            }
+        });
+});
 
 /**
  * Confirmación de cierre de sesión para elementos con clase .confirm-logout
@@ -175,81 +350,54 @@ $(document).on('input', '.plate-only', function() {
 $(document).on('click', '.confirm-logout', function(e) {
     e.preventDefault();
     const url = $(this).attr('href');
-    const isLight = (document.documentElement.getAttribute('data-theme') || document.body.getAttribute('data-theme')) === 'light';
-    Swal.fire({
+    window.AppConfirm({
         title: '¿Cerrar sesión?',
         text: '¿Estás seguro de que deseas salir del sistema?',
         icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#f97316',
-        cancelButtonColor:  isLight ? '#64748b' : '#475569',
-        confirmButtonText:  'Sí, salir',
-        cancelButtonText:   'Cancelar',
-        background: isLight ? '#ffffff' : '#1e293b',
-        color:      isLight ? '#0f172a' : '#f8fafc',
-        customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
+        confirmText: 'Continuar y salir',
+        cancelText: 'Cancelar',
+        confirmColor: '#f97316',
     }).then(result => { if (result.isConfirmed) window.location.href = url; });
 });
 
 /**
- * Confirmación de eliminación para formularios con clase .confirm-delete-form
- * @param {Event} e - Evento click
+ * Confirmación para formularios con clase .confirm-delete-form
  */
 $(document).on('click', '.confirm-delete-form', function(e) {
     e.preventDefault();
-    const form  = $(this).closest('form');
-    const title = $(this).data('title') || '¿Estás seguro?';
-    const text  = $(this).data('text')  || 'Esta acción no se puede deshacer.';
-    Swal.fire({
-        title, text, icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444', cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, continuar', cancelButtonText: 'Cancelar',
-        background: '#1a1a1a', color: '#ffffff',
-        customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
-    }).then(result => { if (result.isConfirmed) form.requestSubmit(); });
+    const form = $(this).closest('form')[0];
+    const title = $(this).data('title') || '¿Deseas continuar?';
+    const text = $(this).data('text') || 'Confirma si deseas continuar con esta acción.';
+    window.AppConfirm({ title, text, icon: 'warning', confirmText: 'Continuar', cancelText: 'Cancelar', confirmColor: '#ef4444' })
+        .then(result => { if (result.isConfirmed && form) form.requestSubmit(); });
 });
 
 /**
- * Confirmación de eliminación para enlaces con clase .confirm-delete
- * @param {Event} e - Evento click
+ * Confirmación para enlaces con clase .confirm-delete
  */
 $(document).on('click', '.confirm-delete', function(e) {
     e.preventDefault();
-    const url   = $(this).attr('href');
-    const title = $(this).data('title') || '¿Estás seguro?';
-    const text  = $(this).data('text')  || 'Esta acción no se puede deshacer.';
-    Swal.fire({
-        title, text, icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444', cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar',
-        background: '#1a1a1a', color: '#ffffff',
-        customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
-    }).then(result => {
-        if (result.isConfirmed) window.AppAjaxNavigation.navigate(url);
-    });
+    const url = $(this).attr('href');
+    const title = $(this).data('title') || '¿Deseas continuar?';
+    const text = $(this).data('text') || 'Confirma si deseas continuar con esta acción.';
+    window.AppConfirm({ title, text, icon: 'warning', confirmText: 'Continuar', cancelText: 'Cancelar', confirmColor: '#ef4444' })
+        .then(result => {
+            if (result.isConfirmed) window.AppAjaxNavigation.navigate(url);
+        });
 });
 
 /**
- * Confirmación de eliminación para enlaces con clase .confirm-delete-link
- * @param {Event} e - Evento click
+ * Confirmación para enlaces con clase .confirm-delete-link
  */
 $(document).on('click', '.confirm-delete-link', function(e) {
     e.preventDefault();
-    const url   = $(this).attr('href');
-    const title = $(this).data('title') || '¿Estás seguro?';
-    const text  = $(this).data('text')  || 'Esta acción no se puede deshacer.';
-    Swal.fire({
-        title, text, icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444', cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, continuar', cancelButtonText: 'Cancelar',
-        background: '#1a1a1a', color: '#ffffff',
-        customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
-    }).then(result => {
-        if (result.isConfirmed) window.AppAjaxNavigation.navigate(url);
-    });
+    const url = $(this).attr('href');
+    const title = $(this).data('title') || '¿Deseas continuar?';
+    const text = $(this).data('text') || 'Confirma si deseas continuar con esta acción.';
+    window.AppConfirm({ title, text, icon: 'warning', confirmText: 'Continuar', cancelText: 'Cancelar', confirmColor: '#ef4444' })
+        .then(result => {
+            if (result.isConfirmed) window.AppAjaxNavigation.navigate(url);
+        });
 });
 
 /**

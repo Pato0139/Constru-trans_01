@@ -31,7 +31,7 @@ class SmokeViewsTests(TestCase):
         response = self.client.get(reverse("auditoria:lista_historial"))
         self.assertEqual(response.status_code, 200)
 
-    def test_json_ip_formato_de_seguido_sin_descuadre(self):
+    def test_json_cinco_columnas_con_fecha_y_hora_apiladas(self):
         self.client.login(username="adminsmoke", password="password123")
         response = self.client.get(
             reverse("auditoria:lista_historial"),
@@ -42,8 +42,8 @@ class SmokeViewsTests(TestCase):
         self.assertIn("data", datos)
         self.assertTrue(len(datos["data"]) > 0)
         fila = datos["data"][0]
-        # Columna 6 es la IP
-        ip_html = fila[6]
-        self.assertIn("192.168.32.1", ip_html)
-        self.assertIn("text-nowrap", ip_html)
-        self.assertIn("font-monospace", ip_html)
+        # Columnas: 0=ID, 1=Usuario, 2=Módulo, 3=Fecha y Hora, 4=Acción
+        self.assertEqual(len(fila), 5)
+        self.assertIn("auditoria-datetime-stack", fila[3])
+        self.assertIn("auditoria-time", fila[3])
+        self.assertIn("auditoria-date", fila[3])

@@ -975,6 +975,14 @@ main {
   min-height: 100vh;
 }
 
+/* Mostrar toda la interfaz al mismo tiempo sin retrasos escalonados al cambiar de página */
+[data-ajax-content] [data-aos] {
+  opacity: 1 !important;
+  transform: none !important;
+  transition-delay: 0s !important;
+  animation: none !important;
+}
+
 .card,
 .navbar-custom,
 .modal-content,

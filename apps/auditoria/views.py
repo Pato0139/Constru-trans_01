@@ -133,7 +133,11 @@ def _resolver_envios(registros):
 
 def _fila_json(registro):
     usuario = (
-        format_html('<span class="badge bg-info text-dark fw-semibold px-2 py-1 auditoria-user-badge" title="{}">{}</span>', registro.usuario.username, registro.usuario.username)
+        format_html(
+            '<span class="badge bg-info text-dark fw-semibold px-2 py-1 auditoria-user-badge" title="{}">{}</span>',
+            registro.usuario.username,
+            registro.usuario.username,
+        )
         if registro.usuario
         else format_html(
             '<span class="badge bg-secondary text-white px-2 py-1">Sistema/Anónimo</span>'
@@ -142,7 +146,8 @@ def _fila_json(registro):
     estilos_accion = {
         "crear": ("text-success", "bi-plus-circle", "Crear"),
         "editar": ("text-warning", "bi-pencil", "Editar"),
-        "eliminar": ("text-danger", "bi-trash", "Eliminar"),
+        "desactivar": ("text-warning", "bi-slash-circle", "Desactivar"),
+        "eliminar": ("text-danger", "bi-slash-circle", "Inhabilitar"),
         "login": ("text-info", "bi-box-arrow-in-right", "Inicio de sesión"),
         "logout": ("text-secondary", "bi-box-arrow-right", "Cierre de sesión"),
     }
@@ -155,32 +160,25 @@ def _fila_json(registro):
     )
     modulo = (registro.modulo or registro.tabla or "—").capitalize()
     modulo_html = format_html('<span class="auditoria-modulo-pill">{}</span>', modulo)
-    descripcion = format_html('<span class="auditoria-desc-text">{}</span>', registro.descripcion or "—")
     fecha = registro.fecha_hora or registro.fecha
-    fecha_txt = (
-        format_html(
-            '<span class="text-nowrap auditoria-fecha-text">{}</span>',
-            timezone.localtime(fecha).strftime("%d/%m/%Y %H:%M"),
-        )
-        if fecha
-        else "—"
-    )
-    ip_val = (registro.ip_address or registro.ip or "").strip()
-    if ip_val:
-        ip = format_html(
-            '<span class="text-nowrap font-monospace text-muted small" style="white-space: nowrap !important; word-break: normal !important; display: inline-block;">{}</span>',
-            ip_val,
+    if fecha:
+        local_dt = timezone.localtime(fecha)
+        fecha_txt = format_html(
+            '<div class="auditoria-datetime-stack">'
+            '<span class="auditoria-time">{}</span>'
+            '<span class="auditoria-date">{}</span>'
+            '</div>',
+            local_dt.strftime("%H:%M"),
+            local_dt.strftime("%d/%m/%Y"),
         )
     else:
-        ip = format_html('<span class="text-muted">—</span>')
+        fecha_txt = "—"
     return [
         registro.pk,
         usuario,
-        descripcion,
         modulo_html,
         fecha_txt,
         accion,
-        ip,
     ]
 
 
@@ -218,13 +216,11 @@ def lista_historial(request):
         columnas = {
             "0": "id",
             "1": "usuario__username",
-            "2": "descripcion",
-            "3": "modulo",
-            "4": "fecha_hora",
-            "5": "accion",
-            "6": "ip_address",
+            "2": "modulo",
+            "3": "fecha_hora",
+            "4": "accion",
         }
-        order_column = request.GET.get("order[0][column]", "4")
+        order_column = request.GET.get("order[0][column]", "3")
         order_field = columnas.get(order_column, "fecha_hora")
         if request.GET.get("order[0][dir]") == "desc":
             order_field = f"-{order_field}"

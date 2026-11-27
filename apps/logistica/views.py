@@ -414,31 +414,22 @@ def eliminar_vehiculo(request, id):
     if asignacion_activa:
         messages.error(
             request,
-            f"No se puede eliminar {vehiculo.placa} mientras siga asignado a un conductor. Libera primero la asignación.",
-        )
-        return redirect("logistica:lista_vehiculos")
-
-    tiene_historial = Entrega.objects.filter(vehiculo=vehiculo).exists()
-    if tiene_historial:
-        messages.error(
-            request,
-            f"No es posible eliminar el vehículo con placa «{vehiculo.placa}» porque cuenta con un historial "
-            "de entregas registradas en el sistema. Puedes cambiar su estado a «Fuera de Servicio» o «Mantenimiento».",
+            f"No se puede inhabilitar {vehiculo.placa} mientras siga asignado a un conductor. Libera primero la asignación.",
         )
         return redirect("logistica:lista_vehiculos")
 
     placa = vehiculo.placa
     with transaction.atomic():
-        vehiculo.asignaciones_conductor.all().delete()
-        vehiculo.delete()
+        vehiculo.estado = "fuera_de_servicio"
+        vehiculo.save(update_fields=["estado"])
         registrar_actividad(
             request,
-            "eliminar",
+            "desactivar",
             "vehiculo",
             id,
-            f"Admin eliminó vehículo {placa} sin historial de entregas",
+            f"Admin inhabilitó vehículo {placa} (Fuera de Servicio)",
         )
-    messages.success(request, f"Vehículo {placa} eliminado correctamente.")
+    messages.success(request, f"Vehículo {placa} inhabilitado (Fuera de Servicio) correctamente.")
     return redirect("logistica:lista_vehiculos")
 
 
@@ -493,15 +484,18 @@ def desactivar_vehiculo(request, id):
     return redirect("logistica:lista_vehiculos")
 
 
-@role_required(["conductor", "admin"])
+@role_required(["conductor", "cliente", "admin"])
 @require_http_methods(["GET", "POST"])
 def crear_novedad(request, entrega_id):
     entrega = get_object_or_404(
-        Entrega.objects.select_related("pedido", "conductor__usuario"),
+        Entrega.objects.select_related("pedido__cliente", "conductor__usuario", "vehiculo"),
         pk=entrega_id,
     )
 
-    es_conductor = request.user.rol == "conductor"
+    rol_usuario = getattr(request.user, "rol", "")
+    es_conductor = rol_usuario == "conductor"
+    es_cliente = rol_usuario == "cliente"
+
     if es_conductor:
         conductor_asignado = bool(
             (entrega.conductor_id and entrega.conductor.usuario_id == request.user.pk)
@@ -509,8 +503,18 @@ def crear_novedad(request, entrega_id):
         )
         if not conductor_asignado:
             return _respuesta_no_autorizada(request)
+    elif es_cliente:
+        es_dueno_pedido = bool(
+            entrega.pedido.usuario_id == request.user.pk
+            or (
+                entrega.pedido.cliente_id
+                and getattr(entrega.pedido.cliente, "usuario_id", None) == request.user.pk
+            )
+        )
+        if not es_dueno_pedido:
+            return _respuesta_no_autorizada(request)
 
-    form = NovedadForm(request.POST or None, request.FILES or None)
+    form = NovedadForm(request.POST or None, request.FILES or None, rol=rol_usuario)
     if request.method == "POST" and form.is_valid():
         novedad = form.save(commit=False)
         novedad.entrega = entrega
@@ -522,20 +526,28 @@ def crear_novedad(request, entrega_id):
             "crear",
             "novedad",
             novedad.pk,
-            f"Novedad «{tipo}» registrada en el envío #{entrega.id_entrega}. "
+            f"Novedad ({novedad.rol_reportante_label}) «{tipo}» registrada en el envío #{entrega.id_entrega}. "
             f"Descripción: {novedad.descripcion}. Acción aplicada: {novedad.solucion or 'Pendiente'}",
         )
-        if novedad.tipo in {"demora", "clima", "mecanico", "cliente", "acceso_vias", "mercancia", "ausencia_cliente", "otro"}:
-            notificar_evento_logistico("novedad_logistica", entrega.pedido, extra_info=tipo)
+        notificar_evento_logistico(
+            "novedad_logistica",
+            entrega.pedido,
+            extra_info=f"[{novedad.rol_reportante_label}] {tipo}",
+        )
         messages.success(request, "Novedad registrada correctamente.")
-        if es_conductor:
+        if es_conductor or es_cliente:
             return redirect("logistica:mis_novedades")
         return redirect("logistica:lista_novedades_admin")
 
     return render(
         request,
         "logistica/crear.html",
-        {"entrega": entrega, "pedido": entrega.pedido, "form": form},
+        {
+            "entrega": entrega,
+            "pedido": entrega.pedido,
+            "form": form,
+            "rol_novedad": rol_usuario,
+        },
         status=400 if request.method == "POST" else 200,
     )
 
@@ -636,14 +648,14 @@ def reagendar_entrega_view(request, pedido_id):
 
 
 @login_required
-@role_required(["conductor", "admin"])
+@role_required(["conductor", "cliente", "admin"])
 def mis_novedades(request):
     usuario = request.user
-    if usuario.rol == "conductor":
+    if usuario.rol in {"conductor", "cliente"}:
         novedades = (
             Novedad.objects.filter(reportado_por=usuario)
             .select_related("entrega", "entrega__pedido", "reportado_por")
-            .prefetch_related("seguimientos__respuesta")
+            .prefetch_related("seguimientos__respuesta", "seguimientos__atendido_por")
             .order_by("-fecha_generada")
         )
     else:
@@ -651,7 +663,7 @@ def mis_novedades(request):
             Novedad.objects.select_related(
                 "entrega", "entrega__pedido", "reportado_por", "entrega__conductor__usuario"
             )
-            .prefetch_related("seguimientos__respuesta")
+            .prefetch_related("seguimientos__respuesta", "seguimientos__atendido_por")
             .order_by("-fecha_generada")
         )
 
@@ -666,7 +678,7 @@ def mis_novedades(request):
         "novedades": novedades,
         "estado_actual": estado,
         "tipo_actual": tipo,
-        "tipos": Novedad.TIPOS,
+        "tipos": Novedad.get_tipos_planos_por_rol(usuario.rol),
         "estados": Novedad.ESTADOS,
     }
     return render(request, "logistica/mis_novedades.html", context)
@@ -678,18 +690,21 @@ def lista_novedades_admin(request):
         Novedad.objects.select_related(
             "entrega", "entrega__pedido", "reportado_por", "entrega__conductor__usuario"
         )
-        .prefetch_related("seguimientos__respuesta")
+        .prefetch_related("seguimientos__respuesta", "seguimientos__atendido_por")
         .order_by("-fecha_generada")
     )
 
     estado = request.GET.get("estado", "").strip()
     tipo = request.GET.get("tipo", "").strip()
+    rol = request.GET.get("rol", "").strip()
     query = request.GET.get("q", "").strip()
 
     if estado:
         novedades = novedades.filter(estado=estado)
     if tipo:
         novedades = novedades.filter(tipo=tipo)
+    if rol in {"conductor", "cliente", "admin"}:
+        novedades = novedades.filter(reportado_por__rol=rol)
     if query:
         novedades = novedades.filter(
             Q(descripcion__icontains=query)
@@ -702,25 +717,50 @@ def lista_novedades_admin(request):
         "novedades": novedades,
         "estado_actual": estado,
         "tipo_actual": tipo,
+        "rol_actual": rol,
         "query": query,
         "tipos": Novedad.TIPOS,
         "estados": Novedad.ESTADOS,
+        "roles_origen": [
+            ("conductor", "Conductor"),
+            ("cliente", "Cliente"),
+            ("admin", "Administrador"),
+        ],
     }
     return render(request, "logistica/lista_novedades.html", context)
 
 
 @login_required
-@requiere_funcion("registrar_novedad")
+@role_required(["conductor", "cliente", "admin"])
 @require_http_methods(["GET", "POST"])
 def agregar_seguimiento(request, novedad_id):
-    novedad = get_object_or_404(Novedad, pk=novedad_id)
-    if request.user.rol == "conductor":
+    novedad = get_object_or_404(
+        Novedad.objects.select_related(
+            "entrega__pedido__cliente", "entrega__conductor__usuario", "reportado_por"
+        ).prefetch_related("seguimientos__respuesta", "seguimientos__atendido_por"),
+        pk=novedad_id,
+    )
+    rol_usuario = getattr(request.user, "rol", "")
+    if rol_usuario == "conductor":
         conductor_asignado = bool(
-            (novedad.entrega.conductor_id and novedad.entrega.conductor.usuario_id == request.user.pk)
+            novedad.reportado_por_id == request.user.pk
+            or (novedad.entrega.conductor_id and novedad.entrega.conductor.usuario_id == request.user.pk)
             or novedad.entrega.conductor_usuario_id == request.user.pk
         )
         if not conductor_asignado:
             return _respuesta_no_autorizada(request)
+    elif rol_usuario == "cliente":
+        es_dueno = bool(
+            novedad.reportado_por_id == request.user.pk
+            or novedad.entrega.pedido.usuario_id == request.user.pk
+            or (
+                novedad.entrega.pedido.cliente_id
+                and getattr(novedad.entrega.pedido.cliente, "usuario_id", None) == request.user.pk
+            )
+        )
+        if not es_dueno:
+            return _respuesta_no_autorizada(request)
+
     if request.method == "POST":
         seguimiento = Seguimiento(
             novedad=novedad,
@@ -741,9 +781,10 @@ def agregar_seguimiento(request, novedad_id):
         if novedad.estado == "abierta":
             novedad.estado = "en_atencion"
             novedad.save(update_fields=["estado"])
-        if request.user.rol == "conductor":
+        messages.success(request, "Seguimiento agregado correctamente.")
+        if rol_usuario in {"conductor", "cliente"}:
             return redirect("logistica:mis_novedades")
-        return redirect("logistica:lista_novedades_admin")
+        return redirect("logistica:agregar_seguimiento", novedad_id=novedad.pk)
     return render(request, "logistica/seguimiento.html", {"novedad": novedad})
 
 
@@ -751,11 +792,14 @@ def agregar_seguimiento(request, novedad_id):
 @requiere_funcion("responder_seguimiento")
 @require_http_methods(["GET", "POST"])
 def responder_seguimiento(request, seguimiento_id):
-    seg = get_object_or_404(Seguimiento, pk=seguimiento_id)
+    seg = get_object_or_404(
+        Seguimiento.objects.select_related("novedad__entrega__pedido", "novedad__reportado_por"),
+        pk=seguimiento_id,
+    )
     if request.method == "POST":
         if hasattr(seg, "respuesta"):
             messages.error(request, "Este seguimiento ya fue respondido.")
-            return redirect("pedidos:ver_pedido_admin", id=seg.novedad.entrega.pedido_id)
+            return redirect("logistica:agregar_seguimiento", novedad_id=seg.novedad_id)
         respuesta = RespuestaSeguimiento(
             seguimiento=seg,
             redactada_por=request.user,
@@ -775,8 +819,20 @@ def responder_seguimiento(request, seguimiento_id):
         respuesta.save()
         seg.estado = "respondida"
         seg.save(update_fields=["estado"])
-        if seg.novedad.estado == "en_atencion":
-            seg.novedad.estado = "cerrada"
-            seg.novedad.save(update_fields=["estado"])
-        return redirect("pedidos:ver_pedido_admin", id=seg.novedad.entrega.pedido_id)
+
+        novedad = seg.novedad
+        if respuesta.estado == "aceptada":
+            novedad.estado = "cerrada"
+            novedad.fecha_cierre = timezone.now()
+            novedad.save(update_fields=["estado", "fecha_cierre"])
+        elif respuesta.estado == "rechazada":
+            novedad.estado = "rechazada"
+            novedad.fecha_cierre = timezone.now()
+            novedad.save(update_fields=["estado", "fecha_cierre"])
+        elif novedad.estado == "abierta":
+            novedad.estado = "en_atencion"
+            novedad.save(update_fields=["estado"])
+
+        messages.success(request, "Respuesta registrada correctamente.")
+        return redirect("logistica:agregar_seguimiento", novedad_id=seg.novedad_id)
     return render(request, "logistica/responder.html", {"seguimiento": seg})

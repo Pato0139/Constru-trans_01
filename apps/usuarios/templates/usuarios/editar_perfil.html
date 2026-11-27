@@ -60,12 +60,7 @@
                             <div class="col-md-5">
                                 <label class="form-label small fw-bold u-inline-9bca4b1fbc">País</label>
                                 <select name="pais_codigo" class="form-select rounded-3 py-2 u-inline-b4973e868e" id="paisCodigo">
-                                    <option value="+57" {% if usuario.telefono and usuario.telefono|slice:":3" == "+57" or usuario.telefono and usuario.telefono|slice:":2" == "57" %}selected{% endif %}>COL (+57)</option>
-                                    <option value="+1" {% if usuario.telefono and usuario.telefono|slice:":2" == "+1" %}selected{% endif %}>USA (+1)</option>
-                                    <option value="+52" {% if usuario.telefono and usuario.telefono|slice:":3" == "+52" %}selected{% endif %}>MEX (+52)</option>
-                                    <option value="+54" {% if usuario.telefono and usuario.telefono|slice:":3" == "+54" %}selected{% endif %}>ARG (+54)</option>
-                                    <option value="+34" {% if usuario.telefono and usuario.telefono|slice:":3" == "+34" %}selected{% endif %}>ESP (+34)</option>
-                                    <option value="+56" {% if usuario.telefono and usuario.telefono|slice:":3" == "+56" %}selected{% endif %}>CHL (+56)</option>
+                                    <option value="+57" selected>COL (+57)</option>
                                 </select>
                             </div>
                             <div class="col-md-7">

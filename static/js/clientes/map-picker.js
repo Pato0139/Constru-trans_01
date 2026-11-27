@@ -248,72 +248,49 @@
         tile.alt = "";
         tile.setAttribute("role", "presentation");
         const url = this.getTileUrl(coords);
+        const cartoUrl = `https://a.basemaps.cartocdn.com/rastertiles/voyager/${coords.z}/${coords.x}/${coords.y}.png`;
+        let triedBackup = false;
 
         const usarFallback = function () {
+          tile.onload = null;
+          tile.onerror = null;
           tile.src = OFFLINE_TILE_SVG;
           done(null, tile);
         };
 
-        if (!("caches" in window)) {
-          tile.onload = function () { done(null, tile); };
-          tile.onerror = usarFallback;
-          tile.src = navigator.onLine ? url : OFFLINE_TILE_SVG;
+        if (!navigator.onLine) {
+          usarFallback();
           return tile;
         }
 
-        caches
-          .open(TILE_CACHE_NAME)
-          .then(function (cache) {
-            return cache.match(url).then(function (cachedResp) {
-              if (cachedResp) {
-                return cachedResp.blob().then(function (blob) {
-                  const objUrl = URL.createObjectURL(blob);
-                  tile.onload = function () {
-                    URL.revokeObjectURL(objUrl);
-                    done(null, tile);
-                  };
-                  tile.onerror = usarFallback;
-                  tile.src = objUrl;
-                });
-              }
-              if (!navigator.onLine) {
-                usarFallback();
-                return;
-              }
-              return fetch(url, { mode: "cors" })
-                .then(function (netResp) {
-                  if (!netResp || !netResp.ok) {
-                    usarFallback();
-                    return;
-                  }
-                  cache.put(url, netResp.clone()).catch(function () {});
-                  return netResp.blob().then(function (blob) {
-                    const objUrl = URL.createObjectURL(blob);
-                    tile.onload = function () {
-                      URL.revokeObjectURL(objUrl);
-                      done(null, tile);
-                    };
-                    tile.onerror = usarFallback;
-                    tile.src = objUrl;
-                  });
-                })
-                .catch(usarFallback);
-            });
-          })
-          .catch(usarFallback);
-
+        tile.referrerPolicy = "origin";
+        tile.onload = function () {
+          done(null, tile);
+        };
+        tile.onerror = function () {
+          if (!triedBackup) {
+            triedBackup = true;
+            tile.src = cartoUrl;
+          } else {
+            usarFallback();
+          }
+        };
+        tile.src = url;
         return tile;
       },
     });
 
-    return new OfflineTileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    if (window.L.Icon && window.L.Icon.Default) {
+      window.L.Icon.Default.imagePath = "/static/vendor/leaflet/images/";
+    }
+
+    return new OfflineTileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
       maxZoom: 19,
-      crossOrigin: true,
     });
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function initMapPicker() {
     const modalEl = document.getElementById("modalMapa");
     const inputDireccion = document.getElementById("input-direccion");
     const inputLat = document.getElementById("input-latitud");
@@ -332,12 +309,34 @@
     const badgeMapsLink = document.getElementById("direccion-gmaps-link");
     const modoBadge = document.getElementById("mapa-modo-badge");
 
-    if (!modalEl || !inputDireccion) return;
+    if (!modalEl || !inputDireccion || modalEl.dataset.mapPickerBound === "1") return;
+    modalEl.dataset.mapPickerBound = "1";
 
     let mapa = null;
     let marcador = null;
     let latActual = 5.8245;
     let lngActual = -73.0341;
+    let geocodeSeq = 0;
+
+    function estaEnZonaCobertura(lat, lng) {
+      return (
+        Number.isFinite(lat) &&
+        Number.isFinite(lng) &&
+        lat >= 4.0 &&
+        lat <= 7.5 &&
+        lng >= -75.5 &&
+        lng <= -71.5
+      );
+    }
+
+    if (selectCiudad) {
+      selectCiudad.addEventListener("change", function () {
+        if (inputLat) inputLat.value = "";
+        if (inputLng) inputLng.value = "";
+        if (previewEditInput) previewEditInput.value = "";
+        if (badgeConfirmado) badgeConfirmado.classList.add("d-none");
+      });
+    }
     let debounceTimer = null;
     let searchAbort = null;
 
@@ -477,15 +476,30 @@
     }
 
     async function obtenerDireccionDesdeCoordenadas(lat, lng, etiquetaPreferida) {
+      if (!estaEnZonaCobertura(lat, lng)) {
+        if (previewEl) {
+          previewEl.innerHTML =
+            '<i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>El punto seleccionado está fuera de la zona de cobertura (Boyacá / Colombia). Elige un punto dentro de la región.';
+        }
+        return;
+      }
+
+      const seq = ++geocodeSeq;
       latActual = lat;
       lngActual = lng;
       actualizarEnlaceMaps(lat, lng);
 
+      // Actualización inmediata para que el campo nunca quede con una dirección anterior
+      const cercanoInmediato = encontrarLugarCercanoOffline(lat, lng);
+      const textoInmediato = limpiarDireccion(etiquetaPreferida || cercanoInmediato.texto);
+      if (previewEditInput) {
+        previewEditInput.value = textoInmediato;
+      }
+
       // Si estamos offline, resolver inmediatamente con el catálogo local de Boyacá
       if (!navigator.onLine) {
-        const cercano = encontrarLugarCercanoOffline(lat, lng);
-        sincronizarCiudadSiAplica(cercano.ciudad);
-        setDireccionDetectada(etiquetaPreferida || cercano.texto, `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+        sincronizarCiudadSiAplica(cercanoInmediato.ciudad);
+        setDireccionDetectada(textoInmediato, `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
         return;
       }
 
@@ -499,7 +513,9 @@
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1&accept-language=es`,
           { headers: { Accept: "application/json" } }
         );
+        if (seq !== geocodeSeq) return;
         const data = await res.json();
+        if (seq !== geocodeSeq) return;
         const { texto, ciudad } = construirDireccionDesdeNominatim(data);
         sincronizarCiudadSiAplica(ciudad);
 
@@ -513,13 +529,12 @@
         if (finalTexto) {
           setDireccionDetectada(finalTexto, `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
         } else {
-          const cercano = encontrarLugarCercanoOffline(lat, lng);
-          setDireccionDetectada(cercano.texto, `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+          setDireccionDetectada(cercanoInmediato.texto, `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
         }
       } catch (_err) {
-        const cercano = encontrarLugarCercanoOffline(lat, lng);
-        sincronizarCiudadSiAplica(cercano.ciudad);
-        setDireccionDetectada(etiquetaPreferida || cercano.texto, `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+        if (seq !== geocodeSeq) return;
+        sincronizarCiudadSiAplica(cercanoInmediato.ciudad);
+        setDireccionDetectada(textoInmediato, `${lat.toFixed(4)}, ${lng.toFixed(4)}`);
       }
     }
 
@@ -710,16 +725,24 @@
 
         mapa.on("click", function (e) {
           ocultarSugerencias();
+          if (!estaEnZonaCobertura(e.latlng.lat, e.latlng.lng)) {
+            if (previewEl) {
+              previewEl.innerHTML =
+                '<i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Ubicación fuera de zona de cobertura (Boyacá / Colombia).';
+            }
+            return;
+          }
           marcador.setLatLng(e.latlng);
           obtenerDireccionDesdeCoordenadas(e.latlng.lat, e.latlng.lng);
         });
       } else {
         mapa.setView([cLat, cLng], 15);
         marcador.setLatLng([cLat, cLng]);
-        setTimeout(function () {
-          mapa.invalidateSize();
-        }, 120);
       }
+
+      setTimeout(function () {
+        if (mapa) mapa.invalidateSize();
+      }, 160);
 
       if (previewEditInput && !previewEditInput.value && inputDireccion.value.trim()) {
         previewEditInput.value = inputDireccion.value.trim();
@@ -801,7 +824,17 @@
     }
 
     if (btnConfirmar) {
-      btnConfirmar.addEventListener("click", function () {
+      btnConfirmar.addEventListener("click", function (event) {
+        if (!estaEnZonaCobertura(latActual, lngActual)) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (previewEl) {
+            previewEl.innerHTML =
+              '<i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Selecciona una ubicación válida dentro de Boyacá / Colombia.';
+          }
+          return;
+        }
+
         const base = (previewEditInput ? previewEditInput.value : "").trim();
         const extra = (complementoInput ? complementoInput.value : "").trim();
         let direccionFinal = base || `Ubicación ${latActual.toFixed(5)}, ${lngActual.toFixed(5)}`;
@@ -809,6 +842,16 @@
           direccionFinal = `${direccionFinal}, ${extra}`;
         }
         direccionFinal = limpiarDireccion(direccionFinal);
+
+        if (direccionFinal.length < 5) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (previewEl) {
+            previewEl.innerHTML =
+              '<i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Escribe o selecciona una dirección más completa (mínimo 5 caracteres).';
+          }
+          return;
+        }
 
         inputDireccion.value = direccionFinal;
         inputDireccion.dispatchEvent(new Event("input", { bubbles: true }));
@@ -824,5 +867,15 @@
         }
       });
     }
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initMapPicker);
+  } else {
+    initMapPicker();
+  }
+  if (window.AppPageLifecycle && typeof window.AppPageLifecycle.onPageLoad === "function") {
+    window.AppPageLifecycle.onPageLoad(initMapPicker);
+  }
+  document.addEventListener("app:page-loaded", initMapPicker);
 })();

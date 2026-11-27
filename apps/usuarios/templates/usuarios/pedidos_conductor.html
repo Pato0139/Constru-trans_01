@@ -66,10 +66,9 @@
         <table class="table table-hover align-middle">
             <thead>
                 <tr class="text-muted small text-uppercase">
-                    <th>Envío / Pedido</th>
-                    <th>Destino & Cliente</th>
-                    <th>Vehículo</th>
-                    <th>Materiales</th>
+                    <th>Pedido</th>
+                    <th>Destino</th>
+                    <th>Cliente</th>
                     <th>Estado</th>
                     <th class="text-center">Acciones</th>
                 </tr>
@@ -78,62 +77,17 @@
                 {% for entrega in entregas %}
                 <tr>
                     <td>
-                        <div class="fw-700 text-accent">#ENV-{{ entrega.id_entrega }}</div>
-                        <div class="small text-muted">Pedido #CT-{{ entrega.pedido.codigo_pedido }}</div>
-                        {% if entrega.pedido.fecha_entrega_programada %}
-                        <div class="small text-main mt-1"><i class="bi bi-calendar-event me-1"></i>Entrega: {{ entrega.pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}</div>
-                        {% endif %}
-                        {% if entrega.ultimo_reagendamiento %}
-                        <details class="driver-reschedule-history mt-1">
-                            <summary><span class="badge bg-warning-subtle text-warning-emphasis">Reagendada</span> Ver motivo</summary>
-                            <div class="small text-muted mt-1">{{ entrega.ultimo_reagendamiento.descripcion }}<br>
-                                {{ entrega.ultimo_reagendamiento.fecha|date:"d/m/Y H:i" }} · {{ entrega.ultimo_reagendamiento.usuario.nombre_mostrar|default:entrega.ultimo_reagendamiento.usuario.username|default:"Sistema" }}
-                            </div>
-                        </details>
-                        {% endif %}
-                        {% if entrega.fecha_asignacion_efectiva %}
-                        <div class="small text-muted" style="font-size: 0.72rem;">
-                            <i class="bi bi-calendar-check me-1"></i>Asignado: {{ entrega.fecha_asignacion_efectiva|date:"d/m/Y H:i" }}
-                        </div>
-                        {% endif %}
-                        {% if entrega.fecha_salida %}
-                        <div class="small text-muted" style="font-size: 0.72rem;">
-                            <i class="bi bi-clock me-1"></i>Salida: {{ entrega.fecha_salida|date:"d/m H:i" }}
-                        </div>
-                        {% endif %}
+                        <div class="fw-700 text-accent">#CT-{{ entrega.pedido.codigo_pedido }}</div>
                     </td>
                     <td>
                         <div class="fw-600 text-main">
                             <i class="bi bi-geo-alt-fill text-danger me-1"></i>
                             {{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}
                         </div>
-                        <div class="small text-muted">
-                            <i class="bi bi-person me-1"></i>{{ entrega.pedido.cliente_usuario.nombre_mostrar|default:entrega.pedido.usuario.username }}
-                            {% if entrega.pedido.cliente_usuario.telefono %}
-                            <span class="ms-1">(Tel: {{ entrega.pedido.cliente_usuario.telefono }})</span>
-                            {% elif entrega.pedido.usuario.telefono %}
-                            <span class="ms-1">(Tel: {{ entrega.pedido.usuario.telefono }})</span>
-                            {% endif %}
-                        </div>
                     </td>
                     <td>
-                        {% if entrega.vehiculo %}
-                        <div class="fw-600 text-main">{{ entrega.vehiculo.placa }}</div>
-                        <div class="small text-muted">{{ entrega.vehiculo.modelo }} ({{ entrega.vehiculo.get_tipo_display }})</div>
-                        {% else %}
-                        <span class="text-muted small">No asignado</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div class="small text-main" style="max-width: 220px;">
-                            {% for detalle in entrega.pedido.detalles.all|slice:":2" %}
-                            <div>• {{ detalle.cantidad }}x {{ detalle.material.nombre }}</div>
-                            {% empty %}
-                            <span class="text-muted">Sin detalles</span>
-                            {% endfor %}
-                            {% if entrega.pedido.detalles.count > 2 %}
-                            <span class="text-muted font-monospace" style="font-size: 0.72rem;">+{{ entrega.pedido.detalles.count|add:"-2" }} más...</span>
-                            {% endif %}
+                        <div class="fw-600 text-main">
+                            <i class="bi bi-person me-1 text-muted"></i>{{ entrega.pedido.cliente_usuario.nombre_mostrar|default:entrega.pedido.usuario.username }}
                         </div>
                     </td>
                     <td>
@@ -154,53 +108,22 @@
                         {% endif %}
                     </td>
                     <td class="text-center">
-                        <div class="d-inline-flex gap-1 align-items-center flex-wrap justify-content-center">
-                            <!-- Cómo llegar (Mapa de Ruta) -->
-                            <button type="button"
-                                class="btn btn-sm btn-outline-warning fw-bold ct-btn-como-llegar"
-                                data-bs-toggle="modal"
-                                data-bs-target="#modalRutaConductor"
-                                data-pedido="{{ entrega.pedido.codigo_pedido }}"
-                                data-direccion="{{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}"
-                                data-ciudad="{{ entrega.pedido.ciudad_destino|default:'' }}"
-                                title="Ver ruta y cómo llegar">
-                                <i class="bi bi-sign-turn-right-fill me-1"></i>Cómo llegar
-                            </button>
-
-                            <!-- Ver Detalle (Conductor-Safe) -->
-                            <a href="{% url 'usuarios:detalle_entrega_conductor' entrega.id_entrega %}" class="btn btn-sm btn-outline-info" title="Ver Detalle Completo">
+                        <div class="d-inline-flex gap-2 align-items-center justify-content-center">
+                            <!-- Ver Detalle (integra ruta, iniciar/finalizar entrega, vehículo y materiales) -->
+                            <a href="{% url 'usuarios:detalle_entrega_conductor' entrega.id_entrega %}" class="btn btn-sm btn-outline-info" title="Ver detalle y gestionar entrega" aria-label="Ver detalle y gestionar entrega">
                                 <i class="bi bi-eye"></i>
                             </a>
 
-                            {% if entrega.estado == 'pendiente' %}
-                            <!-- Confirmar preparación e iniciar ruta -->
-                            <form action="{% url 'usuarios:iniciar_entrega' entrega.id_entrega %}" method="POST" class="d-inline"
-                                data-confirmar-constru-trans
-                                data-confirm-title="Iniciar ruta"
-                                data-confirm-label="Sí, iniciar ruta"
-                                data-confirm-message="Confirma que recogiste y cargaste todos los materiales del pedido #CT-{{ entrega.pedido.codigo_pedido }} en el vehículo asignado. Al continuar, el pedido pasará a En ruta.">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-success fw-bold" title="Confirmar preparación e iniciar ruta">
-                                    <i class="bi bi-play-fill me-1"></i>Confirmar preparación e iniciar ruta
-                                </button>
-                            </form>
-                            {% elif entrega.estado == 'en_ruta' %}
-                            <!-- Marcar como entregado Modal -->
-                            <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalFinalizar{{ entrega.id_entrega }}" title="Marcar como entregado">
-                                <i class="bi bi-check-lg me-1"></i>Marcar como entregado
-                            </button>
-
                             <!-- Reportar Novedad -->
-                            <a href="{% url 'logistica:crear_novedad' entrega.id_entrega %}" class="btn btn-sm btn-outline-warning" title="Reportar Novedad">
+                            <a href="{% url 'logistica:crear_novedad' entrega.id_entrega %}" class="btn btn-sm btn-outline-warning" title="Reportar novedad" aria-label="Reportar novedad">
                                 <i class="bi bi-exclamation-triangle"></i>
                             </a>
-                            {% endif %}
                         </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
+                    <td colspan="5" class="text-center py-5 text-muted">
                         <i class="bi bi-inbox fs-2 mb-3 d-block text-secondary"></i>
                         No tienes envíos asignados que coincidan con la búsqueda.
                     </td>

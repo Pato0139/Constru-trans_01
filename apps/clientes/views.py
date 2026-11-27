@@ -606,6 +606,22 @@ def crear_pedido(request):
                 ),
             )
 
+        if len(direccion_detalle) < 5:
+            messages.error(
+                request, "Indica una dirección de entrega más completa (mínimo 5 caracteres)."
+            )
+            return render(
+                request,
+                "clientes/form.html",
+                _contexto_formulario_pedido(
+                    materiales=materiales,
+                    action="crear",
+                    fecha_entrega=fecha_entrega_raw,
+                    ciudad=ciudad,
+                    direccion_detalle=direccion_detalle,
+                ),
+            )
+
         if not ciudad_valida(ciudad):
             messages.error(
                 request, "La ciudad seleccionada no está dentro de la zona de despacho autorizada."
@@ -836,6 +852,23 @@ def editar_pedido(request, id):
         if not materiales_ids or not ciudad or not direccion_detalle:
             messages.error(
                 request, "Datos incompletos: materiales, ciudad y dirección son obligatorios."
+            )
+            return render(
+                request,
+                "clientes/form.html",
+                _contexto_formulario_pedido(
+                    orden=pedido,
+                    materiales=materiales,
+                    action="editar",
+                    fecha_entrega=fecha_entrega_raw,
+                    ciudad=ciudad,
+                    direccion_detalle=direccion_detalle,
+                ),
+            )
+
+        if len(direccion_detalle) < 5:
+            messages.error(
+                request, "Indica una dirección de entrega más completa (mínimo 5 caracteres)."
             )
             return render(
                 request,

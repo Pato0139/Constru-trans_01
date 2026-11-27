@@ -53,6 +53,8 @@ class MaterialForm(StrictModelForm):
         widget=forms.NumberInput(
             attrs={
                 "class": "form-control numeric-only",
+                "min": 0,
+                "step": 1,
                 "placeholder": "0",
             }
         ),

@@ -1,39 +1,27 @@
 {% for reg in registros %}
 <tr>
-    <td class="fw-bold">{{ reg.id }}</td>
-    <td>
+    <td class="text-nowrap col-id">{{ reg.id }}</td>
+    <td class="col-usuario">
         {% if reg.usuario %}
-            <span class="badge bg-info text-dark">{{ reg.usuario.username }}</span>
+        <span class="badge bg-info text-dark fw-semibold px-2 py-1 auditoria-user-badge" title="{{ reg.usuario.username }}">{{ reg.usuario.username }}</span>
         {% else %}
-            <span class="badge" style="background-color: rgba(255,255,255,0.2); color: #ffffff;">Sistema/Anónimo</span>
+        <span class="badge bg-secondary">Sistema / Anónimo</span>
         {% endif %}
     </td>
-    <td>
-        {% if reg.accion == 'crear' %}
-        <span class="text-success"><i class="bi bi-plus-circle me-1"></i>Crear</span>
-        {% elif reg.accion == 'editar' %}
-        <span class="text-warning"><i class="bi bi-pencil me-1"></i>Editar</span>
-        {% elif reg.accion == 'eliminar' %}
-        <span class="text-danger"><i class="bi bi-trash me-1"></i>Eliminar</span>
-        {% elif reg.accion == 'login' %}
-        <span class="text-info"><i class="bi bi-box-arrow-in-right me-1"></i>Login</span>
-        {% elif reg.accion == 'logout' %}
-        <span class="text-secondary"><i class="bi bi-box-arrow-right me-1"></i>Logout</span>
-        {% else %}
-            {{ reg.get_accion_display }}
-        {% endif %}
+    <td class="text-nowrap text-center col-modulo"><span class="auditoria-modulo-pill">{{ reg.modulo|default:reg.tabla|default:"—"|capfirst }}</span></td>
+    <td class="text-nowrap text-center col-fecha">
+        <div class="auditoria-datetime-stack">
+            <span class="auditoria-time">{{ reg.fecha_hora|default:reg.fecha|date:"H:i" }}</span>
+            <span class="auditoria-date">{{ reg.fecha_hora|default:reg.fecha|date:"d/m/Y" }}</span>
+        </div>
     </td>
-    <td>{{ reg.modulo|capfirst|default:"-" }}</td>
-    <td>{{ reg.elemento_id|default:"-" }}</td>
-    <td><small>{{ reg.descripcion|default:"-" }}</small></td>
-    <td>{{ reg.fecha_hora|date:"Y-m-d H:i" }}</td>
-    <td><small class="text-muted">{{ reg.ip_address|default:"-" }}</small></td>
+    <td class="text-nowrap text-center col-accion">{{ reg.get_accion_display|default:reg.accion }}</td>
 </tr>
 {% empty %}
 <tr>
-    <td colspan="8" class="text-center py-5 text-muted">
-        <i class="bi bi-clock-history d-block fs-2 mb-3"></i>
-        No se encontraron registros de actividad con los filtros seleccionados.
+    <td colspan="5" class="text-center py-5 text-muted">
+        <i class="bi bi-journal-x fs-3 d-block mb-2"></i>
+        No hay acciones registradas con los filtros seleccionados.
     </td>
 </tr>
 {% endfor %}

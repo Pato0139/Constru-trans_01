@@ -4,7 +4,7 @@
 {% block title %}Centro de Ayuda - ConstruTrans{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ayuda/ayuda.css' %}?v=3.2">
+<link rel="stylesheet" href="{% static 'css/ayuda/ayuda.css' %}?v=3.4">
 {% endblock %}
 
 {% block content %}
@@ -22,19 +22,26 @@
                 Encuentra guías rápidas, descarga el manual de tu rol y resuelve dudas frecuentes sobre la plataforma.
             </p>
 
-            <div class="ayuda-search-box">
-                <i class="bi bi-search ayuda-search-box__icon" aria-hidden="true"></i>
-                <input
-                    type="text"
-                    id="ayudaSearchInput"
-                    class="ayuda-search-box__input"
-                    placeholder="Buscar tema: pedidos, pagos, inventario, vehículos, modo local..."
-                    autocomplete="off"
-                >
-                <button type="button" id="ayudaSearchClear" class="ayuda-search-box__clear d-none" aria-label="Limpiar búsqueda">
-                    <i class="bi bi-x-lg"></i>
+            <form id="ayudaSearchForm" method="get" action="{% url 'ayuda:index' %}" class="ayuda-search-box" role="search">
+                <div class="ayuda-search-box__field">
+                    <i class="bi bi-search ayuda-search-box__icon" aria-hidden="true"></i>
+                    <input
+                        type="text"
+                        name="q"
+                        id="ayudaSearchInput"
+                        value="{{ query_inicial|default:'' }}"
+                        class="ayuda-search-box__input"
+                        placeholder="Buscar tema: pedidos, pagos, inventario, vehículos, modo local..."
+                        autocomplete="off"
+                    >
+                    <button type="button" id="ayudaSearchClear" class="ayuda-search-box__clear d-none" aria-label="Limpiar búsqueda" title="Limpiar búsqueda">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <button type="submit" id="ayudaSearchSubmit" class="ayuda-search-box__submit" aria-label="Buscar">
+                    Buscar
                 </button>
-            </div>
+            </form>
 
             <div class="ayuda-quick-tags">
                 <span class="ayuda-quick-tags__label">Temas rápidos:</span>
@@ -43,6 +50,30 @@
                 <button type="button" class="ayuda-tag-btn" data-query="vehículos">Vehículos</button>
                 <button type="button" class="ayuda-tag-btn" data-query="filtros">Filtros</button>
                 <button type="button" class="ayuda-tag-btn" data-query="nube">Nube y Local</button>
+            </div>
+
+            <!-- Panel instantáneo de resultados de búsqueda -->
+            <div id="ayudaSearchResultsPanel" class="ayuda-search-results d-none" aria-live="polite">
+                <div class="ayuda-search-results__header">
+                    <span id="ayudaSearchResultsCount" class="ayuda-search-results__count"></span>
+                    <button type="button" id="ayudaSearchResultsReset" class="ayuda-search-results__reset">
+                        Mostrar todo
+                    </button>
+                </div>
+                <div id="ayudaSearchResultsList" class="ayuda-search-results__list"></div>
+            </div>
+
+            <!-- Índice de guías para el buscador instantáneo -->
+            <div id="ayudaGuidesIndex" class="d-none" aria-hidden="true">
+                {% for g in guias_busqueda %}
+                <a
+                    class="ayuda-guide-index-item"
+                    href="{% url 'ayuda:detalle_guia' g.id %}"
+                    data-title="{{ g.titulo }}"
+                    data-category="{{ g.categoria.nombre|default:'Guía' }}"
+                    data-keywords="{{ g.titulo }} {{ g.descripcion }} {{ g.categoria.nombre|default:'' }}"
+                >{{ g.descripcion|truncatechars:140 }}</a>
+                {% endfor %}
             </div>
         </div>
     </section>
@@ -64,6 +95,11 @@
             <a href="{% url 'ayuda:lista_guias' %}" class="ayuda-btn ayuda-btn--ghost">
                 <i class="bi bi-book"></i> Ver guías
             </a>
+            {% if manual_desarrollador %}
+            <a href="{% static manual_desarrollador.archivo %}" class="ayuda-btn ayuda-btn--ghost" download>
+                <i class="bi bi-code-slash"></i> Manual del Desarrollador
+            </a>
+            {% endif %}
             <a href="{% static manual_rol.archivo %}" class="ayuda-btn ayuda-btn--gold" download>
                 <i class="bi bi-download"></i> Descargar manual
             </a>
@@ -257,68 +293,174 @@
 </div>
 
 <script>
-(function initAyudaSearch() {
-    const input = document.getElementById('ayudaSearchInput');
-    if (!input || input.dataset.ayudaBound === '1') return;
-    input.dataset.ayudaBound = '1';
+(function () {
+    function initAyudaSearch() {
+        const form = document.getElementById('ayudaSearchForm');
+        const input = document.getElementById('ayudaSearchInput');
+        if (!input || input.dataset.ayudaBound === '1') return;
+        input.dataset.ayudaBound = '1';
 
-    const clearBtn = document.getElementById('ayudaSearchClear');
-    const items = Array.from(document.querySelectorAll('.ayuda-searchable'));
-    const noResults = document.getElementById('ayudaNoResults');
-    const tagBtns = document.querySelectorAll('.ayuda-tag-btn');
+        const clearBtn = document.getElementById('ayudaSearchClear');
+        const resetBtn = document.getElementById('ayudaSearchResultsReset');
+        const resultsPanel = document.getElementById('ayudaSearchResultsPanel');
+        const resultsCount = document.getElementById('ayudaSearchResultsCount');
+        const resultsList = document.getElementById('ayudaSearchResultsList');
+        const items = Array.from(document.querySelectorAll('.ayuda-searchable'));
+        const guideIndex = Array.from(document.querySelectorAll('.ayuda-guide-index-item'));
+        const noResults = document.getElementById('ayudaNoResults');
+        const tagBtns = document.querySelectorAll('.ayuda-tag-btn');
 
-    function norm(str) {
-        return (str || '')
-            .toString()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .trim();
-    }
+        function norm(str) {
+            return (str || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
 
-    function filterHelp(raw) {
-        const q = norm(raw);
-        if (clearBtn) clearBtn.classList.toggle('d-none', !q);
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
 
-        let visible = 0;
-        items.forEach((el) => {
-            const haystack = norm((el.dataset.keywords || '') + ' ' + (el.textContent || ''));
-            const match = !q || haystack.includes(q);
-            el.classList.toggle('d-none', !match);
-            if (match) {
-                visible++;
-                if (q && el.tagName === 'DETAILS') el.open = true;
-            } else if (el.tagName === 'DETAILS') {
-                el.open = false;
+        function filterHelp(raw, scrollToResults) {
+            const q = norm(raw);
+            if (clearBtn) clearBtn.classList.toggle('d-none', !q);
+
+            const matches = [];
+            let visibleBlocks = 0;
+
+            items.forEach((el, idx) => {
+                const haystack = norm((el.dataset.keywords || '') + ' ' + (el.textContent || ''));
+                const match = !q || haystack.includes(q);
+                el.classList.toggle('d-none', !match);
+                if (match) {
+                    visibleBlocks++;
+                    if (q) {
+                        if (el.tagName === 'DETAILS') el.open = true;
+                        const titleEl = el.querySelector('.ayuda-faq-item__q span, .ayuda-feature-card__title');
+                        const snippetEl = el.querySelector('.ayuda-faq-item__a, .ayuda-feature-card__text');
+                        matches.push({
+                            kind: el.tagName === 'DETAILS' ? 'Pregunta frecuente' : 'Primeros pasos',
+                            title: (titleEl ? titleEl.textContent : 'Tema de ayuda').trim(),
+                            snippet: (snippetEl ? snippetEl.textContent : '').trim().slice(0, 140),
+                            targetEl: el,
+                            idx: idx,
+                        });
+                    }
+                } else if (el.tagName === 'DETAILS') {
+                    el.open = false;
+                }
+            });
+
+            if (q) {
+                guideIndex.forEach((g) => {
+                    const haystack = norm((g.dataset.keywords || '') + ' ' + (g.textContent || ''));
+                    if (haystack.includes(q)) {
+                        matches.unshift({
+                            kind: 'Guía · ' + (g.dataset.category || 'Ayuda'),
+                            title: (g.dataset.title || 'Guía').trim(),
+                            snippet: (g.textContent || '').trim(),
+                            href: g.getAttribute('href'),
+                        });
+                    }
+                });
+            }
+
+            if (noResults) noResults.classList.toggle('d-none', visibleBlocks > 0 || matches.length > 0);
+
+            if (resultsPanel && resultsList && resultsCount) {
+                if (!q) {
+                    resultsPanel.classList.add('d-none');
+                    resultsList.innerHTML = '';
+                } else {
+                    resultsPanel.classList.remove('d-none');
+                    resultsCount.textContent = matches.length === 0
+                        ? 'No se encontraron resultados para «' + raw.trim() + '»'
+                        : matches.length + ' resultado' + (matches.length === 1 ? '' : 's') + ' para «' + raw.trim() + '»';
+
+                    if (matches.length === 0) {
+                        resultsList.innerHTML = '<div class="ayuda-search-results__empty">Prueba con otra palabra clave como <strong>pedidos</strong>, <strong>pagos</strong>, <strong>vehículos</strong> o <strong>nube</strong>.</div>';
+                    } else {
+                        resultsList.innerHTML = matches.slice(0, 8).map((m, i) => {
+                            if (m.href) {
+                                return '<a class="ayuda-search-result-item" href="' + escapeHtml(m.href) + '">' +
+                                    '<span class="ayuda-search-result-item__badge">' + escapeHtml(m.kind) + '</span>' +
+                                    '<strong class="ayuda-search-result-item__title">' + escapeHtml(m.title) + '</strong>' +
+                                    (m.snippet ? '<span class="ayuda-search-result-item__snippet">' + escapeHtml(m.snippet) + '</span>' : '') +
+                                '</a>';
+                            }
+                            return '<button type="button" class="ayuda-search-result-item" data-match-idx="' + i + '">' +
+                                '<span class="ayuda-search-result-item__badge">' + escapeHtml(m.kind) + '</span>' +
+                                '<strong class="ayuda-search-result-item__title">' + escapeHtml(m.title) + '</strong>' +
+                                (m.snippet ? '<span class="ayuda-search-result-item__snippet">' + escapeHtml(m.snippet) + '</span>' : '') +
+                            '</button>';
+                        }).join('');
+
+                        resultsList.querySelectorAll('button[data-match-idx]').forEach((btn) => {
+                            btn.addEventListener('click', () => {
+                                const m = matches[Number(btn.dataset.matchIdx)];
+                                if (m && m.targetEl) {
+                                    if (m.targetEl.tagName === 'DETAILS') m.targetEl.open = true;
+                                    m.targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            });
+                        });
+                    }
+
+                    if (scrollToResults) {
+                        resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }
+            }
+        }
+
+        function resetSearch() {
+            input.value = '';
+            filterHelp('', false);
+            input.focus();
+        }
+
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                filterHelp(input.value, true);
+            });
+        }
+
+        input.addEventListener('input', () => filterHelp(input.value, false));
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                filterHelp(input.value, true);
+            } else if (e.key === 'Escape') {
+                resetSearch();
             }
         });
 
-        if (noResults) noResults.classList.toggle('d-none', visible > 0);
-    }
+        if (clearBtn) clearBtn.addEventListener('click', resetSearch);
+        if (resetBtn) resetBtn.addEventListener('click', resetSearch);
 
-    input.addEventListener('input', () => filterHelp(input.value));
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            input.value = '';
-            filterHelp('');
+        tagBtns.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                input.value = btn.dataset.query || '';
+                filterHelp(input.value, true);
+                input.focus();
+            });
+        });
+
+        if (input.value && input.value.trim()) {
+            filterHelp(input.value, false);
         }
-    });
-
-    if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-            input.value = '';
-            filterHelp('');
-            input.focus();
-        });
     }
 
-    tagBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            input.value = btn.dataset.query || '';
-            filterHelp(input.value);
-            input.focus();
-        });
-    });
+    initAyudaSearch();
+    if (window.AppPageLifecycle && typeof window.AppPageLifecycle.onPageLoad === 'function') {
+        window.AppPageLifecycle.onPageLoad(initAyudaSearch);
+    }
+    document.addEventListener('app:page-loaded', initAyudaSearch);
 })();
 </script>
 {% endblock %}

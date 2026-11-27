@@ -56,12 +56,6 @@
                 class="btn btn-sm btn-outline-info border-white-10" title="Ver Detalle">
                 <i class="bi bi-eye"></i>
             </a>
-            {% if compra.estado == 'pendiente' %}
-            <a href="{% url 'compras:editar_compra' compra.id_compra %}"
-                class="btn btn-sm btn-outline-warning border-white-10" title="Editar">
-                <i class="bi bi-pencil"></i>
-            </a>
-            {% endif %}
         </div>
     </td>
 </tr>

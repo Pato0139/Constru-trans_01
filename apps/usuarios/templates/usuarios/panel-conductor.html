@@ -27,14 +27,17 @@
                             {% if proxima_entrega %}
                             <div class="driver-weather-route-meta d-flex flex-wrap align-items-center gap-2">
                                 <span class="driver-weather-chip driver-weather-chip--order">
-                                    <i class="bi bi-box-seam me-1"></i>Pedido #CT-{{ proxima_entrega.pedido.codigo_pedido }}
+                                    <i class="bi bi-box-seam me-1"></i>Pedido #CT-{{
+                                    proxima_entrega.pedido.codigo_pedido }}
                                 </span>
                                 <span class="driver-weather-chip driver-weather-chip--city">
-                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ clima_ruta.city|default:"Destino" }}
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{
+                                    clima_ruta.city|default:"Destino" }}
                                 </span>
                                 {% if proxima_entrega.pedido.fecha_entrega_programada %}
                                 <span class="driver-weather-chip driver-weather-chip--time">
-                                    <i class="bi bi-calendar3 me-1"></i>{{ proxima_entrega.pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}
+                                    <i class="bi bi-calendar3 me-1"></i>{{
+                                    proxima_entrega.pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}
                                 </span>
                                 {% endif %}
                             </div>
@@ -54,123 +57,130 @@
                 </div>
 
                 {% if clima_ruta %}
-                    {% if clima_ruta.available %}
-                    <!-- Main weather content -->
-                    <div class="driver-weather-content mt-4">
-                        <div class="row g-4 align-items-center">
-                            <!-- Hero Temp & Condition -->
-                            <div class="col-12 col-lg-5">
-                                <div class="driver-weather-hero d-flex align-items-center gap-3 p-3">
-                                    <div class="driver-weather-icon-circle">
-                                        {% if clima_ruta.icon_url %}
-                                        <img src="{{ clima_ruta.icon_url }}" alt="{{ clima_ruta.description }}" width="72" height="72" class="weather-art-icon" loading="lazy">
-                                        {% else %}
-                                        <i class="bi bi-cloud-sun fs-1 text-warning"></i>
-                                        {% endif %}
-                                    </div>
-                                    <div>
-                                        <div class="driver-weather-temp-wrap">
-                                            <span class="driver-weather-temp-value">{{ clima_ruta.temperature }}</span>
-                                            <span class="driver-weather-temp-unit">°C</span>
-                                        </div>
-                                        <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
-                                            <span class="driver-weather-condition-tag">
-                                                {{ clima_ruta.description }}
-                                            </span>
-                                            <span class="driver-weather-feels-tag">
-                                                <i class="bi bi-thermometer-half me-1"></i>Sensación {{ clima_ruta.feels_like }} °C
-                                            </span>
-                                        </div>
-                                    </div>
+                {% if clima_ruta.available %}
+                <!-- Main weather content -->
+                <div class="driver-weather-content mt-4">
+                    <div class="row g-4 align-items-center">
+                        <!-- Hero Temp & Condition -->
+                        <div class="col-12 col-lg-5">
+                            <div class="driver-weather-hero d-flex align-items-center gap-3 p-3">
+                                <div class="driver-weather-icon-circle">
+                                    {% if clima_ruta.icon_url %}
+                                    <img src="{{ clima_ruta.icon_url }}" alt="{{ clima_ruta.description }}" width="72"
+                                        height="72" class="weather-art-icon" loading="lazy">
+                                    {% else %}
+                                    <i class="bi bi-cloud-sun fs-1 text-warning"></i>
+                                    {% endif %}
                                 </div>
-                            </div>
-
-                            <!-- 4 Metric Cards Grid -->
-                            <div class="col-12 col-lg-7">
-                                <div class="row g-2 driver-weather-metrics-grid">
-                                    <!-- Humidity -->
-                                    <div class="col-6 col-sm-3">
-                                        <div class="driver-metric-tile">
-                                            <div class="driver-metric-icon-wrap metric-cyan">
-                                                <i class="bi bi-droplet-half"></i>
-                                            </div>
-                                            <span class="driver-metric-label">Humedad</span>
-                                            <span class="driver-metric-val">{{ clima_ruta.humidity }}%</span>
-                                        </div>
+                                <div>
+                                    <div class="driver-weather-temp-wrap">
+                                        <span class="driver-weather-temp-value">{{ clima_ruta.temperature }}</span>
+                                        <span class="driver-weather-temp-unit">°C</span>
                                     </div>
-
-                                    <!-- Rain probability -->
-                                    <div class="col-6 col-sm-3">
-                                        <div class="driver-metric-tile">
-                                            <div class="driver-metric-icon-wrap metric-blue">
-                                                <i class="bi bi-cloud-rain-heavy-fill"></i>
-                                            </div>
-                                            <span class="driver-metric-label">Prob. lluvia</span>
-                                            <span class="driver-metric-val">{{ clima_ruta.precipitation_probability }}%</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Wind speed -->
-                                    <div class="col-6 col-sm-3">
-                                        <div class="driver-metric-tile">
-                                            <div class="driver-metric-icon-wrap metric-teal">
-                                                <i class="bi bi-wind"></i>
-                                            </div>
-                                            <span class="driver-metric-label">Viento</span>
-                                            <span class="driver-metric-val">{{ clima_ruta.wind_kmh }} <small>km/h</small></span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Forecast Time -->
-                                    <div class="col-6 col-sm-3">
-                                        <div class="driver-metric-tile">
-                                            <div class="driver-metric-icon-wrap metric-amber">
-                                                <i class="bi bi-clock-history"></i>
-                                            </div>
-                                            <span class="driver-metric-label">Hora est.</span>
-                                            <span class="driver-metric-val">{{ clima_ruta.forecast_time|date:"d/m H:i" }}</span>
-                                        </div>
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                                        <span class="driver-weather-condition-tag">
+                                            {{ clima_ruta.description }}
+                                        </span>
+                                        <span class="driver-weather-feels-tag">
+                                            <i class="bi bi-thermometer-half me-1"></i>Sensación {{
+                                            clima_ruta.feels_like }} °C
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Safety Recommendation Banner -->
-                        <div class="driver-weather-alert-card mt-4">
-                            <div class="d-flex align-items-start gap-3">
-                                <div class="driver-weather-alert-icon flex-shrink-0">
-                                    <i class="bi bi-shield-exclamation"></i>
+                        <!-- 4 Metric Cards Grid -->
+                        <div class="col-12 col-lg-7">
+                            <div class="row g-2 driver-weather-metrics-grid">
+                                <!-- Humidity -->
+                                <div class="col-6 col-sm-3">
+                                    <div class="driver-metric-tile">
+                                        <div class="driver-metric-icon-wrap metric-cyan">
+                                            <i class="bi bi-droplet-half"></i>
+                                        </div>
+                                        <span class="driver-metric-label">Humedad</span>
+                                        <span class="driver-metric-val">{{ clima_ruta.humidity }}%</span>
+                                    </div>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <div class="driver-weather-alert-title">Aviso de seguridad para la ruta</div>
-                                    <p class="driver-weather-alert-text mb-0">
-                                        {{ clima_ruta.recommendation }}
-                                    </p>
+
+                                <!-- Rain probability -->
+                                <div class="col-6 col-sm-3">
+                                    <div class="driver-metric-tile">
+                                        <div class="driver-metric-icon-wrap metric-blue">
+                                            <i class="bi bi-cloud-rain-heavy-fill"></i>
+                                        </div>
+                                        <span class="driver-metric-label">Prob. lluvia</span>
+                                        <span class="driver-metric-val">{{ clima_ruta.precipitation_probability
+                                            }}%</span>
+                                    </div>
+                                </div>
+
+                                <!-- Wind speed -->
+                                <div class="col-6 col-sm-3">
+                                    <div class="driver-metric-tile">
+                                        <div class="driver-metric-icon-wrap metric-teal">
+                                            <i class="bi bi-wind"></i>
+                                        </div>
+                                        <span class="driver-metric-label">Viento</span>
+                                        <span class="driver-metric-val">{{ clima_ruta.wind_kmh }}
+                                            <small>km/h</small></span>
+                                    </div>
+                                </div>
+
+                                <!-- Forecast Time -->
+                                <div class="col-6 col-sm-3">
+                                    <div class="driver-metric-tile">
+                                        <div class="driver-metric-icon-wrap metric-amber">
+                                            <i class="bi bi-clock-history"></i>
+                                        </div>
+                                        <span class="driver-metric-label">Hora est.</span>
+                                        <span class="driver-metric-val">{{ clima_ruta.forecast_time|date:"d/m H:i"
+                                            }}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Minimal Footer Attribution -->
-                        <div class="driver-weather-footer d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 pt-2">
-                            <span class="text-muted small">
-                                <i class="bi bi-info-circle me-1"></i>Pronóstico orientativo vía
-                                <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" class="driver-weather-source-link">Open-Meteo</a>.
-                            </span>
-                            <span class="text-muted small">
-                                Confirma siempre la visibilidad antes de iniciar el trayecto.
-                            </span>
                         </div>
                     </div>
-                    {% else %}
-                    <!-- Unavailable alert -->
-                    <div class="driver-weather-empty-alert mt-4">
-                        <i class="bi bi-info-circle-fill fs-4 text-warning flex-shrink-0"></i>
-                        <div>
-                            <div class="fw-bold mb-1">Pronóstico no disponible temporalmente</div>
-                            <p class="text-muted mb-0 small">{{ clima_ruta.message }}</p>
+
+                    <!-- Safety Recommendation Banner -->
+                    <div class="driver-weather-alert-card mt-4">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="driver-weather-alert-icon flex-shrink-0">
+                                <i class="bi bi-shield-exclamation"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="driver-weather-alert-title">Aviso de seguridad para la ruta</div>
+                                <p class="driver-weather-alert-text mb-0">
+                                    {{ clima_ruta.recommendation }}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                    {% endif %}
+
+                    <!-- Minimal Footer Attribution -->
+                    <div
+                        class="driver-weather-footer d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 pt-2">
+                        <span class="text-muted small">
+                            <i class="bi bi-info-circle me-1"></i>Pronóstico orientativo vía
+                            <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer"
+                                class="driver-weather-source-link">Open-Meteo</a>.
+                        </span>
+                        <span class="text-muted small">
+                            Confirma siempre la visibilidad antes de iniciar el trayecto.
+                        </span>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Unavailable alert -->
+                <div class="driver-weather-empty-alert mt-4">
+                    <i class="bi bi-info-circle-fill fs-4 text-warning flex-shrink-0"></i>
+                    <div>
+                        <div class="fw-bold mb-1">Pronóstico no disponible temporalmente</div>
+                        <p class="text-muted mb-0 small">{{ clima_ruta.message }}</p>
+                    </div>
+                </div>
+                {% endif %}
                 {% endif %}
             </div>
         </section>
@@ -249,10 +259,9 @@
         <table class="table table-hover align-middle no-datatable driver-deliveries-table mb-0">
             <thead>
                 <tr>
-                    <th class="col-envio">Envío / Pedido</th>
-                    <th class="col-destino">Destino y Cliente</th>
-                    <th class="col-vehiculo">Vehículo</th>
-                    <th class="col-materiales">Materiales</th>
+                    <th class="col-envio">Pedido</th>
+                    <th class="col-destino">Destino</th>
+                    <th class="col-cliente">Cliente</th>
                     <th class="col-estado">Estado</th>
                     <th class="col-acciones text-end">Acciones</th>
                 </tr>
@@ -261,80 +270,18 @@
                 {% for entrega in entregas %}
                 <tr>
                     <td class="col-envio">
-                        <div class="driver-cell-stack">
-                            <div class="d-flex align-items-center flex-wrap gap-2">
-                                <span class="driver-env-id">#ENV-{{ entrega.id_entrega }}</span>
-                                <span class="driver-order-pill">#CT-{{ entrega.pedido.codigo_pedido }}</span>
-                            </div>
-                            {% if entrega.pedido.fecha_entrega_programada %}
-                            <div class="driver-meta-primary">
-                                <i class="bi bi-calendar-event"></i>
-                                <span>{{ entrega.pedido.fecha_entrega_programada|date:"d/m/Y H:i" }}</span>
-                            </div>
-                            {% endif %}
-                            {% if entrega.ultimo_reagendamiento %}
-                            <details class="driver-reschedule-history">
-                                <summary><span class="badge bg-warning-subtle text-warning-emphasis">Reagendada</span> Ver motivo</summary>
-                                <div class="small text-muted mt-1">{{ entrega.ultimo_reagendamiento.descripcion }}<br>
-                                    {{ entrega.ultimo_reagendamiento.fecha|date:"d/m/Y H:i" }} · {{ entrega.ultimo_reagendamiento.usuario.nombre_mostrar|default:entrega.ultimo_reagendamiento.usuario.username|default:"Sistema" }}
-                                </div>
-                            </details>
-                            {% endif %}
-                            <div class="driver-meta-secondary">
-                                {% if entrega.fecha_asignacion_efectiva %}
-                                <span><i class="bi bi-calendar-check me-1"></i>Asig. {{ entrega.fecha_asignacion_efectiva|date:"d/m H:i" }}</span>
-                                {% endif %}
-                                {% if entrega.fecha_salida %}
-                                <span><i class="bi bi-clock me-1"></i>Sal. {{ entrega.fecha_salida|date:"d/m H:i" }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
+                        <span class="driver-order-pill">#CT-{{ entrega.pedido.codigo_pedido }}</span>
                     </td>
                     <td class="col-destino">
-                        <div class="driver-cell-stack">
-                            <div class="driver-address">
-                                <i class="bi bi-geo-alt-fill text-danger flex-shrink-0"></i>
-                                <span>{{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}</span>
-                            </div>
-                            <div class="driver-client-name">
-                                <i class="bi bi-person me-1"></i>{{ entrega.pedido.cliente_usuario.nombre_mostrar|default:entrega.pedido.usuario.username }}
-                            </div>
-                            {% if entrega.pedido.cliente_usuario.telefono %}
-                            <div class="driver-client-phone">
-                                <i class="bi bi-telephone me-1"></i>{{ entrega.pedido.cliente_usuario.telefono }}
-                            </div>
-                            {% elif entrega.pedido.usuario.telefono %}
-                            <div class="driver-client-phone">
-                                <i class="bi bi-telephone me-1"></i>{{ entrega.pedido.usuario.telefono }}
-                            </div>
-                            {% endif %}
+                        <div class="driver-address">
+                            <i class="bi bi-geo-alt-fill text-danger flex-shrink-0"></i>
+                            <span>{{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}</span>
                         </div>
                     </td>
-                    <td class="col-vehiculo">
-                        {% if entrega.vehiculo %}
-                        <div class="driver-cell-stack">
-                            <span class="driver-plate-badge">{{ entrega.vehiculo.placa }}</span>
-                            <div class="driver-vehicle-model">
-                                {{ entrega.vehiculo.modelo }}{% if entrega.vehiculo.get_tipo_display %} · {{ entrega.vehiculo.get_tipo_display }}{% endif %}
-                            </div>
-                        </div>
-                        {% else %}
-                        <span class="text-muted small">No asignado</span>
-                        {% endif %}
-                    </td>
-                    <td class="col-materiales">
-                        <div class="driver-materials-list">
-                            {% for detalle in entrega.pedido.detalles.all|slice:":2" %}
-                            <div class="driver-material-item">
-                                <span class="driver-material-qty">{{ detalle.cantidad }}x</span>
-                                <span class="driver-material-name">{{ detalle.material.nombre }}</span>
-                            </div>
-                            {% empty %}
-                            <span class="text-muted small">Sin detalles</span>
-                            {% endfor %}
-                            {% if entrega.pedido.detalles.count > 2 %}
-                            <span class="driver-material-more">+{{ entrega.pedido.detalles.count|add:"-2" }} materiales más</span>
-                            {% endif %}
+                    <td class="col-cliente">
+                        <div class="driver-client-name">
+                            <i class="bi bi-person me-1"></i>{{
+                            entrega.pedido.cliente_usuario.nombre_mostrar|default:entrega.pedido.usuario.username }}
                         </div>
                     </td>
                     <td class="col-estado">
@@ -356,40 +303,25 @@
                     </td>
                     <td class="col-acciones text-end">
                         <div class="driver-actions-group">
-                            <!-- Ver Detalle -->
-                            <a href="{% url 'usuarios:detalle_entrega_conductor' entrega.id_entrega %}" class="btn btn-sm btn-outline-info driver-action-icon" title="Ver Detalle Completo" aria-label="Ver Detalle Completo">
+                            <!-- Ver Detalle (integra ruta, iniciar/finalizar entrega, vehículo y materiales) -->
+                            <a href="{% url 'usuarios:detalle_entrega_conductor' entrega.id_entrega %}"
+                                class="btn btn-sm btn-outline-info driver-action-icon"
+                                title="Ver detalle y gestionar entrega" aria-label="Ver detalle y gestionar entrega">
                                 <i class="bi bi-eye"></i>
                             </a>
 
-                            {% if entrega.estado == 'pendiente' %}
-                            <!-- Confirmar preparación e iniciar ruta -->
-                            <form action="{% url 'usuarios:iniciar_entrega' entrega.id_entrega %}" method="POST" class="d-inline"
-                                data-confirmar-constru-trans
-                                data-confirm-title="Iniciar ruta"
-                                data-confirm-label="Sí, iniciar ruta"
-                                data-confirm-message="Confirma que recogiste y cargaste todos los materiales del pedido #CT-{{ entrega.pedido.codigo_pedido }} en el vehículo asignado. Al continuar, el pedido pasará a En ruta.">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-success fw-bold driver-action-cta" title="Confirmar preparación e iniciar ruta" aria-label="Confirmar preparación e iniciar ruta">
-                                    <i class="bi bi-play-fill me-1"></i>Iniciar ruta
-                                </button>
-                            </form>
-                            {% elif entrega.estado == 'en_ruta' %}
-                            <!-- Marcar como entregado (Abre Modal) -->
-                            <button type="button" class="btn btn-sm btn-primary fw-bold driver-action-cta" data-bs-toggle="modal" data-bs-target="#modalFinalizar{{ entrega.id_entrega }}" title="Marcar como entregado" aria-label="Marcar como entregado">
-                                <i class="bi bi-check-lg me-1"></i>Entregado
-                            </button>
-
                             <!-- Reportar Novedad -->
-                            <a href="{% url 'logistica:crear_novedad' entrega.id_entrega %}" class="btn btn-sm btn-outline-warning driver-action-icon" title="Reportar Novedad" aria-label="Reportar Novedad">
+                            <a href="{% url 'logistica:crear_novedad' entrega.id_entrega %}"
+                                class="btn btn-sm btn-outline-warning driver-action-icon" title="Reportar novedad"
+                                aria-label="Reportar novedad">
                                 <i class="bi bi-exclamation-triangle"></i>
                             </a>
-                            {% endif %}
                         </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
+                    <td colspan="5" class="text-center py-5 text-muted">
                         <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
                         No tienes entregas activas asignadas actualmente.
                     </td>
@@ -402,51 +334,73 @@
 
 <!-- Modales de Finalizar Entrega fuera de la tabla para evitar que el backdrop los cubra -->
 {% for entrega in entregas %}
-    {% if entrega.estado == 'en_ruta' %}
-    <div class="modal fade text-start" id="modalFinalizar{{ entrega.id_entrega }}" tabindex="-1" aria-labelledby="modalLabel{{ entrega.id_entrega }}" aria-hidden="true" style="z-index: 1065;">
-        <div class="modal-dialog modal-dialog-centered" style="z-index: 1066;">
-            <div class="modal-content border-0 shadow-lg" style="background: var(--color-surface); color: var(--color-text); border-radius: var(--radius-xl);">
-                <form action="{% url 'usuarios:finalizar_entrega' entrega.id_entrega %}" method="POST">
-                    {% csrf_token %}
-                    <div class="modal-header" style="border-bottom: 1px solid var(--color-border);">
-                        <h5 class="modal-title fw-bold" id="modalLabel{{ entrega.id_entrega }}">
-                            <i class="bi bi-check2-circle text-success me-2"></i>Finalizar Entrega #ENV-{{ entrega.id_entrega }}
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+{% if entrega.estado == 'en_ruta' %}
+<div class="modal fade text-start" id="modalFinalizar{{ entrega.id_entrega }}" tabindex="-1"
+    aria-labelledby="modalLabel{{ entrega.id_entrega }}" aria-hidden="true" style="z-index: 1065;">
+    <div class="modal-dialog modal-dialog-centered" style="z-index: 1066;">
+        <div class="modal-content border-0 shadow-lg"
+            style="background: var(--color-surface); color: var(--color-text); border-radius: var(--radius-xl);">
+            <form action="{% url 'usuarios:finalizar_entrega' entrega.id_entrega %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-header" style="border-bottom: 1px solid var(--color-border);">
+                    <h5 class="modal-title fw-bold" id="modalLabel{{ entrega.id_entrega }}">
+                        <i class="bi bi-check2-circle text-success me-2"></i>Finalizar Entrega #ENV-{{
+                        entrega.id_entrega }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="mb-3" style="color: var(--color-text);">
+                        ¿Confirmas que los materiales del <strong>Pedido #CT-{{ entrega.pedido.codigo_pedido }}</strong>
+                        fueron entregados satisfactoriamente en destino?
+                    </p>
+                    <div class="p-3 rounded-3 mb-3"
+                        style="background: var(--item-bg); border: 1px solid var(--color-border);">
+                        <span class="text-muted small d-block mb-1">
+                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>Dirección Destino:
+                        </span>
+                        <strong style="color: var(--color-text);">{{
+                            entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}</strong>
                     </div>
-                    <div class="modal-body p-4">
-                        <p class="mb-3" style="color: var(--color-text);">
-                            ¿Confirmas que los materiales del <strong>Pedido #CT-{{ entrega.pedido.codigo_pedido }}</strong> fueron entregados satisfactoriamente en destino?
-                        </p>
-                        <div class="p-3 rounded-3 mb-3" style="background: var(--item-bg); border: 1px solid var(--color-border);">
-                            <span class="text-muted small d-block mb-1">
-                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>Dirección Destino:
-                            </span>
-                            <strong style="color: var(--color-text);">{{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}</strong>
-                        </div>
-                        <div class="mb-2">
-                            <label for="observaciones{{ entrega.id_entrega }}" class="form-label small fw-bold text-muted">Observaciones / Nota de entrega (Opcional):</label>
-                            <textarea name="observacion" id="observaciones{{ entrega.id_entrega }}" class="form-control" rows="2" placeholder="Ej: Recibido por el encargado de obra en portería." style="background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-md);"></textarea>
-                        </div>
+                    <div class="mb-2">
+                        <label for="observaciones{{ entrega.id_entrega }}"
+                            class="form-label small fw-bold text-muted">Observaciones / Nota de entrega
+                            (Opcional):</label>
+                        <textarea name="observacion" id="observaciones{{ entrega.id_entrega }}" class="form-control"
+                            rows="2" placeholder="Ej: Recibido por el encargado de obra en portería."
+                            style="background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-md);"></textarea>
                     </div>
-                    <div class="modal-footer" style="border-top: 1px solid var(--color-border);">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
-                            <i class="bi bi-check-circle me-1"></i>Confirmar Entrega
-                        </button>
-                    </div>
-                </form>
-            </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--color-border);">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-3"
+                        data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-check-circle me-1"></i>Confirmar Entrega
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-    {% endif %}
+</div>
+{% endif %}
 {% endfor %}
 
 <style>
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
-    .text-accent { color: var(--color-accent) !important; }
-    .text-color { color: var(--color-text) !important; }
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
+    .text-accent {
+        color: var(--color-accent) !important;
+    }
+
+    .text-color {
+        color: var(--color-text) !important;
+    }
 
     /* ============================================================
        Driver Deliveries Table - Clean, Balanced & Zero Clipping
@@ -481,7 +435,7 @@
 
     .driver-deliveries-table {
         width: 100% !important;
-        min-width: 860px;
+        min-width: 620px;
         table-layout: fixed;
         border-collapse: separate;
         border-spacing: 0;
@@ -507,12 +461,29 @@
         border-bottom: none !important;
     }
 
-    .driver-deliveries-table .col-envio { width: 18%; }
-    .driver-deliveries-table .col-destino { width: 22%; }
-    .driver-deliveries-table .col-vehiculo { width: 13%; }
-    .driver-deliveries-table .col-materiales { width: 18%; }
-    .driver-deliveries-table .col-estado { width: 14%; }
-    .driver-deliveries-table .col-acciones { width: 15%; }
+    .driver-deliveries-table .col-envio {
+        width: 18%;
+    }
+
+    .driver-deliveries-table .col-destino {
+        width: 22%;
+    }
+
+    .driver-deliveries-table .col-vehiculo {
+        width: 13%;
+    }
+
+    .driver-deliveries-table .col-materiales {
+        width: 18%;
+    }
+
+    .driver-deliveries-table .col-estado {
+        width: 14%;
+    }
+
+    .driver-deliveries-table .col-acciones {
+        width: 15%;
+    }
 
     .driver-cell-stack {
         display: flex;
@@ -704,10 +675,12 @@
         border: 1px solid var(--color-border, #e2e8f0);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
+
     .driver-kpi-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.08) !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08) !important;
     }
+
     .driver-kpi-icon-wrap {
         width: 48px;
         height: 48px;
@@ -718,26 +691,31 @@
         font-size: 1.35rem;
         flex-shrink: 0;
     }
+
     .kpi-amber {
         background: rgba(245, 158, 11, 0.15);
         color: #d97706;
         border: 1px solid rgba(245, 158, 11, 0.3);
     }
+
     .kpi-blue {
         background: rgba(59, 130, 246, 0.15);
         color: #2563eb;
         border: 1px solid rgba(59, 130, 246, 0.3);
     }
+
     .kpi-green {
         background: rgba(16, 185, 129, 0.15);
         color: #059669;
         border: 1px solid rgba(16, 185, 129, 0.3);
     }
+
     .kpi-rose {
         background: rgba(244, 63, 94, 0.15);
         color: #e11d48;
         border: 1px solid rgba(244, 63, 94, 0.3);
     }
+
     .driver-kpi-label {
         font-size: 0.75rem;
         font-weight: 700;
@@ -746,22 +724,27 @@
         letter-spacing: 0.03em;
         display: block;
     }
+
     .driver-kpi-value {
         font-size: 1.6rem;
         font-weight: 800;
         color: var(--color-text, #1e293b);
     }
+
     [data-theme="dark"] .driver-kpi-card {
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.08);
     }
+
     [data-theme="dark"] .driver-kpi-value {
         color: #ffffff;
     }
+
     [data-theme="accessibility"] .driver-kpi-card {
         background: #000000 !important;
         border: 2px solid #ffffff !important;
     }
+
     [data-theme="accessibility"] .driver-kpi-value,
     [data-theme="accessibility"] .driver-kpi-label {
         color: #ffffff !important;
@@ -859,9 +842,20 @@
     }
 
     @keyframes weather-pulse {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+        }
+
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
     }
 
     /* Hero section */

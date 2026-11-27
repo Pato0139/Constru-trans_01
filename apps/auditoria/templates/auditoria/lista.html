@@ -11,36 +11,86 @@
         width: 100% !important;
         margin: 0 !important;
     }
+
     #tabla-historial {
         table-layout: fixed;
-        min-width: 880px;
+        min-width: 560px;
     }
+
     #tabla-historial th,
     #tabla-historial td {
         vertical-align: middle;
         padding: 0.9rem 0.75rem;
     }
+
     /* Separar sutilmente la primera y última columna de los bordes de la tarjeta */
     #tabla-historial th:first-child,
     #tabla-historial td:first-child {
         padding-left: 1.25rem !important;
     }
+
     #tabla-historial th:last-child,
     #tabla-historial td:last-child {
         padding-right: 1.25rem !important;
     }
-    #tabla-historial .col-id { width: 6%; }
-    #tabla-historial .col-usuario { width: 19%; }
-    #tabla-historial .col-desc { width: 34%; word-break: break-word; }
-    #tabla-historial .col-modulo { width: 10%; text-align: center; }
-    #tabla-historial .col-fecha { width: 12%; white-space: nowrap !important; }
-    #tabla-historial .col-accion { width: 11%; white-space: nowrap !important; }
-    #tabla-historial .col-ip {
-        width: 8%;
-        white-space: nowrap !important;
-        text-align: center;
-        word-break: keep-all !important;
+
+    #tabla-historial .col-id {
+        width: 10%;
     }
+
+    #tabla-historial .col-usuario {
+        width: 28%;
+    }
+
+    #tabla-historial .col-modulo {
+        width: 20%;
+        text-align: center;
+    }
+
+    #tabla-historial .col-fecha {
+        width: 20%;
+        text-align: center;
+        white-space: nowrap !important;
+    }
+
+    #tabla-historial .col-accion {
+        width: 22%;
+        text-align: center;
+        white-space: nowrap !important;
+    }
+
+    .auditoria-datetime-stack {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.15;
+        font-variant-numeric: tabular-nums;
+        min-width: 5.2rem;
+    }
+
+    .auditoria-time {
+        font-size: 0.96rem;
+        font-weight: 700;
+        color: var(--color-text, #f8fafc);
+        letter-spacing: 0.02em;
+    }
+
+    .auditoria-date {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--color-text-muted, #94a3b8);
+        margin-top: 2px;
+    }
+
+    [data-theme="light"] .auditoria-time {
+        color: #0f172a !important;
+    }
+
+    [data-theme="light"] .auditoria-date {
+        color: #64748b !important;
+    }
+
     .auditoria-user-badge {
         display: inline-block;
         max-width: 100%;
@@ -48,17 +98,20 @@
         text-overflow: ellipsis;
         vertical-align: middle;
     }
+
     .auditoria-desc-text {
         font-size: 0.88rem;
         line-height: 1.45;
         color: var(--color-text, #f1f5f9);
         font-weight: 500;
     }
+
     .auditoria-fecha-text {
         font-size: 0.8rem;
         color: var(--color-text-muted, #94a3b8);
         font-variant-numeric: tabular-nums;
     }
+
     .auditoria-modulo-pill {
         display: inline-flex;
         align-items: center;
@@ -80,12 +133,14 @@
         border-radius: 14px !important;
         overflow: hidden;
     }
+
     .filter-card-container .form-control,
     .filter-card-container .form-select {
         border: 1px solid var(--color-border, rgba(255, 255, 255, 0.16)) !important;
         background-color: var(--color-surface, #1f2937) !important;
         color: var(--color-text, #f3f4f6) !important;
     }
+
     .filter-card-container .form-control:focus,
     .filter-card-container .form-select:focus {
         border-color: #3b82f6 !important;
@@ -97,16 +152,19 @@
         margin-bottom: 0 !important;
         border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
     }
+
     .dt-controls-footer {
         margin-top: 0 !important;
         border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
     }
+
     .dataTables_wrapper .dataTables_length,
     .dataTables_wrapper .dataTables_filter {
         display: flex;
         align-items: center;
         margin: 0;
     }
+
     .dataTables_wrapper .dataTables_length label,
     .dataTables_wrapper .dataTables_filter label,
     .dataTables_wrapper .dataTables_info {
@@ -116,6 +174,7 @@
         font-weight: 500;
         color: var(--color-text-muted, rgba(255, 255, 255, 0.75)) !important;
     }
+
     .dataTables_wrapper .dataTables_length select {
         background-color: var(--color-surface, #1f2937) !important;
         color: var(--color-text, #f3f4f6) !important;
@@ -124,6 +183,7 @@
         padding: 0.35rem 0.75rem;
         margin: 0 0.5rem;
     }
+
     .dataTables_wrapper .dataTables_filter input {
         background-color: var(--color-surface, #1f2937) !important;
         color: var(--color-text, #f3f4f6) !important;
@@ -140,6 +200,7 @@
         border-color: #e2e8f0 !important;
         box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05) !important;
     }
+
     [data-theme="light"] #tabla-historial,
     [data-theme="light"] #tabla-historial tbody,
     [data-theme="light"] #tabla-historial tbody tr,
@@ -148,20 +209,25 @@
         color: #1e293b !important;
         border-bottom-color: #e2e8f0 !important;
     }
+
     [data-theme="light"] #tabla-historial tbody tr:hover td {
         background-color: #f8fafc !important;
     }
+
     [data-theme="light"] .auditoria-desc-text {
         color: #0f172a !important;
     }
+
     [data-theme="light"] .auditoria-fecha-text {
         color: #475569 !important;
     }
+
     [data-theme="light"] .auditoria-modulo-pill {
         background: #f1f5f9 !important;
         color: #334155 !important;
         border-color: #cbd5e1 !important;
     }
+
     [data-theme="light"] .filter-card-container .form-control,
     [data-theme="light"] .filter-card-container .form-select,
     [data-theme="light"] .dataTables_wrapper .dataTables_length select,
@@ -178,7 +244,8 @@
     <div class="row mb-4">
         <div class="col-12">
             <h2 class="text-white"><i class="bi bi-clock-history text-accent me-2"></i>Auditoría de acciones</h2>
-            <p class="text-muted">Consulta de la bitácora del sistema: responsable, descripción, módulo, acción y fecha.</p>
+            <p class="text-muted">Consulta de la bitácora del sistema: responsable, descripción, módulo, acción y fecha.
+            </p>
         </div>
     </div>
 
@@ -191,8 +258,7 @@
                         <i class="bi bi-person me-1 text-accent"></i>Usuario
                     </label>
                     <input type="text" name="usuario" value="{{ usuario_actual }}"
-                        class="form-control form-control-sm filter-input"
-                        placeholder="Nombre de usuario">
+                        class="form-control form-control-sm filter-input" placeholder="Nombre de usuario">
                 </div>
                 <div class="col-12 col-sm-6 col-md-4 col-xl" style="min-width: 150px;">
                     <label class="form-label small text-white-50 fw-bold mb-1">
@@ -201,7 +267,8 @@
                     <select name="modulo" class="form-select form-select-sm filter-select">
                         <option value="">Todos los módulos</option>
                         {% for mod in modulos %}
-                        <option value="{{ mod }}" {% if modulo_actual == mod %}selected{% endif %}>{{ mod|capfirst }}</option>
+                        <option value="{{ mod }}" {% if modulo_actual == mod %}selected{% endif %}>{{ mod|capfirst }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -212,7 +279,8 @@
                     <select name="accion" class="form-select form-select-sm filter-select">
                         <option value="">Todas las acciones</option>
                         {% for valor, etiqueta in acciones %}
-                        <option value="{{ valor }}" {% if accion_actual == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                        <option value="{{ valor }}" {% if accion_actual == valor %}selected{% endif %}>{{ etiqueta }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -231,10 +299,15 @@
                         class="form-control form-control-sm filter-input">
                 </div>
                 <div class="col-12 col-sm-12 col-md-6 col-xl-auto d-flex gap-2 align-items-end pt-1">
-                    <button type="submit" class="btn btn-sm btn-primary px-3 py-2 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center text-nowrap" style="white-space: nowrap !important; min-width: 105px !important;" aria-label="Filtrar" title="Aplicar filtros">
+                    <button type="submit"
+                        class="btn btn-sm btn-primary px-3 py-2 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center text-nowrap"
+                        style="white-space: nowrap !important; min-width: 105px !important;" aria-label="Filtrar"
+                        title="Aplicar filtros">
                         <i class="bi bi-funnel-fill me-1"></i>Filtrar
                     </button>
-                    <a href="{% url 'auditoria:lista_historial' %}" class="btn btn-sm btn-outline-secondary px-3 py-2 fw-bold d-inline-flex align-items-center justify-content-center text-nowrap" style="white-space: nowrap !important; min-width: 105px !important;" title="Limpiar filtros">
+                    <a href="{% url 'auditoria:lista_historial' %}"
+                        class="btn btn-sm btn-outline-secondary px-3 py-2 fw-bold d-inline-flex align-items-center justify-content-center text-nowrap"
+                        style="white-space: nowrap !important; min-width: 105px !important;" title="Limpiar filtros">
                         <i class="bi bi-arrow-counterclockwise me-1"></i>Limpiar
                     </a>
                 </div>
@@ -246,16 +319,15 @@
     <div class="card auditoria-table-card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive w-100">
-                <table class="table table-hover mb-0 w-100 no-datatable" id="tabla-historial" style="width: 100% !important;">
+                <table class="table table-hover mb-0 w-100 no-datatable" id="tabla-historial"
+                    style="width: 100% !important;">
                     <thead>
                         <tr>
                             <th class="text-nowrap col-id">ID</th>
                             <th class="text-nowrap col-usuario">Usuario</th>
-                            <th class="col-desc">Descripción</th>
-                            <th class="text-nowrap col-modulo">Módulo</th>
-                            <th class="text-nowrap col-fecha">Fecha y Hora</th>
-                            <th class="text-nowrap col-accion">Acción</th>
-                            <th class="text-nowrap text-center col-ip">IP</th>
+                            <th class="text-nowrap text-center col-modulo">Módulo</th>
+                            <th class="text-nowrap text-center col-fecha">Fecha y Hora</th>
+                            <th class="text-nowrap text-center col-accion">Acción</th>
                         </tr>
                     </thead>
                     <tbody id="historial-tbody">
@@ -286,15 +358,13 @@
                     d.fecha_fin = $('input[name="fecha_fin"]').val();
                 }
             },
-            "order": [[4, "desc"]], // Ordenar por fecha y hora descendente (columna 4)
+            "order": [[3, "desc"]], // Ordenar por fecha y hora descendente (columna 3)
             "columns": [
                 { "orderable": true, "className": "text-nowrap align-middle col-id" },                         // 0: ID
                 { "orderable": true, "className": "align-middle col-usuario" },                                // 1: Usuario
-                { "orderable": true, "className": "align-middle col-desc" },                                   // 2: Descripción
-                { "orderable": true, "className": "text-nowrap text-center align-middle col-modulo" },         // 3: Módulo
-                { "orderable": true, "className": "text-nowrap align-middle col-fecha" },                      // 4: Fecha y Hora
-                { "orderable": true, "className": "text-nowrap align-middle col-accion" },                     // 5: Acción
-                { "orderable": true, "className": "text-nowrap text-center align-middle font-monospace col-ip" } // 6: IP
+                { "orderable": true, "className": "text-nowrap text-center align-middle col-modulo" },         // 2: Módulo
+                { "orderable": true, "className": "text-nowrap text-center align-middle col-fecha" },          // 3: Fecha y Hora
+                { "orderable": true, "className": "text-nowrap text-center align-middle col-accion" }          // 4: Acción
             ],
             "pageLength": 10,
             "lengthMenu": [10, 25, 50, 100],

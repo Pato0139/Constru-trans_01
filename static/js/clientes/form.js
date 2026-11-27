@@ -11,6 +11,54 @@
 let totalGeneral = 0;
 let stockRefreshTimer = null;
 let stockRefreshInFlight = false;
+let globalListenersBound = false;
+
+function parseNumericAmount(value) {
+    if (typeof value === 'number') {
+        return Number.isFinite(value) ? value : 0;
+    }
+    const raw = String(value ?? '').trim();
+    if (!raw) return 0;
+    // Normalize comma decimal if present without dot
+    const normalized = raw.includes(',') && !raw.includes('.')
+        ? raw.replace(',', '.')
+        : raw.replace(/,/g, '');
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function recalcularSubtotalDesdeTabla() {
+    const lista = document.getElementById('lista-detalles');
+    if (!lista) {
+        totalGeneral = 0;
+        return 0;
+    }
+
+    let suma = 0;
+    lista.querySelectorAll('tr.material-item').forEach((row) => {
+        const precioAttr = row.dataset.precio;
+        const cantidadInput = row.querySelector('input[name="cantidad[]"]');
+        const btnEliminar = row.querySelector('.btn-eliminar-material');
+
+        let subtotalFila = 0;
+        if (precioAttr !== undefined && cantidadInput) {
+            const precio = parseNumericAmount(precioAttr);
+            const cantidad = Number.parseInt(cantidadInput.value || '0', 10) || 0;
+            subtotalFila = Math.round(precio * cantidad * 100) / 100;
+        } else if (btnEliminar && btnEliminar.dataset.subtotal !== undefined) {
+            subtotalFila = parseNumericAmount(btnEliminar.dataset.subtotal);
+        } else if (row.dataset.subtotal !== undefined) {
+            subtotalFila = parseNumericAmount(row.dataset.subtotal);
+        }
+
+        if (subtotalFila > 0) {
+            suma += subtotalFila;
+        }
+    });
+
+    totalGeneral = Math.max(0, Math.round(suma * 100) / 100);
+    return totalGeneral;
+}
 
 function obtenerConfigDespacho() {
     const form = document.getElementById('form-pedido');
@@ -69,6 +117,9 @@ function formatCurrency(value) {
  * @returns {void}
  */
 function actualizarTotalDisplay() {
+    recalcularSubtotalDesdeTabla();
+
+    const subtotalElement = document.getElementById('display-subtotal');
     const totalElement = document.getElementById('display-total');
     const tarifaElement = document.getElementById('display-tarifa-envio');
     const tarifaDetalleElement = document.getElementById('display-tarifa-detalle');
@@ -79,7 +130,11 @@ function actualizarTotalDisplay() {
     const { ciudadGratis, tarifaExterna, montoMinimo } = obtenerConfigDespacho();
     const ciudad = obtenerCiudadSeleccionada();
     const tarifaEnvio = calcularTarifaEnvio(ciudad);
-    const totalConEnvio = Math.round((totalGeneral + tarifaEnvio) * 100) / 100;
+    const totalConEnvio = Math.max(0, Math.round((totalGeneral + tarifaEnvio) * 100) / 100);
+
+    if (subtotalElement) {
+        subtotalElement.innerText = formatCurrency(totalGeneral);
+    }
 
     if (totalElement) {
         totalElement.innerText = formatCurrency(totalConEnvio);
@@ -126,9 +181,10 @@ function actualizarTotalDisplay() {
  * @returns {void}
  * @description Remueve la fila del DOM y resta el subtotal del total general
  */
-function eliminarFila(btn, subtotal) {
-    btn.closest('tr')?.remove();
-    totalGeneral = Math.round((totalGeneral - subtotal) * 100) / 100;
+function eliminarFila(btn) {
+    const row = btn.closest('tr');
+    if (!row) return;
+    row.remove();
     actualizarTotalDisplay();
 }
 
@@ -136,9 +192,23 @@ function eliminarFila(btn, subtotal) {
  * Agrega un nuevo material a la tabla de detalles del pedido
  * @function agregarMaterial
  * @returns {void}
- * @description Valida selección y cantidad, calcula subtotal, crea fila HTML y actualiza el total
+ * @description Valida selección y cantidad, calcula subtotal, crea o actualiza fila HTML y recalcula el total
  * @fires Event#change - Dispara evento change en inputs para notificar cambios
  */
+function escapeHtmlText(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+}
+
+function mostrarAvisoPedido(mensaje, titulo = 'Revisa el pedido') {
+    if (typeof window.AppAlert === 'function') {
+        window.AppAlert(mensaje, titulo, 'warning');
+    } else {
+        window.alert(mensaje);
+    }
+}
+
 function agregarMaterial() {
     const select = document.getElementById('select-material');
     const cantidadInput = document.getElementById('input-cantidad');
@@ -146,46 +216,77 @@ function agregarMaterial() {
 
     if (!select || !cantidadInput || !lista) return;
 
+    const option = select.options[select.selectedIndex];
     const materialId = select.value;
-    const materialNombre = select.options[select.selectedIndex]?.text || '';
-    const precio = parseFloat(select.options[select.selectedIndex]?.getAttribute('data-precio') || 0);
-    const stockDisponible = parseStockNumber(select.options[select.selectedIndex]?.dataset.stock);
-    const cantidad = parseInt(cantidadInput.value || 0, 10);
+    const materialNombre = option?.text || '';
+    const precio = parseNumericAmount(option?.getAttribute('data-precio'));
+    const stockDisponible = parseStockNumber(option?.dataset.stock);
+    const cantidad = Number.parseInt(cantidadInput.value || '0', 10);
 
-    if (!materialId || cantidad <= 0) {
-        alert('Seleccione un material y una cantidad válida');
+    if (!materialId || !Number.isInteger(cantidad) || cantidad <= 0) {
+        mostrarAvisoPedido('Seleccione un material y una cantidad válida mayor a 0.');
         return;
     }
 
-    if (cantidad > stockDisponible) {
-        alert(`Stock insuficiente. Solo hay ${stockDisponible} unidades disponibles de este material.`);
+    // Buscar si el mismo material ya existe en la tabla para acumular cantidad y validar stock real
+    const filaExistente = Array.from(lista.querySelectorAll('tr.material-item')).find((tr) => {
+        const idInput = tr.querySelector('input[name="material_id[]"]');
+        return idInput && String(idInput.value) === String(materialId);
+    });
+
+    const cantidadPrevia = filaExistente
+        ? (Number.parseInt(filaExistente.querySelector('input[name="cantidad[]"]')?.value || '0', 10) || 0)
+        : 0;
+    const cantidadTotal = cantidadPrevia + cantidad;
+
+    if (cantidadTotal > stockDisponible) {
+        mostrarAvisoPedido(
+            cantidadPrevia > 0
+                ? `Stock insuficiente. Ya tienes ${cantidadPrevia} en el pedido y solo hay ${stockDisponible} unidades disponibles.`
+                : `Stock insuficiente. Solo hay ${stockDisponible} unidades disponibles de este material.`,
+            'Stock insuficiente'
+        );
         return;
     }
 
-    const subtotal = Math.round(precio * cantidad * 100) / 100;
-    totalGeneral = Math.round((totalGeneral + subtotal) * 100) / 100;
+    const subtotal = Math.round(precio * cantidadTotal * 100) / 100;
 
-    const row = document.createElement('tr');
-    row.className = 'material-item';
-    row.innerHTML = `
-        <td class="ps-0 py-3">
-            <span class="text-white fw-600">${materialNombre}</span>
-            <input type="hidden" name="material_id[]" value="${materialId}">
-        </td>
-        <td class="text-center text-white-50 py-3">
-            <span class="badge rounded-pill px-3 material-badge">${cantidad}</span>
-            <input type="hidden" name="cantidad[]" value="${cantidad}">
-        </td>
-        <td class="text-end text-white-50 py-3">${formatCurrency(precio)}</td>
-        <td class="text-end text-accent fw-800 py-3">${formatCurrency(subtotal)}</td>
-        <td class="text-end pe-0 py-3">
-            <button type="button" class="btn btn-link text-danger p-0 btn-eliminar-material" data-subtotal="${subtotal}">
-                <i class="bi bi-trash3-fill"></i>
-            </button>
-        </td>
-    `;
+    if (filaExistente) {
+        filaExistente.dataset.precio = String(precio);
+        filaExistente.dataset.subtotal = String(subtotal);
+        const badge = filaExistente.querySelector('.material-badge');
+        const hiddenQty = filaExistente.querySelector('input[name="cantidad[]"]');
+        const subtotalCell = filaExistente.querySelector('.material-subtotal-cell');
+        const btnDel = filaExistente.querySelector('.btn-eliminar-material');
+        if (badge) badge.textContent = String(cantidadTotal);
+        if (hiddenQty) hiddenQty.value = String(cantidadTotal);
+        if (subtotalCell) subtotalCell.textContent = formatCurrency(subtotal);
+        if (btnDel) btnDel.dataset.subtotal = String(subtotal);
+    } else {
+        const row = document.createElement('tr');
+        row.className = 'material-item';
+        row.dataset.precio = String(precio);
+        row.dataset.subtotal = String(subtotal);
+        row.innerHTML = `
+            <td class="ps-0 py-3">
+                <span class="text-white fw-600">${escapeHtmlText(materialNombre)}</span>
+                <input type="hidden" name="material_id[]" value="${escapeHtmlText(materialId)}">
+            </td>
+            <td class="text-center text-white-50 py-3">
+                <span class="badge rounded-pill px-3 material-badge">${cantidadTotal}</span>
+                <input type="hidden" name="cantidad[]" value="${cantidadTotal}">
+            </td>
+            <td class="text-end text-white-50 py-3">${formatCurrency(precio)}</td>
+            <td class="text-end text-accent fw-800 py-3 material-subtotal-cell">${formatCurrency(subtotal)}</td>
+            <td class="text-end pe-0 py-3">
+                <button type="button" class="btn btn-link text-danger p-0 btn-eliminar-material" data-subtotal="${subtotal}" aria-label="Eliminar material" title="Eliminar material">
+                    <i class="bi bi-trash3-fill"></i>
+                </button>
+            </td>
+        `;
+        lista.appendChild(row);
+    }
 
-    lista.appendChild(row);
     actualizarTotalDisplay();
 
     select.value = '';
@@ -488,9 +589,9 @@ function formatFechaParaInput(value) {
  * @listens DOMContentLoaded
  */
 window.AppPageLifecycle.onPageLoad(() => {
-    const displayTotal = document.getElementById('display-total');
-    const subtotalInicial = displayTotal?.dataset.subtotalInicial ?? displayTotal?.dataset.totalInicial;
-    totalGeneral = parseFloat(subtotalInicial || 0);
+    const formPedido = document.getElementById('form-pedido');
+    if (!formPedido || formPedido.dataset.pedidoFormBound === '1') return;
+    formPedido.dataset.pedidoFormBound = '1';
 
     document.getElementById('btn-agregar-material')
         ?.addEventListener('click', agregarMaterial);
@@ -498,9 +599,28 @@ window.AppPageLifecycle.onPageLoad(() => {
     const selectCiudad = document.getElementById('select-ciudad') || document.querySelector('select[name="ciudad"]');
     selectCiudad?.addEventListener('change', actualizarTotalDisplay);
 
-    const formPedido = document.getElementById('form-pedido');
-    formPedido?.addEventListener('submit', (event) => {
+    formPedido.addEventListener('submit', (event) => {
+        const filas = document.querySelectorAll('#lista-detalles tr.material-item');
+        if (!filas.length) {
+            event.preventDefault();
+            mostrarAvisoPedido('Debes agregar al menos un material al pedido.');
+            return;
+        }
+        const ciudadVal = obtenerCiudadSeleccionada();
+        const dirVal = (document.getElementById('input-direccion')?.value || '').trim();
+        if (!ciudadVal) {
+            event.preventDefault();
+            mostrarAvisoPedido('Selecciona la ciudad de destino.');
+            return;
+        }
+        if (dirVal.length < 5) {
+            event.preventDefault();
+            mostrarAvisoPedido('Indica una dirección de entrega válida (mínimo 5 caracteres).');
+            document.getElementById('input-direccion')?.focus();
+            return;
+        }
         const { montoMinimo } = obtenerConfigDespacho();
+        recalcularSubtotalDesdeTabla();
         const totalConEnvio = calcularTotalConEnvio();
         if (totalConEnvio < montoMinimo) {
             event.preventDefault();
@@ -545,9 +665,6 @@ window.AppPageLifecycle.onPageLoad(() => {
             if (event.key === 'ArrowUp') { event.preventDefault(); (filas[Math.max(indice - 1, 0)] || busquedaMaterial).focus(); }
             if (event.key === 'Escape') { cerrarSelectorMaterial(); busquedaMaterial.focus(); }
         });
-        document.addEventListener('click', (event) => {
-            if (!event.target.closest('.material-picker')) cerrarSelectorMaterial();
-        });
     }
 
     const picker = document.getElementById('fecha_entrega_picker');
@@ -580,13 +697,19 @@ window.AppPageLifecycle.onPageLoad(() => {
         }
     });
 
-    document.addEventListener('click', (event) => {
-        const btnEliminar = event.target.closest('.btn-eliminar-material');
-        if (!btnEliminar) return;
-
-        const subtotal = parseFloat(btnEliminar.dataset.subtotal || 0);
-        eliminarFila(btnEliminar, subtotal);
-    });
+    if (!globalListenersBound) {
+        globalListenersBound = true;
+        document.addEventListener('click', (event) => {
+            const btnEliminar = event.target.closest('.btn-eliminar-material');
+            if (btnEliminar) {
+                eliminarFila(btnEliminar);
+                return;
+            }
+            if (!event.target.closest('.material-picker')) {
+                cerrarSelectorMaterial();
+            }
+        });
+    }
 
     actualizarTotalDisplay();
 });

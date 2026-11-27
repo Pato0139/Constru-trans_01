@@ -8,12 +8,13 @@ def currency(value):
     try:
         val = float(value)
         rounded = int(round(val))
-        s = str(rounded)
+        sign = "-" if rounded < 0 else ""
+        s = str(abs(rounded))
         parts = []
         while s:
             parts.append(s[-3:])
             s = s[:-3]
-        return ".".join(reversed(parts))
+        return sign + ".".join(reversed(parts))
     except (ValueError, TypeError):
         return value
 

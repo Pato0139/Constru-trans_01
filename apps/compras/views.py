@@ -1,3 +1,4 @@
+from decimal import Decimal
 import logging
 
 from django.conf import settings
@@ -215,45 +216,11 @@ def cambiar_estado_compra(request, id):
 @admin_required
 def editar_compra(request, id):
     compra = get_object_or_404(Compra, id_compra=id)
-    if compra.estado != "pendiente":
-        messages.error(request, "Solo se pueden editar órdenes en estado pendiente.")
-        return redirect("compras:detalle_compra", id=compra.id_compra)
-
-    if request.method == "POST":
-        form = CompraForm(request.POST, instance=compra)
-        if form.is_valid():
-            proveedor = form.cleaned_data["proveedor"]
-            detalles, errores = _detalles_desde_post(request, proveedor)
-            if not errores:
-                with transaction.atomic():
-                    form.save()
-                    compra.detalles.all().delete()
-                    for material, cantidad, precio in detalles:
-                        DetalleCompra.objects.create(
-                            compra=compra,
-                            material=material,
-                            cantidad=cantidad,
-                            precio_unitario=precio,
-                        )
-                    compra.calcular_total()
-                messages.success(request, "Orden de compra actualizada.")
-                return redirect("compras:detalle_compra", id=compra.id_compra)
-            for error in errores:
-                messages.error(request, error)
-    else:
-        form = CompraForm(instance=compra)
-
-    return render(
+    messages.info(
         request,
-        "compras/form.html",
-        {
-            "form": form,
-            "formset": DetalleCompraFormSet(instance=compra),
-            "compra": compra,
-            "action": "Editar",
-            "iva_rate": 0,
-        },
+        "El historial de compras es solo de consulta y no se puede editar.",
     )
+    return redirect("compras:detalle_compra", id=compra.id_compra)
 
 
 @admin_required
@@ -466,21 +433,42 @@ def editar_proveedor(request, codigo_proveedor):
 
 @admin_required
 def perfil_proveedor(request, codigo_proveedor):
-    proveedor = get_object_or_404(
-        Proveedor.objects.prefetch_related("materiales_ofertados__material__unidad_medida"),
-        codigo_proveedor=codigo_proveedor,
+    proveedor = get_object_or_404(Proveedor, codigo_proveedor=codigo_proveedor)
+
+    detalles_compra = list(
+        DetalleCompra.objects.filter(compra__proveedor=proveedor)
+        .select_related("compra", "material", "material__unidad_medida")
+        .order_by("-compra__fecha_compra", "-id_detalle_compra")
     )
 
-    catalogo = proveedor.materiales_ofertados.select_related(
-        "material", "material__unidad_medida"
-    ).order_by("material__nombre")
+    compras_validas = Compra.objects.filter(proveedor=proveedor).exclude(estado="cancelada")
+    total_comprado = sum((c.total_compra or Decimal("0") for c in compras_validas), Decimal("0"))
+    total_entradas = len(detalles_compra)
+    ultima_compra = (
+        compras_validas.order_by("-fecha_compra").values_list("fecha_compra", flat=True).first()
+    )
+
+    material_frecuente = "Sin compras"
+    if detalles_compra:
+        conteo_materiales = {}
+        for det in detalles_compra:
+            nombre_mat = det.material.nombre
+            conteo_materiales[nombre_mat] = conteo_materiales.get(nombre_mat, 0) + int(
+                det.cantidad or 0
+            )
+        if conteo_materiales:
+            material_frecuente = max(conteo_materiales.items(), key=lambda x: x[1])[0]
 
     return render(
         request,
         "compras/proveedor_perfil.html",
         {
             "proveedor": proveedor,
-            "catalogo": catalogo,
+            "historial_compras": detalles_compra,
+            "total_comprado": total_comprado,
+            "total_entradas": total_entradas,
+            "ultima_compra": ultima_compra,
+            "material_frecuente": material_frecuente,
         },
     )
 

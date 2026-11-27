@@ -92,7 +92,7 @@
                             <tbody id="lista-detalles">
                                 {% if action == 'editar' %}
                                     {% for detalle in orden.detalles.all %}
-                                    <tr class="material-item">
+                                    <tr class="material-item" data-precio="{{ detalle.precio_unitario|unlocalize }}" data-subtotal="{{ detalle.subtotal|unlocalize }}">
                                         <td class="ps-0 py-3">
                                             <span class="text-white fw-600">{{ detalle.material.nombre }}</span>
                                             <input type="hidden" name="material_id[]" value="{{ detalle.material.id }}">
@@ -101,8 +101,8 @@
                                             <span class="badge rounded-pill px-3 material-badge">{{ detalle.cantidad }}</span>
                                             <input type="hidden" name="cantidad[]" value="{{ detalle.cantidad }}">
                                         </td>
-                                        <td class="text-end text-white-50 py-3">{{ detalle.precio_unitario|currency }}</td>
-                                        <td class="text-end text-accent fw-800 py-3">{{ detalle.subtotal|currency }}</td>
+                                        <td class="text-end text-white-50 py-3">${{ detalle.precio_unitario|currency }}</td>
+                                        <td class="text-end text-accent fw-800 py-3 material-subtotal-cell">${{ detalle.subtotal|currency }}</td>
                                         <td class="text-end pe-0 py-3">
                                             <button type="button" class="btn btn-link text-danger p-0 btn-eliminar-material" data-subtotal="{{ detalle.subtotal|unlocalize }}" aria-label="Eliminar material" data-tooltip="Eliminar material" title="Eliminar material">
                                                 <i class="bi bi-trash3-fill"></i>
@@ -117,16 +117,20 @@
                 </div>
 
                 <div class="p-4 rounded-4 mb-5 shadow-sm pedido-total-box">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-800 text-muted small text-uppercase pedido-total-label">Total Estimado del Pedido:</span>
-                        <h3 class="mb-0 fw-900 text-accent pedido-total-value" id="display-total" data-subtotal-inicial="{% if action == 'editar' %}{{ orden.subtotal|default:0|unlocalize }}{% else %}0{% endif %}">{% if action == 'editar' %}${{ orden.total|currency }}{% else %}$0{% endif %}</h3>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-700 text-muted small text-uppercase">Subtotal de materiales:</span>
+                        <span class="fw-800 text-white" id="display-subtotal">{% if action == 'editar' %}${{ orden.subtotal|default:0|currency }}{% else %}$0{% endif %}</span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center pedido-shipping-row mt-3 pt-3">
+                    <div class="d-flex justify-content-between align-items-center pedido-shipping-row py-2 mb-2">
                         <div>
                             <span class="fw-700 text-muted small text-uppercase pedido-shipping-label">Tarifa por envío:</span>
                             <small id="display-tarifa-detalle" class="d-block pedido-shipping-note">Envío gratis en Duitama; otros destinos $15.000.</small>
                         </div>
                         <span class="fw-800 pedido-shipping-value" id="display-tarifa-envio">{% if action == 'editar' %}${{ orden.tarifa_envio|currency }}{% else %}$0{% endif %}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25">
+                        <span class="fw-800 text-muted small text-uppercase pedido-total-label">Total Estimado del Pedido:</span>
+                        <h3 class="mb-0 fw-900 text-accent pedido-total-value" id="display-total" data-subtotal-inicial="{% if action == 'editar' %}{{ orden.subtotal|default:0|unlocalize }}{% else %}0{% endif %}">{% if action == 'editar' %}${{ orden.total|currency }}{% else %}$0{% endif %}</h3>
                     </div>
                     <div id="pedido-minimo-alerta" class="pedido-minimo-alerta mt-3" role="alert" hidden>
                         <i class="bi bi-exclamation-circle-fill me-2"></i>
@@ -286,6 +290,6 @@
 
 {% block extra_js %}
 <script src="{% static 'vendor/leaflet/leaflet.js' %}"></script>
-<script src="{% static 'js/clientes/form.js' %}?v=1.9"></script>
-<script src="{% static 'js/clientes/map-picker.js' %}?v=1.2"></script>
+<script src="{% static 'js/clientes/form.js' %}?v=2.0"></script>
+<script src="{% static 'js/clientes/map-picker.js' %}?v=1.4"></script>
 {% endblock %}

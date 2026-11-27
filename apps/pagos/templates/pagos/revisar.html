@@ -68,7 +68,11 @@
                     </div>
                     <div class="d-flex gap-2 flex-wrap">
                         <button type="submit" name="accion" value="aprobar" class="btn btn-success rounded-pill px-4 fw-700"
-                            onclick="return confirm('¿Confirmas aprobar este pago y autorizar el pedido #CT-{{ pedido.codigo_pedido }} para despacho?');">
+                            data-confirm-title="Aprobar pago"
+                            data-confirm-action="¿Confirmas aprobar este pago y autorizar el pedido #CT-{{ pedido.codigo_pedido }} para despacho?"
+                            data-confirm-btn="Continuar y aprobar"
+                            data-confirm-color="#16a34a"
+                            data-confirm-icon="question">
                             <i class="bi bi-check-circle-fill me-1"></i>Aprobar Pago
                         </button>
                         <button type="submit" name="accion" value="rechazar" class="btn btn-outline-danger rounded-pill px-4 fw-700">

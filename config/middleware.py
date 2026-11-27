@@ -148,9 +148,13 @@ _LOGISTICA_URLNAMES_ROLES = {
     "crear_entrega": {"admin"},
     "lista_entregas": {"admin", "conductor"},
     "detalle_entrega": {"admin", "conductor"},
-    "registrar_novedad": {"admin", "conductor"},
+    "lista_novedades_admin": {"admin"},
+    "crear_novedad": {"admin", "conductor", "cliente"},
+    "mis_novedades": {"admin", "conductor", "cliente"},
+    "agregar_seguimiento": {"admin", "conductor", "cliente"},
+    "registrar_novedad": {"admin", "conductor", "cliente"},
     "responder_seguimiento": {"admin"},
-    "seguimiento_novedad": {"admin", "conductor"},
+    "seguimiento_novedad": {"admin", "conductor", "cliente"},
 }
 
 
@@ -162,7 +166,7 @@ _URLNAMES_BY_ROLE_EXTRA = {
         "perfil_cliente": {"cliente"},
         "seguimiento_pedidos": {"cliente"},
         "historial_pedidos": {"cliente"},
-        "crear_pedido": {"cliente"},
+        "crear_pedido": {"cliente", "admin"},
         "editar_pedido": {"cliente", "admin"},
         "cancelar_pedido": {"cliente", "admin"},
         "lista_clientes": {"admin"},

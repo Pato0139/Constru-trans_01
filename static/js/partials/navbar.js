@@ -100,9 +100,12 @@ document.addEventListener('click', (event) => {
                                 </div>
                             </div>
                             <div class="flex-grow-1 min-w-0">
-                                <p class="mb-1 fw-bold text-white navbar-notif-title">${escapeHtml(notif.titulo)}</p>
-                                <p class="mb-2 text-muted navbar-notif-message">${escapeHtml(notif.mensaje)}</p>
-                                <span class="text-muted navbar-notif-date">${escapeHtml(notif.fecha)}</span>
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                    <p class="mb-0 fw-bold navbar-notif-title text-truncate">${escapeHtml(notif.titulo)}</p>
+                                    ${!notif.leida ? '<span class="badge rounded-pill bg-primary" style="width:8px;height:8px;padding:0;" title="No leída"></span>' : ''}
+                                </div>
+                                <p class="mb-1 text-muted navbar-notif-message">${escapeHtml(notif.mensaje)}</p>
+                                <span class="text-muted navbar-notif-date"><i class="bi bi-clock me-1"></i>${escapeHtml(notif.fecha)}</span>
                             </div>
                         </div>
                     </a>
@@ -127,17 +130,18 @@ document.addEventListener('click', (event) => {
 
             const badge = document.getElementById('navbarNotifBadge');
             if (badge) {
-                badge.textContent = String(count);
+                badge.textContent = count > 99 ? '99+' : String(count);
                 badge.classList.toggle('d-none', count <= 0);
             }
             const headerBadge = document.getElementById('navbarNotifHeaderBadge');
             if (headerBadge) {
-                headerBadge.textContent = `${count} nuevas`;
+                headerBadge.textContent = count > 99 ? '99+ nuevas' : `${count} nuevas`;
                 headerBadge.classList.toggle('d-none', count <= 0);
             }
 
             if (Array.isArray(data.items)) {
                 renderNotifItems(data.items);
+                const isLight = (document.documentElement.getAttribute('data-theme') || document.body.getAttribute('data-theme')) === 'light';
                 data.items.forEach((item) => {
                     const key = `${item.id}:${item.fecha_ts || item.fecha}`;
                     if (!initialized) {
@@ -148,13 +152,21 @@ document.addEventListener('click', (event) => {
                             window.Swal.fire({
                                 toast: true,
                                 position: 'top-end',
-                                icon: item.tipo === 'warning' ? 'warning' : 'info',
+                                icon: item.tipo === 'warning' ? 'warning' : (item.tipo === 'success' ? 'success' : 'info'),
                                 title: item.titulo,
                                 text: item.mensaje,
                                 showConfirmButton: true,
+                                showCloseButton: true,
                                 confirmButtonText: 'Ver ahora',
-                                timer: 9000,
-                                timerProgressBar: true
+                                confirmButtonColor: '#2563eb',
+                                background: isLight ? '#ffffff' : '#1e293b',
+                                color: isLight ? '#0f172a' : '#f8fafc',
+                                timer: 8000,
+                                timerProgressBar: true,
+                                didOpen: (toast) => {
+                                    toast.onmouseenter = window.Swal.stopTimer;
+                                    toast.onmouseleave = window.Swal.resumeTimer;
+                                }
                             }).then((result) => {
                                 if (result.isConfirmed && item.url) {
                                     window.location.href = item.url;

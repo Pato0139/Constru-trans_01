@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Registrar Novedad{% endblock %}
+{% block title %}{% if rol_novedad == 'conductor' %}Reportar Novedad en Ruta{% elif rol_novedad == 'cliente' %}Reportar Novedad o Queja{% else %}Registrar Novedad{% endif %}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/logistica/novedad-form.css' %}?v=1.0">
@@ -13,35 +13,69 @@
         <div class="col-lg-8">
             <div class="card novedad-form-card shadow border-0 rounded-4 overflow-hidden">
                 <div class="card-header novedad-form-header py-3">
-                    <h4 class="mb-0">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        Registrar Novedad
-                    </h4>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h4 class="mb-0">
+                            {% if rol_novedad == 'conductor' %}
+                                <i class="bi bi-truck me-2 text-warning"></i>Reportar Novedad o Queja en Ruta
+                            {% elif rol_novedad == 'cliente' %}
+                                <i class="bi bi-chat-square-text-fill me-2 text-info"></i>Reportar Novedad o Queja de mi Pedido
+                            {% else %}
+                                <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Registrar Novedad Logística
+                            {% endif %}
+                        </h4>
+                        <span class="badge rounded-pill {% if rol_novedad == 'conductor' %}bg-warning text-dark{% elif rol_novedad == 'cliente' %}bg-info text-dark{% else %}bg-primary{% endif %} px-3 py-2">
+                            {% if rol_novedad == 'conductor' %}Perfil Conductor{% elif rol_novedad == 'cliente' %}Perfil Cliente{% else %}Administración{% endif %}
+                        </span>
+                    </div>
                 </div>
                 <div class="card-body p-4">
+                    {% if rol_novedad == 'conductor' %}
+                    <div class="alert alert-warning border-0 rounded-3 small mb-4">
+                        <i class="bi bi-shield-exclamation me-2"></i>
+                        <strong>¿Tuviste una queja o inconveniente con el cliente?</strong>
+                        Selecciona <em>«Queja o inconveniente con el cliente»</em> o <em>«Ausencia del cliente»</em>, describe los hechos y adjunta foto si aplica. Administración recibirá el reporte de inmediato y te responderá en <strong>Mis Novedades</strong>.
+                    </div>
+                    {% elif rol_novedad == 'cliente' %}
+                    <div class="alert alert-info border-0 rounded-3 small mb-4">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Cuéntanos si hubo algún inconveniente con la entrega o los materiales de tu pedido. Nuestro equipo de administración revisará tu reporte y podrás ver la respuesta en <strong>Mis Novedades</strong>.
+                    </div>
+                    {% endif %}
+
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <div class="p-3 novedad-meta-card rounded-3">
                                 <small class="text-muted text-uppercase fw-semibold">Pedido</small>
                                 <p class="fw-bold mb-0 mt-1">
-                                    #{{ pedido.codigo_pedido }}
+                                    #CT-{{ pedido.codigo_pedido }}
                                 </p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="p-3 novedad-meta-card rounded-3">
-                                <small class="text-muted text-uppercase fw-semibold">Envio / Entrega</small>
+                                <small class="text-muted text-uppercase fw-semibold">Envío / Entrega</small>
                                 <p class="fw-bold mb-0 mt-1">
                                     #{{ entrega.id_entrega }}
-                                    <span class="badge bg-secondary ms-2">{{ entrega.estado }}</span>
+                                    <span class="badge bg-secondary ms-2">{{ entrega.get_estado_display }}</span>
                                 </p>
                             </div>
                         </div>
+                        {% if rol_novedad == 'cliente' %}
+                        <div class="col-12">
+                            <div class="p-3 novedad-meta-card rounded-3">
+                                <small class="text-muted text-uppercase fw-semibold">Dirección de entrega</small>
+                                <p class="mb-0 mt-1">{{ entrega.direccion_entrega|default:pedido.direccion_destino }}</p>
+                            </div>
+                        </div>
+                        {% else %}
                         <div class="col-md-6">
                             <div class="p-3 novedad-meta-card rounded-3">
-                                <small class="text-muted text-uppercase fw-semibold">Conductor</small>
+                                <small class="text-muted text-uppercase fw-semibold">{% if rol_novedad == 'conductor' %}Destino / Cliente{% else %}Conductor{% endif %}</small>
                                 <p class="mb-0 mt-1">
-                                    {% if entrega.conductor %}
+                                    {% if rol_novedad == 'conductor' %}
+                                        {{ pedido.cliente|default:pedido.usuario.get_full_name|default:"Cliente" }}
+                                        {% if entrega.direccion_entrega %}<br><small class="text-muted">{{ entrega.direccion_entrega }}</small>{% endif %}
+                                    {% elif entrega.conductor %}
                                         {{ entrega.conductor.nombres }} {{ entrega.conductor.apellidos }}
                                     {% else %}
                                         <em>No asignado</em>
@@ -51,7 +85,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="p-3 novedad-meta-card rounded-3">
-                                <small class="text-muted text-uppercase fw-semibold">Vehiculo</small>
+                                <small class="text-muted text-uppercase fw-semibold">Vehículo</small>
                                 <p class="mb-0 mt-1">
                                     {% if entrega.vehiculo %}
                                         {{ entrega.vehiculo.placa }} - {{ entrega.vehiculo.marca }} {{ entrega.vehiculo.modelo }}
@@ -61,6 +95,7 @@
                                 </p>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
 
                     <form method="post" enctype="multipart/form-data" novalidate>
@@ -76,12 +111,12 @@
                         {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
 
                         <div class="d-flex justify-content-between align-items-center gap-2">
-                            <a href="{% if user.rol == 'conductor' %}{% url 'logistica:mis_novedades' %}{% else %}{% url 'logistica:lista_novedades_admin' %}{% endif %}"
+                            <a href="{% if user.rol == 'conductor' or user.rol == 'cliente' %}{% url 'logistica:mis_novedades' %}{% else %}{% url 'logistica:lista_novedades_admin' %}{% endif %}"
                                class="btn btn-outline-secondary px-4 rounded-pill">
                                 <i class="bi bi-arrow-left me-1"></i> Cancelar
                             </a>
                             <button type="submit" class="btn novedad-submit-button px-5 rounded-pill fw-semibold shadow-sm">
-                                <i class="bi bi-send-fill me-2"></i>Guardar Novedad
+                                <i class="bi bi-send-fill me-2"></i>{% if rol_novedad == 'cliente' %}Enviar Reporte{% else %}Guardar Novedad{% endif %}
                             </button>
                         </div>
                     </form>

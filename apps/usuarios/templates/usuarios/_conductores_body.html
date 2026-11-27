@@ -73,16 +73,10 @@
             <a href="{% url 'usuarios:asignar_vehiculo_conductor' conductor.id %}" class="btn btn-sm btn-outline-primary rounded-circle p-2" title="Asignar Vehículo" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
                 <i class="bi bi-truck"></i>
             </a>
-            <form method="POST" action="{% url 'usuarios:toggle_estado_conductor' conductor.id %}" class="d-inline" onsubmit="return confirm('¿Deseas cambiar el estado de este conductor?');">
+            <form method="POST" action="{% url 'usuarios:toggle_estado_conductor' conductor.id %}" class="d-inline" data-confirm-title="Cambiar estado del conductor" data-confirm-action="¿Deseas cambiar el estado de este conductor?" data-confirm-btn="Continuar" data-confirm-icon="warning">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm {% if conductor.estado == 'activo' %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-circle p-2" title="{% if conductor.estado == 'activo' %}Desactivar Conductor{% else %}Activar Conductor{% endif %}" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
                     <i class="bi {% if conductor.estado == 'activo' %}bi-person-x{% else %}bi-person-check{% endif %}"></i>
-                </button>
-            </form>
-            <form method="POST" action="{% url 'usuarios:eliminar_conductor' conductor.id %}" class="d-inline" onsubmit="return confirm('¿Seguro que deseas eliminar este conductor? Si tiene historial de entregas o vehículos, el sistema lo bloqueará por seguridad.');">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-circle p-2" title="Eliminar Conductor" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
-                    <i class="bi bi-trash"></i>
                 </button>
             </form>
         </div>
