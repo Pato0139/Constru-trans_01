@@ -125,9 +125,16 @@
         const tile = document.createElement("img");
         tile.alt = "";
         tile.setAttribute("role", "presentation");
+        const localUrl = `/static/map-tiles/${coords.z}/${coords.x}/${coords.y}.png`;
         const url = this.getTileUrl(coords);
         const cartoUrl = `https://a.basemaps.cartocdn.com/rastertiles/voyager/${coords.z}/${coords.x}/${coords.y}.png`;
-        let triedBackup = false;
+        // 100% offline-first: usa los mosaicos locales de Boyacá primero,
+        // luego OSM y CartoDB si hay internet, y cuadrícula SVG si se sale de la zona sin red.
+        const sources = [localUrl];
+        if (navigator.onLine) {
+          sources.push(url, cartoUrl);
+        }
+        let step = 0;
 
         const usarFallback = function () {
           tile.onload = null;
@@ -136,24 +143,23 @@
           done(null, tile);
         };
 
-        if (!navigator.onLine) {
-          usarFallback();
-          return tile;
-        }
+        const intentarSiguiente = function () {
+          if (step >= sources.length) {
+            usarFallback();
+            return;
+          }
+          const nextUrl = sources[step++];
+          tile.referrerPolicy = nextUrl.startsWith("/") ? "" : "origin";
+          tile.src = nextUrl;
+        };
 
-        tile.referrerPolicy = "origin";
         tile.onload = function () {
           done(null, tile);
         };
         tile.onerror = function () {
-          if (!triedBackup) {
-            triedBackup = true;
-            tile.src = cartoUrl;
-          } else {
-            usarFallback();
-          }
+          intentarSiguiente();
         };
-        tile.src = url;
+        intentarSiguiente();
         return tile;
       },
     });

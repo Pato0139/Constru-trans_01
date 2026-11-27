@@ -247,9 +247,19 @@
         const tile = document.createElement("img");
         tile.alt = "";
         tile.setAttribute("role", "presentation");
+        const localUrl = `/static/map-tiles/${coords.z}/${coords.x}/${coords.y}.png`;
         const url = this.getTileUrl(coords);
         const cartoUrl = `https://a.basemaps.cartocdn.com/rastertiles/voyager/${coords.z}/${coords.x}/${coords.y}.png`;
-        let triedBackup = false;
+        // Orden de carga 100% resiliente offline:
+        // 1) Mosaico local preempaquetado (instantáneo y 100% sin internet para Boyacá)
+        // 2) OpenStreetMap (si hay internet y la zona/zoom no está local)
+        // 3) CartoDB Voyager (respaldo online)
+        // 4) Cuadrícula SVG offline (si no hay internet y se sale de Boyacá)
+        const sources = [localUrl];
+        if (navigator.onLine) {
+          sources.push(url, cartoUrl);
+        }
+        let step = 0;
 
         const usarFallback = function () {
           tile.onload = null;
@@ -258,24 +268,23 @@
           done(null, tile);
         };
 
-        if (!navigator.onLine) {
-          usarFallback();
-          return tile;
-        }
+        const intentarSiguiente = function () {
+          if (step >= sources.length) {
+            usarFallback();
+            return;
+          }
+          const nextUrl = sources[step++];
+          tile.referrerPolicy = nextUrl.startsWith("/") ? "" : "origin";
+          tile.src = nextUrl;
+        };
 
-        tile.referrerPolicy = "origin";
         tile.onload = function () {
           done(null, tile);
         };
         tile.onerror = function () {
-          if (!triedBackup) {
-            triedBackup = true;
-            tile.src = cartoUrl;
-          } else {
-            usarFallback();
-          }
+          intentarSiguiente();
         };
-        tile.src = url;
+        intentarSiguiente();
         return tile;
       },
     });
