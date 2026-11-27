@@ -4,7 +4,7 @@
 {% block title %}Guías de Edición - ConstruTrans{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ayuda/ayuda.css' %}?v=1.1">
+<link rel="stylesheet" href="{% static 'css/ayuda/ayuda.css' %}?v=3.3">
 {% endblock %}
 
 {% block content %}
@@ -13,7 +13,7 @@
         <div class="col-lg-12">
             <div class="ayuda-card">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold m-0 text-white">
+                    <h5 class="fw-bold m-0 ayuda-heading">
                         <i class="bi bi-book text-primary me-2"></i> 
                         {% if categoria_actual %}Guías de {{ categoria_actual.nombre }}{% else %}Todas las Guías{% endif %}
                     </h5>
@@ -61,16 +61,20 @@
                         <tbody>
                             {% for guia in guias %}
                             <tr class="border-bottom border-secondary">
-                                <td class="py-3 px-4 fw-bold text-white">
-                                    {% if guia.es_favorito %}<i class="bi bi-star-fill text-warning me-1"></i>{% endif %}
-                                    {{ guia.titulo }}
+                                <td class="py-3 px-4 fw-bold ayuda-heading">
+                                    <span>{{ guia.titulo }}</span>
+                                    {% if guia.es_favorito %}
+                                    <span class="badge bg-warning-subtle text-warning rounded-pill ms-2 px-2 py-1" style="font-size: 0.72rem; width: auto !important; min-height: auto !important;" title="Guía recomendada">
+                                        <i class="bi bi-star-fill me-1"></i>Recomendada
+                                    </span>
+                                    {% endif %}
                                 </td>
                                 <td class="py-3 px-4 text-muted">{{ guia.categoria.nombre }}</td>
                                 <td class="py-3 px-4 text-muted">{{ guia.pasos.count }} pasos</td>
                                 <td class="py-3 px-4 text-muted">{{ guia.fecha_actualizacion|date:"d/m/Y" }}</td>
                                 <td class="py-3 px-4 text-center">
-                                    <a href="{% url 'ayuda:detalle_guia' guia.id %}" class="btn btn-sm btn-outline-secondary border-0 text-white" aria-label="Ver detalle" data-tooltip="Ver detalle" title="Ver detalle">
-                                        <i class="bi bi-eye"></i> Ver
+                                    <a href="{% url 'ayuda:detalle_guia' guia.id %}" class="btn btn-sm ayuda-ver-btn" aria-label="Ver detalle" data-tooltip="Ver detalle" title="Ver detalle">
+                                        <i class="bi bi-eye me-1"></i>Ver
                                     </a>
                                 </td>
                             </tr>

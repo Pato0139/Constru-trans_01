@@ -1,13 +1,71 @@
 import logging
+import re
+import unicodedata
 from datetime import datetime
 
 import requests
 from django.core.cache import cache
 from django.utils import timezone
 
-from config.despacho import separar_direccion_destino
+from config.despacho import CIUDADES_DESPACHO, separar_direccion_destino
 
 logger = logging.getLogger(__name__)
+
+_CIUDADES_CONOCIDAS = tuple(
+    dict.fromkeys(
+        list(CIUDADES_DESPACHO)
+        + [
+            "Tunja",
+            "Villa de Leyva",
+            "Chiquinquirá",
+            "Santa Rosa de Viterbo",
+            "Belén",
+            "Bogotá",
+            "Medellín",
+            "Cali",
+            "Barranquilla",
+            "Cartagena",
+            "Bucaramanga",
+            "Pereira",
+            "Manizales",
+            "Cúcuta",
+            "Ibagué",
+            "Villavicencio",
+        ]
+    )
+)
+
+_VIA_RE = re.compile(
+    r"\b(?:calle|cll?|carrera|cra\.?|kr\.?|avenida|av\.?|diagonal|diag\.?|transversal|tv\.?|manzana|mz\.?|barrio|vereda|sector|kil[oó]metro|km\.?)\b.*",
+    re.IGNORECASE,
+)
+
+
+def _norm_sin_tildes(texto: str) -> str:
+    return "".join(
+        c for c in unicodedata.normalize("NFKD", texto or "") if not unicodedata.combining(c)
+    ).lower()
+
+
+def _extraer_ciudad_para_clima(destination: str) -> str:
+    """Extrae un nombre limpio de ciudad a partir de direcciones completas con o sin coma."""
+    if not destination or not str(destination).strip():
+        return ""
+
+    texto = str(destination).strip()
+    texto_norm = _norm_sin_tildes(texto)
+
+    # 1. Coincidencia directa con ciudades conocidas (evita pasar calles a Open-Meteo).
+    for ciudad in _CIUDADES_CONOCIDAS:
+        ciudad_norm = _norm_sin_tildes(ciudad)
+        if re.search(rf"(?<!\w){re.escape(ciudad_norm)}(?!\w)", texto_norm):
+            return ciudad
+
+    # 2. Fallback: separar dirección y limpiar referencias viales (#, Calle, Carrera, dígitos).
+    city, _ = separar_direccion_destino(texto)
+    city = _VIA_RE.sub("", city or "").split("#", 1)[0]
+    city = re.sub(r"\d+.*$", "", city).strip(" ,.-")
+    return city or (texto.split(",")[0].split()[0].strip(" ,.-") if texto else "")
 
 # Open-Meteo: API de pronostico gratuita, sin API key ni registro.
 # Documentacion: https://open-meteo.com/en/docs
@@ -87,7 +145,7 @@ def _geocode(city):
 
 
 def get_route_weather(destination, scheduled_at=None):
-    city, _ = separar_direccion_destino(destination)
+    city = _extraer_ciudad_para_clima(destination)
     if not city:
         return _unavailable("", "No se pudo identificar la ciudad de destino.")
 

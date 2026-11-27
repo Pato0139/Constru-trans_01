@@ -626,13 +626,14 @@ table td[data-label="Estado logístico"] .badge:not(.rounded-circle),
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    width: 11.75rem;
+    gap: 0.35rem;
+    width: 13.25rem;
     max-width: 100%;
-    min-height: 2rem;
-    padding: 0.35rem 0.75rem !important;
+    min-height: 2.05rem;
+    padding: 0.35rem 0.85rem !important;
     text-align: center;
     line-height: 1.2;
-    white-space: normal;
+    white-space: nowrap;
     box-sizing: border-box;
 }
 
@@ -910,9 +911,48 @@ table td > .badge.bg-secondary:not(.rounded-circle) {
     z-index: 20000 !important;
 }
 
-[data-theme="light"] .swal2-container.swal2-backdrop-show {
-    background: rgba(15, 23, 42, 0.45) !important;
+/* Los toasts (notificaciones pequeñas en esquina) NUNCA deben oscurecer ni difuminar la página */
+.swal2-container:has(.swal2-toast),
+.swal2-container.swal2-top-end,
+.swal2-container.swal2-bottom-end,
+.swal2-container.swal2-top,
+.swal2-container.swal2-bottom {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+[data-theme="light"] .swal2-container.swal2-backdrop-show:not(:has(.swal2-toast)):not(.swal2-top-end):not(.swal2-bottom-end) {
+    background: rgba(15, 23, 42, 0.42) !important;
     backdrop-filter: blur(3px);
+}
+
+/* Diseño moderno y limpio para notificaciones toast */
+.swal2-popup.swal2-toast {
+    border-radius: 0.9rem !important;
+    padding: 0.85rem 1.15rem !important;
+    border-left: 4px solid #10b981 !important;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28) !important;
+}
+
+[data-theme="light"] .swal2-popup.swal2-toast {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 4px solid #10b981 !important;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12) !important;
+}
+
+[data-theme="light"] .swal2-popup.swal2-toast .swal2-title {
+    font-size: 0.92rem !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .swal2-popup.swal2-toast .swal2-html-container {
+    font-size: 0.82rem !important;
+    color: #475569 !important;
+    margin-top: 0.15rem !important;
 }
 
 [data-theme="light"] .swal2-popup {
@@ -934,4 +974,58 @@ table td > .badge.bg-secondary:not(.rounded-circle) {
 [data-theme="light"] .swal2-icon.swal2-question {
     border-color: #94a3b8 !important;
     color: #475569 !important;
+}
+
+/* ==========================================================================
+   TOOLTIPS — AMARILLO VIVO Y NÍTIDO CON FLECHA A JUEGO EN MODO CLARO Y OSCURO
+   ========================================================================== */
+.tooltip {
+    --bs-tooltip-opacity: 1 !important;
+    --bs-tooltip-bg: #fbbf24;
+    --bs-tooltip-color: #0f172a;
+}
+
+.tooltip .tooltip-inner {
+    background-color: #fbbf24 !important;
+    color: #0f172a !important;
+    border: 1px solid #f59e0b !important;
+    border-radius: 0.55rem !important;
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.28) !important;
+}
+
+.tooltip .tooltip-arrow::before {
+    border-top-color: #fbbf24 !important;
+    border-bottom-color: #fbbf24 !important;
+    border-left-color: #fbbf24 !important;
+    border-right-color: #fbbf24 !important;
+}
+
+[data-theme="light"] .tooltip {
+    --bs-tooltip-bg: #fbbf24;
+    --bs-tooltip-color: #0f172a;
+}
+
+[data-theme="light"] .tooltip .tooltip-inner {
+    background-color: #fbbf24 !important;
+    color: #0f172a !important;
+    border: 1px solid #f59e0b !important;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.26) !important;
+}
+
+[data-theme="light"] .tooltip .tooltip-arrow::before {
+    border-top-color: #fbbf24 !important;
+    border-bottom-color: #fbbf24 !important;
+    border-left-color: #fbbf24 !important;
+    border-right-color: #fbbf24 !important;
+}
+
+/* Evita que .btn-outline-secondary se ponga gris oscuro con texto oscuro al pasar el cursor en modo claro */
+[data-theme="light"] .btn-outline-secondary:hover,
+[data-theme="light"] .btn-outline-secondary:focus-visible {
+    background-color: #e2e8f0 !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
 }

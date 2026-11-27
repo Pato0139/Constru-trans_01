@@ -4,7 +4,7 @@
 {% block title %}Enviar Sugerencia - ConstruTrans{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/ayuda/ayuda.css' %}">
+<link rel="stylesheet" href="{% static 'css/ayuda/ayuda.css' %}?v=3.2">
 {% endblock %}
 
 {% block content %}
@@ -13,7 +13,7 @@
         <div class="col-lg-8 offset-lg-2">
             <div class="ayuda-card">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold m-0 text-white">
+                    <h5 class="fw-bold m-0 ayuda-heading">
                         <i class="bi bi-lightbulb text-warning me-2"></i> Enviar Sugerencia o Recomendación
                     </h5>
                     <a href="{% url 'ayuda:index' %}" class="btn btn-outline-secondary rounded-pill px-4 d-flex align-items-center gap-2" aria-label="Volver" data-tooltip="Volver" title="Volver">
@@ -24,15 +24,15 @@
                 <form method="post" class="sugerencia-form">
                     {% csrf_token %}
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-white">Tipo</label>
+                        <label class="form-label fw-semibold">Tipo</label>
                         {{ form.tipo }}
                     </div>
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-white">Título</label>
+                        <label class="form-label fw-semibold">Título</label>
                         {{ form.titulo }}
                     </div>
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-white">Descripción</label>
+                        <label class="form-label fw-semibold">Descripción</label>
                         {{ form.descripcion }}
                         <div class="form-text text-muted">Describe detalladamente tu sugerencia o reporte</div>
                     </div>
