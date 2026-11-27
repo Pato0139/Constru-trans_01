@@ -1571,6 +1571,7 @@
         let currentOrderState = "{{ orden.estado }}";
         let currentPaymentState = "{{ pago.estado|default:'' }}";
         let pollInterval = null;
+        let statusRequestInFlight = false;
 
         function renderStepper(data) {
             const fillEl = document.getElementById('stepper-progress-fill');
@@ -1662,7 +1663,8 @@
         }
 
         function checkOrderStatus() {
-            if (document.hidden) return; // Pausar cuando la pestaña esté oculta
+            if (document.hidden || statusRequestInFlight) return; // Evitar consultas simultáneas y pausar en segundo plano.
+            statusRequestInFlight = true;
 
             fetch(statusApiUrl, {
                 headers: {
@@ -1679,35 +1681,21 @@
                 })
                 .then(data => {
                     if (!data) return;
-                    // Verificar si hubo un cambio de estado
+                    // El seguimiento se actualiza en la página; los eventos importantes
+                    // se anuncian desde el centro de notificaciones para evitar toasts repetidos.
                     if (data.estado !== currentOrderState || (data.pago && data.pago.estado !== currentPaymentState)) {
-                        const prev = currentOrderState;
                         currentOrderState = data.estado;
                         currentPaymentState = data.pago ? data.pago.estado : '';
 
                         renderStepper(data);
-
-                        // Notificación visual de actualización en tiempo real
-                        if (window.Swal) {
-                            Swal.fire({
-                                toast: true,
-                                position: 'top-end',
-                                icon: 'info',
-                                title: 'Progreso Actualizado',
-                                text: `El pedido cambió a: ${data.estado_display}`,
-                                showConfirmButton: false,
-                                timer: 4500,
-                                timerProgressBar: true,
-                                background: '#0f172a',
-                                color: '#ffffff',
-                                customClass: { popup: 'rounded-4 border-white-10 shadow-2xl' }
-                            });
-                        }
                     }
                 })
                 .catch(err => {
                     // Fallo silencioso en red para no incomodar al usuario
                     console.debug('Polling error:', err);
+                })
+                .finally(() => {
+                    statusRequestInFlight = false;
                 });
         }
 

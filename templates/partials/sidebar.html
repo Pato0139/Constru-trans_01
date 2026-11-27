@@ -28,6 +28,18 @@
         <p class="sidebar-brand-sub" data-i18n="sidebar.brandSub">
             Panel de gestión
         </p>
+        <div class="sidebar-role-badge {% if active_role == 'admin' or is_super %}sidebar-role-badge--admin{% elif active_role == 'conductor' %}sidebar-role-badge--conductor{% else %}sidebar-role-badge--cliente{% endif %}">
+            {% if active_role == 'admin' or is_super %}
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Administrador</span>
+            {% elif active_role == 'conductor' %}
+                <i class="bi bi-truck"></i>
+                <span>Conductor</span>
+            {% else %}
+                <i class="bi bi-person-badge-fill"></i>
+                <span>Cliente</span>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Navegación principal -->
@@ -366,6 +378,4 @@
                     icon.classList.remove('rotated');
                 });
             }
-        });
-    });
-</script>
+        })

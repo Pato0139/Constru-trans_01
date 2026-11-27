@@ -572,6 +572,7 @@ def reasignar_entrega(request, pedido_id):
                 vehiculo_id=form.cleaned_data["vehiculo"].pk if form.cleaned_data["vehiculo"] else None,
                 motivo=motivo,
                 detalle_motivo=detalle_motivo,
+                using=entrega._state.db or pedido._state.db or "default",
             )
         except ValidationError as exc:
             for error in exc.messages:

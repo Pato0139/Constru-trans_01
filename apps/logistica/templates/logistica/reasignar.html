@@ -3,7 +3,7 @@
 
 {% block title %}Reasignar envío · Pedido #CT-{{ pedido.codigo_pedido }}{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/logistica/reasignar.css' %}?v=1.1">
+<link rel="stylesheet" href="{% static 'css/logistica/reasignar.css' %}?v=1.2">
 {% endblock %}
 
 {% block content %}
@@ -95,7 +95,7 @@
                     </div>
                     {{ form.vehiculo }}
                     {% for error in form.vehiculo.errors %}<div class="field-error"><i class="bi bi-exclamation-circle"></i>{{ error }}</div>{% endfor %}
-                    <small class="field-hint">Solo se muestran vehículos disponibles y el actual.</small>
+                    <small class="field-hint">Solo se muestran vehículos libres; deja la selección vacía para conservar el actual.</small>
                   </div>
                 </div>
               </div>
@@ -184,9 +184,41 @@
   reason.addEventListener('change', updateReasonHint);
   updatePreview();
   updateReasonHint();
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
     updatePreview();
-    if (!window.confirm(`Nueva asignación: ${preview.textContent}. ¿Confirmas la reasignación?`)) event.preventDefault();
+    const botonConfirmar = form.querySelector('[type="submit"]');
+    if (botonConfirmar) botonConfirmar.disabled = true;
+    let confirmado = false;
+    if (window.Swal) {
+      const resultado = await window.Swal.fire({
+        icon: 'question',
+        title: 'Confirmar reasignación',
+        text: `Nueva asignación:\n${preview.textContent}`,
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar reasignación',
+        cancelButtonText: 'Seguir revisando',
+        reverseButtons: true,
+        focusCancel: true,
+        buttonsStyling: false,
+        customClass: {
+          popup: 'reassignment-confirm-popup',
+          title: 'reassignment-confirm-title',
+          htmlContainer: 'reassignment-confirm-message',
+          confirmButton: 'btn-confirm-reassignment reassignment-confirm-button',
+          cancelButton: 'btn-cancel-reassignment reassignment-cancel-button',
+          actions: 'reassignment-confirm-actions'
+        }
+      });
+      confirmado = resultado.isConfirmed;
+    } else {
+      confirmado = window.confirm(`Nueva asignación: ${preview.textContent}. ¿Confirmas la reasignación?`);
+    }
+    if (confirmado) {
+      HTMLFormElement.prototype.submit.call(form);
+      return;
+    }
+    if (botonConfirmar) botonConfirmar.disabled = false;
   });
 })();
 </script>

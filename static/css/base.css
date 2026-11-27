@@ -737,11 +737,11 @@ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-i
   --color-info: #0369a1;
   --glow-primary: rgba(30, 75, 143, 0.2);
   --glow-accent: rgba(180, 83, 9, 0.2);
-  --sidebar-bg: #f4f6f9;
+  --sidebar-bg: #ffffff;
   --sidebar-gradient: none;
   --sidebar-border: #c3ccd7;
-  --sidebar-footer-bg: #e7ebf0;
-  --sidebar-section-bg: #e9edf2;
+  --sidebar-footer-bg: #ffffff;
+  --sidebar-section-bg: #ffffff;
   --main-bg: #e2e7ee;
   --main-glow: none;
   --navbar-bg: #ffffff;

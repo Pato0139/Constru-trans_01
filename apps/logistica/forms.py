@@ -1,13 +1,13 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from config.forms_base import StrictForm, StrictModelForm
 
 from apps.usuarios.models import Conductor
 
-from .models import ConductorVehiculo, Novedad, Vehiculo
+from .models import ConductorVehiculo, Entrega, Novedad, Vehiculo
 
 
 class AsignarVehiculoForm(StrictForm):
@@ -81,18 +81,23 @@ class ReasignarRecursosForm(StrictForm):
     def __init__(self, *args, entrega=None, **kwargs):
         super().__init__(*args, **kwargs)
         conductores = Conductor.objects.filter(estado="activo", usuario__is_active=True, usuario__estado="activo")
-        asignados_a_otro = ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values_list(
+        asignados_a_conductor = ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values_list(
             "vehiculo_id", flat=True
+        )
+        entregas_activas = (
+            Entrega.objects.filter(
+                vehiculo_id=OuterRef("pk"),
+                estado__in=("pendiente", "en_ruta"),
+            )
+            .exclude(pedido__estado__in=("entregado", "cancelado"))
         )
         vehiculos = Vehiculo.objects.filter(
             estado="disponible", capacidad_carga__gte=5
-        ).exclude(pk__in=asignados_a_otro)
+        ).exclude(pk__in=asignados_a_conductor).annotate(
+            tiene_entrega_activa=Exists(entregas_activas)
+        ).filter(tiene_entrega_activa=False)
         if entrega and entrega.conductor_id:
             conductores = Conductor.objects.filter(Q(pk=entrega.conductor_id) | Q(pk__in=conductores.values("pk")))
-        if entrega and entrega.vehiculo_id:
-            vehiculos = Vehiculo.objects.filter(
-                Q(pk=entrega.vehiculo_id) | Q(pk__in=vehiculos.values("pk"))
-            )
         self.fields["conductor"].queryset = conductores.select_related("usuario").order_by("usuario__nombres")
         self.fields["vehiculo"].queryset = vehiculos.order_by("placa")
 
