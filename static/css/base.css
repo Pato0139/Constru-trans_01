@@ -1409,53 +1409,91 @@ option {
 }
 
 /* ==============================
-   Tamaños de fuente
+   Escala tipográfica unificada y visible para toda la aplicación
    ============================== */
-[data-font-size="small"] body,
-[data-font-size="small"] {
-  font-size: 0.875rem !important;
+html {
+  font-size: 16px;
 }
 
-[data-font-size="normal"] body,
-[data-font-size="normal"] {
-  font-size: 1rem !important;
+html[data-font-size="small"] {
+  font-size: 15px !important;
 }
 
-[data-font-size="large"] body,
-[data-font-size="large"] {
-  font-size: 1.125rem !important;
+html[data-font-size="normal"] {
+  font-size: 16px !important;
 }
 
-[data-font-size="xlarge"] body,
-[data-font-size="xlarge"] {
-  font-size: 1.25rem !important;
+html[data-font-size="large"] {
+  font-size: 17px !important;
 }
 
-[data-font-size="small"] h1,
-[data-font-size="small"] h2,
-[data-font-size="small"] h3,
-[data-font-size="small"] h4,
-[data-font-size="small"] h5,
-[data-font-size="small"] h6 {
-  font-size: calc(1em * 0.875) !important;
+html[data-font-size="xlarge"] {
+  font-size: 18px !important;
 }
 
-[data-font-size="large"] h1,
-[data-font-size="large"] h2,
-[data-font-size="large"] h3,
-[data-font-size="large"] h4,
-[data-font-size="large"] h5,
-[data-font-size="large"] h6 {
-  font-size: calc(1em * 1.125) !important;
+body,
+.main-content,
+.main-content p,
+.main-content li,
+.main-content td,
+.main-content label,
+.main-content .form-control,
+.main-content .form-select,
+.main-content .btn {
+  font-size: 0.95rem;
 }
 
-[data-font-size="xlarge"] h1,
-[data-font-size="xlarge"] h2,
-[data-font-size="xlarge"] h3,
-[data-font-size="xlarge"] h4,
-[data-font-size="xlarge"] h5,
-[data-font-size="xlarge"] h6 {
-  font-size: calc(1em * 1.25) !important;
+.main-content small,
+.main-content .small,
+.main-content .text-muted,
+.main-content th {
+  font-size: 0.84rem;
+}
+
+.main-content .badge {
+  font-size: 0.8rem;
+}
+
+.main-content h1,
+.main-content .h1 {
+  font-size: 1.65rem;
+  font-weight: 800;
+}
+
+.main-content h2,
+.main-content .h2 {
+  font-size: 1.45rem;
+  font-weight: 800;
+}
+
+.main-content .stat-card h2 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.main-content h3,
+.main-content .h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.main-content h4,
+.main-content .h4 {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.main-content h5,
+.main-content .h5 {
+  font-size: 1.08rem;
+  font-weight: 700;
+}
+
+.main-content h6,
+.main-content .h6 {
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 /* ==============================
