@@ -374,6 +374,8 @@ def _debe_iniciar_celador_automatico() -> bool:
 def iniciar_celador_automatico() -> bool:
     """Inicia un hilo demonio liviano que revisa Neon periódicamente y descarga cambios a local."""
     global _celador_started
+    if getattr(settings, "OFFLINE_MODE", False) or "remota" not in settings.DATABASES:
+        return False
     if not _debe_iniciar_celador_automatico():
         return False
 

@@ -382,6 +382,15 @@ class DatabasePreferenceMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        from django.conf import settings
+
+        if getattr(settings, "OFFLINE_MODE", False):
+            set_db_preference(PREF_LOCAL)
+            try:
+                return self.get_response(request)
+            finally:
+                clear_db_preference()
+
         # Authentication must use the same user store regardless of a stale
         # local/remote preference cookie from a previous browser session.
         if any(request.path_info.startswith(path) for path in AUTH_DB_PATHS):

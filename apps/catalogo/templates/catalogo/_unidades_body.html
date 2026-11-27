@@ -22,10 +22,10 @@
                 class="d-inline">
                 {% csrf_token %}
                 <button type="submit"
-                    class="btn btn-sm rounded-pill px-3 {% if unidad.activa %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
-                    title="{% if unidad.activa %}Inhabilitar{% else %}Habilitar{% endif %}">
-                    <i
-                        class="bi {% if unidad.activa %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                    class="btn-action {% if unidad.activa %}btn-action--success{% else %}btn-action--danger{% endif %}"
+                    title="{% if unidad.activa %}Inhabilitar unidad{% else %}Habilitar unidad{% endif %}"
+                    aria-label="{% if unidad.activa %}Inhabilitar unidad{% else %}Habilitar unidad{% endif %}">
+                    <i class="bi {% if unidad.activa %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %}"></i>
                 </button>
             </form>
         </div>

@@ -981,7 +981,8 @@
                                             <option value="">-- Selecciona un conductor --</option>
                                             {% for c in conductores_disponibles %}
                                             <option value="{{ c.id }}"
-                                                data-vehiculo-id="{{ c.vehiculo_asignado.id_vehiculo|default:'' }}"
+                                                data-vehiculo-id="{{ c.vehiculo_activo_id|default:'' }}"
+                                                data-vehiculo-placa="{{ c.vehiculo_activo_placa|default:'' }}"
                                                 data-nombre="{{ c.nombres }} {{ c.apellidos }}"
                                                 data-documento="{{ c.documento|default:'' }}"
                                                 data-licencia="{{ c.perfil_conductor.numero_licencia|default:'' }}"
@@ -1005,6 +1006,7 @@
                                             <option value="">-- Selecciona un vehículo --</option>
                                             {% for v in vehiculos_disponibles %}
                                             <option value="{{ v.id_vehiculo }}"
+                                                data-conductor-id="{{ v.conductor_activo_id|default:'' }}"
                                                 data-placa="{{ v.placa }}"
                                                 data-tipo="{{ v.tipo_vehiculo }}"
                                                 data-capacidad="{{ v.capacidad_carga|default:'' }}"
@@ -1156,7 +1158,7 @@
                                 class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 p-2 rounded-3 small mt-2 mb-0">
                                 <strong class="text-danger"><i class="bi bi-x-octagon-fill me-1"></i>Motivo de
                                     cancelación:</strong>
-                                <span>{{ orden.motivo_cancelacion_display|default:"Cancelado" }}</span>
+                                <span class="text-main">{{ orden.motivo_cancelacion_display|default:"Cancelado" }}</span>
                             </div>
                             {% endif %}
                             {% if pago and pago.observaciones %}
@@ -1166,7 +1168,7 @@
                                     <i class="bi {% if pago.estado == 'aprobado' %}bi-check-circle-fill{% else %}bi-info-circle-fill{% endif %} me-1"></i>
                                     {% if pago.estado == 'aprobado' %}Motivo / observación de aprobación:{% elif pago.estado == 'rechazado' %}Motivo de rechazo del pago:{% else %}Observación de revisión:{% endif %}
                                 </strong>
-                                <span>{{ pago.observaciones }}</span>
+                                <span class="text-main">{{ pago.observaciones }}</span>
                             </div>
                             {% endif %}
                         </div>
@@ -1311,28 +1313,6 @@
                     <div class="order-section-card">
                         <h6 class="fw-800 text-accent text-uppercase small mb-3">
                             <i class="bi bi-sliders me-2"></i>Gestión del Pedido
-                    {% if eventos_logisticos %}
-                    <div class="order-section-card">
-                        <h6 class="fw-800 text-accent text-uppercase small mb-3">
-                            <i class="bi bi-clock-history me-2"></i>Historial logístico
-                        </h6>
-                        <div class="d-flex flex-column gap-3">
-                            {% for evento in eventos_logisticos %}
-                            <div class="border-start border-2 {% if evento.tipo == 'novedad' %}border-warning{% else %}border-info{% endif %} ps-3">
-                                <div class="d-flex justify-content-between gap-2 flex-wrap">
-                                    <strong class="text-white small">{{ evento.titulo }}</strong>
-                                    <time class="text-muted x-small">{{ evento.fecha|date:"d/m/Y H:i" }}</time>
-                                </div>
-                                <p class="text-white-50 small mb-1">{{ evento.descripcion }}</p>
-                                {% if evento.solucion %}<p class="text-muted small mb-0"><strong>Acción aplicada:</strong> {{ evento.solucion }}</p>{% endif %}
-                                {% if evento.evidencia %}<a class="small" href="{{ evento.evidencia.url }}" target="_blank" rel="noopener">Ver evidencia fotográfica</a>{% endif %}
-                                <span class="text-muted x-small">Por: {% if evento.usuario %}{{ evento.usuario.nombre_mostrar|default:evento.usuario.username }}{% else %}Usuario del sistema{% endif %}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
                         </h6>
                         <div class="d-flex flex-column gap-2">
                             {% if user_rol == "cliente" and orden.estado == "pendiente" %}
@@ -1748,21 +1728,83 @@
                 return button;
             };
 
-            const renderChoiceCards = (select, container, kind) => {
-                if (!container) return;
-                container.replaceChildren();
-                Array.from(select.options).filter(option => option.value).forEach(option => {
-                    const isDriver = kind === 'driver';
-                    const title = isDriver ? (option.dataset.nombre || option.textContent.trim()) : (option.dataset.placa || option.textContent.trim());
-                    const subtitle = isDriver
-                        ? [option.dataset.documento ? `Doc. ${option.dataset.documento}` : '', option.dataset.licencia ? `Lic. ${option.dataset.licencia}` : '', 'Disponible'].filter(Boolean).join(' · ')
-                        : [option.dataset.tipo || '', option.dataset.capacidad ? `${option.dataset.capacidad} t` : '', option.dataset.modelo || '', 'Disponible'].filter(Boolean).join(' · ');
-                    const card = createChoiceCard(isDriver ? 'bi-person-vcard' : 'bi-truck', title, subtitle, option.value, option.selected);
+            const renderDriverCards = () => {
+                if (!driverCards) return;
+                driverCards.replaceChildren();
+                Array.from(selectConductorDetalle.options).filter(option => option.value).forEach(option => {
+                    const title = option.dataset.nombre || option.textContent.trim();
+                    const estadoTexto = option.dataset.vehiculoPlaca
+                        ? `Vehículo asignado: ${option.dataset.vehiculoPlaca}`
+                        : 'Disponible';
+                    const subtitle = [
+                        option.dataset.documento ? `Doc. ${option.dataset.documento}` : '',
+                        option.dataset.licencia ? `Lic. ${option.dataset.licencia}` : '',
+                        estadoTexto
+                    ].filter(Boolean).join(' · ');
+                    const card = createChoiceCard('bi-person-vcard', title, subtitle, option.value, option.selected);
                     card.addEventListener('click', () => {
-                        select.value = option.value;
-                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                        selectConductorDetalle.value = option.value;
+                        selectConductorDetalle.dispatchEvent(new Event('change', { bubbles: true }));
                     });
-                    container.append(card);
+                    driverCards.append(card);
+                });
+            };
+
+            const renderVehicleCardsForDriver = () => {
+                if (!vehicleCards) return;
+                vehicleCards.replaceChildren();
+
+                const driverOption = selectConductorDetalle.selectedOptions[0];
+                const driverVehiculoId = (driverOption && driverOption.value)
+                    ? (driverOption.dataset.vehiculoId || '')
+                    : '';
+
+                const visibleOptions = Array.from(selectVehiculoDetalle.options)
+                    .filter(option => option.value)
+                    .filter(option => {
+                        if (driverVehiculoId) {
+                            // El conductor ya tiene vehículo activo: solo mostrar ese vehículo.
+                            return option.value === driverVehiculoId;
+                        }
+                        // Conductor libre (o sin seleccionar): solo mostrar vehículos libres.
+                        return !(option.dataset.conductorId || '');
+                    });
+
+                // Si el conductor tiene vehículo asignado, seleccionarlo automáticamente.
+                if (driverVehiculoId) {
+                    const match = visibleOptions.find(opt => opt.value === driverVehiculoId);
+                    selectVehiculoDetalle.value = match ? match.value : '';
+                } else {
+                    // Si el vehículo seleccionado previamente pertenecía a otro conductor, limpiar selección.
+                    const stillVisible = visibleOptions.some(opt => opt.value === selectVehiculoDetalle.value);
+                    if (!stillVisible) {
+                        selectVehiculoDetalle.value = '';
+                    }
+                }
+
+                if (!visibleOptions.length) {
+                    const empty = document.createElement('p');
+                    empty.className = 'text-muted small mb-0 px-2 py-2';
+                    empty.textContent = 'No hay vehículos disponibles para este conductor.';
+                    vehicleCards.append(empty);
+                    return;
+                }
+
+                visibleOptions.forEach(option => {
+                    const title = option.dataset.placa || option.textContent.trim();
+                    const estadoVehiculo = driverVehiculoId ? 'Asignado a este conductor' : 'Disponible';
+                    const subtitle = [
+                        option.dataset.tipo || '',
+                        option.dataset.capacidad ? `${option.dataset.capacidad} t` : '',
+                        option.dataset.modelo || '',
+                        estadoVehiculo
+                    ].filter(Boolean).join(' · ');
+                    const card = createChoiceCard('bi-truck', title, subtitle, option.value, option.value === selectVehiculoDetalle.value);
+                    card.addEventListener('click', () => {
+                        selectVehiculoDetalle.value = option.value;
+                        selectVehiculoDetalle.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    vehicleCards.append(card);
                 });
             };
 
@@ -1788,26 +1830,16 @@
                 });
             };
 
-            renderChoiceCards(selectConductorDetalle, driverCards, 'driver');
-            renderChoiceCards(selectVehiculoDetalle, vehicleCards, 'vehicle');
+            renderDriverCards();
+            renderVehicleCardsForDriver();
             // La selección visual replica el required del select y conserva los valores enviados al backend.
             selectConductorDetalle.required = false;
             selectVehiculoDetalle.required = false;
-            selectConductorDetalle.addEventListener('change', updateTransportSummary);
-            selectVehiculoDetalle.addEventListener('change', updateTransportSummary);
-            selectConductorDetalle.addEventListener('change', function () {
-                const selectedOption = this.options[this.selectedIndex];
-                const vehiculoId = selectedOption ? selectedOption.getAttribute('data-vehiculo-id') : '';
-                if (vehiculoId) {
-                    for (let i = 0; i < selectVehiculoDetalle.options.length; i++) {
-                        if (selectVehiculoDetalle.options[i].value === vehiculoId) {
-                            selectVehiculoDetalle.selectedIndex = i;
-                            selectVehiculoDetalle.dispatchEvent(new Event('change', { bubbles: true }));
-                            break;
-                        }
-                    }
-                }
+            selectConductorDetalle.addEventListener('change', () => {
+                renderVehicleCardsForDriver();
+                updateTransportSummary();
             });
+            selectVehiculoDetalle.addEventListener('change', updateTransportSummary);
             updateTransportSummary();
             document.getElementById('form-asignar-transporte-detalle')?.addEventListener('submit', event => {
                 if (!selectConductorDetalle.value || !selectVehiculoDetalle.value) {

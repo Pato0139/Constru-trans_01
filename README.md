@@ -67,16 +67,27 @@ bash setup/setup_project.sh --no-fetch-credentials  # no usar el repositorio com
 
 Abre <http://127.0.0.1:8000/> en el navegador.
 
-### Trabajo sin conexión
+### Preparar y usar el sistema sin Internet
 
-Al iniciar `runserver`, Constru-trans prepara el esquema SQLite local y, si Neon está disponible y
-la base local todavía no contiene datos, descarga una copia preventiva de Neon. Una instalación
-nueva necesita conexión en ese primer inicio para obtener esa copia. Después, la aplicación consulta
-Neon mientras hay conexión y cambia automáticamente a SQLite cuando la pierde. La detección se
-repite cada pocos segundos. La copia inicial no reemplaza una base local que ya tenga datos; tampoco
-se sincronizan automáticamente con Neon los cambios hechos sin conexión. Para tolerar datos legacy
-inconsistentes en Neon, la copia omite los módulos de pagos e IA y descarta registros con referencias
-inválidas; esos datos no estarán disponibles sin conexión.
+La aplicación opera con SQLite local (`db.sqlite3`). Para llevarse los datos operativos actuales,
+con Internet disponible, primero ejecuta `python manage.py sincronizar_local` para copiar los datos
+remotos a SQLite. Esta operación no copia los archivos físicos de `media/` (por ejemplo, comprobantes
+y fotografías): copia primero esa carpeta por separado y conserva la misma ruta. Revisa que el
+comando termine correctamente antes de desconectar la red.
+
+En `.env`, define `OFFLINE_MODE=True` antes de iniciar el sistema sin Internet. Este modo fuerza
+SQLite, impide conexiones y sincronización con Neon, desactiva S3 y usa el backend de correo de
+consola. La preferencia anterior guardada en el navegador no puede cambiar este comportamiento.
+Prepara el esquema local con `python manage.py migrate --database=local`. Para instalar datos de
+demostración en esa base, ejecuta `python manage.py poblar_demo --database=local`. El comando es
+repetible sin duplicar catálogos, usuarios demo ni pedidos; los pedidos demo usan Contraentrega y no
+requieren adjuntar comprobante. Sus credenciales aparecen al finalizar `seed_data`.
+
+Con Internet desconectado funcionan los módulos cuyos datos ya estén en SQLite y los recursos de
+interfaz ahora incluidos en `static/vendor/`. Funciones que consultan servicios externos (búsqueda de
+direcciones, mapas sin mosaicos previamente guardados, rutas viales, clima, enlaces externos y envío
+de correos) no tendrán datos frescos; el mapa conserva su catálogo local y sus respaldos offline.
+Si se requiere una copia consistente de Neon, hay que sincronizarla antes de desconectar la red.
 
 ## Variables de entorno
 
@@ -86,7 +97,8 @@ Todas las variables disponibles están documentadas en `.env.example`. Las más 
 | --- | --- |
 | `SECRET_KEY` | Clave de firma de Django. Debe ser fija. |
 | `DEBUG` | `True` en desarrollo. |
-| `DATABASE_URL` | URL opcional de PostgreSQL/Neon. SQLite local sigue disponible como base predeterminada y Neon se usa para datos de negocio mientras haya conexión. |
+| `DATABASE_URL` | URL opcional de PostgreSQL/Neon para modo híbrido. |
+| `OFFLINE_MODE` | `True` fuerza SQLite y evita toda conexión remota. |
 | `OPENWEATHER_API_KEY` | Habilita el pronóstico en el panel del conductor. |
 | `EMAIL_*` / `RESEND_*` | Envío del correo de recuperación de contraseña. |
 
