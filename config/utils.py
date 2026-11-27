@@ -47,6 +47,10 @@ def _host_port_from_database_url():
 
 
 def conexion_remota_disponible_cached():
+    from django.conf import settings
+
+    if getattr(settings, "OFFLINE_MODE", False):
+        return False
     if "remota" not in connections.databases:
         return False
     host, port = _host_port_from_database_url()

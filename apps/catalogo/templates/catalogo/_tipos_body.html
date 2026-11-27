@@ -18,10 +18,19 @@
     <td class="py-3 px-4 text-center">
         <div class="d-flex justify-content-center gap-2">
             <a href="{% url 'catalogo:editar_tipo_material' t.codigo_catalogo %}"
-                class="btn btn-sm rounded-pill px-3 btn-table-action btn-table-action--edit"
+                class="btn-action btn-table-action--edit"
                 title="Editar">
                 <i class="bi bi-pencil"></i>
             </a>
+            <form action="{% url 'catalogo:cambiar_estado_tipo' t.codigo_catalogo %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit"
+                        class="btn-action {% if t.activo %}btn-action--success{% else %}btn-action--danger{% endif %}"
+                        title="{% if t.activo %}Inhabilitar categoría{% else %}Habilitar categoría{% endif %}"
+                        aria-label="{% if t.activo %}Inhabilitar categoría{% else %}Habilitar categoría{% endif %}">
+                    <i class="bi {% if t.activo %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %}"></i>
+                </button>
+            </form>
             <form action="{% url 'catalogo:eliminar_tipo_material' t.codigo_catalogo %}"
                 method="post" onsubmit="return confirm('¿Eliminar este tipo de material?')">
                 {% csrf_token %}

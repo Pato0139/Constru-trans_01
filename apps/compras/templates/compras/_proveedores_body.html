@@ -56,9 +56,10 @@
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                 <button type="submit"
-                        class="btn btn-sm {% if p.activo %}btn-outline-danger{% else %}btn-outline-success{% endif %} border-white-10 rounded-pill px-3"
-                        title="{% if p.activo %}Inhabilitar{% else %}Habilitar{% endif %}">
-                    <i class="bi {% if p.activo %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                        class="btn-action {% if p.activo %}btn-action--success{% else %}btn-action--danger{% endif %}"
+                        title="{% if p.activo %}Inhabilitar proveedor{% else %}Habilitar proveedor{% endif %}"
+                        aria-label="{% if p.activo %}Inhabilitar proveedor{% else %}Habilitar proveedor{% endif %}">
+                    <i class="bi {% if p.activo %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %}"></i>
                 </button>
             </form>
         </div>

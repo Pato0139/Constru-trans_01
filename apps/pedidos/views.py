@@ -19,6 +19,7 @@ from apps.logistica.services import (
     cancelar_envio_pedido,
     confirmar_preparacion_e_iniciar_ruta,
     marcar_pedido_entregado,
+    obtener_vehiculo_activo_conductor,
     verificar_y_cancelar_pedidos_por_vencimiento_correccion_pago,
 )
 from apps.usuarios.models import Conductor, Usuario
@@ -401,7 +402,7 @@ def _obtener_recursos_transporte_para_pedido(orden):
         .values_list("conductor_usuario_legacy_id", flat=True)
     )
 
-    conductores = (
+    conductores = list(
         Usuario.objects.filter(
             rol="conductor",
             estado="activo",
@@ -420,34 +421,62 @@ def _obtener_recursos_transporte_para_pedido(orden):
         .order_by("nombres", "apellidos")
     )
 
-    vehiculos_ocupados_ids = set(
+    # Mapa: conductor_usuario_id -> primer vehículo activo en entregas sin finalizar
+    entregas_activas = (
         Entrega.objects.filter(
             estado__in=["pendiente", "en_ruta"],
             vehiculo__isnull=False,
         )
+        .exclude(pedido__estado__in=[Pedido.ENTREGADO, Pedido.CANCELADO])
         .exclude(pedido=orden)
-        .values_list("vehiculo_id", flat=True)
+        .select_related("conductor__usuario", "vehiculo")
+        .order_by("fecha_asignacion", "id_entrega")
     )
-    vehiculos_ocupados_ids.update(
-        ConductorVehiculo.objects.filter(fecha_fin__isnull=True).values_list(
-            "vehiculo_id", flat=True
-        )
-    )
-    vehiculos_ocupados_ids.discard(
+
+    vehiculo_activo_por_conductor_uid = {}
+    conductor_uid_por_vehiculo_id = {}
+    vehiculos_ocupados_ids = set()
+    for ent in entregas_activas:
+        vehiculos_ocupados_ids.add(ent.vehiculo_id)
+        cond_uid = ent.conductor.usuario_id if ent.conductor_id and ent.conductor else ent.conductor_usuario_id
+        if cond_uid and cond_uid not in vehiculo_activo_por_conductor_uid:
+            vehiculo_activo_por_conductor_uid[cond_uid] = ent.vehiculo
+            conductor_uid_por_vehiculo_id[ent.vehiculo_id] = cond_uid
+
+    # Anotar cada conductor disponible con su vehículo activo (si tiene entregas pendientes)
+    vehiculos_propios_conductores_ids = set()
+    for c in conductores:
+        veh_activo = vehiculo_activo_por_conductor_uid.get(c.id)
+        c.vehiculo_activo_id = veh_activo.id_vehiculo if veh_activo else None
+        c.vehiculo_activo_placa = veh_activo.placa if veh_activo else ""
+        if veh_activo:
+            vehiculos_propios_conductores_ids.add(veh_activo.id_vehiculo)
+
+    vehiculo_orden_actual_id = (
         Entrega.objects.filter(pedido=orden, estado__in=["pendiente", "en_ruta"])
         .values_list("vehiculo_id", flat=True)
         .first()
     )
+    vehiculos_ocupados_ids.discard(vehiculo_orden_actual_id)
 
-    vehiculos = (
+    vehiculos_libres_ids = set(
         Vehiculo.objects.filter(
             Q(estado="disponible", capacidad_carga__gte=5)
             | Q(entregas__pedido=orden, entregas__estado__in=["pendiente", "en_ruta"])
         )
         .exclude(pk__in=vehiculos_ocupados_ids)
+        .values_list("pk", flat=True)
+    )
+
+    vehiculos = list(
+        Vehiculo.objects.filter(
+            pk__in=(vehiculos_libres_ids | vehiculos_propios_conductores_ids)
+        )
         .distinct()
         .order_by("placa")
     )
+    for v in vehiculos:
+        v.conductor_activo_id = conductor_uid_por_vehiculo_id.get(v.id_vehiculo)
 
     return conductores, vehiculos
 
@@ -729,7 +758,11 @@ def ver_pedido_admin(request, id):
                 if not vehiculo_id:
                     usuario_cond_tmp = Usuario.objects.filter(pk=conductor_id, rol="conductor").first()
                     perfil_tmp = getattr(usuario_cond_tmp, "perfil_conductor", None) if usuario_cond_tmp else None
-                    veh_actual = getattr(perfil_tmp, "vehiculo_actual", None) if perfil_tmp else None
+                    veh_actual = (
+                        obtener_vehiculo_activo_conductor(perfil_tmp, excluir_pedido_id=orden.pk)
+                        if perfil_tmp
+                        else None
+                    )
                     if veh_actual:
                         vehiculo_id = veh_actual.pk
                 if not vehiculo_id:

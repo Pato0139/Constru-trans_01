@@ -61,12 +61,17 @@ body {
   word-wrap: normal !important;
 }
 
-.table-responsive,
-.table-container {
+.table-responsive {
   max-width: 100%;
   overflow-x: auto !important;
-  overflow-y: visible !important;
+  overflow-y: hidden !important;
   -webkit-overflow-scrolling: touch;
+}
+
+.table-container {
+  max-width: 100%;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
 }
 
 .table-responsive > table.table,
@@ -311,13 +316,28 @@ table.table {
   }
 
   /* Do not squeeze desktop table columns into a phone-width card.  Lists keep
-     their readable column widths and can be swiped horizontally instead. */
+     their readable column widths and can be swiped horizontally inside .table-responsive. */
   .table-container {
     max-width: 100%;
-    overflow-x: auto !important;
+    overflow-x: hidden !important;
     overflow-y: visible !important;
+  }
+
+  .table-responsive {
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+  }
+
+  .table-responsive > table.table thead {
+    position: static !important;
+  }
+
+  .table-responsive > table.table tbody td {
+    padding: 0.85rem 0.75rem !important;
+    vertical-align: middle !important;
   }
 
   .table-container > table.table,
@@ -667,6 +687,34 @@ table.table {
   white-space: pre-wrap;
 }
 
+/* The order detail has two desktop columns. When the transport panel becomes
+   narrow, stack its driver and vehicle pickers instead of squeezing the cards. */
+#transport-assignment-card {
+  container: transport-assignment / inline-size;
+}
+
+.transport-choice-grid .transport-choice-copy strong,
+.transport-choice-grid .transport-choice-copy small,
+.transport-summary-items strong {
+  display: block;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+@container transport-assignment (max-width: 640px) {
+  #transport-assignment-card > form > .row > .col-sm-6 {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #transport-assignment-card .transport-choice-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+}
+
 .quick-actions-row .quick-action-btn {
   max-width: 100%;
   white-space: normal;
@@ -920,6 +968,38 @@ table.table {
   }
 }
 
+@media (max-width: 575.98px) {
+  .app-navbar,
+  .app-topbar,
+  .navbar-premium {
+    left: 0.5rem !important;
+    right: 0.5rem !important;
+    max-width: calc(100vw - 1rem) !important;
+    box-sizing: border-box !important;
+    padding: 0.4rem 0.5rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .app-navbar #sidebarToggle,
+  .app-navbar .js-accessibility-dropdown:not(.d-none) > button,
+  .app-navbar .btn-icon-circle,
+  .app-topbar .btn-icon-circle,
+  .app-topbar .btn-outline-light {
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+    min-width: 2.25rem !important;
+    min-height: 2.25rem !important;
+    padding: 0.35rem !important;
+    flex: 0 0 auto !important;
+  }
+
+  .app-navbar > .d-flex:last-child,
+  .app-topbar > .d-flex:last-child {
+    gap: 0.25rem !important;
+    min-width: 0;
+  }
+}
+
 @media (max-width: 399.98px) {
   :root {
     --page-gutter: 0.75rem;
@@ -936,6 +1016,6 @@ table.table {
 
   .app-navbar,
   .app-topbar {
-    padding: 0.55rem 0.6rem !important;
+    padding: 0.35rem 0.45rem !important;
   }
 }

@@ -41,10 +41,10 @@
                 class="d-inline">
                 {% csrf_token %}
                 <button type="submit"
-                    class="btn btn-sm {% if v.estado == 'disponible' %}btn-outline-warning{% else %}btn-outline-success{% endif %} border-white-10 rounded-pill px-3"
-                    title="{% if v.estado == 'disponible' %}Inhabilitar{% else %}Habilitar{% endif %}">
-                    <i
-                        class="bi {% if v.estado == 'disponible' %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                    class="btn-action {% if v.estado == 'disponible' %}btn-action--success{% else %}btn-action--danger{% endif %}"
+                    title="{% if v.estado == 'disponible' %}Inhabilitar vehículo{% else %}Habilitar vehículo{% endif %}"
+                    aria-label="{% if v.estado == 'disponible' %}Inhabilitar vehículo{% else %}Habilitar vehículo{% endif %}">
+                    <i class="bi {% if v.estado == 'disponible' %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %}"></i>
                 </button>
             </form>
             {% endif %}
