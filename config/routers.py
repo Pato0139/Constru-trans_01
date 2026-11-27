@@ -6,6 +6,8 @@ from config.utils import conexion_remota_disponible
 # Apps de Django que SIEMPRE deben vivir en la BD default (local)
 # para evitar conflictos de sesión entre bases de datos.
 _APPS_LOCALES = {"sessions", "auth", "usuarios", "contenttypes", "admin"}
+# Modelos dentro de apps locales que SÍ son datos compartidos entre equipos en Neon
+_MODELOS_COMPARTIDOS = {"usuarios.Notificacion"}
 
 
 class EnrutadorInventario:
@@ -31,11 +33,15 @@ class EnrutadorInventario:
         return "local"
 
     def db_for_read(self, model, **hints):
+        if model._meta.label in _MODELOS_COMPARTIDOS:
+            return self._elegir_bd()
         if model._meta.app_label in _APPS_LOCALES:
             return "default"
         return self._elegir_bd()
 
     def db_for_write(self, model, **hints):
+        if model._meta.label in _MODELOS_COMPARTIDOS:
+            return self._elegir_bd()
         if model._meta.app_label in _APPS_LOCALES:
             return "default"
         return self._elegir_bd()
