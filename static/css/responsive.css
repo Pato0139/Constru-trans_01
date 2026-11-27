@@ -1559,6 +1559,11 @@ table.table {
       line-height: 1.1 !important;
     }
 
+    /* Si el grid KPI tiene 3 tarjetas (Panel Cliente), la 3ra ocupa el ancho completo para que montos grandes quepan bien */
+    .admin-kpi-grid > [class*="col-"]:last-child:nth-child(odd) {
+      grid-column: 1 / -1 !important;
+    }
+
     /* Panel Conductor: 4 KPIs en cuadrícula 2x2 limpia + Clima compacto */
     .row:has(> [class*="col-"] > .driver-kpi-card),
     .row:has(> [class*="col-"] > .stats-card) {

@@ -187,54 +187,54 @@
     </div>
 </div>
 
-<!-- KPI Summary Cards (4 Cards) -->
-<div class="row g-3 mb-4">
+<!-- KPI Summary Cards (Mismo diseño unificado del Panel Admin) -->
+<div class="row g-4 mb-4 align-items-stretch admin-kpi-grid">
     <!-- 1. Envíos Pendientes -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
-            <div class="driver-kpi-icon-wrap kpi-amber">
-                <i class="bi bi-hourglass-split"></i>
+    <div class="col-md-3">
+        <div class="stat-card h-100 p-4 rounded-4 shadow-sm u-inline-b9d6cd53cf">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted fw-bold m-0 text-uppercase small u-inline-2ecb5783f5">Pendientes</h6>
+                <div class="rounded-circle d-flex align-items-center justify-content-center u-inline-779ec48ade">
+                    <i class="bi bi-hourglass-split text-warning fs-4"></i>
+                </div>
             </div>
-            <div>
-                <span class="driver-kpi-label">Pendientes</span>
-                <h3 class="driver-kpi-value mb-0">{{ envios_pendientes_count|default:"0" }}</h3>
-            </div>
+            <h2 class="fw-bold mb-0 u-inline-6e24079678">{{ envios_pendientes_count|default:"0" }}</h2>
         </div>
     </div>
     <!-- 2. Entregas en Ruta -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
-            <div class="driver-kpi-icon-wrap kpi-blue">
-                <i class="bi bi-truck"></i>
+    <div class="col-md-3">
+        <div class="stat-card h-100 p-4 rounded-4 shadow-sm u-inline-592bc61572">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted fw-bold m-0 text-uppercase small u-inline-2ecb5783f5">En Ruta</h6>
+                <div class="rounded-circle d-flex align-items-center justify-content-center u-inline-b06e720cc7">
+                    <i class="bi bi-truck text-primary fs-4"></i>
+                </div>
             </div>
-            <div>
-                <span class="driver-kpi-label">En Ruta</span>
-                <h3 class="driver-kpi-value mb-0">{{ entregas_en_ruta_count|default:"0" }}</h3>
-            </div>
+            <h2 class="fw-bold mb-0 u-inline-6e24079678">{{ entregas_en_ruta_count|default:"0" }}</h2>
         </div>
     </div>
     <!-- 3. Entregas Completadas -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
-            <div class="driver-kpi-icon-wrap kpi-green">
-                <i class="bi bi-check2-circle"></i>
+    <div class="col-md-3">
+        <div class="stat-card h-100 p-4 rounded-4 shadow-sm u-inline-5f9d002aad">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted fw-bold m-0 text-uppercase small u-inline-2ecb5783f5">Completadas</h6>
+                <div class="rounded-circle d-flex align-items-center justify-content-center u-inline-3c5c0d8e17">
+                    <i class="bi bi-check2-circle text-success fs-4"></i>
+                </div>
             </div>
-            <div>
-                <span class="driver-kpi-label">Completadas</span>
-                <h3 class="driver-kpi-value mb-0">{{ entregas_completadas_count|default:"0" }}</h3>
-            </div>
+            <h2 class="fw-bold mb-0 u-inline-6e24079678">{{ entregas_completadas_count|default:"0" }}</h2>
         </div>
     </div>
     <!-- 4. Novedades Registradas -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="driver-kpi-card shadow-sm p-3 d-flex align-items-center gap-3">
-            <div class="driver-kpi-icon-wrap kpi-rose">
-                <i class="bi bi-exclamation-triangle"></i>
+    <div class="col-md-3">
+        <div class="stat-card h-100 p-4 rounded-4 shadow-sm u-inline-06bb6472eb">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-muted fw-bold m-0 text-uppercase small u-inline-2ecb5783f5">Novedades</h6>
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:48px;height:48px;background:rgba(239,68,68,0.14);">
+                    <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
+                </div>
             </div>
-            <div>
-                <span class="driver-kpi-label">Novedades</span>
-                <h3 class="driver-kpi-value mb-0">{{ novedades_registradas_count|default:"0" }}</h3>
-            </div>
+            <h2 class="fw-bold mb-0 u-inline-6e24079678">{{ novedades_registradas_count|default:"0" }}</h2>
         </div>
     </div>
 </div>
