@@ -40,7 +40,7 @@
 
   <link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=1.0">
   {% block extra_css %}{% endblock %}
-  <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=5.5">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=5.6">
   <link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=2.3">
 </head>
 
@@ -119,6 +119,9 @@
   </svg>
 
   {% block extra_js %}{% endblock %}
+
+  <!-- Navegación rápida inferior solo móvil -->
+  {% include "partials/mobile_bottom_nav.html" %}
 
   <!-- Asistente Virtual IA -->
   {% include "partials/chat-widget.html" %}

@@ -1,0 +1,119 @@
+{% if user.is_authenticated %}
+{% with active_role=user.usuario.rol %}
+<nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Navegación rápida móvil">
+  {% if active_role == 'admin' %}
+  <a href="{% url 'usuarios:panel' %}"
+     class="mobile-bottom-nav__item {% if request.resolver_match.url_name == 'panel' %}is-active{% endif %}">
+    <i class="bi bi-grid-1x2-fill"></i>
+    <span>Inicio</span>
+  </a>
+  <a href="{% url 'pedidos:lista_pedidos_admin' %}"
+     class="mobile-bottom-nav__item {% if request.resolver_match.app_name == 'pedidos' %}is-active{% endif %}">
+    <i class="bi bi-cart-check-fill"></i>
+    <span>Pedidos</span>
+  </a>
+  <a href="{% url 'pagos:lista_pagos' %}"
+     class="mobile-bottom-nav__item {% if request.resolver_match.app_name == 'pagos' %}is-active{% endif %}">
+    <i class="bi bi-wallet2"></i>
+    <span>Pagos</span>
+  </a>
+  <a href="{% url 'catalogo:materiales_lista' %}"
+     class="mobile-bottom-nav__item {% if request.resolver_match.app_name == 'catalogo' %}is-active{% endif %}">
+    <i class="bi bi-box-seam-fill"></i>
+    <span>Catálogo</span>
+  </a>
+  <button type="button" class="mobile-bottom-nav__item js-mobile-open-menu" aria-label="Abrir menú completo">
+    <i class="bi bi-list"></i>
+    <span>Menú</span>
+  </button>
+
+  {% elif active_role == 'cliente' %}
+  <a href="{% url 'clientes:panel_cliente' %}"
+     class="mobile-bottom-nav__item {% if request.resolver_match.url_name == 'panel_cliente' %}is-active{% endif %}">
+    <i class="bi bi-grid-1x2-fill"></i>
+    <span>Inicio</span>
+  </a>
+  <a href="{% url 'clientes:mis_pedidos' %}"
+     class="mobile-bottom-nav__item {% if request.resolver_match.url_name == 'mis_pedidos' %}is-active{% endif %}">
+    <i class="bi bi-cart-fill"></i>
+    <span>Pedidos</span>
+  </a>
+  <a href="{% url 'clientes:crear_pedido' %}"
+     class="mobile-bottom-nav__item mobile-bottom-nav__item--cta {% if request.resolver_match.url_name == 'crear_pedido' %}is-active{% endif %}">
+    <span class="mobile-bottom-nav__fab"><i class="bi bi-plus-lg"></i></span>
+    <span>Pedir</span>
+  </a>
+  <a href="{% url 'pagos:mis_pagos' %}"
+     class="mobile-bottom-nav__item {% if request.resolver_match.app_name == 'pagos' %}is-active{% endif %}">
+    <i class="bi bi-wallet2"></i>
+    <span>Pagos</span>
+  </a>
+  <button type="button" class="mobile-bottom-nav__item js-mobile-open-menu" aria-label="Abrir menú completo">
+    <i class="bi bi-list"></i>
+    <span>Menú</span>
+  </button>
+
+  {% elif active_role == 'conductor' %}
+  <a href="{% url 'usuarios:panel_conductor' %}"
+     class="mobile-bottom-nav__item {% if request.resolver_match.url_name == 'panel_conductor' %}is-active{% endif %}">
+    <i class="bi bi-grid-1x2-fill"></i>
+    <span>Inicio</span>
+  </a>
+  <a href="{% url 'usuarios:pedidos_conductor' %}"
+     class="mobile-bottom-nav__item {% if request.resolver_match.url_name == 'pedidos_conductor' %}is-active{% endif %}">
+    <i class="bi bi-truck"></i>
+    <span>Entregas</span>
+  </a>
+  <a href="{% url 'logistica:mis_novedades' %}"
+     class="mobile-bottom-nav__item {% if request.resolver_match.app_name == 'logistica' %}is-active{% endif %}">
+    <i class="bi bi-flag-fill"></i>
+    <span>Novedades</span>
+  </a>
+  <a href="{% url 'usuarios:perfil_conductor' %}"
+     class="mobile-bottom-nav__item {% if request.resolver_match.url_name == 'perfil_conductor' %}is-active{% endif %}">
+    <i class="bi bi-person-circle"></i>
+    <span>Cuenta</span>
+  </a>
+  <button type="button" class="mobile-bottom-nav__item js-mobile-open-menu" aria-label="Abrir menú completo">
+    <i class="bi bi-list"></i>
+    <span>Menú</span>
+  </button>
+  {% endif %}
+</nav>
+
+<script data-ajax-persistent>
+(function () {
+  if (window.__ctMobileBottomNavBound) return;
+  window.__ctMobileBottomNavBound = true;
+
+  function syncActiveBottomNav() {
+    const nav = document.getElementById('mobileBottomNav');
+    if (!nav) return;
+    const currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
+    nav.querySelectorAll('a.mobile-bottom-nav__item').forEach(function (link) {
+      const href = (link.getAttribute('href') || '').replace(/\/+$/, '') || '/';
+      link.classList.toggle('is-active', href === currentPath);
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.js-mobile-open-menu');
+    if (!btn) return;
+    e.preventDefault();
+    const toggle = document.getElementById('sidebarToggle');
+    if (toggle) {
+      toggle.click();
+      return;
+    }
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) sidebar.classList.toggle('active');
+    if (overlay) overlay.classList.toggle('active');
+  });
+
+  document.addEventListener('app:page-loaded', syncActiveBottomNav);
+  document.addEventListener('DOMContentLoaded', syncActiveBottomNav);
+})();
+</script>
+{% endwith %}
+{% endif %}

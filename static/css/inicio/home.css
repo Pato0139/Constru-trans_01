@@ -649,6 +649,31 @@ main {
     display: none;
   }
 
+  .hero-premium {
+    padding-top: 96px !important;
+    padding-bottom: 40px !important;
+  }
+
+  .stats-premium-box {
+    padding: 28px 0 !important;
+  }
+
+  .inicio-modules-section {
+    padding: 48px 0 !important;
+  }
+
+  .inicio-final-cta-section {
+    padding: 56px 0 48px !important;
+  }
+
+  .inicio-cta-box {
+    padding: 28px 18px !important;
+  }
+
+  .inicio-section-heading {
+    margin-bottom: 1.75rem !important;
+  }
+
   .inicio-stat-card,
   .inicio-mini-stat,
   .inicio-module-card {

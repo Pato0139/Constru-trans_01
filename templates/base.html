@@ -39,7 +39,7 @@
   <link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=3.0">
   {% block extra_css %}{% endblock %}
   <link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=4.2">
-  <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=5.5">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=5.6">
 </head>
 
 <body data-ajax-shell="admin">
@@ -104,6 +104,9 @@
   <script src="{% static 'js/sticky-topbar.js' %}?v=1.1"></script>
   <script src="{% static 'js/filters-ajax.js' %}?v=2.5"></script>
   {% block extra_js %}{% endblock %}
+
+  <!-- Navegación rápida inferior solo móvil -->
+  {% include "partials/mobile_bottom_nav.html" %}
 
   <!-- Asistente Virtual IA -->
   {% include "partials/chat-widget.html" %}
