@@ -1,9 +1,8 @@
 """
-Señales de replicación en tiempo real: Remota (Neon) -> Local (SQLite).
-
-Cada vez que se crea, edita o elimina un registro en la base 'remota',
-se replica automáticamente en 'local' (db.sqlite3) dentro de un bloque seguro
-para mantener la base offline siempre actualizada.
+Señales de replicación bidireccional en tiempo real:
+  - Remota (Neon) -> Local (SQLite): mantiene la base offline siempre al día.
+  - Local/Default (SQLite) -> Remota (Neon): asegura que notificaciones, usuarios
+    y pedidos creados/editados localmente se publiquen de inmediato en Neon para otros PCs.
 """
 
 import sys
@@ -17,10 +16,11 @@ from config.sync_local import (
     eliminar_instancia_en_local,
     esta_sincronizando,
     replicar_instancia_a_local,
+    replicar_instancia_a_remota,
 )
 
 
-def _debe_replicar(sender, using) -> bool:
+def _debe_replicar_a_local(sender, using) -> bool:
     if "test" in sys.argv or "pytest" in sys.modules:
         return False
     if esta_sincronizando():
@@ -32,15 +32,31 @@ def _debe_replicar(sender, using) -> bool:
     return getattr(sender._meta, "label", None) in MODELOS_SINCRONIZABLES
 
 
+def _debe_replicar_a_remota(sender, using) -> bool:
+    if "test" in sys.argv or "pytest" in sys.modules:
+        return False
+    if esta_sincronizando():
+        return False
+    if getattr(settings, "OFFLINE_MODE", False):
+        return False
+    if using not in {"default", "local"}:
+        return False
+    if "remota" not in settings.DATABASES:
+        return False
+    return getattr(sender._meta, "label", None) in MODELOS_SINCRONIZABLES
+
+
 @receiver(post_save, dispatch_uid="core_replicar_remota_a_local_save")
 def replicar_guardado_a_local(sender, instance, using=None, **kwargs):
     db_used = using or getattr(instance._state, "db", None)
-    if _debe_replicar(sender, db_used):
+    if _debe_replicar_a_local(sender, db_used):
         replicar_instancia_a_local(instance)
+    elif _debe_replicar_a_remota(sender, db_used):
+        replicar_instancia_a_remota(instance)
 
 
 @receiver(post_delete, dispatch_uid="core_replicar_remota_a_local_delete")
 def replicar_borrado_a_local(sender, instance, using=None, **kwargs):
     db_used = using or getattr(instance._state, "db", None)
-    if _debe_replicar(sender, db_used):
+    if _debe_replicar_a_local(sender, db_used):
         eliminar_instancia_en_local(instance)

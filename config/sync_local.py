@@ -64,6 +64,8 @@ MODELOS_SINCRONIZABLES = (
     # 8. Entregas y novedades
     "logistica.Entrega",
     "logistica.Novedad",
+    "logistica.Seguimiento",
+    "logistica.RespuestaSeguimiento",
     # 9. Consecutivos, auditoría y licenciamiento
     "core.Consecutivo",
     "auditoria.Historial",
@@ -126,6 +128,132 @@ def replicar_instancia_a_local(instance) -> bool:
         return False
     finally:
         _sync_state.running = False
+
+
+def replicar_instancia_a_remota(instance) -> bool:
+    """Replica en tiempo real un registro guardado en 'local'/'default' hacia 'remota' (Neon)."""
+    if esta_sincronizando() or getattr(settings, "OFFLINE_MODE", False):
+        return False
+    if "remota" not in settings.DATABASES:
+        return False
+
+    model = instance.__class__
+    if model._meta.label not in MODELOS_SINCRONIZABLES:
+        return False
+
+    from config.utils import conexion_remota_disponible
+
+    if not conexion_remota_disponible():
+        return False
+
+    pk_field = model._meta.pk.attname
+    pk_value = getattr(instance, pk_field, None)
+    if pk_value is None:
+        return False
+
+    valores = _concrete_field_values(instance)
+    if "sincronizado" in valores:
+        valores["sincronizado"] = True
+    defaults = {k: v for k, v in valores.items() if k != pk_field}
+
+    _sync_state.running = True
+    try:
+        model._base_manager.using("remota").update_or_create(
+            **{pk_field: pk_value},
+            defaults=defaults,
+        )
+        if "sincronizado" in valores:
+            try:
+                model._base_manager.using("local").filter(**{pk_field: pk_value}).update(sincronizado=True)
+            except Exception:
+                pass
+        return True
+    except Exception as exc:
+        logger.debug(
+            "No se pudo replicar %s(%s) a remota: %s",
+            model._meta.label,
+            pk_value,
+            exc,
+        )
+        return False
+    finally:
+        _sync_state.running = False
+
+
+def sincronizar_pendientes_local_a_remota() -> dict:
+    """
+    Sube hacia Neon ('remota') cualquier registro creado/modificado en 'local' que aún no esté
+    en la nube (por ejemplo, pedidos hechos en modo offline o notificaciones locales).
+    """
+    if getattr(settings, "OFFLINE_MODE", False):
+        return {"tablas_subidas": 0, "registros_subidos": 0}
+    if "remota" not in settings.DATABASES or "local" not in settings.DATABASES:
+        return {"tablas_subidas": 0, "registros_subidos": 0}
+
+    from config.utils import conexion_remota_disponible
+
+    if not conexion_remota_disponible():
+        return {"tablas_subidas": 0, "registros_subidos": 0}
+
+    tablas_subidas = 0
+    registros_subidos = 0
+
+    _sync_state.running = True
+    try:
+        for model in _resolver_modelos():
+            pk_field = model._meta.pk.attname
+            field_names = {f.name for f in model._meta.concrete_fields}
+            has_sync_flag = "sincronizado" in field_names
+
+            try:
+                if has_sync_flag:
+                    pendientes = list(
+                        model._base_manager.using("local").filter(sincronizado=False).order_by(pk_field)[:100]
+                    )
+                else:
+                    rem_max = model._base_manager.using("remota").aggregate(m=Max("pk")).get("m")
+                    if rem_max is not None:
+                        pendientes = list(
+                            model._base_manager.using("local")
+                            .filter(**{f"{pk_field}__gt": rem_max})
+                            .order_by(pk_field)[:100]
+                        )
+                    else:
+                        pendientes = []
+            except Exception as exc:
+                logger.debug("Celador omitió subida de %s: %s", model._meta.label, exc)
+                continue
+
+            if not pendientes:
+                continue
+
+            subidos_tabla = 0
+            for obj in pendientes:
+                pk_val = getattr(obj, pk_field, None)
+                if pk_val is None:
+                    continue
+                valores = _concrete_field_values(obj)
+                if has_sync_flag:
+                    valores["sincronizado"] = True
+                defaults = {k: v for k, v in valores.items() if k != pk_field}
+                try:
+                    model._base_manager.using("remota").update_or_create(
+                        **{pk_field: pk_val},
+                        defaults=defaults,
+                    )
+                    if has_sync_flag:
+                        model._base_manager.using("local").filter(**{pk_field: pk_val}).update(sincronizado=True)
+                    subidos_tabla += 1
+                except Exception as exc:
+                    logger.debug("Celador no pudo subir %s(%s): %s", model._meta.label, pk_val, exc)
+
+            if subidos_tabla:
+                tablas_subidas += 1
+                registros_subidos += subidos_tabla
+    finally:
+        _sync_state.running = False
+
+    return {"tablas_subidas": tablas_subidas, "registros_subidos": registros_subidos}
 
 
 def eliminar_instancia_en_local(instance) -> bool:
@@ -283,16 +411,30 @@ def sincronizar_cambios_remota_a_local() -> dict:
                 if rem_total == 0:
                     continue
 
+                # Modelos operativos clave sin timestamp explícito: refrescar los últimos 25 registros
+                # para propagar cambios de estado (ej. pendiente -> autorizado -> en_ruta -> entregado).
+                es_operativo_vivo = model._meta.label in {
+                    "pedidos.Pedido",
+                    "pedidos.DetallePedido",
+                    "logistica.Entrega",
+                    "logistica.Novedad",
+                    "pagos.Pago",
+                    "catalogo.Stock",
+                    "usuarios.Notificacion",
+                }
+
                 hay_diferencia = (
                     rem_total != loc_total
                     or rem_stats.get("max_pk") != loc_stats.get("max_pk")
                     or (ts_field and rem_stats.get("max_ts") != loc_stats.get("max_ts"))
+                    or es_operativo_vivo
                 )
                 if not hay_diferencia:
                     continue
 
                 # Si solo hay filas nuevas con PK mayor y no cambió el timestamp de existentes,
-                # descargamos únicamente las filas nuevas; si no, sincronizamos la tabla completa.
+                # descargamos únicamente las filas nuevas; si es operativo vivo sin cambios de conteo,
+                # refrescamos solo los últimos 25 para mantener el ciclo ultra-rápido.
                 loc_max_pk = loc_stats.get("max_pk")
                 solo_nuevos = (
                     loc_max_pk is not None
@@ -302,6 +444,8 @@ def sincronizar_cambios_remota_a_local() -> dict:
                 qs = model._base_manager.using("remota").all()
                 if solo_nuevos:
                     qs = qs.filter(**{f"{pk_field}__gt": loc_max_pk})
+                elif es_operativo_vivo and rem_total == loc_total and rem_stats.get("max_pk") == loc_max_pk:
+                    qs = qs.order_by(f"-{pk_field}")[:25]
 
                 update_fields = [
                     f.attname for f in model._meta.concrete_fields if f.attname != pk_field
@@ -384,13 +528,20 @@ def iniciar_celador_automatico() -> bool:
             return False
         _celador_started = True
 
-    intervalo = max(30, int(os.getenv("CELADOR_SYNC_INTERVAL_SECONDS", "60") or 60))
+    intervalo = max(10, int(os.getenv("CELADOR_SYNC_INTERVAL_SECONDS", "15") or 15))
 
     def _loop_celador():
         # Esperar unos segundos al arranque para no competir con la primera carga del servidor
-        time.sleep(8)
+        time.sleep(5)
         while True:
             try:
+                sub = sincronizar_pendientes_local_a_remota()
+                if sub.get("registros_subidos", 0) > 0:
+                    logger.info(
+                        "[Celador] Subidos %s registros pendientes de local a Neon (%s tablas).",
+                        sub["registros_subidos"],
+                        sub["tablas_subidas"],
+                    )
                 res = sincronizar_cambios_remota_a_local()
                 if res.get("registros_descargados", 0) > 0:
                     logger.info(
@@ -411,5 +562,5 @@ def iniciar_celador_automatico() -> bool:
 
     t = threading.Thread(target=_loop_celador, name="CeladorNeonSync", daemon=True)
     t.start()
-    logger.info("[Celador] Sincronizador automático Neon -> local iniciado (cada %ss).", intervalo)
+    logger.info("[Celador] Sincronizador automático bidireccional local <-> Neon iniciado (cada %ss).", intervalo)
     return True
