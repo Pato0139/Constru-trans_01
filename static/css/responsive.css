@@ -1120,7 +1120,8 @@ table.table {
    - Tarjetas KPI y accesos rápidos en 2 columnas (menos scroll vertical)
    - Filtros, encabezados y formularios compactos y cómodos al tacto
    ===================================================================== */
-.mobile-bottom-nav {
+.mobile-bottom-nav,
+.ct-table-slider-bar {
   display: none;
 }
 
@@ -1618,6 +1619,157 @@ table.table {
     justify-content: center !important;
     flex-wrap: wrap !important;
     gap: 0.2rem !important;
+  }
+
+  /* =====================================================================
+     SLIDER HORIZONTAL Y SCROLLBAR VISIBLE PARA TODAS LAS TABLAS EN MÓVIL
+     ===================================================================== */
+  .main-content .table-responsive,
+  .main-content .driver-deliveries-scroll,
+  .main-content .supplier-table-wrap,
+  .main-content .orders-list-scroll {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59, 130, 246, 0.7) rgba(148, 163, 184, 0.16);
+    padding-bottom: 0.35rem;
+  }
+
+  .main-content .table-responsive::-webkit-scrollbar,
+  .main-content .driver-deliveries-scroll::-webkit-scrollbar,
+  .main-content .supplier-table-wrap::-webkit-scrollbar,
+  .main-content .orders-list-scroll::-webkit-scrollbar {
+    height: 7px;
+  }
+
+  .main-content .table-responsive::-webkit-scrollbar-track,
+  .main-content .driver-deliveries-scroll::-webkit-scrollbar-track,
+  .main-content .supplier-table-wrap::-webkit-scrollbar-track,
+  .main-content .orders-list-scroll::-webkit-scrollbar-track {
+    background: rgba(148, 163, 184, 0.16);
+    border-radius: 999px;
+  }
+
+  .main-content .table-responsive::-webkit-scrollbar-thumb,
+  .main-content .driver-deliveries-scroll::-webkit-scrollbar-thumb,
+  .main-content .supplier-table-wrap::-webkit-scrollbar-thumb,
+  .main-content .orders-list-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    border-radius: 999px;
+  }
+
+  [data-theme="dark"] .main-content .table-responsive::-webkit-scrollbar-thumb,
+  [data-theme="dark"] .main-content .driver-deliveries-scroll::-webkit-scrollbar-thumb,
+  [data-theme="dark"] .main-content .supplier-table-wrap::-webkit-scrollbar-thumb,
+  [data-theme="dark"] .main-content .orders-list-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  }
+
+  .ct-table-slider-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.55rem;
+    padding: 0.4rem 0.55rem;
+    border-radius: 0.8rem;
+    background: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(37, 99, 235, 0.22);
+  }
+
+  [data-theme="dark"] .ct-table-slider-bar {
+    background: rgba(251, 191, 36, 0.08);
+    border-color: rgba(251, 191, 36, 0.25);
+  }
+
+  .ct-table-slider-btn {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    padding: 0 !important;
+    border-radius: 50%;
+    border: 1px solid rgba(37, 99, 235, 0.35);
+    background: rgba(255, 255, 255, 0.85);
+    color: #1d4ed8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 30px;
+    font-size: 0.85rem;
+  }
+
+  [data-theme="dark"] .ct-table-slider-btn {
+    background: rgba(15, 23, 42, 0.85);
+    border-color: rgba(251, 191, 36, 0.4);
+    color: #fbbf24;
+  }
+
+  .ct-table-slider-track-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .ct-table-slider-hint {
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: #1d4ed8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    line-height: 1;
+  }
+
+  [data-theme="dark"] .ct-table-slider-hint {
+    color: #fbbf24;
+  }
+
+  .ct-table-slider-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.22);
+    outline: none;
+    cursor: pointer;
+  }
+
+  [data-theme="dark"] .ct-table-slider-range {
+    background: rgba(251, 191, 36, 0.24);
+  }
+
+  .ct-table-slider-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 14px;
+    border-radius: 999px;
+    background: #2563eb;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.45);
+  }
+
+  [data-theme="dark"] .ct-table-slider-range::-webkit-slider-thumb {
+    background: #fbbf24;
+    border-color: #0f172a;
+    box-shadow: 0 2px 6px rgba(251, 191, 36, 0.45);
+  }
+
+  .ct-table-slider-range::-moz-range-thumb {
+    width: 24px;
+    height: 14px;
+    border-radius: 999px;
+    background: #2563eb;
+    border: 2px solid #ffffff;
+  }
+
+  [data-theme="dark"] .ct-table-slider-range::-moz-range-thumb {
+    background: #fbbf24;
+    border-color: #0f172a;
   }
 
   /* Encabezados, tarjetas y filtros más compactos para ver datos rápido */

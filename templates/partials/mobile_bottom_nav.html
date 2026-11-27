@@ -113,6 +113,98 @@
 
   document.addEventListener('app:page-loaded', syncActiveBottomNav);
   document.addEventListener('DOMContentLoaded', syncActiveBottomNav);
+
+  // =========================================================================
+  // Sliders horizontales interactivos para TODAS las tablas en móvil (<=767px)
+  // =========================================================================
+  function initMobileTableSliders() {
+    var containers = document.querySelectorAll(
+      '.main-content .table-responsive, .main-content .driver-deliveries-scroll, .main-content .supplier-table-wrap, .main-content .orders-list-scroll'
+    );
+    var isMobile = window.innerWidth <= 767;
+
+    containers.forEach(function (wrap) {
+      // No agregar slider si la tabla móvil se renderiza en tarjetas apiladas (sin scroll horizontal)
+      var table = wrap.querySelector('table');
+      if (!table) return;
+
+      var existing = wrap.previousElementSibling;
+      var bar = existing && existing.classList.contains('ct-table-slider-bar') ? existing : null;
+
+      if (!isMobile) {
+        if (bar) bar.style.display = 'none';
+        return;
+      }
+
+      var maxScroll = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+      if (maxScroll <= 8) {
+        if (bar) bar.style.display = 'none';
+        return;
+      }
+
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.className = 'ct-table-slider-bar';
+        bar.innerHTML =
+          '<button type="button" class="ct-table-slider-btn ct-slider-prev" aria-label="Desplazar tabla a la izquierda"><i class="bi bi-chevron-left"></i></button>' +
+          '<div class="ct-table-slider-track-wrap">' +
+            '<span class="ct-table-slider-hint"><i class="bi bi-arrows-expand-vertical"></i> Desliza para ver todas las columnas</span>' +
+            '<input type="range" class="ct-table-slider-range" min="0" max="100" value="0" aria-label="Desplazar tabla horizontalmente">' +
+          '</div>' +
+          '<button type="button" class="ct-table-slider-btn ct-slider-next" aria-label="Desplazar tabla a la derecha"><i class="bi bi-chevron-right"></i></button>';
+
+        wrap.parentNode.insertBefore(bar, wrap);
+
+        var range = bar.querySelector('.ct-table-slider-range');
+        var prevBtn = bar.querySelector('.ct-slider-prev');
+        var nextBtn = bar.querySelector('.ct-slider-next');
+        var syncing = false;
+
+        range.addEventListener('input', function () {
+          if (syncing) return;
+          syncing = true;
+          var maxS = Math.max(0, wrap.scrollWidth - wrap.clientWidth);
+          wrap.scrollLeft = (parseFloat(range.value) / 100) * maxS;
+          syncing = false;
+        });
+
+        wrap.addEventListener('scroll', function () {
+          if (syncing) return;
+          syncing = true;
+          var maxS = Math.max(1, wrap.scrollWidth - wrap.clientWidth);
+          range.value = Math.min(100, Math.max(0, Math.round((wrap.scrollLeft / maxS) * 100)));
+          syncing = false;
+        }, { passive: true });
+
+        prevBtn.addEventListener('click', function () {
+          wrap.scrollBy({ left: -170, behavior: 'smooth' });
+        });
+        nextBtn.addEventListener('click', function () {
+          wrap.scrollBy({ left: 170, behavior: 'smooth' });
+        });
+      }
+
+      bar.style.display = 'flex';
+      var r = bar.querySelector('.ct-table-slider-range');
+      if (r) {
+        r.value = Math.min(100, Math.max(0, Math.round((wrap.scrollLeft / maxScroll) * 100)));
+      }
+    });
+  }
+
+  function scheduleTableSliders() {
+    window.requestAnimationFrame(function () {
+      initMobileTableSliders();
+      setTimeout(initMobileTableSliders, 350);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', scheduleTableSliders);
+  document.addEventListener('app:page-loaded', scheduleTableSliders);
+  window.addEventListener('resize', scheduleTableSliders);
+  if (window.jQuery) {
+    window.jQuery(document).on('draw.dt', scheduleTableSliders);
+  }
 })();
 </script>
 {% endwith %}

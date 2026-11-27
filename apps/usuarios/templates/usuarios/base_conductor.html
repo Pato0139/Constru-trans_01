@@ -38,7 +38,7 @@
   <link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=1.0">
   {% block extra_css %}{% endblock %}
   <link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=4.2">
-  <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=5.9">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=6.0">
 </head>
 
 <body data-ajax-shell="conductor">
@@ -106,6 +106,9 @@
   </svg>
 
   {% block extra_js %}{% endblock %}
+
+  <!-- Navegación rápida inferior y sliders de tabla móvil -->
+  {% include "partials/mobile_bottom_nav.html" %}
 
   <!-- Asistente Virtual IA -->
   {% include "partials/chat-widget.html" %}
