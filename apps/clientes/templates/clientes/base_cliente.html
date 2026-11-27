@@ -40,8 +40,8 @@
 
   <link rel="stylesheet" href="{% static 'css/inline-migrated.css' %}?v=1.0">
   {% block extra_css %}{% endblock %}
-  <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=5.7">
-  <link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=2.3">
+  <link rel="stylesheet" href="{% static 'css/theme-components.css' %}?v=4.2">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}?v=5.8">
 </head>
 
 <body data-ajax-shell="cliente">
@@ -62,9 +62,9 @@
 
       {% include "partials/sidebar.html" %}
 
-      <main class="flex-grow-1 p-3 overflow-auto main-content">
+      {% include "partials/navbar.html" %}
 
-        {% include "partials/navbar.html" %}
+      <main class="main-content app-main flex-grow-1">
 
         {% if messages %}
         <div id="django-messages-data" class="d-none">

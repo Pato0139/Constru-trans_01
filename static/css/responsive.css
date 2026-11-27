@@ -1124,6 +1124,12 @@ table.table {
   display: none;
 }
 
+/* Quitar el ícono (!) automático de theme-components en el contador numérico de notificaciones */
+.navbar-notif-badge::before {
+  content: none !important;
+  display: none !important;
+}
+
 @media (max-width: 767.98px) {
   /* Espacio superior e inferior exacto para la navbar de 1 fila y el dock inferior */
   .main-content.app-main,
