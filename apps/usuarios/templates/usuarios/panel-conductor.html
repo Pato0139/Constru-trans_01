@@ -27,17 +27,14 @@
                             {% if proxima_entrega %}
                             <div class="driver-weather-route-meta d-flex flex-wrap align-items-center gap-2">
                                 <span class="driver-weather-chip driver-weather-chip--order">
-                                    <i class="bi bi-box-seam me-1"></i>Pedido #CT-{{
-                                    proxima_entrega.pedido.codigo_pedido }}
+                                    <i class="bi bi-box-seam me-1"></i>Pedido #CT-{{ proxima_entrega.pedido.codigo_pedido }}
                                 </span>
                                 <span class="driver-weather-chip driver-weather-chip--city">
-                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{
-                                    clima_ruta.city|default:"Destino" }}
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ clima_ruta.city|default:"Destino" }}
                                 </span>
                                 {% if proxima_entrega.pedido.fecha_entrega_programada %}
                                 <span class="driver-weather-chip driver-weather-chip--time">
-                                    <i class="bi bi-calendar3 me-1"></i>{{
-                                    proxima_entrega.pedido.fecha_entrega_programada|date:"d/m/Y h:i A" }}
+                                    <i class="bi bi-calendar3 me-1"></i>{{ proxima_entrega.pedido.fecha_entrega_programada|date:"d/m/Y h:i A" }}
                                 </span>
                                 {% endif %}
                             </div>
@@ -82,8 +79,7 @@
                                             {{ clima_ruta.description }}
                                         </span>
                                         <span class="driver-weather-feels-tag">
-                                            <i class="bi bi-thermometer-half me-1"></i>Sensación {{
-                                            clima_ruta.feels_like }} °C
+                                            <i class="bi bi-thermometer-half me-1"></i>Sensación {{ clima_ruta.feels_like }} °C
                                         </span>
                                     </div>
                                 </div>
@@ -111,8 +107,7 @@
                                             <i class="bi bi-cloud-rain-heavy-fill"></i>
                                         </div>
                                         <span class="driver-metric-label">Prob. lluvia</span>
-                                        <span class="driver-metric-val">{{ clima_ruta.precipitation_probability
-                                            }}%</span>
+                                        <span class="driver-metric-val">{{ clima_ruta.precipitation_probability }}%</span>
                                     </div>
                                 </div>
 
@@ -135,8 +130,7 @@
                                             <i class="bi bi-clock-history"></i>
                                         </div>
                                         <span class="driver-metric-label">Hora est.</span>
-                                        <span class="driver-metric-val">{{ clima_ruta.forecast_time|date:"d/m h:i A"
-                                            }}</span>
+                                        <span class="driver-metric-val">{{ clima_ruta.forecast_time|date:"d/m h:i A" }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -280,8 +274,7 @@
                     </td>
                     <td class="col-cliente">
                         <div class="driver-client-name">
-                            <i class="bi bi-person me-1"></i>{{
-                            entrega.pedido.cliente_usuario.nombre_mostrar|default:entrega.pedido.usuario.username }}
+                            <i class="bi bi-person me-1"></i>{{ entrega.pedido.cliente_usuario.nombre_mostrar|default:entrega.pedido.usuario.username }}
                         </div>
                     </td>
                     <td class="col-estado">
@@ -344,8 +337,7 @@
                 {% csrf_token %}
                 <div class="modal-header" style="border-bottom: 1px solid var(--color-border);">
                     <h5 class="modal-title fw-bold" id="modalLabel{{ entrega.id_entrega }}">
-                        <i class="bi bi-check2-circle text-success me-2"></i>Finalizar Entrega #ENV-{{
-                        entrega.id_entrega }}
+                        <i class="bi bi-check2-circle text-success me-2"></i>Finalizar Entrega #ENV-{{ entrega.id_entrega }}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
@@ -359,8 +351,7 @@
                         <span class="text-muted small d-block mb-1">
                             <i class="bi bi-geo-alt-fill text-danger me-1"></i>Dirección Destino:
                         </span>
-                        <strong style="color: var(--color-text);">{{
-                            entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}</strong>
+                        <strong style="color: var(--color-text);">{{ entrega.direccion_entrega|default:entrega.pedido.direccion_destino }}</strong>
                     </div>
                     <div class="mb-2">
                         <label for="observaciones{{ entrega.id_entrega }}"

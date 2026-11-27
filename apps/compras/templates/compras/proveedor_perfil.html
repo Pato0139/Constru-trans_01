@@ -242,8 +242,7 @@
                                 {% elif item.compra.estado == 'pendiente' %}
                                 <span class="badge bg-warning text-dark rounded-pill px-2">Pendiente</span>
                                 {% else %}
-                                <span class="supplier-status supplier-status--inactive">{{
-                                    item.compra.get_estado_display }}</span>
+                                <span class="supplier-status supplier-status--inactive">{{ item.compra.get_estado_display }}</span>
                                 {% endif %}
                             </td>
                         </tr>
