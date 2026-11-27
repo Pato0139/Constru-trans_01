@@ -1423,34 +1423,201 @@ table.table {
     max-height: 68dvh !important;
   }
 
-  /* KPIs en 2 columnas compactas: reduce a la mitad el scroll en paneles */
+  /* KPIs en 2 columnas compactas y simétricas en Admin, Conductor, Proveedores y Reportes */
   .admin-kpi-grid,
   .supplier-kpi-grid {
+    display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 0.65rem !important;
     margin-bottom: 1rem !important;
+  }
+
+  .admin-kpi-grid .stat-card {
+    padding: 0.9rem 0.85rem !important;
+    border-radius: 1rem !important;
+  }
+
+  .admin-kpi-grid .stat-card > .d-flex {
+    gap: 0.45rem !important;
+    margin-bottom: 0.55rem !important;
+    align-items: flex-start !important;
+  }
+
+  .admin-kpi-grid .stat-card h6 {
+    font-size: 0.67rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0.03em !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .admin-kpi-grid .stat-card .rounded-circle {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .admin-kpi-grid .stat-card .rounded-circle i {
+    font-size: 1rem !important;
+  }
+
+  .admin-kpi-grid .stat-card h2 {
+    font-size: 1.55rem !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Panel Conductor: 4 KPIs en cuadrícula 2x2 limpia + Clima compacto */
+  .row:has(> [class*="col-"] > .driver-kpi-card),
+  .row:has(> [class*="col-"] > .stats-card) {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.65rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .row:has(> [class*="col-"] > .driver-kpi-card) > [class*="col-"],
+  .row:has(> [class*="col-"] > .stats-card) > [class*="col-"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .driver-kpi-card {
+    padding: 0.85rem 0.75rem !important;
+    gap: 0.6rem !important;
+    border-radius: 1rem !important;
+    height: 100%;
+  }
+
+  .driver-kpi-icon-wrap {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    font-size: 1.05rem !important;
+    border-radius: 0.75rem !important;
+  }
+
+  .driver-kpi-label {
+    font-size: 0.68rem !important;
+    display: block;
+    line-height: 1.2;
+  }
+
+  .driver-kpi-value {
+    font-size: 1.35rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .driver-weather-card {
+    border-radius: 1.15rem !important;
+  }
+
+  .driver-weather-card-inner {
+    padding: 1rem !important;
+  }
+
+  .driver-weather-title {
+    font-size: 1rem !important;
+  }
+
+  .driver-weather-temp-value {
+    font-size: 2.15rem !important;
+  }
+
+  .driver-weather-hero {
+    padding: 0.75rem !important;
+  }
+
+  .driver-weather-alert-card {
+    margin-top: 0.85rem !important;
+    padding: 0.75rem !important;
+  }
+
+  .driver-deliveries-card {
+    padding: 0.9rem !important;
+    border-radius: 1rem !important;
+  }
+
+  .driver-deliveries-scroll {
+    width: 100%;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
   }
 
   .admin-kpi-grid .card-body,
   .dashboard-card .card-body,
   .stats-card,
   .supplier-kpi-card {
-    padding: 0.8rem 0.85rem !important;
+    padding: 0.85rem 0.85rem !important;
+    border-radius: 1rem !important;
   }
 
-  /* Accesos rápidos en 2 columnas limpias en lugar de pila gigante */
+  /* Accesos rápidos en 2x2 limpios con texto adaptable (nunca se sale del botón) */
+  .quick-actions-panel {
+    padding: 0.95rem !important;
+    border-radius: 1rem !important;
+  }
+
+  .quick-actions-panel > .d-flex {
+    margin-bottom: 0.75rem !important;
+  }
+
   .main-content .quick-actions-row {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.55rem !important;
+    gap: 0.6rem !important;
+    align-items: stretch !important;
   }
 
   .main-content .quick-actions-row .quick-action-btn {
-    padding: 0.65rem 0.7rem !important;
-    font-size: 0.8rem !important;
-    justify-content: center;
-    text-align: center;
-    min-height: 44px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.35rem !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 64px !important;
+    padding: 0.65rem 0.6rem !important;
+    border-radius: 0.9rem !important;
+    font-size: 0.72rem !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0.02em !important;
+    white-space: normal !important;
+    text-align: center !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .main-content .quick-actions-row .quick-action-btn i {
+    font-size: 1.15rem !important;
+  }
+
+  /* DataTables y barras de búsqueda centradas y ordenadas en móvil */
+  .dataTables_wrapper .dataTables_length,
+  .dataTables_wrapper .dataTables_filter {
+    text-align: left !important;
+    margin-bottom: 0.5rem !important;
+    width: 100% !important;
+  }
+
+  .dataTables_wrapper .dataTables_filter input {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-top: 0.25rem !important;
+  }
+
+  .dataTables_wrapper .dataTables_info,
+  .dataTables_wrapper .dataTables_paginate {
+    text-align: center !important;
+    margin-top: 0.5rem !important;
+  }
+
+  .dataTables_wrapper .pagination {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 0.2rem !important;
   }
 
   /* Encabezados, tarjetas y filtros más compactos para ver datos rápido */
