@@ -1132,9 +1132,28 @@ table.table {
 }
 
 @media (max-width: 767.98px) {
+  /* Bloquear desplazamiento horizontal de TODA la interfaz (solo las tablas pueden deslizar) */
+  html,
+  body,
+  body > .container-fluid,
+  body > .container-fluid > .d-flex,
+  .main-content.app-main,
+  .main-content,
+  [data-ajax-content],
+  .dashboard-content,
+  .main-content .table-container,
+  .main-content .driver-deliveries-card,
+  .main-content .card,
+  .main-content .dataTables_wrapper {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: clip !important;
+  }
+
   /* Espacio superior e inferior exacto para la navbar de 1 fila y el dock inferior */
   .main-content.app-main,
   .main-content {
+    width: 100% !important;
     padding-top: 5.15rem !important;
     padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
   }
@@ -1628,7 +1647,12 @@ table.table {
   .main-content .driver-deliveries-scroll,
   .main-content .supplier-table-wrap,
   .main-content .orders-list-scroll {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
     overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain !important;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: rgba(59, 130, 246, 0.7) rgba(148, 163, 184, 0.16);

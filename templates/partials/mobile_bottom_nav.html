@@ -118,10 +118,23 @@
   // Sliders horizontales interactivos para TODAS las tablas en móvil (<=767px)
   // =========================================================================
   function initMobileTableSliders() {
+    var isMobile = window.innerWidth <= 767;
+
+    // Asegurar que NINGUNA tabla quede suelta sin contenedor de scroll interno
+    if (isMobile) {
+      document.querySelectorAll('.main-content table.table').forEach(function (tbl) {
+        if (tbl.classList.contains('admin-recent-orders-table')) return;
+        if (tbl.closest('.table-responsive, .driver-deliveries-scroll, .supplier-table-wrap, .orders-list-scroll')) return;
+        var autoWrap = document.createElement('div');
+        autoWrap.className = 'table-responsive';
+        tbl.parentNode.insertBefore(autoWrap, tbl);
+        autoWrap.appendChild(tbl);
+      });
+    }
+
     var containers = document.querySelectorAll(
       '.main-content .table-responsive, .main-content .driver-deliveries-scroll, .main-content .supplier-table-wrap, .main-content .orders-list-scroll'
     );
-    var isMobile = window.innerWidth <= 767;
 
     containers.forEach(function (wrap) {
       // No agregar slider si la tabla móvil se renderiza en tarjetas apiladas (sin scroll horizontal)
