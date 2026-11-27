@@ -6,14 +6,9 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-white mb-0">
-            <i class="fas fa-file-invoice-dollar me-2"></i> Detalle de Orden
+            <i class="fas fa-file-invoice-dollar me-2"></i> Detalle de Entrada
         </h2>
         <div class="d-flex gap-2">
-            {% if compra.estado == 'pendiente' %}
-            <a href="{% url 'compras:editar_compra' compra.id_compra %}" class="btn btn-warning">
-                <i class="fas fa-edit me-1"></i> Editar
-            </a>
-            {% endif %}
             <a href="{% url 'compras:lista_compras' %}" class="btn btn-outline-light">
                 <i class="fas fa-arrow-left me-1"></i> Volver
             </a>
@@ -40,7 +35,7 @@
                     <div class="row g-4">
                         <div class="col-md-6">
                             <label class="text-white-50 small text-uppercase">Número de Orden</label>
-                            <h4 class="text-white fw-bold">{{ compra.numero_orden }}</h4>
+                            <h4 class="text-white fw-bold">{{ compra.numero_entrada }}</h4>
                         </div>
                         <div class="col-md-6">
                             <label class="text-white-50 small text-uppercase">Estado</label>
@@ -63,7 +58,11 @@
                         </div>
                         <div class="col-md-6">
                             <label class="text-white-50 small text-uppercase">Fecha de Registro</label>
-                            <p class="text-white mb-0">{{ compra.fecha|date:"d/m/Y h:i A" }}</p>
+                            <p class="text-white mb-0">{{ compra.fecha_compra|date:"d/m/Y h:i A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-white-50 small text-uppercase">Factura / comprobante</label>
+                            <p class="text-white mb-0">{{ compra.numero_factura|default:"No registrada" }}</p>
                         </div>
                         <div class="col-md-6">
                             <label class="text-white-50 small text-uppercase">Registrado Por</label>
@@ -88,13 +87,14 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-dark table-hover mb-0">
+                        <table class="table table-dark table-hover mb-0 no-datatable">
                             <thead class="text-uppercase small text-muted border-secondary">
                                 <tr>
                                     <th class="ps-4">#</th>
                                     <th>Material</th>
                                     <th class="text-center">Cantidad</th>
-                                    <th class="text-end">Precio Unitario</th>
+                                    <th class="text-end">Precio de compra</th>
+                                    <th class="text-end">Precio de venta registrado</th>
                                     <th class="text-end pe-4">Subtotal</th>
                                 </tr>
                             </thead>
@@ -107,12 +107,19 @@
                                             <div class="avatar avatar-sm bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center">
                                                 <i class="fas fa-cube text-white small"></i>
                                             </div>
-                                            <span class="text-white fw-medium">{{ detalle.material.nombre }}</span>
+                                            <span class="text-white fw-medium">{{ detalle.material_nombre|default:detalle.material.nombre }}</span>
                                         </div>
                                     </td>
-                                    <td class="text-center text-white">{{ detalle.cantidad }}</td>
+                                    <td class="text-center text-white">{{ detalle.cantidad }} {{ detalle.unidad_medida_abreviatura|default:detalle.material.unidad_medida.abreviatura }}</td>
                                     <td class="text-end text-white-50">{{ detalle.precio_unitario|currency }}</td>
+                                    <td class="text-end text-white-50">{% if detalle.precio_venta_unitario is not None %}{{ detalle.precio_venta_unitario|currency }}{% else %}No registrado{% endif %}</td>
                                     <td class="text-end pe-4 fw-bold text-success">{{ detalle.subtotal|currency }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-white-50">
+                                        Esta orden no tiene materiales registrados.
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -130,7 +137,7 @@
                 </div>
                 <div class="card-body text-center py-4">
                     <p class="text-white-50 mb-1">Total de la Orden</p>
-                    <h2 class="text-success fw-bold mb-4">{{ compra.total|currency }}</h2>
+                    <h2 class="text-success fw-bold mb-4">{{ compra.total_compra|currency }}</h2>
                     
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-white-50">Materiales</span>
@@ -139,36 +146,17 @@
                     
                     <hr class="border-secondary my-4">
                     
-                    <label class="text-white-50 small text-uppercase mb-3 d-block">Cambiar Estado</label>
-                    <form action="{% url 'compras:cambiar_estado_compra' compra.id_compra %}" method="post">
-                        {% csrf_token %}
-                        <div class="dropdown w-100">
-                            <button class="btn w-100 py-3 fw-bold text-uppercase dropdown-toggle 
-                                {% if compra.estado == 'pendiente' %}btn-warning text-dark
-                                {% elif compra.estado == 'recibida' %}btn-success
-                                {% else %}btn-danger{% endif %}" 
-                                type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ compra.get_estado_display }}
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-dark w-100 shadow-lg border-secondary" aria-labelledby="statusDropdown">
-                                <li>
-                                    <button type="submit" name="estado" value="pendiente" class="dropdown-item py-2" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
-                                        <i class="fas fa-clock me-2 text-warning"></i> Pendiente
-                                    </button>
-                                </li>
-                                <li>
-                                    <button type="submit" name="estado" value="recibida" class="dropdown-item py-2" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
-                                        <i class="fas fa-check-circle me-2 text-success"></i> Recibida
-                                    </button>
-                                </li>
-                                <li>
-                                    <button type="submit" name="estado" value="cancelada" class="dropdown-item py-2" aria-label="Enviar formulario" data-tooltip="Enviar formulario" title="Enviar formulario">
-                                        <i class="fas fa-times-circle me-2 text-danger"></i> Cancelada
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
+                    <label class="text-white-50 small text-uppercase mb-3 d-block">Estado de la entrada</label>
+                    <span class="badge rounded-pill px-3 py-2 {% if compra.estado == 'recibida' %}bg-success{% elif compra.estado == 'pendiente' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ compra.get_estado_display }}</span>
+                    {% if compra.motivo_anulacion %}<p class="small text-white-50 mt-2">Motivo de anulación: {{ compra.motivo_anulacion }}</p>{% endif %}
+                    {% if compra.estado != 'cancelada' %}
+                    <form class="mt-3 text-start" action="{% url 'compras:cambiar_estado_compra' compra.id_compra %}" method="post">
+                        {% csrf_token %}<input type="hidden" name="estado" value="cancelada">
+                        <label class="form-label small" for="motivo-anulacion">Motivo {% if compra.estado == 'recibida' %}<b class="text-warning">(obligatorio)</b>{% else %}<span class="text-white-50">(opcional)</span>{% endif %}</label>
+                        <textarea class="form-control mb-2" id="motivo-anulacion" name="motivo_anulacion" rows="2" {% if compra.estado == 'recibida' %}required{% endif %} placeholder="Explica por qué debe anularse esta entrada"></textarea>
+                        <button class="btn btn-outline-danger w-100" type="submit">Anular{% if compra.estado == 'recibida' %} y revertir inventario{% endif %}</button>
                     </form>
+                    {% endif %}
                 </div>
             </div>
 
@@ -196,6 +184,12 @@
             </div>
         </div>
     </div>
+    <section class="card bg-dark border-secondary shadow-lg glass-card mt-4">
+        <div class="card-header border-secondary bg-transparent"><h5 class="text-white mb-0"><i class="fas fa-boxes-stacked me-2 text-info"></i>Movimientos de inventario asociados</h5></div>
+        <div class="table-responsive"><table class="table table-dark table-hover align-middle mb-0 no-datatable"><thead><tr><th>Fecha</th><th>Material</th><th>Tipo</th><th>Cantidad</th><th>Stock anterior</th><th>Stock posterior</th><th>Responsable</th></tr></thead><tbody>
+        {% for movimiento in compra.movimientos.all %}<tr><td>{{ movimiento.fecha_movimiento|date:"d/m/Y H:i" }}</td><td>{{ movimiento.material_label }}</td><td>{{ movimiento.get_tipo_movimiento_display }}</td><td>{{ movimiento.cantidad }}</td><td>{{ movimiento.stock_anterior|default:"—" }}</td><td>{{ movimiento.stock_posterior|default:"—" }}</td><td>{{ movimiento.usuario.get_full_name|default:movimiento.usuario.username|default:"N/A" }}</td></tr>{% empty %}<tr><td colspan="7" class="text-center text-white-50 py-3">Sin movimientos de inventario enlazados.</td></tr>{% endfor %}
+        </tbody></table></div>
+    </section>
 </div>
 
 <style>

@@ -2,7 +2,7 @@
 {% for compra in compras %}
 <tr class="u-inline-dd0d9e7c89">
     <td class="ps-4 col-orden">
-        <span class="text-white fw-bold">{{ compra.numero_orden }}</span>
+        <span class="text-white fw-bold">{{ compra.numero_entrada }}</span>
     </td>
     <td class="col-proveedor">
         <div class="d-flex align-items-center min-w-0">
@@ -19,11 +19,12 @@
     <td class="table-meta col-fecha">
         {{ compra.fecha_compra|date:"d M, Y" }}
         <div class="small">{{ compra.fecha_compra|date:"h:i A" }}</div>
+        {% if compra.numero_factura %}<div class="small">Factura: {{ compra.numero_factura }}</div>{% endif %}
     </td>
     <td class="col-materiales">
         <div class="d-flex flex-wrap justify-content-center gap-1">
             {% for detalle in compra.detalles_cargados %}
-            <span class="badge purchase-meta-badge">{{ detalle.material.nombre }}</span>
+            <span class="badge purchase-meta-badge">{{ detalle.material_nombre|default:detalle.material.nombre }}</span>
             {% empty %}
             <span class="text-muted small">Sin materiales</span>
             {% endfor %}

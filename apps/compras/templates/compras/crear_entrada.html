@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static currency_tags %}
+{% block title %}Registrar entrada de materiales{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/compras/entrada.css' %}?v=3">{% endblock %}
+{% block content %}
+<main class="container-fluid py-4 purchase-entry-page">
+    <header class="purchase-entry-heading">
+        <div><span class="purchase-entry-eyebrow">Abastecimiento · Inventario</span><h1>Registrar entrada de materiales</h1><p>Registra los materiales recibidos, sus costos y el inventario que se actualizará.</p></div>
+        <a class="btn btn-outline-light" href="{% url 'compras:lista_compras' %}"><i class="bi bi-arrow-left me-1"></i>Historial de entradas</a>
+    </header>
+    {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+    <form method="post" id="purchase-entry-form" novalidate>
+        {% csrf_token %}{{ form.clave_idempotencia }}
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <section class="entry-card">
+            <div class="entry-card-heading"><span class="entry-step">1</span><div><h2>Datos de recepción</h2><p>Proveedor y documento que respalda la entrega.</p></div></div>
+            <div class="entry-meta-grid">
+                <div><label for="{{ form.proveedor.id_for_label }}">Proveedor <b>*</b></label>{{ form.proveedor }}{{ form.proveedor.errors }}</div>
+                <div><label for="{{ form.fecha_compra.id_for_label }}">Fecha de recepción <b>*</b></label>{{ form.fecha_compra }}{{ form.fecha_compra.errors }}</div>
+                <div><label for="{{ form.numero_factura.id_for_label }}">Factura / comprobante <small>Opcional</small></label>{{ form.numero_factura }}{{ form.numero_factura.errors }}</div>
+                <div><label for="{{ form.observaciones.id_for_label }}">Observaciones <small>Opcional</small></label>{{ form.observaciones }}{{ form.observaciones.errors }}</div>
+            </div>
+        </section>
+        {% if not tiene_materiales %}<div class="alert alert-info">{% if proveedor %}Este proveedor no tiene materiales activos asociados. <a href="{% url 'compras:catalogo_proveedor' proveedor.pk %}">Registrar materiales</a>{% else %}Selecciona primero un proveedor para cargar sus materiales.{% endif %}</div>{% endif %}
+        <section class="entry-card">
+            <div class="entry-card-heading"><span class="entry-step">2</span><div><h2>Materiales recibidos</h2><p>El costo de compra se guarda en esta entrada; el precio de venta solo cambia si lo confirmas.</p></div><button type="button" class="btn btn-outline-info ms-auto" id="add-entry-material"><i class="bi bi-plus-lg"></i> Agregar material</button></div>
+            {% if formset.non_form_errors %}<div class="alert alert-danger">{{ formset.non_form_errors }}</div>{% endif %}
+            {{ formset.management_form }}
+            <div class="entry-lines" id="entry-lines">
+                {% for f in formset %}
+                    {% include "compras/_entrada_fila.html" with f=f %}
+                {% endfor %}
+            </div>
+            <template id="empty-entry-line">
+                {% include "compras/_entrada_fila.html" with f=formset.empty_form %}
+            </template>
+            <div class="entry-total"><span>Total de la entrada</span><strong id="entry-total">$0</strong></div>
+        </section>
+        <footer class="entry-actions"><a class="btn btn-outline-light" href="{% url 'compras:lista_compras' %}">Cancelar</a><button class="btn btn-warning" type="submit" id="confirm-entry"><i class="bi bi-check2-circle me-1"></i>Confirmar entrada</button></footer>
+    </form>
+</main>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/compras/entrada.js' %}?v=2"></script>{% endblock %}

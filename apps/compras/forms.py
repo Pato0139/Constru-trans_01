@@ -2,8 +2,10 @@ import re
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
-from django.forms import inlineformset_factory
+from django.forms import formset_factory, inlineformset_factory
+from django.utils import timezone
 
+from apps.catalogo.models import MaterialConstruccion
 from config.forms import StrictModelForm
 from config.validators import texto_sin_simbolos
 
@@ -190,26 +192,11 @@ class MaterialStockSelect(forms.Select):
                 or "unidades"
             )
             option["attrs"]["data-stock"] = stock
+            option["attrs"]["data-precio"] = str(getattr(material, "precio_referencia", 0) or 0)
         return option
 
 
 class ProveedorMaterialForm(forms.ModelForm):
-    cantidad_recibida = forms.IntegerField(
-        required=False,
-        min_value=1,
-        max_value=100000,
-        label="Cantidad recibida",
-        widget=forms.NumberInput(
-            attrs={
-                "class": "form-control",
-                "min": "1",
-                "max": "100000",
-                "step": "1",
-                "placeholder": "1",
-            }
-        ),
-    )
-
     class Meta:
         model = ProveedorMaterial
         fields = ["material", "precio_actual", "referencia_proveedor", "observaciones", "activo"]
@@ -232,13 +219,6 @@ class ProveedorMaterialForm(forms.ModelForm):
         self.fields["material"].queryset = self.fields["material"].queryset.select_related(
             "stock_info", "unidad_medida"
         ).order_by("nombre")
-
-    def clean(self):
-        cleaned = super().clean()
-        if cleaned.get("material") and not self.instance.pk and not cleaned.get("cantidad_recibida"):
-            self.add_error("cantidad_recibida", "Indica cuántas unidades recibiste para agregar este material.")
-        return cleaned
-
 
 ProveedorMaterialFormSet = inlineformset_factory(
     Proveedor,
@@ -285,4 +265,86 @@ class DetalleCompraForm(StrictModelForm):
 
 DetalleCompraFormSet = inlineformset_factory(
     Compra, DetalleCompra, form=DetalleCompraForm, extra=1, can_delete=True
+)
+
+
+class EntradaCompraForm(forms.ModelForm):
+    clave_idempotencia = forms.UUIDField(widget=forms.HiddenInput())
+
+    class Meta:
+        model = Compra
+        fields = ["proveedor", "fecha_compra", "numero_factura", "observaciones"]
+        widgets = {
+            "proveedor": forms.Select(attrs={"class": "form-select"}),
+            "fecha_compra": forms.DateTimeInput(
+                attrs={"class": "form-control", "type": "datetime-local"},
+                format="%Y-%m-%dT%H:%M",
+            ),
+            "numero_factura": forms.TextInput(attrs={"class": "form-control", "maxlength": 100}),
+            "observaciones": forms.Textarea(attrs={"class": "form-control", "rows": 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["fecha_compra"].input_formats = ["%Y-%m-%dT%H:%M"]
+        self.fields["proveedor"].queryset = Proveedor.objects.filter(activo=True).order_by("nombre_empresa")
+        self.fields["fecha_compra"].initial = timezone.localtime().strftime("%Y-%m-%dT%H:%M")
+        self.fields["numero_factura"].required = False
+        self.fields["observaciones"].required = False
+
+
+class EntradaDetalleCompraForm(forms.ModelForm):
+    precio_venta_unitario = forms.DecimalField(
+        required=False, min_value=0, max_digits=12, decimal_places=2,
+        widget=forms.NumberInput(attrs={"class": "form-control sale-price", "min": "0", "step": "0.01"}),
+    )
+    actualizar_precio_venta = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input update-sale-price"}),
+    )
+
+    class Meta:
+        model = DetalleCompra
+        fields = ["material", "cantidad", "precio_unitario"]
+        widgets = {
+            "material": MaterialStockSelect(attrs={"class": "form-select material-select"}),
+            "cantidad": forms.NumberInput(attrs={"class": "form-control quantity-input", "min": 1, "step": 1}),
+            "precio_unitario": forms.NumberInput(attrs={"class": "form-control purchase-price", "min": "0.01", "step": "0.01"}),
+        }
+
+    def __init__(self, *args, proveedor=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["material"].queryset = MaterialConstruccion.objects.filter(activo=True, proveedores_ofertantes__proveedor=proveedor, proveedores_ofertantes__activo=True).select_related(
+            "stock_info", "unidad_medida"
+        ).order_by("nombre")
+        self.fields["precio_unitario"].min_value = 0.01
+        self.fields["precio_unitario"].label = "Precio de compra unitario"
+        self.fields["precio_venta_unitario"].label = "Precio de venta"
+        self.fields["actualizar_precio_venta"].label = "Actualizar precio de venta del catálogo"
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("actualizar_precio_venta") and not cleaned.get("precio_venta_unitario"):
+            self.add_error("precio_venta_unitario", "Indica el precio de venta que deseas aplicar.")
+        return cleaned
+
+
+class BaseEntradaDetalleFormSet(forms.BaseFormSet):
+    def clean(self):
+        super().clean()
+        if any(self.errors):
+            return
+        materiales = [
+            form.cleaned_data["material"]
+            for form in self.forms
+            if form.cleaned_data and not form.cleaned_data.get("DELETE") and form.cleaned_data.get("material")
+        ]
+        if not materiales:
+            raise forms.ValidationError("Agrega al menos un material a la entrada.")
+        if len(materiales) != len(set(m.pk for m in materiales)):
+            raise forms.ValidationError("No repitas materiales; agrega una sola fila por material.")
+
+
+EntradaDetalleCompraFormSet = formset_factory(
+    EntradaDetalleCompraForm, formset=BaseEntradaDetalleFormSet, extra=0, can_delete=True, min_num=1, validate_min=True
 )

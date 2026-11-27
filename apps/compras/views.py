@@ -7,11 +7,12 @@ from django.contrib import messages
 logger = logging.getLogger(__name__)
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
-from django.db import router, transaction
+from django.db import IntegrityError, router, transaction
 from django.db.models import Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+import uuid
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
@@ -22,8 +23,8 @@ from config.db_utils import select_for_update_if_supported
 from config.utils import registrar_actividad
 
 from .forms import (
-    CompraForm,
-    DetalleCompraFormSet,
+    EntradaCompraForm,
+    EntradaDetalleCompraFormSet,
     ProveedorForm,
     ProveedorMaterialFormSet,
 )
@@ -33,7 +34,9 @@ from .models import Compra, DetalleCompra, Proveedor, ProveedorMaterial
 @admin_required
 def lista_compras(request):
     proveedor = request.GET.get("proveedor", "").strip()
-    fecha_compra = request.GET.get("fecha_compra", "").strip()
+    fecha_desde = request.GET.get("fecha_desde", "").strip()
+    fecha_hasta = request.GET.get("fecha_hasta", "").strip()
+    factura = request.GET.get("factura", "").strip()
     material = request.GET.get("material", "").strip()
 
     compras = Compra.objects.select_related("proveedor", "usuario").prefetch_related(
@@ -47,10 +50,17 @@ def lista_compras(request):
     estado = request.GET.get("estado", "").strip()
     if proveedor:
         compras = compras.filter(proveedor__nombre_empresa__icontains=proveedor)
-    if fecha_compra:
-        compras = compras.filter(fecha_compra__date=fecha_compra)
+    if fecha_desde:
+        compras = compras.filter(fecha_compra__date__gte=fecha_desde)
+    if fecha_hasta:
+        compras = compras.filter(fecha_compra__date__lte=fecha_hasta)
+    if factura:
+        compras = compras.filter(numero_factura__icontains=factura)
     if material:
-        compras = compras.filter(detalles__material__nombre__icontains=material).distinct()
+        compras = compras.filter(
+            Q(detalles__material_nombre__icontains=material)
+            | Q(detalles__material__nombre__icontains=material)
+        ).distinct()
     if estado:
         compras = compras.filter(estado=estado)
 
@@ -63,14 +73,9 @@ def lista_compras(request):
             "value": proveedor,
             "size": "3",
         },
-        {
-            "type": "date",
-            "name": "fecha_compra",
-            "label": "Fecha",
-            "placeholder": "Fecha",
-            "value": fecha_compra,
-            "size": "2",
-        },
+        {"type": "date", "name": "fecha_desde", "label": "Desde", "placeholder": "Desde", "value": fecha_desde, "size": "2"},
+        {"type": "date", "name": "fecha_hasta", "label": "Hasta", "placeholder": "Hasta", "value": fecha_hasta, "size": "2"},
+        {"type": "text", "name": "factura", "label": "Factura / entrada", "placeholder": "Factura / entrada", "value": factura, "size": "2"},
         {
             "type": "text",
             "name": "material",
@@ -87,7 +92,7 @@ def lista_compras(request):
             "value": estado,
             "size": "2",
             "options": [
-                {"value": "completada", "label": "Completada", "selected": estado == "completada"},
+                {"value": "recibida", "label": "Recibida", "selected": estado == "recibida"},
                 {"value": "pendiente", "label": "Pendiente", "selected": estado == "pendiente"},
                 {"value": "cancelada", "label": "Cancelada", "selected": estado == "cancelada"},
             ],
@@ -107,75 +112,115 @@ def lista_compras(request):
         {
             "compras": compras,
             "proveedor": proveedor,
-            "fecha_compra": fecha_compra,
             "material": material,
             "filter_fields": filter_fields,
-            "has_filters": any([proveedor, fecha_compra, material]),
+            "has_filters": any([proveedor, fecha_desde, fecha_hasta, factura, material, estado]),
         },
     )
 
 
-def _detalles_desde_post(request, proveedor):
-    try:
-        total_forms = int(request.POST.get("detalles-TOTAL_FORMS", 0) or 0)
-    except (TypeError, ValueError):
-        return [], ["El formulario contiene un número inválido de materiales."]
-    if not 0 <= total_forms <= 500:
-        return [], ["El formulario no puede contener más de 500 materiales."]
-
-    detalles = []
-    errores = []
-
-    for index in range(total_forms):
-        if request.POST.get(f"detalles-{index}-DELETE"):
-            continue
-
-        material_id = request.POST.get(f"detalles-{index}-material")
-        cantidad_raw = request.POST.get(f"detalles-{index}-cantidad")
-
-        if not cantidad_raw or cantidad_raw.strip() in {"0", "0.0"}:
-            continue
-
-        if not material_id or not material_id.isdecimal():
-            errores.append("Selecciona un material válido.")
-            continue
-
-        try:
-            cantidad = int(cantidad_raw or 0)
-        except ValueError:
-            errores.append("La cantidad debe ser un número entero.")
-            continue
-
-        if not 1 <= cantidad <= 100000:
-            errores.append("La cantidad debe estar entre 1 y 100000.")
-            continue
-
-        oferta = (
-            ProveedorMaterial.objects.filter(
-                proveedor=proveedor,
-                material_id=material_id,
-                activo=True,
-            )
-            .select_related("material")
-            .first()
-        )
-
-        if not oferta:
-            errores.append("Uno de los materiales no pertenece al catálogo activo del proveedor.")
-            continue
-
-        detalles.append((oferta.material, cantidad, oferta.precio_actual))
-
-    if not detalles:
-        errores.append("Agrega al menos un material del catálogo del proveedor.")
-
-    return detalles, errores
-
-
 @admin_required
 def crear_compra(request):
-    messages.info(request, "Registra las entradas físicas desde el catálogo de cada proveedor.")
-    return redirect("compras:lista_proveedores")
+    db_alias = router.db_for_write(Compra)
+    proveedor_id = request.POST.get("proveedor") if request.method == "POST" else request.GET.get("proveedor")
+    proveedor = Proveedor.objects.filter(pk=proveedor_id, activo=True).first() if str(proveedor_id or "").isdigit() else None
+    if request.method == "POST":
+        form = EntradaCompraForm(request.POST)
+        formset = EntradaDetalleCompraFormSet(request.POST, prefix="detalles", form_kwargs={"proveedor": proveedor})
+        if form.is_valid() and formset.is_valid():
+            clave = form.cleaned_data["clave_idempotencia"]
+            existente = Compra.objects.using(db_alias).filter(clave_idempotencia=clave).first()
+            if existente:
+                messages.info(request, "Esta entrada ya se había registrado; se abrió su detalle.")
+                return redirect("compras:detalle_compra", id=existente.id_compra)
+
+            try:
+                with transaction.atomic(using=db_alias):
+                    compra = form.save(commit=False)
+                    compra.clave_idempotencia = clave
+                    compra.estado = "recibida"
+                    compra.usuario = request.user
+                    compra.save(using=db_alias)
+
+                    resumen = []
+                    for detalle_form in formset.forms:
+                        datos = detalle_form.cleaned_data
+                        if not datos or datos.get("DELETE"):
+                            continue
+                        material = MaterialConstruccion.objects.using(db_alias).select_for_update().select_related(
+                            "unidad_medida"
+                        ).get(pk=datos["material"].pk, activo=True)
+                        if not ProveedorMaterial.objects.using(db_alias).select_for_update().filter(proveedor=compra.proveedor, material=material, activo=True).exists():
+                            raise ValidationError("El material no está asociado a este proveedor.")
+                        precio_venta_actual = material.precio_referencia
+                        if datos.get("actualizar_precio_venta"):
+                            material.precio_referencia = datos["precio_venta_unitario"]
+                            material.save(using=db_alias, update_fields=["precio_referencia"])
+                            precio_venta_actual = material.precio_referencia
+
+                        detalle = DetalleCompra(
+                            compra=compra,
+                            material=material,
+                            cantidad=datos["cantidad"],
+                            precio_unitario=datos["precio_unitario"],
+                            material_nombre=material.nombre,
+                            unidad_medida_nombre=material.unidad_medida.nombre,
+                            unidad_medida_abreviatura=material.unidad_medida.abreviatura,
+                            precio_venta_unitario=precio_venta_actual,
+                        )
+                        detalle.save(using=db_alias)
+                        movimiento = KardexService.registrar_movimiento(
+                            material_id=material.pk,
+                            tipo="entrada",
+                            cantidad=detalle.cantidad,
+                            observacion=(
+                                f"Entrada {compra.numero_orden}"
+                                + (f" · Factura {compra.numero_factura}" if compra.numero_factura else "")
+                            ),
+                            usuario=request.user,
+                            compra_id=compra.pk,
+                            using=db_alias,
+                        )
+                        resumen.append(
+                            f"{detalle.material_nombre}: +{detalle.cantidad} "
+                            f"({movimiento.stock_anterior} → {movimiento.stock_posterior})"
+                        )
+
+                    compra.calcular_total(using=db_alias)
+                    registrar_actividad(
+                        request,
+                        "crear",
+                        "compras",
+                        compra.id_compra,
+                        f"Entrada {compra.numero_orden} registrada: {', '.join(resumen)}",
+                    )
+                messages.success(request, f"Entrada registrada. {'; '.join(resumen)}")
+                return redirect("compras:detalle_compra", id=compra.id_compra)
+            except (ValidationError, ValueError, MaterialConstruccion.DoesNotExist) as exc:
+                mensaje = "; ".join(exc.messages) if hasattr(exc, "messages") else str(exc)
+                messages.error(request, f"No se pudo registrar la entrada: {mensaje}")
+            except IntegrityError:
+                existente = Compra.objects.using(db_alias).filter(clave_idempotencia=clave).first()
+                if existente:
+                    messages.info(request, "La entrada ya fue procesada.")
+                    return redirect("compras:detalle_compra", id=existente.id_compra)
+                messages.error(request, "No se pudo guardar la entrada por una restricción de integridad.")
+    else:
+        initial = {"clave_idempotencia": uuid.uuid4()}
+        proveedor_id = request.GET.get("proveedor")
+        if proveedor_id:
+            initial["proveedor"] = proveedor_id
+        form = EntradaCompraForm(initial=initial)
+        formset = EntradaDetalleCompraFormSet(prefix="detalles", form_kwargs={"proveedor": proveedor})
+
+    materiales = MaterialConstruccion.objects.using(db_alias).filter(activo=True).select_related(
+        "unidad_medida", "stock_info"
+    ).order_by("nombre")
+    return render(
+        request,
+        "compras/crear_entrada.html",
+        {"form": form, "formset": formset, "proveedor": proveedor, "tiene_materiales": proveedor and proveedor.materiales_ofertados.filter(activo=True, material__activo=True).exists()},
+    )
 
 
 @admin_required
@@ -191,13 +236,31 @@ def detalle_compra(request, id):
 def cambiar_estado_compra(request, id):
     if request.method == "POST":
         nuevo_estado = request.POST.get("estado")
-        with transaction.atomic():
-            compra = get_object_or_404(
-                select_for_update_if_supported(Compra.objects, "default"), id_compra=id
-            )
-            try:
+        db_alias = router.db_for_write(Compra)
+        try:
+            with transaction.atomic(using=db_alias):
+                compra = get_object_or_404(
+                    select_for_update_if_supported(Compra.objects.using(db_alias), db_alias), id_compra=id
+                )
+                if nuevo_estado == "recibida":
+                    raise ValidationError("Una compra solo se marca recibida al registrar su entrada de inventario.")
+                motivo = (request.POST.get("motivo_anulacion") or "").strip()
+                if nuevo_estado == "cancelada" and compra.estado == "recibida":
+                    if not motivo:
+                        raise ValidationError("Indica el motivo para anular y revertir esta entrada.")
+                    for detalle in compra.detalles.using(db_alias).select_related("material"):
+                        KardexService.registrar_movimiento(
+                            material_id=detalle.material_id,
+                            tipo="salida",
+                            cantidad=detalle.cantidad,
+                            observacion=f"Reversión de entrada {compra.numero_orden}: {motivo}",
+                            usuario=request.user,
+                            compra_id=compra.pk,
+                            using=db_alias,
+                        )
                 compra.transicionar(nuevo_estado)
-                compra.save(update_fields=["estado"])
+                compra.motivo_anulacion = motivo
+                compra.save(using=db_alias, update_fields=["estado", "motivo_anulacion"])
                 registrar_actividad(
                     request,
                     "editar",
@@ -205,10 +268,10 @@ def cambiar_estado_compra(request, id):
                     compra.id_compra,
                     f"Estado de compra {compra.numero_orden} cambiado a {nuevo_estado}",
                 )
-                messages.success(request, f"Estado actualizado a {compra.get_estado_display()}.")
-            except ValidationError as err:
-                mensaje = "; ".join(err.messages) if hasattr(err, "messages") else str(err)
-                messages.error(request, f"No fue posible cambiar el estado: {mensaje}")
+            messages.success(request, f"Estado actualizado a {compra.get_estado_display()}.")
+        except (ValidationError, ValueError) as err:
+            mensaje = "; ".join(err.messages) if hasattr(err, "messages") else str(err)
+            messages.error(request, f"No fue posible cambiar el estado: {mensaje}")
         return redirect("compras:detalle_compra", id=compra.id_compra)
     return redirect("compras:lista_compras")
 
@@ -374,7 +437,7 @@ def crear_proveedor(request):
                 f"Proveedor creado: {proveedor.nombre_empresa}",
             )
             messages.success(request, "Proveedor registrado con éxito.")
-            return redirect("compras:catalogo_proveedor", codigo_proveedor=proveedor.codigo_proveedor)
+            return redirect("compras:perfil_proveedor", codigo_proveedor=proveedor.codigo_proveedor)
         logger.warning("[PROVEEDOR_FORM_ERROR] Errores al registrar proveedor: %s | Data: %s", form.errors.as_json(), dict(data))
         messages.error(request, "Revisa los datos del proveedor e inténtalo nuevamente.")
         return render(
@@ -435,15 +498,16 @@ def editar_proveedor(request, codigo_proveedor):
 def perfil_proveedor(request, codigo_proveedor):
     proveedor = get_object_or_404(Proveedor, codigo_proveedor=codigo_proveedor)
 
+    detalles_base = DetalleCompra.objects.filter(compra__proveedor=proveedor)
     detalles_compra = list(
-        DetalleCompra.objects.filter(compra__proveedor=proveedor)
+        detalles_base
         .select_related("compra", "material", "material__unidad_medida")
         .order_by("-compra__fecha_compra", "-id_detalle_compra")
     )
 
-    compras_validas = Compra.objects.filter(proveedor=proveedor).exclude(estado="cancelada")
+    compras_validas = Compra.objects.filter(proveedor=proveedor, estado="recibida")
     total_comprado = sum((c.total_compra or Decimal("0") for c in compras_validas), Decimal("0"))
-    total_entradas = len(detalles_compra)
+    total_entradas = compras_validas.count()
     ultima_compra = (
         compras_validas.order_by("-fecha_compra").values_list("fecha_compra", flat=True).first()
     )
@@ -452,23 +516,45 @@ def perfil_proveedor(request, codigo_proveedor):
     if detalles_compra:
         conteo_materiales = {}
         for det in detalles_compra:
-            nombre_mat = det.material.nombre
+            nombre_mat = det.material_nombre or det.material.nombre
             conteo_materiales[nombre_mat] = conteo_materiales.get(nombre_mat, 0) + int(
                 det.cantidad or 0
             )
         if conteo_materiales:
             material_frecuente = max(conteo_materiales.items(), key=lambda x: x[1])[0]
 
+    fecha_desde = request.GET.get("fecha_desde", "").strip()
+    fecha_hasta = request.GET.get("fecha_hasta", "").strip()
+    filtro_material = request.GET.get("material", "").strip()
+    factura = request.GET.get("factura", "").strip()
+    detalles_filtrados = detalles_base
+    if fecha_desde:
+        detalles_filtrados = detalles_filtrados.filter(compra__fecha_compra__date__gte=fecha_desde)
+    if fecha_hasta:
+        detalles_filtrados = detalles_filtrados.filter(compra__fecha_compra__date__lte=fecha_hasta)
+    if filtro_material:
+        detalles_filtrados = detalles_filtrados.filter(
+            Q(material_nombre__icontains=filtro_material) | Q(material__nombre__icontains=filtro_material)
+        )
+    if factura:
+        filtros_factura = Q(compra__numero_factura__icontains=factura)
+        if factura.isdigit():
+            filtros_factura |= Q(compra__id_compra=int(factura))
+        detalles_filtrados = detalles_filtrados.filter(filtros_factura)
+
     return render(
         request,
         "compras/proveedor_perfil.html",
         {
             "proveedor": proveedor,
-            "historial_compras": detalles_compra,
+            "historial_compras": detalles_filtrados.select_related("compra", "material", "material__unidad_medida").order_by("-compra__fecha_compra"),
             "total_comprado": total_comprado,
             "total_entradas": total_entradas,
             "ultima_compra": ultima_compra,
             "material_frecuente": material_frecuente,
+            "materiales_asociados": proveedor.materiales_ofertados.select_related("material", "material__unidad_medida"),
+            "materiales_suministrados": sorted({d.material_nombre or d.material.nombre for d in detalles_compra}),
+            "filtros_historial": {"fecha_desde": fecha_desde, "fecha_hasta": fecha_hasta, "material": filtro_material, "factura": factura},
         },
     )
 
@@ -480,71 +566,19 @@ def catalogo_proveedor(request, codigo_proveedor):
         formset = ProveedorMaterialFormSet(request.POST, instance=proveedor, prefix="catalogo")
         if formset.is_valid():
             db_alias = router.db_for_write(ProveedorMaterial)
-            entradas = []
             with transaction.atomic(using=db_alias):
                 formset.save()
-                for material_form in formset.forms:
-                    datos = getattr(material_form, "cleaned_data", {})
-                    cantidad = datos.get("cantidad_recibida")
-                    oferta = material_form.instance
-                    if datos.get("DELETE") or not oferta.pk:
-                        continue
-
-                    material = MaterialConstruccion.objects.using(db_alias).get(pk=oferta.material_id)
-                    if material.precio_referencia != oferta.precio_actual:
-                        material.precio_referencia = oferta.precio_actual
-                        material.save(using=db_alias, update_fields=["precio_referencia"])
-                    if not cantidad:
-                        continue
-                    referencia = datos.get("referencia_proveedor") or ""
-                    observaciones = datos.get("observaciones") or ""
-                    motivo = (
-                        f"Entrada física de proveedor {proveedor.nombre_empresa}; "
-                        f"precio unitario {oferta.precio_actual}; referencia {referencia}; {observaciones}"
-                    ).strip(" ;")
-                    movimiento = KardexService.registrar_movimiento(
-                        material_id=material.pk,
-                        tipo="entrada",
-                        cantidad=cantidad,
-                        observacion=motivo,
-                        usuario=request.user,
-                        using=db_alias,
-                    )
-                    entradas.append((material.nombre, cantidad, movimiento.material.stock_info.cantidad_actual))
-
-            if entradas:
-                resumen = ", ".join(f"{nombre}: +{cantidad} (stock {stock})" for nombre, cantidad, stock in entradas)
-                messages.success(request, f"Entrada registrada y catálogo actualizado. {resumen}")
-                registrar_actividad(
-                    request,
-                    "crear",
-                    "inventario",
-                    proveedor.codigo_proveedor,
-                    f"Entrada física del proveedor {proveedor.nombre_empresa}: {resumen}",
-                )
-            else:
-                messages.warning(
-                    request,
-                    "No se registró ninguna entrada y el inventario no cambió. "
-                    "Indica la cantidad recibida en al menos un producto antes de registrar.",
-                )
-            return redirect("compras:catalogo_proveedor", codigo_proveedor=proveedor.codigo_proveedor)
-        logger.warning(
-            "[ENTRADA_INVENTARIO_INVALIDA] Proveedor %s: %s",
-            proveedor.codigo_proveedor,
-            formset.errors.as_json(),
-        )
-        messages.error(request, "Revisa los materiales y precios indicados.")
+            registrar_actividad(
+                request, "editar", "proveedores", proveedor.nit,
+                f"Catálogo de materiales actualizado para {proveedor.nombre_empresa}",
+            )
+            messages.success(request, "Catálogo del proveedor actualizado. El inventario no fue modificado.")
+            return redirect("compras:perfil_proveedor", codigo_proveedor=proveedor.codigo_proveedor)
+        messages.error(request, "Revisa los materiales y precios de compra ofertados.")
     else:
         formset = ProveedorMaterialFormSet(instance=proveedor, prefix="catalogo")
-    catalogo = proveedor.materiales_ofertados.select_related(
-        "material", "material__unidad_medida"
-    ).order_by("material__nombre")
-    return render(request, "compras/proveedor_catalogo.html", {
-        "proveedor": proveedor,
-        "formset": formset,
-        "catalogo": catalogo,
-    })
+    catalogo = proveedor.materiales_ofertados.select_related("material", "material__unidad_medida").order_by("material__nombre")
+    return render(request, "compras/proveedor_catalogo.html", {"proveedor": proveedor, "formset": formset, "catalogo": catalogo})
 
 
 @admin_required

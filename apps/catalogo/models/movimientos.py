@@ -24,6 +24,8 @@ class MovimientoInventario(models.Model):
     cantidad = models.PositiveIntegerField(
         validators=[MinValueValidator(1, message="La cantidad mínima es 1.")]
     )
+    stock_anterior = models.PositiveIntegerField(null=True, blank=True)
+    stock_posterior = models.PositiveIntegerField(null=True, blank=True)
     fecha_movimiento = models.DateTimeField(default=now)
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="movimientos"

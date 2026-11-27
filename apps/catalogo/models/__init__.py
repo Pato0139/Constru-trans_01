@@ -201,10 +201,11 @@ class HistorialPrecioMaterial(models.Model):
         return f"{self.material.nombre} - {self.fecha_cambio.strftime('%d/%m/%Y')}"
 
     def save(self, *args, **kwargs):
+        fecha = self.fecha_cambio or timezone.now()
         if not self.mes:
-            self.mes = self.fecha_cambio.month
+            self.mes = fecha.month
         if not self.año:
-            self.año = self.fecha_cambio.year
+            self.año = fecha.year
         super().save(*args, **kwargs)
 
 

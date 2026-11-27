@@ -8,6 +8,7 @@ urlpatterns = [
     # Compras
     path("", views.lista_compras, name="lista_compras"),
     path("crear/", views.crear_compra, name="crear_compra"),
+    path("entradas/", views.lista_compras, name="lista_entradas"),
     path("detalle/<int:id>/", views.detalle_compra, name="detalle_compra"),
     path("editar/<int:id>/", views.editar_compra, name="editar_compra"),
     path("estado/<int:id>/", views.cambiar_estado_compra, name="cambiar_estado_compra"),

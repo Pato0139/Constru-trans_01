@@ -401,6 +401,7 @@ class KardexService:
                 .using(db_alias)
                 .get_or_create(material=material, defaults={"cantidad_actual": 0})
             )
+            stock_anterior = stock.cantidad_actual
 
             if tipo == "entrada":
                 stock.cantidad_actual += cantidad
@@ -432,6 +433,8 @@ class KardexService:
                 usuario=usuario,
                 compra_id=compra_id,
                 pedido_id=pedido_id,
+                stock_anterior=stock_anterior,
+                stock_posterior=stock.cantidad_actual,
             )
 
     @classmethod

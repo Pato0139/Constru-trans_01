@@ -36,7 +36,7 @@
                 aria-label="Ver notificaciones" title="Ver notificaciones">
                 <i class="bi bi-bell fs-5 opacity-75"></i>
                 <span id="navbarNotifBadge"
-                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger px-1 d-flex align-items-center justify-content-center navbar-notif-badge {% if not notif_unread_count %}d-none{% endif %}">
+                    class="badge rounded-pill bg-danger navbar-notif-badge {% if not notif_unread_count %}d-none{% endif %}">
                     {% if notif_unread_count > 99 %}99+{% else %}{{ notif_unread_count|default:0 }}{% endif %}
                 </span>
             </button>

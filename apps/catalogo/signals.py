@@ -10,12 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 @receiver(pre_save, sender=MaterialConstruccion)
-def registrar_cambio_precio(sender, instance, **kwargs):
+def registrar_cambio_precio(sender, instance, using=None, **kwargs):
     if instance.pk:
+        db = using or instance._state.db or "default"
         try:
-            material_anterior = MaterialConstruccion.objects.get(pk=instance.pk)
+            material_anterior = MaterialConstruccion.objects.using(db).get(pk=instance.pk)
             if material_anterior.precio_referencia != instance.precio_referencia:
-                HistorialPrecioMaterial.objects.create(
+                HistorialPrecioMaterial.objects.using(db).create(
                     material=instance,
                     precio_anterior=material_anterior.precio_referencia,
                     precio_nuevo=instance.precio_referencia,

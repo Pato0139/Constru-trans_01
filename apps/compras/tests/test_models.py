@@ -98,7 +98,8 @@ class ComprasModelsTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, reverse("compras:editar_compra", args=[compra.id_compra]))
+        # Las compras confirmadas se conservan; cualquier corrección requiere anulación.
+        self.assertNotContains(response, reverse("compras:editar_compra", args=[compra.id_compra]))
         self.assertContains(
             response,
             reverse("compras:cambiar_estado_compra", args=[compra.id_compra]),

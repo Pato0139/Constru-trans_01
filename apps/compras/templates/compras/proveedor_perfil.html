@@ -138,13 +138,16 @@
             </a>
             {% if proveedor.activo %}
             <a href="{% url 'compras:catalogo_proveedor' proveedor.codigo_proveedor %}"
-                class="btn btn-premium btn-premium-gold rounded-pill px-3 fw-bold">
-                <i class="bi bi-box-arrow-in-down me-1"></i>Registrar entrada
+                class="btn btn-outline-info rounded-pill px-3">
+                <i class="bi bi-box-seam me-1"></i>Registrar materiales</a>
+            <a href="{% url 'compras:crear_compra' %}?proveedor={{ proveedor.pk }}" class="btn btn-warning rounded-pill px-3">
+                <i class="bi bi-box-arrow-in-down me-1"></i>Registrar entrada de material
             </a>
             {% endif %}
         </div>
     </header>
 
+    <section class="supplier-panel mb-4"><div class="supplier-panel__header">Materiales asociados</div><div class="p-3 d-flex flex-wrap gap-2">{% for relacion in materiales_asociados %}<span class="badge bg-secondary">{{ relacion.material.nombre }}{% if not relacion.activo %} · Inactivo{% endif %}</span>{% empty %}<p>Registra primero los materiales que suministra este proveedor.</p>{% endfor %}</div></section>
     <!-- Tarjetas resumen de compras al proveedor -->
     <div class="supplier-kpi-grid">
         <div class="supplier-kpi-card">
@@ -200,8 +203,7 @@
                 </div>
                 <div>
                     <dt>Estado</dt>
-                    <dd>{% if proveedor.activo %}<span class="supplier-status supplier-status--active">Activo</span>{%
-                        else %}<span class="supplier-status supplier-status--inactive">Inactivo</span>{% endif %}</dd>
+                    <dd>{% if proveedor.activo %}<span class="supplier-status supplier-status--active">Activo</span>{% else %}<span class="supplier-status supplier-status--inactive">Inactivo</span>{% endif %}</dd>
                 </div>
             </dl>
         </aside>
@@ -220,7 +222,7 @@
                             <th>Material / Detalle</th>
                             <th>Cantidad</th>
                             <th>Valor unit.</th>
-                            <th>Total</th>
+                            <th>Subtotal</th><th>Total entrada / Factura</th>
                             <th>Estado</th>
                         </tr>
                     </thead>
@@ -232,24 +234,23 @@
                                 <a href="{% url 'compras:detalle_compra' item.compra.id_compra %}"
                                     class="supplier-tx-ref text-decoration-none">{{ item.compra.numero_orden }}</a>
                             </td>
-                            <td class="fw-semibold">{{ item.material.nombre }}</td>
-                            <td>{{ item.cantidad }} {{ item.material.unidad_medida.abreviatura|default:"Und" }}</td>
+                            <td class="fw-semibold">{{ item.material_nombre|default:item.material.nombre }}</td>
+                            <td>{{ item.cantidad }} {{ item.unidad_medida_abreviatura|default:item.material.unidad_medida.abreviatura }}</td>
                             <td>${{ item.precio_unitario|currency }}</td>
-                            <td class="fw-bold">${{ item.subtotal|currency }}</td>
+                            <td class="fw-bold">${{ item.subtotal|currency }}</td><td>${{ item.compra.total_compra|currency }}<br>{{ item.compra.numero_factura|default:"Sin factura" }}</td>
                             <td>
                                 {% if item.compra.estado == 'recibida' %}
                                 <span class="supplier-status supplier-status--active">Recibido</span>
                                 {% elif item.compra.estado == 'pendiente' %}
                                 <span class="badge bg-warning text-dark rounded-pill px-2">Pendiente</span>
                                 {% else %}
-                                <span class="supplier-status supplier-status--inactive">{{
-                                    item.compra.get_estado_display }}</span>
+                                <span class="supplier-status supplier-status--inactive">{{ item.compra.get_estado_display }}</span>
                                 {% endif %}
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="supplier-empty-row">Aún no se han registrado compras o entradas a
+                            <td colspan="7" class="supplier-empty-row">Aún no se han registrado compras o entradas a
                                 este proveedor.</td>
                         </tr>
                         {% endfor %}

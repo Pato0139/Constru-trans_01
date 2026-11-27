@@ -80,6 +80,7 @@ window.AppPageLifecycle.onPageLoad(() => {
     stockCell.dataset.unit = selectedOption?.dataset.unit || 'unidades';
     const stockValue = stockCell.querySelector('.supplier-stock-value');
     if (stockValue) stockValue.textContent = new Intl.NumberFormat('es-CO').format(stock);
+
     refreshStockPreview(row);
   }
 

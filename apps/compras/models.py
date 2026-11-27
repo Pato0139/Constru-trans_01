@@ -1,5 +1,7 @@
 from decimal import Decimal
+import uuid
 
+from django.utils import timezone
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -80,13 +82,16 @@ class Compra(TransicionMixin, models.Model):
     ESTADO_CAMPO = "estado"
     TRANSICIONES = {
         "pendiente": ["recibida", "cancelada"],
-        "recibida": [],
+        "recibida": ["cancelada"],
         "cancelada": [],
     }
 
     id_compra = models.AutoField(primary_key=True)
     proveedor = models.ForeignKey(Proveedor, on_delete=models.PROTECT, db_column="codigo_proveedor")
-    fecha_compra = models.DateTimeField(auto_now_add=True)
+    fecha_compra = models.DateTimeField(default=timezone.now)
+    numero_factura = models.CharField(max_length=100, blank=True)
+    clave_idempotencia = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    motivo_anulacion = models.TextField(blank=True, default="", validators=[texto_multilinea])
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
     impuesto = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
     impuesto_porcentaje = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=porcentaje_validators)
@@ -134,8 +139,13 @@ class Compra(TransicionMixin, models.Model):
         return f"{self.numero_orden} - {self.proveedor.nombre_empresa}"
 
     @property
+    def numero_entrada(self):
+        return f"ENT-{self.fecha_compra.year}-{self.id_compra:04d}"
+
+    @property
     def numero_orden(self):
-        return f"OC-{self.fecha_compra.year}-{self.id_compra:04d}"
+        # Alias de compatibilidad con las plantillas antiguas del módulo.
+        return self.numero_entrada
 
     def clean(self):
         super().clean()
@@ -217,6 +227,10 @@ class DetalleCompra(models.Model):
     )
     cantidad = models.PositiveIntegerField(validators=cantidad_validators)
     precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, validators=[monto_positivo])
+    material_nombre = models.CharField(max_length=100, blank=True, default="")
+    unidad_medida_nombre = models.CharField(max_length=50, blank=True, default="")
+    unidad_medida_abreviatura = models.CharField(max_length=10, blank=True, default="")
+    precio_venta_unitario = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[no_negativo])
 
     class Meta:
@@ -253,6 +267,14 @@ class DetalleCompra(models.Model):
     def save(self, *args, **kwargs):
         using = kwargs.get("using", self._state.db)
         self.full_clean()
+        if self.material_id:
+            material = self.material
+            if not self.material_nombre:
+                self.material_nombre = material.nombre
+            if not self.unidad_medida_nombre and material.unidad_medida_id:
+                self.unidad_medida_nombre = material.unidad_medida.nombre
+            if not self.unidad_medida_abreviatura and material.unidad_medida_id:
+                self.unidad_medida_abreviatura = material.unidad_medida.abreviatura
         self.subtotal = Decimal(self.cantidad) * Decimal(str(self.precio_unitario))
         super().save(*args, **kwargs)
         self.compra.calcular_total(using=using)

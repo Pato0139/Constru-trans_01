@@ -8,6 +8,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         from django.conf import settings
 
+        parser.add_argument("--restablecer-accesos", action="store_true", help="Activa y restablece la contraseña de las tres cuentas de acceso demo.")
         parser.add_argument(
             "--database",
             choices=tuple(settings.DATABASES),
@@ -22,6 +23,25 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.NOTICE("Cargando usuarios, inventario y pedidos de demo..."))
         call_command("seed_data", database=database, stdout=self.stdout)
+
+        if options.get("restablecer_accesos"):
+            from django.db import transaction
+            from apps.usuarios.models import Usuario, Conductor
+            from .seed_data import DEFAULT_PASSWORD
+
+            with transaction.atomic(using=database):
+                for username, rol in (("Edward_Fonseca", "admin"), ("carlos_chofer", "conductor"), ("constructora_alfa", "cliente")):
+                    usuario = Usuario.objects.using(database).get(username=username)
+                    usuario.rol = rol
+                    usuario.estado = "activo"
+                    usuario.is_active = True
+                    usuario.set_password(DEFAULT_PASSWORD)
+                    usuario.save(using=database)
+                    if rol == "conductor":
+                        perfil, _ = Conductor.ensure_for_user(usuario, using=database)
+                        perfil.estado = "activo"
+                        perfil.save(using=database)
+                    self.stdout.write(f"Acceso {rol}: {username} / {DEFAULT_PASSWORD}")
 
         self.stdout.write(
             self.style.SUCCESS(

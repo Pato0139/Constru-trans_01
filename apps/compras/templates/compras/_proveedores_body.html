@@ -46,9 +46,9 @@
                 <i class="bi bi-eye"></i>
             </a>
             <!-- Gestionar el catálogo ofrecido -->
-            <a href="{% url 'compras:catalogo_proveedor' p.codigo_proveedor %}"
+            <a href="{% url 'compras:crear_compra' %}?proveedor={{ p.codigo_proveedor }}"
                class="btn btn-sm btn-outline-warning rounded-pill px-3"
-               title="Registrar entrada y actualizar catálogo">
+               title="Gestionar catálogo ofrecido">
                 <i class="bi bi-box-arrow-in-down"></i>
             </a>
             <!-- Toggle Estado Habilitar/Inhabilitar -->

@@ -424,6 +424,25 @@ main > .container-fluid > .row p.text-muted {
   vertical-align: middle !important;
 }
 
+/* Estados vacíos en tablas: siempre centrados globalmente */
+.table-container table.table td[colspan],
+.table-responsive > table.table td[colspan],
+#tablaMateriales td[colspan],
+.table-container table.table td.dataTables_empty,
+.table-responsive > table.table td.dataTables_empty {
+  text-align: center !important;
+  text-align-last: center !important;
+}
+
+.table-container table.table td[colspan] > *,
+.table-responsive > table.table td[colspan] > *,
+#tablaMateriales td[colspan] > * {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center !important;
+  text-align-last: center !important;
+}
+
 .table-container table.table td .d-flex,
 .table-responsive > table.table td .d-flex,
 #tablaMateriales td .d-flex {

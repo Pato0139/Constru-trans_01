@@ -1,6 +1,9 @@
 # Comando seed: AUTH_USER_MODEL = usuarios.Usuario (NO usar django.contrib.auth.models.User)
 
 from datetime import date, timedelta
+from decimal import Decimal
+from uuid import uuid5, NAMESPACE_URL
+from django.db import transaction
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -10,7 +13,8 @@ from django.utils import timezone
 from apps.catalogo.models import MaterialConstruccion, Stock
 from apps.catalogo.models.movimientos import MovimientoInventario
 from apps.clientes.models import Cliente, crear_perfil_cliente
-from apps.compras.models import Proveedor
+from apps.compras.models import Proveedor, ProveedorMaterial, Compra, DetalleCompra
+from apps.catalogo.services import KardexService
 from apps.logistica.models import ConductorVehiculo, Entrega, Vehiculo
 from apps.pedidos.models import DetallePedido, Pedido
 from apps.pagos.models import Pago
@@ -157,11 +161,16 @@ class Command(BaseCommand):
             },
         ]
 
+        ciudades_demo = ["Tunja", "Duitama", "Sogamoso", "Paipa"]
+        for i, nombre in enumerate(["Cementos del Altiplano", "Ladrillera Boyacá", "Ferreaceros Central", "Agregados del Norte", "Maderas Andinas", "Pinturas del Valle", "Tuberías Oriente", "Construinsumos Paipa"], 1):
+            proveedores_data.append({"nombre_empresa": nombre, "nit": f"990100{i:03d}", "telefono": f"310800{i:04d}", "correo": f"proveedor{i}@demo.example", "direccion": f"Calle {i + 10} # 12-30", "ciudad": ciudades_demo[i % 4], "descripcion": "Proveedor de demostración"})
+        proveedores_demo = []
         for p_data in proveedores_data:
             prov, created = Proveedor.objects.using(db_alias).get_or_create(
                 nit=p_data["nit"],
                 defaults=p_data,
             )
+            proveedores_demo.append(prov)
             if created:
                 self.stdout.write(f"Proveedor creado: {prov.nombre_empresa}")
 
@@ -198,6 +207,17 @@ class Command(BaseCommand):
                 "descripcion": "Ladrillo de arcilla cocida",
             },
         ]
+
+        for nombre, unidad, precio in [
+            ("Ladrillo común", "Unidad", 900), ("Bloque de concreto", "Unidad", 3500),
+            ("Cemento blanco 25kg", "Bulto", 48000), ("Mortero listo 40kg", "Bulto", 22000),
+            ("Cal hidratada 25kg", "Bulto", 18000), ("Arena lavada", "m3", 95000),
+            ("Piedra triturada", "m3", 110000), ("Malla electrosoldada", "Unidad", 85000),
+            ("Alambre recocido", "Kg", 7500), ("Clavos para madera", "Kg", 9000),
+            ("Tubo PVC sanitario", "Unidad", 38000), ("Codo PVC sanitario", "Unidad", 6500),
+            ("Tabla de formaleta", "Unidad", 32000), ("Pintura blanca interior", "Galón", 65000),
+            ("Impermeabilizante", "Galón", 78000)]:
+            materiales_data.append({"nombre": nombre, "unidad_medida": unidad, "precio_referencia": precio, "descripcion": "Material de demostración para construcción"})
 
         mats = []
         for m_data in materiales_data:
@@ -254,6 +274,8 @@ class Command(BaseCommand):
             },
         ]
 
+        for i, (nombre, apellido) in enumerate([("Jorge", "Ramírez"), ("Diego", "Moreno"), ("Ana", "Castro"), ("Felipe", "Rojas"), ("Marta", "López"), ("Camilo", "Díaz"), ("Oscar", "Vargas")], 1):
+            conductores_data.append({"username": f"demo_conductor_{i:02d}", "email": f"conductor{i}@demo.example", "nombres": nombre, "apellidos": apellido, "doc": f"990200{i:03d}", "placa": f"DMT{100+i}", "marca": ["Chevrolet", "Hino", "Isuzu"][i % 3], "modelo": str(2020 + i % 5), "tipo": "Camión" if i % 2 else "Volqueta", "capacidad": [5, 10, 15][i % 3]})
         conductores_creados = []
         vehiculos_creados = []
         for c_data in conductores_data:
@@ -281,7 +303,8 @@ class Command(BaseCommand):
                 },
             )
 
-            vehiculo, _ = Vehiculo.objects.using(db_alias).get_or_create(
+            cond_profile.usuario = p_cond
+            vehiculo, vehiculo_creado = Vehiculo.objects.using(db_alias).get_or_create(
                 placa=c_data["placa"],
                 defaults={
                     "marca": c_data["marca"],
@@ -293,10 +316,8 @@ class Command(BaseCommand):
             )
             vehiculos_creados.append(vehiculo)
 
-            ConductorVehiculo.objects.using(db_alias).get_or_create(
-                conductor=cond_profile,
-                vehiculo=vehiculo,
-            )
+            if vehiculo_creado:
+                ConductorVehiculo.objects.using(db_alias).create(conductor=cond_profile, vehiculo=vehiculo)
 
             conductores_creados.append(cond_profile)
             self.stdout.write(f"Conductor {p_cond.nombres} y Vehiculo {c_data['placa']} listos.")
@@ -329,7 +350,9 @@ class Command(BaseCommand):
             },
         ]
 
-        for cl_data in clientes_data:
+        for i in range(1, 18):
+            clientes_data.append({"username": f"demo_cliente_{i:02d}", "email": f"cliente{i}@demo.example", "nombres": ["Laura", "Miguel", "Sandra", "Daniel", "Paula"][i % 5], "apellidos": ["Gómez", "Martínez", "Sánchez", "Pérez"][i % 4], "doc": f"990300{i:03d}", "empresa": f"Constructora Demo {i:02d}"})
+        for cliente_indice, cl_data in enumerate(clientes_data):
             p_cl, created = self._ensure_usuario(
                 db_alias,
                 username=cl_data["username"],
@@ -380,7 +403,7 @@ class Command(BaseCommand):
                     estado=estado_p,
                 )
 
-                for mat in mats[:3]:
+                for mat in [mats[(cliente_indice * 3 + j) % len(mats)] for j in range(3)]:
                     cantidad = 20 + (idx * 10)
                     DetallePedido.objects.using(db_alias).create(
                         pedido=pedido,
@@ -404,13 +427,13 @@ class Command(BaseCommand):
                 )
 
                 if estado_p != "pendiente" and conductores_creados and vehiculos_creados:
-                    conductor_idx = idx % len(conductores_creados)
+                    conductor_idx = cliente_indice % len(conductores_creados)
                     entrega = Entrega.objects.using(db_alias).create(
                         pedido=pedido,
                         conductor=conductores_creados[conductor_idx],
                         vehiculo=vehiculos_creados[conductor_idx],
                         direccion_entrega=pedido.direccion_destino,
-                        estado="pendiente" if estado_p == "en_ruta" else "entregado",
+                        estado="en_ruta" if estado_p == "en_ruta" else "entregado",
                         fecha_salida=timezone.now(),
                     )
                     if estado_p == "entregado":
@@ -440,6 +463,30 @@ class Command(BaseCommand):
                 )
                 self.stdout.write(f"Movimiento de entrada creado para: {mat.nombre}")
 
+        # Entradas históricas identificadas con claves estables: repetir no suma stock.
+        for i, proveedor in enumerate(proveedores_demo):
+            asociados = [mats[(i * 2 + j) % len(mats)] for j in range(6)]
+            for material in asociados:
+                ProveedorMaterial.objects.using(db_alias).get_or_create(
+                    proveedor=proveedor, material=material,
+                    defaults={"precio_actual": (material.precio_referencia * Decimal("0.75")).quantize(Decimal("0.01")), "activo": True},
+                )
+            for lote in range(3):
+                clave = uuid5(NAMESPACE_URL, f"construtrans/demo/entrada/{proveedor.nit}/{lote}")
+                if Compra.objects.using(db_alias).filter(clave_idempotencia=clave).exists():
+                    continue
+                compra = Compra.objects.using(db_alias).create(
+                    proveedor=proveedor, usuario=admin_user, estado="recibida",
+                    clave_idempotencia=clave, numero_factura=f"DEMO-{i+1:02d}-{lote+1:02d}",
+                    fecha_compra=timezone.now()-timedelta(days=30-i-lote*3), observaciones="Entrada de demostración",
+                )
+                for material in asociados[lote:lote+3]:
+                    detalle = DetalleCompra.objects.using(db_alias).create(
+                        compra=compra, material=material, cantidad=100 + lote*50,
+                        precio_unitario=(material.precio_referencia * Decimal("0.75")).quantize(Decimal("0.01")),
+                        precio_venta_unitario=material.precio_referencia,
+                    )
+                    KardexService.registrar_movimiento(material_id=material.pk, tipo="entrada", cantidad=detalle.cantidad, usuario=admin_user, compra_id=compra.pk, observacion="Recepción de demostración", using=db_alias)
         self.stdout.write(self.style.SUCCESS("\nDatos de prueba generados exitosamente!"))
         self.stdout.write("\nCredenciales de acceso:")
         self.stdout.write(f"- Admin: Edward_Fonseca / {DEFAULT_PASSWORD}")
@@ -458,7 +505,8 @@ class Command(BaseCommand):
         try:
             db_aliases = [options["database"]] if options.get("database") else self._databases_to_seed()
             for db_alias in db_aliases:
-                self._seed_database(db_alias, force_pedidos=force_pedidos)
+                with transaction.atomic(using=db_alias):
+                    self._seed_database(db_alias, force_pedidos=force_pedidos)
         finally:
             post_save.connect(crear_perfil_cliente, sender=Usuario)
 
