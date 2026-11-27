@@ -1,3 +1,4 @@
+
 :root {
     --font-main: 'Plus Jakarta Sans', sans-serif;
 }
@@ -27,7 +28,6 @@
 
 /* Desktop (>= 992px): navbar a la derecha del sidebar */
 @media (min-width: 992px) {
-
     .app-navbar,
     .app-topbar,
     .navbar-premium {
@@ -43,7 +43,6 @@
 
 /* Mobile (<= 991px): navbar ocupa todo el ancho */
 @media (max-width: 991.98px) {
-
     .app-navbar,
     .app-topbar,
     .navbar-premium {
@@ -59,8 +58,7 @@
 
 /* --- MOBILE FIRST BASE STYLES --- */
 html {
-    font-size: 14px;
-    /* Tamaño de fuente para móviles */
+    font-size: 14px; /* Tamaño de fuente para móviles */
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
     height: 100%;
@@ -68,15 +66,13 @@ html {
 
 @media (min-width: 768px) {
     html {
-        font-size: 15px;
-        /* Tamaño de fuente para tablet */
+        font-size: 15px; /* Tamaño de fuente para tablet */
     }
 }
 
 @media (min-width: 992px) {
     html {
-        font-size: 16px;
-        /* Tamaño de fuente para escritorio */
+        font-size: 16px; /* Tamaño de fuente para escritorio */
     }
 }
 
@@ -85,8 +81,7 @@ body {
     color: var(--color-text);
     font-family: var(--font-main);
     letter-spacing: -0.01em;
-    overflow: hidden;
-    /* el scroll vive en .main-content, no en body */
+    overflow: hidden; /* el scroll vive en .main-content, no en body */
     height: 100%;
 }
 
@@ -104,7 +99,6 @@ body {
 }
 
 @media (min-width: 768px) {
-
     .app-main,
     .main-content.app-main {
         width: calc(100% - var(--app-sidebar-width, 280px)) !important;
@@ -128,7 +122,7 @@ body {
     background: none !important;
 }
 
-.app-main>* {
+.app-main > * {
     position: relative;
     z-index: 1;
 }
@@ -151,7 +145,6 @@ body {
     align-items: center !important;
     justify-content: space-between !important;
 }
-
 [data-theme="dark"] .app-navbar,
 [data-theme="dark"] .app-topbar,
 [data-theme="accessibility"] .app-navbar,
@@ -330,25 +323,11 @@ body {
     border: 1px solid transparent;
 }
 
-.sidebar-section--ventas {
-    border-left: 3px solid #f59e0b;
-}
-
-.sidebar-section--inventario {
-    border-left: 3px solid #f59e0b;
-}
-
-.sidebar-section--compras {
-    border-left: 3px solid #f59e0b;
-}
-
-.sidebar-section--entregas {
-    border-left: 3px solid #f59e0b;
-}
-
-.sidebar-section--admin {
-    border-left: 3px solid #f59e0b;
-}
+.sidebar-section--ventas { border-left: 3px solid #f59e0b; }
+.sidebar-section--inventario { border-left: 3px solid #f59e0b; }
+.sidebar-section--compras { border-left: 3px solid #f59e0b; }
+.sidebar-section--entregas { border-left: 3px solid #f59e0b; }
+.sidebar-section--admin { border-left: 3px solid #f59e0b; }
 
 .nav-icon-wrap {
     width: 32px;
@@ -363,53 +342,23 @@ body {
     transition: all 0.2s ease;
 }
 
-.nav-icon-wrap--gold {
-    background: rgba(245, 158, 11, 0.18);
-    color: #f59e0b;
-}
-
-.nav-icon-wrap--blue {
-    background: rgba(245, 158, 11, 0.18);
-    color: #f59e0b;
-}
-
-.nav-icon-wrap--teal {
-    background: rgba(245, 158, 11, 0.18);
-    color: #f59e0b;
-}
-
-.nav-icon-wrap--orange {
-    background: rgba(245, 158, 11, 0.18);
-    color: #f59e0b;
-}
-
-.nav-icon-wrap--green {
-    background: rgba(245, 158, 11, 0.18);
-    color: #f59e0b;
-}
-
-.nav-icon-wrap--purple {
-    background: rgba(245, 158, 11, 0.18);
-    color: #f59e0b;
-}
-
-.nav-icon-wrap--danger {
-    background: rgba(239, 68, 68, 0.18);
-    color: #ef4444;
-}
+.nav-icon-wrap--gold { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
+.nav-icon-wrap--blue { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
+.nav-icon-wrap--teal { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
+.nav-icon-wrap--orange { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
+.nav-icon-wrap--green { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
+.nav-icon-wrap--purple { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
+.nav-icon-wrap--danger { background: rgba(239, 68, 68, 0.18); color: #ef4444; }
 
 .nav-link-premium.active .nav-icon-wrap {
     background: rgba(255, 255, 255, 0.22) !important;
     color: #fff !important;
 }
 
-.sidebar-custom::-webkit-scrollbar {
-    width: 4px;
-}
-
-.sidebar-custom::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 10px;
+.sidebar-custom::-webkit-scrollbar { width: 4px; }
+.sidebar-custom::-webkit-scrollbar-thumb { 
+    background: var(--color-border); 
+    border-radius: 10px; 
 }
 
 @media (max-width: 991.98px) {
@@ -419,9 +368,9 @@ body {
         top: 0;
         height: 100vh;
         z-index: 1200;
-        box-shadow: 5px 0 25px rgba(0, 0, 0, 0.3);
+        box-shadow: 5px 0 25px rgba(0,0,0,0.3);
     }
-
+    
     .sidebar-custom.active {
         left: 0;
     }
@@ -447,7 +396,6 @@ body {
     opacity: 0;
     transition: opacity 0.3s ease;
 }
-
 [data-theme="dark"] .sidebar-overlay,
 [data-theme="accessibility"] .sidebar-overlay {
     backdrop-filter: blur(5px);
@@ -460,7 +408,7 @@ body {
 }
 
 /* --- MAIN CONTENT --- */
-.container-fluid.p-0>.d-flex {
+.container-fluid.p-0 > .d-flex {
     height: 100vh;
     max-height: 100vh;
     overflow: hidden;
@@ -596,8 +544,7 @@ body {
 }
 
 /* --- RESPONSIVE GRIDS & CARDS --- */
-.stat-card,
-.stat-card-ultra {
+.stat-card, .stat-card-ultra {
     background: var(--card-bg);
     border-radius: 20px;
     padding: 1.25rem;
@@ -608,7 +555,6 @@ body {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     margin-bottom: 1rem;
 }
-
 [data-theme="dark"] .stat-card,
 [data-theme="dark"] .stat-card-ultra,
 [data-theme="accessibility"] .stat-card,
@@ -618,33 +564,26 @@ body {
 }
 
 @media (min-width: 576px) {
-
-    .stat-card,
-    .stat-card-ultra {
+    .stat-card, .stat-card-ultra {
         padding: 1.5rem;
         border-radius: 24px;
     }
 }
 
 @media (min-width: 992px) {
-
-    .stat-card,
-    .stat-card-ultra {
+    .stat-card, .stat-card-ultra {
         padding: 1.75rem;
     }
 }
 
-.stat-card:hover,
-.stat-card-ultra:hover {
+.stat-card:hover, .stat-card-ultra:hover {
     transform: translateY(-8px);
     border-color: var(--color-primary);
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1), 0 0 20px var(--glow-primary);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.1), 0 0 20px var(--glow-primary);
 }
 
 @media (max-width: 575.98px) {
-
-    .stat-card:hover,
-    .stat-card-ultra:hover {
+    .stat-card:hover, .stat-card-ultra:hover {
         transform: translateY(-4px);
     }
 }
@@ -716,7 +655,7 @@ body {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
     transition: 0.5s;
     z-index: -1;
 }
@@ -735,7 +674,6 @@ body {
     box-shadow: var(--shadow-panel);
     overflow: visible;
 }
-
 [data-theme="dark"] .table-container,
 [data-theme="accessibility"] .table-container {
     backdrop-filter: blur(15px);
@@ -771,8 +709,8 @@ body {
     background: rgba(255, 255, 255, 0.03);
 }
 
-html body .conductores-list-table>tbody>tr:hover,
-html body .conductores-list-table>tbody>tr:hover>* {
+html body .conductores-list-table > tbody > tr:hover,
+html body .conductores-list-table > tbody > tr:hover > * {
     --bs-table-bg-state: transparent !important;
     background: transparent !important;
     background-color: transparent !important;
@@ -812,8 +750,7 @@ html body .conductores-list-table>tbody>tr:hover>* {
     }
 }
 
-.table tbody td,
-.table tfoot td {
+.table tbody td, .table tfoot td {
     background: transparent !important;
     border-bottom: 1px solid var(--color-border) !important;
     padding: 0.875rem 0.75rem !important;
@@ -822,15 +759,13 @@ html body .conductores-list-table>tbody>tr:hover>* {
 }
 
 @media (min-width: 768px) {
-
-    .table tbody td,
-    .table tfoot td {
+    .table tbody td, .table tfoot td {
         padding: 1.125rem 1rem !important;
     }
 }
 
 .table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02) !important;
+    background: rgba(255,255,255,0.02) !important;
 }
 
 /* --- RESPONSIVE BUTTONS IN TABLES --- */
@@ -962,8 +897,7 @@ html body .conductores-list-table>tbody>tr:hover>* {
     }
 }
 
-.form-control,
-.form-select {
+.form-control, .form-select {
     background: var(--item-bg) !important;
     border: 1px solid var(--color-border) !important;
     border-radius: 10px !important;
@@ -973,9 +907,7 @@ html body .conductores-list-table>tbody>tr:hover>* {
 }
 
 @media (min-width: 768px) {
-
-    .form-control,
-    .form-select {
+    .form-control, .form-select {
         border-radius: 12px !important;
         padding: 0.875rem 1.25rem !important;
     }
@@ -1053,8 +985,7 @@ html body .conductores-list-table>tbody>tr:hover>* {
     }
 }
 
-.modal-body .form-control,
-.modal-body .form-select {
+.modal-body .form-control, .modal-body .form-select {
     background-color: var(--color-bg) !important;
     border: 1px solid var(--color-border) !important;
     color: var(--color-text) !important;
@@ -1108,12 +1039,7 @@ img {
 }
 
 /* --- RESPONSIVE TEXT & HEADINGS --- */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
     line-height: 1.2;
     word-wrap: break-word;
 }
@@ -1125,22 +1051,13 @@ h6 {
 }
 
 /* --- TOUCH-FRIENDLY TARGETS --- */
-a,
-button,
-input,
-select,
-textarea {
+a, button, input, select, textarea {
     min-height: 44px;
     min-width: 44px;
 }
 
 @media (min-width: 768px) {
-
-    a,
-    button,
-    input,
-    select,
-    textarea {
+    a, button, input, select, textarea {
         min-height: auto;
         min-width: auto;
     }
@@ -1222,17 +1139,9 @@ textarea {
 
 /* --- STOCK PULSE ANIMATION --- */
 @keyframes pulse-red {
-    0% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-    }
-
-    70% {
-        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-    }
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
 .stock-critical-pulse {
@@ -1243,13 +1152,8 @@ textarea {
 }
 
 /* --- UTILITY BORDERS --- */
-.border-white-5 {
-    border-color: var(--color-border) !important;
-}
-
-.border-white-10 {
-    border-color: var(--color-border) !important;
-}
+.border-white-5 { border-color: var(--color-border) !important; }
+.border-white-10 { border-color: var(--color-border) !important; }
 
 /* --- BUTTONS --- */
 .btn-primary {
@@ -1466,13 +1370,13 @@ button.nav-link-premium:focus {
     box-shadow: none;
 }
 
-.nav-container::-webkit-scrollbar {
-    width: 4px;
+.nav-container::-webkit-scrollbar { 
+    width: 4px; 
 }
 
-.nav-container::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 10px;
+.nav-container::-webkit-scrollbar-thumb { 
+    background: var(--color-border); 
+    border-radius: 10px; 
 }
 
 /* --- Selector base de datos (Local / Remoto) --- */
@@ -1708,135 +1612,134 @@ button.nav-link-premium:focus {
 
 /* ========================================= 
    PAGINACIÓN PREMIUM OSCURA - DATATABLES (IMPOSIBLE DE SOBREESCRIBIR!)
- ========================================= */
+ ========================================= */ 
 
-/* Override Bootstrap's pagination completely */
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination {
-    display: flex !important;
-    align-items: center !important;
-    gap: 0.5rem !important;
-    margin: 0 !important;
-    padding: 0.75rem 1rem !important;
-    border-radius: 9999px !important;
-    background: var(--color-surface) !important;
-    border: 1px solid var(--color-border) !important;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08) !important;
-}
+ /* Override Bootstrap's pagination completely */
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination { 
+   display: flex !important; 
+   align-items: center !important; 
+   gap: 0.5rem !important; 
+   margin: 0 !important; 
+   padding: 0.75rem 1rem !important; 
+   border-radius: 9999px !important; 
+   background: var(--color-surface) !important; 
+   border: 1px solid var(--color-border) !important; 
+   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08) !important; 
+ }
+ [data-theme="dark"] html body div.dataTables_wrapper div.dataTables_paginate ul.pagination,
+ [data-theme="accessibility"] html body div.dataTables_wrapper div.dataTables_paginate ul.pagination {
+   backdrop-filter: blur(12px) !important; 
+   -webkit-backdrop-filter: blur(12px) !important;
+ } 
 
-[data-theme="dark"] html body div.dataTables_wrapper div.dataTables_paginate ul.pagination,
-[data-theme="accessibility"] html body div.dataTables_wrapper div.dataTables_paginate ul.pagination {
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-}
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item { 
+   margin: 0 !important; 
+ } 
 
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item {
-    margin: 0 !important;
-}
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link,
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link { 
+   min-width: 44px !important; 
+   height: 44px !important; 
+   padding: 0 1rem !important; 
+   border-radius: 14px !important; 
+   border: 1px solid transparent !important; 
+   background-color: transparent !important; 
+   background: transparent !important;
+   color: var(--color-text) !important; 
+   display: inline-flex !important; 
+   align-items: center !important; 
+   justify-content: center !important; 
+   font-weight: 600 !important; 
+   font-size: 0.92rem !important; 
+   line-height: 1 !important; 
+   box-shadow: none !important; 
+   transition: all 0.25s ease !important; 
+ } 
 
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link,
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link {
-    min-width: 44px !important;
-    height: 44px !important;
-    padding: 0 1rem !important;
-    border-radius: 14px !important;
-    border: 1px solid transparent !important;
-    background-color: transparent !important;
-    background: transparent !important;
-    color: var(--color-text) !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-weight: 600 !important;
-    font-size: 0.92rem !important;
-    line-height: 1 !important;
-    box-shadow: none !important;
-    transition: all 0.25s ease !important;
-}
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.previous a.page-link, 
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.next a.page-link,
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.previous span.page-link, 
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.next span.page-link { 
+   padding: 0 1.25rem !important; 
+   min-width: auto !important; 
+ } 
 
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.previous a.page-link,
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.next a.page-link,
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.previous span.page-link,
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.next span.page-link {
-    padding: 0 1.25rem !important;
-    min-width: auto !important;
-}
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link:hover,
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link:hover { 
+   background-color: rgba(255, 255, 255, 0.08) !important; 
+   background: rgba(255, 255, 255, 0.08) !important;
+   border-color: rgba(255, 255, 255, 0.12) !important; 
+   color: var(--color-text) !important; 
+   transform: translateY(-2px) !important; 
+ } 
 
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link:hover,
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link:hover {
-    background-color: rgba(255, 255, 255, 0.08) !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
-    color: var(--color-text) !important;
-    transform: translateY(-2px) !important;
-}
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.active a.page-link,
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.active span.page-link { 
+   background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important; 
+   background-color: #1e40af !important;
+   color: #ffffff !important; 
+   border-color: transparent !important; 
+   box-shadow: 0 10px 24px rgba(30, 64, 175, 0.4) !important; 
+ } 
 
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.active a.page-link,
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.active span.page-link {
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
-    background-color: #1e40af !important;
-    color: #ffffff !important;
-    border-color: transparent !important;
-    box-shadow: 0 10px 24px rgba(30, 64, 175, 0.4) !important;
-}
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled a.page-link,
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled span.page-link { 
+   background-color: rgba(255, 255, 255, 0.05) !important; 
+   background: rgba(255, 255, 255, 0.05) !important;
+   color: var(--color-muted) !important; 
+   border-color: transparent !important; 
+   opacity: 0.75 !important; 
+   cursor: not-allowed !important; 
+ } 
 
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled a.page-link,
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled span.page-link {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: var(--color-muted) !important;
-    border-color: transparent !important;
-    opacity: 0.75 !important;
-    cursor: not-allowed !important;
-}
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled a.page-link:hover,
+ html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled span.page-link:hover { 
+   transform: none !important; 
+   background-color: rgba(255, 255, 255, 0.05) !important; 
+   background: rgba(255, 255, 255, 0.05) !important;
+   color: var(--color-muted) !important; 
+ } 
 
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled a.page-link:hover,
-html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item.disabled span.page-link:hover {
-    transform: none !important;
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: var(--color-muted) !important;
-}
+ /* DataTables info text */
+ html body div.dataTables_wrapper div.dataTables_info { 
+   color: var(--color-muted) !important; 
+   font-size: 0.9rem !important; 
+   font-weight: 500 !important; 
+   padding-top: 0.25rem !important; 
+ } 
 
-/* DataTables info text */
-html body div.dataTables_wrapper div.dataTables_info {
-    color: var(--color-muted) !important;
-    font-size: 0.9rem !important;
-    font-weight: 500 !important;
-    padding-top: 0.25rem !important;
-}
+ /* DataTables length and filter */
+ html body div.dataTables_wrapper div.dataTables_length label, 
+ html body div.dataTables_wrapper div.dataTables_filter label { 
+   color: var(--color-muted) !important; 
+   font-weight: 500 !important; 
+ } 
 
-/* DataTables length and filter */
-html body div.dataTables_wrapper div.dataTables_length label,
-html body div.dataTables_wrapper div.dataTables_filter label {
-    color: var(--color-muted) !important;
-    font-weight: 500 !important;
-}
+ html body div.dataTables_wrapper div.dataTables_length select, 
+ html body div.dataTables_wrapper div.dataTables_filter input { 
+   background-color: var(--color-surface) !important; 
+   color: var(--color-text) !important; 
+   border: 1px solid var(--color-border) !important; 
+   border-radius: 12px !important; 
+ } 
 
-html body div.dataTables_wrapper div.dataTables_length select,
-html body div.dataTables_wrapper div.dataTables_filter input {
-    background-color: var(--color-surface) !important;
-    color: var(--color-text) !important;
-    border: 1px solid var(--color-border) !important;
-    border-radius: 12px !important;
-}
+ html body div.dataTables_wrapper div.dataTables_filter input:focus, 
+ html body div.dataTables_wrapper div.dataTables_length select:focus { 
+   border-color: var(--color-primary) !important; 
+   box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.15) !important; 
+ } 
 
-html body div.dataTables_wrapper div.dataTables_filter input:focus,
-html body div.dataTables_wrapper div.dataTables_length select:focus {
-    border-color: var(--color-primary) !important;
-    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.15) !important;
-}
+ /* Responsive for mobile */
+ @media (max-width: 768px) { 
+   html body div.dataTables_wrapper div.dataTables_paginate ul.pagination { 
+     padding: 0.5rem 0.75rem !important; 
+     gap: 0.35rem !important; 
+   } 
 
-/* Responsive for mobile */
-@media (max-width: 768px) {
-    html body div.dataTables_wrapper div.dataTables_paginate ul.pagination {
-        padding: 0.5rem 0.75rem !important;
-        gap: 0.35rem !important;
-    }
-
-    html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link,
-    html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link {
-        min-width: 40px !important;
-        height: 40px !important;
-        font-size: 0.85rem !important;
-    }
-}
+   html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item a.page-link,
+   html body div.dataTables_wrapper div.dataTables_paginate ul.pagination li.page-item span.page-link { 
+     min-width: 40px !important; 
+     height: 40px !important; 
+     font-size: 0.85rem !important; 
+   } 
+ }
